@@ -22,6 +22,8 @@ import java.util.Set;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
 import org.geotoolkit.wps.xml.v200.Capabilities;
+import org.geotoolkit.wps.xml.v200.Deploy;
+import org.geotoolkit.wps.xml.v200.DeployResult;
 import org.geotoolkit.wps.xml.v200.DescribeProcess;
 import org.geotoolkit.wps.xml.v200.Dismiss;
 import org.geotoolkit.wps.xml.v200.Execute;
@@ -30,6 +32,8 @@ import org.geotoolkit.wps.xml.v200.GetResult;
 import org.geotoolkit.wps.xml.v200.GetStatus;
 import org.geotoolkit.wps.xml.v200.ProcessOfferings;
 import org.geotoolkit.wps.xml.v200.StatusInfo;
+import org.geotoolkit.wps.xml.v200.Undeploy;
+import org.geotoolkit.wps.xml.v200.UndeployResult;
 
 /**
  *
@@ -50,4 +54,8 @@ public interface WPSWorker extends Worker {
     StatusInfo dismiss(Dismiss request) throws CstlServiceException;
 
     Object execute(final Execute request) throws CstlServiceException;
+
+    DeployResult deploy(final Deploy request) throws CstlServiceException;
+
+    UndeployResult undeploy(final Undeploy request) throws CstlServiceException;
 }

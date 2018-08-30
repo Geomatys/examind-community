@@ -125,7 +125,9 @@ public enum AppProperty {
 
     EXA_PROACTIVE_WORKFLOW_DIR("examind.proactive.workflow.dir"),
 
-    EXA_PROCESS_DEPLOY_DIR("examind.process.deploy.dir");
+    EXA_PROCESS_DEPLOY_DIR("examind.process.deploy.dir"),
+
+    EXA_CWL_SHARED_DIR("examind.cwl.shared.dir");
 
     private final String key;
 

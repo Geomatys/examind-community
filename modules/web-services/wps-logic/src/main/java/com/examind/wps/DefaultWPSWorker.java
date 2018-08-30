@@ -25,10 +25,10 @@ import com.examind.wps.api.WPSProcess;
 import com.examind.wps.api.WPSWorker;
 import com.examind.wps.component.GeotkProcess;
 import com.examind.wps.util.SimpleJobExecutor;
-import static com.examind.wps.util.WPSConstants.*;
 import com.examind.wps.util.WPSUtils;
+import com.examind.wps.util.WPSConfigurationUtils;
+
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -51,7 +51,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -73,14 +72,12 @@ import org.constellation.provider.DataProviders;
 import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
-import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STORAGE_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
@@ -96,8 +93,6 @@ import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.util.Exceptions;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.wps.client.WPSVersion;
-import org.geotoolkit.wps.client.WebProcessingClient;
-import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.Capabilities;
@@ -109,6 +104,33 @@ import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.GetCapabilities;
 import org.geotoolkit.wps.xml.v200.GetResult;
 import org.geotoolkit.wps.xml.v200.GetStatus;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Arrays;
+import org.constellation.business.IProcessBusiness;
+import org.constellation.dto.process.Registry;
+import org.constellation.dto.process.RegistryList;
+import org.constellation.exception.ConstellationException;
+import org.constellation.process.ChainProcessRetriever;
+import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
+import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
+import org.geotoolkit.client.CapabilitiesException;
+import org.geotoolkit.gml.xml.Envelope;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.geotoolkit.processing.chain.model.Chain;
+import org.geotoolkit.processing.chain.model.Constant;
+import static org.geotoolkit.processing.chain.model.Element.BEGIN;
+import static org.geotoolkit.processing.chain.model.Element.END;
+import org.geotoolkit.processing.chain.model.ElementProcess;
+import org.geotoolkit.processing.chain.model.Parameter;
+import org.geotoolkit.wps.client.WebProcessingClient;
+import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
+import org.geotoolkit.wps.xml.v200.BoundingBoxData;
+import org.geotoolkit.wps.xml.v200.ComplexData;
+import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
+import org.geotoolkit.wps.xml.v200.Deploy;
+import org.geotoolkit.wps.xml.v200.DeployResult;
+import org.geotoolkit.wps.xml.v200.InputDescription;
 import org.geotoolkit.wps.xml.v200.JobControlOptions;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
 import org.geotoolkit.wps.xml.v200.ProcessOffering;
@@ -123,6 +145,11 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.CodeList;
 import org.opengis.util.NoSuchIdentifierException;
+import org.geotoolkit.wps.xml.v200.LiteralData;
+import org.geotoolkit.wps.xml.v200.OutputDescription;
+import org.geotoolkit.wps.xml.v200.ProcessDescription;
+import org.geotoolkit.wps.xml.v200.Undeploy;
+import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -1074,6 +1101,177 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             return OPERATION_NOT_SUPPORTED;
         }
         return INVALID_PARAMETER_VALUE;
+    }
+
+    @Override
+    public DeployResult deploy(Deploy request) throws CstlServiceException {
+        if (request.getProcessDescription()== null) {
+            throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
+        }
+        if (request.getProcessDescription().getProcessOffering() == null) {
+            throw new CstlServiceException("Process description is not complete (Process offering part missing. reference not supported for now)", INVALID_PARAMETER_VALUE);
+        }
+        if (request.getProcessDescription().getProcessOffering().getProcess() == null) {
+            throw new CstlServiceException("Process offering is not complete (Process part missing)", INVALID_PARAMETER_VALUE);
+        }
+        if (request.getExecutionUnit() == null || request.getExecutionUnit().isEmpty()) {
+            throw new CstlServiceException("Execution unit must be specified", MISSING_PARAMETER_VALUE);
+        }
+
+        ProcessOffering off = request.getProcessDescription().getProcessOffering();
+        final ProcessDescription processDescription = off.getProcess();
+
+        if (processDescription.getIdentifier() != null) {
+            int id  = 1;
+            String processId      = processDescription.getIdentifier().getValue();
+            String title          = processDescription.getFirstTitle();
+            String description    = processDescription.getFirstAbstract();
+            List<String> controls = new ArrayList<>();
+            for (JobControlOptions control : off.getJobControlOptions()) {
+                controls.add(control.name());
+            }
+            List<String> outTransmission = new ArrayList<>();
+            for (DataTransmissionMode trans : off.getOutputTransmission()) {
+                outTransmission.add(trans.name());
+            }
+
+            if (processBusiness.getChainProcess(ExamindDynamicProcessFactory.NAME, processId) != null) {
+                throw new CstlServiceException("Process " + processId + " is already deployed", INVALID_PARAMETER_VALUE);
+            }
+
+            final Chain chain = new Chain(processId);
+            chain.setTitle(title);
+            chain.setAbstract(description);
+
+            if (request.getExecutionUnit().get(0) == null || request.getExecutionUnit().get(0).getReference() == null || request.getExecutionUnit().get(0).getReference().getHref() == null) {
+                throw new CstlServiceException("Process offering content must be specified", MISSING_PARAMETER_VALUE);
+            }
+
+            String runDocName = RunCWLDescriptor.NAME + '-' + UUID.randomUUID().toString();;
+
+            //input/out/constants parameters
+
+            final Constant c = chain.addConstant(id++, String.class, request.getExecutionUnit().get(0).getReference().getHref());
+
+            final List<Parameter> inputs = new ArrayList<>();
+            final List<Parameter> outputs = new ArrayList<>();
+
+            chain.setTitle(processDescription.getFirstTitle());
+            chain.setAbstract(processDescription.getFirstAbstract());
+            for (InputDescription in : processDescription.getInputs()) {
+                // TODO type
+                Class type;
+                if (in.getDataDescription() instanceof LiteralData) {
+                    type = String.class;
+                } else if (in.getDataDescription() instanceof ComplexData) {
+                    type = URI.class;
+                } else if (in.getDataDescription() instanceof BoundingBoxData) {
+                    type = Envelope.class;
+                } else {
+                    type = String.class;
+                }
+                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
+                inputs.add(param);
+            }
+
+            chain.setInputs(inputs);
+
+            for (OutputDescription out : processDescription.getOutputs()) {
+                // TODO type
+                Class type;
+                if (out.getDataDescription() instanceof LiteralData) {
+                    type = String.class;
+                } else if (out.getDataDescription() instanceof ComplexData) {
+                    type = File.class;
+                } else if (out.getDataDescription() instanceof BoundingBoxData) {
+                    type = Envelope.class;
+                } else {
+                    type = String.class;
+                }
+                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstAbstract(), 0, Integer.MAX_VALUE);
+                outputs.add(param);
+            }
+            chain.setOutputs(outputs);
+
+
+            //chain blocks
+            final ElementProcess dock = chain.addProcessElement(id++, ExamindDynamicProcessFactory.NAME, runDocName);
+
+            chain.addFlowLink(BEGIN.getId(), dock.getId());
+            chain.addFlowLink(dock.getId(), END.getId());
+
+
+            //data flow links
+            chain.addDataLink(c.getId(), "", dock.getId(), RunCWLDescriptor.CWL_FILE_NAME);
+
+            for (Parameter in : inputs) {
+                chain.addDataLink(BEGIN.getId(), in.getCode(),  dock.getId(), in.getCode());
+            }
+
+            for (Parameter out : outputs) {
+                chain.addDataLink(dock.getId(), out.getCode(),  END.getId(), out.getCode());
+            }
+
+            try {
+
+                processBusiness.createChainProcess(ChainProcessRetriever.convertToDto(chain));
+                LOGGER.log(Level.INFO, "=== Deploying process " + processId + " ===");
+
+                Registry registry = new Registry(ExamindDynamicProcessFactory.NAME);
+                registry.setProcesses(Arrays.asList(new org.constellation.dto.process.Process(processId, title, description, false, controls, outTransmission)));
+
+                ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", "default");
+                context = WPSConfigurationUtils.addProcessToContext(context, new RegistryList(registry));
+
+                // save modified context
+                serviceBusiness.configure("WPS", "default", null, context);
+
+                //reload process list
+                fillProcessList(context);
+                clearCapabilitiesCache();
+
+            } catch (ConstellationException ex) {
+                throw new CstlServiceException(ex);
+            }
+
+        } else {
+            throw new CstlServiceException("Process identifier is missing.", MISSING_PARAMETER_VALUE);
+        }
+
+        ProcessSummary sum = new ProcessSummary(off.getProcess(), off.getProcessVersion(), off.getJobControlOptions(), off.getOutputTransmission());
+        return new DeployResult("working on it", sum);
+    }
+
+    @Override
+    public UndeployResult undeploy(Undeploy request) throws CstlServiceException {
+        try {
+            if (request.getIdentifier() == null) {
+                throw new CstlServiceException("Process identifier must be specified", MISSING_PARAMETER_VALUE);
+            }
+            String processId = request.getIdentifier().getValue();
+            if (processBusiness.getChainProcess(ExamindDynamicProcessFactory.NAME, processId) == null) {
+                throw new CstlServiceException("Process " + processId + " is not deployed on the server", INVALID_PARAMETER_VALUE);
+            }
+
+            // remove process link
+            ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", "default");
+            context = WPSConfigurationUtils.removeProcessFromContext(context, ExamindDynamicProcessFactory.NAME, processId);
+
+            // save modified context
+            serviceBusiness.configure("WPS", "default", null, context);
+
+            // remove chain
+            processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, processId);
+
+            //reload process list
+            fillProcessList(context);
+            clearCapabilitiesCache();
+
+            return new UndeployResult(processId, "OK");
+
+        } catch (ConstellationException ex) {
+            throw new CstlServiceException(ex);
+        }
     }
 }
 

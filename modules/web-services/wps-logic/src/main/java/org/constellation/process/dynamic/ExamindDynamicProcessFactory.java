@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
+import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
 import org.constellation.process.dynamic.docker.RunDockerDescriptor;
 import org.constellation.process.dynamic.proactive.RunProactiveDescriptor;
 import org.geotoolkit.process.ProcessingRegistry;
@@ -114,6 +115,8 @@ public class ExamindDynamicProcessFactory implements ProcessingRegistry {
                             dynDesc = new RunDockerDescriptor(ep.getCode());
                         } else if (ep.getCode().startsWith("proactive.run")) {
                             dynDesc = new RunProactiveDescriptor(ep.getCode());
+                        } else if (ep.getCode().startsWith("cwl.run")) {
+                            dynDesc = new RunCWLDescriptor(ep.getCode());
                         }
                     }
                 }
