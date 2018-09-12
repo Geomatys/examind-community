@@ -85,8 +85,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static com.examind.wps.util.WPSConstants.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Set;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
@@ -95,6 +93,8 @@ import org.geotoolkit.ows.xml.v200.SectionsType;
 import org.geotoolkit.wps.json.JobCollection;
 import org.geotoolkit.wps.json.OutputInfo;
 import org.geotoolkit.wps.json.ValueType;
+import org.geotoolkit.wps.xml.v200.Bill;
+import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.Data;
 import org.geotoolkit.wps.xml.v200.DataOutput;
 import org.geotoolkit.wps.xml.v200.Deploy;
@@ -102,6 +102,8 @@ import org.geotoolkit.wps.xml.v200.DeployResult;
 import org.geotoolkit.wps.xml.v200.Dismiss;
 import org.geotoolkit.wps.xml.v200.Execute.Response;
 import org.geotoolkit.wps.xml.v200.LiteralValue;
+import org.geotoolkit.wps.xml.v200.Quotation;
+import org.geotoolkit.wps.xml.v200.QuotationList;
 import org.geotoolkit.wps.xml.v200.Undeploy;
 import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.http.HttpStatus;
@@ -919,8 +921,13 @@ public class WPSService extends OGCWebService<WPSWorker> {
             if (worker != null) {
                 Capabilities capa = worker.getCapabilities(gc);
                 Contents offering = capa.getContents();
+                ProcessCollection collec = new ProcessCollection(offering.getProcessSummary().stream());
+                //update process description URL
+                for (org.geotoolkit.wps.json.ProcessSummary sum : collec.getProcesses()) {
+                    sum.setProcessDescriptionURL(getServiceURL() + "/wps/" + serviceId + "/processes/" + sum.getId());
+                }
 
-                return new ResponseObject(new ProcessCollection(offering.getProcessSummary().stream()), MediaType.APPLICATION_JSON).getResponseEntity();
+                return new ResponseObject(collec, MediaType.APPLICATION_JSON).getResponseEntity();
             } else {
                 LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
@@ -1025,40 +1032,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
             @RequestBody org.geotoolkit.wps.json.Execute request) {
 
         try {
-            final List<DataInput> inputs = new ArrayList<>();
-            final List<OutputDefinition> outputs = new ArrayList<>();
-            for (org.geotoolkit.wps.json.Input input : request.getInputs()) {
-                Format format = null;
-                Object value;
-                if (input.getFormat() != null) {
-                    format =  new Format(input.getFormat().getEncoding(), input.getFormat().getMimeType(), input.getFormat().getSchema(), null);
-                }
-
-                // we assume that is a literal or a reference
-                ValueType v = input.getValue();
-                if (v.getInlineValue() != null) {
-                    value = v.getInlineValue();
-                } else if (v.getValueReference() != null) {
-                    value = v.getValueReference();
-                } else {
-                    throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
-                }
-
-                Data inputData = new Data(format, value);
-                inputs.add(new DataInput(input.getId(), inputData));
-            }
-
-            for (org.geotoolkit.wps.json.Output output : request.getOutputs()) {
-                boolean asReference = output.getTransmissionMode().equals(DataTransmissionMode.REFERENCE);
-                if (output.getFormat() != null) {
-                    outputs.add(new OutputDefinition(output.getId(), output.getFormat().getEncoding(), output.getFormat().getMimeType(), output.getFormat().getSchema(), asReference));
-                } else {
-                    outputs.add(new OutputDefinition(output.getId(), asReference));
-                }
-            }
-
-            final Execute exec = new Execute("WPS", "2.0.0", null, new CodeType(processId), inputs, outputs, Response.document);
-            exec.setMode(Execute.Mode.async); // always async for now
+            final Execute exec = convertExecuteRequestToXML(processId, request);
 
             putServiceIdParam(serviceId);
             WPSWorker worker = getWorker(serviceId);
@@ -1178,4 +1152,318 @@ public class WPSService extends OGCWebService<WPSWorker> {
             return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
         }
     }
+
+    @RequestMapping(path = "/processes/{id}/quotations", method = RequestMethod.GET)
+    public ResponseEntity getQuotationsForProcessListRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                QuotationList result = worker.getQuotationList(processId);
+
+                org.geotoolkit.wps.json.QuotationList jsResult = new org.geotoolkit.wps.json.QuotationList(result.getQuotations());
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/quotations", method = RequestMethod.GET)
+    public ResponseEntity getQuotationListRestful(@PathVariable("serviceId") String serviceId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                QuotationList result = worker.getQuotationList();
+
+                org.geotoolkit.wps.json.QuotationList jsResult = new org.geotoolkit.wps.json.QuotationList(result.getQuotations());
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+
+    @RequestMapping(path = "/processes/{id}/quotations", method = RequestMethod.POST)
+    public ResponseEntity quoteRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId,
+            @RequestBody org.geotoolkit.wps.json.Execute request) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                final Execute exec = convertExecuteRequestToXML(processId, request);
+
+                Quotation result = worker.quote(exec);
+
+                org.geotoolkit.wps.json.Quotation jsResult = new org.geotoolkit.wps.json.Quotation(result);
+                jsResult.setProcessParameters(request);
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/quotations/{quotationId}", method = RequestMethod.GET)
+    public ResponseEntity getQuotationRestful(@PathVariable("serviceId") String serviceId, @PathVariable("quotationId") String quotationId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Quotation result = worker.getQuotation(quotationId);
+
+                org.geotoolkit.wps.json.Quotation jsResult = new org.geotoolkit.wps.json.Quotation(result);
+                jsResult.setProcessParameters(convertExecuteRequestToJson(result.getProcessParameters()));
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    /**
+     * useless at my opinion, as the quotation is unique we can use getQuotationRestful()
+     */
+    @RequestMapping(path = "/processes/{id}/quotations/{quotationId}", method = RequestMethod.GET)
+    public ResponseEntity getQuotationRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId, @PathVariable("quotationId") String quotationId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Quotation result = worker.getQuotation(quotationId);
+
+                org.geotoolkit.wps.json.Quotation jsResult = new org.geotoolkit.wps.json.Quotation(result);
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/quotations/{quotationId}", method = RequestMethod.POST)
+    public ResponseEntity executeQuotationRestful(@PathVariable("serviceId") String serviceId, @PathVariable("quotationId") String quotationId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Quotation quot = worker.getQuotation(quotationId);
+
+                Object execResp = worker.executeQuotation(quotationId);
+                Map<String, String> headers = new HashMap<>();
+                if (execResp instanceof Result) {
+                    String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + quot.getProcessId() + "/jobs/" + ((Result) execResp).getJobID();
+                    headers.put("Location", statusLocation);
+                } else if (execResp instanceof StatusInfo) {
+                    String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + quot.getProcessId() + "/jobs/" + ((StatusInfo) execResp).getJobID();
+                    headers.put("Location", statusLocation);
+                }
+
+                return new ResponseObject(HttpStatus.CREATED, headers).getResponseEntity();
+
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    /**
+     * useless at my opinion, as the quotation is unique we can use getQuotationRestful()
+     */
+    @RequestMapping(path = "/processes/{id}/quotations/{quotationId}", method = RequestMethod.POST)
+    public ResponseEntity executeQuotationForProcessRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId, @PathVariable("quotationId") String quotationId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Object execResp = worker.executeQuotation(quotationId);
+                Map<String, String> headers = new HashMap<>();
+                if (execResp instanceof Result) {
+                    String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + processId + "/jobs/" + ((Result) execResp).getJobID();
+                    headers.put("Location", statusLocation);
+                } else if (execResp instanceof StatusInfo) {
+                    String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + processId + "/jobs/" + ((StatusInfo) execResp).getJobID();
+                    headers.put("Location", statusLocation);
+                }
+
+                return new ResponseObject(HttpStatus.CREATED, headers).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/bills", method = RequestMethod.GET)
+    public ResponseEntity getBillListRestful(@PathVariable("serviceId") String serviceId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                BillList result = worker.getBillList();
+
+                org.geotoolkit.wps.json.BillList jsResult = new org.geotoolkit.wps.json.BillList(result.getBills());
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/bills/{billId}", method = RequestMethod.GET)
+    public ResponseEntity getBillRestful(@PathVariable("serviceId") String serviceId, @PathVariable("billId") String billId) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Bill result = worker.getBill(billId);
+
+                org.geotoolkit.wps.json.Bill jsResult = new org.geotoolkit.wps.json.Bill(result);
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+    @RequestMapping(path = "/processes/{id}/jobs/{jobID}/bill", method = RequestMethod.GET)
+    public ResponseEntity getBillForJobRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId, @PathVariable("jobID") String jobID) {
+        try {
+            putServiceIdParam(serviceId);
+            WPSWorker worker = getWorker(serviceId);
+
+            if (worker != null) {
+                Bill result = worker.getBillForJob(jobID);
+
+                org.geotoolkit.wps.json.Bill jsResult = new org.geotoolkit.wps.json.Bill(result);
+
+                return new ResponseObject(jsResult, MediaType.APPLICATION_JSON).getResponseEntity();
+            } else {
+                LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+                return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+            }
+        } catch (CstlServiceException ex) {
+            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+        }
+    }
+
+
+    private static Execute convertExecuteRequestToXML(String processId, org.geotoolkit.wps.json.Execute request) throws CstlServiceException {
+        final List<DataInput> inputs = new ArrayList<>();
+        final List<OutputDefinition> outputs = new ArrayList<>();
+        for (org.geotoolkit.wps.json.Input input : request.getInputs()) {
+            Format format = null;
+            Object value;
+            if (input.getFormat() != null) {
+                format = new Format(input.getFormat().getEncoding(), input.getFormat().getMimeType(), input.getFormat().getSchema(), null);
+            }
+
+            // we assume that is a literal or a reference
+            ValueType v = input.getValue();
+            if (v.getInlineValue() != null) {
+                value = v.getInlineValue();
+            } else if (v.getValueReference() != null) {
+                value = v.getValueReference();
+            } else {
+                throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
+            }
+
+            Data inputData = new Data(format, value);
+            inputs.add(new DataInput(input.getId(), inputData));
+        }
+
+        for (org.geotoolkit.wps.json.Output output : request.getOutputs()) {
+            boolean asReference = output.getTransmissionMode().equals(DataTransmissionMode.REFERENCE);
+            if (output.getFormat() != null) {
+                outputs.add(new OutputDefinition(output.getId(), output.getFormat().getEncoding(), output.getFormat().getMimeType(), output.getFormat().getSchema(), asReference));
+            } else {
+                outputs.add(new OutputDefinition(output.getId(), asReference));
+            }
+        }
+
+        Execute exec = new Execute("WPS", "2.0.0", null, new CodeType(processId), inputs, outputs, Response.document);
+        exec.setMode(Execute.Mode.async); // always async for now
+        return exec;
+    }
+
+    private static org.geotoolkit.wps.json.Execute convertExecuteRequestToJson(Execute request) throws CstlServiceException {
+        final List<org.geotoolkit.wps.json.Input> inputs = new ArrayList<>();
+        final List<org.geotoolkit.wps.json.Output> outputs = new ArrayList<>();
+        for (DataInput input : request.getInput()) {
+            org.geotoolkit.wps.json.Format format = null;
+
+            if (input.getData() != null &&
+                (input.getData().getMimeType()!= null ||  input.getData().getSchema()!= null || input.getData().getEncoding()!= null)) {
+                format = new org.geotoolkit.wps.json.Format(input.getData().getMimeType(), input.getData().getSchema(), input.getData().getEncoding());
+            }
+
+            // we assume that is a literal or a reference
+            ValueType v;
+            if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
+                v = new ValueType(null, (String) input.getData().getContent().get(0));
+            } else if (input.getReference() != null) {
+                v = new ValueType(input.getReference().getHref(), null);
+            } else {
+                throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
+            }
+
+            inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), format, v));
+        }
+
+        for (OutputDefinition output : request.getOutput()) {
+
+            org.geotoolkit.wps.json.Format format = null;
+
+            if (output.getMimeType()!= null ||  output.getSchema()!= null || output.getEncoding()!= null) {
+                format = new org.geotoolkit.wps.json.Format(output.getMimeType(), output.getSchema(), output.getEncoding());
+            }
+            outputs.add(new org.geotoolkit.wps.json.Output(output.getIdentifier(), format, output.getTransmission()));
+        }
+
+        return new org.geotoolkit.wps.json.Execute(inputs, outputs);
+    }
+
 }

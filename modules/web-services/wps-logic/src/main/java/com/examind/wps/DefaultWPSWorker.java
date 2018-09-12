@@ -20,6 +20,7 @@ package com.examind.wps;
 
 import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.UnknowJobException;
+import com.examind.wps.api.UnknowQuotationException;
 import com.examind.wps.api.WPSException;
 import com.examind.wps.api.WPSProcess;
 import com.examind.wps.api.WPSWorker;
@@ -125,6 +126,8 @@ import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
 import org.geotoolkit.wps.client.WebProcessingClient;
 import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
+import org.geotoolkit.wps.xml.v200.Bill;
+import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.BoundingBoxData;
 import org.geotoolkit.wps.xml.v200.ComplexData;
 import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
@@ -148,6 +151,8 @@ import org.opengis.util.NoSuchIdentifierException;
 import org.geotoolkit.wps.xml.v200.LiteralData;
 import org.geotoolkit.wps.xml.v200.OutputDescription;
 import org.geotoolkit.wps.xml.v200.ProcessDescription;
+import org.geotoolkit.wps.xml.v200.Quotation;
+import org.geotoolkit.wps.xml.v200.QuotationList;
 import org.geotoolkit.wps.xml.v200.Undeploy;
 import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -210,6 +215,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     private final Map<CodeType, WPSProcess> processList = new LinkedHashMap<>();
 
     private final ExecutionInfo execInfo = new ExecutionInfo();
+
+    private final QuotationInfo quoteInfo = new QuotationInfo();
 
     @Inject SimpleJobExecutor jobExecutor;
 
@@ -655,6 +662,10 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
      */
     @Override
     public Object execute(final Execute request) throws CstlServiceException {
+        return execute(request, null);
+    }
+
+    public Object execute(final Execute request, String quotationId) throws CstlServiceException {
         verifyBaseRequest(request, true, false);
 
         final String version = request.getVersion().toString();
@@ -758,7 +769,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
             final Callable process;
             try {
-                process = processDesc.createRawProcess(isAsync, version, tempFiles, execInfo, request, jobId);
+                process = processDesc.createRawProcess(isAsync, version, tempFiles, execInfo, quoteInfo, request, jobId, quotationId);
             } catch (IOParameterException ex) {
                 throw new CstlServiceException(ex.getMessage(), getCodeFromIOParameterException(ex), ex.getParamId());
             }
@@ -848,7 +859,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
             final Callable process;
             try {
-                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, parameters);
+                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quotationId, parameters);
             } catch (IOParameterException ex) {
                 throw new CstlServiceException(ex.getMessage(), getCodeFromIOParameterException(ex), ex.getParamId());
             }
@@ -1271,6 +1282,81 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         } catch (ConstellationException ex) {
             throw new CstlServiceException(ex);
+        }
+    }
+
+    @Override
+    public QuotationList getQuotationList(String processId) throws CstlServiceException {
+        // Verify if the descriptor exist and is linked to the WPS instance
+        getWPSProcess(processId);
+        return new QuotationList(quoteInfo.getQuotations(processId));
+    }
+
+    @Override
+    public QuotationList getQuotationList() throws CstlServiceException {
+        return new QuotationList(quoteInfo.getAllQuotationIds());
+    }
+
+    @Override
+    public Quotation getQuotation(String quotationId) throws CstlServiceException {
+        try {
+            return quoteInfo.getQuotation(quotationId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "quotationId");
+        }
+    }
+
+    @Override
+    public Quotation quote(Execute request) throws CstlServiceException {
+        // Find the process and verify if the descriptor is linked to the WPS instance
+        final WPSProcess process = getWPSProcess(request.getIdentifier().getValue());
+
+        //check requested INPUT/OUTPUT. Throw a CstlException otherwise.
+        try {
+            process.checkValidInputOuputRequest(request);
+        } catch (IOParameterException ex) {
+            throw new CstlServiceException(ex, getCodeFromIOParameterException(ex), ex.getParamId());
+        }
+        try {
+            Quotation quote = process.quote(request);
+            quoteInfo.addQuotation(quote);
+            return quote;
+        } catch (WPSException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    @Override
+    public Object executeQuotation(String quotationId) throws CstlServiceException {
+        try {
+            Quotation quote = quoteInfo.getQuotation(quotationId);
+            Execute request = quote.getProcessParameters();
+            return execute(request, quotationId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "quotationId");
+        }
+    }
+
+    @Override
+    public BillList getBillList() throws CstlServiceException {
+        return new BillList(quoteInfo.getAllBillIds());
+    }
+
+    @Override
+    public Bill getBill(String billId) throws CstlServiceException {
+        try {
+            return quoteInfo.getBill(billId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "billId");
+        }
+    }
+
+    @Override
+    public Bill getBillForJob(String jobID) throws CstlServiceException {
+        try {
+            return quoteInfo.getBillForJob(jobID);
+        } catch (UnknowJobException ex) {
+            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobID");
         }
     }
 }

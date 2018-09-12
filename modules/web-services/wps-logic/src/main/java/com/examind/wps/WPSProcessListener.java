@@ -63,6 +63,7 @@ public class WPSProcessListener implements ProcessListener{
 
     private final Execute request;
     private final String jobId;
+    private final String quoteId;
     private final ServiceDef def;
     final Map<String, Object> parameters;
     private final URI folderPath;
@@ -82,6 +83,7 @@ public class WPSProcessListener implements ProcessListener{
     private final List<OutputDefinition> outputsResponse;
 
     private final ExecutionInfo execInfo;
+    private final QuotationInfo quoteInfo;
 
     private final String language;
 
@@ -99,11 +101,15 @@ public class WPSProcessListener implements ProcessListener{
      * @param jobId name of the file to update
      * @param parameters
      */
-    public WPSProcessListener(final String wpsVersion, final ExecutionInfo execInfo, final Execute request, final String serviceInstance, final ProcessSummary procSum,
-            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse, final String jobId, final Map<String, Object> parameters, final WPSProcess process) {
+    public WPSProcessListener(final String wpsVersion, final ExecutionInfo execInfo, final QuotationInfo quoteInfo,
+            final Execute request, final String serviceInstance, final ProcessSummary procSum,
+            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse,
+            final String jobId, final String quoteId, final Map<String, Object> parameters, final WPSProcess process) {
         this.request = request;
         this.jobId = jobId;
+        this.quoteId = quoteId;
         this.execInfo = execInfo;
+        this.quoteInfo = quoteInfo;
         this.def = ServiceDef.getServiceDefinition(ServiceDef.Specification.WPS, wpsVersion);
         this.parameters = parameters;
         this.folderPath = (URI) parameters.get(WPSConvertersUtils.OUT_STORAGE_DIR);
@@ -184,6 +190,7 @@ public class WPSProcessListener implements ProcessListener{
             final Result response = new Result(WPS_SERVICE, wpsVersion, language, serviceInstance, procSum, inputsResponse, outputsResponse, outputs, status, jobId);
             WPSUtils.storeResponse(response, folderPath, jobId);
             execInfo.setResult(jobId, response);
+            quoteInfo.addBill(quoteId, jobId);
         } catch (IOParameterException ex) {
             writeException(new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, ex.getParamId()));
         } catch (WPSException ex) {
