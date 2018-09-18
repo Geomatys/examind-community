@@ -24,15 +24,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.AppProperty;
@@ -66,8 +72,14 @@ public class RunCWL extends AbstractCstlProcess {
 
     private final String cwlExecutable = "cwl-runner";
 
+    private final Map<String, String[]> authenticatedUrls = new HashMap<>();
+
+    private final Set<Path> temporaryResource = new HashSet<>();
+
+
     public RunCWL(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
+        loadAuthenticatedURL();
     }
 
     @Override
@@ -95,11 +107,12 @@ public class RunCWL extends AbstractCstlProcess {
         }
 
         /**
-         * 2) produce the JSON parameters file to execute with the CWL file
+         * 2) Produce the JSON parameters file to execute with the CWL file.
+         *    Download input files.
          */
-        Map json = new LinkedHashMap<>();
+        final Map json = new LinkedHashMap<>();
 
-        ParameterDescriptorGroup input = getDescriptor().getInputDescriptor();
+        final ParameterDescriptorGroup input = getDescriptor().getInputDescriptor();
         for (int i = 0 ; i < input.descriptors().size(); i++) {
             GeneralParameterDescriptor desc = input.descriptors().get(i);
             if (!desc.equals(CWL_FILE)) {
@@ -113,7 +126,7 @@ public class RunCWL extends AbstractCstlProcess {
                             URI arg = (URI) value.getValue();
                             // due to a memory bug in CWL-runner we download File before pass it to CWL
                             try {
-                                arg = downloadFile(arg, execDir);
+                                arg = downloadInput(arg, execDir);
                             } catch (IOException ex) {
                                 throw new ProcessException("Error while downloading input file", this, ex);
                             }
@@ -122,14 +135,13 @@ public class RunCWL extends AbstractCstlProcess {
                             complex.put("class", "File");
                             complex.put("path", arg.toString());
                             complexes.add(complex);
-                            System.out.println("MULTI INPUT: " + desc.getName().getCode() + " = " + arg);
                         }
                         json.put(desc.getName().getCode(), complexes);
                     } else {
                         URI arg = (URI) values.get(0).getValue();
                         // due to a memory bug in CWL-runner we download File before pass it to CWL
                         try {
-                            arg = downloadFile(arg, execDir);
+                            arg = downloadInput(arg, execDir);
                         } catch (IOException ex) {
                             throw new ProcessException("Error while downloading input file", this, ex);
                         }
@@ -138,7 +150,6 @@ public class RunCWL extends AbstractCstlProcess {
                         complex.put("class", "File");
                         complex.put("path", arg.toString());
                         json.put(desc.getName().getCode(), complex);
-                        System.out.println("INPUT: " + desc.getName().getCode() + " = " + arg);
                     }
 
                 } else {
@@ -148,120 +159,129 @@ public class RunCWL extends AbstractCstlProcess {
                         for (ParameterValue value : values) {
                             String arg = (String) value.getValue();
                             literals.add(arg);
-                            System.out.println("MULTI INPUT: " + desc.getName().getCode() + " = " + arg);
                         }
                         json.put(desc.getName().getCode(), literals);
                     } else {
                         String arg = (String) values.get(0).getValue();
                         json.put(desc.getName().getCode(), arg);
-                        System.out.println("INPUT: " + desc.getName().getCode() + " = " + arg);
                     }
                 }
             }
         }
 
-        Path cwlParamFile = execDir.resolve("docker-params.json");
-        ObjectMapper mapper = new ObjectMapper();
+
         try {
-            mapper.writeValue(Files.newOutputStream(cwlParamFile), json);
-        } catch (IOException ex) {
-            throw new ProcessException("dd", this, ex);
-        }
+            Path cwlParamFile = execDir.resolve("docker-params.json");
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                mapper.writeValue(Files.newOutputStream(cwlParamFile), json);
+                temporaryResource.add(cwlParamFile);
+            } catch (IOException ex) {
+                throw new ProcessException("dd", this, ex);
+            }
 
 
-        /**
-         * 3) execute CWL command
-         */
-        StringBuilder cwlCommand =  new StringBuilder(cwlExecutable);
-        cwlCommand.append(" ");
-        if (debug) {
-            cwlCommand.append("--debug ");
-        }
-        cwlCommand.append("--no-read-only --preserve-entire-environment ")
-                  .append("--outdir ").append(execDir.toString()).append(" ");
-        if (tmpDir != null) {
-            cwlCommand.append("--tmp-outdir-prefix ").append(tmpDir.toString()).append(" ");
-        }
-        cwlCommand.append(inputParameters.getValue(CWL_FILE))
-                  .append(" ").append(cwlParamFile.toString());
+            /**
+             * 3) execute CWL command
+             */
+            StringBuilder cwlCommand =  new StringBuilder(cwlExecutable);
+            cwlCommand.append(" ");
+            if (debug) {
+                cwlCommand.append("--debug ");
+            }
+            cwlCommand.append("--no-read-only --preserve-entire-environment ")
+                      .append("--outdir ").append(execDir.toString()).append(" ");
+            if (tmpDir != null) {
+                cwlCommand.append("--tmp-outdir-prefix ").append(tmpDir.toString()).append(" ");
+            }
+            cwlCommand.append(inputParameters.getValue(CWL_FILE))
+                      .append(" ").append(cwlParamFile.toString());
 
 
-        System.out.println("RUN COMMAND:" + cwlCommand.toString());
-        final StringBuilder results = new StringBuilder();
-        try {
-            Runtime rt = Runtime.getRuntime();
-            Process pr = rt.exec(cwlCommand.toString());
+            LOGGER.log(Level.INFO, "RUN COMMAND:{0}", cwlCommand.toString());
+            final StringBuilder results = new StringBuilder();
+            try {
+                Runtime rt = Runtime.getRuntime();
+                Process pr = rt.exec(cwlCommand.toString());
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                    String line = null;
-                    try {
-                        while ((line = input1.readLine()) != null) {
-                            System.out.println("REGULAR:" + line);
-                            results.append(line).append('\n');
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                        String line = null;
+                        try {
+                            while ((line = input1.readLine()) != null) {
+                                System.out.println("REGULAR:" + line);
+                                results.append(line).append('\n');
+                            }
+                            System.out.println("CLOSING REGULAR READING");
+                            input1.close();
+                        }catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        System.out.println("CLOSING REGULAR READING");
-                        input1.close();
-                    }catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            }).start();
+                }).start();
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-                    String line = null;
-                    try {
-                        while ((line = input1.readLine()) != null) {
-                            System.out.println("DEBUG:" + line);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        BufferedReader input1 = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
+                        String line = null;
+                        try {
+                            while ((line = input1.readLine()) != null) {
+                                System.out.println("DEBUG:" + line);
+                            }
+                            System.out.println("CLOSING DEBUG READING");
+                            input1.close();
+                        }catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        System.out.println("CLOSING DEBUG READING");
-                        input1.close();
-                    }catch (IOException e) {
-                        e.printStackTrace();
+
                     }
+                }).start();
 
+                while (pr.isAlive()) {
+                    Thread.sleep(1000);
                 }
-            }).start();
 
-            while (pr.isAlive()) {
-                Thread.sleep(1000);
+            } catch (Exception ex) {
+                throw new ProcessException("Error executing cwl command", this, ex);
             }
 
-        } catch (Exception ex) {
-            throw new ProcessException("Error executing cwl command", this, ex);
-        }
+            /**
+             * 4) retrieve the results
+             */
+            try {
+                Map result = mapper.readValue(results.toString(), Map.class);
 
-        /**
-         * 4) retrieve the results
-         */
-        try {
-            Map result = mapper.readValue(results.toString(), Map.class);
+                ParameterDescriptorGroup output = getDescriptor().getOutputDescriptor();
+                for (GeneralParameterDescriptor desc : output.descriptors()) {
+                    Object o = result.get(desc.getName().getCode());
+                    if (o instanceof List) {
 
-            ParameterDescriptorGroup output = getDescriptor().getOutputDescriptor();
-            for (GeneralParameterDescriptor desc : output.descriptors()) {
-                Object o = result.get(desc.getName().getCode());
-                if (o instanceof List) {
-
-                    for (Object child : (List)o) {
-                        Map childmap = (Map) child;
-                        ParameterValue value = (ParameterValue) desc.createValue();
-                        value.setValue(new File((String) childmap.get("path")));
-                        outputParameters.values().add(value);
+                        for (Object child : (List)o) {
+                            Map childmap = (Map) child;
+                            ParameterValue value = (ParameterValue) desc.createValue();
+                            value.setValue(new File((String) childmap.get("path")));
+                            outputParameters.values().add(value);
+                        }
+                    } else {
+                        Map childmap = (Map) o;
+                        outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(new File((String) childmap.get("path")));
                     }
-                } else {
-                    Map childmap = (Map) o;
-                    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(new File((String) childmap.get("path")));
                 }
+            } catch (IOException ex) {
+                throw new ProcessException("Error while extracting CWL results", this, ex);
             }
-        } catch (IOException ex) {
-            throw new ProcessException("Error while extracting CWL results", this, ex);
-        }
 
+            /**
+             * 5) cleanup inputs / param files
+             */
+        } finally {
+            for (Path p : temporaryResource) {
+                IOUtilities.deleteSilently(p);
+            }
+        }
 
     }
 
@@ -275,9 +295,10 @@ public class RunCWL extends AbstractCstlProcess {
         return results;
     }
 
-    private static URI downloadFile(URI uri, Path execDir) throws IOException {
-        if (uri.getScheme().equals("http")) {
-
+    private URI downloadInput(URI uri, Path execDir) throws IOException {
+        if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
+            boolean authenticated = authenticate(uri);
+            LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
             HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
             String content = conec.getHeaderField("Content-Disposition");
             String fileName;
@@ -291,8 +312,40 @@ public class RunCWL extends AbstractCstlProcess {
             Path p = execDir.resolve(fileName);
             InputStream in = conec.getInputStream();
             IOUtilities.writeStream(in, p);
+            LOGGER.info("Download complete");
+            temporaryResource.add(p);
             return p.toUri();
         }
         return uri;
+    }
+
+    private boolean authenticate(URI uri) {
+        String uriValue = uri.toString();
+        for (String authenticatedUrl : authenticatedUrls.keySet()) {
+            if (uriValue.startsWith(authenticatedUrl)) {
+                Authenticator.setDefault(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(authenticatedUrls.get(authenticatedUrl)[0], authenticatedUrls.get(authenticatedUrl)[1].toCharArray());
+                    }
+                });
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void loadAuthenticatedURL() {
+        String value = Application.getProperty("authenticated.urls", "");
+
+        // must be in the form URLµloginµpwdµURLµloginµpwd
+        String[] values = value.split("µ");
+        for (int i = 0; i < values.length; i = i + 3) {
+            if (i + 3 > values.length) {
+                LOGGER.warning("malformed authenticated.urls variable");
+                return;
+            }
+            authenticatedUrls.put(values[i], new String[] {values[i+1], values[i+2]});
+        }
     }
 }

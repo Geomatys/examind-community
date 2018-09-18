@@ -106,7 +106,7 @@ public class DeployCWL extends AbstractCstlProcess {
                 } else {
                     type = String.class;
                 }
-                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstTitle(), in.getMinOccurs(), in.getMaxOccurs());
+                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstTitle(), in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
                 inputs.add(param);
             }
 
@@ -123,7 +123,7 @@ public class DeployCWL extends AbstractCstlProcess {
                 } else {
                     type = String.class;
                 }
-                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), 0, 1);
+                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), out.getFirstAbstract(), 0, 1);
                 outputs.add(param);
             }
             chain.setOutputs(outputs);

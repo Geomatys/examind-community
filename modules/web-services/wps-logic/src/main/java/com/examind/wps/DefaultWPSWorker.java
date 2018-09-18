@@ -118,21 +118,25 @@ import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
 import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.gml.xml.Envelope;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.processing.chain.model.Chain;
 import org.geotoolkit.processing.chain.model.Constant;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
 import static org.geotoolkit.processing.chain.model.Element.END;
 import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
+import org.geotoolkit.processing.chain.model.ParameterFormat;
 import org.geotoolkit.wps.client.WebProcessingClient;
 import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import org.geotoolkit.wps.xml.v200.Bill;
 import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.BoundingBoxData;
 import org.geotoolkit.wps.xml.v200.ComplexData;
+import org.geotoolkit.wps.xml.v200.DataDescription;
 import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
 import org.geotoolkit.wps.xml.v200.Deploy;
 import org.geotoolkit.wps.xml.v200.DeployResult;
+import org.geotoolkit.wps.xml.v200.Format;
 import org.geotoolkit.wps.xml.v200.InputDescription;
 import org.geotoolkit.wps.xml.v200.JobControlOptions;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
@@ -1181,14 +1185,39 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 } else {
                     type = String.class;
                 }
-                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
+                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstTitle(), in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
+                if (in.getAdditionalParameters() != null) {
+                    final Map<String, Object> userMap = new HashMap<>();
+                    for (AdditionalParameter addParam : in.getAdditionalParameters()) {
+                        Object values = addParam.getValue();
+                        if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                            values = addParam.getValue().get(0);
+                        }
+                        userMap.put(addParam.getName().getValue(), values);
+                    }
+                    param.setUserMap(userMap);
+                }
+                // extracting format
+                if (in.getDataDescription() != null) {
+                    DataDescription desc  = in.getDataDescription();
+                    if (!desc.getFormat().isEmpty()) {
+                        List<ParameterFormat> formats = new ArrayList<>();
+                        for (Format format : desc.getFormat()) {
+                            ParameterFormat m = new ParameterFormat();
+                            if (format.getEncoding() != null)         m.setEncoding(format.getEncoding());
+                            if (format.getMimeType() != null)         m.setMimeType(format.getMimeType());
+                            if (format.getSchema() != null)           m.setSchema(format.getSchema());
+                            formats.add(m);
+                        }
+                        param.setFormats(formats);
+                    }
+                }
                 inputs.add(param);
             }
 
             chain.setInputs(inputs);
 
             for (OutputDescription out : processDescription.getOutputs()) {
-                // TODO type
                 Class type;
                 if (out.getDataDescription() instanceof LiteralData) {
                     type = String.class;
@@ -1199,7 +1228,33 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 } else {
                     type = String.class;
                 }
-                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstAbstract(), 0, Integer.MAX_VALUE);
+                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), out.getFirstAbstract(), 0, Integer.MAX_VALUE);
+                if (out.getAdditionalParameters() != null) {
+                    final Map<String, Object> userMap = new HashMap<>();
+                    for (AdditionalParameter addParam : out.getAdditionalParameters()) {
+                        Object values = addParam.getValue();
+                        if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                            values = addParam.getValue().get(0);
+                        }
+                        userMap.put(addParam.getName().getValue(), values);
+                    }
+                    param.setUserMap(userMap);
+                }
+                // extracting format
+                if (out.getDataDescription() != null) {
+                    DataDescription desc  = out.getDataDescription();
+                    if (!desc.getFormat().isEmpty()) {
+                        List<ParameterFormat> formats = new ArrayList<>();
+                        for (Format format : desc.getFormat()) {
+                            ParameterFormat m = new ParameterFormat();
+                            if (format.getEncoding() != null)         m.setEncoding(format.getEncoding());
+                            if (format.getMimeType() != null)         m.setMimeType(format.getMimeType());
+                            if (format.getSchema() != null)           m.setSchema(format.getSchema());
+                            formats.add(m);
+                        }
+                        param.setFormats(formats);
+                    }
+                }
                 outputs.add(param);
             }
             chain.setOutputs(outputs);
@@ -1250,7 +1305,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         }
 
         ProcessSummary sum = new ProcessSummary(off.getProcess(), off.getProcessVersion(), off.getJobControlOptions(), off.getOutputTransmission());
-        return new DeployResult("working on it", sum);
+        return new DeployResult("OK", sum);
     }
 
     @Override

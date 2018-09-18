@@ -66,6 +66,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.dto.service.config.wps.Process;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
+import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AllowedValues;
 import org.geotoolkit.ows.xml.v200.AnyValue;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
@@ -234,13 +235,14 @@ public class GeotkProcess implements WPSProcess {
         for (final GeneralParameterDescriptor param : input.descriptors()) {
 
             /*
-                 * Whatever the parameter type is, we prepare the name, title, abstract and multiplicity parts.
+             * Whatever the parameter type is, we prepare the name, title, abstract and multiplicity parts.
              */
             final CodeType inId = new CodeType(withPrefix?
                     WPSUtils.buildProcessIOIdentifiers(descriptor, param, WPSIO.IOType.INPUT) :
                     param.getName().getCode());
             final LanguageStringType inTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType inAbstract = WPSUtils.buildProcessIODescription(param, lang);
+            final List<AdditionalParameter> inAddParams = WPSUtils.buildAdditionalParams(param);
 
             //set occurs
             String maxOccurs = Integer.toString(param.getMaximumOccurs());
@@ -255,9 +257,20 @@ public class GeotkProcess implements WPSProcess {
                 // Input class
                 final Class clazz = paramDesc.getValueClass();
 
+                // extra parameter description
+                Map<String, Object> userData = null;
+                if (paramDesc instanceof ExtendedParameterDescriptor) {
+                    userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
+                }
+
                 // BoundingBox type
                 if (WPSIO.isSupportedBBoxInputClass(clazz)) {
                     dataDescription = WPS_SUPPORTED_CRS;
+
+                //Complex type (XML, ...)
+                } else if (WPSIO.isSupportedComplexInputClass(clazz)) {
+
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
 
                 //Literal type
                 } else if (WPSIO.isSupportedLiteralInputClass(clazz)) {
@@ -281,25 +294,17 @@ public class GeotkProcess implements WPSProcess {
                     }
 
                     DomainMetadataType dataType = WPSConvertersUtils.createDataType(clazz);
-                    // for literal data add default format text/plain
-                    Format plain = new Format(WPSMimeType.TEXT_PLAIN.val(), true);
-                    dataDescription = new LiteralData(Arrays.asList(plain), allowedValues, anyvalue, null, dataType, (DomainMetadataType) uom, defaultValue, null);
 
-                //Complex type (XML, ...)
-                } else if (WPSIO.isSupportedComplexInputClass(clazz)) {
-                    Map<String, Object> userData = null;
-                    if (paramDesc instanceof ExtendedParameterDescriptor) {
-                        userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
+                    // for literal data add default format text/plain if no custom format is supplied
+                    List<Format> formats = WPSUtils.getWPSCustomIOFormats(userData, WPSIO.IOType.INPUT);
+                    if (formats == null) {
+                       formats =  Arrays.asList(new Format(WPSMimeType.TEXT_PLAIN.val(), true));
                     }
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
-
+                    dataDescription = new LiteralData(formats, allowedValues, anyvalue, null, dataType, (DomainMetadataType) uom, defaultValue, null);
 
                 //Reference type (XML, ...)
                 } else if (WPSIO.isSupportedReferenceInputClass(clazz)) {
-                    Map<String, Object> userData = null;
-                    if (paramDesc instanceof ExtendedParameterDescriptor) {
-                        userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
-                    }
+
                     dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.REFERENCE, userData);
 
                     //Simple object (Integer, double, ...) and Object which need a conversion from String like affineTransform or WKT Geometry
@@ -333,7 +338,7 @@ public class GeotkProcess implements WPSProcess {
             } else {
                 throw new WPSException("Process input parameter " + inId + " invalid.");
             }
-            dataInputs.add(new InputDescription(inId, inTitle, inAbstract, null, minOccurs, maxOccurs, dataDescription));
+            dataInputs.add(new InputDescription(inId, inTitle, inAbstract, null, inAddParams, minOccurs, maxOccurs, dataDescription));
         }
 
         ///////////////////////////////
@@ -348,6 +353,7 @@ public class GeotkProcess implements WPSProcess {
                     param.getName().getCode());
             final LanguageStringType outTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType outAbstract = WPSUtils.buildProcessIODescription(param, lang);
+            final List<AdditionalParameter> outAddParams = WPSUtils.buildAdditionalParams(param);
 
             DataDescription dataDescription;
             //simple parameter
@@ -421,7 +427,7 @@ public class GeotkProcess implements WPSProcess {
             } else {
                 throw new WPSException("Process output parameter " + outId + " invalid");
             }
-            dataOutputs.add(new OutputDescription(outId, outTitle, outAbstract, null, dataDescription));
+            dataOutputs.add(new OutputDescription(outId, outTitle, outAbstract, null, outAddParams, dataDescription));
         }
 
         // que faire de processVersion / supportStorage / statusSupported V1 ???
@@ -818,8 +824,7 @@ public class GeotkProcess implements WPSProcess {
             try {
                 if(inputDescriptor instanceof ParameterDescriptor) {
                     if (alreadySet.contains(inputIdCode)) {
-                        ParameterDescriptor p = in.parameter(inputIdCode).getDescriptor();
-                        ParameterValue newOccurence = p.createValue();
+                        ParameterValue newOccurence = ((ParameterDescriptor)inputDescriptor).createValue();
                         newOccurence.setValue(dataValue);
                         in.values().add(newOccurence);
                     } else {
