@@ -90,9 +90,9 @@ import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.SectionsType;
+import org.geotoolkit.wps.json.ExceptionReportType;
 import org.geotoolkit.wps.json.JobCollection;
 import org.geotoolkit.wps.json.OutputInfo;
-import org.geotoolkit.wps.json.ValueType;
 import org.geotoolkit.wps.xml.v200.Bill;
 import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.Data;
@@ -933,7 +933,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -961,7 +961,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -983,7 +983,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1005,7 +1005,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1023,7 +1023,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1054,7 +1054,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1080,9 +1080,9 @@ public class WPSService extends OGCWebService<WPSWorker> {
 
                         // TODO complex
                         if (out.getData() != null && out.getData().getContent().size() > 0) {
-                            oi.setValue(out.getData().getContent().get(0).toString());
+                            oi.setData(out.getData().getContent().get(0).toString());
                         } else if (out.getReference() != null && out.getReference().getHref() != null) {
-                            oi.setValue(out.getReference().getHref());
+                            oi.setData(out.getReference().getHref());
                         }
                         r.addOutputsItem(oi);
                     }
@@ -1099,7 +1099,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1126,7 +1126,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1149,7 +1149,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1170,7 +1170,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1191,7 +1191,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1217,7 +1217,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1239,7 +1239,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1263,7 +1263,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1293,7 +1293,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1323,7 +1323,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1344,7 +1344,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1365,7 +1365,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1386,7 +1386,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new org.geotoolkit.wps.json.Exception().code(ex.getExceptionCode().name()).description(ex.getMessage())).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
     }
 
@@ -1402,11 +1402,10 @@ public class WPSService extends OGCWebService<WPSWorker> {
             }
 
             // we assume that is a literal or a reference
-            ValueType v = input.getValue();
-            if (v.getInlineValue() != null) {
-                value = v.getInlineValue();
-            } else if (v.getValueReference() != null) {
-                value = v.getValueReference();
+            if (input.getData()!= null) {
+                value = input.getData();
+            } else if (input.getHref()!= null) {
+                value = input.getHref();
             } else {
                 throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
             }
@@ -1441,16 +1440,17 @@ public class WPSService extends OGCWebService<WPSWorker> {
             }
 
             // we assume that is a literal or a reference
-            ValueType v;
+            String data = null;
+            String href = null;
             if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
-                v = new ValueType(null, (String) input.getData().getContent().get(0));
+                data = (String) input.getData().getContent().get(0);
             } else if (input.getReference() != null) {
-                v = new ValueType(input.getReference().getHref(), null);
+                href = input.getReference().getHref();
             } else {
                 throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
             }
 
-            inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), format, v));
+            inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), format, data, href));
         }
 
         for (OutputDefinition output : request.getOutput()) {

@@ -67,6 +67,7 @@ import org.constellation.dto.service.config.wps.Process;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.ows.xml.v200.AllowedValues;
 import org.geotoolkit.ows.xml.v200.AnyValue;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
@@ -242,7 +243,7 @@ public class GeotkProcess implements WPSProcess {
                     param.getName().getCode());
             final LanguageStringType inTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType inAbstract = WPSUtils.buildProcessIODescription(param, lang);
-            final List<AdditionalParameter> inAddParams = WPSUtils.buildAdditionalParams(param);
+            final List<AdditionalParametersType> inAddParams = WPSUtils.buildAdditionalParams(param);
 
             //set occurs
             String maxOccurs = Integer.toString(param.getMaximumOccurs());
@@ -353,7 +354,7 @@ public class GeotkProcess implements WPSProcess {
                     param.getName().getCode());
             final LanguageStringType outTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType outAbstract = WPSUtils.buildProcessIODescription(param, lang);
-            final List<AdditionalParameter> outAddParams = WPSUtils.buildAdditionalParams(param);
+            final List<AdditionalParametersType> outAddParams = WPSUtils.buildAdditionalParams(param);
 
             DataDescription dataDescription;
             //simple parameter

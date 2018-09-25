@@ -119,6 +119,7 @@ import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.gml.xml.Envelope;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.processing.chain.model.Chain;
 import org.geotoolkit.processing.chain.model.Constant;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
@@ -155,6 +156,7 @@ import org.opengis.util.NoSuchIdentifierException;
 import org.geotoolkit.wps.xml.v200.LiteralData;
 import org.geotoolkit.wps.xml.v200.OutputDescription;
 import org.geotoolkit.wps.xml.v200.ProcessDescription;
+import org.geotoolkit.wps.xml.v200.ProcessDescriptionChoiceType;
 import org.geotoolkit.wps.xml.v200.Quotation;
 import org.geotoolkit.wps.xml.v200.QuotationList;
 import org.geotoolkit.wps.xml.v200.Undeploy;
@@ -1123,17 +1125,17 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         if (request.getProcessDescription()== null) {
             throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
         }
-        if (request.getProcessDescription().getProcessOffering() == null) {
+        if (request.getProcessDescription() == null) {
             throw new CstlServiceException("Process description is not complete (Process offering part missing. reference not supported for now)", INVALID_PARAMETER_VALUE);
         }
-        if (request.getProcessDescription().getProcessOffering().getProcess() == null) {
+        if (request.getProcessDescription().getProcess() == null) {
             throw new CstlServiceException("Process offering is not complete (Process part missing)", INVALID_PARAMETER_VALUE);
         }
         if (request.getExecutionUnit() == null || request.getExecutionUnit().isEmpty()) {
             throw new CstlServiceException("Execution unit must be specified", MISSING_PARAMETER_VALUE);
         }
 
-        ProcessOffering off = request.getProcessDescription().getProcessOffering();
+        ProcessDescriptionChoiceType off = request.getProcessDescription();
         final ProcessDescription processDescription = off.getProcess();
 
         if (processDescription.getIdentifier() != null) {
@@ -1188,12 +1190,15 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstTitle(), in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
                 if (in.getAdditionalParameters() != null) {
                     final Map<String, Object> userMap = new HashMap<>();
-                    for (AdditionalParameter addParam : in.getAdditionalParameters()) {
-                        Object values = addParam.getValue();
-                        if (addParam.getValue() != null && addParam.getValue().size() == 1) {
-                            values = addParam.getValue().get(0);
+                    for (AdditionalParametersType addParams : in.getAdditionalParameters()) {
+                        // TODO role
+                        for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
+                            Object values = addParam.getValue();
+                            if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                                values = addParam.getValue().get(0);
+                            }
+                            userMap.put(addParam.getName().getValue(), values);
                         }
-                        userMap.put(addParam.getName().getValue(), values);
                     }
                     param.setUserMap(userMap);
                 }
@@ -1231,12 +1236,15 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), out.getFirstAbstract(), 0, Integer.MAX_VALUE);
                 if (out.getAdditionalParameters() != null) {
                     final Map<String, Object> userMap = new HashMap<>();
-                    for (AdditionalParameter addParam : out.getAdditionalParameters()) {
-                        Object values = addParam.getValue();
-                        if (addParam.getValue() != null && addParam.getValue().size() == 1) {
-                            values = addParam.getValue().get(0);
+                    for (AdditionalParametersType addParams : out.getAdditionalParameters()) {
+                        // TODO role
+                        for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
+                            Object values = addParam.getValue();
+                            if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                                values = addParam.getValue().get(0);
+                            }
+                            userMap.put(addParam.getName().getValue(), values);
                         }
-                        userMap.put(addParam.getName().getValue(), values);
                     }
                     param.setUserMap(userMap);
                 }

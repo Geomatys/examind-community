@@ -94,6 +94,7 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
 import org.opengis.metadata.Identifier;
@@ -402,8 +403,9 @@ public class WPSUtils {
         return new LanguageStringType(_abstract, lang.toLanguageTag());
     }
 
-    public static List<AdditionalParameter> buildAdditionalParams(final GeneralParameterDescriptor param) {
+    public static List<AdditionalParametersType> buildAdditionalParams(final GeneralParameterDescriptor param) {
         ArgumentChecks.ensureNonNull("param", param);
+
         List<AdditionalParameter> additionalParams = null;
         if (param instanceof ExtendedParameterDescriptor) {
             ExtendedParameterDescriptor extParam = (ExtendedParameterDescriptor) param;
@@ -419,7 +421,11 @@ public class WPSUtils {
                 }
             }
         }
-        return additionalParams;
+        if (additionalParams != null) {
+            AdditionalParametersType additionalParamers = new AdditionalParametersType(additionalParams);
+            return Arrays.asList(additionalParamers);
+        }
+        return null;
     }
 
 
