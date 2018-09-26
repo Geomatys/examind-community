@@ -406,6 +406,7 @@ public class WPSUtils {
     public static List<AdditionalParametersType> buildAdditionalParams(final GeneralParameterDescriptor param) {
         ArgumentChecks.ensureNonNull("param", param);
 
+        String role = null;
         List<AdditionalParameter> additionalParams = null;
         if (param instanceof ExtendedParameterDescriptor) {
             ExtendedParameterDescriptor extParam = (ExtendedParameterDescriptor) param;
@@ -414,15 +415,17 @@ public class WPSUtils {
                 additionalParams = new ArrayList<>();
                 for (Entry<String, Object> e : userMap.entrySet()) {
                     if (e.getValue() instanceof String) {
-                        if (!"Title".equals(e.getKey())) {
+                        if ("role".equals(e.getKey())) {
+                            role = (String) e.getValue();
+                        } else if (!"Title".equals(e.getKey())) {
                             additionalParams.add(new AdditionalParameter(new CodeType(e.getKey()), Arrays.asList(e.getValue())));
                         }
                     }
                 }
             }
         }
-        if (additionalParams != null) {
-            AdditionalParametersType additionalParamers = new AdditionalParametersType(additionalParams);
+        if ((additionalParams != null && !additionalParams.isEmpty()) || role != null) {
+            AdditionalParametersType additionalParamers = new AdditionalParametersType(role, additionalParams);
             return Arrays.asList(additionalParamers);
         }
         return null;

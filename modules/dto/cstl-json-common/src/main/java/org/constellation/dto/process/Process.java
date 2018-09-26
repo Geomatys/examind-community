@@ -19,6 +19,8 @@
 package org.constellation.dto.process;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 /**
@@ -38,6 +40,8 @@ public class Process {
     private List<String> jobControlOptions;
 
     private List<String> outputTransmission;
+
+    private Map<String, Object> userMap;
 
     public Process() {
 
@@ -59,13 +63,14 @@ public class Process {
     }
 
     public Process(String id, String title, String description, Boolean usePrefix,
-            List<String> jobControlOptions, List<String> outputTransmission) {
+            List<String> jobControlOptions, List<String> outputTransmission, Map<String, Object> userMap) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.jobControlOptions = jobControlOptions;
         this.usePrefix = usePrefix;
         this.outputTransmission = outputTransmission;
+        this.userMap = userMap;
     }
 
     public String getId() {
@@ -134,6 +139,20 @@ public class Process {
         this.outputTransmission = outputTransmission;
     }
 
+    /**
+     * @return the userMap
+     */
+    public Map<String, Object> getUserMap() {
+        return userMap;
+    }
+
+    /**
+     * @param userMap the userMap to set
+     */
+    public void setUserMap(Map<String, Object> userMap) {
+        this.userMap = userMap;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[ProcessDTO]\n");
@@ -157,6 +176,12 @@ public class Process {
                 sb.append(out).append('\n');
             }
         }
+        if (userMap != null) {
+            sb.append("user map:\n");
+            for (Entry<String,Object> out : userMap.entrySet()) {
+                sb.append(out.getKey()).append(" = ").append(out.getValue().toString()).append('\n');
+            }
+        }
         return sb.toString();
     }
 
@@ -172,6 +197,7 @@ public class Process {
                    Objects.equals(this.usePrefix, that.usePrefix) &&
                    Objects.equals(this.outputTransmission, that.outputTransmission) &&
                    Objects.equals(this.jobControlOptions, that.jobControlOptions) &&
+                   Objects.equals(this.userMap, that.userMap) &&
                    Objects.equals(this.description, that.description);
         }
         return false;
@@ -186,6 +212,7 @@ public class Process {
         hash = 79 * hash + Objects.hashCode(this.usePrefix);
         hash = 79 * hash + Objects.hashCode(this.jobControlOptions);
         hash = 79 * hash + Objects.hashCode(this.outputTransmission);
+        hash = 79 * hash + Objects.hashCode(this.userMap);
         return hash;
     }
 }

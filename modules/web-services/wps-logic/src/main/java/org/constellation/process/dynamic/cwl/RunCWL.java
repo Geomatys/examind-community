@@ -101,7 +101,7 @@ public class RunCWL extends AbstractCstlProcess {
                 tmpDir  = null;
             }
             execDir = rootDir.resolve(jobId);
-            Files.createDirectory(execDir);
+            Files.createDirectories(execDir);
         } catch (IOException ex) {
             throw new ProcessException(ex.getMessage(), this);
         }

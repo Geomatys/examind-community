@@ -1164,11 +1164,20 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 throw new CstlServiceException("Process offering content must be specified", MISSING_PARAMETER_VALUE);
             }
 
-            String runDocName = RunCWLDescriptor.NAME + '-' + UUID.randomUUID().toString();;
+            String cwlFile = request.getExecutionUnit().get(0).getReference().getHref();
+
+            Map<String, Object> chainUserMap = new HashMap();
+            chainUserMap.put("offering.code", "http://www.opengis.net/eoc/applicationContext/cwl");
+            chainUserMap.put("offering.content", cwlFile);
+            if (request.getDeploymentProfileName() != null) {
+                chainUserMap.put("profile", request.getDeploymentProfileName());
+            }
+
+            String runDocName = RunCWLDescriptor.NAME + '-' + UUID.randomUUID().toString();
 
             //input/out/constants parameters
 
-            final Constant c = chain.addConstant(id++, String.class, request.getExecutionUnit().get(0).getReference().getHref());
+            final Constant c = chain.addConstant(id++, String.class, cwlFile);
 
             final List<Parameter> inputs = new ArrayList<>();
             final List<Parameter> outputs = new ArrayList<>();
@@ -1191,7 +1200,10 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 if (in.getAdditionalParameters() != null) {
                     final Map<String, Object> userMap = new HashMap<>();
                     for (AdditionalParametersType addParams : in.getAdditionalParameters()) {
-                        // TODO role
+                        // WARNING role work for only one
+                        if (addParams.getRole() != null) {
+                            userMap.put("role", addParams.getRole());
+                        }
                         for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
                             Object values = addParam.getValue();
                             if (addParam.getValue() != null && addParam.getValue().size() == 1) {
@@ -1237,7 +1249,10 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 if (out.getAdditionalParameters() != null) {
                     final Map<String, Object> userMap = new HashMap<>();
                     for (AdditionalParametersType addParams : out.getAdditionalParameters()) {
-                        // TODO role
+                        // WARNING role work for only one
+                        if (addParams.getRole() != null) {
+                            userMap.put("role", addParams.getRole());
+                        }
                         for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
                             Object values = addParam.getValue();
                             if (addParam.getValue() != null && addParam.getValue().size() == 1) {
@@ -1292,7 +1307,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 LOGGER.log(Level.INFO, "=== Deploying process " + processId + " ===");
 
                 Registry registry = new Registry(ExamindDynamicProcessFactory.NAME);
-                registry.setProcesses(Arrays.asList(new org.constellation.dto.process.Process(processId, title, description, false, controls, outTransmission)));
+                registry.setProcesses(Arrays.asList(new org.constellation.dto.process.Process(processId, title, description, false, controls, outTransmission, chainUserMap)));
 
                 ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", "default");
                 context = WPSConfigurationUtils.addProcessToContext(context, new RegistryList(registry));

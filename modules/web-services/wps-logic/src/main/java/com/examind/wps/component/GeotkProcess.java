@@ -74,6 +74,7 @@ import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.DomainMetadataType;
 import org.geotoolkit.ows.xml.v200.LanguageStringType;
+import org.geotoolkit.ows.xml.v200.OwsContextDescriptionType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
@@ -122,6 +123,7 @@ public class GeotkProcess implements WPSProcess {
     private final String schemaURL;
     private final List<JobControlOptions> controlOptions;
     private final List<DataTransmissionMode> outTransmissions;
+    private final Map<String, Object> userMap;
 
     private static final NumberFormat NUMFORM = NumberFormat.getNumberInstance(Locale.ENGLISH);
     static {
@@ -167,6 +169,11 @@ public class GeotkProcess implements WPSProcess {
             withPrefix = addPrefix;
         } else {
             withPrefix = configuration.getUsePrefix();
+        }
+        if (configuration == null || configuration.getUserMap() == null) {
+            userMap = new HashMap<>();
+        } else {
+            userMap = configuration.getUserMap();
         }
     }
 
@@ -431,9 +438,14 @@ public class GeotkProcess implements WPSProcess {
             dataOutputs.add(new OutputDescription(outId, outTitle, outAbstract, null, outAddParams, dataDescription));
         }
 
+        OwsContextDescriptionType owsContext = null;
+        if (userMap.containsKey("offering.code") || userMap.containsKey("offering.content")) {
+            owsContext = new OwsContextDescriptionType((String)userMap.get("offering.code"), (String)userMap.get("offering.content"));
+        }
+
         // que faire de processVersion / supportStorage / statusSupported V1 ???
         String processVersion = "1.0.0";
-        ProcessOffering offering = new ProcessOffering(new ProcessDescription(identifier, title, _abstract, null, dataInputs, dataOutputs, processVersion));
+        ProcessOffering offering = new ProcessOffering(new ProcessDescription(identifier, title, _abstract, null, dataInputs, dataOutputs, processVersion, owsContext));
         offering.getJobControlOptions().addAll(controlOptions);
         offering.getOutputTransmission().addAll(outTransmissions);
         return offering;

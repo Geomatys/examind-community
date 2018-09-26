@@ -81,7 +81,7 @@ public class ProcessList {
             if (process == null) {
                 process = new ArrayList<>();
             }
-            this.process.add(new Process(p.getId(), p.getUsePrefix(), p.getJobControlOptions(), p.getOutputTransmission()));
+            this.process.add(new Process(p.getId(), p.getUsePrefix(), p.getJobControlOptions(), p.getOutputTransmission(), p.getUserMap()));
         }
     }
 
