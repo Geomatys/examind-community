@@ -115,6 +115,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
 import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
+import org.constellation.security.SecurityManagerHolder;
+import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.gml.xml.Envelope;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
@@ -644,6 +646,14 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     @Override
     public StatusInfo dismiss(Dismiss request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform an dismiss request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
+               throw new UnauthorizedException("You are not allowed to perform an dismiss request.");
+            }
+        }
         verifyBaseRequest(request, true, false);
         try {
             execInfo.dismissJob(request.getJobID());
@@ -672,6 +682,14 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     }
 
     public Object execute(final Execute request, String quotationId) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform an execute request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
+               throw new UnauthorizedException("You are not allowed to perform an execute request.");
+            }
+        }
         verifyBaseRequest(request, true, false);
 
         final String version = request.getVersion().toString();
@@ -1122,6 +1140,14 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     @Override
     public DeployResult deploy(Deploy request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform a deploy request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
+               throw new UnauthorizedException("You are not allowed to perform a deploy request.");
+            }
+        }
         if (request.getProcessDescription()== null) {
             throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
         }
@@ -1333,6 +1359,14 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     @Override
     public UndeployResult undeploy(Undeploy request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform an undeploy request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
+               throw new UnauthorizedException("You are not allowed to perform an undeploy request.");
+            }
+        }
         try {
             if (request.getIdentifier() == null) {
                 throw new CstlServiceException("Process identifier must be specified", MISSING_PARAMETER_VALUE);
