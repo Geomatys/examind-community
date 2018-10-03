@@ -51,6 +51,7 @@ import org.geotoolkit.wps.xml.v200.GetStatus;
 import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
 import org.geotoolkit.wps.xml.v200.GetCapabilities;
+import org.geotoolkit.atom.xml.Link;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -1085,6 +1086,13 @@ public class WPSService extends OGCWebService<WPSWorker> {
                             oi.setData(out.getReference().getHref());
                         }
                         r.addOutputsItem(oi);
+                    }
+                    if (result.getLinks() != null) {
+                        List<org.geotoolkit.wps.json.JsonLink> links = new ArrayList<>();
+                        for (Link link : result.getLinks()) {
+                            links.add(new org.geotoolkit.wps.json.JsonLink(link));
+                        }
+                        r.setLinks(links);
                     }
                     response = r;
 

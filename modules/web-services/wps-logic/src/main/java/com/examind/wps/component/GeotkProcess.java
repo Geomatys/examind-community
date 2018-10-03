@@ -28,12 +28,14 @@ import com.examind.wps.api.WPSException;
 import static com.examind.wps.util.WPSConstants.GML_VERSION;
 import static com.examind.wps.util.WPSConstants.WMS_SUPPORTED;
 import static com.examind.wps.util.WPSConstants.WPS_SUPPORTED_CRS;
+import com.examind.wps.util.WPSURLUtils;
 import com.examind.wps.util.WPSUtils;
 import org.locationtech.jts.geom.Geometry;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,7 +68,6 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.dto.service.config.wps.Process;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
-import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.ows.xml.v200.AllowedValues;
 import org.geotoolkit.ows.xml.v200.AnyValue;
@@ -1274,6 +1275,10 @@ public class GeotkProcess implements WPSProcess {
     }
 
     public long getFileSize(URL url) {
+        try {
+            WPSURLUtils.authenticate(url.toURI());
+        } catch (URISyntaxException ex) {}
+
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) url.openConnection();

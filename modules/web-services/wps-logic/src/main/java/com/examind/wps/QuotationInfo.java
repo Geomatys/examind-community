@@ -97,9 +97,11 @@ public class QuotationInfo {
         return billMap.get(billId);
     }
 
-    public Bill getBillForJob(String jobId) throws UnknowJobException {
+    public Bill getBillForJob(String jobId, boolean safe) throws UnknowJobException {
         if (!jobBillMap.containsKey(jobId)) {
-            throw new UnknowJobException("There is no job with a biull registrered in the service with the id:" + jobId);
+            if (!safe) {
+                throw new UnknowJobException("There is no job with a biull registrered in the service with the id:" + jobId);
+            }
         }
         return jobBillMap.get(jobId);
     }

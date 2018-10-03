@@ -18,15 +18,14 @@
  */
 package org.constellation.process.dynamic.cwl;
 
+import com.examind.wps.util.WPSURLUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
-import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,14 +71,11 @@ public class RunCWL extends AbstractCstlProcess {
 
     private final String cwlExecutable = "cwl-runner";
 
-    private final Map<String, String[]> authenticatedUrls = new HashMap<>();
-
     private final Set<Path> temporaryResource = new HashSet<>();
 
 
     public RunCWL(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
-        loadAuthenticatedURL();
     }
 
     @Override
@@ -297,7 +293,7 @@ public class RunCWL extends AbstractCstlProcess {
 
     private URI downloadInput(URI uri, Path execDir) throws IOException {
         if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
-            boolean authenticated = authenticate(uri);
+            boolean authenticated = WPSURLUtils.authenticate(uri);
             LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
             HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
             String content = conec.getHeaderField("Content-Disposition");
@@ -317,35 +313,5 @@ public class RunCWL extends AbstractCstlProcess {
             return p.toUri();
         }
         return uri;
-    }
-
-    private boolean authenticate(URI uri) {
-        String uriValue = uri.toString();
-        for (String authenticatedUrl : authenticatedUrls.keySet()) {
-            if (uriValue.startsWith(authenticatedUrl)) {
-                Authenticator.setDefault(new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(authenticatedUrls.get(authenticatedUrl)[0], authenticatedUrls.get(authenticatedUrl)[1].toCharArray());
-                    }
-                });
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void loadAuthenticatedURL() {
-        String value = Application.getProperty("authenticated.urls", "");
-
-        // must be in the form URLµloginµpwdµURLµloginµpwd
-        String[] values = value.split("µ");
-        for (int i = 0; i < values.length; i = i + 3) {
-            if (i + 3 > values.length) {
-                LOGGER.warning("malformed authenticated.urls variable");
-                return;
-            }
-            authenticatedUrls.put(values[i], new String[] {values[i+1], values[i+2]});
-        }
     }
 }

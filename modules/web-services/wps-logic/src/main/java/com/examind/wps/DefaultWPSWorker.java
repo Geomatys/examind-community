@@ -29,6 +29,7 @@ import com.examind.wps.util.SimpleJobExecutor;
 import com.examind.wps.util.WPSUtils;
 import com.examind.wps.util.WPSConfigurationUtils;
 
+import org.geotoolkit.atom.xml.Link;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -634,7 +635,14 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     public Object getResult(GetResult request) throws CstlServiceException {
         verifyBaseRequest(request, true, false);
         try {
-            return execInfo.getResult(request.getJobID());
+            Object result = execInfo.getResult(request.getJobID());
+            Bill bill = quoteInfo.getBillForJob(request.getJobID(), true);
+            if ((result instanceof Result) && bill != null) {
+                Result r = (Result) result;
+                String serviceUrl = getServiceUrl();
+                r.setLinks(Arrays.asList(new Link(serviceUrl.substring(0, serviceUrl.length() - 1) + "/bills/" + bill.getId(), "bill", "application/json", "Associated bill")));
+            }
+            return result;
         } catch (UnknowJobException ex) {
             throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
         }
@@ -1466,7 +1474,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     @Override
     public Bill getBillForJob(String jobID) throws CstlServiceException {
         try {
-            return quoteInfo.getBillForJob(jobID);
+            return quoteInfo.getBillForJob(jobID, false);
         } catch (UnknowJobException ex) {
             throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobID");
         }
