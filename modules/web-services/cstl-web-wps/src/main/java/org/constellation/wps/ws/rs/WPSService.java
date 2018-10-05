@@ -86,14 +86,20 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static com.examind.wps.util.WPSConstants.*;
+import java.io.IOException;
 import java.util.Set;
+import org.constellation.util.Util;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.SectionsType;
 import org.geotoolkit.wps.json.ExceptionReportType;
 import org.geotoolkit.wps.json.JobCollection;
+import org.geotoolkit.wps.json.JsonLink;
+import org.geotoolkit.wps.json.LandingPage;
 import org.geotoolkit.wps.json.OutputInfo;
+import org.geotoolkit.wps.json.ReqClasses;
 import org.geotoolkit.wps.xml.v200.Bill;
 import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.Data;
@@ -147,8 +153,8 @@ public class WPSService extends OGCWebService<WPSWorker> {
         String requestName = null;
         try {
             // Handle an empty request by sending a basic web page.
-            if ((null == objectRequest) && getParameters().isEmpty()) {
-                return new ResponseObject(getIndexPage(worker.getId()), MediaType.TEXT_HTML);
+            if ((null == objectRequest) && isIndexPageRequest()) {
+                return getIndexPage(worker.getId());
             }
 
             // if the request is not an xml request we fill the request parameter.
@@ -890,23 +896,41 @@ public class WPSService extends OGCWebService<WPSWorker> {
     /**
      * Get an html page for the root resource.
      */
-    private String getIndexPage(String instance) {
-        return "<html>\n"
-                + "  <title>Examind WPS</title>\n"
-                + "  <body>\n"
-                + "    <h1><i>Examind:</i></h1>\n"
-                + "    <h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Web Processing Service</h1>\n"
-                + "    <p>\n"
-                + "      In order to access this service, you must form a valid request.\n"
-                + "    </p\n"
-                + "    <p>\n"
-                + "      Try using a <a href=\"" + getServiceURL() + "/wps/" + instance
-                + "?service=WPS&request=GetCapabilities\""
-                + ">Get Capabilities</a> request to obtain the 'Capabilities'<br>\n"
-                + "      document which describes the resources available on this server.\n"
-                + "    </p>\n"
-                + "  </body>\n"
-                + "</html>\n";
+    private ResponseObject getIndexPage(String serviceId) throws CstlServiceException {
+        String format = getParameter("f", false);
+        if ("json".equals(format) || "application/json".equals(format)) {
+            LandingPage lp = new LandingPage();
+            lp.addLinksItem(new JsonLink(getServiceURL() + "/wps/" + serviceId,                  "self",        MediaType.APPLICATION_JSON_VALUE, null, null));
+            lp.addLinksItem(new JsonLink(getServiceURL() + "/wps/" + serviceId + "/api",         "service",     MediaType.APPLICATION_JSON_VALUE, null, null));
+            lp.addLinksItem(new JsonLink(getServiceURL() + "/wps/" + serviceId + "/conformance", "conformance", MediaType.APPLICATION_JSON_VALUE, null, null));
+            lp.addLinksItem(new JsonLink(getServiceURL() + "/wps/" + serviceId + "/processes",   "processes",   MediaType.APPLICATION_JSON_VALUE, null, null));
+            return new ResponseObject(lp, MediaType.APPLICATION_JSON);
+        } else {
+
+            return new ResponseObject("<html>\n"
+                    + "  <title>Examind WPS</title>\n"
+                    + "  <body>\n"
+                    + "    <h1><i>Examind:</i></h1>\n"
+                    + "    <h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Web Processing Service</h1>\n"
+                    + "    <p>\n"
+                    + "      In order to access this service, you must form a valid request.\n"
+                    + "    </p\n"
+                    + "    <p>\n"
+                    + "      Try using a <a href=\"" + getServiceURL() + "/wps/" + serviceId
+                    + "?service=WPS&request=GetCapabilities\""
+                    + ">Get Capabilities</a> request to obtain the 'Capabilities'<br>\n"
+                    + "      document which describes the resources available on this server.\n"
+                    + "    </p>\n"
+                    + "  </body>\n"
+                    + "</html>\n", MediaType.TEXT_HTML);
+        }
+    }
+
+    private boolean isIndexPageRequest() {
+        Map<String, String[]> params = new HashMap<String, String[]>(getParameters());
+        params.remove("serviceId");
+        params.remove("f");
+        return params.isEmpty();
     }
 
     @RequestMapping(path = "processes", method = RequestMethod.GET)
@@ -1396,6 +1420,24 @@ public class WPSService extends OGCWebService<WPSWorker> {
         } catch (CstlServiceException ex) {
             return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
         }
+    }
+
+
+    @RequestMapping(path = "/conformance", method = RequestMethod.GET)
+    public ResponseEntity conformanceRestful(@PathVariable("serviceId") String serviceId) {
+        ReqClasses result = new ReqClasses();
+        result.addConformsToItem("http://www.opengis.net/spec/WPS/2.0/conf/service/profile/basic-wps");
+        result.addConformsToItem("http://www.opengis.net/spec/WPS/2.0/conf/service/synchronous-wps");
+        result.addConformsToItem("http://www.opengis.net/spec/WPS/2.0/conf/service/asynchronous-wps");
+        result.addConformsToItem("http://www.opengis.net/spec/WPS/2.0/conf/service/transactional-wps");
+        result.addConformsToItem("http://www.opengis.net/spec/WPS/2.0/conf/process-model-encoding");
+        return new ResponseObject(result, MediaType.APPLICATION_JSON).getResponseEntity();
+    }
+
+    @RequestMapping(path = "/api", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity api(@PathVariable("serviceId") String serviceId) throws IOException {
+        String api = IOUtilities.toString(Util.getResourceAsStream("org/constellation/json/wps-t-api.json"));
+        return new ResponseEntity(api, HttpStatus.OK);
     }
 
 
