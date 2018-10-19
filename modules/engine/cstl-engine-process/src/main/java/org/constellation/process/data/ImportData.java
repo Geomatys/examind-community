@@ -111,7 +111,7 @@ public class ImportData extends AbstractCstlProcess {
              LOGGER.info("Waiting for Datasource analysis completed");
 
              datasourceBusiness.recordSelectedPath(ds);
-             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, null);
+             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
 
              LOGGER.log(Level.INFO, "{0} files to integrate.", paths.size());
              List<Integer> outputDatas = new ArrayList<>();

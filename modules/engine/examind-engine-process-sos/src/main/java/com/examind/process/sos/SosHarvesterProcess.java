@@ -147,7 +147,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         try {
-            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, null);
+            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
         } catch (ConstellationException ex) {
             Logger.getLogger(SosHarvesterProcess.class.getName()).log(Level.SEVERE, null, ex);
         }

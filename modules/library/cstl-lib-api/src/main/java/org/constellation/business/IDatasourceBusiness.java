@@ -41,7 +41,7 @@ public interface IDatasourceBusiness {
         NOT_STARTED,
         ERROR
     }
-    
+
     Integer create(DataSource ds);
 
     void update(DataSource ds) throws ConstellationException;
@@ -50,11 +50,17 @@ public interface IDatasourceBusiness {
 
     DataSource getDatasource(int id);
 
+    DataSource getByUrl(String url);
+
     String testDatasource(DataSource ds);
 
     void recordSelectedPath(DataSource ds);
 
+    void removePath(DataSource ds, String path);
+
     List<DataSourceSelectedPath> getSelectedPath(DataSource ds, Integer limit) throws ConstellationException;
+
+    DataSourceSelectedPath getSelectedPath(DataSource ds, String path);
 
     List<FileBean> exploreDatasource(final Integer dsId, final String subPath) throws ConstellationException;
 

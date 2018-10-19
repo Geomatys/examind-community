@@ -46,6 +46,8 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
 
     private final Map<Integer, DataSource> byId = new HashMap<>();
 
+    private final Map<String, DataSource> byUrl = new HashMap<>();
+
     public FileSystemDatasourceRepository() {
         super(DataSource.class);
         load();
@@ -58,6 +60,7 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
                 for (Path dataFile : directoryStream) {
                     DataSource ds = (DataSource) getObjectFromPath(dataFile, pool);
                     byId.put(ds.getId(), ds);
+                    byUrl.put(ds.getUrl(), ds);
 
                     if (ds.getId() >= currentId) {
                         currentId = ds.getId() + 1;
@@ -73,6 +76,11 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
     @Override
     public DataSource findById(int id) {
         return byId.get(id);
+    }
+
+    @Override
+    public DataSource findByUrl(String url) {
+        return byUrl.get(url);
     }
 
     @Override
@@ -171,6 +179,16 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
 
     @Override
     public void updatePathProvider(int id, String path, int providerId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void deletePath(int id, String path) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public DataSourceSelectedPath getSelectedPath(int id, String path) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

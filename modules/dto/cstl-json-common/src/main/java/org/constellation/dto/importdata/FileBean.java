@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Bean for file information : name and boolean to define folder
@@ -43,16 +42,20 @@ public class FileBean implements Serializable,Comparable<FileBean> {
     private String path;
 
     private String parentPath;
-    
+
+    private Long lastModified;
+
     private int size = 0;
-    
+
     private List<StoreFormat> types;
 
+    private List<FileBean> children;
+
     public FileBean() {
-        
+
     }
-    
-    public FileBean(final String name, final Boolean folder, final String path, 
+
+    public FileBean(final String name, final Boolean folder, final String path,
             final String parentPath, final int size, final Map<String, String> types) {
         this.name = name;
         this.folder = folder;
@@ -65,8 +68,8 @@ public class FileBean implements Serializable,Comparable<FileBean> {
         }
         this.types = sf;
     }
-    
-    public FileBean(final String name, final Boolean folder, final String path, 
+
+    public FileBean(final String name, final Boolean folder, final String path,
             final String parentPath, final int size, final List<StoreFormat> types) {
         this.name = name;
         this.folder = folder;
@@ -74,6 +77,16 @@ public class FileBean implements Serializable,Comparable<FileBean> {
         this.parentPath = parentPath;
         this.size = size;
         this.types = types;
+    }
+
+    public FileBean(final String name, final Boolean folder, final String path,
+            final String parentPath, final int size, final Long lastModified) {
+        this.name = name;
+        this.folder = folder;
+        this.path = path;
+        this.parentPath = parentPath;
+        this.size = size;
+        this.lastModified = lastModified;
     }
 
     public FileBean(Path path, boolean isLocal) {
@@ -124,7 +137,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
 
     @Override
     public int compareTo(FileBean o) {
-        return name.compareTo(o.getName());
+        return path.compareTo(o.getPath());
     }
 
     public int getSize() {
@@ -141,5 +154,52 @@ public class FileBean implements Serializable,Comparable<FileBean> {
 
     public void setTypes(List<StoreFormat> types) {
         this.types = types;
+    }
+
+    public Long getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(Long lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public List<FileBean> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<FileBean> children) {
+        this.children = children;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[FileBean]");
+        sb.append(" name:").append(name);
+        sb.append(" lastModified:").append(lastModified);
+        sb.append(" size:").append(size);
+        sb.append(" folder:").append(folder);
+        sb.append(" path:").append(path);
+        if (children != null && !children.isEmpty()) {
+            for (FileBean child : children) {
+                sb.append('\n').append(child.toString("---"));
+            }
+        }
+        return sb.toString();
+    }
+
+    private String toString(String margin) {
+        StringBuilder sb = new StringBuilder(margin);
+        sb.append(" name:").append(name);
+        sb.append(" lastModified:").append(lastModified);
+        sb.append(" size:").append(size);
+        sb.append(" folder:").append(folder);
+        sb.append(" path:").append(path);
+        if (children != null && !children.isEmpty()) {
+            for (FileBean child : children) {
+                sb.append('\n').append(child.toString(margin + "---"));
+            }
+        }
+        return sb.toString();
     }
 }

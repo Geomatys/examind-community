@@ -34,13 +34,19 @@ public interface DatasourceRepository {
 
     DataSource findById(int id);
 
+    DataSource findByUrl(String url);
+
     int create(DataSource data);
 
     int delete(int id);
 
+    void deletePath(int id, String path);
+
     boolean hasSelectedPath(int id);
 
     List<DataSourceSelectedPath> getSelectedPath(int id, Integer limit);
+
+    DataSourceSelectedPath getSelectedPath(int id, String path);
 
     void addDataSourceStore(int dsId, String storeId, String format);
 

@@ -66,6 +66,11 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
+    public DataSource findByUrl(String url) {
+        return convertToDto(dsl.select().from(DATASOURCE).where(DATASOURCE.URL.eq(url)).fetchOneInto(Datasource.class));
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int create(DataSource datasource) {
         DatasourceRecord newRecord = dsl.newRecord(DATASOURCE);
@@ -82,6 +87,14 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
         dsl.delete(DATASOURCE_PATH).where(DATASOURCE_PATH.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_STORE).where(DATASOURCE_STORE.DATASOURCE_ID.eq(id)).execute();
         return dsl.delete(DATASOURCE).where(DATASOURCE.ID.eq(id)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deletePath(int id, String path) {
+        dsl.delete(DATASOURCE_SELECTED_PATH).where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id)).and(DATASOURCE_SELECTED_PATH.PATH.eq(path)).execute();
+        dsl.delete(DATASOURCE_PATH_STORE).where(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id)).and(DATASOURCE_PATH_STORE.PATH.eq(path)).execute();
+        dsl.delete(DATASOURCE_PATH).where(DATASOURCE_PATH.DATASOURCE_ID.eq(id)).and(DATASOURCE_PATH.PATH.eq(path)).execute();
     }
 
     @Override
@@ -102,6 +115,15 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                 return convertListToDtoPath(query.limit(limit).fetchInto(DatasourceSelectedPath.class));
             }
             return convertListToDtoPath(query.fetchInto(DatasourceSelectedPath.class));
+    }
+
+    @Override
+    public DataSourceSelectedPath getSelectedPath(int id, String path) {
+        return convertToDto(dsl.select()
+                               .from(DATASOURCE_SELECTED_PATH)
+                               .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+                               .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
+                               .fetchOneInto(DatasourceSelectedPath.class));
     }
 
     @Override

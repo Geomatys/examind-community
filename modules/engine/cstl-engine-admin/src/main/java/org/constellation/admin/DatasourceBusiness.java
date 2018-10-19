@@ -26,9 +26,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,7 +46,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -69,8 +65,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataSourcePathComplete;
 import org.constellation.dto.DataSourcePath;
 import org.constellation.repository.DatasourceRepository;
-import org.constellation.configuration.AppProperty;
-import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSource;
@@ -85,6 +79,8 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviders;
+import org.constellation.util.FileSystemReference;
+import org.constellation.util.FileSystemUtilities;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
@@ -122,8 +118,6 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private final Map<Integer, Thread> currentRunningAnalysis = new ConcurrentHashMap<>();
 
-    private final Map<String, FileSystemReference> usedFileSystems = new HashMap<>();
-
     private final Cache<Integer, Object> datasourceLocks = new Cache<>(19, 0, false);
 
     @Override
@@ -132,7 +126,6 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds.getId() != null) {
             throw new IllegalArgumentException("Cannot create a datasource with an ID already set.");
         }
-
         if (ds.getDateCreation() == null) {
             ds.setDateCreation(System.currentTimeMillis());
         }
@@ -204,6 +197,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     @Override
+    public DataSource getByUrl(String url) {
+        return dsRepository.findByUrl(url);
+    }
+
+    @Override
     @Transactional
     public void addSelectedPath(final int dsId,  String subPath) {
         dsRepository.addSelectedPath(dsId, subPath);
@@ -225,114 +223,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     private FileSystemReference getFileSystem(DataSource ds, boolean create) throws URISyntaxException, IOException {
-        String baseUrl = ds.getUrl();
-        Map<String, Object> prop = new HashMap<>();
-        String userUrl;
-        URI baseURI;
-        URI userURI;
-        switch (ds.getType()) {
-            case "ftp":
-                if (ds.getUsername() != null && !ds.getUsername().isEmpty()) {
-                    prop.put("username", ds.getUsername());
-                    userUrl = baseUrl.replace("ftp://", "ftp://" + ds.getUsername() + '@');
-                    userUrl = userUrl.replace("ftps://", "ftps://" + ds.getUsername() + '@');
-                } else {
-                    userUrl = baseUrl;
-                }
-                if (ds.getPwd() != null && !ds.getPwd().isEmpty()) {
-                    char[] pwd = ds.getPwd().toCharArray();
-                    prop.put("password", pwd);
-                }
-                // TODO allow to configure via envronnement variable or via UI ?
-                prop.put("clientConnectionCount", 5);
-                prop.put("connectionMode", "PASSIVE");
-                prop.put("printCommand", Application.getBooleanProperty(AppProperty.CSTL_FTP_VERBOSE_LOG, false));
-                prop.put("bufferSize", 1024 * 1024);
-
-                baseURI = new URI(baseUrl);
-                userURI = new URI(userUrl);
-                break;
-            case "smb":
-                if (ds.getUsername() != null && ds.getPwd() != null) {
-                    prop.put("username", ds.getUsername());
-                    prop.put("password", ds.getPwd());
-
-                    userUrl = baseUrl.replace("smb://", "smb://" + ds.getUsername() + ':' + ds.getPwd() + '@');
-                } else {
-                    userUrl = baseUrl;
-                }
-                baseURI = new URI(baseUrl);
-                userURI = new URI(userUrl);
-                break;
-            case "s3":
-                if (ds.getUsername() != null && !ds.getUsername().isEmpty()
-                        && ds.getPwd() != null && !ds.getPwd().isEmpty()) {
-                    userUrl = baseUrl.replace("s3://", "s3://" + ds.getUsername() + ':' + ds.getPwd() + '@');
-                } else if (ds.getUsername() != null) {
-                    userUrl = baseUrl.replace("s3://", "s3://" + ds.getUsername() + '@');
-                } else {
-                    userUrl = baseUrl;
-                }
-                baseURI = new URI(baseUrl);
-                userURI = new URI(userUrl);
-                break;
-            case "database":
-                prop.put("username", ds.getUsername());
-                prop.put("password", ds.getPwd());
-                baseURI = new URI(baseUrl);
-                userURI = baseURI;
-                userUrl = baseUrl;
-                break;
-            case "file":
-                baseURI = new URI(baseUrl);
-                userURI = baseURI;
-                userUrl = baseUrl;
-                break;
-            default: throw new IllegalArgumentException("No FileSystem available for datasource type: " + ds.getType());
-        }
-        synchronized (usedFileSystems) {
-            FileSystemReference result = usedFileSystems.get(userUrl);
-            if (result == null) {
-                FileSystem fs = existFS(userURI);
-                if (fs == null) {
-                    if (create) {
-                        fs = FileSystems.newFileSystem(baseURI, prop);
-                    } else {
-                        return null;
-                    }
-                }
-                result = new FileSystemReference(userUrl, fs);
-                usedFileSystems.put(userUrl, result);
-            }
-            result.addDsRef(ds.getId());
-            return result;
-        }
-    }
-
-    private static FileSystem existFS(URI uri) {
-        try {
-            return FileSystems.getFileSystem(uri);
-        } catch(FileSystemNotFoundException ex) {
-            return null;
-        }
-    }
-
-    private FileSystemReference createZipFileSystem(Path zipPath) throws IOException {
-        String url = "jar:" + zipPath.toUri();
-        final URI uri = URI.create(url);
-        synchronized (usedFileSystems) {
-            FileSystemReference result = usedFileSystems.get(url);
-            if (result == null) {
-                FileSystem fs = existFS(uri);
-                if (fs == null) {
-                    fs = FileSystems.newFileSystem(uri, new HashMap());
-                }
-                result = new FileSystemReference(url, fs);
-                usedFileSystems.put(url, result);
-            }
-            result.addUnknowRef();
-            return result;
-        }
+        return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId(), create);
     }
 
     private boolean hasS63File(Path path) throws IOException {
@@ -344,7 +235,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if ("zip".equals(ext.toLowerCase())) {
             FileSystemReference zipFS = null;
             try {
-                zipFS = createZipFileSystem(path);
+                zipFS = FileSystemUtilities.createZipFileSystem(path);
                 final Path root = zipFS.fs.getPath("/");
                 Files.walkFileTree(root, visitor);
             } catch (UnsupportedOperationException ex) {
@@ -354,15 +245,21 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 LOGGER.log(Level.INFO, "Error while visiting ZIP file", ex);
             } finally {
                 if (zipFS != null && zipFS.close()) {
-                    synchronized (usedFileSystems) {
-                        usedFileSystems.remove(zipFS.uri);
-                    }
+                   FileSystemUtilities.removeFileSystemFromCache(zipFS.uri);
                 }
             }
         } else {
             Files.walkFileTree(path, visitor);
         }
         return visitor.serialPresent;
+    }
+
+    @Override
+    @Transactional
+    public void removePath(DataSource ds, String path) {
+        if (ds != null) {
+            dsRepository.deletePath(ds.getId(), path);
+        }
     }
 
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
@@ -432,25 +329,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     private void closeFileSystem(DataSource ds) {
-        switch (ds.getType()) {
-            case "smb":
-            case "ftp":
-            case "s3":
-                if (ds.getUrl() != null && !ds.getReadFromRemote()) {
-                    try {
-                        FileSystemReference fsr = getFileSystem(ds, false);
-                        if (fsr != null && fsr.closeFs(ds.getId())) {
-                            synchronized(usedFileSystems) {
-                                usedFileSystems.remove(fsr.uri);
-                            }
-                        }
-                    // do not throw exception on close method
-                    } catch (IOException | URISyntaxException ex) {
-                        LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                    }   break;
-                }
-            default: // do nothing
-                    break;
+        if (!ds.getReadFromRemote()) {
+            FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId());
         }
     }
 
@@ -536,7 +416,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (ds != null) {
             List<ResourceStoreAnalysisV3> results = new ArrayList<>();
             recordSelectedPath(ds);
-            List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, null);
+            List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, Integer.MAX_VALUE);
             for (DataSourceSelectedPath sp : selectedPaths) {
                 ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null);
                 if (rsa != null) {
@@ -674,7 +554,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         synchronized (datasourceLocks.computeIfAbsent(id, key -> key)) {
             String datasourceState = dsRepository.getAnalysisState(ds.getId());
-            if ("NOT_STARTED".equals(datasourceState)) {
+            if ( AnalysisState.NOT_STARTED.name().equals(datasourceState)) {
                 updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING.name());
                 if (!async) {
                     return analyzeDataSource(ds);
@@ -850,6 +730,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return paths;
     }
 
+    @Override
+    public DataSourceSelectedPath getSelectedPath(DataSource ds, String path) {
+        if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
+            return new DataSourceSelectedPath(ds.getId(), null, AnalysisState.PENDING.name(), -1);
+        } else {
+            return dsRepository.getSelectedPath(ds.getId(), path);
+        }
+    }
+
     /**
      * Initialize provider files by creating links from given paths into a new
      * provider directory.
@@ -942,44 +831,5 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Transactional
     public void updatePathStatus(int id, String path, String newStatus) {
         dsRepository.updatePathStatus(id, path, newStatus);
-    }
-
-    private static class FileSystemReference {
-        public final String uri;
-        public final FileSystem fs;
-        private Set<Integer> dsRef;
-        private AtomicInteger unknowRef = new AtomicInteger(0);
-
-        public FileSystemReference(String uri, FileSystem fs) {
-            this.fs = fs;
-            this.uri = uri;
-            this.dsRef = new HashSet<>();
-        }
-
-        public void addDsRef(Integer dsId) {
-            dsRef.add(dsId);
-        }
-
-        public void addUnknowRef() {
-            unknowRef.incrementAndGet();
-        }
-
-        public boolean closeFs(Integer dsId) throws IOException {
-            dsRef.remove(dsId);
-            if (dsRef.isEmpty()) {
-                fs.close();
-                return true;
-            }
-            return false;
-        }
-
-        public boolean close() throws IOException {
-            int nbRef = unknowRef.decrementAndGet();
-            if (nbRef == 0) {
-                fs.close();
-                return true;
-            }
-            return false;
-        }
     }
 }
