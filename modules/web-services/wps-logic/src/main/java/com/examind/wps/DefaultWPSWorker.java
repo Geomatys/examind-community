@@ -1159,11 +1159,11 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         if (request.getProcessDescription()== null) {
             throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
         }
-        if (request.getProcessDescription() == null) {
-            throw new CstlServiceException("Process description is not complete (Process offering part missing. reference not supported for now)", INVALID_PARAMETER_VALUE);
-        }
         if (request.getProcessDescription().getProcess() == null) {
-            throw new CstlServiceException("Process offering is not complete (Process part missing)", INVALID_PARAMETER_VALUE);
+            throw new CstlServiceException("Process description is not complete (Process part missing. reference not supported for now)", INVALID_PARAMETER_VALUE);
+        }
+        if (request.getProcessDescription().getProcess().getOwsContext() == null || request.getProcessDescription().getProcess().getOwsContext().getOffering() == null) {
+            throw new CstlServiceException("Process part is not complete (OWS context part missing/incomplete)", INVALID_PARAMETER_VALUE);
         }
         if (request.getExecutionUnit() == null || request.getExecutionUnit().isEmpty()) {
             throw new CstlServiceException("Execution unit must be specified", MISSING_PARAMETER_VALUE);
@@ -1198,11 +1198,16 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 throw new CstlServiceException("Process offering content must be specified", MISSING_PARAMETER_VALUE);
             }
 
-            String cwlFile = request.getExecutionUnit().get(0).getReference().getHref();
+            /*
+             What to do with the execution unit
+             String cwlFile = request.getExecutionUnit().get(0).getReference().getHref();
+            */
+            String offeringCode = processDescription.getOwsContext().getOffering().getCode();
+            String offeringCnt  = processDescription.getOwsContext().getOffering().getContentRef(); // cwl File
 
             Map<String, Object> chainUserMap = new HashMap();
-            chainUserMap.put("offering.code", "http://www.opengis.net/eoc/applicationContext/cwl");
-            chainUserMap.put("offering.content", cwlFile);
+            chainUserMap.put("offering.code", offeringCode);
+            chainUserMap.put("offering.content", offeringCnt);
             if (request.getDeploymentProfileName() != null) {
                 chainUserMap.put("profile", request.getDeploymentProfileName());
             }
@@ -1211,7 +1216,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
             //input/out/constants parameters
 
-            final Constant c = chain.addConstant(id++, String.class, cwlFile);
+            final Constant c = chain.addConstant(id++, String.class, offeringCnt);
 
             final List<Parameter> inputs = new ArrayList<>();
             final List<Parameter> outputs = new ArrayList<>();
