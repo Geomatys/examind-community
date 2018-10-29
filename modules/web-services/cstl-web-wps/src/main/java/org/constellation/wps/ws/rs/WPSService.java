@@ -1473,8 +1473,8 @@ public class WPSService extends OGCWebService<WPSWorker> {
             }
         }
 
-        Execute exec = new Execute("WPS", "2.0.0", null, new CodeType(processId), inputs, outputs, Response.document);
-        exec.setMode(Execute.Mode.async); // always async for now
+        Execute exec = new Execute("WPS", "2.0.0", null, new CodeType(processId), inputs, outputs, request.getResponse());
+        exec.setMode(request.getMode());
         return exec;
     }
 
