@@ -927,7 +927,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
     }
 
     private boolean isIndexPageRequest() {
-        Map<String, String[]> params = new HashMap<String, String[]>(getParameters());
+        Map<String, String[]> params = new HashMap<>(getParameters());
         params.remove("serviceId");
         params.remove("f");
         return params.isEmpty();
@@ -958,7 +958,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -986,7 +986,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1008,7 +1008,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1030,7 +1030,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1048,7 +1048,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1079,7 +1079,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1131,7 +1131,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1158,7 +1158,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1181,7 +1181,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1202,7 +1202,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1223,7 +1223,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1249,7 +1249,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1271,7 +1271,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1295,7 +1295,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1325,7 +1325,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1355,7 +1355,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1376,7 +1376,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1397,7 +1397,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 
@@ -1418,7 +1418,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
             }
         } catch (CstlServiceException ex) {
-            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON).getResponseEntity();
+            return new ResponseObject(new ExceptionReportType(ex.getExceptionCode().name(), ex.getMessage()), MediaType.APPLICATION_JSON, ex.getHttpCode()).getResponseEntity();
         }
     }
 

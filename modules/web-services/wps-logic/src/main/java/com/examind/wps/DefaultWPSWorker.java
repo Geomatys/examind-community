@@ -623,7 +623,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         try {
             return execInfo.getStatus(request.getJobID());
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         }
     }
 
@@ -644,7 +644,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             }
             return result;
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         }
     }
 
@@ -667,7 +667,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             execInfo.dismissJob(request.getJobID());
 
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         } catch (WPSException ex) {
             throw new CstlServiceException(ex.getMessage());
         }
@@ -1033,8 +1033,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         // verify if the descriptor is linked to the WPS instance
         if (!processList.containsKey(id)) {
-            throw new CstlServiceException("The process " + IDENTIFIER_PARAMETER.toLowerCase() + " : " + identifier + " does not exist.",
-                INVALID_PARAMETER_VALUE, IDENTIFIER_PARAMETER.toLowerCase());
+            throw new CstlServiceException("The process " + IDENTIFIER_PARAMETER.toLowerCase() + " : " + identifier + " does not exist.", null,
+                INVALID_PARAMETER_VALUE, IDENTIFIER_PARAMETER.toLowerCase(), 404);
         }
         return processList.get(id);
     }
@@ -1386,7 +1386,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             }
             String processId = request.getIdentifier().getValue();
             if (processBusiness.getChainProcess(ExamindDynamicProcessFactory.NAME, processId) == null) {
-                throw new CstlServiceException("Process " + processId + " is not deployed on the server", INVALID_PARAMETER_VALUE);
+                throw new CstlServiceException("Process " + processId + " is not deployed on the server", null, INVALID_PARAMETER_VALUE, "processId", 404);
             }
 
             // remove process link
@@ -1427,7 +1427,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         try {
             return quoteInfo.getQuotation(quotationId);
         } catch (UnknowQuotationException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "quotationId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "quotationId", 404);
         }
     }
 
@@ -1458,7 +1458,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             Execute request = quote.getProcessParameters();
             return execute(request, quotationId);
         } catch (UnknowQuotationException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "quotationId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "quotationId", 404);
         }
     }
 
@@ -1472,7 +1472,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         try {
             return quoteInfo.getBill(billId);
         } catch (UnknowQuotationException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "billId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "billId", 404);
         }
     }
 
@@ -1481,7 +1481,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         try {
             return quoteInfo.getBillForJob(jobID, false);
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobID");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobID", 404);
         }
     }
 }
