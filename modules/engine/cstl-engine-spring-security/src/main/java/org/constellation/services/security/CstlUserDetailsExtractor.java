@@ -1,6 +1,7 @@
 package org.constellation.services.security;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.constellation.engine.security.UserDetailsExtractor;
 import org.constellation.services.component.TokenService;
@@ -16,21 +17,21 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CstlUserDetailsExtractor.class);
 
-    
+
     private UserDetailsService userDetailsService;
-    
+
     private TokenService tokenService;
-    
+
     @Override
-    public UserDetails userDetails(HttpServletRequest httpServletRequest) {
+    public UserDetails userDetails(HttpServletRequest httpServletRequest, HttpServletResponse response) {
 
         UserDetails userDetails = fromToken(httpServletRequest);
         if (userDetails == null )
             userDetails = fromBasicAuth(httpServletRequest);
         return userDetails;
     }
-    
-    
+
+
     public UserDetailsService getUserDetailsService() {
         return userDetailsService;
     }

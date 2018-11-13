@@ -31,6 +31,8 @@
     </sec:authentication-provider>
   </sec:authentication-manager>
 
+  <bean id="authenticationProxy" class="org.constellation.services.security.CstlAuthenticationProxy"/>
+
   <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">
     <property name="userDetailsExtractor">
       <bean class="org.constellation.services.security.CstlUserDetailsExtractor">
@@ -40,5 +42,5 @@
     </property>
     <property name="allowUnauthorized" value="true"/>
   </bean>
-  
+
 </beans>

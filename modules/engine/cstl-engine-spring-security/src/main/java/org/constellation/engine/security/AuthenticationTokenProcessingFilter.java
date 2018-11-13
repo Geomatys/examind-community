@@ -56,9 +56,10 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = getAsHttpRequest(request);
+        HttpServletRequest httpRequest   = getAsHttpRequest(request);
+        HttpServletResponse httpResponse = getAsHttpResponse(response);
 
-        UserDetails userDetails = userDetailsExtractor.userDetails(httpRequest);
+        UserDetails userDetails = userDetailsExtractor.userDetails(httpRequest, httpResponse);
 
         if (userDetails == null) {
             if(!unauthorizedHandler.onUnauthorized(httpRequest, getAsHttpResponse(response))) {

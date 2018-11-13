@@ -21,7 +21,6 @@ package org.constellation.api.rest;
 import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -30,10 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.constellation.business.IMailBusiness;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
-import org.constellation.engine.security.Utils;
 import org.constellation.dto.TokenTransfer;
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
@@ -41,23 +39,16 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.user.ForgotPassword;
 import org.constellation.dto.user.Login;
 import org.constellation.dto.user.ResetPassword;
+import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.security.UnknownAccountException;
-import org.constellation.token.TokenExtender;
-import org.constellation.services.component.TokenService;
 import org.constellation.token.TokenUtils;
 import org.geotoolkit.util.StringUtilities;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 /**
  *
@@ -74,20 +66,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class AuthRestAPI extends AbstractRestAPI{
 
     @Inject
-    private TokenExtender tokenExtender;
-
-    @Inject
-    private TokenService tokenService;
-
-    @Inject
-    private UserDetailsService userService;
-
-    @Inject
     private IMailBusiness mailService;
 
     @Inject
-    @Qualifier("authenticationManager")
-    private AuthenticationManager authManager;
+    @Qualifier("authenticationProxy")
+    private AuthenticationProxy authProxy;
 
     /**
      * Authenticates a user and creates an authentication token.
@@ -96,39 +79,38 @@ public class AuthRestAPI extends AbstractRestAPI{
      * @return A transfer containing the authentication token.
      */
     @RequestMapping(value="/auth/login", method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenTransfer> login(
-            @RequestBody Login login) {
-
+    public ResponseEntity<TokenTransfer> login(@RequestBody Login login, HttpServletResponse response) {
         try {
-            if (authManager == null) {
-                LOGGER.log(Level.WARNING, "Authentication manager no set.");
-                return new ErrorMessage().message("Authentication manager no set.").build();
-            }
+            final String createToken = authProxy.performLogin(login.getUsername(), login.getPassword(), response);
 
-            final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    login.getUsername(), login.getPassword());
+            // here we set some legacy stuff :
+            // 1) the token should not been return has it should be set in a cookie int the response
+            // 2) the user id shouls not be return either. we are supposed to know who we are by requesting our account with the token (and it seems unused by the JS)
+            return new ResponseEntity<>(new TokenTransfer(createToken, -1), HttpStatus.OK);
 
-            try {
-                final Authentication authentication = this.authManager.authenticate(authenticationToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (BadCredentialsException e) {
-                return new ResponseEntity<>(UNAUTHORIZED);
-            } catch (DisabledException exception) {
-                return new ResponseEntity<>(FORBIDDEN);
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            }
+        } catch (BadCredentialsException ex) {
+            return new ResponseEntity<>(UNAUTHORIZED);
+        } catch (DisabledException ex) {
+            return new ResponseEntity<>(FORBIDDEN);
+        } catch (Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
 
-            /*
-             * Reload user as password of authentication principal will be null
-             * after authorization and password is needed for token generation
-             */
-            final UserDetails userDetails = this.userService.loadUserByUsername(login.getUsername());
-            final String createToken = tokenService.createToken(userDetails.getUsername());
-            final Optional<CstlUser> findOne = userBusiness.findOne(userDetails.getUsername());
-            final int id = findOne.get().getId();
+    @RequestMapping(value="/auth/extendToken", method=GET, produces=TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> extendToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            final String token = authProxy.extendToken(httpServletRequest, httpServletResponse);
 
-            return new ResponseEntity<>(new TokenTransfer(createToken, id), HttpStatus.OK);
+            // here we set some legacy stuff :
+            // 1) the token should not been return has it should be set in a cookie int the response
+            // 2) i don't know why but if i return the string in the entity, i got a 406 exception (tested in Spring boot).
+            IOUtils.write(token, httpServletResponse.getOutputStream());
+
+            return new ResponseEntity(HttpStatus.OK);
+        } catch (UnknownAccountException ex) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -137,9 +119,7 @@ public class AuthRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/auth/forgotPassword", method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity forgotPassword(
-            final HttpServletRequest request,
-            @RequestBody final ForgotPassword forgotPassword) {
+    public ResponseEntity forgotPassword(final HttpServletRequest request, @RequestBody final ForgotPassword forgotPassword) {
 
         try {
             final String email = forgotPassword.getEmail();
@@ -171,8 +151,7 @@ public class AuthRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/auth/resetPassword", method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity resetPassword(
-            @RequestBody final ResetPassword resetPassword) {
+    public ResponseEntity resetPassword(@RequestBody final ResetPassword resetPassword) {
 
         final String newPassword = resetPassword.getPassword();
         final String uuid = resetPassword.getUuid();
@@ -192,23 +171,9 @@ public class AuthRestAPI extends AbstractRestAPI{
         return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
-    @RequestMapping(value="/auth/extendToken", method=GET, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity extendToken(
-            HttpServletRequest httpServletRequest,
-            HttpServletResponse httpServletResponse) {
-
-        UserDetails userDetails;
-        try {
-            userDetails = Utils.extractUserDetail();
-        } catch (UnknownAccountException ex) {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
-        final String token = tokenExtender.extend(userDetails.getUsername(), httpServletRequest, httpServletResponse);
-        return new ResponseEntity(token, HttpStatus.OK);
-    }
-
     @RequestMapping(value="/auth/logout", method=DELETE)
     public void logout(HttpServletRequest request, HttpServletResponse response) {
+        authProxy.performLogout(request, response);
         final HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
@@ -218,27 +183,20 @@ public class AuthRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/auth/account", method=GET, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity account(HttpServletRequest req) {
-        final String token = TokenUtils.extractAccessToken(req);
-
+        Principal userPrincipal = req.getUserPrincipal();
         String username = null;
-        if (token != null) {
-            username = TokenUtils.getUserNameFromToken(token);
-        }
-
-        if (username == null || username.isEmpty()) {
-            Principal userPrincipal = req.getUserPrincipal();
-
-            if (userPrincipal == null) {
+        if (userPrincipal != null) {
+            username = userPrincipal.getName();
+        } else {
+            final String token = TokenUtils.extractAccessToken(req);
+            if (token != null) {
+                username = TokenUtils.getUserNameFromToken(token);
+            } else {
                 LOGGER.log(Level.WARNING,"No token in request");
-
-                StringBuilder builder = new StringBuilder();
-                for (Enumeration<String> headerNames = req.getHeaderNames(); headerNames.hasMoreElements(); /* NO-OPS */) {
-                    String header = headerNames.nextElement();
-                    builder.append(header).append(':').append(req.getHeader(header));
-                }
-                LOGGER.log(Level.WARNING,builder.toString());
-                return new ResponseEntity(UNAUTHORIZED);
             }
+        }
+        if (username == null || username.isEmpty()) {
+            return new ResponseEntity(UNAUTHORIZED);
         }
 
         final Optional<UserWithRole> role = userBusiness.findOneWithRole(username);
