@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,6 +72,7 @@ public class RunCWL extends AbstractCstlProcess {
 
     private final Set<Path> temporaryResource = new HashSet<>();
 
+    private final int maxInput = 10;
 
     public RunCWL(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -116,6 +116,9 @@ public class RunCWL extends AbstractCstlProcess {
 
                 if (pDesc.getValueClass().equals(URI.class)) {
                     List<ParameterValue> values = getValues(inputParameters, pDesc.getName().getCode());
+                    if (values.size() > maxInput) {
+                        throw new ProcessException("Too much data input (limit=" + maxInput +")", this);
+                    }
                     if (pDesc.getMaximumOccurs() > 1) {
                         List<Map> complexes = new ArrayList<>();
                         for (ParameterValue value : values) {
@@ -175,7 +178,6 @@ public class RunCWL extends AbstractCstlProcess {
             } catch (IOException ex) {
                 throw new ProcessException("dd", this, ex);
             }
-
 
             /**
              * 3) execute CWL command
@@ -261,9 +263,11 @@ public class RunCWL extends AbstractCstlProcess {
                             value.setValue(new File((String) childmap.get("path")));
                             outputParameters.values().add(value);
                         }
-                    } else {
+                    } else if (o != null){
                         Map childmap = (Map) o;
-                        outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(new File((String) childmap.get("path")));
+                        if (childmap.containsKey("path")) {
+                            outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(new File((String) childmap.get("path")));
+                        }
                     }
                 }
             } catch (IOException ex) {
