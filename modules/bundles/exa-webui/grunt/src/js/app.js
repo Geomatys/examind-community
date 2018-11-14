@@ -25,7 +25,7 @@ cstlAdminApp
         '$keepaliveProvider','$idleProvider', 'PermissionResolver',
         function ($routeProvider, $httpProvider, $translateProvider, $translatePartialLoaderProvider,
                   $keepaliveProvider, $idleProvider, PermissionResolver) {
-            
+
             $httpProvider.interceptors.push('AuthInterceptor');
 
             $routeProvider
@@ -182,12 +182,12 @@ cstlAdminApp
             function($rootScope, $location, Examind, StompService, $idle, Permission, $translate) {
 
             $rootScope.authenticated=true;
-          
+
             $rootScope.access_token = Examind.authentication.getToken();
 
             // Call when the 401 response is returned by the client
             $rootScope.$on('event:auth-loginRequired', function() {
-                Examind.authentication.logout();
+                //Examind.authentication.logout();
                 window.location.href="index.html";
             });
 

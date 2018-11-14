@@ -8,6 +8,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,22 +61,28 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
         HttpServletResponse httpResponse = getAsHttpResponse(response);
 
         UserDetails userDetails = userDetailsExtractor.userDetails(httpRequest, httpResponse);
+        try {
+            if (userDetails == null) {
 
-        if (userDetails == null) {
-            if(!unauthorizedHandler.onUnauthorized(httpRequest, getAsHttpResponse(response))) {
-                LOGGER.warn("ATPF: unauthorized for URI:" + httpRequest.getRequestURI());
-                getAsHttpResponse(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                // hack because session stragegy perform authentication anyway. TODO refactor all security
+                final HttpSession session = httpRequest.getSession(false);
+                if (session != null) {
+                    session.invalidate();
+                }
+
+                if(!unauthorizedHandler.onUnauthorized(httpRequest, getAsHttpResponse(response))) {
+                    LOGGER.warn("ATPF: unauthorized for URI:" + httpRequest.getRequestURI());
+                    getAsHttpResponse(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+                chain.doFilter(request, response);
                 return;
             }
-            chain.doFilter(request, response);
-            return;
-        }
 
-        if(LOGGER.isDebugEnabled()) {
-            LOGGER.debug(userDetails.getUsername() + ": " + userDetails.getAuthorities());
-        }
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug(userDetails.getUsername() + ": " + userDetails.getAuthorities());
+            }
 
-        try {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
             SecurityContextHolder.getContext().setAuthentication(authentication);
