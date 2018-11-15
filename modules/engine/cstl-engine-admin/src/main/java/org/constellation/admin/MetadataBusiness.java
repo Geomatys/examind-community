@@ -47,7 +47,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.MetadataRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.geotoolkit.nio.IOUtilities;
@@ -88,6 +87,7 @@ import org.constellation.dto.metadata.User;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLists;
 import org.constellation.dto.metadata.MetadataComplete;
 import org.constellation.dto.metadata.MetadataWithState;
@@ -191,7 +191,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     protected InternalMetadataRepository internalMetadataRepository;
 
     @Inject
-    protected UserRepository userRepository;
+    protected IUserBusiness userBusiness;
 
     @Inject
     private org.constellation.security.SecurityManager securityManager;
@@ -290,7 +290,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<MetadataBbox> bboxes = MetadataUtilities.extractBbox(meta);
         Integer userID = owner;
         if (userID == null) {
-            final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+            final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
             if (user.isPresent()) {
                 userID = user.get().getId();
             }
@@ -1343,7 +1343,7 @@ public class MetadataBusiness implements IMetadataBusiness {
                     isoMetadata.setDateStamp(new Date(dateStamp));
                 }
 
-                final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+                final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
                 if (user.isPresent()) {
                     meta.setOwner(user.get().getId());
                 }
@@ -1554,7 +1554,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     public List<OwnerStatBrief> getOwnerStatBriefs(final Map<String, Object> filter) {
         final List<OwnerStatBrief> briefs = new ArrayList<>();
-        for (CstlUser user : userRepository.findAll()) {
+        for (CstlUser user : userBusiness.findAll()) {
             filter.put("owner", user.getId());
             final Map<String,Object> reqFilter = new HashMap<>();
             reqFilter.putAll(filter);
@@ -1579,7 +1579,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     public List<User> getUsers() {
         final List<User> results = new ArrayList<>();
-        for (CstlUser u : userRepository.findAll()) {
+        for (CstlUser u : userBusiness.findAll()) {
             results.add(Util.copy(u, new User()));
         }
         return results;
@@ -1587,7 +1587,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     @Override
     public User getUser(final int id) {
-        final Optional<CstlUser> optUser = userRepository.findById(id);
+        final Optional<CstlUser> optUser = userBusiness.findById(id);
         User owner = null;
         if (optUser != null && optUser.isPresent()) {
             final CstlUser user = optUser.get();

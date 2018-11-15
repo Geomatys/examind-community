@@ -74,7 +74,6 @@ import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.coverage.Category;
 import org.geotoolkit.coverage.GridSampleDimension;
@@ -123,7 +122,7 @@ public class ProviderBusiness implements IProviderBusiness {
     private static final String CONFORM_PREFIX = "conform_";
 
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
 
     @Inject
     private ProviderRepository providerRepository;
@@ -382,7 +381,7 @@ public class ProviderBusiness implements IProviderBusiness {
     public Integer storeProvider(final String identifier, final String parent, final ProviderType type, final String providerFactoryId,
                                   final GeneralParameterValue config) throws ConfigurationException {
         final ProviderBrief provider = new ProviderBrief();
-        final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+        final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
         if (user.isPresent()) {
             provider.setOwner(user.get().getId());
         }

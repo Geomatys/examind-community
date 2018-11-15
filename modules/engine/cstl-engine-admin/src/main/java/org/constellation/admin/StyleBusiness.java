@@ -36,7 +36,6 @@ import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
-import org.constellation.repository.UserRepository;
 import org.geotoolkit.display2d.ext.cellular.CellSymbolizer;
 import org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer;
 import org.geotoolkit.factory.FactoryFinder;
@@ -77,6 +76,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
 
@@ -90,7 +90,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
 public class StyleBusiness implements IStyleBusiness {
 
     @Inject
-    UserRepository userRepository;
+    IUserBusiness userBusiness;
 
     @Inject
     StyleRepository styleRepository;
@@ -265,7 +265,7 @@ public class StyleBusiness implements IStyleBusiness {
         bean.setName(style.getName());
         bean.setProvider(idToName(style.getProviderId()));
         bean.setType(style.getType());
-        final Optional<CstlUser> userStyle = userRepository.findById(style.getOwnerId());
+        final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
         if (userStyle!=null && userStyle.isPresent()) {
             final CstlUser cstlUser = userStyle.get();
             if(cstlUser!=null){
@@ -447,7 +447,7 @@ public class StyleBusiness implements IStyleBusiness {
             styleRepository.update(s);
             return s;
         } else {
-            Integer userId = userRepository.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
+            Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
             final Style newStyle = new Style();
             newStyle.setName(styleName);
             newStyle.setProviderId(provider);
@@ -678,7 +678,7 @@ public class StyleBusiness implements IStyleBusiness {
         style.setBody(IOUtilities.writeStyle((MutableStyle) body));
         style.setDate(new Date(System.currentTimeMillis()));
         style.setName(name);
-        Optional<CstlUser> optionalUser = userRepository.findOne(login);
+        Optional<CstlUser> optionalUser = userBusiness.findOne(login);
         if(optionalUser.isPresent()) style.setOwnerId(optionalUser.get().getId());
         style.setProviderId(providerId);
         style.setType(type.name());

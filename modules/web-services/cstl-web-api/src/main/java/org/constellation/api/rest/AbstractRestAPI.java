@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.CstlUser;
-import org.constellation.repository.UserRepository;
+import org.constellation.business.IUserBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
@@ -54,7 +54,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public abstract class AbstractRestAPI {
 
     @Inject
-    protected UserRepository userRepository;
+    protected IUserBusiness userBusiness;
 
     protected static final String RENDERED_PREFIX = "rendered_";
 
@@ -85,7 +85,7 @@ public abstract class AbstractRestAPI {
     }
 
     protected int assertAuthentificated(HttpServletRequest req) throws ConstellationException {
-        final Optional<CstlUser> cstlUser = userRepository.findOne(req.getUserPrincipal().getName());
+        final Optional<CstlUser> cstlUser = userBusiness.findOne(req.getUserPrincipal().getName());
         if (!cstlUser.isPresent()) {
             throw new ConstellationException("operation not allowed without login");
         }
@@ -160,7 +160,7 @@ public abstract class AbstractRestAPI {
                     //get user login
                     value = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
                 }
-                final Optional<CstlUser> optUser = userRepository.findOne(value);
+                final Optional<CstlUser> optUser = userBusiness.findOne(value);
                 if (optUser != null && optUser.isPresent()) {
                     final CstlUser user = optUser.get();
                     if (user != null) {

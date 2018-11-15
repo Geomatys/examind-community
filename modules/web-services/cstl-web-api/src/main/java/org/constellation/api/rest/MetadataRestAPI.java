@@ -241,7 +241,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
                 if ("_mygroup".equals(value)) {
                     //try to find the user's group from login
                     final String login = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
-                    final Optional<CstlUser> optUser = userRepository.findOne(login);
+                    final Optional<CstlUser> optUser = userBusiness.findOne(login);
                     if (optUser != null && optUser.isPresent()) {
                         final CstlUser user = optUser.get();
                         if (user != null) {

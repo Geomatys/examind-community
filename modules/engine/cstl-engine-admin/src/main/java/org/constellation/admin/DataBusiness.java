@@ -45,6 +45,7 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
@@ -80,7 +81,6 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.token.TokenUtils;
 import org.constellation.util.StoreUtilities;
@@ -130,10 +130,10 @@ public class DataBusiness implements IDataBusiness {
      */
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
     /**
-     * Injected user repository.
+     * Injected user business.
      */
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
     /**
      * Injected data repository.
      */
@@ -465,7 +465,7 @@ public class DataBusiness implements IDataBusiness {
 
             final DataBrief db = new DataBrief();
             db.setId(data.getId());
-            final Optional<CstlUser> user = userRepository.findById(data.getOwnerId());
+            final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
             if (user != null && user.isPresent()) {
                 final CstlUser cstlUser = user.get();
                 if(cstlUser!=null){
@@ -532,7 +532,7 @@ public class DataBusiness implements IDataBusiness {
                 sb.setDate(style.getDate());
                 sb.setName(style.getName());
 
-                final Optional<CstlUser> userStyle = userRepository.findById(style.getOwnerId());
+                final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
                 if (userStyle!=null && userStyle.isPresent()) {
                     final CstlUser cstlUser = userStyle.get();
                     if(cstlUser!=null){
@@ -605,7 +605,7 @@ public class DataBusiness implements IDataBusiness {
 
             final DataSummary db = new DataSummary();
             db.setId(data.getId());
-            final Optional<CstlUser> user = userRepository.findById(data.getOwnerId());
+            final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
             if (user != null && user.isPresent()) {
                 final CstlUser cstlUser = user.get();
                 if(cstlUser != null){
@@ -780,7 +780,7 @@ public class DataBusiness implements IDataBusiness {
             data.setName(name.getLocalPart());
             data.setNamespace(name.getNamespaceURI());
             if (owner == null) {
-                final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+                final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
                 if (user.isPresent()) {
                     data.setOwnerId(user.get().getId());
                     if (user.isPresent()) {
@@ -1236,7 +1236,7 @@ public class DataBusiness implements IDataBusiness {
 
         // get current user name and email and store into metadata contact.
         final String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();
-        final Optional<CstlUser> optUser = userRepository.findOne(login);
+        final Optional<CstlUser> optUser = userBusiness.findOne(login);
 
         //fill in keywords the dataset identifier.
         final List<String> keywords = new ArrayList<>();

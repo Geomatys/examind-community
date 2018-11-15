@@ -39,7 +39,6 @@ import org.constellation.dto.DataSet;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.security.SecurityManagerHolder;
@@ -62,6 +61,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.constellation.admin.DataBusiness.LOGGER;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.dto.process.DatasetProcessReference;
@@ -89,10 +89,10 @@ public class DatasetBusiness implements IDatasetBusiness {
     protected final DocumentBuilderFactory dbf;
 
     /**
-     * Injected user repository.
+     * Injected user business.
      */
     @Inject
-    protected UserRepository userRepository;
+    protected IUserBusiness userBusiness;
 
     /**
      * Injected dataset repository.
@@ -290,7 +290,7 @@ public class DatasetBusiness implements IDatasetBusiness {
 
         // get current user name and email and store into metadata contact.
         final String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();
-        final Optional<CstlUser> optUser = userRepository.findOne(login);
+        final Optional<CstlUser> optUser = userBusiness.findOne(login);
 
         //fill in keywords all data name of dataset children.
         final List<String> keywords = new ArrayList<>();
@@ -409,7 +409,7 @@ public class DatasetBusiness implements IDatasetBusiness {
 
     private DataSetBrief convertToBrief(DataSet dataset, List<DataBrief> children, int dataCount) {
         Integer completion = metadataBusiness.getCompletionForDataset(dataset.getId());
-        final Optional<CstlUser> optUser = userRepository.findById(dataset.getOwnerId());
+        final Optional<CstlUser> optUser = userBusiness.findById(dataset.getOwnerId());
         Integer ownerId = null;
         String owner = null;
         if(optUser!=null && optUser.isPresent()){

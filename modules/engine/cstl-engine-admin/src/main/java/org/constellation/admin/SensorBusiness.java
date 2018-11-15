@@ -38,7 +38,6 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.Sensor;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.SensorRepository;
-import org.constellation.repository.UserRepository;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -65,6 +64,7 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.dto.SensorReference;
+import org.constellation.business.IUserBusiness;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
@@ -81,7 +81,7 @@ public class SensorBusiness implements ISensorBusiness {
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
 
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
 
     @Inject
     private SensorRepository sensorRepository;
@@ -263,7 +263,7 @@ public class SensorBusiness implements ISensorBusiness {
             throw new ConfigurationException("the Sensor is already registered in the system");
         }
 
-        Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+        Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
         Sensor sensor = new Sensor();
         sensor.setIdentifier(identifier);
         sensor.setType(type);
@@ -555,7 +555,7 @@ public class SensorBusiness implements ISensorBusiness {
         final List<SensorMLTree> values = new ArrayList<>();
         final List<Sensor> sensors = sensorRepository.findAll();
         for (final Sensor sensor : sensors) {
-            final Optional<CstlUser> optUser = userRepository.findById(sensor.getOwner());
+            final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
             String owner = null;
             if(optUser!=null && optUser.isPresent()){
                 final CstlUser user = optUser.get();
@@ -567,7 +567,7 @@ public class SensorBusiness implements ISensorBusiness {
             final List<SensorMLTree> children = new ArrayList<>();
             final List<Sensor> records = sensorRepository.getChildren(sensor.getIdentifier());
             for (final Sensor record : records) {
-                final Optional<CstlUser> optUserChild = userRepository.findById(sensor.getOwner());
+                final Optional<CstlUser> optUserChild = userBusiness.findById(sensor.getOwner());
                 String ownerChild = null;
                 if(optUserChild!=null && optUserChild.isPresent()){
                     final CstlUser user = optUserChild.get();

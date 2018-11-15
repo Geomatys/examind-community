@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2018 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.repository;
+package org.constellation.business;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.UserWithRole;
 
-public interface UserRepository {
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public interface IUserBusiness {
 
     List<CstlUser> findAll();
 
@@ -65,4 +68,5 @@ public interface UserRepository {
     List<UserWithRole> search(String search, int size, int page, String sortFieldName, String order);
 
     long searchCount(String search);
+
 }

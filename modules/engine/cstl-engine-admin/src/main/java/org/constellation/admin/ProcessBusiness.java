@@ -72,10 +72,10 @@ import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import java.util.concurrent.Callable;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.TaskParameterWithOwnerName;
 import org.constellation.dto.CstlUser;
 import org.constellation.exception.ConstellationSchedulerException;
-import org.constellation.repository.UserRepository;
 import org.constellation.scheduler.Util;
 import org.geotoolkit.client.CapabilitiesException;
 import org.opengis.parameter.InvalidParameterValueException;
@@ -107,7 +107,7 @@ public class ProcessBusiness implements IProcessBusiness {
     private TaskRepository taskRepository;
 
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
 
     @Inject
     private ChainProcessRepository chainRepository;
@@ -605,7 +605,7 @@ public class ProcessBusiness implements IProcessBusiness {
         final List<TaskParameterWithOwnerName> ltpwon = new ArrayList<>();
         for (TaskParameter tp : all){
             String owerName = null;
-            final Optional<CstlUser> byId = userRepository.findById(tp.getOwner());
+            final Optional<CstlUser> byId = userBusiness.findById(tp.getOwner());
             if (byId.isPresent()) {
                 owerName = byId.get().getFirstname()+" "+byId.get().getLastname();
             }

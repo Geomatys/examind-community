@@ -55,7 +55,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ThesaurusRepository;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -74,6 +73,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.business.IUserBusiness;
 
 @Component
 @Primary
@@ -85,7 +85,7 @@ public class ServiceBusiness implements IServiceBusiness {
     private SecurityManager securityManager;
 
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
 
     @Inject
     private ServiceRepository serviceRepository;
@@ -127,7 +127,7 @@ public class ServiceBusiness implements IServiceBusiness {
             configuration = DefaultServiceConfiguration.getDefaultConfiguration(serviceType);
         }
         if (owner == null) {
-            Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+            Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
             if (user.isPresent()) {
                 owner = user.get().getId();
             }

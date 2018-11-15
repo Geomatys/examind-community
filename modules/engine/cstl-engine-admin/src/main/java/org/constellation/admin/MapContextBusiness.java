@@ -35,28 +35,19 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.crs.AbstractCRS;
-import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
-import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
-import org.constellation.dto.StyleBrief;
 import org.constellation.dto.service.Service;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
@@ -64,9 +55,7 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.util.DataReference;
-import org.constellation.util.Util;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.identification.DataIdentification;
@@ -75,6 +64,17 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.apache.sis.referencing.crs.AbstractCRS;
+import org.apache.sis.referencing.cs.AxesConvention;
+import org.constellation.exception.ConstellationException;
+import org.constellation.business.IMetadataBusiness;
+import org.constellation.business.IProcessBusiness;
+import org.constellation.business.IUserBusiness;
+import org.constellation.dto.MapContextDTO;
+import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.StyleBrief;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.util.Util;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,7 +115,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     private StyledLayerRepository styledLayerRepository;
 
     @Inject
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
 
     @Inject
     private IProcessBusiness processBusiness;
@@ -146,7 +146,7 @@ public class MapContextBusiness implements IMapContextBusiness {
             final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, styledLayersDto);
 
             //getOwner and set userName to pojo.
-            final Optional<CstlUser> user = userRepository.findById(ctxt.getOwner());
+            final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
             if (user != null && user.isPresent()) {
                 final CstlUser cstlUser = user.get();
                 if(cstlUser!=null){
@@ -164,7 +164,7 @@ public class MapContextBusiness implements IMapContextBusiness {
         final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, styledLayersDto);
 
         //getOwner and set userName to pojo.
-        final Optional<CstlUser> user = userRepository.findById(ctxt.getOwner());
+        final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
         if (user != null && user.isPresent()) {
             final CstlUser cstlUser = user.get();
             if (cstlUser != null) {

@@ -40,7 +40,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
     public ResponseEntity currentUser(final HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            final Optional<UserWithRole> optUser = userRepository.findOneWithRole(userId);
+            final Optional<UserWithRole> optUser = userBusiness.findOneWithRole(userId);
             if (optUser.isPresent()) {
                 return new ResponseEntity(optUser.get(), OK);
             } else {
@@ -77,7 +77,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             final HttpServletRequest req) {
         try {
             final int currentUserId = assertAuthentificated(req);
-            Optional<CstlUser> optionalUser = userRepository.findById(currentUserId);
+            Optional<CstlUser> optionalUser = userBusiness.findById(currentUserId);
             if (optionalUser.isPresent()) {
                 CstlUser user = optionalUser.get();
                 user.setLogin(login);
@@ -100,7 +100,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                     user.setPassword(newPassword);
                 }
 
-                userRepository.update(user);
+                userBusiness.update(user);
                 return new ResponseEntity(OK);
             }
         } catch (Throwable ex) {
@@ -132,7 +132,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             @RequestParam(name = "group", required = false) Integer group,
             @RequestParam(name = "role", required = false) String role,
             @RequestParam(name = "locale", required = false) String locale) {
-        Optional<CstlUser> optionalUser = userRepository.findById(userId);
+        Optional<CstlUser> optionalUser = userBusiness.findById(userId);
         if (optionalUser.isPresent()) {
             CstlUser user = optionalUser.get();
             user.setLogin(login);
@@ -155,10 +155,10 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                 user.setPassword(newPassword);
             }
 
-            userRepository.update(user);
+            userBusiness.update(user);
 
             //add user to role
-            userRepository.addUserToRole(user.getId(), role);
+            userBusiness.addUserToRole(user.getId(), role);
 
             return new ResponseEntity(OK);
         }
@@ -204,10 +204,10 @@ public class InternalUserRestAPI extends AbstractRestAPI {
         user.setPassword(StringUtilities.MD5encode(password));
         user.setLocale(locale);
 
-        user = userRepository.create(user);
+        user = userBusiness.create(user);
 
         //add user to role
-        userRepository.addUserToRole(user.getId(), role);
+        userBusiness.addUserToRole(user.getId(), role);
 
         return new ResponseEntity(OK);
     }

@@ -125,7 +125,7 @@ public class AuthRestAPI extends AbstractRestAPI{
              */
             final UserDetails userDetails = this.userService.loadUserByUsername(login.getUsername());
             final String createToken = tokenService.createToken(userDetails.getUsername());
-            final Optional<CstlUser> findOne = userRepository.findOne(userDetails.getUsername());
+            final Optional<CstlUser> findOne = userBusiness.findOne(userDetails.getUsername());
             final int id = findOne.get().getId();
 
             return new ResponseEntity<>(new TokenTransfer(createToken, id), HttpStatus.OK);
@@ -144,13 +144,13 @@ public class AuthRestAPI extends AbstractRestAPI{
         try {
             final String email = forgotPassword.getEmail();
             final String uuid = DigestUtils.sha256Hex(email + System.currentTimeMillis());
-            final Optional<CstlUser> userOptional = userRepository.findByEmail(email);
+            final Optional<CstlUser> userOptional = userBusiness.findByEmail(email);
 
             if (!userOptional.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
 
             final CstlUser user = userOptional.get();
             user.setForgotPasswordUuid(uuid);
-            userRepository.update(user);
+            userBusiness.update(user);
 
             final String baseUrl = "http://" + request.getHeader("host") + request.getContextPath();
             final String resetPasswordUrl = baseUrl + "/reset-password.html?uuid=" + uuid;
@@ -178,14 +178,14 @@ public class AuthRestAPI extends AbstractRestAPI{
         final String uuid = resetPassword.getUuid();
 
         if(newPassword != null && uuid != null && !newPassword.isEmpty() && !uuid.isEmpty()){
-            final Optional<CstlUser> userOptional = userRepository.findByForgotPasswordUuid(uuid);
+            final Optional<CstlUser> userOptional = userBusiness.findByForgotPasswordUuid(uuid);
 
             if (!userOptional.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
 
             final CstlUser cstlUser = userOptional.get();
             cstlUser.setPassword(StringUtilities.MD5encode(newPassword));
             cstlUser.setForgotPasswordUuid(null);
-            userRepository.update(cstlUser);
+            userBusiness.update(cstlUser);
             return new ResponseEntity(HttpStatus.OK);
         }
 
@@ -241,7 +241,7 @@ public class AuthRestAPI extends AbstractRestAPI{
             }
         }
 
-        final Optional<UserWithRole> role = userRepository.findOneWithRole(username);
+        final Optional<UserWithRole> role = userBusiness.findOneWithRole(username);
         if (role.isPresent()) {
             role.get().setPassword("*******");
             return new ResponseEntity(role.get(),OK);
@@ -255,7 +255,7 @@ public class AuthRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/auth/current", method=GET, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity current() {
-        final Optional<UserWithRole> opt = userRepository.findOneWithRole(SecurityManagerHolder.getInstance().getCurrentUserLogin());
+        final Optional<UserWithRole> opt = userBusiness.findOneWithRole(SecurityManagerHolder.getInstance().getCurrentUserLogin());
         if (opt.isPresent()) {
             return new ResponseEntity(opt.get(), HttpStatus.OK);
         } else {

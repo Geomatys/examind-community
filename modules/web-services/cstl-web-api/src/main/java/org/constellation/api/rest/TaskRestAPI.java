@@ -504,7 +504,7 @@ public class TaskRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/task/list/users",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getUserProcessReferenceList() {
         final List<UserProcessReference> userPRef = new ArrayList<>();
-        final List<CstlUser> users = userRepository.findAll();
+        final List<CstlUser> users = userBusiness.findAll();
         if (users != null) {
             for (final CstlUser user : users) {
                 final UserProcessReference ref = new UserProcessReference(user);

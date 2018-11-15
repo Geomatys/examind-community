@@ -39,6 +39,7 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.service.config.DataSourceType;
@@ -55,7 +56,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.StyleRepository;
-import org.constellation.repository.UserRepository;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.ws.MapFactory;
 import org.constellation.ws.LayerSecurityFilter;
@@ -82,7 +82,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
 public class LayerBusiness implements ILayerBusiness {
 
     @Autowired
-    private UserRepository userRepository;
+    private IUserBusiness userBusiness;
     @Autowired
     private StyleRepository styleRepository;
     @Autowired
@@ -180,7 +180,7 @@ public class LayerBusiness implements ILayerBusiness {
             layer.setService(service.getId());
             layer.setDataId(data.getId());
             layer.setDate(new Date(System.currentTimeMillis()));
-            Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+            Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
             if(user.isPresent()) {
                 layer.setOwnerId(user.get().getId());
             }

@@ -101,8 +101,8 @@ public class UserRestAPI extends AbstractRestAPI {
             final Page page = new Page<UserWithRole>()
                             .setNumber(pagedSearch.getPage())
                             .setSize(pagedSearch.getSize())
-                            .setContent(userRepository.search(text, size, pageIndex, sortFieldName, sortOrder))
-                            .setTotal(userRepository.searchCount(text));
+                            .setContent(userBusiness.search(text, size, pageIndex, sortFieldName, sortOrder))
+                            .setTotal(userBusiness.searchCount(text));
 
             return new ResponseEntity(page, OK);
         } catch(Throwable ex) {
@@ -119,7 +119,7 @@ public class UserRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/users/count", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity countUsers() {
         try{
-            return new ResponseEntity(Collections.singletonMap("count", userRepository.countUser()), OK);
+            return new ResponseEntity(Collections.singletonMap("count", userBusiness.countUser()), OK);
         } catch (Throwable ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -135,7 +135,7 @@ public class UserRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/users/{id}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getUser(@PathVariable(value="id") int id){
         try {
-            final Optional<UserWithRole> optUser = userRepository.findOneWithRole(id);
+            final Optional<UserWithRole> optUser = userBusiness.findOneWithRole(id);
             if (optUser.isPresent()) {
                 return new ResponseEntity(optUser.get(),OK);
             } else {
@@ -156,7 +156,7 @@ public class UserRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/users", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createUser(@RequestBody CstlUser user){
         try {
-            user = userRepository.create(user);
+            user = userBusiness.create(user);
             return new ResponseEntity(user,CREATED);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -177,7 +177,7 @@ public class UserRestAPI extends AbstractRestAPI {
             @RequestBody CstlUser user){
         try {
             user.setId(id);
-            user = userRepository.update(user);
+            user = userBusiness.update(user);
             return new ResponseEntity(user,OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -189,16 +189,16 @@ public class UserRestAPI extends AbstractRestAPI {
     @Transactional
     public ResponseEntity activate(@PathVariable("id") int id) {
         try {
-            final Optional<CstlUser> user = userRepository.findById(id);
+            final Optional<CstlUser> user = userBusiness.findById(id);
             if (user.isPresent()) {
                 if (user.get().getActive()) {
-                    if (userRepository.isLastAdmin(id)) {
+                    if (userBusiness.isLastAdmin(id)) {
                         return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.User.LAST_ADMIN).build();
                     } else {
-                        userRepository.desactivate(id);
+                        userBusiness.desactivate(id);
                     }
                 } else {
-                    userRepository.activate(id);
+                    userBusiness.activate(id);
                 }
             }
             return new ResponseEntity(OK);
@@ -219,10 +219,10 @@ public class UserRestAPI extends AbstractRestAPI {
     public ResponseEntity deleteUser(
             @PathVariable(value="id") int id){
         try {
-            if (userRepository.isLastAdmin(id)) {
+            if (userBusiness.isLastAdmin(id)) {
                 return new ErrorMessage(HttpStatus.BAD_REQUEST).i18N(I18nCodes.User.LAST_ADMIN).build();
             }
-            userRepository.desactivate(id);
+            userBusiness.desactivate(id);
             return new ResponseEntity(NO_CONTENT);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
