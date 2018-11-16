@@ -70,6 +70,7 @@ import org.constellation.dto.service.ServiceComplete;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import static org.constellation.business.ClusterMessageConstant.*;
@@ -78,28 +79,28 @@ import static org.constellation.business.ClusterMessageConstant.*;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Component
+@Component("cstlLayerBusiness")
+@Primary
 public class LayerBusiness implements ILayerBusiness {
 
     @Autowired
-    private IUserBusiness userBusiness;
+    protected IUserBusiness userBusiness;
     @Autowired
-    private StyleRepository styleRepository;
+    protected StyleRepository styleRepository;
     @Autowired
-    private LayerRepository layerRepository;
+    protected LayerRepository layerRepository;
     @Autowired
-    private DataRepository dataRepository;
+    protected DataRepository dataRepository;
     @Autowired
     private ProviderRepository providerRepository;
     @Autowired
-    private IServiceBusiness serviceBusiness;
+    protected IServiceBusiness serviceBusiness;
     @Autowired
-    private org.constellation.security.SecurityManager securityManager;
+    protected org.constellation.security.SecurityManager securityManager;
     @Autowired
-    private IDataBusiness dataBusiness;
-
+    protected IDataBusiness dataBusiness;
     @Autowired
-    private IClusterBusiness clusterBusiness;
+    protected IClusterBusiness clusterBusiness;
 
     @Override
     @Transactional
@@ -536,12 +537,12 @@ public class LayerBusiness implements ILayerBusiness {
         org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
         if (layerConfig == null) {
             layerConfig = new org.constellation.dto.service.config.wxs.Layer(name);
+            layerConfig.setTitle(layer.getTitle());
         }
         layerConfig.setId(layer.getId());
 
         // override with table values (TODO remove)
         layerConfig.setAlias(layer.getAlias());
-        layerConfig.setTitle(layer.getTitle());
         layerConfig.setDate(layer.getDate());
         layerConfig.setOwner(layer.getOwnerId());
         layerConfig.setProviderID(provider.getIdentifier());

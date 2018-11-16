@@ -730,8 +730,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 if (configLayer.getKeywords() != null && !configLayer.getKeywords().isEmpty()) {
                     co.setKeywordValues(configLayer.getKeywords());
                 }
-                if (configLayer.getMetadataURL() != null && configLayer.getMetadataURL().getOnlineResource() != null) {
-                    co.setMetadata(configLayer.getMetadataURL().getOnlineResource().getValue());
+                if (configLayer.getMetadataURL() != null && !configLayer.getMetadataURL().isEmpty() && configLayer.getMetadataURL().get(0).getOnlineResource() != null) {
+                    // TODO handle multiple metadata URL
+                    co.setMetadata(configLayer.getMetadataURL().get(0).getOnlineResource().getValue());
                 }
                 offBrief.add(co);
             }

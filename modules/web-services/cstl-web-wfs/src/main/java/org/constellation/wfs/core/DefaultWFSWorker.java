@@ -454,11 +454,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (!configLayer.getKeywords().isEmpty()) {
                         ftt.addKeywords(configLayer.getKeywords());
                     }
-                    FormatURL metadataURL = configLayer.getMetadataURL();
-                    if (metadataURL != null) {
-                        ftt.addMetadataURL(metadataURL.getOnlineResource().getValue(),
-                                           metadataURL.getType(),
-                                           metadataURL.getFormat());
+                    List<FormatURL> metadataURLs = configLayer.getMetadataURL();
+                    if (metadataURLs != null) {
+                        for (FormatURL metadataURL : metadataURLs) {
+                            ftt.addMetadataURL(metadataURL.getOnlineResource().getValue(),
+                                               metadataURL.getType(),
+                                               metadataURL.getFormat());
+                        }
                     }
                     if (!configLayer.getCrs().isEmpty()) {
                         ftt.setOtherCRS(configLayer.getCrs());

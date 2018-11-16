@@ -28,6 +28,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -91,7 +92,7 @@ public class Layer {
     private Map<String, StringList> multiLangKeywords;
 
     @XmlElement(name="metadataURL")
-    private FormatURL metadataURL;
+    private List<FormatURL> metadataURL;
 
     @XmlElement(name="dataURL")
     private FormatURL dataURL;
@@ -178,7 +179,7 @@ public class Layer {
         this.title        = title;
         this.abstrac      = abstrac;
         this.keywords     = keywords;
-        this.metadataURL  = metadataURL;
+        this.metadataURL  = metadataURL != null ? Arrays.asList(metadataURL): null;
         this.dataURL      = dataURL;
         this.authorityURL = authorityURL;
         this.identifier   = identifier;
@@ -297,11 +298,11 @@ public class Layer {
         this.keywords = keywords;
     }
 
-    public FormatURL getMetadataURL() {
+    public List<FormatURL> getMetadataURL() {
         return metadataURL;
     }
 
-    public void setMetadataURL(final FormatURL metadataURL) {
+    public void setMetadataURL(final List<FormatURL> metadataURL) {
         this.metadataURL = metadataURL;
     }
 

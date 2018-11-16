@@ -937,10 +937,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         if (configLayer.getMetadataURL() != null) {
-            final FormatURL metadataURL = configLayer.getMetadataURL();
-            outputLayer.setMetadataURL(metadataURL.getFormat(),
-                                          metadataURL.getOnlineResource().getHref(),
-                                          metadataURL.getType());
+            final List<FormatURL> metadataURLs = configLayer.getMetadataURL();
+            for (FormatURL metadataURL : metadataURLs) {
+                // add not override (not a mistake)
+                outputLayer.setMetadataURL(metadataURL.getFormat(),
+                                           metadataURL.getOnlineResource().getHref(),
+                                           metadataURL.getType());
+            }
         }
         if (configLayer.getDataURL() != null) {
             final FormatURL dataURL = configLayer.getDataURL();
