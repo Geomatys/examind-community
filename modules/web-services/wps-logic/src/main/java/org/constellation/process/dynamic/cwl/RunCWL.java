@@ -309,6 +309,12 @@ public class RunCWL extends AbstractCstlProcess {
                 String path = uri.getPath();
                 fileName = path.substring(path.lastIndexOf('/') + 1, path.length());
             }
+            if (fileName.startsWith("\"")) {
+                fileName = fileName.substring(1);
+            }
+            if (fileName.endsWith("\"")) {
+                fileName = fileName.substring(0, fileName.length() - 1);
+            }
             Path p = execDir.resolve(fileName);
             InputStream in = conec.getInputStream();
             IOUtilities.writeStream(in, p);
