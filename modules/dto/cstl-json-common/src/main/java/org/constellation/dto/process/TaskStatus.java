@@ -25,7 +25,7 @@ package org.constellation.dto.process;
  * @author Quentin Boileau (Geomatys)
  */
 public class TaskStatus {
-    
+
     private String id;
     private Integer taskId;
     private String title;
@@ -38,6 +38,24 @@ public class TaskStatus {
     private String output;
 
     public TaskStatus() {
+    }
+
+    public TaskStatus(Task taskEntity, String title) {
+        if (taskEntity != null) {
+            this.id      = (taskEntity.getIdentifier());
+            this.taskId  = (taskEntity.getTaskParameterId());
+            this.title   = (title);
+            this.status  = (taskEntity.getState());
+            this.message = (taskEntity.getMessage());
+            if (taskEntity.getProgress() != null) {
+                this.percent = (taskEntity.getProgress().floatValue());
+            } else {
+                this.percent = 0f;
+            }
+            this.start   = (taskEntity.getDateStart());
+            this.end     = (taskEntity.getDateEnd());
+            this.output  = (taskEntity.getTaskOutput());
+        }
     }
 
     public String getId() {

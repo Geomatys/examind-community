@@ -24,7 +24,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +44,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.UUID;
 import org.constellation.api.CstlJobListener;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.processing.quartz.ProcessJob;
@@ -89,13 +89,13 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         final ProcessJob pj = (ProcessJob) job;
         final ProcessJobDetail detail = (ProcessJobDetail) jec.getJobDetail();
         final QuartzTask quartzTask = (QuartzTask) detail.getJobDataMap().get(QuartzJobListener.PROPERTY_TASK);
-        final String quartzTaskId = quartzTask.getId();
-
+        String jobId = UUID.randomUUID().toString();
+        pj.setJobId(jobId);
         SpringHelper.executeInTransaction(new TransactionCallback<Object>() {
             @Override
             public Object doInTransaction(TransactionStatus status) {
                 final Task taskEntity = new Task();
-                taskEntity.setIdentifier(UUID.randomUUID().toString());
+                taskEntity.setIdentifier(jobId);
                 taskEntity.setState(TaskState.PENDING.name());
                 taskEntity.setTaskParameterId(quartzTask.getTaskParameterId());
                 taskEntity.setOwner(quartzTask.getUserId());
@@ -116,12 +116,59 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
     @Override
     public void jobExecutionVetoed(JobExecutionContext jec) {
+        System.out.println("veto");
     }
 
     @Override
     public void jobWasExecuted(JobExecutionContext jec, JobExecutionException jee) {
+       if (jee != null) {
+            LOGGER.warning("Error after job execution:" + jee.getMessage());
+            final ProcessJobDetail detail = (ProcessJobDetail) jec.getJobDetail();
+            final ProcessJob pj = (ProcessJob) jec.getJobInstance();
+            final QuartzTask quartzTask = (QuartzTask) detail.getJobDataMap().get(QuartzJobListener.PROPERTY_TASK);
+
+            SpringHelper.executeInTransaction(new TransactionCallback<Object>() {
+                @Override
+                public Object doInTransaction(TransactionStatus status) {
+                    final Task taskEntity = processBusiness.getTask(pj.getJobId());
+
+                    taskEntity.setState(TaskState.FAILED.name());
+                    taskEntity.setDateEnd(System.currentTimeMillis());
+                    taskEntity.setMessage(jee.getMessage() + " cause : " + printException(jee));
+                    try {
+                        //update in database
+                        processBusiness.updateTask(taskEntity);
+                    } catch (ConstellationException ex) {
+                        LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+                    }
+
+                    //send event
+                    final TaskStatus taskStatus = new TaskStatus(taskEntity, quartzTask.getTitle());
+                    SpringHelper.sendEvent(taskStatus);
+                    return null;
+                }
+            });
+
+        } else {
+           final ProcessJob pj = (ProcessJob) jec.getJobInstance();
+           LOGGER.info(pj.getJobId() + " Process execution finished");
+       }
     }
 
+    /**
+     * Print an exception. Format : "message stacktrace"
+     *
+     * @param exception
+     * @return
+     */
+    private static String printException(Exception exception) {
+        StringWriter errors = new StringWriter();
+        if (exception != null) {
+            errors.append(exception.getMessage()).append('\n');
+            exception.printStackTrace(new PrintWriter(errors));
+        }
+        return errors.toString();
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     // Geotk process listener //////////////////////////////////////////////////
@@ -132,7 +179,6 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
      */
     private static class StateListener implements ProcessListener{
 
-        private final String taskId;
         private final String title;
         private final Task taskEntity;
         private IProcessBusiness processBusiness;
@@ -141,7 +187,6 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         private final ArrayList<ProcessEvent> warnings = new ArrayList<>();
 
         public StateListener(String taskId, String title) {
-            this.taskId = taskId;
             if (processBusiness == null) {
                 this.processBusiness = SpringHelper.getBean(IProcessBusiness.class);
             }
@@ -259,17 +304,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
             }
 
             //send event
-            final TaskStatus taskStatus = new TaskStatus();
-            taskStatus.setId(taskEntity.getIdentifier());
-            taskStatus.setTaskId(taskEntity.getTaskParameterId());
-            taskStatus.setTitle(title);
-            taskStatus.setStatus(taskEntity.getState());
-            taskStatus.setMessage(taskEntity.getMessage());
-            taskStatus.setPercent(taskEntity.getProgress().floatValue());
-            taskStatus.setStart(taskEntity.getDateStart());
-            taskStatus.setEnd(taskEntity.getDateEnd());
-            taskStatus.setOutput(taskEntity.getTaskOutput());
-
+            final TaskStatus taskStatus = new TaskStatus(taskEntity, title);
             SpringHelper.sendEvent(taskStatus);
         }
 
@@ -292,23 +327,6 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
                 warningStr.append('\n');
             }
             return warningStr.toString();
-        }
-
-        /**
-         * Print an exception.
-         * Format :
-         * "message
-         * stacktrace"
-         * @param exception
-         * @return
-         */
-        public String printException(Exception exception) {
-            StringWriter errors = new StringWriter();
-            if (exception != null) {
-                errors.append(exception.getMessage()).append('\n');
-                exception.printStackTrace(new PrintWriter(errors));
-            }
-            return errors.toString();
         }
 
         /**

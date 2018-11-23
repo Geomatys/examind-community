@@ -116,7 +116,7 @@ public class QuartzScheduler implements CstlScheduler {
         final TriggerBuilder tb = TriggerBuilder.newTrigger();
         final Trigger trigger = tb.startNow().build();
 
-        final ProcessJobDetail detail = new ProcessJobDetail((org.geotoolkit.process.Process) process);
+        final ProcessJobDetail detail = new QuartzProcessJobDetails((org.geotoolkit.process.Process) process);
 
         final QuartzTask quartzTask = new QuartzTask(UUID.randomUUID().toString());
         quartzTask.setDetail(detail);
@@ -233,9 +233,9 @@ public class QuartzScheduler implements CstlScheduler {
                 final ParameterValueGroup orig = originalDesc.createValue();
                 Parameters.copy(params, orig);
                 final org.geotoolkit.process.Process process = processDesc.createProcess(orig);
-                return new ProcessJobDetail(process);
+                return new QuartzProcessJobDetails(process);
             } else {
-                return new ProcessJobDetail(task.getProcessAuthority(), task.getProcessCode(), params);
+                return new QuartzProcessJobDetails(task.getProcessAuthority(), task.getProcessCode(), params);
             }
         } catch (ConstellationException ex) {
             throw new ConstellationSchedulerException(ex);

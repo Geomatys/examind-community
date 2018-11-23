@@ -1,7 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ *    Geotoolkit - An Open Source Java GIS Toolkit
+ *    http://www.geotoolkit.org
+ *
+ *    (C) 2018, Geomatys
+ *
+ *    This library is free software; you can redistribute it and/or
+ *    modify it under the terms of the GNU Lesser General Public
+ *    License as published by the Free Software Foundation;
+ *    version 2.1 of the License.
+ *
+ *    This library is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    Lesser General Public License for more details.
  */
 package org.constellation.scheduler;
 
@@ -17,7 +28,6 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.wps.client.WebProcessingClient;
 import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
-import org.opengis.parameter.InvalidParameterValueException;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.NoSuchIdentifierException;
@@ -54,7 +64,7 @@ public class Util {
             }
         } catch (NoSuchIdentifierException ex) {
             throw new ConstellationException("No Process for id : {" + authority + "}"+code+" has been found");
-        } catch (InvalidParameterValueException | MalformedURLException | CapabilitiesException ex) {
+        } catch (RuntimeException | MalformedURLException | CapabilitiesException  ex) {
             throw new ConstellationException(ex);
         }
         if(desc == null){

@@ -101,6 +101,7 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
     public List<Task> taskHistory(Integer id, Integer offset, Integer limit) {
         return convertTaskListToDto(dsl.select().from(Tables.TASK)
                 .where(Tables.TASK.TASK_PARAMETER_ID.eq(id))
+                .andNot(Tables.TASK.DATE_END.isNull())
                 .orderBy(Tables.TASK.DATE_END.desc())
                 .limit(limit).offset(offset)
                 .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
@@ -119,10 +120,13 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
         calendar.add(Calendar.DAY_OF_YEAR, 1);
         Long maxValue = calendar.getTimeInMillis();
 
-        return convertTaskListToDto(dsl.select().from(Tables.TASK).join(TASK_PARAMETER).onKey()
-                .where(TASK_PARAMETER.PROCESS_AUTHORITY.eq(process_authority)).and(Tables.TASK.DATE_END.between(minValue, maxValue))
-                .orderBy(Tables.TASK.DATE_END.desc())
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
+        return convertTaskListToDto(dsl.select()
+                                       .from(Tables.TASK)
+                                       .join(TASK_PARAMETER).onKey()
+                                       .where(TASK_PARAMETER.PROCESS_AUTHORITY.eq(process_authority))
+                                       .and(Tables.TASK.DATE_END.between(minValue, maxValue))
+                                       .orderBy(Tables.TASK.DATE_END.desc())
+                                       .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
     }
 
     @Override
