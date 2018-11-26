@@ -765,7 +765,7 @@ public final class DataProviders extends Static{
             for (DataStoreProvider provider : providers) {
                 String storeId = provider.getOpenParameters().getName().getCode();
                 // little hack because we don't want to expose those one
-                if (!storeId.equals("GeoTIFF") && !storeId.equals("NetCDF") &&
+                if (!storeId.equals("GeoTIFF") &&
                     !storeId.equals("WKT") && !storeId.equals("dbf")) {
                     try {
                         long start = System.currentTimeMillis();
