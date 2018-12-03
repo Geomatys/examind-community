@@ -20,6 +20,7 @@ package org.constellation.process.dynamic.cwl;
 
 import com.examind.wps.util.WPSURLUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -27,16 +28,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.AppProperty;
@@ -48,7 +55,11 @@ import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
 import static org.constellation.process.dynamic.cwl.RunCWLDescriptor.*;
+import org.geotoolkit.metalinker.FileType;
+import org.geotoolkit.metalinker.MetalinkType;
+import org.geotoolkit.metalinker.ResourcesType;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
@@ -86,6 +97,7 @@ public class RunCWL extends AbstractCstlProcess {
          */
         Path execDir;
         Path tmpDir;
+        Path cwlPath;
         try {
             String sharedDir = Application.getProperty(AppProperty.EXA_CWL_SHARED_DIR);
             Path rootDir;
@@ -98,8 +110,20 @@ public class RunCWL extends AbstractCstlProcess {
             }
             execDir = rootDir.resolve(jobId);
             Files.createDirectories(execDir);
+
+            cwlPath = execDir.resolve("cwlFile.cwl");
         } catch (IOException ex) {
             throw new ProcessException(ex.getMessage(), this);
+        }
+
+        String cwlFile = inputParameters.getValue(CWL_FILE);
+        Map yaml;
+        try {
+            ObjectMapper yMapper = new ObjectMapper(new YAMLFactory());
+            downloadCWLContent(cwlFile, cwlPath);
+            yaml = yMapper.readValue(cwlPath.toFile(), Map.class);
+        } catch (IOException ex) {
+            throw new ProcessException("Erro while downloading cwl", this, ex);
         }
 
         /**
@@ -119,32 +143,48 @@ public class RunCWL extends AbstractCstlProcess {
                     if (values.size() > maxInput) {
                         throw new ProcessException("Too much data input (limit=" + maxInput +")", this);
                     }
-                    if (pDesc.getMaximumOccurs() > 1) {
+                    boolean isArrayIput = isArrayInput(pDesc.getName().getCode(), yaml);
+                    if (isArrayIput) {
                         List<Map> complexes = new ArrayList<>();
                         for (ParameterValue value : values) {
                             URI arg = (URI) value.getValue();
+
                             // due to a memory bug in CWL-runner we download File before pass it to CWL
+                            List<URI> uris;
                             try {
-                                arg = downloadInput(arg, execDir);
+                                uris = downloadInput(arg, execDir);
                             } catch (IOException ex) {
                                 throw new ProcessException("Error while downloading input file", this, ex);
                             }
 
-                            Map complex = new LinkedHashMap<>();
-                            complex.put("class", "File");
-                            complex.put("path", arg.toString());
-                            complexes.add(complex);
+                            for (URI uri : uris) {
+                                Map complex = new LinkedHashMap<>();
+                                complex.put("class", "File");
+                                complex.put("path", uri.toString());
+                                complexes.add(complex);
+                            }
                         }
                         json.put(desc.getName().getCode(), complexes);
                     } else {
                         URI arg = (URI) values.get(0).getValue();
+
                         // due to a memory bug in CWL-runner we download File before pass it to CWL
+                        List<URI> uris;
                         try {
-                            arg = downloadInput(arg, execDir);
+                            uris = downloadInput(arg, execDir);
                         } catch (IOException ex) {
                             throw new ProcessException("Error while downloading input file", this, ex);
                         }
 
+                        // hard choice here. we are not supposed to handle multiple file.
+                        // does we need to zip it?
+                        if (uris.size() > 1) {
+                            arg = uris.get(0);
+                        } else if (uris.size() == 1) {
+                            arg = uris.get(0);
+                        } else {
+                            arg = null;
+                        }
                         Map complex = new LinkedHashMap<>();
                         complex.put("class", "File");
                         complex.put("path", arg.toString());
@@ -192,7 +232,7 @@ public class RunCWL extends AbstractCstlProcess {
             if (tmpDir != null) {
                 cwlCommand.append("--tmp-outdir-prefix ").append(tmpDir.toString()).append(" ");
             }
-            cwlCommand.append(inputParameters.getValue(CWL_FILE))
+            cwlCommand.append(cwlFile)
                       .append(" ").append(cwlParamFile.toString());
 
 
@@ -295,33 +335,103 @@ public class RunCWL extends AbstractCstlProcess {
         return results;
     }
 
-    private URI downloadInput(URI uri, Path execDir) throws IOException {
+    private List<URI> downloadInput(URI uri, Path execDir) throws IOException {
         if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
             boolean authenticated = WPSURLUtils.authenticate(uri);
             LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
             HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
-            String content = conec.getHeaderField("Content-Disposition");
-            String fileName;
-            if (content != null && content.contains("=")) {
-                fileName = content.split("=")[1]; //getting value after '='
+            String contentType = conec.getContentType();
+            if (contentType.contains("application/metalink+xml")) {
+                return extractMetaLinkURI(conec, execDir);
             } else {
-                // try to extract from uri last part
-                String path = uri.getPath();
-                fileName = path.substring(path.lastIndexOf('/') + 1, path.length());
+                String content = conec.getHeaderField("Content-Disposition");
+                String fileName;
+                if (content != null && content.contains("=")) {
+                    fileName = content.split("=")[1]; //getting value after '='
+                } else {
+                    // try to extract from uri last part
+                    String path = uri.getPath();
+                    fileName = path.substring(path.lastIndexOf('/') + 1, path.length());
+                }
+                if (fileName.startsWith("\"")) {
+                    fileName = fileName.substring(1);
+                }
+                if (fileName.endsWith("\"")) {
+                    fileName = fileName.substring(0, fileName.length() - 1);
+                }
+                Path p = execDir.resolve(fileName);
+                InputStream in = conec.getInputStream();
+                IOUtilities.writeStream(in, p);
+                LOGGER.info("Download complete");
+                temporaryResource.add(p);
+                return Arrays.asList(p.toUri());
             }
-            if (fileName.startsWith("\"")) {
-                fileName = fileName.substring(1);
-            }
-            if (fileName.endsWith("\"")) {
-                fileName = fileName.substring(0, fileName.length() - 1);
-            }
-            Path p = execDir.resolve(fileName);
-            InputStream in = conec.getInputStream();
-            IOUtilities.writeStream(in, p);
-            LOGGER.info("Download complete");
-            temporaryResource.add(p);
-            return p.toUri();
         }
-        return uri;
+        return Arrays.asList(uri);
+    }
+
+    private List<URI> extractMetaLinkURI(HttpURLConnection conec, Path execDir) throws IOException {
+        List<URI> results = new ArrayList<>();
+        try {
+            Unmarshaller unmarshaller = WPSMarshallerPool.getInstance().acquireUnmarshaller();
+            Object response = unmarshaller.unmarshal(conec.getInputStream());
+             WPSMarshallerPool.getInstance().recycle(unmarshaller);
+
+            if (response instanceof JAXBElement) {
+                response = ((JAXBElement) response).getValue();
+            }
+            if (response instanceof MetalinkType) {
+                MetalinkType metalink = (MetalinkType) response;
+                if (metalink.getFiles() != null) {
+                    for (FileType file : metalink.getFiles().getFile()) {
+                        if (file.getResources() != null) {
+                            for (ResourcesType.Url urlFile : file.getResources().getUrl()) {
+                                results.addAll(downloadInput(new URI(urlFile.getValue()), execDir));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JAXBException | URISyntaxException ex) {
+            throw new IOException(ex);
+        }
+        return results;
+    }
+
+    private boolean isArrayInput(String inputCode, Map yaml) {
+        Map inputs = (Map) yaml.get("inputs");
+        if (inputs.containsKey(inputCode)) {
+            Map prop = (Map) inputs.get(inputCode);
+            if (prop.containsKey("type")) {
+                Object typeObj = prop.get("type");
+                if (typeObj instanceof Map) {
+                    Map typeMap = (Map) typeObj;
+                    return typeMap.containsKey("type") && typeMap.get("type") instanceof String &&  "array".equals(typeMap.get("type"));
+                }
+            }
+        }
+        return false;
+    }
+
+    public static void downloadCWLContent(String cwlLocation, Path cwlFile) throws IOException {
+        try {
+            if (cwlLocation.startsWith("file")) {
+
+                Path p = Paths.get(new URI(cwlLocation));
+                IOUtilities.copy(Files.newInputStream(p), Files.newOutputStream(cwlFile));
+
+            } else {
+
+                URL source = new URL(cwlLocation);
+                HttpURLConnection conec = (HttpURLConnection) source.openConnection();
+
+                // we get the response document
+                InputStream in = conec.getInputStream();
+
+                IOUtilities.copy(in, Files.newOutputStream(cwlFile));
+            }
+        } catch (URISyntaxException ex) {
+            throw new IOException(ex);
+        }
     }
 }
