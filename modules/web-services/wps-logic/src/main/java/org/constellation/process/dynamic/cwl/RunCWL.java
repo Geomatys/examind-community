@@ -238,6 +238,7 @@ public class RunCWL extends AbstractCstlProcess {
 
             LOGGER.log(Level.INFO, "RUN COMMAND:{0}", cwlCommand.toString());
             final StringBuilder results = new StringBuilder();
+            final StringBuilder errors  = new StringBuilder();
             try {
                 Runtime rt = Runtime.getRuntime();
                 Process pr = rt.exec(cwlCommand.toString());
@@ -268,6 +269,7 @@ public class RunCWL extends AbstractCstlProcess {
                         try {
                             while ((line = input1.readLine()) != null) {
                                 System.out.println("DEBUG:" + line);
+                                errors.append(line).append('\n');
                             }
                             System.out.println("CLOSING DEBUG READING");
                             input1.close();
@@ -291,7 +293,7 @@ public class RunCWL extends AbstractCstlProcess {
              */
             try {
                 Map result = mapper.readValue(results.toString(), Map.class);
-
+                boolean resultFound = false;
                 ParameterDescriptorGroup output = getDescriptor().getOutputDescriptor();
                 for (GeneralParameterDescriptor desc : output.descriptors()) {
                     Object o = result.get(desc.getName().getCode());
@@ -302,14 +304,28 @@ public class RunCWL extends AbstractCstlProcess {
                             ParameterValue value = (ParameterValue) desc.createValue();
                             value.setValue(new File((String) childmap.get("path")));
                             outputParameters.values().add(value);
+                            resultFound = true;
                         }
-                    } else if (o != null){
+                    } else if (o instanceof Map){
                         Map childmap = (Map) o;
                         if (childmap.containsKey("path")) {
                             outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(new File((String) childmap.get("path")));
+                            resultFound = true;
                         }
                     }
                 }
+
+                // try to guess that there was an error
+                if (!resultFound) {
+                    if (errors.toString().contains("permanentFail")) {
+                        String additionalInfos = "";
+                        if (errors.toString().contains("MemoryError")) {
+                            additionalInfos = " (Memory error)";
+                        }
+                        throw new ProcessException("The cwl execution fail." + additionalInfos, this);
+                    }
+                }
+
             } catch (IOException ex) {
                 throw new ProcessException("Error while extracting CWL results", this, ex);
             }
