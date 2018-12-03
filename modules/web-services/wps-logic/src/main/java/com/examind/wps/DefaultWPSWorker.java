@@ -1367,7 +1367,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         }
 
         ProcessSummary sum = new ProcessSummary(off.getProcess(), off.getProcessVersion(), off.getJobControlOptions(), off.getOutputTransmission());
-        return new DeployResult("OK", sum);
+        return new DeployResult(sum);
     }
 
     @Override
