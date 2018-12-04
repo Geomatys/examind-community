@@ -1107,7 +1107,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                         if (out.getData() != null && out.getData().getContent().size() > 0) {
                             oi.setData(out.getData().getContent().get(0).toString());
                         } else if (out.getReference() != null && out.getReference().getHref() != null) {
-                            oi.setData(out.getReference().getHref());
+                            oi.setHref(out.getReference().getHref());
                         }
                         r.addOutputsItem(oi);
                     }
