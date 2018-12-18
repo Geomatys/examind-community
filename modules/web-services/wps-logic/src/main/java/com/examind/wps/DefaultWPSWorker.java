@@ -19,6 +19,7 @@
 package com.examind.wps;
 
 import com.examind.wps.api.IOParameterException;
+import com.examind.wps.api.ProcessPreConsumer;
 import com.examind.wps.api.UnknowJobException;
 import com.examind.wps.api.UnknowQuotationException;
 import com.examind.wps.api.WPSException;
@@ -39,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -232,8 +235,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     @Inject SimpleJobExecutor jobExecutor;
 
-    @Autowired
-    private IProcessBusiness processBusiness;
+    @Autowired(required=false)
+    private Collection<ProcessPreConsumer> preConsumers;
 
     /**
      * Constructor.
@@ -342,6 +345,16 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         if (isStarted) {
             LOGGER.log(Level.INFO, "WPS worker {0} running", id);
+        }
+    }
+
+    @PostConstruct
+    private void appyPreConsumers() {
+        if (preConsumers != null) {
+            Stream<GeotkProcess> stream = (Stream) processList.values().stream()
+                .filter(GeotkProcess.class::isInstance);
+
+            stream.forEach(p -> p.setPreConsumers(preConsumers));
         }
     }
 

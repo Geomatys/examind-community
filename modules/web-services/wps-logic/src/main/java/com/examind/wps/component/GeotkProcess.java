@@ -24,6 +24,7 @@ import com.examind.wps.QuotationInfo;
 import com.examind.wps.WPSProcessListener;
 import com.examind.wps.WPSProcessRawListener;
 import com.examind.wps.api.IOParameterException;
+import com.examind.wps.api.ProcessPreConsumer;
 import com.examind.wps.api.WPSException;
 import static com.examind.wps.util.WPSConstants.GML_VERSION;
 import static com.examind.wps.util.WPSConstants.WMS_SUPPORTED;
@@ -44,6 +45,7 @@ import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -139,6 +141,8 @@ public class GeotkProcess implements WPSProcess {
      */
     private final boolean withPrefix;
 
+    Collection<ProcessPreConsumer> preConsumers;
+
     public GeotkProcess(ProcessDescriptor descriptor, URI schemaFolder, String schemaURL, Process controlOptions) {
         this(descriptor, schemaFolder, schemaURL, controlOptions, true);
     }
@@ -175,6 +179,17 @@ public class GeotkProcess implements WPSProcess {
             userMap = new HashMap<>();
         } else {
             userMap = configuration.getUserMap();
+        }
+    }
+
+    public void setPreConsumers(final Collection<ProcessPreConsumer> preConsumers) {
+        this.preConsumers = preConsumers;
+    }
+
+    private void applyPreConsumers(final org.geotoolkit.process.Process p) {
+        if (preConsumers != null) {
+            preConsumers.stream()
+                    .forEach(preconsumer -> preconsumer.accept(p));
         }
     }
 
@@ -511,6 +526,9 @@ public class GeotkProcess implements WPSProcess {
         if (async) {
             process.addListener(new WPSProcessRawListener(version, execInfo, quoteInfo, request, jobId, quoteId, this));
         }
+
+        applyPreConsumers(process);
+
         return process;
     }
 
@@ -607,6 +625,9 @@ public class GeotkProcess implements WPSProcess {
         if (async) {
             process.addListener(new WPSProcessListener(version, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quoteId, parameters, this));
         }
+
+        applyPreConsumers(process);
+
         return process;
     }
 
