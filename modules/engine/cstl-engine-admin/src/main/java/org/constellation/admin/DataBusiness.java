@@ -703,9 +703,6 @@ public class DataBusiness implements IDataBusiness {
                 dataBusinessListener.preDataDelete(data);
                 dataRepository.delete(data.getId());
                 dataBusinessListener.postDataDelete(data);
-
-                // Relevant erase dataset when the is no more data in it. fr now we remove it
-                deleteDatasetIfEmpty(data.getDatasetId());
             }
         }
     }
