@@ -90,7 +90,6 @@ import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.PropertyType;
 import org.opengis.feature.catalog.FeatureCatalogue;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -1209,25 +1208,19 @@ public class DataBusiness implements IDataBusiness {
         final String dataType   = data.getType();
         final GenericName name  = NamesExt.create(data.getNamespace(), data.getName());
         final DataProvider dataProvider = DataProviders.getProvider(provider.getId());
+        final org.constellation.provider.Data dataP = dataProvider.get(name);
+
         DefaultMetadata extractedMetadata;
         String crsName = null;
         switch (dataType.toLowerCase()) {
             case "raster":
             case "coverage":
-                try {
-                    extractedMetadata = MetadataUtilities.getRasterMetadata(dataProvider, name);
-                    crsName = MetadataUtilities.getProviderCRSName(dataProvider);
-                } catch (DataStoreException e) {
-                    LOGGER.log(Level.WARNING, "Error when trying to get raster metadata", e);
-                    extractedMetadata = new DefaultMetadata();
-                }
-                break;
             case "vector":
                 try {
-                    extractedMetadata = MetadataUtilities.getVectorMetadata(dataProvider, name);
-                    crsName = MetadataUtilities.getProviderCRSName(dataProvider);
-                } catch (DataStoreException | TransformException e) {
-                    LOGGER.log(Level.WARNING, "Error when trying to get metadata for a shape file", e);
+                    extractedMetadata = dataP.getResourceMetadata();
+                    crsName = dataP.getResourceCRSName();
+                } catch (ConstellationStoreException e) {
+                    LOGGER.log(Level.WARNING, "Error when trying to get resource metadata", e);
                     extractedMetadata = new DefaultMetadata();
                 }
                 break;
@@ -1265,7 +1258,7 @@ public class DataBusiness implements IDataBusiness {
 
         DefaultMetadata mergedMetadata;
         if (extractedMetadata != null) {
-            mergedMetadata = MetadataUtilities.mergeMetadata(templateMetadata, extractedMetadata);
+            mergedMetadata = Utils.mergeMetadata(templateMetadata, extractedMetadata);
         } else {
             mergedMetadata = templateMetadata;
         }
@@ -1278,7 +1271,7 @@ public class DataBusiness implements IDataBusiness {
             uploadedMetadata = null;
         }
         if (uploadedMetadata != null) {
-            mergedMetadata = MetadataUtilities.mergeMetadata(uploadedMetadata,mergedMetadata);
+            mergedMetadata = Utils.mergeMetadata(uploadedMetadata,mergedMetadata);
         }
         mergedMetadata.prune();
 

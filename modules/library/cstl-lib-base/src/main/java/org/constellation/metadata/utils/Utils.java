@@ -38,10 +38,14 @@ import java.util.MissingResourceException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.internal.metadata.Merger;
+import org.apache.sis.metadata.ModifiableMetadata;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.ISOMetadata;
 import org.apache.sis.xml.IdentifierSpace;
 
 import org.constellation.util.Util;
+import org.opengis.metadata.Metadata;
 import org.opengis.temporal.Instant;
 import org.opengis.util.LocalName;
 
@@ -676,5 +680,25 @@ public final class Utils {
             throw new IllegalArgumentException("this type is unexpected: " + obj.getClass().getSimpleName());
         }
         return result;
+    }
+
+    /**
+     * @param fileMetadata
+     * @param metadataToMerge
+     *
+     */
+    public static DefaultMetadata mergeMetadata(final DefaultMetadata fileMetadata, final DefaultMetadata metadataToMerge) {
+        final Metadata first = fileMetadata;
+        final Metadata second = metadataToMerge;
+
+        final DefaultMetadata merged = new DefaultMetadata(first);
+        final Merger merger = new Merger(null) {
+            @Override
+            protected void merge(ModifiableMetadata target, String propertyName, Object sourceValue, Object targetValue) {
+                // Ignore (TODO: we should probably emit some kind of warnings).
+            }
+        };
+        merger.copy(second, merged);
+        return merged;
     }
 }

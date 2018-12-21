@@ -47,15 +47,29 @@ import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.metadata.iso.extent.DefaultExtent;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
+import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.storage.Aggregate;
+import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.ArraysExt;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.metadata.utils.Utils;
 import org.constellation.util.StoreUtilities;
+import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
+import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.coverage.GridCoverageResource;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 
 /**
  *
@@ -370,5 +384,98 @@ public class DataStoreProvider extends AbstractDataProvider{
         } catch (DataStoreException ex) {
             throw new ConstellationException(ex);
         }
+    }
+
+    @Override
+    public DefaultMetadata getStoreMetadata() throws ConstellationStoreException {
+        try {
+            DefaultMetadata storeMetadata =  (DefaultMetadata) store.getMetadata();
+            if (storeMetadata != null) return storeMetadata;
+
+            //if the store metadata is still null that means it is not implemented yet
+            // so we merge the metadata iso from the reader from each resource
+
+            DefaultMetadata metadata = new DefaultMetadata();
+            final DefaultDataIdentification ident = new DefaultDataIdentification();
+            metadata.getIdentificationInfo().add(ident);
+            DefaultGeographicBoundingBox bbox = null;
+
+
+            for (Resource resource : DataStores.flatten(store, true)) {
+                if (resource instanceof GridCoverageResource) {
+                    final GridCoverageResource cr = (GridCoverageResource) resource;
+                    final GridCoverageReader reader = (GridCoverageReader) cr.acquireReader();
+                    try {
+                        final Metadata meta = reader.getMetadata();
+                        //@FIXME
+                        // this merge is bad here to build a fully dataset
+                        // metadata that should contains all data children information
+                        //see issue JIRA CSTL-1151
+                        metadata = Utils.mergeMetadata(metadata,(DefaultMetadata)meta);
+                    } catch(Exception ex) {
+                        LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
+                    } finally{
+                        cr.recycle(reader);
+                    }
+                } else if (resource instanceof DataSet) {
+                    DataSet ds = (DataSet) resource;
+                    Envelope env = FeatureStoreUtilities.getEnvelope(ds);
+                    if (env == null) {
+                        continue;
+                    }
+                    final DefaultGeographicBoundingBox databbox = new DefaultGeographicBoundingBox();
+                    databbox.setBounds(env);
+                    if (bbox == null) {
+                        bbox = databbox;
+                    } else {
+                        bbox.add(databbox);
+                    }
+                }
+            }
+
+            // for feature store
+            if (bbox != null) {
+                final DefaultExtent extent = new DefaultExtent("", bbox, null, null);
+                ident.getExtents().add(extent);
+            }
+
+            return metadata;
+        } catch (DataStoreException | TransformException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public String getCRSName() throws ConstellationStoreException {
+        CoordinateReferenceSystem candidat = null;
+        try {
+            for (Resource resource : DataStores.flatten(store, true)) {
+                if (resource instanceof DataSet) {
+                    try {
+                        final DataSet cr = (DataSet) resource;
+                        Envelope env = FeatureStoreUtilities.getEnvelope(cr);
+                        if (env != null) {
+                            final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+                            if (candidat == null && crs != null){
+                                candidat = crs;
+                            }
+                            final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs,true);
+                            if (crsIdentifier != null) {
+                                return crsIdentifier;
+                            }
+                        }
+                    } catch(Exception ex) {
+                        LOGGER.finer(ex.getMessage());
+                    }
+                }
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+
+        if (candidat != null && candidat.getName() != null) {
+            return candidat.getName().toString();
+        }
+        return null;
     }
 }

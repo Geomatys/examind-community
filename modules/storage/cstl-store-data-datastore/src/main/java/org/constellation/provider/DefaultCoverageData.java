@@ -36,6 +36,7 @@ import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
@@ -67,6 +68,7 @@ import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.map.DefaultCoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
@@ -620,4 +622,40 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         return dimensions;
     }
 
+    @Override
+    public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
+        try {
+            if (ref instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
+                org.geotoolkit.storage.coverage.GridCoverageResource reff = (org.geotoolkit.storage.coverage.GridCoverageResource) ref;
+                final GridCoverageReader coverageReader = (GridCoverageReader) reff.acquireReader();
+                try {
+                    return (DefaultMetadata) coverageReader.getMetadata();
+                } finally {
+                    reff.recycle(coverageReader);
+                }
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+        return null;
+    }
+
+    @Override
+    public String getResourceCRSName() throws ConstellationStoreException {
+        try {
+            Envelope env = FeatureStoreUtilities.getEnvelope(ref);
+            if (env != null) {
+                final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+                if (crs != null) {
+                    final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
+                    if (crsIdentifier != null) {
+                        return crsIdentifier;
+                    }
+                }
+            }
+        } catch(Exception ex) {
+            LOGGER.finer(ex.getMessage());
+        }
+        return null;
+    }
 }

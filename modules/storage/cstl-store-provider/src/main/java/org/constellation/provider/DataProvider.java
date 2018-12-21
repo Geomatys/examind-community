@@ -21,10 +21,12 @@ package org.constellation.provider;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Set;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.apache.sis.storage.DataStore;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
@@ -115,5 +117,9 @@ public interface DataProvider{
     Data get(GenericName key, Date version);
 
     Path[] getFiles() throws ConstellationException;
+
+    DefaultMetadata getStoreMetadata() throws ConstellationStoreException;
+
+    String getCRSName() throws ConstellationStoreException;
 
 }

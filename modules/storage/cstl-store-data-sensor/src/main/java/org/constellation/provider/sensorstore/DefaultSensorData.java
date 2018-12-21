@@ -82,4 +82,9 @@ public class DefaultSensorData extends AbstractData implements SensorData {
         return SensorMLUtilities.getSensorMLType(metadata);
     }
 
+    @Override
+    public String getResourceCRSName() throws ConstellationStoreException {
+        return null; // TODO extract from SML metadata
+    }
+
 }

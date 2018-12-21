@@ -38,6 +38,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.util.GenericName;
@@ -190,4 +191,10 @@ public abstract class AbstractData implements Data{
     public boolean isGeophysic() throws ConstellationStoreException {
         return false;
     }
+
+    @Override
+    public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
+        return null;
+    }
+
 }

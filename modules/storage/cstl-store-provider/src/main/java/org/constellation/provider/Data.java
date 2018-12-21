@@ -27,6 +27,7 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 
 import java.util.Date;
 import java.util.SortedSet;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
@@ -138,5 +139,9 @@ public interface Data {
     ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException;
 
     boolean isGeophysic() throws ConstellationStoreException;
+
+    DefaultMetadata getResourceMetadata() throws ConstellationStoreException;
+
+    String getResourceCRSName() throws ConstellationStoreException;
 
 }

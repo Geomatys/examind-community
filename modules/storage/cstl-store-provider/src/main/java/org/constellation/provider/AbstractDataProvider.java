@@ -25,6 +25,8 @@ import org.opengis.parameter.ParameterValueGroup;
 import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.constellation.exception.ConstellationStoreException;
 
 import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
@@ -178,6 +180,16 @@ public abstract class AbstractDataProvider implements DataProvider{
     @Override
     public boolean remove(GenericName key) {
         return false;
+    }
+
+    @Override
+    public DefaultMetadata getStoreMetadata() throws ConstellationStoreException {
+        return null;
+    }
+
+    @Override
+    public String getCRSName() throws ConstellationStoreException {
+        return null;
     }
 
     @Override

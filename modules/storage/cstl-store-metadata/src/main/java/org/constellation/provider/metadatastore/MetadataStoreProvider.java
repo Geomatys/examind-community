@@ -37,6 +37,7 @@ import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.util.ArraysExt;
 import org.constellation.exception.ConstellationException;

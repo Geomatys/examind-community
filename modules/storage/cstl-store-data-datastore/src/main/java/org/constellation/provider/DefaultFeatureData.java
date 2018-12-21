@@ -49,8 +49,17 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.metadata.iso.extent.DefaultExtent;
+import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
+import org.apache.sis.metadata.iso.spatial.DefaultGeometricObjects;
+import org.apache.sis.metadata.iso.spatial.DefaultVectorSpatialRepresentation;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
@@ -62,13 +71,23 @@ import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
+import static org.constellation.provider.AbstractData.LOGGER;
 import org.constellation.util.StoreUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.data.FeatureStoreUtilities;
+import static org.geotoolkit.feature.FeatureExt.IS_NOT_CONVENTION;
 import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiPoint;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
@@ -77,6 +96,9 @@ import org.opengis.feature.IdentifiedType;
 import org.opengis.feature.Operation;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
+import org.opengis.metadata.spatial.GeometricObjectType;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.GenericName;
 import org.opengis.util.InternationalString;
 
@@ -556,6 +578,104 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
             }
         }
 
+        return null;
+    }
+
+    @Override
+    public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
+        try {
+            final Resource ft = StoreUtilities.findResource(store, getName().toString());
+
+            final DefaultMetadata md = new DefaultMetadata();
+            final DefaultDataIdentification ident = new DefaultDataIdentification();
+            md.getIdentificationInfo().add(ident);
+
+            if (ft instanceof DataSet) {
+                DataSet ds = (DataSet) ft;
+
+                // envelope extraction
+                Envelope env = FeatureStoreUtilities.getEnvelope(ds);
+                if (env != null) {
+                    env = Envelopes.transform(env, CommonCRS.WGS84.normalizedGeographic());
+                    final DefaultGeographicBoundingBox bbox = new DefaultGeographicBoundingBox(
+                            env.getMinimum(0), env.getMaximum(0), env.getMinimum(1), env.getMaximum(1)
+                    );
+                    final DefaultExtent extent = new DefaultExtent("", bbox, null, null);
+                    ident.getExtents().add(extent);
+                }
+
+                // geometry type extraction
+                if (ft instanceof FeatureSet) {
+                    FeatureSet fs = (FeatureSet) ft;
+                    try {
+                        final List<? extends PropertyType> geometries = fs.getType().getProperties(true).stream()
+                                        .filter(IS_NOT_CONVENTION)
+                                        .filter(AttributeConvention::isGeometryAttribute)
+                                        .collect(Collectors.toList());
+                        for (PropertyType geometry : geometries) {
+                            final GeometricObjectType geomType = getGeomTypeFromJTS(geometry);
+                            if (geomType != null) {
+                                DefaultVectorSpatialRepresentation sr = new DefaultVectorSpatialRepresentation();
+                                sr.getGeometricObjects().add(new DefaultGeometricObjects(geomType));
+                                md.getSpatialRepresentationInfo().add(sr);
+                            }
+                        }
+                    } catch (PropertyNotFoundException ex) {
+                        LOGGER.log(Level.WARNING, "No default Geometry in vector data:{0}", getName());
+                    }
+                }
+            }
+            return md;
+        } catch (DataStoreException | TransformException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public String getResourceCRSName() throws ConstellationStoreException {
+        try {
+            final Resource ft = StoreUtilities.findResource(store, getName().toString());
+            if (ft instanceof DataSet) {
+                Envelope env = FeatureStoreUtilities.getEnvelope((DataSet) ft);
+                if (env != null) {
+                    final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+                    if (crs != null) {
+                        final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
+                        if (crsIdentifier != null) {
+                            return crsIdentifier;
+                        }
+                    }
+                }
+            }
+        } catch(Exception ex) {
+            LOGGER.finer(ex.getMessage());
+        }
+        return null;
+    }
+
+    private static GeometricObjectType getGeomTypeFromJTS(PropertyType defaultGeometry) {
+        if (defaultGeometry != null) {
+            while (defaultGeometry instanceof Operation) {
+                defaultGeometry = (PropertyType) ((Operation) defaultGeometry).getResult();
+            }
+            Class binding = ((AttributeType)defaultGeometry).getValueClass();
+            if (Point.class.equals(binding)) {
+                return GeometricObjectType.POINT;
+            } else if (LineString.class.equals(binding)) {
+                return GeometricObjectType.CURVE;
+            } else if (Polygon.class.equals(binding)) {
+                return GeometricObjectType.SURFACE;
+            } else if (GeometryCollection.class.equals(binding) ||
+                       MultiLineString.class.equals(binding) ||
+                       MultiPoint.class.equals(binding) ||
+                       MultiPolygon.class.equals(binding)) {
+                return GeometricObjectType.COMPLEX;
+            } else if (Geometry.class.equals(binding)) {
+                return GeometricObjectType.COMPLEX;
+            } else if (binding != null) {
+                LOGGER.info("Unexpected default geometry type:" + binding.getName());
+            }
+        }
         return null;
     }
 }

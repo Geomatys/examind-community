@@ -21,7 +21,6 @@ package org.constellation.admin;
 
 import java.util.AbstractMap;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
@@ -43,7 +42,6 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.metadata.utils.CstlMetadatas;
-import org.opengis.referencing.operation.TransformException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -65,6 +63,7 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.dto.process.DatasetProcessReference;
+import org.constellation.exception.ConstellationStoreException;
 
 /**
  *
@@ -249,20 +248,13 @@ public class DatasetBusiness implements IDatasetBusiness {
         if (dataType != null) {
             switch (dataType) {
                 case "raster":
-                    try {
-                        extractedMetadata = MetadataUtilities.getRasterMetadata(dataProvider);
-                        crsName = MetadataUtilities.getProviderCRSName(dataProvider);
-                    } catch (DataStoreException e) {
-                        LOGGER.log(Level.WARNING, "Error when trying to get raster metadata", e);
-                        extractedMetadata = new DefaultMetadata();
-                    }
-                    break;
+                case "coverage":
                 case "vector":
                     try {
-                        extractedMetadata = MetadataUtilities.getVectorMetadata(dataProvider);
-                        crsName = MetadataUtilities.getProviderCRSName(dataProvider);
-                    } catch (DataStoreException | TransformException e) {
-                        LOGGER.log(Level.WARNING, "Error when trying to get metadata for a shape file", e);
+                        extractedMetadata = dataProvider.getStoreMetadata();
+                        crsName = dataProvider.getCRSName();
+                    } catch (ConstellationStoreException e) {
+                        LOGGER.log(Level.WARNING, "Error when trying to get raster metadata", e);
                         extractedMetadata = new DefaultMetadata();
                     }
                     break;
@@ -310,7 +302,7 @@ public class DatasetBusiness implements IDatasetBusiness {
 
         DefaultMetadata mergedMetadata;
         if (extractedMetadata != null) {
-            mergedMetadata =  MetadataUtilities.mergeMetadata(templateMetadata, extractedMetadata);
+            mergedMetadata =  Utils.mergeMetadata(templateMetadata, extractedMetadata);
         } else {
             mergedMetadata = templateMetadata;
         }
@@ -323,7 +315,7 @@ public class DatasetBusiness implements IDatasetBusiness {
             uploadedMetadata = null;
         }
         if (uploadedMetadata != null) {
-            mergedMetadata = MetadataUtilities.mergeMetadata(uploadedMetadata,mergedMetadata);
+            mergedMetadata = Utils.mergeMetadata(uploadedMetadata,mergedMetadata);
         }
         mergedMetadata.prune();
 

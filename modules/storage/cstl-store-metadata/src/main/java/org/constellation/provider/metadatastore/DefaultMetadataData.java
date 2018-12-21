@@ -76,4 +76,7 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
         return DataType.METADATA;
     }
 
+    public String getResourceCRSName() throws ConstellationStoreException {
+        return null; // TODO extract from metadata object?
+    }
 }

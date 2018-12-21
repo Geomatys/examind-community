@@ -19,58 +19,23 @@
 
 package org.constellation.admin.util;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.MultiLineString;
-import org.locationtech.jts.geom.MultiPoint;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.extent.DefaultExtent;
-import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
-import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.engine.template.TemplateEngine;
 import org.constellation.engine.template.TemplateEngineException;
 import org.constellation.engine.template.TemplateEngineFactory;
-import org.constellation.provider.DataProvider;
 import org.constellation.util.Util;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.process.ProcessException;
-import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
-import org.opengis.util.GenericName;
-import org.opengis.util.NoSuchIdentifierException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.internal.metadata.Merger;
-import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultOnlineResource;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
-import org.apache.sis.metadata.iso.spatial.DefaultGeometricObjects;
-import org.apache.sis.metadata.iso.spatial.DefaultVectorSpatialRepresentation;
-import org.apache.sis.storage.DataSet;
-import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.dto.metadata.MetadataBbox;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.extent.GeographicExtent;
@@ -79,24 +44,16 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.CstlUser;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.metadata.utils.Utils;
-import org.constellation.util.StoreUtilities;
-import org.geotoolkit.data.FeatureStoreUtilities;
-import static org.geotoolkit.feature.FeatureExt.IS_NOT_CONVENTION;
-import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.opengis.feature.AttributeType;
-import org.opengis.feature.Operation;
-import org.opengis.feature.PropertyNotFoundException;
-import org.opengis.feature.PropertyType;
 import org.opengis.metadata.citation.OnlineResource;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
-import org.opengis.metadata.spatial.GeometricObjectType;
 
 
 /**
  * Utility class to do some operation on metadata file (generate, revover, ...)
+ *
+ *  TODO look for redundance with {@link org.constellation.metadata.utils.Utils}
  *
  * @author bgarcia
  * @version 0.9
@@ -105,245 +62,6 @@ import org.opengis.metadata.spatial.GeometricObjectType;
 public final class MetadataUtilities {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.util");
-
-    private static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-
-    public static DefaultMetadata getRasterMetadata(final DataProvider dataProvider, final GenericName dataName) throws DataStoreException {
-
-    	final DataStore dataStore = dataProvider.getMainStore();
-    	final Resource ref = StoreUtilities.findResource(dataStore, dataName.toString());
-        if (ref instanceof CoverageResource) {
-            final CoverageResource cref = (CoverageResource) ref;
-            final GridCoverageReader coverageReader = (GridCoverageReader) cref.acquireReader();
-            try {
-                return (DefaultMetadata) coverageReader.getMetadata();
-            } finally {
-                cref.recycle(coverageReader);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the raster metadata for entire dataset referenced by given provider.
-     * @param dataProvider the given data provider
-     * @return {@code DefaultMetadata}
-     * @throws DataStoreException
-     */
-    public static DefaultMetadata getRasterMetadata(final DataProvider dataProvider) throws DataStoreException {
-
-        final DataStore dataStore = dataProvider.getMainStore();
-        DefaultMetadata coverageMetadata =  (DefaultMetadata) dataStore.getMetadata();
-        if (coverageMetadata != null) return coverageMetadata;
-
-        //if the coverage metadata still null that means it is not implemented yet
-        // so we return the metadata iso from the reader
-        DefaultMetadata metadata = new DefaultMetadata();
-        for (Resource resource : DataStores.flatten(dataStore, true)) {
-            if (resource instanceof CoverageResource) {
-                final CoverageResource cr = (CoverageResource) resource;
-                final GridCoverageReader reader = (GridCoverageReader) cr.acquireReader();
-                try {
-                    final Metadata meta = reader.getMetadata();
-                    //@FIXME
-                    // this merge is bad here to build a fully dataset
-                    // metadata that should contains all data children information
-                    //see issue JIRA CSTL-1151
-                    metadata = mergeMetadata(metadata,(DefaultMetadata)meta);
-                }catch(Exception ex){
-                    LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-                } finally{
-                    cr.recycle(reader);
-                }
-            }
-        }
-        return metadata;
-    }
-
-     /**
-     * Returns crs name if possible for a provider.
-     * @param dataProvider
-     * @return
-     * @throws DataStoreException
-     */
-    public static String getProviderCRSName(final DataProvider dataProvider) throws DataStoreException {
-        final DataStore dataStore = dataProvider.getMainStore();
-        CoordinateReferenceSystem candidat = null;
-
-        for (Resource resource : DataStores.flatten(dataStore, true)) {
-            if (resource instanceof DataSet) {
-                try {
-                    final DataSet cr = (DataSet) resource;
-                    Envelope env = FeatureStoreUtilities.getEnvelope(cr);
-                    if (env != null) {
-                        final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-                        if (candidat == null && crs != null){
-                            candidat = crs;
-                        }
-                        final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs,true);
-                        if (crsIdentifier != null) {
-                            return crsIdentifier;
-                        }
-                    }
-                } catch(Exception ex) {
-                    LOGGER.finer(ex.getMessage());
-                }
-            }
-        }
-
-        if (candidat != null && candidat.getName() != null) {
-            return candidat.getName().toString();
-        }
-        return null;
-    }
-
-    /**
-     * Returns crs name if possible for resource.
-     */
-    public static String getResourceCRSName(final DataProvider dataProvider, final GenericName name) throws DataStoreException {
-        final DataStore dataStore = dataProvider.getMainStore();
-        final Resource resource = StoreUtilities.findResource(dataStore, name.toString());
-        if (resource instanceof DataSet) {
-            try {
-                final DataSet cr = (DataSet) resource;
-                Envelope env = FeatureStoreUtilities.getEnvelope(cr);
-                if (env != null) {
-                    final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
-                    if (crs != null) {
-                        final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
-                        if (crsIdentifier != null) {
-                            return crsIdentifier;
-                        }
-                    }
-                }
-            } catch(Exception ex) {
-                LOGGER.finer(ex.getMessage());
-            }
-        }
-        return null;
-    }
-
-    public static DefaultMetadata getVectorMetadata(final DataProvider dataProvider, final GenericName dataName) throws DataStoreException, TransformException {
-
-    	final DataStore dataStore = dataProvider.getMainStore();
-        final Resource ft = StoreUtilities.findResource(dataStore, dataName.toString());
-
-        final DefaultMetadata md = new DefaultMetadata();
-        final DefaultDataIdentification ident = new DefaultDataIdentification();
-        md.getIdentificationInfo().add(ident);
-
-        if (ft instanceof DataSet) {
-            DataSet ds = (DataSet) ft;
-
-            // envelope extraction
-            Envelope env = FeatureStoreUtilities.getEnvelope(ds);
-            if (env != null) {
-                env = Envelopes.transform(env, CommonCRS.WGS84.normalizedGeographic());
-                final DefaultGeographicBoundingBox bbox = new DefaultGeographicBoundingBox(
-                        env.getMinimum(0), env.getMaximum(0), env.getMinimum(1), env.getMaximum(1)
-                );
-                final DefaultExtent extent = new DefaultExtent("", bbox, null, null);
-                ident.getExtents().add(extent);
-            }
-
-            // geometry type extraction
-            if (ft instanceof FeatureSet) {
-                FeatureSet fs = (FeatureSet) ft;
-                try {
-                    final List<? extends PropertyType> geometries = fs.getType().getProperties(true).stream()
-                                    .filter(IS_NOT_CONVENTION)
-                                    .filter(AttributeConvention::isGeometryAttribute)
-                                    .collect(Collectors.toList());
-                    for (PropertyType geometry : geometries) {
-                        final GeometricObjectType geomType = getGeomTypeFromJTS(geometry);
-                        if (geomType != null) {
-                            DefaultVectorSpatialRepresentation sr = new DefaultVectorSpatialRepresentation();
-                            sr.getGeometricObjects().add(new DefaultGeometricObjects(geomType));
-                            md.getSpatialRepresentationInfo().add(sr);
-                        }
-                    }
-                } catch (PropertyNotFoundException ex) {
-                    LOGGER.log(Level.WARNING, "No default Geometry in vector data:{0}", dataName);
-                }
-            }
-        }
-        return md;
-    }
-
-    public static DefaultMetadata getVectorMetadata(final DataProvider dataProvider) throws DataStoreException, TransformException {
-
-    	final DataStore dataStore = dataProvider.getMainStore();
-        final DefaultMetadata md = new DefaultMetadata();
-        final DefaultDataIdentification ident = new DefaultDataIdentification();
-        md.getIdentificationInfo().add(ident);
-        DefaultGeographicBoundingBox bbox = null;
-
-        for (Resource resource : DataStores.flatten(dataStore, true)) {
-            if (resource instanceof DataSet) {
-                DataSet ds = (DataSet) resource;
-                Envelope env = FeatureStoreUtilities.getEnvelope(ds);
-                if (env == null) {
-                    continue;
-                }
-                final DefaultGeographicBoundingBox databbox = new DefaultGeographicBoundingBox();
-                databbox.setBounds(env);
-                if (bbox == null) {
-                    bbox = databbox;
-                } else {
-                    bbox.add(databbox);
-                }
-            }
-        }
-        final DefaultExtent extent = new DefaultExtent("", bbox, null, null);
-        ident.getExtents().add(extent);
-        return md;
-    }
-
-    private static GeometricObjectType getGeomTypeFromJTS(PropertyType defaultGeometry) {
-        if (defaultGeometry != null) {
-            while (defaultGeometry instanceof Operation) {
-                defaultGeometry = (PropertyType) ((Operation) defaultGeometry).getResult();
-            }
-            Class binding = ((AttributeType)defaultGeometry).getValueClass();
-            if (Point.class.equals(binding)) {
-                return GeometricObjectType.POINT;
-            } else if (LineString.class.equals(binding)) {
-                return GeometricObjectType.CURVE;
-            } else if (Polygon.class.equals(binding)) {
-                return GeometricObjectType.SURFACE;
-            } else if (GeometryCollection.class.equals(binding) ||
-                       MultiLineString.class.equals(binding) ||
-                       MultiPoint.class.equals(binding) ||
-                       MultiPolygon.class.equals(binding)) {
-                return GeometricObjectType.COMPLEX;
-            } else if (Geometry.class.equals(binding)) {
-                return GeometricObjectType.COMPLEX;
-            } else if (binding != null) {
-                LOGGER.info("Unexpected default geometry type:" + binding.getName());
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param fileMetadata
-     * @param metadataToMerge
-     *
-     */
-    public static DefaultMetadata mergeMetadata(final DefaultMetadata fileMetadata, final DefaultMetadata metadataToMerge) {
-        final Metadata first = fileMetadata;
-        final Metadata second = metadataToMerge;
-
-        final DefaultMetadata merged = new DefaultMetadata(first);
-        final Merger merger = new Merger(null) {
-            @Override
-            protected void merge(ModifiableMetadata target, String propertyName, Object sourceValue, Object targetValue) {
-                // Ignore (TODO: we should probably emit some kind of warnings).
-            }
-        };
-        merger.copy(second, merged);
-        return merged;
-    }
 
     public static String getTemplateMetadata(final Properties prop, final String templatePath) {
         try {
