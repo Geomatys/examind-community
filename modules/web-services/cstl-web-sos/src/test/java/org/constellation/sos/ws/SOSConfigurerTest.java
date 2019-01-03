@@ -25,7 +25,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
@@ -209,7 +211,10 @@ public abstract class SOSConfigurerTest {
 
     public void getObservedPropertiesTest() throws Exception {
         Collection<String> results = configurer.getObservedPropertiesIds("default");
-        List<String> expResults = Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon", "urn:ogc:def:phenomenon:GEOM:depth", "urn:ogc:def:phenomenon:GEOM:temperature");
+        Set<String> expResults = new HashSet<>();
+        expResults.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
+        expResults.add("urn:ogc:def:phenomenon:GEOM:depth");
+        expResults.add("urn:ogc:def:phenomenon:GEOM:temperature");
         Assert.assertEquals(expResults, results);
     }
 

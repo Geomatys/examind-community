@@ -32,7 +32,6 @@ import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.sml.xml.AbstractComponents;
 import org.geotoolkit.sml.xml.AbstractProcess;
@@ -79,11 +78,10 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.apache.sis.storage.DataStore;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
 import org.geotoolkit.observation.Utils;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 
 /**
  *
@@ -373,9 +371,9 @@ public final class SOSUtils {
         return results;
     }
 
-    public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationReader reader) throws DataStoreException, FactoryException, TransformException {
+    public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationProvider omProvider) throws ConstellationStoreException, FactoryException, TransformException {
         if ("Component".equals(sensor.getType())) {
-            final AbstractGeometry geom = reader.getSensorLocation(sensor.getIdentifier(), "2.0.0");
+            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
             if (geom != null) {
                 Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
                 // reproject to CRS:84
@@ -386,7 +384,7 @@ public final class SOSUtils {
             final List<Geometry> geometries = new ArrayList<>();
 
             // add the root geometry if there is one
-            final AbstractGeometry geom = reader.getSensorLocation(sensor.getIdentifier(), "2.0.0");
+            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
             if (geom != null) {
                 Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
                 // reproject to CRS:84
@@ -394,14 +392,14 @@ public final class SOSUtils {
                 geometries.add(JTS.transform(jtsGeometry, mt));
             }
             for (SensorMLTree child : sensor.getChildren()) {
-                geometries.addAll(getJTSGeometryFromSensor(child, reader));
+                geometries.addAll(getJTSGeometryFromSensor(child, omProvider));
             }
             return geometries;
         }
         return new ArrayList<>();
     }
 
-    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationReader reader) throws DataStoreException {
+    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider reader) throws ConstellationStoreException {
         if ("Component".equals(sensor.getType())) {
             return reader.getPhenomenonsForProcedure(sensor.getIdentifier());
 
@@ -507,42 +505,5 @@ public final class SOSUtils {
             }
         }
         return null;
-    }
-
-    /**
-     * Temporary until branch on observation provider will be merged
-     */
-    public static List<ProcedureTree> getProcedures(final DataProvider omProvider) throws DataStoreException {
-        final ObservationStore store = SOSUtils.getObservationStore(omProvider);
-        if (store != null) {
-            List<ExtractionResult.ProcedureTree> storeProcedures = store.getProcedures();
-            List<ProcedureTree> results = new ArrayList<>();
-            for (ExtractionResult.ProcedureTree pt : storeProcedures) {
-                results.add(toDto(pt));
-            }
-            return results;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Temporary until branch on observation provider will be merged
-     */
-    private static ProcedureTree toDto(ExtractionResult.ProcedureTree pt) {
-        GeoSpatialBound bound = pt.spatialBound;
-        ProcedureTree result  = new ProcedureTree(pt.id,
-                                                  pt.type,
-                                                  bound.dateStart,
-                                                  bound.dateEnd,
-                                                  bound.minx,
-                                                  bound.maxx,
-                                                  bound.miny,
-                                                  bound.maxy,
-                                                  pt.fields);
-        for (ExtractionResult.ProcedureTree child: pt.children) {
-            result.getChildren().add(toDto(child));
-        }
-        return result;
     }
 }

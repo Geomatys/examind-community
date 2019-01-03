@@ -42,18 +42,18 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.dto.Sensor;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.ogc.configuration.OGCConfigurer;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
+import org.constellation.provider.SensorProvider;
 import org.constellation.sos.ws.SOSUtils;
-import org.geotoolkit.sensor.SensorStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
@@ -144,7 +144,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
 
     @Override
     public AcknowlegementType removeSensor(final String id, final String sensorID) throws ConfigurationException {
-        final ObservationWriter omWriter = getObservationWriter(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree root = getSensorTree(id);
             final SensorMLTree tree = root.find(sensorID);
@@ -159,7 +159,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
             }
             for (String sid : toRemove) {
                 sensorBusiness.removeSensorFromSOS(id, sid);
-                omWriter.removeProcedure(sid);
+                pr.removeProcedure(sid);
             }
 
             // if the sensor has a System parent, we must update his component list
@@ -173,26 +173,27 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
             }
 
             return new AcknowlegementType("Success", "The specified sensor have been removed in the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public AcknowlegementType removeAllSensors(final String id) throws ConfigurationException {
-        final ObservationWriter omWriter = getObservationWriter(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
             final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
             for (Sensor sensor : sensors) {
                 sensorBusiness.removeSensorFromSOS(id, sensor.getIdentifier());
                 boolean sucess = true; // TODO
                 if (sucess) {
-                    omWriter.removeProcedure(sensor.getIdentifier());
+                    pr.removeProcedure(sensor.getIdentifier());
                 } else {
                     return new AcknowlegementType("Error", "Unable to remove the sensor from SML datasource:" + sensor.getIdentifier());
                 }
             }
+
             return new AcknowlegementType("Success", "The specified sensor have been removed in the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
@@ -210,7 +211,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 final List<SensorMLTree> children = SOSUtils.getChildren(sml);
                 t.setChildren(children);
             } else {
-                LOGGER.warning("Unable to retrieve Sensor Metadata for:" + sensor.getIdentifier());
+                LOGGER.log(Level.WARNING, "Unable to retrieve Sensor Metadata for:{0}", sensor.getIdentifier());
                 t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), null, null, null);
             }
             values.add(t);
@@ -219,39 +220,39 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     }
 
     public Collection<String> getSensorIds(final String id) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            return reader.getProcedureNames();
-        } catch (DataStoreException ex) {
+            return pr.getProcedureNames();
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public Collection<String> getSensorIdsForObservedProperty(final String id, final String observedProperty) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            return reader.getProceduresForPhenomenon(observedProperty);
-        } catch (DataStoreException ex) {
+            return pr.getProceduresForPhenomenon(observedProperty);
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public Collection<String> getObservedPropertiesForSensorId(final String id, final String sensorID) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree root          = getSensorTree(id);
             final SensorMLTree current       = root.find(sensorID);
-            return SOSUtils.getPhenomenonFromSensor(current, reader);
-        } catch (DataStoreException ex) {
+            return SOSUtils.getPhenomenonFromSensor(current, pr);
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public TemporalGeometricPrimitive getTimeForSensorId(final String id, final String sensorID) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            return reader.getTimeForProcedure("2.0.0", sensorID);
-        } catch (DataStoreException ex) {
+            return pr.getTimeForProcedure("2.0.0", sensorID);
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
@@ -299,61 +300,61 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     }
 
     public AcknowlegementType removeSingleObservation(final String id, final String observationID) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            writer.removeObservation(observationID);
+            pr.removeObservation(observationID);
             return new AcknowlegementType("Success", "The specified observation have been removed from the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public AcknowlegementType removeObservationForProcedure(final String id, final String procedureID) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider writer = getOMProvider(id);
         try {
             writer.removeObservationForProcedure(procedureID);
             return new AcknowlegementType("Success", "The specified observations have been removed from the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public Collection<String> getObservedPropertiesIds(String id) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            return reader.getPhenomenonNames();
-        } catch (DataStoreException ex) {
+            return pr.getPhenomenonNames();
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public AcknowlegementType writeProcedure(final String id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            writer.writeProcedure(sensorID, location, parent, type);
+            pr.writeProcedure(sensorID, location, parent, type);
             return new AcknowlegementType("Success", "The sensor have been recorded in the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public AcknowlegementType updateSensorLocation(final String id, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider pr = getOMProvider(id);
         try {
-            writer.recordProcedureLocation(sensorID, location);
+            pr.updateProcedureLocation(sensorID, location);
             return new AcknowlegementType("Success", "The sensor location have been updated in the SOS");
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public String getWKTSensorLocation(final String id, final String sensorID) throws ConfigurationException {
-        final ObservationReader reader = getObservationReader(id);
+        final ObservationProvider provider = getOMProvider(id);
         try {
             final SensorMLTree root          = getSensorTree(id);
             final SensorMLTree current       = root.find(sensorID);
             if (current != null) {
-                final List<Geometry> jtsGeometries = SOSUtils.getJTSGeometryFromSensor(current, reader);
+                final List<Geometry> jtsGeometries = SOSUtils.getJTSGeometryFromSensor(current, provider);
                 if (jtsGeometries.size() == 1) {
                     final WKTWriter writer = new WKTWriter();
                     return writer.write(jtsGeometries.get(0));
@@ -365,62 +366,24 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 }
             }
             return "";
-        } catch (DataStoreException | FactoryException | TransformException ex) {
+        } catch (ConstellationStoreException | FactoryException | TransformException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public String getObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
-        final ObservationFilterReader filter = (ObservationFilterReader) getObservationFilter(id); // TODO handle ObservationFilter
         try {
-            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
-            if (observedProperties.isEmpty()) {
-                observedProperties.addAll(getObservedPropertiesForSensorId(id, sensorID));
-            }
-            filter.setObservedProperties(observedProperties);
-            filter.setFeatureOfInterest(foi);
-            filter.setResponseFormat("text/csv");
-
-            if (start != null && end != null) {
-                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
-                filter.setTimeDuring(period);
-            } else if (start != null) {
-                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
-                filter.setTimeAfter(time);
-            } else if (end != null) {
-                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
-                filter.setTimeBefore(time);
-            }
+            final ObservationFilterReader filter = filterObservation(sensorID, sensorID, observedProperties, foi, start, end);
             return filter.getResults();
-
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public String getDecimatedObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
-        final ObservationFilterReader filter = (ObservationFilterReader) getObservationFilter(id); // TODO handle ObservationFilter
         try {
-            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
-            if (observedProperties.isEmpty()) {
-                observedProperties.addAll(getObservedPropertiesForSensorId(id, sensorID));
-            }
-            filter.setObservedProperties(observedProperties);
-            filter.setFeatureOfInterest(foi);
-            filter.setResponseFormat("text/csv");
-
-            if (start != null && end != null) {
-                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
-                filter.setTimeDuring(period);
-            } else if (start != null) {
-                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
-                filter.setTimeAfter(time);
-            } else if (end != null) {
-                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
-                filter.setTimeBefore(time);
-            }
+            final ObservationFilterReader filter = filterObservation(sensorID, sensorID, observedProperties, foi, start, end);
             return filter.getDecimatedResults(width);
-
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -438,7 +401,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p.getMainStore() instanceof SensorStore){
+            if(p instanceof SensorProvider){
                 // TODO for now we only take one provider by type
                 return providerID;
             }
@@ -446,13 +409,13 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
     }
 
-    protected DataProvider getOMProvider(final String serviceID) throws ConfigurationException {
+    protected ObservationProvider getOMProvider(final String serviceID) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p.getMainStore() instanceof ObservationStore){
+            if(p instanceof ObservationProvider){
                 // TODO for now we only take one provider by type
-                return p;
+                return (ObservationProvider) p;
             }
         }
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
@@ -483,27 +446,29 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
      * @return An observation Writer.
      * @throws ConfigurationException
      */
-    protected ObservationReader getObservationReader(final String serviceID) throws ConfigurationException {
+    protected ObservationFilterReader filterObservation(final String serviceID, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException, DataStoreException {
         final DataProvider omProvider = getOMProvider(serviceID);
         if (omProvider != null) {
-            return getObservationStore(serviceID).getReader();
-        } else {
-            throw new ConfigurationException("there is no configuration file correspounding to this ID:" + serviceID);
-        }
-    }
+            ObservationFilterReader filter = (ObservationFilterReader) getObservationStore(serviceID).getFilter();
+            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
+            if (observedProperties.isEmpty()) {
+                observedProperties.addAll(getObservedPropertiesForSensorId(serviceID, sensorID));
+            }
+            filter.setObservedProperties(observedProperties);
+            filter.setFeatureOfInterest(foi);
+            filter.setResponseFormat("text/csv");
 
-    /**
-     * Build a new Observation writer for the specified service ID.
-     *
-     * @param serviceID the service identifier (form multiple SOS) default: ""
-     *
-     * @return An observation Writer.
-     * @throws ConfigurationException
-     */
-    protected ObservationFilter getObservationFilter(final String serviceID) throws ConfigurationException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        if (omProvider != null) {
-            return getObservationStore(serviceID).getFilter();
+            if (start != null && end != null) {
+                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+                filter.setTimeDuring(period);
+            } else if (start != null) {
+                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
+                filter.setTimeAfter(time);
+            } else if (end != null) {
+                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
+                filter.setTimeBefore(time);
+            }
+            return filter;
         } else {
             throw new ConfigurationException("there is no configuration file correspounding to this ID:" + serviceID);
         }

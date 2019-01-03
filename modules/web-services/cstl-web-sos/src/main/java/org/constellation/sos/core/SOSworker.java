@@ -173,7 +173,9 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.apache.sis.storage.DataStore;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.DataProvider;
+import org.constellation.provider.ObservationProvider;
 import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.observation.Utils;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -270,8 +272,10 @@ public class SOSworker extends AbstractWorker {
 
     /**
      * The Observation provider
+     * TODO; find a way to remove the omStore calls
      */
     private ObservationStore omStore;
+    private ObservationProvider omProvider;
 
     /**
      * The sensorML provider
@@ -287,7 +291,7 @@ public class SOSworker extends AbstractWorker {
     /**
      * The supported Response Mode for GetObservation request (depends on reader capabilities)
      */
-    private List<ResponseModeType> acceptedResponseMode;
+    private List<String> acceptedResponseMode;
 
     /**
      * The supported Response Format for GetObservation request (depends on reader capabilities)
@@ -385,6 +389,7 @@ public class SOSworker extends AbstractWorker {
                     // store may implements the 2 interface
                     if (store instanceof ObservationStore) {
                         omStore     = (ObservationStore)store;
+                        omProvider  = (ObservationProvider) p;
                     }
                 } else {
                     throw new CstlServiceException("Unable to instanciate the provider:" + providerID);
@@ -394,11 +399,10 @@ public class SOSworker extends AbstractWorker {
             this.acceptedSensorMLFormats = sensorBusiness.getAcceptedSensorMLFormats(id);
 
             // we initialize the O&M reader/writer/filter
-            if (omStore != null) {
+            if (omProvider != null) {
                 //we initialize the variables depending on the Reader capabilities
-                ObservationReader reader    = omStore.getReader();
-                this.acceptedResponseMode   = reader.getResponseModes();
-                this.acceptedResponseFormat = reader.getResponseFormats();
+                this.acceptedResponseMode   = omProvider.getResponseModes();
+                this.acceptedResponseFormat = omProvider.getResponseFormats();
             } else {
                 this.acceptedResponseMode   = new ArrayList<>();
                 this.acceptedResponseFormat = new ArrayList<>();
@@ -421,7 +425,7 @@ public class SOSworker extends AbstractWorker {
                 }
             }
             startError("JAXBException:" + msg, ex);
-        } catch (CstlServiceException | DataStoreException ex) {
+        } catch (CstlServiceException | ConstellationStoreException ex) {
             startError(ex.getMessage(), ex);
         } catch (ConfigurationException ex) {
             startError("The configuration file can't be found.", ex);
@@ -580,18 +584,16 @@ public class SOSworker extends AbstractWorker {
                 final List<String> eventTime       = new ArrayList<>();
                 final List<String> queryableResultProperties = new ArrayList<>();
 
+                foiNames.addAll(omProvider.getFeatureOfInterestNames());
+                phenNames.addAll(omProvider.getPhenomenonNames());
+
                 final ObservationReader reader = omStore.getReader();
                 if (reader != null) {
-                    foiNames.addAll(reader.getFeatureOfInterestNames());
                     procNames.addAll(reader.getProcedureNames(sensorTypeFilter));
-                    phenNames.addAll(reader.getPhenomenonNames());
                     offNames.addAll(reader.getOfferingNames(currentVersion, sensorTypeFilter));
                     eventTime.addAll(reader.getEventTime());
                 }
-                final ObservationFilter filter = omStore.getFilter();
-                if (filter != null) {
-                    queryableResultProperties.addAll(filter.supportedQueryableResultProperties());
-                }
+                queryableResultProperties.addAll(omProvider.supportedQueryableResultProperties());
 
                 // the list of offering names
                 go.updateParameter(OFFERING, offNames);
@@ -615,11 +617,7 @@ public class SOSworker extends AbstractWorker {
                 go.updateParameter("featureOfInterest", foiNames);
 
                 // the different responseMode available
-                final List<String> arm = new ArrayList<>();
-                acceptedResponseMode.stream().forEach((rm) -> {
-                    arm.add(rm.value());
-                });
-                go.updateParameter(RESPONSE_MODE, arm);
+                go.updateParameter(RESPONSE_MODE, acceptedResponseMode);
 
                 // the different responseFormat available
                 go.updateParameter("responseFormat", acceptedResponseFormat);
@@ -680,7 +678,7 @@ public class SOSworker extends AbstractWorker {
 
             LOGGER.log(Level.INFO, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
             putCapabilitiesInCache(currentVersion, null, c);
-        } catch (DataStoreException | ConfigurationException ex) {
+        } catch (DataStoreException | ConstellationStoreException | ConfigurationException ex) {
             throw new CstlServiceException(ex);
         }
         return (Capabilities) c.applySections(sections);
@@ -857,34 +855,34 @@ public class SOSworker extends AbstractWorker {
         //we get the mode of result
         boolean template   = false;
         boolean outOfBand  = false;
-        ResponseModeType mode;
+        ResponseModeType responseMode;
         if (requestObservation.getResponseMode() == null) {
-            mode = INLINE;
+            responseMode = INLINE;
         } else {
             try {
-                mode = ResponseModeType.fromValue(requestObservation.getResponseMode());
+                responseMode = ResponseModeType.fromValue(requestObservation.getResponseMode());
             } catch (IllegalArgumentException e) {
                 final StringBuilder arm = new StringBuilder();
                 acceptedResponseMode.stream().forEach((s) -> {
-                    arm.append(s.value()).append('\n');
+                    arm.append(s).append('\n');
                 });
                 throw new CstlServiceException("The response Mode: " + requestObservation.getResponseMode() + " is not supported by the service." +
-                                               "Supported Values are:\n" + arm.toString(),
+                                               "Supported values are:\n" + arm.toString(),
                                                  INVALID_PARAMETER_VALUE, RESPONSE_MODE);
             }
         }
 
-        if (mode == OUT_OF_BAND) {
+        if (responseMode == OUT_OF_BAND) {
             outOfBand = true;
-        } else if (mode == RESULT_TEMPLATE) {
+        } else if (responseMode == RESULT_TEMPLATE) {
             template = true;
-        } else if (!acceptedResponseMode.contains(mode)) {
+        } else if (!acceptedResponseMode.contains(responseMode.value())) {
             final StringBuilder arm = new StringBuilder();
             acceptedResponseMode.stream().forEach((s) -> {
-                arm.append(s.value()).append('\n');
+                arm.append(s).append('\n');
             });
             throw new CstlServiceException("This response Mode is not supported by the service" +
-                                           "Supported Values are:\n" + arm.toString(),
+                                           "Supported values are:\n" + arm.toString(),
                                              OPERATION_NOT_SUPPORTED, RESPONSE_MODE);
         }
 
@@ -899,7 +897,7 @@ public class SOSworker extends AbstractWorker {
                 ((ObservationFilterReader)localOmFilter).setResponseFormat(responseFormat);
             }
 
-            localOmFilter.initFilterObservation(mode, resultModel);
+            localOmFilter.initFilterObservation(responseMode, resultModel);
 
             //we verify that there is an offering (mandatory in 1.0.0, optional in 2.0.0)
             final List<ObservationOffering> offerings = new ArrayList<>();
@@ -990,7 +988,7 @@ public class SOSworker extends AbstractWorker {
                 final List<String> phenomenons    = new ArrayList<>();
                 for (String phenomenonName : observedProperties) {
 
-                    if (!omStore.getReader().existPhenomenon(phenomenonName)) {
+                    if (!omProvider.existPhenomenon(phenomenonName)) {
                         throw new CstlServiceException(" this phenomenon " + phenomenonName + " is not registred in the datasource!",
                                 INVALID_PARAMETER_VALUE, "observedProperty");
                     }
@@ -1014,7 +1012,7 @@ public class SOSworker extends AbstractWorker {
             if (!requestObservation.getFeatureIds().isEmpty()) {
 
                 //verify that the station is registred in the DB.
-                final Collection<String> fois = omStore.getReader().getFeatureOfInterestNames();
+                final Collection<String> fois = omProvider.getFeatureOfInterestNames();
                 for (final String samplingFeatureName : requestObservation.getFeatureIds()) {
                     if (!fois.contains(samplingFeatureName)) {
                         throw new CstlServiceException("the feature of interest "+ samplingFeatureName + " is not registered",
@@ -1163,7 +1161,7 @@ public class SOSworker extends AbstractWorker {
                     matchingResult = new ArrayList<>();
                     final Set<String> observationIDs = localOmFilter.filterObservation();
                     for (String observationID : observationIDs) {
-                        final Observation obs = OMXmlFactory.cloneObervation(currentVersion, omStore.getReader().getObservation(observationID, resultModel, mode, currentVersion));
+                        final Observation obs = OMXmlFactory.cloneObervation(currentVersion, omStore.getReader().getObservation(observationID, resultModel, responseMode, currentVersion));
 
                         // parse result values to eliminate wrong results
                         if (obs.getSamplingTime() instanceof Period) {
@@ -1258,7 +1256,7 @@ public class SOSworker extends AbstractWorker {
                 }
                 response = sReponse;
             }
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             if (ex instanceof ObservationStoreException) {
                 final ObservationStoreException oex = (ObservationStoreException) ex;
                 throw new CstlServiceException(ex, oex.getExceptionCode(), oex.getLocator());
@@ -1335,7 +1333,7 @@ public class SOSworker extends AbstractWorker {
                 if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                     throw new CstlServiceException("The observedProperty parameter must be specified", MISSING_PARAMETER_VALUE, "observedProperty");
                 } else {
-                    if (!omStore.getReader().existPhenomenon(request.getObservedProperty())) {
+                    if (!omProvider.existPhenomenon(request.getObservedProperty())) {
                         throw new CstlServiceException("The observedProperty parameter is invalid", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
                     observedProperty = request.getObservedProperty();
@@ -1480,7 +1478,7 @@ public class SOSworker extends AbstractWorker {
                 values = datablock.toString();
             }
 
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         final String url = getServiceUrl().substring(0, getServiceUrl().length() -1);
@@ -1515,7 +1513,7 @@ public class SOSworker extends AbstractWorker {
                     // CITE
                     if (observedProperty.isEmpty()) {
                         throw new CstlServiceException("The observedProperty name is empty", MISSING_PARAMETER_VALUE, "observedProperty");
-                    } else if (!omStore.getReader().existPhenomenon(observedProperty)){
+                    } else if (!omProvider.existPhenomenon(observedProperty)){
                         throw new CstlServiceException("This observedProperty is not registered", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
                 }
@@ -1649,7 +1647,7 @@ public class SOSworker extends AbstractWorker {
             // request for all foi
             } else if (!filter) {
                 final List<FeatureProperty> features = new ArrayList<>();
-                for (String foid : omStore.getReader().getFeatureOfInterestNames()) {
+                for (String foid : omProvider.getFeatureOfInterestNames()) {
                     final SamplingFeature feature = omStore.getReader().getFeatureOfInterest(foid, currentVersion);
                     features.add(buildFeatureProperty(currentVersion, feature));
                 }
@@ -1658,7 +1656,7 @@ public class SOSworker extends AbstractWorker {
                 result = collection;
             }
 
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
@@ -1680,12 +1678,12 @@ public class SOSworker extends AbstractWorker {
 
         final TemporalPrimitive result;
         try {
-            if (omStore.getReader().getFeatureOfInterestNames().contains(fid)) {
+            if (omProvider.getFeatureOfInterestNames().contains(fid)) {
                 result = omStore.getReader().getFeatureOfInterestTime(fid, currentVersion);
             } else {
                 throw new CstlServiceException("there is not such samplingFeature on the server", INVALID_PARAMETER_VALUE);
             }
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         LOGGER.log(Level.INFO, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
@@ -1810,7 +1808,7 @@ public class SOSworker extends AbstractWorker {
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
             }
-            if (!omStore.getReader().existPhenomenon(request.getObservedProperty())) {
+            if (!omProvider.existPhenomenon(request.getObservedProperty())) {
                 throw new CstlServiceException(" this phenomenon " + request.getObservedProperty() + " is not registred in the database!",
                         INVALID_PARAMETER_VALUE, "observedProperty");
             }
@@ -1844,7 +1842,7 @@ public class SOSworker extends AbstractWorker {
                     throw new CstlServiceException("unable to extract structure and encoding for other result type than DataArrayProperty");
                 }
             }
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         final GetResultTemplateResponse result = buildGetResultTemplateResponse(currentVersion, structure, encoding);
@@ -2094,17 +2092,17 @@ public class SOSworker extends AbstractWorker {
                 //we record the observation in the O&M database
                final String id;
                 if (currentVersion.equals("2.0.0")) {
-                    id = omStore.getWriter().writeObservation(obs);
+                    id = omProvider.writeObservation(obs);
                 } else {
                     if (obs instanceof Measurement) {
-                        id = omStore.getWriter().writeObservation(obs);
+                        id = omProvider.writeObservation(obs);
                     } else {
                         //in first we verify that the observation is conform to the template
                         final Observation template = (Observation) omStore.getReader().getTemplateForProcedure(sensorId, currentVersion);
                         //if the observation to insert match the template we can insert it in the OM db
                         if (obs.matchTemplate(template)) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
-                                id = omStore.getWriter().writeObservation(obs);
+                                id = omProvider.writeObservation(obs);
                                 LOGGER.log(Level.INFO, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
                             } else {
                                 throw new CstlServiceException("The observation sampling time and the result must be specify",
@@ -2123,7 +2121,7 @@ public class SOSworker extends AbstractWorker {
             LOGGER.log(Level.INFO, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
             omStore.getFilter().refresh();
 
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return buildInsertObservationResponse(currentVersion, ids);

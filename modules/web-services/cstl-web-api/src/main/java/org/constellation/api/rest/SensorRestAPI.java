@@ -46,7 +46,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import org.apache.commons.io.IOUtils;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.IDataBusiness;
@@ -69,12 +68,12 @@ import org.constellation.sos.ws.SOSUtils;
 import org.constellation.sos.ws.SensorMLGenerator;
 import org.constellation.ws.ISOSConfigurer;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.Service;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.ObservationProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -281,34 +280,30 @@ public class SensorRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/sensors/generate/{dataId}",method=PUT,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId, HttpServletResponse response) {
+        final DataProvider provider;
         try {
-            final DataProvider provider;
-            try {
-                final Integer providerId = dataBusiness.getDataProvider(dataId);
-                provider = DataProviders.getProvider(providerId);
-            } catch (ConfigurationException ex) {
-                LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
-                return new ErrorMessage(ex).message("Error while accessing provider.").build();
+            final Integer providerId = dataBusiness.getDataProvider(dataId);
+            provider = DataProviders.getProvider(providerId);
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
+            return new ErrorMessage(ex).message("Error while accessing provider.").build();
+        }
+        final List<ProcedureTree> procedures;
+        try {
+            if (provider instanceof ObservationProvider) {
+                procedures = ((ObservationProvider)provider).getProcedures();
+            } else {
+                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
             }
-            final List<ProcedureTree> procedures;
-            try {
-                procedures = SOSUtils.getProcedures(provider);
-                if (procedures == null) {
-                    return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
-                }
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
-                return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
-            }
+        } catch (ConstellationStoreException ex) {
+            LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
+            return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
+        }
 
-            // SensorML generation
-            try {
-                for (ProcedureTree process : procedures) {
-                    generateSensorML(dataId, process, null);
-                }
-            } catch (SQLException | ConfigurationException ex) {
-                LOGGER.log(Level.WARNING, "Error while writng sensorML", ex);
-                return new ResponseEntity(new AcknowlegementType("Failure", "SQLException while writing sensorML"),OK);
+        // SensorML generation
+        try {
+            for (ProcedureTree process : procedures) {
+                generateSensorML(dataId, process, null);
             }
             IOUtils.write("The sensors has been succesfully generated", response.getOutputStream());
             return new ResponseEntity(OK);
@@ -496,8 +491,12 @@ public class SensorRestAPI extends AbstractRestAPI {
                 }
 
                 for (Integer providerId : providerIDs) {
-                    final ObservationReader reader = getObservationReader(providerId);
-                    phenomenons.addAll(reader.getPhenomenonNames());
+                    DataProvider prov = DataProviders.getProvider(providerId);
+                    if (prov instanceof ObservationProvider) {
+                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames());
+                    } else {
+                        LOGGER.warning("Searching phenomenon on a non-observation provider");
+                    }
                 }
             }
             return new ResponseEntity(phenomenons,OK);
@@ -531,9 +530,12 @@ public class SensorRestAPI extends AbstractRestAPI {
                 }
 
                 for (Integer providerId : providerIDs) {
-                    final ObservationReader reader = getObservationReader(providerId);
-                    if (reader.existPhenomenon(observedProperty)) {
-                        sensorIDS.addAll(reader.getProcedureNames());
+                    DataProvider prov = DataProviders.getProvider(providerId);
+                    if (prov instanceof ObservationProvider) {
+                        ObservationProvider omP = (ObservationProvider) prov;
+                        if (omP.existPhenomenon(observedProperty)) {
+                            sensorIDS.addAll(omP.getProcedureNames());
+                        }
                     }
                 }
             }
@@ -566,8 +568,12 @@ public class SensorRestAPI extends AbstractRestAPI {
                 }
 
                 for (Integer providerId : providerIDs) {
-                    final ObservationReader reader = getObservationReader(providerId);
-                    phenomenons.addAll(reader.getPhenomenonNames());
+                    DataProvider prov = DataProviders.getProvider(providerId);
+                    if (prov instanceof ObservationProvider) {
+                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames());
+                    } else {
+                        LOGGER.warning("Searching phenomenon on a non-observation provider");
+                    }
                 }
 
                 return new ResponseEntity(new StringList(phenomenons),OK);
@@ -604,8 +610,12 @@ public class SensorRestAPI extends AbstractRestAPI {
                 final SensorMLTree root            = sensorBusiness.getFullSensorMLTree();
                 final SensorMLTree current         = root.find(sensor.getIdentifier());
                 for (Integer providerId : providerIDs) {
-                    final ObservationReader reader = getObservationReader(providerId);
-                    jtsGeometries.addAll(SOSUtils.getJTSGeometryFromSensor(current, reader));
+                    DataProvider prov = DataProviders.getProvider(providerId);
+                    if (prov instanceof ObservationProvider) {
+                        jtsGeometries.addAll(SOSUtils.getJTSGeometryFromSensor(current, (ObservationProvider) prov));
+                    } else {
+                        LOGGER.warning("Searching sensor location on a non-observation provider");
+                    }
                 }
 
                 if (jtsGeometries.size() == 1) {
@@ -625,16 +635,6 @@ public class SensorRestAPI extends AbstractRestAPI {
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
-        }
-    }
-
-    private ObservationReader getObservationReader(final Integer providerID) throws ConfigurationException {
-        final DataProvider provider = DataProviders.getProvider(providerID);
-        final ObservationStore store = SOSUtils.getObservationStore(provider);
-        if (store != null) {
-            return store.getReader();
-        } else {
-            throw new ConfigurationException("Available only on Observation provider (and netCDF coverage) for now");
         }
     }
 

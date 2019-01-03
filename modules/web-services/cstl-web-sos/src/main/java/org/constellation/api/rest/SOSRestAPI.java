@@ -39,6 +39,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
 import org.constellation.sos.configuration.SOSConfigurer;
 import org.constellation.sos.ws.SensorMLGenerator;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
@@ -323,21 +324,25 @@ public class SOSRestAPI {
         // import observations
         for (Integer providerId : providerIDs) {
             final DataProvider provider = DataProviders.getProvider(providerId);
-            final ObservationStore store = SOSUtils.getObservationStore(provider);
-            final ExtractionResult result;
-            if (store != null) {
-                result = store.getResults(sensorID, sensorIds);
+            if (provider instanceof ObservationProvider) {
+                final ObservationStore store = (ObservationStore) ((ObservationProvider) provider).getMainStore();
+                final ExtractionResult result;
+                if (store != null) {
+                    result = store.getResults(sensorID, sensorIds);
+                } else {
+                    return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
+                }
+
+                // update sensor location
+                for (ProcedureTree process : result.procedures) {
+                    writeProcedures(id, process, null, configurer);
+                }
+
+                // import in O&M database
+                configurer.importObservations(id, result.observations, result.phenomenons);
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
-
-            // update sensor location
-            for (ProcedureTree process : result.procedures) {
-                writeProcedures(id, process, null, configurer);
-            }
-
-            // import in O&M database
-            configurer.importObservations(id, result.observations, result.phenomenons);
         }
 
 

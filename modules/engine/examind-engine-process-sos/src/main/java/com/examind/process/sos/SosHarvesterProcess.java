@@ -246,7 +246,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final List<Integer> dataToIntegrate = new ArrayList<>();
 
         if (factory != null) {
-            final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "data-store", null);
+            final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "observation-store", null);
             storeParams.setSelected(true);
 
 

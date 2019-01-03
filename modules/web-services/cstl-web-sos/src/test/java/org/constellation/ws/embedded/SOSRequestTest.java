@@ -148,8 +148,8 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("om-default", dbConfig);
-                providerBusiness.create("om-test", dbConfig);
+                providerBusiness.create("om-default", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                providerBusiness.create("om-test",    IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
 
                 final SOSConfiguration sosconf = new SOSConfiguration();

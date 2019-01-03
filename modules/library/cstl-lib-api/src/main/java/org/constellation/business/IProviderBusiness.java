@@ -46,7 +46,8 @@ public interface IProviderBusiness {
     public static enum SPI_NAMES {
         DATA_SPI_NAME("data-store"),
         SENSOR_SPI_NAME("sensor-store"),
-        METADATA_SPI_NAME("metadata-store");
+        METADATA_SPI_NAME("metadata-store"),
+        OBSERVATION_SPI_NAME("observation-store");
 
         public final String name;
         private SPI_NAMES(final String providerSPIName) {

@@ -505,7 +505,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         fixPath(inParams, "path");
 
-        if("data-store".equals(type)){
+        if("observation-store".equals(type)){
             switch (subType) {
                 // TODO : Remove this hacky switch / case when input map will have the right identifier for url parameter.
                 case "observationFile":
@@ -528,15 +528,16 @@ public class ProviderBusiness implements IProviderBusiness {
                     dbObsParams.parameter("database").setValue(inParams.get("database"));
                     dbObsParams.parameter("user").setValue(inParams.get("user"));
                     dbObsParams.parameter("password").setValue(inParams.get("password"));
+                    dbObsParams.parameter("schema-prefix").setValue(inParams.get("schema-prefix"));
                     break;
             }
         }else if("filesensor".equals(subType)){
 
-            final ParameterValueGroup sensParams = sources.addGroup("FilesystemSensor");
-            sensParams.parameter("data_directory").setValue(URI.create(inParams.get("data_directory")));
+            final ParameterValueGroup sensParams = sources.groups("choice").get(0).addGroup("FileSensorParameters");
+            sensParams.parameter("data_directory").setValue(Paths.get(URI.create(inParams.get("data_directory"))));
         }
 
-        if("data-store".equals(type)){
+        if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType)){
             if (subType!=null && !subType.isEmpty()) {
                 final DataStoreProvider featureFactory = DataStores.getProviderById(subType);
                 final ParameterValueGroup cvgConfig = org.geotoolkit.parameter.Parameters.toParameter(inParams, featureFactory.getOpenParameters(), true);

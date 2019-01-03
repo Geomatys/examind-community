@@ -292,7 +292,7 @@ angular.module('cstl-webservice-create', [
         function createProviders() {
             Examind.providers.create(self.id +'-om', false,
             {
-                type: "data-store",
+                type: "observation-store",
                 subType: "observationSOSDatabase",
                 parameters: {
                     port: self.guiConfig.port,
@@ -311,8 +311,11 @@ angular.module('cstl-webservice-create', [
         }
         function createSensorProvider() {
             var sensorProviderJson = {
-                type: "data-store",
-                subType: "cstlsensor"
+                type: "sensor-store",
+                subType: "cstlsensor",
+                parameters: {
+                    identifier: 'cstlsensor'
+                }
             };
             if(self.guiConfig.enableDirectory) {
                 sensorProviderJson.subType = "filesensor";

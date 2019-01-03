@@ -39,6 +39,7 @@ import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.Sensor;
+import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 
@@ -114,7 +115,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("omSrc", dbConfig);
+                providerBusiness.create("omSrc", SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
                 final DataStoreProvider factorySML = DataStores.getProviderById("filesensor");
                 final ParameterValueGroup params = factorySML.getOpenParameters().createValue();

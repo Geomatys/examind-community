@@ -17,19 +17,28 @@
  * limitations under the License.
  */
 
-package org.constellation.api;
+package org.constellation.dto;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public enum DataType {
+public class ObservationDataDescription implements DataDescription {
 
-    VECTOR,
-    COVERAGE,
-    SENSOR,
-    METADATA,
-    OBSERVATION,
-    OTHER
+    private double[] boundingBox;
+
+    public ObservationDataDescription() {
+        this.boundingBox = new double[]{-180,-90,180,90};
+    }
+
+    @Override
+    public double[] getBoundingBox() {
+        return boundingBox;
+    }
+
+    @Override
+    public void setBoundingBox(final double[] boundingBox) {
+        this.boundingBox = boundingBox;
+    }
 
 }

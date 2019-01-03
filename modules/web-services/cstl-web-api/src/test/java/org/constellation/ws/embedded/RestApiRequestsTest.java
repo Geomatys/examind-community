@@ -44,6 +44,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
+import org.apache.sis.storage.DataStoreProvider;
 
 import org.junit.BeforeClass;
 import org.constellation.dto.DataBrief;
@@ -55,6 +56,7 @@ import static org.constellation.api.StatisticState.*;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.junit.Assert;
 
@@ -136,13 +138,11 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, null, null);
 
                 // observation-file datastore
-                final ParameterValueGroup sourceOM = dataStorefactory.getProviderDescriptor().createValue();
-                sourceOM.parameter("id").setValue(OM_PROVIDER);
-                final ParameterValueGroup choiceOM = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceOM);
-                final ParameterValueGroup srcOMConfig = choiceOM.addGroup("observationXmlFile");
-                srcOMConfig.parameter("path").setValue(new URL("file:"+ rootDir.getAbsolutePath() + "/org/constellation/xml/sos/single-observations.xml"));
+                final DataStoreProvider omfactory = DataStores.getProviderById("observationXmlFile");
+                final ParameterValueGroup params = omfactory.getOpenParameters().createValue();
+                params.parameter("path").setValue(new URL("file:"+ rootDir.getAbsolutePath() + "/org/constellation/xml/sos/single-observations.xml"));
 
-                Integer omPID = providerBusiness.storeProvider(OM_PROVIDER, null, ProviderType.LAYER, "data-store", sourceOM);
+                Integer omPID = providerBusiness.create(OM_PROVIDER, IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME,params);
                 providerBusiness.createOrUpdateData(omPID, null, false);
 
                 WorldFileImageReader.Spi.registerDefaults(null);

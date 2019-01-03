@@ -68,6 +68,7 @@ import org.geotoolkit.nio.ZipUtilities;
 import org.apache.sis.storage.DataStore;
 import static org.apache.sis.util.ArraysExt.contains;
 import org.constellation.admin.util.DataCoverageUtilities;
+import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import static org.geotoolkit.storage.ResourceType.*;
@@ -510,11 +511,25 @@ public class InternalDataRestAPI extends AbstractRestAPI {
     public ResponseEntity getDataStoreConfiguration(@PathVariable(name="storeId") String storeId){
         DataStoreProvider factory = DataStores.getProviderById(storeId);
         if (factory != null) {
-            final DataCustomConfiguration.Type type = DataProviders.buildDatastoreConfiguration(factory, "data-store", null);
+            final DataCustomConfiguration.Type type = DataProviders.buildDatastoreConfiguration(factory, getCategory(factory), null);
             type.setSelected(true);
             return new ResponseEntity(type, OK);
         }
         return new ResponseEntity(NOT_FOUND);
+    }
+
+    /**
+     * Special case to enable observation provider.
+     * TODO we must fnd a generic way to determine the type od the provider.
+     */
+    private String getCategory(DataStoreProvider provider) {
+        final String id = provider.getOpenParameters().getName().getCode();
+        switch (id) {
+            case "observationSOSDatabase":
+            case "observationFile" :
+            case "observationXmlFile": return SPI_NAMES.OBSERVATION_SPI_NAME.name;
+            default : return SPI_NAMES.DATA_SPI_NAME.name;
+        }
     }
 
     /**
