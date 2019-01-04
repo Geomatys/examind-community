@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.constellation.data.om2;
+package org.constellation.store.observation.db;
 
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -41,7 +41,7 @@ import org.geotoolkit.storage.DataStores;
 import javax.annotation.PostConstruct;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.constellation.data.om2.OM2FeatureStoreFactory;
+import org.constellation.store.observation.db.OM2FeatureStoreFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;

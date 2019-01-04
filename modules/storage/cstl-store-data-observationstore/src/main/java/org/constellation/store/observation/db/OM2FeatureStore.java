@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.constellation.data.om2;
+package org.constellation.store.observation.db;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBReader;
@@ -61,9 +61,8 @@ import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.UnsupportedQueryException;
-import static org.constellation.data.om2.OM2FeatureStoreFactory.SCHEMA_PREFIX;
-
-import static org.constellation.data.om2.OM2FeatureStoreFactory.SGBDTYPE;
+import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SCHEMA_PREFIX;
+import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SGBDTYPE;
 import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.internal.data.GenericNameIndex;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -74,6 +73,7 @@ import org.opengis.feature.FeatureType;
 import org.opengis.util.GenericName;
 
 /**
+ * Feature store on the Examind OM2 database.
  *
  * @author Guilhem Legal (Geomatys)
  * @author Johann Sorel (Geomatys)

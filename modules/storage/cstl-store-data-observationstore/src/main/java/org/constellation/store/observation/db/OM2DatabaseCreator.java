@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.om2;
+package org.constellation.store.observation.db;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;

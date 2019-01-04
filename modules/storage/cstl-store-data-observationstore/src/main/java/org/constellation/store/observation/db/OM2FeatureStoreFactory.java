@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.constellation.data.om2;
+package org.constellation.store.observation.db;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
