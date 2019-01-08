@@ -18,21 +18,6 @@
  */
 package org.constellation.map.featureinfo;
 
-import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.display.PortrayalException;
-import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
-import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
-import org.geotoolkit.display2d.service.CanvasDef;
-import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
-import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.opengis.util.InternationalString;
-
-import javax.measure.Unit;
 import java.awt.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -42,10 +27,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.measure.Unit;
+import org.apache.sis.coverage.SampleDimension;
+import org.constellation.ws.MimeType;
+import org.geotoolkit.display.PortrayalException;
+import org.geotoolkit.display2d.canvas.RenderingContext2D;
+import org.geotoolkit.display2d.primitive.ProjectedCoverage;
+import org.geotoolkit.display2d.primitive.ProjectedFeature;
+import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
+import org.geotoolkit.display2d.service.CanvasDef;
+import org.geotoolkit.display2d.service.SceneDef;
+import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.PropertyType;
+import org.opengis.util.InternationalString;
 
 /**
  * A generic FeatureInfoFormat that produce HTML output for Features and Coverages.
@@ -167,7 +166,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     @Override
     protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<GridSampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+        final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
 
         if (covResults == null) {
             return;
@@ -190,14 +189,14 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         typeBuilder.append("<div class=\"left-part\">");
         dataBuilder.append("<div class=\"right-part\">");
         typeBuilder.append("<ul>\n");
-        for(Map.Entry<GridSampleDimension,Object> entry : covResults){
+        for(Map.Entry<SampleDimension,Object> entry : covResults){
             typeBuilder.append("<li>\n");
-            final GridSampleDimension gsd = entry.getKey();
-            final InternationalString title = gsd.getDescription();
+            final SampleDimension gsd = entry.getKey();
+            final InternationalString title = gsd.getName().toInternationalString();
             if(title!=null){
                 typeBuilder.append(title);
             }
-            final Unit unit = gsd.getUnits();
+            final Unit unit = gsd.getUnits().orElse(null);
             if(unit!=null){
                 typeBuilder.append(unit.toString());
             }

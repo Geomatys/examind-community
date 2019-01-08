@@ -19,25 +19,6 @@
 
 package org.constellation.util;
 
-import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
-import org.geotoolkit.filter.DefaultFilterFactory2;
-import org.geotoolkit.gml.xml.v311.DirectPositionType;
-import org.geotoolkit.gml.xml.v311.TimePositionType;
-import org.geotoolkit.style.DefaultStyleFactory;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.style.MutableStyleFactory;
-import org.geotoolkit.style.function.ThreshholdsBelongTo;
-import org.geotoolkit.wcs.xml.RangeSubset;
-import org.geotoolkit.wcs.xml.v100.IntervalType;
-import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.style.FeatureTypeStyle;
-import org.opengis.style.Rule;
-import org.opengis.style.Symbolizer;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,18 +32,37 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TimeZone;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.GridGeometry2D;
+import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
+import org.geotoolkit.filter.DefaultFilterFactory2;
+import org.geotoolkit.gml.xml.v311.DirectPositionType;
+import org.geotoolkit.gml.xml.v311.TimePositionType;
 import org.geotoolkit.image.io.metadata.ReferencingBuilder;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.image.io.metadata.SpatialMetadataFormat;
 import org.geotoolkit.internal.image.io.DimensionAccessor;
 import org.geotoolkit.internal.image.io.GridDomainAccessor;
+import org.geotoolkit.style.DefaultStyleFactory;
+import org.geotoolkit.style.MutableStyle;
+import org.geotoolkit.style.MutableStyleFactory;
+import org.geotoolkit.style.function.ThreshholdsBelongTo;
+import org.geotoolkit.wcs.xml.RangeSubset;
+import org.geotoolkit.wcs.xml.v100.IntervalType;
+import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
+import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.Literal;
+import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.PixelOrientation;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.style.FeatureTypeStyle;
+import org.opengis.style.Rule;
+import org.opengis.style.Symbolizer;
 
 /**
  *
@@ -300,7 +300,7 @@ public final class WCSUtils {
      * target data information.
      */
     public static SpatialMetadata adapt(SpatialMetadata source, final GridCoverage2D targetData) {
-        return adapt(source, targetData.getGridGeometry(), targetData.getSampleDimensions());
+        return adapt(source, targetData.getGridGeometry(), targetData.getSampleDimensions().toArray(new SampleDimension[0]));
     }
 
     /**
@@ -315,14 +315,14 @@ public final class WCSUtils {
      * @return Given spatial metadata if not null, or a new one. In all cases, the metadata has been modified with
      * target data information.
      */
-    public static SpatialMetadata adapt(SpatialMetadata source, GeneralGridGeometry gg, final GridSampleDimension[] targetDims) {
+    public static SpatialMetadata adapt(SpatialMetadata source, GridGeometry gg, final SampleDimension[] targetDims) {
         if (source == null) {
             source = new SpatialMetadata(SpatialMetadataFormat.getImageInstance(SpatialMetadataFormat.GEOTK_FORMAT_NAME));
         }
 
         //add ImageCRS in SpatialMetadata
         if (gg != null) {
-            if (!(gg.getGridToCRS() instanceof LinearTransform) && gg instanceof GridGeometry2D) {
+            if (!(gg.getGridToCRS(PixelInCell.CELL_CENTER) instanceof LinearTransform) && gg instanceof GridGeometry2D) {
                 /* HACK : For now, we cannot write properly additional dimension information, because grid domain
              * accessor skip the entire grid to CRS if it is not linear. So, to at least keep 2D projection information,
              * We delete time and elevation information. Another solution would be to use jacobian matrix to reduce
@@ -334,8 +334,7 @@ public final class WCSUtils {
                         gg2d.getExtent2D(),
                         PixelOrientation.CENTER,
                         gg2d.getGridToCRS2D(PixelOrientation.CENTER),
-                        gg2d.getCoordinateReferenceSystem2D(),
-                        null
+                        gg2d.getCoordinateReferenceSystem2D()
                 );
             }
 
@@ -347,7 +346,7 @@ public final class WCSUtils {
             DimensionAccessor dimAccess = new org.geotoolkit.internal.image.io.DimensionAccessor(source);
             if (dimAccess.childCount() != targetDims.length) {
                 dimAccess.removeChildren();
-                for (GridSampleDimension gsd : targetDims) {
+                for (SampleDimension gsd : targetDims) {
                     dimAccess.selectChild(dimAccess.appendChild());
                     dimAccess.setDimension(gsd, Locale.ROOT);
                     dimAccess.selectParent();

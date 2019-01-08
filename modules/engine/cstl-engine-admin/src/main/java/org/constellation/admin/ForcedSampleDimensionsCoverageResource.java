@@ -22,9 +22,11 @@ import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.apache.sis.storage.GridCoverageResource;
+import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReadParam;
@@ -32,7 +34,6 @@ import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.io.GridCoverageWriter;
 import org.geotoolkit.storage.coverage.AbstractCoverageResource;
 import org.geotoolkit.storage.coverage.CoverageResource;
-import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.util.GenericName;
 
 /**
@@ -42,18 +43,13 @@ import org.opengis.util.GenericName;
 public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageResource {
 
 
-    private final List<GridSampleDimension> dimensions;
+    private final List<SampleDimension> dimensions;
     private final CoverageResource baseRef;
 
-    public ForcedSampleDimensionsCoverageResource(CoverageResource baseRef, List<GridSampleDimension> dimensions) throws DataStoreException {
+    public ForcedSampleDimensionsCoverageResource(CoverageResource baseRef, List<SampleDimension> dimensions) throws DataStoreException {
         super(null, baseRef.getIdentifier());
         this.baseRef = baseRef;
         this.dimensions = dimensions;
-    }
-
-    @Override
-    public int getImageIndex() {
-        return baseRef.getImageIndex();
     }
 
     @Override
@@ -77,6 +73,11 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
         return null;
     }
 
+    @Override
+    public GridGeometry getGridGeometry() throws DataStoreException {
+        return ((GridCoverageResource) baseRef).getGridGeometry();
+    }
+
 
     private class ForcedSDCoverageReader extends GridCoverageReader{
 
@@ -87,30 +88,30 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
         }
 
         @Override
-        public List<? extends GenericName> getCoverageNames() throws CoverageStoreException, CancellationException {
-            return baseReader.getCoverageNames();
+        public GenericName getCoverageName() throws CoverageStoreException, CancellationException {
+            return baseReader.getCoverageName();
         }
 
         @Override
-        public GeneralGridGeometry getGridGeometry(int index) throws CoverageStoreException, CancellationException {
-            return baseReader.getGridGeometry(index);
+        public GridGeometry getGridGeometry() throws CoverageStoreException, CancellationException {
+            return baseReader.getGridGeometry();
         }
 
         @Override
-        public List<GridSampleDimension> getSampleDimensions(int index) throws CoverageStoreException, CancellationException {
+        public List<SampleDimension> getSampleDimensions() throws CoverageStoreException, CancellationException {
             return dimensions;
         }
 
         @Override
-        public GridCoverage read(int index, GridCoverageReadParam param) throws CoverageStoreException, CancellationException {
-            final GridCoverage baseCoverage = baseReader.read(index, param);
+        public GridCoverage read(GridCoverageReadParam param) throws CoverageStoreException, CancellationException {
+            final GridCoverage baseCoverage = baseReader.read(param);
             if(!(baseCoverage instanceof GridCoverage2D)){
                 throw new CoverageStoreException("Forced alpha reader only support grid coverage 2d, but found a "+baseCoverage.getClass().getName());
             }
             final GridCoverage2D cov2d = (GridCoverage2D) baseCoverage;
             final RenderedImage ri = cov2d.getRenderedImage();
             return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
-                    dimensions.toArray(new GridSampleDimension[0]), null, cov2d.getProperties(), null);
+                    dimensions.toArray(new SampleDimension[0]), null, cov2d.getProperties(), null);
 
         }
 

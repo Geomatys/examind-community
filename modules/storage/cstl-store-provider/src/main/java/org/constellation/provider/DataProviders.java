@@ -62,7 +62,7 @@ import org.constellation.dto.importdata.ResourceStore;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.data.AbstractFolderFeatureStoreFactory;
@@ -213,7 +213,7 @@ public final class DataProviders extends Static{
                 final CoverageResource coverageReference = (CoverageResource) rs;
                 final GridCoverageReader coverageReader = (GridCoverageReader) coverageReference.acquireReader();
                 try {
-                    final CoordinateReferenceSystem crs = coverageReader.getGridGeometry(coverageReference.getImageIndex()).getCoordinateReferenceSystem();
+                    final CoordinateReferenceSystem crs = coverageReader.getGridGeometry().getCoordinateReferenceSystem();
                     if(crs!=null) {
                         nameCoordinateReferenceSystemHashMap.put(name,crs);
                     }
@@ -350,16 +350,16 @@ public final class DataProviders extends Static{
         if(origin instanceof CoverageResource){
             //calculate pyramid scale levels
             final CoverageResource inRef = (CoverageResource) origin;
-            final GeneralGridGeometry gg;
+            final GridGeometry gg;
             try{
                 final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-                gg = reader.getGridGeometry(inRef.getImageIndex());
+                gg = reader.getGridGeometry();
                 inRef.recycle(reader);
             } catch(CoverageStoreException ex) {
                 throw new ConstellationException("Failed to extract grid geometry for data "+dataId+". ",ex);
             }
             final double geospanX = env.getSpan(0);
-            final double baseScale = geospanX / gg.getExtent().getSpan(0);
+            final double baseScale = geospanX / gg.getExtent().getSize(0);
             final int tileSize = 256;
             double scale = geospanX / tileSize;
             final GeneralDirectPosition ul = new GeneralDirectPosition(env.getCoordinateReferenceSystem());

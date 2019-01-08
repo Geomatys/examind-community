@@ -32,7 +32,7 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.coverage.GridSampleDimension;
+import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationStoreException;
@@ -56,7 +56,6 @@ import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
-import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 import org.constellation.api.DataType;
 
@@ -84,7 +83,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      */
     @Override
     protected void nextProjectedCoverage(ProjectedCoverage coverage, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<GridSampleDimension,Object>> results =
+        final List<Map.Entry<SampleDimension,Object>> results =
                 FeatureInfoUtilities.getCoverageValues(coverage, context, queryArea);
 
         if (results == null) {
@@ -119,7 +118,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     protected static String coverageToJSON(final GenericName fullLayerName,
-            final List<Map.Entry<GridSampleDimension,Object>> results, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
+            final List<Map.Entry<SampleDimension,Object>> results, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
 
         StringBuilder builder = new StringBuilder();
 
@@ -192,13 +191,13 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         builder.append("\"values\":{");
         int index = 0;
-        for (final Map.Entry<GridSampleDimension,Object> entry : results) {
+        for (final Map.Entry<SampleDimension,Object> entry : results) {
             final Object value = entry.getValue();
             if (value == null) {
                 continue;
             }
             String bandName = "band_"+index;
-            String unit = entry.getKey().getUnits() != null ? entry.getKey().getUnits().toString() : null;
+            String unit = entry.getKey().getUnits().map(u -> u.getSymbol()).orElse(null);
             builder.append("\"").append(bandName).append("\":{");
             if (unit != null) {
                 builder.append("\"unit\":\"").append(unit).append("\",");

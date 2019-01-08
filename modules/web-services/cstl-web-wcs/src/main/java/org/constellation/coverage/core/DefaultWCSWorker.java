@@ -153,9 +153,9 @@ import org.constellation.ws.ExceptionCode;
 import static org.constellation.ws.ExceptionCode.AXIS_LABEL_INVALID;
 import static org.constellation.ws.ExceptionCode.INVALID_SUBSETTING;
 import org.constellation.ws.rs.MultiPart;
-import org.geotoolkit.coverage.Category;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.gml.xml.v321.AssociationRoleType;
@@ -482,7 +482,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 SpatialMetadata meta = WCSUtils.adapt(
                         coverageRef.getSpatialMetadata(),
                         coverageRef.getGeometry(),
-                        coverageRef.getSampleDimensions().toArray(new GridSampleDimension[0])
+                        coverageRef.getSampleDimensions().toArray(new SampleDimension[0])
                 );
                 RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
                 if (brutGrid != null) {
@@ -546,7 +546,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 SpatialMetadata meta = WCSUtils.adapt(
                         coverageRef.getSpatialMetadata(),
                         coverageRef.getGeometry(),
-                        coverageRef.getSampleDimensions().toArray(new GridSampleDimension[0])
+                        coverageRef.getSampleDimensions().toArray(new SampleDimension[0])
                 );
 
                 RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
@@ -574,10 +574,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // spatial metadata
             final org.geotoolkit.gml.xml.v321.DomainSetType domain = new org.geotoolkit.gml.xml.v321.DomainSetType(grid);
 
-            final List<GridSampleDimension> bands = coverageRef.getSampleDimensions();
+            final List<SampleDimension> bands = coverageRef.getSampleDimensions();
             final List<Field> fields = new ArrayList<>();
             if (bands != null) {
-                for (GridSampleDimension band : bands) {
+                for (SampleDimension band : bands) {
                     final QuantityType quantity = new QuantityType();
                     if (band.getUnits() != null) {
                         quantity.setUom(new UnitReference(band.getUnits().toString()));
@@ -589,14 +589,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                             if (cat.getName() != null) {
                                 av.setId(cat.getName().toString());
                             }
-                            if (cat.getRange() != null) {
-                                av.setMin(cat.getRange().getMinDouble());
-                                av.setMax(cat.getRange().getMaxDouble());
+                            if (cat.getMeasurementRange().orElse(null) != null) {
+                                av.setMin(cat.getMeasurementRange().get().getMinDouble());
+                                av.setMax(cat.getMeasurementRange().get().getMaxDouble());
                             }
                             quantity.setConstraint(new AllowedValuesPropertyType(av));
                         }
                     }
-                    final Field f = new Field(band.getDescription().toString(), quantity);
+                    final Field f = new Field(band.getName().toString(), quantity);
                     fields.add(f);
                 }
             }
@@ -1114,14 +1114,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final SpatialMetadata metadata;
         final CoverageResource ref = (CoverageResource) layerRef.getOrigin();
         GridCoverageReader reader = null;
-        final GeneralGridGeometry gridGeometry;
+        final GridGeometry gridGeometry;
 
         final CoordinateReferenceSystem crs;
         try {
             reader = (GridCoverageReader) ref.acquireReader();
-            gridGeometry = reader.getGridGeometry(ref.getImageIndex());
+            gridGeometry = reader.getGridGeometry();
             crs = gridGeometry.getCoordinateReferenceSystem();
-            metadata = reader.getCoverageMetadata(ref.getImageIndex());
+            metadata = reader.getCoverageMetadata();
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         } finally {

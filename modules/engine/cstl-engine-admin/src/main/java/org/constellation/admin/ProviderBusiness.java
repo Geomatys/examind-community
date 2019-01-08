@@ -38,9 +38,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
@@ -75,9 +79,7 @@ import org.constellation.provider.SensorProvider;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.util.ParamUtilities;
-import org.geotoolkit.coverage.Category;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
@@ -99,12 +101,12 @@ import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.coverage.CoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.util.GenericName;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.context.annotation.Primary;
@@ -778,10 +780,10 @@ public class ProviderBusiness implements IProviderBusiness {
 
         //init coverage reference and grid geometry
         CoverageResource inRef = (CoverageResource) origin;
-        final GeneralGridGeometry gg;
+        final GridGeometry gg;
         try {
             final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-            gg = reader.getGridGeometry(inRef.getImageIndex());
+            gg = reader.getGridGeometry();
             inRef.recycle(reader);
         } catch (CoverageStoreException ex) {
             throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
@@ -791,7 +793,7 @@ public class ProviderBusiness implements IProviderBusiness {
         //find the type of data we are dealing with, geophysic or photographic
         try {
             final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-            final List<GridSampleDimension> sampleDimensions = reader.getSampleDimensions(inRef.getImageIndex());
+            final List<SampleDimension> sampleDimensions = reader.getSampleDimensions();
             inRef.recycle(reader);
             if (sampleDimensions != null) {
                 final int nbBand = sampleDimensions.size();
@@ -808,9 +810,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
                     RenderedImage img = readSmallImage(reader, gg);
 
-                    final List<GridSampleDimension> newDims = new ArrayList<>();
+                    final List<SampleDimension> newDims = new ArrayList<>();
                     for (int i = 0; i < nbBand; i++) {
-                        final GridSampleDimension sd = sampleDimensions.get(i);
+                        final SampleDimension sd = sampleDimensions.get(i);
                         final int dataType = img.getSampleModel().getDataType();
                         NumberRange range;
                         switch(dataType){
@@ -821,8 +823,10 @@ public class ProviderBusiness implements IProviderBusiness {
                             default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
                         }
 
-                        final Category cat = new Category("data", null, range, range);
-                        final GridSampleDimension nsd = new GridSampleDimension(sd.getDescription(), new Category[]{cat}, sd.getUnits());
+                        final SampleDimension nsd = new SampleDimension.Builder()
+                                .setName(sd.getName())
+                                .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
+                                .build();
                         newDims.add(nsd);
                     }
                     inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
@@ -926,23 +930,22 @@ public class ProviderBusiness implements IProviderBusiness {
         return result;
     }
 
-    private RenderedImage readSmallImage(GridCoverageReader reader, GeneralGridGeometry gg) throws CoverageStoreException{
+    private RenderedImage readSmallImage(GridCoverageReader reader, GridGeometry gg) throws CoverageStoreException{
         //read a single pixel value
-        double[] resolution = gg.getResolution();
-        if(resolution!=null){
+        try {
+            double[] resolution = gg.getResolution(false);
             final GeneralEnvelope envelope = new GeneralEnvelope(gg.getEnvelope());
             for(int i=0;i<resolution.length;i++){
                 resolution[i] = envelope.getSpan(i)/ 5.0;
             }
-
             GridCoverageReadParam params = new GridCoverageReadParam();
             params.setEnvelope(envelope);
             params.setResolution(resolution);
-            GridCoverage cov = reader.read(0, params);
-            if(cov instanceof GridCoverage2D){
+            GridCoverage cov = reader.read(params);
+            if (cov instanceof GridCoverage2D) {
                 return ((GridCoverage2D) cov).getRenderedImage();
             }
-        }
+        } catch (IncompleteGridGeometryException ex){}
         return null;
     }
 

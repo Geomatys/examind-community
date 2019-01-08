@@ -18,36 +18,6 @@
  */
 package org.constellation.map.featureinfo;
 
-import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralDirectPosition;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.crs.DefaultCompoundCRS;
-import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.ArraysExt;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.wxs.Layer;
-import org.constellation.dto.service.config.wxs.LayerContext;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.display2d.canvas.AbstractGraphicVisitor;
-import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
-import org.geotoolkit.lang.Static;
-import org.geotoolkit.map.CoverageMapLayer;
-import org.opengis.coverage.CannotEvaluateException;
-import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.TemporalCRS;
-import org.opengis.referencing.operation.TransformException;
-
-import javax.imageio.spi.ServiceRegistry;
 import java.awt.geom.Rectangle2D;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -59,10 +29,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.imageio.spi.ServiceRegistry;
 import javax.measure.IncommensurableException;
 import javax.measure.UnconvertibleException;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.crs.DefaultCompoundCRS;
+import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.ArraysExt;
+import org.apache.sis.util.logging.Logging;
+import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
+import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.exception.ConfigurationException;
+import org.geotoolkit.coverage.grid.GridCoverage2D;
+import org.geotoolkit.coverage.io.CoverageStoreException;
+import org.geotoolkit.coverage.io.GridCoverageReadParam;
+import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.geotoolkit.display2d.canvas.AbstractGraphicVisitor;
+import org.geotoolkit.display2d.canvas.RenderingContext2D;
+import org.geotoolkit.display2d.primitive.ProjectedCoverage;
+import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
+import org.geotoolkit.lang.Static;
+import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.storage.coverage.CoverageResource;
+import org.opengis.coverage.CannotEvaluateException;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.operation.TransformException;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -336,7 +335,7 @@ public final class FeatureInfoUtilities extends Static {
      *
      * @return list : each entry contain a gridsampledimension and value associated.
      */
-    public static List<Map.Entry<GridSampleDimension,Object>> getCoverageValues(final ProjectedCoverage gra,
+    public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final ProjectedCoverage gra,
                                                                                    final RenderingContext2D context,
                                                                                    final SearchAreaJ2D queryArea){
 
@@ -394,7 +393,7 @@ public final class FeatureInfoUtilities extends Static {
         final GridCoverage2D coverage;
         try {
             reader = (GridCoverageReader) ref.acquireReader();
-            coverage = (GridCoverage2D) reader.read(ref.getImageIndex(),param);
+            coverage = (GridCoverage2D) reader.read(param);
         } catch (CoverageStoreException ex) {
             context.getMonitor().exceptionOccured(ex, Level.INFO);
             return null;
@@ -420,14 +419,14 @@ public final class FeatureInfoUtilities extends Static {
             values = coverage.evaluate(dp, values);
         }catch(CannotEvaluateException ex){
             context.getMonitor().exceptionOccured(ex, Level.INFO);
-            values = new float[coverage.getSampleDimensions().length];
+            values = new float[coverage.getSampleDimensions().size()];
             Arrays.fill(values, Float.NaN);
         }
 
-        final List<Map.Entry<GridSampleDimension,Object>> results = new ArrayList<>();
+        final List<Map.Entry<SampleDimension,Object>> results = new ArrayList<>();
         for (int i=0; i<values.length; i++){
-            final GridSampleDimension sample = coverage.getSampleDimension(i);
-            results.add(new AbstractMap.SimpleImmutableEntry<GridSampleDimension, Object>(sample, values[i]));
+            final SampleDimension sample = coverage.getSampleDimensions().get(i);
+            results.add(new AbstractMap.SimpleImmutableEntry<SampleDimension, Object>(sample, values[i]));
         }
         return results;
     }

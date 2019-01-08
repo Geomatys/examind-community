@@ -50,8 +50,8 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.coverage.Category;
-import org.geotoolkit.coverage.GridSampleDimension;
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
 import org.geotoolkit.coverage.amended.AmendedCoverageResource;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
@@ -283,10 +283,10 @@ public class MapBusiness {
 
                     //get original sample dimensions
                     GridCoverageReader reader = null;
-                    final List<GridSampleDimension> oldSampleDimensions;
+                    final List<SampleDimension> oldSampleDimensions;
                     try {
                         reader = (GridCoverageReader) res.acquireReader();
-                        oldSampleDimensions = reader.getSampleDimensions(res.getImageIndex());
+                        oldSampleDimensions = reader.getSampleDimensions();
                         res.recycle(reader);
                     } catch (CoverageStoreException ex) {
                         if (reader != null) {
@@ -300,7 +300,7 @@ public class MapBusiness {
                     }
 
                     //override sample dimensions
-                    final List<GridSampleDimension> newSampleDimensions = new ArrayList<>();
+                    final List<SampleDimension> newSampleDimensions = new ArrayList<>();
                     final ImageStatistics.Band[] bands = stats.getBands();
                     for (int i=0; i<bands.length; i++) {
 
@@ -309,9 +309,9 @@ public class MapBusiness {
 
                         final List<Category> categories = new ArrayList<>();
                         if (oldSampleDimensions != null && oldSampleDimensions.size() > i) {
-                            final GridSampleDimension gsd = oldSampleDimensions.get(i);
-                            description = String.valueOf(gsd.getDescription());
-                            unit = gsd.getUnits();
+                            final SampleDimension gsd = oldSampleDimensions.get(i);
+                            description = String.valueOf(gsd.getName());
+                            unit = gsd.getUnits().orElse(Units.UNITY);
 
                             //preserve no-data categories
                             final List<Category> oldCategories = gsd.getCategories();
@@ -329,10 +329,11 @@ public class MapBusiness {
                         int min = (int) Math.floor(bands[i].getMin());
                         int max = (int) Math.ceil(bands[i].getMax());
                         if (min == max) min = max-1;
-                        final Category cat = new Category("statdata", new Color[]{Color.BLACK, Color.WHITE}, min, max, 1, 0);
-                        categories.add(0, cat);
 
-                        final GridSampleDimension gsd = new GridSampleDimension(description, categories.toArray(new Category[0]), unit);
+                        final SampleDimension gsd = new SampleDimension.Builder()
+                                .setName(description)
+                                .addQuantitative("statdata", min, max, unit)
+                                .build();
                         newSampleDimensions.add(gsd);
                     }
 

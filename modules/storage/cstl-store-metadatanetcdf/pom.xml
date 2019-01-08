@@ -23,10 +23,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-netcdf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-ebrim</artifactId>
         </dependency>
     </dependencies>

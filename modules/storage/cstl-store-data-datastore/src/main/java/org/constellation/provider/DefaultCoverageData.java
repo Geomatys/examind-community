@@ -32,6 +32,9 @@ import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
@@ -49,11 +52,8 @@ import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
-import org.geotoolkit.coverage.GridSampleDimension;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.grid.GridEnvelope2D;
 import org.geotoolkit.coverage.grid.GridGeometry2D;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
@@ -78,7 +78,6 @@ import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
-import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
@@ -87,6 +86,7 @@ import org.opengis.referencing.crs.SingleCRS;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -159,11 +159,12 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             if (dimension != null) {
                 final CoordinateReferenceSystem crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
                 final Envelope envelope2D = Envelopes.transform(envelope, crs2D);
-                final GridGeometry2D gridGeom = new GridGeometry2D(new GridEnvelope2D(new Rectangle(dimension)), envelope2D);
-                final GridCoverage2D cov      = (GridCoverage2D) reader.read(ref.getImageIndex(), param);
+                final GridExtent ext = new GridExtent(null, new long[]{0,0}, new long[]{dimension.width, dimension.height}, false);
+                final GridGeometry2D gridGeom = new GridGeometry2D(ext, envelope2D);
+                final GridCoverage2D cov      = (GridCoverage2D) reader.read(param);
                 return new ResampleProcess(cov, crs2D, gridGeom, null, null).executeNow();
             } else {
-                return (GridCoverage2D) reader.read(ref.getImageIndex(), param);
+                return (GridCoverage2D) reader.read(param);
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -243,7 +244,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public SortedSet<Date> getAvailableTimes() throws ConstellationStoreException {
         SortedSet<Date> dates = new TreeSet<>();
         try {
-            GeneralGridGeometry ggg = getGeometry();
+            GridGeometry ggg = getGeometry();
             if (ggg != null) {
                 final CoordinateReferenceSystem crs = ggg.getCoordinateReferenceSystem();
                 final TemporalCRS temporalCRS = CRS.getTemporalComponent(crs);
@@ -279,7 +280,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         final TreeSet<Number> result = new TreeSet<>();
         try {
-            GeneralGridGeometry ggg = getGeometry();
+            GridGeometry ggg = getGeometry();
             if (ggg != null) {
                 final CoordinateReferenceSystem crs = ggg.getCoordinateReferenceSystem();
                 final VerticalCRS verticalCrs = CRS.getVerticalComponent(crs, true);
@@ -309,7 +310,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            GeneralGridGeometry ggg = getGeometry();
+            GridGeometry ggg = getGeometry();
             if (ggg != null) {
                 return ggg.getEnvelope();
             } else {
@@ -339,7 +340,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         GridCoverageReader reader = null;
         try {
             reader = ref.acquireReader();
-            return reader.getCoverageMetadata(0);
+            return reader.getCoverageMetadata();
         } catch (CancellationException | CoverageStoreException ex) {
             throw new ConstellationStoreException(ex);
         } finally {
@@ -350,11 +351,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     }
 
     @Override
-    public List<GridSampleDimension> getSampleDimensions() throws ConstellationStoreException {
+    public List<SampleDimension> getSampleDimensions() throws ConstellationStoreException {
         GridCoverageReader reader = null;
         try {
             reader = ref.acquireReader();
-            return reader.getSampleDimensions(ref.getImageIndex());
+            return reader.getSampleDimensions();
         } catch (CancellationException | CoverageStoreException ex) {
             throw new ConstellationStoreException(ex);
         } finally {
@@ -373,10 +374,10 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      * from the resource.
      */
     @Override
-    public GeneralGridGeometry getGeometry() throws CoverageStoreException {
+    public GridGeometry getGeometry() throws CoverageStoreException {
         final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
         try {
-            final GeneralGridGeometry gg = reader.getGridGeometry(ref.getImageIndex());
+            final GridGeometry gg = reader.getGridGeometry();
             ref.recycle(reader);
             return gg;
         } catch (RuntimeException | CoverageStoreException e) {
@@ -406,7 +407,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      * @throws TransformException If we cannot transform grid coordinate into
      * spatial ones.
      */
-    private double[] getPositions(final SingleCRS dimOfInterest, GeneralGridGeometry geom) throws CoverageStoreException, TransformException {
+    private double[] getPositions(final SingleCRS dimOfInterest, GridGeometry geom) throws CoverageStoreException, TransformException {
         ArgumentChecks.ensureNonNull("Dimension of interest", dimOfInterest);
         ArgumentChecks.ensureDimensionMatches("Dimension of interest", 1, dimOfInterest);
         int dimIdx = 0;
@@ -415,12 +416,12 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             dimIdx += part.getCoordinateSystem().getDimension();
         }
 
-        final MathTransform gridToCRS = geom.getGridToCRS();
+        final MathTransform gridToCRS = geom.getGridToCRS(PixelInCell.CELL_CENTER);
         final TransformSeparator sep = new TransformSeparator(gridToCRS);
         sep.addSourceDimensions(dimIdx);
         sep.addTargetDimensions(dimIdx);
-        final GridEnvelope extent = geom.getExtent();
-        final int dimGridSpan = extent.getSpan(dimIdx);
+        final GridExtent extent = geom.getExtent();
+        final int dimGridSpan = Math.toIntExact(extent.getSize(dimIdx));
         try {
             final MathTransform targetTransform = sep.separate();
             final double[] gridPoints = DoubleStream.iterate(0, i -> i + 1)
@@ -438,7 +439,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             int i = 0;
             final double[] buffer = new double[extent.getDimension()];
             while (it.hasNext() && i < values.length) {
-                final GridEnvelope next = it.next();
+                final GridExtent next = it.next();
                 for (int j = 0; j < buffer.length; j++) {
                     buffer[j] = next.getLow(j);
                 }
@@ -473,8 +474,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
             // Geographic extent description.
             final GridCoverageReader reader = ref.acquireReader();
-            final GeneralGridGeometry ggg = reader.getGridGeometry(ref.getImageIndex());
-            if(ggg != null && ggg.isDefined(GeneralGridGeometry.ENVELOPE)) {
+            final GridGeometry ggg = reader.getGridGeometry();
+            if(ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
                 final Envelope envelope = ggg.getEnvelope();
                 Util.fillGeographicDescription(envelope, description);
             } else {
@@ -551,7 +552,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         boolean isGeophysic = false;
         try {
             final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
-            final List<GridSampleDimension> dims = reader.getSampleDimensions(ref.getImageIndex());
+            final List<SampleDimension> dims = reader.getSampleDimensions();
             if(dims!=null && !dims.isEmpty()){
                 isGeophysic = true;
             }
@@ -566,11 +567,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException {
         final List<org.constellation.dto.Dimension> dimensions = new ArrayList<>();
 
-        GeneralGridGeometry gridGeom = null;
+        GridGeometry gridGeom = null;
         //-- try to open coverage
         try {
             final GridCoverageReader covReader = (GridCoverageReader) ref.acquireReader();
-            gridGeom = covReader.getGridGeometry(ref.getImageIndex());
+            gridGeom = covReader.getGridGeometry();
             ref.recycle(covReader);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -591,7 +592,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                 final GridGeometryIterator ite = new GridGeometryIterator(gridGeom, key);
                 final List<NumberRange> numberRanges = new ArrayList<>();
                 while (ite.hasNext()) {
-                    GeneralGridGeometry slice = ite.next();
+                    GridGeometry slice = ite.next();
                     Envelope envelope = slice.getEnvelope();
                     numberRanges.add(NumberRange.create(envelope.getMinimum(key), true, envelope.getMaximum(key), false));
                 }

@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
@@ -46,7 +46,7 @@ public interface CoverageData extends GeoData {
 
     SpatialMetadata getSpatialMetadata() throws ConstellationStoreException;
 
-    List<GridSampleDimension> getSampleDimensions() throws ConstellationStoreException;
+    List<SampleDimension> getSampleDimensions() throws ConstellationStoreException;
 
     /**
      * Returns the coverage requested.
@@ -62,7 +62,7 @@ public interface CoverageData extends GeoData {
     GridCoverage2D getCoverage(final Envelope envelope, final Dimension dimension,
             final Double elevation, final Date time) throws ConstellationStoreException, IOException;
 
-    GeneralGridGeometry getGeometry() throws DataStoreException;
+    GridGeometry getGeometry() throws DataStoreException;
 
     /**
      * Return the special dimensions that are not Temporal or elevation

@@ -18,29 +18,6 @@
  */
 package org.constellation.map.featureinfo;
 
-import org.locationtech.jts.geom.Geometry;
-import org.apache.sis.geometry.GeneralDirectPosition;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.api.DataType;
-import org.constellation.provider.Data;
-import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.display.PortrayalException;
-import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
-import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
-import org.geotoolkit.display2d.service.CanvasDef;
-import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
-import org.geotoolkit.geometry.jts.JTSEnvelope2D;
-import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.util.DateRange;
-import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
 import java.awt.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -54,13 +31,35 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.logging.Logging;
+import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.Data;
+import org.constellation.ws.MimeType;
+import org.geotoolkit.display.PortrayalException;
+import org.geotoolkit.display2d.canvas.RenderingContext2D;
+import org.geotoolkit.display2d.primitive.ProjectedCoverage;
+import org.geotoolkit.display2d.primitive.ProjectedFeature;
+import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
+import org.geotoolkit.display2d.service.CanvasDef;
+import org.geotoolkit.display2d.service.SceneDef;
+import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.geometry.jts.JTSEnvelope2D;
+import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.storage.coverage.CoverageResource;
+import org.geotoolkit.util.DateRange;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
+import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 /**
@@ -87,7 +86,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      */
     @Override
     protected void nextProjectedCoverage(ProjectedCoverage coverage, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<GridSampleDimension,Object>> results =
+        final List<Map.Entry<SampleDimension,Object>> results =
                 FeatureInfoUtilities.getCoverageValues(coverage, context, queryArea);
 
         if (results == null) {
@@ -126,7 +125,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     }
 
-    protected static String coverageToXML(final ProjectedCoverage coverage, final List<Map.Entry<GridSampleDimension,Object>> results,
+    protected static String coverageToXML(final ProjectedCoverage coverage, final List<Map.Entry<SampleDimension,Object>> results,
                                           String margin, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
 
         StringBuilder builder = new StringBuilder();
@@ -235,7 +234,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         builder.append(margin).append("<values>").append("\n");
         margin += "\t";
         int index = 0;
-        for (final Map.Entry<GridSampleDimension,Object> entry : results) {
+        for (final Map.Entry<SampleDimension,Object> entry : results) {
             final Object value = entry.getValue();
             if (value == null) {
                 continue;

@@ -65,21 +65,6 @@
         </dependency>
 
 
-        <!-- GEOTK dependency -->
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-netcdf</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <!-- CSTL dependency -->
         <dependency>
