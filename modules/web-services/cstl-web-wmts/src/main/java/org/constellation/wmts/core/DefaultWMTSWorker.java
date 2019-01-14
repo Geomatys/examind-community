@@ -192,7 +192,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
      */
     @Override
     public Capabilities getCapabilities(GetCapabilities requestCapabilities) throws CstlServiceException {
-        LOGGER.log(logLevel, "getCapabilities request processing\n");
+        LOGGER.log(Level.INFO, "getCapabilities request processing\n");
         final long start = System.currentTimeMillis();
         final String userLogin  = getUserLogin();
 
@@ -540,7 +540,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             // put full capabilities in cache
             final Capabilities c = new Capabilities(si, sp, om, "1.0.0", null, cont, themes);
             putCapabilitiesInCache("1.0.0", null, c);
-            LOGGER.log(logLevel, "getCapabilities processed in {0}ms.\n", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.INFO, "getCapabilities processed in {0}ms.\n", (System.currentTimeMillis() - start));
             return (Capabilities) c.applySections(sections);
 
         } finally {

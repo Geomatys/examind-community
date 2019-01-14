@@ -141,7 +141,6 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 pool.recycle(u);
 
                 worker = new CSWworker("default");
-                worker.setLogLevel(Level.FINER);
 
                 initialized = true;
 

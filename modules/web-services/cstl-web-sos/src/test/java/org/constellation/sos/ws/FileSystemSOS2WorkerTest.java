@@ -113,7 +113,6 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 init();
                 worker = new SOSworker("default");
                 worker.setServiceUrl(URL);
-                worker.setLogLevel(Level.FINER);
 
                 initialized = true;
             }
@@ -126,7 +125,6 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
     public void initWorker() {
         worker = new SOSworker("default");
         worker.setServiceUrl(URL);
-        worker.setLogLevel(Level.FINER);
     }
 
     @AfterClass

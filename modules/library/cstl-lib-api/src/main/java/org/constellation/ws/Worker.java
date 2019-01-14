@@ -43,13 +43,6 @@ public interface Worker {
     void setServiceUrl(final String serviceUrl);
 
     /**
-     * Set The Logging level for all the info message in the worker
-     *
-     * @param logLevel
-     */
-    void setLogLevel(Level logLevel);
-
-    /**
      * Return the identifier of the worker.
      * @return
      */

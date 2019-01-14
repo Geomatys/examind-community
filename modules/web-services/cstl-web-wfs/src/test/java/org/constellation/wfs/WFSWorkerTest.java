@@ -264,7 +264,6 @@ public class WFSWorkerTest {
 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();
                 worker = new DefaultWFSWorker("test1");
-                worker.setLogLevel(Level.FINER);
                 worker.setServiceUrl("http://geomatys.com/constellation/WS/");
                 initialized = true;
             } catch (Exception ex) {

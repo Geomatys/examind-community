@@ -193,7 +193,6 @@ public class WFSCIteWorkerTest {
                 layerBusiness.add("EntitéGénérique",     "http://cite.opengeospatial.org/gmlsf", "entGMLSrc", null, "default", "wfs", null);
 
                 worker = new DefaultWFSWorker("default");
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);

@@ -250,7 +250,6 @@ public class WFS2WorkerTest {
                 serviceBusiness.setExtraConfiguration("wfs", "test1", "StoredQueries.xml", queries, pool);
 
                 worker = new DefaultWFSWorker("test1");
-                worker.setLogLevel(Level.FINER);
                 worker.setServiceUrl("http://geomatys.com/constellation/WS/");
                 initialized = true;
             } catch (Exception ex) {
@@ -1500,7 +1499,6 @@ public class WFS2WorkerTest {
         // verify the persistance by restarting the WFS
         worker.destroy();
         worker = new DefaultWFSWorker("test1");
-        worker.setLogLevel(Level.FINER);
         worker.setServiceUrl("http://geomatys.com/constellation/WS/");
 
         resultlsqI = worker.listStoredQueries(requestlsq);
@@ -1554,7 +1552,6 @@ public class WFS2WorkerTest {
         // verify the persistance by restarting the WFS
         worker.destroy();
         worker = new DefaultWFSWorker("test1");
-        worker.setLogLevel(Level.FINER);
         worker.setServiceUrl("http://geomatys.com/constellation/WS/");
 
         resultlsqI = worker.listStoredQueries(requestlsq);

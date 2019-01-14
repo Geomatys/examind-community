@@ -95,7 +95,6 @@ public class WMTSWorkerTest {
             serviceBusiness.create("wmts", "default", new LayerContext(), null, null);
 
             worker = new DefaultWMTSWorker("default");
-            worker.setLogLevel(Level.FINER);
             worker.setServiceUrl("http://geomatys.com/constellation/WS/");
         } catch (ConfigurationException ex) {
             Logging.getLogger("org.constellation.wmts.ws").log(Level.SEVERE, null, ex);

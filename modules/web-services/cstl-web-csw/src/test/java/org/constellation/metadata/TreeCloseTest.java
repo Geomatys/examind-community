@@ -143,7 +143,6 @@ public class TreeCloseTest {
                     throw new Exception("the data directory does no longer exist");
                 }
                 worker = new CSWworker("default");
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
         } catch (Exception ex) {

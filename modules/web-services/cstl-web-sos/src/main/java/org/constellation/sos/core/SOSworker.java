@@ -412,8 +412,6 @@ public class SOSworker extends AbstractWorker {
             }
 
 
-            setLogLevel(configuration.getLogLevel());
-
             // we log some implementation informations
             logInfos();
 
@@ -498,7 +496,7 @@ public class SOSworker extends AbstractWorker {
      */
     public Capabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
         isWorking();
-        LOGGER.log(logLevel, "getCapabilities request processing\n");
+        LOGGER.log(Level.INFO, "getCapabilities request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -687,7 +685,7 @@ public class SOSworker extends AbstractWorker {
             final Capabilities temp = buildCapabilities(currentVersion, si, sp, om, getCurrentUpdateSequence(), fc, cont, Arrays.asList((Object)INSERTION_CAPABILITIES));
             c    = normalizeDocument(temp);
 
-            LOGGER.log(logLevel, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.INFO, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
             putCapabilitiesInCache(currentVersion, null, c);
         } catch (DataStoreException | ConfigurationException ex) {
             throw new CstlServiceException(ex);
@@ -704,7 +702,7 @@ public class SOSworker extends AbstractWorker {
      * @throws org.constellation.ws.CstlServiceException
      */
     public AbstractSensorML describeSensor(final DescribeSensor request) throws CstlServiceException  {
-        LOGGER.log(logLevel, "DescribeSensor request processing\n");
+        LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         // we get the form
@@ -754,12 +752,12 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
 
-        LOGGER.log(logLevel, "describeSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "describeSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
         return result;
     }
 
     public DeleteSensorResponse deleteSensor(final DeleteSensor request) throws CstlServiceException  {
-        LOGGER.log(logLevel, "DescribeSensor request processing\n");
+        LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         // we get the form
@@ -779,7 +777,7 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException(ex);
         }
         if (result) {
-            LOGGER.log(logLevel, "deleteSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.INFO, "deleteSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));
             return buildDeleteSensorResponse(currentVersion, sensorId);
         } else {
             throw new CstlServiceException("unable to delete sensor:" + sensorId);
@@ -787,7 +785,7 @@ public class SOSworker extends AbstractWorker {
     }
 
     public Object getObservationById(final GetObservationById request) throws CstlServiceException {
-        LOGGER.log(logLevel, "getObservation request processing\n");
+        LOGGER.log(Level.INFO, "getObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -813,7 +811,7 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException(ex);
         }
         final ObservationCollection response = buildGetObservationByIdResponse(currentVersion, "collection-1", null, observation);
-        LOGGER.log(logLevel, "getObservationById processed in {0}ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "getObservationById processed in {0}ms.\n", (System.currentTimeMillis() - start));
         return response;
     }
 
@@ -827,7 +825,7 @@ public class SOSworker extends AbstractWorker {
      * @throws org.constellation.ws.CstlServiceException
      */
     public Object getObservation(final GetObservation requestObservation) throws CstlServiceException {
-        LOGGER.log(logLevel, "getObservation request processing\n");
+        LOGGER.log(Level.INFO, "getObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -961,7 +959,7 @@ public class SOSworker extends AbstractWorker {
             final List<String> procedures = requestObservation.getProcedure();
             for (String procedure : procedures) {
                 if (procedure != null) {
-                    LOGGER.log(logLevel, "process ID: {0}", procedure);
+                    LOGGER.log(Level.INFO, "process ID: {0}", procedure);
                     // CITE
                     if (procedure.isEmpty()) {
                         throw new CstlServiceException(" the procedure parameter is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
@@ -1230,7 +1228,7 @@ public class SOSworker extends AbstractWorker {
                         final Timer t = new Timer();
                         //we get the date and time for now
                         final Date d = new Date(System.currentTimeMillis() + templateValidTime);
-                        LOGGER.log(logLevel, "this template will be destroyed at:{0}", d.toString());
+                        LOGGER.log(Level.INFO, "this template will be destroyed at:{0}", d.toString());
                         t.schedule(new DestroyTemplateTask(temporaryTemplateId), d);
                         schreduledTask.add(t);
 
@@ -1273,7 +1271,7 @@ public class SOSworker extends AbstractWorker {
                 throw new CstlServiceException(ex);
             }
         }
-        LOGGER.log(logLevel, "getObservation processed in {0}ms.\n", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "getObservation processed in {0}ms.\n", (System.currentTimeMillis() - start));
         return response;
     }
 
@@ -1288,7 +1286,7 @@ public class SOSworker extends AbstractWorker {
      * @throws org.constellation.ws.CstlServiceException
      */
     public GetResultResponse getResult(final GetResult request) throws CstlServiceException {
-        LOGGER.log(logLevel, "getResult request processing\n");
+        LOGGER.log(Level.INFO, "getResult request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -1492,13 +1490,13 @@ public class SOSworker extends AbstractWorker {
         }
         final String url = getServiceUrl().substring(0, getServiceUrl().length() -1);
         final GetResultResponse response = buildGetResultResponse(currentVersion, values, url + '/' + observationTemplateID);
-        LOGGER.log(logLevel, "GetResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "GetResult processed in {0} ms", (System.currentTimeMillis() - start));
         return response;
     }
 
     public AbstractFeature getFeatureOfInterest(final GetFeatureOfInterest request) throws CstlServiceException {
         verifyBaseRequest(request, true, false);
-        LOGGER.log(logLevel, "GetFeatureOfInterest request processing\n");
+        LOGGER.log(Level.INFO, "GetFeatureOfInterest request processing\n");
         final long start = System.currentTimeMillis();
         final String currentVersion = request.getVersion().toString();
 
@@ -1668,12 +1666,12 @@ public class SOSworker extends AbstractWorker {
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        LOGGER.log(logLevel, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public TemporalPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
-        LOGGER.log(logLevel, "GetFeatureOfInterestTime request processing\n");
+        LOGGER.log(Level.INFO, "GetFeatureOfInterestTime request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1695,12 +1693,12 @@ public class SOSworker extends AbstractWorker {
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        LOGGER.log(logLevel, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public InsertResultTemplateResponse insertResultTemplate(final InsertResultTemplate request) throws CstlServiceException {
-        LOGGER.log(logLevel, "InsertResultTemplate request processing\n");
+        LOGGER.log(Level.INFO, "InsertResultTemplate request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1725,12 +1723,12 @@ public class SOSworker extends AbstractWorker {
         resultTemplates.put(templateID, request.getTemplate());
 
         final InsertResultTemplateResponse result = buildInsertResultTemplateResponse(currentVersion, templateID);
-        LOGGER.log(logLevel, "InsertResultTemplate processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "InsertResultTemplate processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public InsertResultResponse insertResult(final InsertResult request) throws CstlServiceException {
-        LOGGER.log(logLevel, "InsertResult request processing\n");
+        LOGGER.log(Level.INFO, "InsertResult request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1787,12 +1785,12 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException(ex);
         }
         final InsertResultResponse result = buildInsertResultResponse(currentVersion);
-        LOGGER.log(logLevel, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
     public GetResultTemplateResponse getResultTemplate(final GetResultTemplate request) throws CstlServiceException {
-        LOGGER.log(logLevel, "GetResultTemplate request processing\n");
+        LOGGER.log(Level.INFO, "GetResultTemplate request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
@@ -1853,7 +1851,7 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException(ex);
         }
         final GetResultTemplateResponse result = buildGetResultTemplateResponse(currentVersion, structure, encoding);
-        LOGGER.log(logLevel, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
 
@@ -1911,7 +1909,7 @@ public class SOSworker extends AbstractWorker {
         if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
             throw new UnauthorizedException("You must be authentified to perform an registerSensor request.");
         }
-        LOGGER.log(logLevel, "registerSensor request processing\n");
+        LOGGER.log(Level.INFO, "registerSensor request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -1976,12 +1974,12 @@ public class SOSworker extends AbstractWorker {
             final String smlExtractedIdentifier = SensorMLUtilities.getSmlID(process);
             if (temp.getProcedure() != null) {
                 id  = temp.getProcedure();
-                LOGGER.log(logLevel, "using specified sensor ID:{0}", new Object[]{id});
+                LOGGER.log(Level.INFO, "using specified sensor ID:{0}", new Object[]{id});
 
             } else if (!smlExtractedIdentifier.equals("unknow_identifier")){
                 id  = smlExtractedIdentifier;
 
-                LOGGER.log(logLevel, "using extracted sensor ID:{0}", new Object[]{id});
+                LOGGER.log(Level.INFO, "using extracted sensor ID:{0}", new Object[]{id});
             } else {
                 id = sensorBusiness.getNewSensorId(smlProviderID);
             }
@@ -2024,7 +2022,7 @@ public class SOSworker extends AbstractWorker {
             throw new CstlServiceException(ex);
         }
 
-        LOGGER.log(logLevel, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
+        LOGGER.log(Level.INFO, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
         return buildInsertSensorResponse(currentVersion, id, assignedOffering);
     }
 
@@ -2045,7 +2043,7 @@ public class SOSworker extends AbstractWorker {
             throw new UnauthorizedException("You must be authentified to perform an insertObservation request.");
         }
 
-        LOGGER.log(logLevel, "InsertObservation request processing\n");
+        LOGGER.log(Level.INFO, "InsertObservation request processing\n");
         final long start = System.currentTimeMillis();
 
         //we verify the base request attribute
@@ -2121,7 +2119,7 @@ public class SOSworker extends AbstractWorker {
                         if (obs.matchTemplate(template)) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
                                 id = omStore.getWriter().writeObservation(obs);
-                                LOGGER.log(logLevel, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
+                                LOGGER.log(Level.INFO, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
                             } else {
                                 throw new CstlServiceException("The observation sampling time and the result must be specify",
                                         MISSING_PARAMETER_VALUE, "samplingTime");
@@ -2136,7 +2134,7 @@ public class SOSworker extends AbstractWorker {
                ids.add(id);
             }
 
-            LOGGER.log(logLevel, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
+            LOGGER.log(Level.INFO, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
             omStore.getFilter().refresh();
 
         } catch (DataStoreException ex) {
@@ -2420,7 +2418,7 @@ public class SOSworker extends AbstractWorker {
      * @throws CstlServiceException If the service does not succeed to store the offering in the datasource.
      */
     private void createOffering(final String version, final String offeringName, final ObservationTemplate template) throws DataStoreException {
-       LOGGER.log(logLevel, "offering {0} not present, first build", offeringName);
+       LOGGER.log(Level.INFO, "offering {0} not present, first build", offeringName);
 
         // TODO bounded by??? station?
 
@@ -2480,14 +2478,6 @@ public class SOSworker extends AbstractWorker {
         isStarted = false;
     }
 
-    @Override
-    public final void setLogLevel(final Level logLevel) {
-        this.logLevel = logLevel;
-        if (omStore != null && omStore.getFilter()!=null) {
-            omStore.getFilter().setLoglevel(logLevel);
-        }
-    }
-
    /**
      * {@inheritDoc}
      */
@@ -2529,7 +2519,7 @@ public class SOSworker extends AbstractWorker {
         @Override
         public void run() {
             templates.remove(templateId);
-            LOGGER.log(logLevel, "template:{0} destroyed", templateId);
+            LOGGER.log(Level.INFO, "template:{0} destroyed", templateId);
         }
     }
 }

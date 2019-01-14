@@ -76,7 +76,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
                 metadataBusiness.deleteAllMetadata();
-                
+
                 int internalProviderID = metadataBusiness.getDefaultInternalProviderID();
                 pool = EBRIMMarshallerPool.getInstance();
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
@@ -93,7 +93,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 writeMetadata("ebrim2.xml",        "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076", internalProviderID);
                 writeMetadata("ebrim3.xml",        "urn:motiive:csw-ebrim", internalProviderID);
                 writeMetadata("meta13.xml",        "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo", internalProviderID);
-                
+
                 writeMetadata("meta7.xml",         "MDWeb_FR_SY_couche_vecteur_258", internalProviderID, true);
 
                 //we write the configuration file
@@ -104,7 +104,6 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 serviceBusiness.linkCSWAndProvider("default", "default-internal-metadata");
 
                 worker = new CSWworker("default");
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
         } catch (Exception ex) {
@@ -232,7 +231,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
     public void DescribeRecordTest() throws Exception {
         super.DescribeRecordTest();
     }
-    
+
     /**
      * Tests the transaction method
      *
@@ -262,7 +261,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
     public void writeMetadata(String resourceName, String identifier, Integer providerID) throws Exception {
         writeMetadata(resourceName, identifier, providerID, false);
     }
-    
+
     public void writeMetadata(String resourceName, String identifier, Integer providerID, boolean hidden) throws Exception {
        Node node  = NodeUtilities.getNodeFromStream(Util.getResourceAsStream("org/constellation/xml/metadata/" + resourceName));
        metadataBusiness.updateMetadata(identifier, node, null, null, null, null, providerID, "DOC", null, hidden);

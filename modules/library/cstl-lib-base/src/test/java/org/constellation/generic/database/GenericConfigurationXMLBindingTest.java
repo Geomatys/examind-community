@@ -97,7 +97,7 @@ public class GenericConfigurationXMLBindingTest {
         ObjectMapper mapper = new ObjectMapper();
         String expresult = "{\"type\":\"Automatic\",\"bdd\":null,\"thesaurus\":null,\"configurationDirectory\":null,"
                          + "\"format\":\"FILESYSTEM\",\"name\":null,\"profile\":\"discovery\",\"dataDirectory\":\"data_dir_value\",\"enableThread\":null,\"enableCache\":null,"
-                         + "\"indexOnlyPublishedMetadata\":null,\"noIndexation\":null,\"harvester\":null,\"identifierDirectory\":null,\"logLevel\":null,"
+                         + "\"indexOnlyPublishedMetadata\":null,\"noIndexation\":null,\"harvester\":null,\"identifierDirectory\":null,"
                          + "\"customparameters\":{\"testParam\":\"paramValue\"},\"queries\":null,\"filterQueries\":null,\"indexType\":\"lucene\"}";
         String result = mapper.writeValueAsString(config);
         assertEquals(expresult, result);

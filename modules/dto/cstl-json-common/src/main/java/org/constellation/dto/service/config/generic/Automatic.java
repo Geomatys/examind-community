@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -152,8 +151,6 @@ public class Automatic extends AbstractConfigurationObject {
      */
     @Deprecated
     private String identifierDirectory;
-
-    private String logLevel;
 
     private HashMap<String, String> customparameters = new HashMap<>();
 
@@ -463,28 +460,6 @@ public class Automatic extends AbstractConfigurationObject {
         }
     }
 
-    /**
-     * @return the logLevel
-     */
-    public Level getLogLevel() {
-        if (logLevel != null) {
-            try {
-                final Level l = Level.parse(logLevel);
-                return l;
-            } catch (IllegalArgumentException ex) {
-                LOGGER.log(Level.WARNING, "Unexpected value for Log level:{0}", logLevel);
-            }
-        }
-        return Level.INFO;
-    }
-
-    /**
-     * @param logLevel the logLevel to set
-     */
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
-    }
-
      /**
      * @return the customparameters
      */
@@ -605,9 +580,6 @@ public class Automatic extends AbstractConfigurationObject {
         if (profile != null) {
             s.append("profile:").append(profile).append('\n');
         }
-        if (logLevel != null) {
-            s.append("logLevel: ").append(logLevel).append('\n');
-        }
         if (filterQueries != null) {
             s.append("Filter queries:").append(filterQueries).append('\n');
         }
@@ -658,7 +630,6 @@ public class Automatic extends AbstractConfigurationObject {
                    Objects.equals(this.noIndexation,     that.noIndexation)     &&
                    Objects.equals(this.harvester,        that.harvester)        &&
                    Objects.equals(this.noIndexation,     that.noIndexation)     &&
-                   Objects.equals(this.logLevel,         that.logLevel)         &&
                    Objects.equals(this.customparameters, that.customparameters) &&
                    Objects.equals(this.filterQueries,    that.filterQueries)    &&
                    Objects.equals(this.queries,          that.queries);

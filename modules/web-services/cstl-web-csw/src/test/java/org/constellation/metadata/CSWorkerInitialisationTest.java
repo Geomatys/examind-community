@@ -119,7 +119,6 @@ public class CSWorkerInitialisationTest {
         assertTrue(id > 0);
 
         CSWworker worker = new CSWworker("default");
-        worker.setLogLevel(Level.FINER);
 
         boolean exceptionLaunched = false;
         GetCapabilitiesType request = new GetCapabilitiesType("CSW");
@@ -145,7 +144,6 @@ public class CSWorkerInitialisationTest {
         serviceRepository.update(service);
 
         worker = new CSWworker("default");
-        worker.setLogLevel(Level.FINER);
 
         exceptionLaunched = false;
         try {
@@ -174,7 +172,6 @@ public class CSWorkerInitialisationTest {
         serviceRepository.update(service);
 
         worker = new CSWworker("default");
-        worker.setLogLevel(Level.FINER);
 
         exceptionLaunched = false;
         try {
@@ -203,7 +200,6 @@ public class CSWorkerInitialisationTest {
         serviceRepository.update(service);
 
         worker = new CSWworker("default");
-        worker.setLogLevel(Level.FINER);
 
         exceptionLaunched = false;
         try {
@@ -231,7 +227,6 @@ public class CSWorkerInitialisationTest {
         serviceRepository.update(service);
 
         worker = new CSWworker("default");
-        worker.setLogLevel(Level.FINER);
 
         exceptionLaunched = false;
         try {

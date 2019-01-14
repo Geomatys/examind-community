@@ -118,7 +118,6 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
                 init();
                 worker = new SOSworker("default");
                 worker.setServiceUrl(URL);
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
 
@@ -131,7 +130,6 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
     public void initWorker() {
         worker = new SOSworker("default");
         worker.setServiceUrl(URL);
-        worker.setLogLevel(Level.FINER);
     }
 
     @AfterClass

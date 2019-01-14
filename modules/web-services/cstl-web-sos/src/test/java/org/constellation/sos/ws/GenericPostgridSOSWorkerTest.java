@@ -112,7 +112,6 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 init();
                 worker = new SOSworker("default");
                 worker.setServiceUrl(URL);
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
         } catch (Exception ex) {
@@ -124,7 +123,6 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
     public void initWorker() {
         worker = new SOSworker("default");
         worker.setServiceUrl(URL);
-        worker.setLogLevel(Level.FINER);
     }
 
     @AfterClass

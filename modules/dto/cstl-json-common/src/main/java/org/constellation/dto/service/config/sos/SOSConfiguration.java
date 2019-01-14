@@ -29,7 +29,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.dto.service.config.DataSourceType;
 
@@ -156,8 +155,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     @Deprecated
     private boolean keepCapabilities = false;
 
-    private String logLevel;
-
     /**
      * Empty constructor used by JAXB.
      */
@@ -237,28 +234,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     @Deprecated
     public void setSMLType(final DataSourceType smlType) {
         this.smlType = smlType;
-    }
-
-     /**
-     * @return the logLevel
-     */
-    public Level getLogLevel() {
-        if (logLevel != null) {
-            try {
-                final Level l = Level.parse(logLevel);
-                return l;
-            } catch (IllegalArgumentException ex) {
-                LOGGER.log(Level.WARNING, "Unexpected value for Log level:{0}", logLevel);
-            }
-        }
-        return Level.INFO;
-    }
-
-    /**
-     * @param logLevel the logLevel to set
-     */
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
     }
 
     /**

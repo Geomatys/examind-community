@@ -91,11 +91,6 @@ public abstract class AbstractWorker implements Worker {
     private String serviceUrl = null;
 
     /**
-     * The log level off al the informations log.
-     */
-    protected Level logLevel = Level.INFO;
-
-    /**
      * A map containing the Capabilities Object already loaded from file.
      */
     private final Map<String, Details> capabilities = Collections.synchronizedMap(new HashMap<>());
@@ -309,14 +304,6 @@ public abstract class AbstractWorker implements Worker {
     @Override
     public final Integer getServiceId() {
         return serviceId;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void setLogLevel(final Level logLevel) {
-        this.logLevel = logLevel;
     }
 
     protected abstract String getProperty(final String propertyName);

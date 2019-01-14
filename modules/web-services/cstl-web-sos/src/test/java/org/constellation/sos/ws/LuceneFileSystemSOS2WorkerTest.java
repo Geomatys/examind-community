@@ -182,7 +182,6 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 init();
                 worker = new SOSworker("default");
                 worker.setServiceUrl(URL);
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
         } catch (Exception ex) {
@@ -194,7 +193,6 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
     public void initWorker() {
         worker = new SOSworker("default");
         worker.setServiceUrl(URL);
-        worker.setLogLevel(Level.FINER);
     }
 
     @AfterClass
