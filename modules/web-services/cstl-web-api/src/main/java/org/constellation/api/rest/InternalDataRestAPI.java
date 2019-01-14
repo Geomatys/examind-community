@@ -20,11 +20,8 @@ package org.constellation.api.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +33,7 @@ import java.util.zip.CRC32;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
+import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -65,7 +63,6 @@ import org.constellation.provider.ISO19110Builder;
 import org.constellation.util.Util;
 import org.geotoolkit.client.ClientFactory;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.db.AbstractJDBCFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
@@ -79,7 +76,6 @@ import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ImageCRS;
 import org.opengis.util.GenericName;
@@ -180,20 +176,20 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.WARNING, "Unable to access provider "+ providerId, ex);
             return new ErrorMessage(ex).build();
         }
+        // todo find another way to determine if its a pyramid provider
         if (!(ds instanceof XMLCoverageStore)) {
             map.put("isPyramid",false);
             return new ResponseEntity(map, OK);
         }
         map.put("isPyramid",true);
-        final XMLCoverageStore xmlCoverageStore = (XMLCoverageStore)ds;
-        final ParameterValue paramVal = xmlCoverageStore.getOpenParameters().parameter(XMLCoverageStoreFactory.PATH.getName().getCode());
-        if (paramVal.getValue() instanceof URL) {
-            try {
-                IOUtilities.deleteRecursively(Paths.get((URI)paramVal.getValue()));
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Unable to delete folder "+ paramVal.getValue(), ex);
-                return new ErrorMessage(ex).build();
+        final ResourceOnFileSystem xmlCoverageStore = (ResourceOnFileSystem) ds;
+        try {
+            for (Path p : xmlCoverageStore.getComponentFiles()) {
+                IOUtilities.deleteRecursively(p);
             }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Unable to delete folder for provider:" + providerId, ex);
+            return new ErrorMessage(ex).build();
         }
         return new ResponseEntity(map,OK);
     }
