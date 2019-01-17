@@ -721,6 +721,35 @@ public final class DataProviders extends Static{
         }
     }
 
+    public static Map<String, String> probeContentForSpecificStore(Path p, String storeId) throws DataStoreException {
+        Map<String, String> results = new HashMap<>();
+        StorageConnector input = new StorageConnector(p);
+        try {
+            DataStoreProvider provider = org.geotoolkit.storage.DataStores.getProviderById(storeId);
+            if (provider != null) {
+                try {
+                    long start = System.currentTimeMillis();
+                    ProbeResult result = provider.probeContent(input);
+                    // use to detect if a probe content on a provider is taking much time than needed
+                    LOGGER.log(Level.INFO, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
+                    if (result.isSupported() && result.getMimeType() != null) {
+                        results.put(storeId, result.getMimeType());
+                    }
+                } catch (Throwable ex) {
+                    LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode(), ex);
+                    // renew connector in case of error
+                    input.closeAllExcept(null);
+                    input = new StorageConnector(p);
+                }
+            } else {
+                LOGGER.log(Level.WARNING, "Unable to find a provider :{0}", storeId);
+            }
+        } finally {
+            input.closeAllExcept(null);
+        }
+        return results;
+    }
+
     public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
         Map<String, String> results = new HashMap<>();
         StorageConnector input = new StorageConnector(p);

@@ -119,9 +119,9 @@ public class FileSystemUtilities {
                 userUrl = baseUrl;
                 break;
             case "file":
-                baseURI = new URI(baseUrl);
+                baseURI = new URI("file:///");
                 userURI = baseURI;
-                userUrl = baseUrl;
+                userUrl = "file:///";
                 break;
             default: throw new IllegalArgumentException("No FileSystem available for datasource type: " + type);
         }
@@ -186,6 +186,8 @@ public class FileSystemUtilities {
                 }
             }
         // do not throw exception on close method
+        } catch (UnsupportedOperationException ex) {
+            LOGGER.log(Level.FINER, ex.getMessage(), ex);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
@@ -291,6 +293,10 @@ public class FileSystemUtilities {
             case "s3":
 
                 url = fs.uri + subPath;
+                break;
+            case "file":
+
+                url = "file://" + subPath;
                 break;
             default:
                 url = fs.uri + subPath; // a voir

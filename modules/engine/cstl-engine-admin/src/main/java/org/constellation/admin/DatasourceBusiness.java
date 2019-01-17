@@ -395,7 +395,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(dsId, childPath);
                 FileBean fb;
                 if (dpc == null) {
-                    dpc = analysePath(dsId, subPath, child, false);
+                    dpc = analysePath(dsId, subPath, child, false, null);
                 }
                 fb = new FileBean(dpc.getName(), dpc.getFolder(), childPath, dpc.getParentPath(), dpc.getSize(), dpc.getTypes());
 
@@ -547,6 +547,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     @Override
     @Transactional
     public Map<String, Set<String>> computeDatasourceStores(int id, boolean async) throws ConstellationException {
+        return computeDatasourceStores(id, async, null);
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId) throws ConstellationException {
         final DataSource ds = getDatasource(id);
         if (ds == null) {
             throw new TargetNotFoundException("Unexisting datasource:" + id);
@@ -557,10 +563,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             if ( AnalysisState.NOT_STARTED.name().equals(datasourceState)) {
                 updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING.name());
                 if (!async) {
-                    return analyzeDataSource(ds);
+                    return analyzeDataSource(ds, storeId);
                 } else {
                     // TODO: work with FutureTask instead, and use an executor service to avoid hard-coded thread creation
-                    final Thread t = new Thread(() -> analyzeDataSource(ds));
+                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId));
                     currentRunningAnalysis.put(id, t);
                     t.start();
                     return Collections.EMPTY_MAP;
@@ -571,11 +577,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private Map<String, Set<String>> analyzeDataSource(final DataSource source) {
+    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId) {
         final Map<String, Set<String>> results = new HashMap<>();
         try {
             long start = System.nanoTime();
-            computeDatasourceStores(source, results, null, "/", true);
+            computeDatasourceStores(source, results, null, "/", true, storeId);
             updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED.name());
             LOGGER.fine("Analysis complete in " + ((System.nanoTime() - start) / 1e6) + " ms");
         } catch (Exception ex) {
@@ -585,7 +591,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return results;
     }
 
-    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root) throws ConstellationException {
+    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, String storeId) throws ConstellationException {
         final Path path = getDataSourcePath(ds, subPath);
         if (!Files.exists(path)) {
             throw new ConstellationException("path does not exists:" + path.toString());
@@ -601,7 +607,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
         DataSourcePathComplete dpc = dsRepository.getAnalyzedPath(ds.getId(), subPath);
         if (dpc == null) {
-            dpc = analysePath(ds.getId(), parentPath, path, true);
+            dpc = analysePath(ds.getId(), parentPath, path, true, storeId);
         }
         Map<String, String> pathTypes = dpc.getTypes();
         for (Entry<String, String> pathType : pathTypes.entrySet()) {
@@ -634,7 +640,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 if (Files.isDirectory(child)) {
                     childPath = childPath + '/';
                 }
-                computeDatasourceStores(ds, types, subPath, childPath, false);
+                computeDatasourceStores(ds, types, subPath, childPath, false, storeId);
             }
         }
     }
@@ -654,7 +660,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         });
     }
 
-    private DataSourcePathComplete analysePath(Integer dsId, String parentPath, Path path, boolean record) {
+    private DataSourcePathComplete analysePath(Integer dsId, String parentPath, Path path, boolean record, String storeId) {
         LOGGER.log(Level.FINER, "ANALYZING:{0}", path.toString());
         String fileName;
         boolean isDir = Files.isDirectory(path);
@@ -678,7 +684,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (!isDir) {
             try {
                 size = (int) Files.size(path);
-                types.putAll(DataProviders.probeContentAndStoreIds(path));
+                if (storeId != null) {
+                    types.putAll(DataProviders.probeContentForSpecificStore(path, storeId));
+                } else {
+                    types.putAll(DataProviders.probeContentAndStoreIds(path));
+                }
 
                 // special ZIP S63 case
                 String ext = IOUtilities.extension(path);

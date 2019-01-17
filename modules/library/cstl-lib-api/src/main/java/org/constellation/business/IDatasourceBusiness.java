@@ -74,6 +74,8 @@ public interface IDatasourceBusiness {
 
     Map<String, Set<String>> computeDatasourceStores(int id, boolean async) throws ConstellationException;
 
+    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId) throws ConstellationException;
+
     String getDatasourceAnalysisState(int id);
 
     void updateDatasourceAnalysisState(int dsId, String state);
