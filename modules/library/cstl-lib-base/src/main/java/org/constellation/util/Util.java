@@ -52,6 +52,8 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.crs.AbstractCRS;
+import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.StyleBrief;
@@ -322,9 +324,10 @@ public final class Util {
     public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
         double[] lower, upper;
         try {
-            envelope = Envelopes.transform(envelope, CommonCRS.defaultGeographic());
-            lower = envelope.getLowerCorner().getCoordinate();
-            upper = envelope.getUpperCorner().getCoordinate();
+            GeneralEnvelope trsf = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
+            trsf.simplify();
+            lower = trsf.getLowerCorner().getCoordinate();
+            upper = trsf.getUpperCorner().getCoordinate();
         } catch (Exception ignore) {
             lower = new double[]{-180, -90};
             upper = new double[]{180, 90};

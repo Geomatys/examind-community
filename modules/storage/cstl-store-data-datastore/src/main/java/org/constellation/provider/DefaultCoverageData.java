@@ -408,11 +408,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     private double[] getPositions(final SingleCRS dimOfInterest, GeneralGridGeometry geom) throws CoverageStoreException, TransformException {
         ArgumentChecks.ensureNonNull("Dimension of interest", dimOfInterest);
         ArgumentChecks.ensureDimensionMatches("Dimension of interest", 1, dimOfInterest);
-
-        final int dimIdx = AxisDirections.indexOfColinear(
-                geom.getCoordinateReferenceSystem().getCoordinateSystem(),
-                dimOfInterest.getCoordinateSystem()
-        );
+        int dimIdx = 0;
+        for (SingleCRS part : CRS.getSingleComponents(geom.getCoordinateReferenceSystem())) {
+            if (part == dimOfInterest) break;
+            dimIdx += part.getCoordinateSystem().getDimension();
+        }
 
         final MathTransform gridToCRS = geom.getGridToCRS();
         final TransformSeparator sep = new TransformSeparator(gridToCRS);
