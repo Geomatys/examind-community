@@ -731,7 +731,7 @@ public final class DataProviders extends Static{
                     long start = System.currentTimeMillis();
                     ProbeResult result = provider.probeContent(input);
                     // use to detect if a probe content on a provider is taking much time than needed
-                    LOGGER.log(Level.INFO, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
+                    LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
                     if (result.isSupported() && result.getMimeType() != null) {
                         results.put(storeId, result.getMimeType());
                     }
