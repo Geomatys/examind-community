@@ -29,10 +29,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Reference;
+import org.constellation.dto.StringList;
 
 /**
  *
@@ -65,14 +69,26 @@ public class Layer {
     @XmlElement(name="filter")
     private Filter filter;
 
+    @Deprecated
     @XmlElement(name="title")
     private String title;
 
+    @XmlElement(name="multiLangTitle")
+    private Map<String, String> multiLangTitle;
+
+    @Deprecated
     @XmlElement(name="abstract")
     private String abstrac;
 
+    @XmlElement(name="multiLangAbstract")
+    private Map<String, String> multiLangAbstract;
+
+    @Deprecated
     @XmlElement(name="keyword")
     private List<String> keywords;
+
+    @XmlElement(name="multiLangKeywords")
+    private Map<String, StringList> multiLangKeywords;
 
     @XmlElement(name="metadataURL")
     private FormatURL metadataURL;
@@ -248,22 +264,27 @@ public class Layer {
         this.version = version;
     }
 
+    @Deprecated
     public String getTitle() {
         return title;
     }
 
+    @Deprecated
     public void setTitle(final String title) {
         this.title = title;
     }
 
+    @Deprecated
     public String getAbstrac() {
         return abstrac;
     }
 
+    @Deprecated
     public void setAbstrac(final String abstrac) {
         this.abstrac = abstrac;
     }
 
+    @Deprecated
     public List<String> getKeywords() {
         if (keywords == null) {
             keywords = new ArrayList<>();
@@ -271,6 +292,7 @@ public class Layer {
         return keywords;
     }
 
+    @Deprecated
     public void setKeywords(final List<String> keywords) {
         this.keywords = keywords;
     }
@@ -403,6 +425,57 @@ public class Layer {
         this.getFeatureInfoCfgs = getFeatureInfoCfgs;
     }
 
+    /**
+     * @return the multiLangTitle
+     */
+    public Map<String, String> getMultiLangTitle() {
+        if (multiLangTitle == null) {
+            multiLangTitle = new HashMap<>();
+        }
+        return multiLangTitle;
+    }
+
+    /**
+     * @param multiLangTitle the multiLangTitle to set
+     */
+    public void setMultiLangTitle(Map<String, String> multiLangTitle) {
+        this.multiLangTitle = multiLangTitle;
+    }
+
+    /**
+     * @return the multiLangAbstract
+     */
+    public Map<String, String> getMultiLangAbstract() {
+        if (multiLangAbstract == null) {
+            multiLangAbstract = new HashMap<>();
+        }
+        return multiLangAbstract;
+    }
+
+    /**
+     * @param multiLangAbstract the multiLangAbstract to set
+     */
+    public void setMultiLangAbstract(Map<String, String> multiLangAbstract) {
+        this.multiLangAbstract = multiLangAbstract;
+    }
+
+    /**
+     * @return the multiLangKeywords
+     */
+    public Map<String,StringList> getMultiLangKeywords() {
+        if (multiLangKeywords == null) {
+            multiLangKeywords = new HashMap<>();
+        }
+        return multiLangKeywords;
+    }
+
+    /**
+     * @param multiLangKeywords the multiLangKeywords to set
+     */
+    public void setMultiLangKeywords(Map<String, StringList> multiLangKeywords) {
+        this.multiLangKeywords = multiLangKeywords;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[Layer]");
@@ -459,14 +532,32 @@ public class Layer {
         if (title != null) {
             sb.append("title:\n").append(title).append('\n');
         }
+        if (multiLangTitle != null && !multiLangTitle.isEmpty()) {
+            sb.append("multi language titles:\n").append('\n');
+            for (final Entry<String, String> mtitle : multiLangTitle.entrySet()) {
+                sb.append(mtitle.getKey()).append(":").append(mtitle.getValue()).append('\n');
+            }
+        }
+        if (multiLangAbstract != null && !multiLangAbstract.isEmpty()) {
+            sb.append("multi language abstracts:\n").append('\n');
+            for (final Entry<String, String> mAbs : multiLangAbstract.entrySet()) {
+                sb.append(mAbs.getKey()).append(":").append(mAbs.getValue()).append('\n');
+            }
+        }
+        if (multiLangKeywords != null && !multiLangKeywords.isEmpty()) {
+            sb.append("multi language keywords:\n").append('\n');
+            for (final Entry<String, StringList> mKeys : multiLangKeywords.entrySet()) {
+                sb.append(mKeys.getKey()).append(":").append(mKeys.getValue()).append('\n');
+            }
+        }
         if (dimensions != null && !dimensions.isEmpty()) {
-            sb.append("dimensions:\n").append(dimensions).append('\n');
+            sb.append("dimensions:\n");
             for (final DimensionDefinition dimension : dimensions) {
                 sb.append("dimension:\n").append(dimension).append('\n');
             }
         }
         if (getFeatureInfoCfgs != null && !getFeatureInfoCfgs.isEmpty()) {
-            sb.append("featureInfos:\n").append(getFeatureInfoCfgs).append('\n');
+            sb.append("featureInfos:\n").append('\n');
             for (final GetFeatureInfoCfg getFeatureInfoCfg : getFeatureInfoCfgs) {
                 sb.append("featureInfos:\n").append(getFeatureInfoCfg).append('\n');
             }
@@ -480,7 +571,7 @@ public class Layer {
             final Layer that = (Layer) obj;
             return Objects.equals(this.abstrac,      that.abstrac) &&
                    Objects.equals(this.id,           that.id) &&
-                   Objects.equals(this.dataId,           that.dataId) &&
+                   Objects.equals(this.dataId,       that.dataId) &&
                    Objects.equals(this.attribution,  that.attribution) &&
                    Objects.equals(this.authorityURL, that.authorityURL) &&
                    Objects.equals(this.crs,          that.crs) &&
@@ -494,6 +585,9 @@ public class Layer {
                    Objects.equals(this.name,         that.name) &&
                    Objects.equals(this.styles,       that.styles) &&
                    Objects.equals(this.opaque,       that.opaque) &&
+                   Objects.equals(this.multiLangTitle,    that.multiLangTitle) &&
+                   Objects.equals(this.multiLangAbstract, that.multiLangAbstract) &&
+                   Objects.equals(this.multiLangKeywords, that.multiLangAbstract) &&
                    Objects.equals(this.title,        that.title) &&
                    Objects.equals(this.getFeatureInfoCfgs, that.getFeatureInfoCfgs);
         }
@@ -521,6 +615,9 @@ public class Layer {
         hash = 79 * hash + (this.opaque != null ? this.opaque.hashCode() : 0);
         hash = 79 * hash + (this.crs != null ? this.crs.hashCode() : 0);
         hash = 79 * hash + (this.getFeatureInfoCfgs != null ? this.getFeatureInfoCfgs.hashCode() : 0);
+        hash = 79 * hash + (this.multiLangTitle != null ? this.multiLangTitle.hashCode() : 0);
+        hash = 79 * hash + (this.multiLangAbstract != null ? this.multiLangAbstract.hashCode() : 0);
+        hash = 79 * hash + (this.multiLangKeywords != null ? this.multiLangKeywords.hashCode() : 0);
         return hash;
     }
 }

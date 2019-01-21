@@ -49,7 +49,7 @@ public class StringList {
 
     public Collection<String> getList() {
         if(list == null){
-            list = new ArrayList<String>();
+            list = new ArrayList<>();
         }
         return list;
     }

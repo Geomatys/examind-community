@@ -721,14 +721,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 ((List)outputLayerO.getBoundingBox()).add(0, nativeBBox);
             }
 
-            final AbstractLayer outputLayer = customizeLayer(queryVersion, outputLayerO, configLayer, layer, legendUrlPng, legendUrlGif);
+            final AbstractLayer outputLayer = customizeLayer(queryVersion, outputLayerO, configLayer, currentLanguage);
             outputLayers.add(outputLayer);
         }
 
         //we build the general layer and add it to the document
-        final AbstractLayer mainLayer = customizeLayer(queryVersion, createLayer(queryVersion, "Constellation Web Map Layer",
+        final AbstractLayer mainLayer = customizeLayer(queryVersion, createLayer(queryVersion, "Examind Web Map Layer",
                     "description of the service(need to be fill)", DEFAULT_CRS,
-                    createGeographicBoundingBox(queryVersion, -180.0, -90.0, 180.0, 90.0), outputLayers), getMainLayer(), null, null, null);
+                    createGeographicBoundingBox(queryVersion, -180.0, -90.0, 180.0, 90.0), outputLayers), getMainLayer(), currentLanguage);
 
         inCapabilities.getCapability().setLayer(mainLayer);
 
@@ -901,21 +901,36 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return
      * @throws CstlServiceException
      */
-    private AbstractLayer customizeLayer(final String version, final AbstractLayer outputLayer, final Layer configLayer,
-            final Data layerDetails, final String legendUrlPng, final String legendUrlGif) throws CstlServiceException
+    private AbstractLayer customizeLayer(final String version, final AbstractLayer outputLayer, final Layer configLayer, String language) throws CstlServiceException
     {
         if (configLayer == null) {
             return outputLayer;
         }
-        if (configLayer.getTitle() != null) {
+
+        if (language != null && configLayer.getMultiLangTitle().containsKey(language)) {
+            outputLayer.setTitle(configLayer.getMultiLangTitle().get(language));
+
+        // fallback
+        } else if (configLayer.getTitle() != null) {
             outputLayer.setTitle(configLayer.getTitle());
         }
-        if (configLayer.getAbstrac() != null) {
+
+        if (language != null && configLayer.getMultiLangAbstract().containsKey(language)) {
+            outputLayer.setAbstract(configLayer.getMultiLangAbstract().get(language));
+
+        // fallback
+        } else if (configLayer.getAbstrac() != null) {
             outputLayer.setAbstract(configLayer.getAbstrac());
         }
-        if (configLayer.getKeywords() != null && !configLayer.getKeywords().isEmpty()) {
+
+        if (language != null && configLayer.getMultiLangKeywords().containsKey(language)) {
+            outputLayer.setKeywordList(new ArrayList<>(configLayer.getMultiLangKeywords().get(language).getList()));
+
+        // fallback
+        } else if (configLayer.getKeywords() != null && !configLayer.getKeywords().isEmpty()) {
             outputLayer.setKeywordList(configLayer.getKeywords());
         }
+
         if (configLayer.getMetadataURL() != null) {
             final FormatURL metadataURL = configLayer.getMetadataURL();
             outputLayer.setMetadataURL(metadataURL.getFormat(),

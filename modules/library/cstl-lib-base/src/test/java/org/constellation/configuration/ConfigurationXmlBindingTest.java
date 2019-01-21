@@ -254,21 +254,46 @@ public class ConfigurationXmlBindingTest {
         // title, abstract, keyword, MDUrl, DataUrl,
         // authUrl, identifier, attribution, opaque and CRS
         /////////////////////////////////////////
+        Map<String,String> titles = new HashMap<>();
+        titles.put("eng", "mainTitle");
+
+        Map<String,StringList> kewords = new HashMap<>();
+        StringList k = new StringList(Arrays.asList("kw1", "kw2"));
+        kewords.put("eng", k);
+
         Layer mainLayer = new Layer(null, null, "mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
+        mainLayer.setMultiLangTitle(titles);
+        mainLayer.setMultiLangKeywords(kewords);
+
         context = new LayerContext();
         context.setMainLayer(mainLayer);
         sw = new StringWriter();
         marshaller.marshal(context, sw);
 
-        expresult = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + '\n'
-                + "<ns2:LayerContext xmlns:ns2=\"http://www.constellation.org/config\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">" + '\n'
-                + "    <ns2:mainLayer>" + '\n'
-                + "        <ns2:title>mainTitle</ns2:title>" + '\n'
-                + "        <ns2:crs>CRS-custo1</ns2:crs>" + '\n'
-                + "        <ns2:crs>CRS-custo2</ns2:crs>" + '\n'
-                + "    </ns2:mainLayer>" + '\n'
-                + "    <ns2:customParameters/>" + '\n'
-                + "</ns2:LayerContext>\n";
+        expresult = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+                    "<ns2:LayerContext xmlns:ns6=\"http://www.geotoolkit.org/parameter\" xmlns:ns7=\"http://www.opengis.net/gml/3.2\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:ns2=\"http://www.constellation.org/config\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
+                    "  <ns2:mainLayer>\n" +
+                    "    <ns2:title>mainTitle</ns2:title>\n" +
+                    "    <ns2:multiLangTitle>\n" +
+                    "      <entry>\n" +
+                    "        <key>eng</key>\n" +
+                    "        <value>mainTitle</value>\n" +
+                    "      </entry>\n" +
+                    "    </ns2:multiLangTitle>\n" +
+                    "    <ns2:multiLangKeywords>\n" +
+                    "      <entry>\n" +
+                    "        <key>eng</key>\n" +
+                    "        <value>\n" +
+                    "          <ns2:Entry>kw1</ns2:Entry>\n" +
+                    "          <ns2:Entry>kw2</ns2:Entry>\n" +
+                    "        </value>\n" +
+                    "      </entry>\n" +
+                    "    </ns2:multiLangKeywords>\n" +
+                    "    <ns2:crs>CRS-custo1</ns2:crs>\n" +
+                    "    <ns2:crs>CRS-custo2</ns2:crs>\n" +
+                    "  </ns2:mainLayer>\n" +
+                    "  <ns2:customParameters/>\n" +
+                    "</ns2:LayerContext>\n";
 
         result = sw.toString();
         comparator = new DocumentComparator(expresult, result);
@@ -378,12 +403,20 @@ public class ConfigurationXmlBindingTest {
         // title, abstract, keyword, MDUrl, DataUrl,
         // authUrl, identifier, attribution, opaque and CRS
         /////////////////////////////////////////
-        Layer mainLayer = new Layer(null, null, "mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
+        Map<String,String> titles = new HashMap<>();
+        titles.put("eng", "mainTitle");
+        Map<String,StringList> kewords = new HashMap<>();
+        StringList k = new StringList(Arrays.asList("kw1", "kw2"));
+        kewords.put("eng", k);
+
+        Layer mainLayer = new Layer(null, null,"mainTitle", null, null, null, null, null, null, null, null, Arrays.asList("CRS-custo1", "CRS-custo2"));
+        mainLayer.setMultiLangTitle(titles);
+        mainLayer.setMultiLangKeywords(kewords);
+
         context = new LayerContext();
         context.setMainLayer(mainLayer);
 
-        expresult = "{\"type\":\"LayerContext\",\"implementation\":null,"
-                  + "\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"abstrac\":null,\"keywords\":[],\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"providerType\":null,\"providerID\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
+        expresult = "{\"type\":\"LayerContext\",\"implementation\":null,\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"providerType\":null,\"providerID\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
 
         result = mapper.writeValueAsString(context);
         assertEquals(expresult, result);
