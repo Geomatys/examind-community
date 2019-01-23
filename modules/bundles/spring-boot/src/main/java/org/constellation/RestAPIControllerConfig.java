@@ -21,6 +21,7 @@ package org.constellation;
 import java.util.List;
 import org.constellation.api.rest.converter.JsonStyleMessageConverter;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
+import org.constellation.api.rest.converter.ProfileMessageConverter;
 import org.constellation.api.rest.converter.StyleMessageConverter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -41,6 +42,7 @@ public class RestAPIControllerConfig extends WebMvcConfigurationSupport {
         converters.add(new StyleMessageConverter());
         converters.add(new JsonStyleMessageConverter());
         converters.add(new PortrayalMessageConverter());
+        converters.add(new ProfileMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
 
         final XStreamMarshaller marshaller = new XStreamMarshaller();

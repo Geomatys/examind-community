@@ -78,6 +78,9 @@ public class DefaultServiceConfiguration {
         featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
         featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON_UTF8, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
 
+        //Examind specific for coverages
+        featureInfos.add(new GetFeatureInfoCfg("application/json; subtype=profile", "org.constellation.map.featureinfo.CoverageProfileInfoFormat"));
+
         return featureInfos;
     }
 }

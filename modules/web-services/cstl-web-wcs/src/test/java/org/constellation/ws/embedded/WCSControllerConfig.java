@@ -24,6 +24,7 @@ import org.constellation.coverage.ws.rs.GridCoverageWriter;
 import org.constellation.coverage.ws.rs.WCSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
+import org.constellation.api.rest.converter.ProfileMessageConverter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -37,9 +38,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  */
 @Configuration
 public class WCSControllerConfig  extends WebMvcConfigurationSupport {
-    
+
     public WCSControllerConfig() {
-        
+
     }
 
     @Override
@@ -49,8 +50,9 @@ public class WCSControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new GridCoverageNCWriter());
         converters.add(new GridCoverageWriter());
         converters.add(new PortrayalMessageConverter());
+        converters.add(new ProfileMessageConverter());
         converters.add(new RenderedImageWriter());
         converters.add(new ExceptionReportWriter());
-        converters.add(new StringHttpMessageConverter()); 
+        converters.add(new StringHttpMessageConverter());
     }
 }

@@ -20,6 +20,7 @@ package org.constellation.ws.embedded;
 
 import java.util.List;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
+import org.constellation.api.rest.converter.ProfileMessageConverter;
 import org.constellation.map.ws.rs.WMSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
@@ -35,9 +36,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  */
 @Configuration
 public class WMSControllerConfig  extends WebMvcConfigurationSupport {
-    
+
     public WMSControllerConfig() {
-        
+
     }
 
     @Override
@@ -45,8 +46,9 @@ public class WMSControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new WMSResponseWriter());
         converters.add(new PortrayalMessageConverter());
+        converters.add(new ProfileMessageConverter());
         converters.add(new RenderedImageWriter());
         converters.add(new ExceptionReportWriter());
-        converters.add(new StringHttpMessageConverter()); 
+        converters.add(new StringHttpMessageConverter());
     }
 }
