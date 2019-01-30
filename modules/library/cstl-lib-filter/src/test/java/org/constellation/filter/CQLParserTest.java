@@ -23,7 +23,6 @@ package org.constellation.filter;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
-import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
@@ -57,10 +56,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-// Geotoolkit dependencies
-// GeoAPI dependencies
-// JUnit dependencies
 
 /**
  * A suite of test verifying the transformation of an CQL request into a Lucene Query/filter
@@ -222,7 +217,7 @@ public class CQLParserTest {
         assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
         assertEquals("CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"]", spaQuery.getQuery());
-        
+
          /**
          * Test 7: PropertyIsBetween + typeName
          */
@@ -239,8 +234,8 @@ public class CQLParserTest {
         assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
         assertEquals("(CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"] AND objectType:\"MD_Metadata\")", spaQuery.getQuery());
-        
-        
+
+
     }
 
     /**
@@ -405,7 +400,7 @@ public class CQLParserTest {
         assertEquals(spaQuery.getSubQueries().get(1).getQuery(), "Author:\"Timothee Gustave\"");
         assertEquals(spaQuery.getSubQueries().get(1).getLogicalOperator(), LogicalFilterType.NOT);
 
-        
+
         /**
          * Test 9: OR between two NOT propertyIsEqualTo + typeName
          */
@@ -423,11 +418,11 @@ public class CQLParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getQuery(), "(objectType:\"MD_Metadata\")");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
-        
+
         assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.OR);
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().size(), 2);
-        
+
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(0).getQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(1).getQuery(), "Author:\"Timothee Gustave\"");
@@ -864,7 +859,7 @@ public class CQLParserTest {
         spatialFilter = (Filter) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spatialFilter instanceof Within);
-        
+
         /**
          * Test 19: a simple Within filter + typeName
          */

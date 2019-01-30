@@ -34,19 +34,16 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
+import org.geotoolkit.ogc.xml.BBOX;
+import org.geotoolkit.ogc.xml.Boundary;
+import org.geotoolkit.ogc.xml.ID;
+import org.geotoolkit.ogc.xml.SpatialOperator;
+import org.geotoolkit.ogc.xml.TemporalOperator;
+import org.geotoolkit.ogc.xml.XMLFilter;
+import org.geotoolkit.ogc.xml.ComparisonOperator;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
-import org.geotoolkit.ogc.xml.v110.AbstractIdType;
-import org.geotoolkit.ogc.xml.v110.BBOXType;
-import org.geotoolkit.ogc.xml.v110.BinaryComparisonOpType;
-import org.geotoolkit.ogc.xml.v110.ComparisonOpsType;
-import org.geotoolkit.ogc.xml.v110.FilterType;
-import org.geotoolkit.ogc.xml.v110.LowerBoundaryType;
-import org.geotoolkit.ogc.xml.v110.PropertyIsBetweenType;
-import org.geotoolkit.ogc.xml.v110.SpatialOpsType;
-import org.geotoolkit.ogc.xml.v110.TemporalOpsType;
-import org.geotoolkit.ogc.xml.v110.UpperBoundaryType;
-import org.opengis.filter.BinaryComparisonOperator;
+import org.geotoolkit.ogc.xml.BinaryComparisonOperator;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.PropertyIsGreaterThan;
@@ -69,7 +66,6 @@ import org.opengis.filter.temporal.TEquals;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.util.FactoryException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +84,7 @@ import static org.geotoolkit.ogc.xml.FilterXmlFactory.buildPropertyIsLessThanOrE
 import static org.geotoolkit.ogc.xml.FilterXmlFactory.buildPropertyIsNotEquals;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.opengis.filter.PropertyIsBetween;
 
 
 /**
@@ -127,7 +124,7 @@ public abstract class AbstractFilterParser implements FilterParser {
         if (constraint == null)  {
             return getNullFilter(typeNames);
         } else {
-            final FilterType filter = FilterParserUtils.getFilterFromConstraint(constraint);
+            final XMLFilter filter = FilterParserUtils.getFilterFromConstraint(constraint);
             return getQuery(filter, variables, prefixs, typeNames);
         }
     }
@@ -140,7 +137,7 @@ public abstract class AbstractFilterParser implements FilterParser {
      */
     protected abstract SpatialQuery getNullFilter(final List<QName> typeNames);
 
-    protected abstract SpatialQuery getQuery(final FilterType constraint, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException;
+    protected abstract SpatialQuery getQuery(final XMLFilter constraint, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException;
 
     /**
      * Build a piece of query with the specified Comparison filter.
@@ -149,7 +146,7 @@ public abstract class AbstractFilterParser implements FilterParser {
      * @return
      * @throws org.constellation.filter.FilterParserException
      */
-    protected String treatComparisonOperator(final ComparisonOpsType comparisonOps) throws FilterParserException {
+    protected String treatComparisonOperator(final ComparisonOperator comparisonOps) throws FilterParserException {
         final StringBuilder response = new StringBuilder();
 
         if (comparisonOps instanceof PropertyIsLike ) {
@@ -178,15 +175,15 @@ public abstract class AbstractFilterParser implements FilterParser {
                 throw new FilterParserException("An operator propertyIsNull must specified the propertyName.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-        } else if (comparisonOps instanceof PropertyIsBetweenType) {
-            final PropertyIsBetweenType pib = (PropertyIsBetweenType) comparisonOps;
+        } else if (comparisonOps instanceof PropertyIsBetween) {
+            final PropertyIsBetween pib = (PropertyIsBetween) comparisonOps;
             final PropertyName propertyName = (PropertyName) pib.getExpression();
-            final LowerBoundaryType low     = pib.getLowerBoundary();
+            final Boundary low              = (Boundary) pib.getLowerBoundary();
             Literal lowLit = null;
             if (low != null) {
                 lowLit = low.getLiteral();
             }
-            final UpperBoundaryType upp     = pib.getUpperBoundary();
+            final Boundary upp     = (Boundary) pib.getUpperBoundary();
             Literal uppLit = null;
             if (upp != null) {
                 uppLit = upp.getLiteral();
@@ -203,7 +200,7 @@ public abstract class AbstractFilterParser implements FilterParser {
 
             final BinaryComparisonOperator bc = (BinaryComparisonOperator) comparisonOps;
             final PropertyName propertyName   = (PropertyName) bc.getExpression1();
-            final Literal literal             = (Literal) bc.getExpression2();
+            final Literal literal             = (Literal) bc.getLiteral();
 
             if (propertyName == null || literal == null) {
                 throw new FilterParserException("A binary comparison operator must be constitued of a literal and a property name.",
@@ -246,7 +243,7 @@ public abstract class AbstractFilterParser implements FilterParser {
      * @return
      * @throws org.constellation.filter.FilterParserException
      */
-    protected String treatTemporalOperator(final TemporalOpsType temporalOps) throws FilterParserException {
+    protected String treatTemporalOperator(final TemporalOperator temporalOps) throws FilterParserException {
         final StringBuilder response = new StringBuilder();
 
         if (temporalOps instanceof BinaryTemporalOperator) {
@@ -309,7 +306,7 @@ public abstract class AbstractFilterParser implements FilterParser {
      * @param jbIdsOps an Id filter
      * @return a piece of query.
      */
-    protected String treatIDOperator(final List<JAXBElement<? extends AbstractIdType>> jbIdsOps) {
+    protected String treatIDOperator(final ID idfilter) {
         //TODO
         if (true) {
             throw new UnsupportedOperationException("Not supported yet.");
@@ -355,12 +352,11 @@ public abstract class AbstractFilterParser implements FilterParser {
      * @return
      * @throws org.constellation.filter.FilterParserException
      */
-    protected Filter treatSpatialOperator(final JAXBElement<? extends SpatialOpsType> jbSpatialOps) throws FilterParserException {
+    protected Filter treatSpatialOperator(final SpatialOperator spatialOps) throws FilterParserException {
         LuceneOGCFilter spatialfilter   = null;
-        final SpatialOpsType spatialOps = jbSpatialOps.getValue();
 
-        if (spatialOps instanceof BBOXType) {
-            final BBOXType bbox       = (BBOXType) spatialOps;
+        if (spatialOps instanceof BBOX) {
+            final BBOX bbox       = (BBOX) spatialOps;
             final String propertyName = bbox.getPropertyName();
             final String crsName      = bbox.getSRS();
 
@@ -372,7 +368,7 @@ public abstract class AbstractFilterParser implements FilterParser {
                 throw new FilterParserException("An operator the propertyName BBOX must be geometry valued. The property :" + propertyName + " is not.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-            if (bbox.getEnvelope() == null && bbox.getEnvelopeWithTimePeriod() == null) {
+            if (bbox.getEnvelope() == null) {
                 throw new FilterParserException("An operator BBOX must specified an envelope.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
@@ -390,7 +386,7 @@ public abstract class AbstractFilterParser implements FilterParser {
             final double distance             = dist.getDistance();
             final String units                = dist.getDistanceUnits();
             final Expression geom             = dist.getExpression2();
-            final String operator             = jbSpatialOps.getName().getLocalPart();
+            final String operator             = spatialOps.getOperator();
 
             //we verify that all the parameters are specified
             if (dist.getExpression1() == null) {
@@ -453,7 +449,7 @@ public abstract class AbstractFilterParser implements FilterParser {
             final BinarySpatialOperator binSpatial = (BinarySpatialOperator) spatialOps;
 
             String propertyName = null;
-            String operator     = jbSpatialOps.getName().getLocalPart();
+            String operator     = spatialOps.getOperator();
             operator            = operator.toUpperCase();
             Object gmlGeometry  = null;
 
@@ -560,33 +556,33 @@ public abstract class AbstractFilterParser implements FilterParser {
      *
      * @throws FilterParserException
      */
-    protected ComparisonOpsType reverseComparisonOperator(final ComparisonOpsType c) throws FilterParserException {
+    protected ComparisonOperator reverseComparisonOperator(final ComparisonOperator c) throws FilterParserException {
         String operator;
         if (c != null) {
             operator = c.getClass().getSimpleName();
         } else {
             operator = "null";
         }
-        if (c instanceof BinaryComparisonOpType) {
-            final BinaryComparisonOpType bc = (BinaryComparisonOpType) c;
+        if (c instanceof BinaryComparisonOperator) {
+            final BinaryComparisonOperator bc = (BinaryComparisonOperator) c;
 
             if (c instanceof PropertyIsEqualTo) {
-                return (ComparisonOpsType) buildPropertyIsNotEquals("1.1.0",  bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsNotEquals("1.1.0",  bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else if (c instanceof  PropertyIsNotEqualTo) {
-                return (ComparisonOpsType) buildPropertyIsEquals("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsEquals("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else if (c instanceof PropertyIsGreaterThanOrEqualTo) {
-                return (ComparisonOpsType) buildPropertyIsLessThan("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsLessThan("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else if (c instanceof PropertyIsGreaterThan) {
-                return (ComparisonOpsType) buildPropertyIsLessThanOrEqualTo("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsLessThanOrEqualTo("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else if (c instanceof PropertyIsLessThan) {
-                return (ComparisonOpsType) buildPropertyIsGreaterThanOrEqualTo("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsGreaterThanOrEqualTo("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else if (c instanceof PropertyIsLessThanOrEqualTo) {
-                return (ComparisonOpsType) buildPropertyIsGreaterThan("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
+                return (ComparisonOperator) buildPropertyIsGreaterThan("1.1.0", bc.getPropertyName(), bc.getLiteral(), Boolean.TRUE);
 
             } else {
                 throw new FilterParserException("Unkwnow comparison operator: " + operator,

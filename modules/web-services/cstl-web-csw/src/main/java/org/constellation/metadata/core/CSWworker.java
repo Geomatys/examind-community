@@ -71,7 +71,6 @@ import org.geotoolkit.csw.xml.SearchResults;
 import org.geotoolkit.csw.xml.Transaction;
 import org.geotoolkit.csw.xml.TransactionResponse;
 import org.geotoolkit.csw.xml.TransactionSummary;
-import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.Update;
 import org.geotoolkit.csw.xml.v202.AbstractRecordType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
@@ -1413,10 +1412,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                                       MISSING_PARAMETER_VALUE, "constraint");
                     }
                     final List<QName> typeNames = new ArrayList<>();
-                    final String dataType = deleteRequest.getTypeName();
-                    if (dataType != null && !dataType.isEmpty()) {
+                    final QName dataType = deleteRequest.getTypeName();
+                    if (dataType != null) {
                         try {
-                            typeNames.add(TypeNames.valueOf(dataType));
+                            typeNames.add(dataType);
                         } catch (IllegalArgumentException ex) {
                             throw new CstlServiceException("Unexpected value for typeName:" + dataType, INVALID_PARAMETER_VALUE, "typeName");
                         }

@@ -26,6 +26,7 @@ import org.geotoolkit.cql.CQL;
 import org.geotoolkit.cql.CQLException;
 import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.filter.FilterFactoryImpl;
+import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -37,13 +38,13 @@ import org.opengis.filter.expression.PropertyName;
  * @author Guilhem Legal (Geomatys)
  */
 public class FilterParserUtils {
-    
+
     /**
      * Build a Filter with the specified CQL query
-     * 
+     *
      * @param cqlQuery A well-formed CQL query .
      * @return An OGC Filter Object.
-     * 
+     *
      * @throws org.geotoolkit.cql.CQLException
      * @throws javax.xml.bind.JAXBException
      */
@@ -64,23 +65,23 @@ public class FilterParserUtils {
      *
      * @param filter A well-formed Filter .
      * @return A CSQL query string
-     * 
+     *
      * @throws org.geotoolkit.cql.CQLException
      * @throws javax.xml.bind.JAXBException
      */
     public static String filterToCql(final FilterType filter) throws CQLException, JAXBException {
         return CQL.write(filter);
     }
-    
+
     /**
      * Extract a OCG filter from the query constraint of the received request.
-     * 
+     *
      * @param constraint
      * @return
      * @throws FilterParserException
      */
-    public static FilterType getFilterFromConstraint(final QueryConstraint constraint) throws FilterParserException {
-        
+    public static XMLFilter getFilterFromConstraint(final QueryConstraint constraint) throws FilterParserException {
+
         //The null case must be trreated before calling this method
         if (constraint == null)  {
             throw new IllegalArgumentException("The null case must be already treated!");
@@ -89,12 +90,12 @@ public class FilterParserUtils {
         } else if (constraint.getCqlText() != null && constraint.getFilter() != null) {
             throw new FilterParserException("The query constraint must be in Filter or CQL but not both.",
                     INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
-        
+
         // none constraint type are filled we throw an exception
         } else if ((constraint.getCqlText() == null || constraint.getCqlText().isEmpty()) && constraint.getFilter() == null) {
             throw new FilterParserException("The query constraint must contain a Filter or a CQL query (not empty).",
                     INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
-        
+
         // for a CQL request we transform it in Filter
         } else if (constraint.getCqlText() != null) {
             try {
@@ -108,13 +109,13 @@ public class FilterParserUtils {
             } catch (UnsupportedOperationException ex) {
                 throw new FilterParserException("The CQL query is not supported: " + ex.getMessage(), INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-            
+
         // for a filter we return directly it
         } else {
             return constraint.getFilter();
         }
     }
-    
+
     /**
      * Replace The special character in a literal value for a propertyIsLike filter,
      * with the implementation specific value.
@@ -139,7 +140,7 @@ public class FilterParserUtils {
         }
         return brutValue;
     }
-    
+
     /**
      * Return true is the specified property has to be treated as a date Field.
      *
@@ -149,6 +150,18 @@ public class FilterParserUtils {
     public static boolean isDateField(final PropertyName pName) {
         if (pName != null && pName.getPropertyName() != null) {
             String propertyName = pName.getPropertyName();
+            final int semicolonPos = propertyName.lastIndexOf(':');
+            if (semicolonPos != -1) {
+                propertyName = propertyName.substring(semicolonPos + 1);
+            }
+            return propertyName.contains("Date") || propertyName.contains("Modified")  || propertyName.contains("date")
+                || propertyName.equalsIgnoreCase("TempExtent_begin") || propertyName.equalsIgnoreCase("TempExtent_end");
+        }
+        return false;
+    }
+
+    public static boolean isDateField(String propertyName) {
+        if (propertyName != null) {
             final int semicolonPos = propertyName.lastIndexOf(':');
             if (semicolonPos != -1) {
                 propertyName = propertyName.substring(semicolonPos + 1);

@@ -22,12 +22,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import org.constellation.metadata.index.elasticsearch.SpatialFilterBuilder;
 import org.constellation.metadata.index.elasticsearch.SpatialQuery;
 import org.geotoolkit.csw.xml.QueryConstraint;
-import org.geotoolkit.ogc.xml.v110.AbstractIdType;
+import org.geotoolkit.ogc.xml.ComparisonOperator;
+import org.geotoolkit.ogc.xml.ID;
+import org.geotoolkit.ogc.xml.LogicOperator;
+import org.geotoolkit.ogc.xml.SpatialOperator;
+import org.geotoolkit.ogc.xml.TemporalOperator;
+import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.v110.AndType;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import org.geotoolkit.ogc.xml.v110.LiteralType;
@@ -43,18 +47,18 @@ import org.opengis.filter.Filter;
 public class ElasticSearchFilterParser implements FilterParser {
 
     private static final String DEFAULT_FIELD = "metafile:doc";
-    
+
     @Override
     public org.geotoolkit.index.SpatialQuery getQuery(final QueryConstraint constraint, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
         //if the constraint is null we make a null filter
         if (constraint == null)  {
             return new SpatialQuery(getTypeQuery(typeNames), null);
         } else {
-            final FilterType filter = FilterParserUtils.getFilterFromConstraint(constraint);
+            final XMLFilter filter = FilterParserUtils.getFilterFromConstraint(constraint);
             return getQuery(filter, variables, prefixs, typeNames);
         }
     }
-    
+
     private String getTypeQuery(final List<QName> typeNames) {
         if (typeNames != null && !typeNames.isEmpty()) {
             StringBuilder query = new StringBuilder();
@@ -67,7 +71,7 @@ public class ElasticSearchFilterParser implements FilterParser {
         }
         return DEFAULT_FIELD;
     }
-    
+
     private Filter getTypeFilter(final List<QName> typeNames) {
         if (typeNames != null && !typeNames.isEmpty()) {
             if (typeNames.size() == 1) {
@@ -83,10 +87,10 @@ public class ElasticSearchFilterParser implements FilterParser {
         }
         return null;
     }
-    
-    protected SpatialQuery getQuery(FilterType queryFilter, Map<String, QName> variables, Map<String, String> prefixs, List<QName> typeNames) throws FilterParserException {
+
+    protected SpatialQuery getQuery(XMLFilter queryFilter, Map<String, QName> variables, Map<String, String> prefixs, List<QName> typeNames) throws FilterParserException {
         final Object typeFilter =  getTypeFilter(typeNames);
-        final FilterType filter;
+        final XMLFilter filter;
         if (typeFilter != null) {
             filter = new FilterType(new AndType(queryFilter, typeFilter));
         } else {
@@ -95,25 +99,27 @@ public class ElasticSearchFilterParser implements FilterParser {
         SpatialQuery response = null;
         try {
             if (filter != null) {
+                Object main = filter.getFilterObject();
+
                 // we treat logical Operators like AND, OR, ...
-                if (filter.getLogicOps() != null) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build(filter.getLogicOps().getValue()));
+                if (main instanceof LogicOperator) {
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter) main));
 
                 // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
-                } else if (filter.getComparisonOps() != null) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build(filter.getComparisonOps().getValue()));
+                } else if (main instanceof ComparisonOperator) {
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
 
                 // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
-                } else if (filter.getSpatialOps() != null) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build(filter.getSpatialOps().getValue()));
+                } else if (main instanceof SpatialOperator) {
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
 
                 // we treat time operator: TimeAfter, TimeBefore, TimeDuring, ...
-                } else if (filter.getTemporalOps()!= null) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build(filter.getTemporalOps().getValue()));
+                } else if (main instanceof TemporalOperator) {
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
 
-                } else if (filter.getId() != null && !filter.getId().isEmpty()) {
-                    response = new SpatialQuery(treatIDOperator(filter.getId()), null);
-                
+                } else if (main instanceof ID) {
+                    response = new SpatialQuery(treatIDOperator((ID) main), null);
+
                 }  else {
                     throw new FilterParserException("Uncorrrect or empty filter specified.");
                 }
@@ -123,14 +129,14 @@ public class ElasticSearchFilterParser implements FilterParser {
         }
         return response;
     }
-    
+
     /**
      * Return a piece of query for An Id filter.
      *
      * @param jbIdsOps an Id filter
      * @return a piece of query.
      */
-    protected String treatIDOperator(final List<JAXBElement<? extends AbstractIdType>> jbIdsOps) {
+    protected String treatIDOperator(final ID jbIdsOps) {
         //TODO
         if (true) {
             throw new UnsupportedOperationException("Not supported yet.");
