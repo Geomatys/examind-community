@@ -60,7 +60,6 @@ import static org.constellation.metadata.FileSystemCSWworkerTest.writeDataFile;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_QNAME;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertEquals;
@@ -70,6 +69,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
 
 /**
  * The purpose of this test is to run a "discovery" CSW and launch a spatial request on it.
@@ -186,7 +186,7 @@ public class TreeCloseTest {
          *  TEST 1 : getRecords with HITS - DC mode (FULL) - CQL text: BBOX
          */
 
-        List<QName> typeNames             = Arrays.asList(RECORD_QNAME);
+        List<QName> typeNames             = Arrays.asList(RECORD_202_QNAME);
         ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
         SortByType sortBy                 = null;
         QueryConstraintType constraint    = new QueryConstraintType("BBOX(ows:BoundingBox, 10,20,30,40)", "1.0.0");

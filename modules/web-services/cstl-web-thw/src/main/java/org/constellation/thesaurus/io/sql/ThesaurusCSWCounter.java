@@ -44,7 +44,7 @@ import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.ResultType;
 import static org.geotoolkit.csw.xml.TypeNames.IDENTIFIER_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_QNAME;
+import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
 import org.geotoolkit.csw.xml.v202.GetRecordsResponseType;
 import org.geotoolkit.csw.xml.v202.GetRecordsType;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
@@ -61,24 +61,24 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Guilhem Legal (Geomatys)
  */
 public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
-    
+
     protected static final Logger LOGGER = Logging.getLogger(ThesaurusCSWCounter.class.getName());
-    
+
     @Autowired
     @Qualifier("dataSource")
     private DataSource datasource;
-    
+
     protected final IThesaurusHandler handler;
-    
+
     protected final String likeOperator = "ILIKE";
-    
+
     private static final String CQL_REQUEST = "( dc:title LIKE '\"$term\"'  OR dct:abstract LIKE '\"$term\"'  OR dc:subject LIKE '\"$term\"' )";
-    
+
     public ThesaurusCSWCounter(final IThesaurusHandler handler) {
         this.handler = handler;
         SpringHelper.injectDependencies(this);
     }
-    
+
     protected void clearThesaurusCount(final int cswID, final Connection c) {
         try (PreparedStatement clearTCStatement  = c.prepareStatement("DELETE FROM \"th_base\".\"term_count\" WHERE \"service\"=?");
              PreparedStatement clearTIdStatement = c.prepareStatement("DELETE FROM \"th_base\".\"aggregated_identifier\" WHERE \"service\"=?")){
@@ -91,14 +91,14 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             LOGGER.log(Level.WARNING, "SQL exception while clearing the term count for:" + cswID, ex);
         }
     }
-    
+
     @Override
     public void refreshThesaurusCSWCount() {
         final long start = System.currentTimeMillis();
         try (Connection con = datasource.getConnection();
              PreparedStatement stmt = con.prepareStatement("SELECT * FROM \"th_base\".\"linked_service\"");
              ResultSet rs = stmt.executeQuery()) {
-            
+
             while (rs.next()) {
                 final int id     = rs.getInt(1);
                 final String url = rs.getString(2);
@@ -109,7 +109,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         LOGGER.log(Level.INFO, "thesaurus CSW mapping executed in :{0} ms", (System.currentTimeMillis() - start));
     }
-    
+
     protected String getCswID(final String url, final Connection c) throws SQLException {
         String result = null;
         try (PreparedStatement stmt = c.prepareStatement("SELECT\"id\" WHERE url=?")) {
@@ -122,14 +122,14 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return result;
     }
-    
-    
+
+
     protected void createThesaurusCswCount(final String CSWURL, final int cswID, final Connection con) {
         try {
             clearThesaurusCount(cswID, con);
             final URL cswURL                         = new URL(CSWURL);
             final List<Thesaurus> availableThesaurus = handler.getLoadedThesaurus();
-            
+
             for (Thesaurus thesaurus : availableThesaurus) {
                 if(thesaurus.getState()){
                     for (ISOLanguageCode languageCode : thesaurus.getLanguage()) {
@@ -166,11 +166,11 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             LOGGER.log(Level.WARNING, "Marlformed CSW URL:" + CSWURL, ex);
         }
     }
-    
+
     protected void updateTermCount(final int serviceID, final String uriConcept, final String label, final List<String> aggregatedIdentifiers, final String language, final Connection c) {
         updateTermCount(serviceID, uriConcept, label, aggregatedIdentifiers, language, "term_count", "aggregated_identifier", c);
     }
-    
+
     protected void updateTermCount(final int serviceID, final String uriConcept, final String label, final List<String> aggregatedIdentifiers, final String language,
             final String termTableName, final String aggregatedTableName, final Connection c) {
         try (PreparedStatement updateTCStmt = c.prepareStatement("UPDATE \"th_base\".\"" + termTableName + "\" "
@@ -190,8 +190,8 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             updateTCStmt.setString(4, language);
             updateTCStmt.setString(5, uriConcept);
             updateTCStmt.executeUpdate();
-        
-            
+
+
             final StringBuilder sb = new StringBuilder();
             for (String id : aggregatedIdentifiers) {
                 sb.append(id).append(';');
@@ -201,22 +201,22 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             updateTIdStmt.setInt(3, serviceID);
             updateTIdStmt.setString(4, uriConcept);
             updateTIdStmt.executeUpdate();
-            
+
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQL Exception while storing term count", ex);
         }
     }
-    
-    protected boolean storeTermCount(final int serviceID, final String uriConcept, final String label, final int count, 
+
+    protected boolean storeTermCount(final int serviceID, final String uriConcept, final String label, final int count,
             final List<String> aggregatedIdentifiers, final String language, final String theme, final String uriThesaurus, final Connection c) {
           return storeTermCount(serviceID, uriConcept, label, count, aggregatedIdentifiers, language, theme, "term_count", "aggregated_identifier", uriThesaurus, c);
     }
-    
-    private boolean storeTermCount(final int serviceID, final String uriConcept, final String label, final int count, final List<String> aggregatedIdentifiers, 
+
+    private boolean storeTermCount(final int serviceID, final String uriConcept, final String label, final int count, final List<String> aggregatedIdentifiers,
             final String language, final String theme, final String termTableName, final String aggregatedTableName, final String uriThesaurus, final Connection c) {
         try {
             LOGGER.log(Level.FINER, "storing count for:{0} = {1} Aggregated = {2}", new Object[]{label, count, aggregatedIdentifiers.size()});
-          
+
             try (PreparedStatement insertTermCountStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + termTableName + "\" VALUES (?,?,?,?,?,?,?,?)")) {
                 insertTermCountStatement.setString(1, label);
                 insertTermCountStatement.setInt(2, serviceID);
@@ -228,12 +228,12 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                 insertTermCountStatement.setString(8, uriThesaurus);
                 insertTermCountStatement.executeUpdate();
             }
-            
+
             final StringBuilder sb = new StringBuilder();
             for (String id : aggregatedIdentifiers) {
                 sb.append(id).append(';');
             }
-            
+
             try (PreparedStatement insertTermIdStatement = c.prepareStatement("INSERT INTO \"th_base\".\"" + aggregatedTableName + "\" VALUES (?,?,?,?,?,?)")) {
                 insertTermIdStatement.setString(1, label);
                 insertTermIdStatement.setInt(2, serviceID);
@@ -244,17 +244,17 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                 insertTermIdStatement.executeUpdate();
             }
             return true;
-            
+
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQL Exception while storing term count: term=" + label + " language=" + language + " maybe the term has two parent.(" +  ex.getMessage() + ")");
             return false;
         }
     }
-    
+
     @Override
     public void storeLinkedCsw(final List<String> linkedCsws) {
         try (Connection con = datasource.getConnection()) {
-            
+
             try (PreparedStatement clearLinkedStmt = con.prepareStatement("DELETE FROM \"th_base\".\"linked_service\"")){
                 clearLinkedStmt.executeUpdate();
             } catch (SQLException ex) {
@@ -278,12 +278,12 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             LOGGER.log(Level.WARNING, "SQL Exception while storing linked CSW.", ex);
         }
     }
-    
+
     /**
      * {@inheritDoc }
      */
     @Override
-    public List<String> getTermsMatchingKeywords(final String keyword, final List<String> csw, final List<String> ignoreCsw, 
+    public List<String> getTermsMatchingKeywords(final String keyword, final List<String> csw, final List<String> ignoreCsw,
             final String language, final boolean aggregated, final List<String> themes, final List<String> thesaurusList, final int SearchMode) {
         final List<String> result = new ArrayList<>();
         final Map<String, ShortConcept> termOccurenceMerge = new HashMap<>();
@@ -300,7 +300,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
          * 1) Language selection
          */
         request.append(" WHERE \"language\"='").append(language.toUpperCase(Locale.US)).append("'");
-        
+
         /*
          * 2) If the specified CSW are null we search for all.
          */
@@ -312,7 +312,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             request.delete(request.length() - 4, request.length());
             request.append(')');
         }
-        
+
         /*
          * 3) we exclude the unwanted csw.
          */
@@ -324,7 +324,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             request.delete(request.length() - 5, request.length());
             request.append(')');
         }
-        
+
         /*
          * 4) we filter on the theme column
          */
@@ -336,7 +336,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             request.delete(request.length() - 4, request.length());
             request.append(')');
         }
-        
+
         /*
          * 5) we filter on the keyword.
          * @TODO use searchModel
@@ -349,7 +349,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         if (!aggregated) {
             request.append(" AND \"count\" > 0 ");
         }
-        
+
         /*
          * 7) we filter on the thesaurus
          */
@@ -357,15 +357,15 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             LOGGER.info("no thesaurus activated returning 0 result");
             return result;
         }
-        
+
         request.append(" AND (");
         for (String thesaurus : thesaurusList) {
             request.append("\"uri_thesaurus\"='").append(thesaurus).append("' OR ");
         }
         request.delete(request.length() - 4, request.length());
         request.append(')');
-        
-        
+
+
         /*
          * 8) we execute the request
          */
@@ -373,7 +373,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         try (Connection c = datasource.getConnection();
              Statement stmt = c.createStatement();
              ResultSet rs = stmt.executeQuery(requestValue)){
-            
+
             while (rs.next()) {
                 final String uri_concept = rs.getString(1);
                 final String term = rs.getString(2);
@@ -387,8 +387,8 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQL exception while executing:" + requestValue, ex);
-        }       
-        
+        }
+
         /*
          * 6) we transform the map in string list.
          */
@@ -397,7 +397,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return result;
     }
-    
+
     @Override
     public Integer getNumeredCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
@@ -430,7 +430,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return result;
     }
-    
+
     @Override
     public Integer getAggregatedCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
@@ -463,7 +463,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return result;
     }
-    
+
     /**
      * {@inheritDoc }
      */
@@ -473,7 +473,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         try (Connection c = datasource.getConnection();
              PreparedStatement getLinkedCswStmt = c.prepareStatement("SELECT \"url\" FROM \"th_base\".\"linked_service\"");
              ResultSet rs = getLinkedCswStmt.executeQuery()) {
-            
+
             while (rs.next()) {
                 results.add(rs.getString(1));
             }
@@ -482,8 +482,8 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return results;
     }
-    
-   
+
+
     @Override
     public void close() {
         // do nothing
@@ -519,8 +519,8 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return results;
     }
-    
-    protected void searchTransitive(final int cswId, final ISOLanguageCode lang, final URL cswURL, 
+
+    protected void searchTransitive(final int cswId, final ISOLanguageCode lang, final URL cswURL,
             final Concept concept, final DefaultMutableTreeNode parent, final String thesaurusUri, final Connection c) {
         if (concept == null) {return;}
         final String language          = lang.getTwoLetterCode();
@@ -549,7 +549,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             final String theme = handler.getConceptTheme(conceptURI, thesaurusUri);
             storeTermCount(cswId, conceptURI, currentTerm, count, identifiers, language, theme, thesaurusUri, c);
         }
-        
+
         final DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode(new ShortConcept(conceptURI, concept.getPrefLabel(language), identifiers));
         if (parent != null) {
             parent.add(currentNode);
@@ -563,9 +563,9 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             searchTransitive(cswId, lang, cswURL, related, currentNode, thesaurusUri, c);
         }
     }
-    
-    
-    
+
+
+
     private static List<String> mergeList(final List<String> list1, final List<String> list2) {
         final List<String> result = new ArrayList<>();
         result.addAll(list1);
@@ -579,10 +579,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     /**
      * Send a GetRecords request to the specified csw service and the specified term.
      * Return then the count of results for this term.
-     * 
+     *
      * @param cswUrl The CSW service URL.
      * @param term The term searched.
-     * 
+     *
      * @return The number of result matching for the term in the CSW service.
      */
     private List<String> getCountForConcept(final URL cswUrl, final String term) {
@@ -596,11 +596,11 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         final String cleanTerm = term.replaceAll("'", "''");
         final String cql = CQL_REQUEST.replace("$term", cleanTerm);
         final QueryConstraintType constraint = new QueryConstraintType(cql, "1.1.0");
-        final QueryType query = new QueryType(Arrays.asList(RECORD_QNAME), Arrays.asList(IDENTIFIER_QNAME), null, constraint);
+        final QueryType query = new QueryType(Arrays.asList(RECORD_202_QNAME), Arrays.asList(IDENTIFIER_QNAME), null, constraint);
         final GetRecordsType cswRequest = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, "text/xml", "http://www.opengis.net/cat/csw/2.0.2", 1, 5000, query, null);
-        
+
         /*
-         * 2) send the request. 
+         * 2) send the request.
          */
         try {
             final Object response = HTTPCommunicator.sendRequest(cswUrl, cswRequest, CSWMarshallerPool.getInstance(), false);
@@ -629,24 +629,24 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         }
         return results;
     }
-    
+
     protected static class ShortConcept {
         public final String uri;
         public final String term;
         public List<String> identifiers;
         public Integer count;
-        
+
         public ShortConcept(final String uri, final String term, final List<String> identifiers) {
             this.term = term;
             this.uri  = uri;
             this.identifiers = identifiers;
         }
-        
+
         public ShortConcept(final String uri, final String term, final Integer count) {
             this.term  = term;
             this.uri   = uri;
             this.count = count;
         }
     }
-    
+
 }

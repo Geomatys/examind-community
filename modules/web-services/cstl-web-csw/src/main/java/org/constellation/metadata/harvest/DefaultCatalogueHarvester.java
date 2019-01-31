@@ -32,11 +32,9 @@ import org.geotoolkit.csw.xml.SearchResults;
 import org.geotoolkit.csw.xml.v202.Capabilities;
 import org.geotoolkit.csw.xml.v202.ElementSetNameType;
 import org.geotoolkit.csw.xml.v202.GetCapabilitiesType;
-import org.geotoolkit.csw.xml.v202.GetRecordsResponseType;
 import org.geotoolkit.csw.xml.v202.GetRecordsType;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.csw.xml.v202.QueryType;
-import org.geotoolkit.csw.xml.v202.SearchResultsType;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import org.geotoolkit.ogc.xml.v110.NotType;
 import org.geotoolkit.ogc.xml.v110.PropertyIsLikeType;
@@ -737,11 +735,11 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
 
                 final Object response = sendRequest(serverURL, request);
 
-                if (response instanceof GetRecordsResponseType) {
+                if (response instanceof GetRecordsResponse) {
 
                     LOGGER.log(Level.INFO, "Response of distant service:\n{0}", response.toString());
-                    final GetRecordsResponseType serviceResponse = (GetRecordsResponseType) response;
-                    final SearchResultsType results = serviceResponse.getSearchResults();
+                    final GetRecordsResponse serviceResponse = (GetRecordsResponse) response;
+                    final SearchResults results = serviceResponse.getSearchResults();
 
                     //we looking for CSW record
                     for (Object otherRecord : results.getAny()) {

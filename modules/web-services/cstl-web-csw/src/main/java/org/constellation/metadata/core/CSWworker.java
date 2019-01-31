@@ -43,7 +43,6 @@ import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.csw.xml.AbstractCapabilities;
-import org.geotoolkit.csw.xml.AbstractCswRequest;
 import org.geotoolkit.csw.xml.Acknowledgement;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.CswXmlFactory;
@@ -133,7 +132,6 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IMetadataBusiness;
 import static org.constellation.metadata.core.CSWConstants.ALL;
 import static org.constellation.metadata.core.CSWConstants.CSW;
-import static org.constellation.metadata.core.CSWConstants.CSW_202_VERSION;
 import static org.constellation.metadata.core.CSWConstants.CSW_FILTER_CAPABILITIES;
 import static org.constellation.metadata.core.CSWConstants.EBRIM_25;
 import static org.constellation.metadata.core.CSWConstants.EBRIM_30;
@@ -152,7 +150,6 @@ import org.constellation.provider.DataProviders;
 import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
 import org.geotoolkit.csw.xml.InsertResult;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.DC_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM25_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM30_TYPE_NAMES;
@@ -161,16 +158,19 @@ import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.FC_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.ISO_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.containsOneOfEbrim25;
 import static org.geotoolkit.csw.xml.TypeNames.containsOneOfEbrim30;
-import org.geotoolkit.csw.xml.v202.InsertResultType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+import org.geotoolkit.ows.xml.RequestBase;
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
+import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_202_QNAME;
+import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
+import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
 
 
 /**
@@ -412,7 +412,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (supportedDataTypes.contains(MetadataType.ISO_19115)) {
             supportedTypeNames.addAll(ISO_TYPE_NAMES);
         }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE)) {
+        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW202)) {
+            supportedTypeNames.addAll(DC_TYPE_NAMES);
+        }
+        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
             supportedTypeNames.addAll(DC_TYPE_NAMES);
         }
         if (supportedDataTypes.contains(MetadataType.EBRIM)) {
@@ -434,8 +437,11 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             acceptedResourceType.add(LegacyNamespaces.GMD);
             acceptedResourceType.add(Namespaces.GFC);
         }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE)) {
+        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW202)) {
             acceptedResourceType.add(LegacyNamespaces.CSW);
+        }
+        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
+            acceptedResourceType.add(Namespaces.CSW);
         }
         if (supportedDataTypes.contains(MetadataType.EBRIM)) {
             acceptedResourceType.add(EBRIM_30);
@@ -461,7 +467,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private void initializeRecordSchema() throws CstlServiceException {
         try {
             final Unmarshaller unmarshaller = XSDMarshallerPool.getInstance().acquireUnmarshaller();
-            schemas.put(RECORD_QNAME,              unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/record.xsd")));
+            schemas.put(RECORD_202_QNAME,              unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/record.xsd")));
             schemas.put(METADATA_QNAME,            unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/metadata.xsd")));
             schemas.put(EXTRINSIC_OBJECT_QNAME,    unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/ebrim-3.0.xsd")));
             schemas.put(EXTRINSIC_OBJECT_25_QNAME, unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/ebrim-2.5.xsd")));
@@ -520,35 +526,23 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     /**
      * Web service operation describing the service and its capabilities.
      *
-     * @param requestCapabilities A document specifying the section you would obtain like :
+     * @param request A document specifying the section you would obtain like :
      *      ServiceIdentification, ServiceProvider, Contents, operationMetadata.
      *
      * @return the capabilities document
      */
     @Timed
-    public AbstractCapabilities getCapabilities(final GetCapabilities requestCapabilities) throws CstlServiceException {
+    public AbstractCapabilities getCapabilities(final GetCapabilities request) throws CstlServiceException {
         isWorking();
         LOGGER.log(logLevel, "getCapabilities request processing\n");
         final long startTime = System.currentTimeMillis();
 
         //we verify the base request attribute
-        if (requestCapabilities.getService() != null) {
-            if (!requestCapabilities.getService().equals(CSW)) {
-                throw new CstlServiceException("service must be \"CSW\"!", INVALID_PARAMETER_VALUE, SERVICE_PARAMETER);
-            }
-        } else {
-            throw new CstlServiceException("Service must be specified!",
-                                             MISSING_PARAMETER_VALUE, SERVICE_PARAMETER);
-        }
-        final AcceptVersions versions = requestCapabilities.getAcceptVersions();
-        if (versions != null) {
-            if (!versions.getVersion().contains(CSW_202_VERSION)){
-                 throw new CstlServiceException("version available : 2.0.2",
-                                             VERSION_NEGOTIATION_FAILED, "acceptVersion");
-            }
-        }
+        verifyBaseRequest(request, false, true);
 
-        Sections sections = requestCapabilities.getSections();
+        final String currentVersion = request.getVersion().toString();
+
+        Sections sections = request.getSections();
         if (sections == null) {
             sections = new SectionsType(ALL);
         }
@@ -558,12 +552,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
 
         //set the current updateSequence parameter
-        final boolean returnUS = returnUpdateSequenceDocument(requestCapabilities.getUpdateSequence());
+        final boolean returnUS = returnUpdateSequenceDocument(request.getUpdateSequence());
         if (returnUS) {
-            return CswXmlFactory.createCapabilities("2.0.2", getCurrentUpdateSequence());
+            return CswXmlFactory.createCapabilities(currentVersion, getCurrentUpdateSequence());
         }
 
-        final AbstractCapabilitiesCore cachedCapabilities = getCapabilitiesFromCache("2.0.2", null);
+        final AbstractCapabilitiesCore cachedCapabilities = getCapabilitiesFromCache(currentVersion, null);
         if (cachedCapabilities != null) {
             return (AbstractCapabilities) cachedCapabilities.applySections(sections);
         }
@@ -582,13 +576,21 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
         // we load the skeleton capabilities
         final Details skeleton = getStaticCapabilitiesObject("csw", null);
-        final AbstractCapabilities skeletonCapabilities = CSWConstants.createCapabilities("2.0.2", skeleton);
+        final AbstractCapabilities skeletonCapabilities = CSWConstants.createCapabilities(currentVersion, skeleton);
+
+        // verification (should not happen in normal cases)
+        if (!CSWConstants.OPERATIONS_METADATA.containsKey(currentVersion)) {
+            throw new CstlServiceException("Missing operation metadata for version: " + currentVersion);
+        }
+        if (!CSWConstants.CSW_FILTER_CAPABILITIES.containsKey(currentVersion)) {
+            throw new CstlServiceException("Missing filter capabilities for version: " + currentVersion);
+        }
 
         //we prepare the response document
         final AbstractServiceIdentification si = skeletonCapabilities.getServiceIdentification();
         final AbstractServiceProvider       sp = skeletonCapabilities.getServiceProvider();
-        final FilterCapabilities            fc = CSW_FILTER_CAPABILITIES;
-        final AbstractOperationsMetadata   om  = CSWConstants.OPERATIONS_METADATA.clone();
+        final FilterCapabilities            fc = CSW_FILTER_CAPABILITIES.get(currentVersion);
+        final AbstractOperationsMetadata   om  = CSWConstants.OPERATIONS_METADATA.get(currentVersion).clone();
 
         // we remove the operation not supported in this profile (transactional/discovery)
         if (profile == DISCOVERY) {
@@ -603,7 +605,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final AbstractDomain cascadedCSW  = om.getConstraint("FederatedCatalogues");
         if (cascadedCSW == null) {
             if (cascadedCSWservers != null && !cascadedCSWservers.isEmpty()) {
-                final AbstractDomain fedCata = CswXmlFactory.createDomain("2.0.2","FederatedCatalogues", cascadedCSWservers);
+                final AbstractDomain fedCata = CswXmlFactory.createDomain(currentVersion,"FederatedCatalogues", cascadedCSWservers);
                 om.addConstraint(fedCata);
             }
         } else {
@@ -716,9 +718,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         m.setMultiLingualCapabilities(inspireCapa);
         om.setExtendedCapabilities(m);
 
-        final AbstractCapabilities c = CswXmlFactory.createCapabilities("2.0.2", si, sp, om, null, fc);
+        final AbstractCapabilities c = CswXmlFactory.createCapabilities(currentVersion, si, sp, om, null, fc);
 
-        putCapabilitiesInCache("2.0.2", null, c);
+        putCapabilitiesInCache(currentVersion, null, c);
         LOGGER.log(logLevel, "GetCapabilities request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return (AbstractCapabilities) c.applySections(sections);
     }
@@ -732,7 +734,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     public Object getRecords(final GetRecordsRequest request) throws CstlServiceException {
         LOGGER.log(logLevel, "GetRecords request processing\n");
         final long startTime = System.currentTimeMillis();
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
 
         final String version   = request.getVersion().toString();
         final String id        = request.getRequestId();
@@ -938,7 +940,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 mode = MetadataType.EBRIM;
                 break;
             case LegacyNamespaces.CSW:
-                mode = MetadataType.DUBLINCORE;
+                mode = MetadataType.DUBLINCORE_CSW202;
+                break;
+            case Namespaces.CSW:
+                mode = MetadataType.DUBLINCORE_CSW300;
                 break;
             default:
                 throw new IllegalArgumentException("undefined outputSchema");
@@ -948,7 +953,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         switch(resultType) {
             // we return only the number of result matching
             case HITS:
-                searchResults = CswXmlFactory.createSearchResults("2.0.2", id, set, nbResults, nextRecord);
+                searchResults = CswXmlFactory.createSearchResults(version, id, set, nbResults, nextRecord);
                 break;
 
             // we return a list of Record
@@ -979,7 +984,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     records.add(additionalResult);
                 }
 
-                searchResults = CswXmlFactory.createSearchResults("2.0.2",
+                searchResults = CswXmlFactory.createSearchResults(version,
                                                                   id,
                                                                   set,
                                                                   totalMatched,
@@ -1035,12 +1040,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
     /**
      * Add the convertible typeName to the list.
-     * Example : MD_Metadata can be converted to a csw:Record
+     * Example : MD_Metadata can be converted to a csw:Record (2 or 3)
      */
     private List<QName> getConvertibleTypeNames(final List<QName> typeNames) {
         final List<QName> result = new ArrayList<>();
         for (QName typeName : typeNames) {
-            if (typeName.equals(RECORD_QNAME) && !result.contains(METADATA_QNAME)) {
+            if ( (typeName.equals(RECORD_202_QNAME) || typeName.equals(RECORD_300_QNAME)) && !result.contains(METADATA_QNAME)) {
                 result.add(METADATA_QNAME);
             }
             result.add(typeName);
@@ -1056,7 +1061,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     public GetRecordByIdResponse getRecordById(final GetRecordById request) throws CstlServiceException {
         LOGGER.log(logLevel, "GetRecordById request processing\n");
         final long startTime = System.currentTimeMillis();
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
 
         final String version   = request.getVersion().toString();
         final String userLogin = getUserLogin();
@@ -1079,7 +1084,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                                   INVALID_PARAMETER_VALUE, OUTPUT_SCHEMA);
             }
         } else {
-            outputSchema = LegacyNamespaces.CSW;
+            if ("2.0.2".equals(version)) {
+                outputSchema = LegacyNamespaces.CSW;
+            } else {
+                // 3.0.0
+                outputSchema = Namespaces.CSW;
+            }
         }
 
         if (request.getId().isEmpty()){
@@ -1094,7 +1104,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final MetadataType mode;
         switch (outputSchema) {
             case LegacyNamespaces.CSW:
-                mode         = MetadataType.DUBLINCORE;
+                mode         = MetadataType.DUBLINCORE_CSW202;
+                break;
+            case Namespaces.CSW:
+                mode         = MetadataType.DUBLINCORE_CSW300;
                 break;
             case LegacyNamespaces.GMD:
                 mode         = MetadataType.ISO_19115;
@@ -1196,7 +1209,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         LOGGER.log(logLevel, "DescribeRecords request processing\n");
         final long startTime = System.currentTimeMillis();
 
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
 
         // verify the output format of the response
         CSWUtils.getOutputFormat(request);
@@ -1233,8 +1246,8 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
         final List<SchemaComponent> components   = new ArrayList<>();
 
-        if (typeNames.contains(RECORD_QNAME)) {
-            final Object object = schemas.get(RECORD_QNAME);
+        if (typeNames.contains(RECORD_202_QNAME)) {
+            final Object object = schemas.get(RECORD_202_QNAME);
             final SchemaComponent component = CswXmlFactory.createSchemaComponent(version, LegacyNamespaces.CSW, schemaLanguage, object);
             components.add(component);
         }
@@ -1269,7 +1282,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     public GetDomainResponse getDomain(final GetDomain request) throws CstlServiceException{
         LOGGER.log(logLevel, "GetDomain request processing\n");
         final long startTime = System.currentTimeMillis();
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
         final String currentVersion = request.getVersion().toString();
 
         // we prepare the response
@@ -1297,14 +1310,18 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
                     final String operationName = token.substring(0, pointLocation);
                     final String parameter     = token.substring(pointLocation + 1);
-                    final AbstractOperation o  = OPERATIONS_METADATA.getOperation(operationName);
+                    final AbstractOperation o  = OPERATIONS_METADATA.get(currentVersion).getOperation(operationName);
                     if (o != null) {
                         final AbstractDomain param = o.getParameterIgnoreCase(parameter);
                         QName type;
                         if ("GetCapabilities".equals(operationName)) {
-                            type = CAPABILITIES_QNAME;
+                            if ("2.0.2".equals(currentVersion)) {
+                                type = CAPABILITIES_202_QNAME;
+                            } else {
+                                type = CAPABILITIES_300_QNAME;
+                            }
                         } else {
-                            type = RECORD_QNAME;
+                            type = RECORD_202_QNAME;
                         }
                         if (param != null) {
                             final DomainValues value = CswXmlFactory.getDomainValues(currentVersion, token, null, param.getValue(), type);
@@ -1361,7 +1378,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             throw new UnauthorizedException("You must be authentified to perform a transaction request.");
         }
         final long startTime = System.currentTimeMillis();
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
 
         final String version = request.getVersion().toString();
 
@@ -1389,10 +1406,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                             totalUpdated++;
                         } else {
                             totalInserted++;
-                            Node brief = mdStore.getMetadata(metadataID, MetadataType.DUBLINCORE, cstlSet(ElementSetType.BRIEF), null);
+                            Node brief = mdStore.getMetadata(metadataID, MetadataType.DUBLINCORE_CSW202, cstlSet(ElementSetType.BRIEF), null);
                             List<Object> objs = new ArrayList<>();
                             objs.add(brief);
-                            insertResults.add(new InsertResultType(objs, null));
+                            insertResults.add(CswXmlFactory.createInsertResult(version, objs, null));
                         }
 
                     } catch (MetadataIoException | ConfigurationException ex) {
@@ -1544,7 +1561,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
             throw new UnauthorizedException("You must be authentified to perform a harvest request.");
         }
-        verifyBaseRequest(request);
+        verifyBaseRequest(request, true, false);
         final String version = request.getVersion().toString();
 
         HarvestResponse response;
@@ -1645,34 +1662,42 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      *
      * @param request an object request with the base attribute (all except GetCapabilities request);
      */
-    private void verifyBaseRequest(final AbstractCswRequest request) throws CstlServiceException {
+    private void verifyBaseRequest(final RequestBase request, final boolean versionMandatory, final boolean getCapabilities) throws CstlServiceException {
         isWorking();
         if (request != null) {
-            if (request.getService() != null) {
+            if (request.getService() != null && !request.getService().isEmpty()) {
                 if (!request.getService().equals(CSW))  {
-                    throw new CstlServiceException("service must be \"CSW\"!",
-                                                  INVALID_PARAMETER_VALUE, SERVICE_PARAMETER);
+                    throw new CstlServiceException("service must be \"CSW\"!", INVALID_PARAMETER_VALUE, SERVICE_PARAMETER);
                 }
             } else {
-                throw new CstlServiceException("service must be specified!",
-                                              MISSING_PARAMETER_VALUE, SERVICE_PARAMETER);
+                throw new CstlServiceException("service must be specified!", MISSING_PARAMETER_VALUE, SERVICE_PARAMETER);
             }
-            if (request.getVersion()!= null) {
-                /*
-                 * Ugly patch to begin to support CSW 2.0.0 request
-                 *
-                 * TODO remove this
-                 */
-                if (request.getVersion().toString().equals(CSW_202_VERSION)) {
-                    request.setVersion(ServiceDef.CSW_2_0_2.version.toString());
-                } else if (request.getVersion().toString().equals("2.0.0") && (request instanceof GetDomain)) {
-                    request.setVersion(ServiceDef.CSW_2_0_0.version.toString());
+            if (request.getVersion()!= null && !request.getVersion().toString().isEmpty()) {
 
+                if (isSupportedVersion(request.getVersion().toString())) {
+                    request.setVersion(request.getVersion().toString());
                 } else {
-                    throw new CstlServiceException("version must be \"2.0.2\"!", VERSION_NEGOTIATION_FAILED, "version");
+                    final CodeList code;
+                    final String locator;
+                    if (getCapabilities) {
+                        code = VERSION_NEGOTIATION_FAILED;
+                        locator = "acceptVersion";
+                    } else {
+                        code = INVALID_PARAMETER_VALUE;
+                        locator = "version";
+                    }
+                    final StringBuilder sb = new StringBuilder();
+                    supportedVersions.stream().forEach((v) -> {
+                        sb.append("\"").append(v.version.toString()).append("\"");
+                    });
+                    throw new CstlServiceException("version must be " + sb.toString() + "!", code, locator);
                 }
             } else {
-                throw new CstlServiceException("version must be specified!", MISSING_PARAMETER_VALUE, "version");
+                if (versionMandatory) {
+                    throw new CstlServiceException("version must be specified!", MISSING_PARAMETER_VALUE, "version");
+                } else {
+                    request.setVersion(getBestVersion(null).version.toString());
+                }
             }
          } else {
             throw new CstlServiceException("The request is null!", NO_APPLICABLE_CODE);

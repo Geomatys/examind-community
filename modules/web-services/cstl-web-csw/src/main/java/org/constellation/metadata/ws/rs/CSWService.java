@@ -55,7 +55,6 @@ import org.geotoolkit.ows.xml.AcceptFormats;
 import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.ows.xml.v100.ExceptionReport;
 import org.geotoolkit.ows.xml.v100.SectionsType;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -80,6 +79,7 @@ import static org.constellation.metadata.core.CSWConstants.MALFORMED;
 import static org.constellation.metadata.core.CSWConstants.NAMESPACE;
 import static org.constellation.metadata.core.CSWConstants.NOT_EXIST;
 import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.springframework.http.HttpStatus;
@@ -211,9 +211,9 @@ public class CSWService extends OGCWebService<CSWworker> {
         if (serviceDef == null) {
             serviceDef = w.getBestVersion(null);
         }
-        final String version         = serviceDef.exceptionVersion.toString();
-        final String code            = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionReport report = new ExceptionReport(ex.getMessage(), code, ex.getLocator(), version);
+        final String version           = serviceDef.exceptionVersion.toString();
+        final String code              = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
+        final ExceptionResponse report = CswXmlFactory.buildExceptionReport(serviceDef.version.toString(), ex.getMessage(), code, ex.getLocator(), version);
         return new ResponseObject(report, MediaType.TEXT_XML);
     }
 
@@ -250,21 +250,28 @@ public class CSWService extends OGCWebService<CSWworker> {
         final String service = getParameter(SERVICE_PARAMETER, true);
 
         String acceptVersion = getParameter(ACCEPT_VERSIONS_PARAMETER, false);
+        String currentVersion = getParameter(VERSION_PARAMETER, false);
+        if (currentVersion == null) {
+            currentVersion = w.getBestVersion(null).version.toString();
+        }
+        w.checkVersionSupported(currentVersion, true);
+
         final AcceptVersions versions;
-        final String version;
         if (acceptVersion != null) {
             if (acceptVersion.indexOf(',') != -1) {
                 acceptVersion = acceptVersion.substring(0, acceptVersion.indexOf(','));
             }
-            version = acceptVersion;
-            w.checkVersionSupported(version, true);
-            versions = CswXmlFactory.buildAcceptVersion(version, Arrays.asList(acceptVersion));
+            currentVersion = acceptVersion;
+            List<String> v = new ArrayList<>();
+            v.add(acceptVersion);
+            versions = CswXmlFactory.buildAcceptVersion(currentVersion, v);
         } else {
-            version = "2.0.2";
-            versions = CswXmlFactory.buildAcceptVersion(version, Arrays.asList("2.0.2"));
+            List<String> v = new ArrayList<>();
+            v.add(currentVersion);
+            versions = CswXmlFactory.buildAcceptVersion(currentVersion, v);
         }
 
-        final AcceptFormats formats = CswXmlFactory.buildAcceptFormat(version, Arrays.asList(getParameter(ACCEPT_FORMATS_PARAMETER, false)));
+        final AcceptFormats formats = CswXmlFactory.buildAcceptFormat(currentVersion, Arrays.asList(getParameter(ACCEPT_FORMATS_PARAMETER, false)));
         final String updateSequence = getParameter(UPDATESEQUENCE_PARAMETER, false);
 
         //We transform the String of sections in a list.
@@ -286,8 +293,8 @@ public class CSWService extends OGCWebService<CSWworker> {
             //if there is no requested Sections we add all the sections
             requestedSections = SectionsType.getExistingSections();
         }
-        final Sections sections = CswXmlFactory.buildSections(version, requestedSections);
-        return CswXmlFactory.createGetCapabilities(version, versions, sections, formats, updateSequence, service);
+        final Sections sections = CswXmlFactory.buildSections(currentVersion, requestedSections);
+        return CswXmlFactory.createGetCapabilities(currentVersion, versions, sections, formats, updateSequence, service);
     }
 
 

@@ -30,25 +30,23 @@ import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.ResultType;
 import org.geotoolkit.csw.xml.TypeNames;
-import org.geotoolkit.csw.xml.v202.Capabilities;
-import org.geotoolkit.csw.xml.v202.DescribeRecordResponseType;
-import org.geotoolkit.csw.xml.v202.DistributedSearchType;
-import org.geotoolkit.csw.xml.v202.DomainValuesType;
-import org.geotoolkit.csw.xml.v202.ElementSetNameType;
-import org.geotoolkit.csw.xml.v202.GetCapabilitiesType;
-import org.geotoolkit.csw.xml.v202.GetDomainResponseType;
-import org.geotoolkit.csw.xml.v202.GetDomainType;
-import org.geotoolkit.csw.xml.v202.GetRecordByIdResponseType;
-import org.geotoolkit.csw.xml.v202.GetRecordByIdType;
-import org.geotoolkit.csw.xml.v202.GetRecordsResponseType;
-import org.geotoolkit.csw.xml.v202.GetRecordsType;
-import org.geotoolkit.csw.xml.v202.ListOfValuesType;
-import org.geotoolkit.csw.xml.v202.ObjectFactory;
-import org.geotoolkit.csw.xml.v202.QueryConstraintType;
-import org.geotoolkit.csw.xml.v202.QueryType;
+import org.geotoolkit.csw.xml.v300.CapabilitiesType;
+import org.geotoolkit.csw.xml.v300.DistributedSearchType;
+import org.geotoolkit.csw.xml.v300.DomainValuesType;
+import org.geotoolkit.csw.xml.v300.ElementSetNameType;
+import org.geotoolkit.csw.xml.v300.GetCapabilitiesType;
+import org.geotoolkit.csw.xml.v300.GetDomainResponseType;
+import org.geotoolkit.csw.xml.v300.GetDomainType;
+import org.geotoolkit.csw.xml.v300.GetRecordByIdType;
+import org.geotoolkit.csw.xml.v300.GetRecordsResponseType;
+import org.geotoolkit.csw.xml.v300.GetRecordsType;
+import org.geotoolkit.csw.xml.v300.ListOfValuesType;
+import org.geotoolkit.csw.xml.v300.ObjectFactory;
+import org.geotoolkit.csw.xml.v300.QueryConstraintType;
+import org.geotoolkit.csw.xml.v300.QueryType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
-import org.geotoolkit.ows.xml.v100.ExceptionReport;
-import org.geotoolkit.ows.xml.v100.Operation;
+import org.geotoolkit.ows.xml.v200.ExceptionReport;
+import org.geotoolkit.ows.xml.v200.Operation;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,12 +72,15 @@ import org.apache.sis.xml.XML;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.contact.AccessConstraint;
+import org.constellation.dto.contact.Contact;
+import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
-import org.geotoolkit.csw.xml.v202.RecordType;
+import org.geotoolkit.csw.xml.v300.RecordType;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
@@ -96,7 +97,7 @@ import static org.junit.Assert.assertTrue;
  * @author Guilhem Legal (Geomatys)
  */
 @RunWith(TestRunner.class)
-public class CSWRequestTest extends AbstractGrizzlyServer {
+public class CSWRequest3Test extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
@@ -142,9 +143,15 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
+                Details d2 = new Details("Constellation CSW Server", "csw2", Arrays.asList("CS-W"),
+                                        "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",
+                                        Arrays.asList("3.0.0", "2.0.2", "2.0.0"),
+                                        new Contact(), new AccessConstraint(),
+                                        true, "eng");
+
                 final Automatic config2 = new Automatic();
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
-                serviceBusiness.create("csw", "csw2", config2, null);
+                serviceBusiness.create("csw", "csw2", config2, d2);
                 serviceBusiness.linkCSWAndProvider("csw2", "metadataSrc2");
                 serviceBusiness.start("csw", "csw2");
 
@@ -179,8 +186,14 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore2 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
+                Details d = new Details("Constellation CSW Server", "default", Arrays.asList("CS-W"),
+                                        "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",
+                                        Arrays.asList("3.0.0", "2.0.0", "2.0.2"),
+                                        new Contact(), new AccessConstraint(),
+                                        true, "eng");
+
                 final Automatic config = new Automatic();
-                serviceBusiness.create("csw", "default", config, null);
+                serviceBusiness.create("csw", "default", config, d);
                 serviceBusiness.linkCSWAndProvider("default", "CRmetadataSrc");
                 serviceBusiness.start("csw", "default");
 
@@ -260,9 +273,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         postRequestObject(conec, request);
         Object obj = unmarshallResponse(conec);
 
-        assertTrue(obj instanceof Capabilities);
+        assertTrue(obj instanceof CapabilitiesType);
 
-        Capabilities c = (Capabilities) obj;
+        CapabilitiesType c = (CapabilitiesType) obj;
 
         assertTrue(c.getOperationsMetadata() != null);
 
@@ -274,14 +287,14 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getCswURL());
 
         // Creates a valid GetCapabilties url.
-        getCapsUrl = new URL(getCswURL() + "request=GetCapabilities&service=CSW&version=2.0.2");
+        getCapsUrl = new URL(getCswURL() + "request=GetCapabilities&service=CSW&version=3.0.0");
 
 
         // Try to marshall something from the response returned by the server.
         obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof Capabilities);
+        assertTrue(obj instanceof CapabilitiesType);
 
-        Capabilities capa = (Capabilities) obj;
+        CapabilitiesType capa = (CapabilitiesType) obj;
 
         String currentURL = capa.getOperationsMetadata().getOperation("getRecords").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
 
@@ -289,12 +302,12 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
 
          // Creates a valid GetCapabilties url.
-        getCapsUrl = new URL(getCsw2URL() + "request=GetCapabilities&service=CSW&version=2.0.2");
+        getCapsUrl = new URL(getCsw2URL() + "request=GetCapabilities&service=CSW&version=3.0.0");
 
         obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof Capabilities);
+        assertTrue(obj instanceof CapabilitiesType);
 
-        capa = (Capabilities) obj;
+        capa = (CapabilitiesType) obj;
 
         currentURL = capa.getOperationsMetadata().getOperation("getRecords").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
 
@@ -302,12 +315,12 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
 
          // Creates a valid GetCapabilties url.
-        getCapsUrl = new URL(getCswURL() + "request=GetCapabilities&service=CSW&version=2.0.2");
+        getCapsUrl = new URL(getCswURL() + "request=GetCapabilities&service=CSW&version=3.0.0");
 
         obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof Capabilities);
+        assertTrue(obj instanceof CapabilitiesType);
 
-        capa = (Capabilities) obj;
+        capa = (CapabilitiesType) obj;
 
         currentURL = capa.getOperationsMetadata().getOperation("getRecords").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
 
@@ -353,7 +366,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
 
-        GetDomainType request = new GetDomainType("CSW", "2.0.2", null, "GetCapabilities.sections");
+        GetDomainType request = new GetDomainType("CSW", "3.0.0", null, "GetCapabilities.sections");
 
         postRequestObject(conec, request);
         Object result = unmarshallResponse(conec);
@@ -362,12 +375,12 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
         List<DomainValues> values = new ArrayList<>();
         ListOfValuesType list = new ListOfValuesType(Arrays.asList("All", "ServiceIdentification", "ServiceProvider", "OperationsMetadata","Filter_Capabilities"));
-        values.add(new DomainValuesType("GetCapabilities.sections", null, list, new QName("http://www.opengis.net/cat/csw/2.0.2", "Capabilities")));
+        values.add(new DomainValuesType("GetCapabilities.sections", null, list, new QName("http://www.opengis.net/cat/csw/3.0", "Capabilities")));
         GetDomainResponseType expResult = new GetDomainResponseType(values);
 
         assertEquals(expResult, result);
 
-        request = new GetDomainType("CSW", "2.0.2", "title", null);
+        request = new GetDomainType("CSW", "3.0.0", "title", null);
 
         conec = getCapsUrl.openConnection();
 
@@ -398,35 +411,30 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
 
-        GetRecordByIdType request = new GetRecordByIdType("CSW", "2.0.2", new ElementSetNameType(ElementSetType.FULL),
-                "text/xml", null, Arrays.asList("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f"));
+        GetRecordByIdType request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
+                "text/xml", null, "urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
 
         final ObjectFactory factory = new ObjectFactory();
         postRequestObject(conec, factory.createGetRecordById(request));
         Object result = unmarshallResponse(conec);
 
-        assertTrue(result instanceof GetRecordByIdResponseType);
-
-        GetRecordByIdResponseType grResult = (GetRecordByIdResponseType) result;
-        assertEquals(1, grResult.getAny().size());
+        assertTrue(result instanceof RecordType);
 
 
-        request = new GetRecordByIdType("CSW", "2.0.2", new ElementSetNameType(ElementSetType.FULL),
-                "text/xml", null, Arrays.asList("urn:uuid:ab42a8c4-95e8-4630-bf79-33e59241605a"));
+        request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
+                "text/xml", null, "urn:uuid:ab42a8c4-95e8-4630-bf79-33e59241605a");
 
         conec = getCapsUrl.openConnection();
 
         postRequestObject(conec, factory.createGetRecordById(request));
         result = unmarshallResponse(conec);
 
-        assertTrue(result instanceof GetRecordByIdResponseType);
+        assertTrue(result instanceof RecordType);
 
-        grResult = (GetRecordByIdResponseType) result;
-        assertEquals(1, grResult.getAny().size());
 
         // try the hidden metadata
-        request = new GetRecordByIdType("CSW", "2.0.2", new ElementSetNameType(ElementSetType.FULL),
-                "text/xml", null, Arrays.asList("MDWeb_FR_SY_couche_vecteur_258"));
+        request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
+                "text/xml", null, "MDWeb_FR_SY_couche_vecteur_258");
 
         conec = getCapsUrl.openConnection();
 
@@ -455,8 +463,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         URLConnection conec = getCapsUrl.openConnection();
 
         QueryConstraintType constraint = new QueryConstraintType("identifier='urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f'", "1.1.0");
-        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
-        GetRecordsType request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 10, query, null);
+        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, null, null, 1, 10, query, null);
 
         postRequestObject(conec, request);
         Object result = unmarshallResponse(conec);
@@ -472,8 +481,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
-        request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, null);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, null, null, 1, 20, query, null);
 
         postRequestObject(conec, request);
         result = unmarshallResponse(conec);
@@ -501,9 +511,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         URLConnection conec = getCapsUrl.openConnection();
 
         QueryConstraintType constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         DistributedSearchType dist = new DistributedSearchType(1);
-        GetRecordsType request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, dist);
+        GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, null, null, 1, 20, query, dist);
 
         postRequestObject(conec, request);
         Object result = unmarshallResponse(conec);
@@ -519,8 +530,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
-        request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, null);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, null, null, 1, 20, query, null);
 
         postRequestObject(conec, request);
         result = unmarshallResponse(conec);
@@ -535,9 +547,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         dist = new DistributedSearchType(0);
-        request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, dist);
+        request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, null, null, 1, 20, query, dist);
 
         postRequestObject(conec, request);
         result = unmarshallResponse(conec);
@@ -550,88 +563,6 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
      }
 
 
-    @Test
-    @Order(order=7)
-    public void testDescribeRecords() throws Exception {
-
-        initPool();
-
-        /**
-         * Dublin core
-         */
-        URL getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=csw:Record");
-
-        // Try to marshall something from the response returned by the server.
-        Object obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        DescribeRecordResponseType result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 1);
-        assertEquals(result.getSchemaComponent().get(0).getTargetNamespace(), "http://www.opengis.net/cat/csw/2.0.2");
-
-
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=csw:Record&namespace=xmlns(csw=http://www.opengis.net/cat/csw/2.0.2)");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 1);
-        assertEquals(result.getSchemaComponent().get(0).getTargetNamespace(), "http://www.opengis.net/cat/csw/2.0.2");
-
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=csw:Record&namespace=xmlns(csw=http://www.opengis.net/cat/csw/3.8)");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 0);
-
-
-        /**
-         * GMD
-         */
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=gmd:MD_Metadata");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 1);
-        assertEquals(result.getSchemaComponent().get(0).getTargetNamespace(), "http://www.isotc211.org/2005/gmd");
-
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=gmd:MD_Metadata&namespace=xmlns(gmd=http://www.isotc211.org/2005/gmd)");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 1);
-        assertEquals(result.getSchemaComponent().get(0).getTargetNamespace(), "http://www.isotc211.org/2005/gmd");
-
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2&typename=gmd:MD_Metadata&namespace=xmlns(gmd=http://www.isotc211.org/2005/wrong)");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue("was:" + obj.getClass(), obj instanceof DescribeRecordResponseType);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 0);
-
-
-        /**
-         * ALL
-         */
-        getCapsUrl = new URL(getCswURL() + "service=CSW&request=DescribeRecord&version=2.0.2");
-
-        // Try to marshall something from the response returned by the server.
-        obj = unmarshallResponse(getCapsUrl);
-        result = (DescribeRecordResponseType) obj;
-        assertEquals(result.getSchemaComponent().size(), 4);
-        assertEquals(result.getSchemaComponent().get(0).getTargetNamespace(), "http://www.opengis.net/cat/csw/2.0.2");
-        assertEquals(result.getSchemaComponent().get(1).getTargetNamespace(), "http://www.isotc211.org/2005/gmd");
-        assertEquals(result.getSchemaComponent().get(2).getTargetNamespace(), "urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0");
-        assertEquals(result.getSchemaComponent().get(3).getTargetNamespace(), "urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5");
-
-    }
 
     @Test
     @Order(order=8)
@@ -642,6 +573,8 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                         + "org.constellation.dto.service.config.generic:"
                         + "org.geotoolkit.ows.xml.v110:"
                         + "org.geotoolkit.csw.xml.v202:"
+                        + "org.geotoolkit.csw.xml.v300:"
+                        + "org.geotoolkit.ows.xml.v200:"
                         + "org.apache.sis.internal.jaxb.geometry:"
                         + "org.geotoolkit.ows.xml.v100"), null);
 
@@ -675,7 +608,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         initPool();
 
         // first we make a getRecords request to count the number of record
-        URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         URLConnection conec = niUrl.openConnection();
 
@@ -732,7 +665,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         Thread.sleep(3000);
         waitForRestStart(getCswURL());
 
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -773,7 +706,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         Thread.sleep(3000);
         waitForRestStart(getCswURL());
 
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -792,7 +725,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         initPool();
 
         // first we make a getRecords request to count the number of record
-        URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         URLConnection conec = niUrl.openConnection();
 
@@ -832,7 +765,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
 
          // verify that the number of record have increased
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -856,7 +789,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         Thread.sleep(3000);
         waitForRestStart(getCswURL());
 
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -875,7 +808,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         initPool();
 
         // first we make a getRecords request to count the number of record
-        URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         URLConnection conec = niUrl.openConnection();
 
@@ -906,7 +839,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
 
          // verify that the number of record have increased
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -929,7 +862,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         Thread.sleep(3000);
         waitForRestStart(getCswURL());
 
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 
@@ -948,7 +881,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         initPool();
 
         // first we make a getRecords request to count the number of record
-        URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         URLConnection conec = niUrl.openConnection();
 
@@ -979,7 +912,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
 
          // verify that the number of record have decreased
-        niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
+        niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 
         conec = niUrl.openConnection();
 

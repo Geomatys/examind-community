@@ -74,7 +74,7 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
         if (mode == MetadataType.ISO_19115) {
             variables = getVariablesForISO();
         } else {
-            if (mode == MetadataType.DUBLINCORE) {
+            if (mode == MetadataType.DUBLINCORE_CSW202) {
                 variables = getVariablesForDublinCore(type, elementName);
             } else {
                 throw new IllegalArgumentException("unknow mode");
@@ -117,7 +117,7 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
         if (mode == MetadataType.ISO_19115 || mode == MetadataType.NATIVE) {
             result = getISO(identifier, values);
 
-        } else if (mode == MetadataType.DUBLINCORE) {
+        } else if (mode == MetadataType.DUBLINCORE_CSW202) {
             result = getDublinCore(identifier, type, elementName, values);
 
         } else {
@@ -244,7 +244,9 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
 
     @Override
     public List<MetadataType> getSupportedDataTypes() {
-        return Arrays.asList(MetadataType.ISO_19115, MetadataType.DUBLINCORE);
+        return Arrays.asList(MetadataType.ISO_19115,
+                             MetadataType.DUBLINCORE_CSW202,
+                             MetadataType.DUBLINCORE_CSW300);
     }
 
     /**

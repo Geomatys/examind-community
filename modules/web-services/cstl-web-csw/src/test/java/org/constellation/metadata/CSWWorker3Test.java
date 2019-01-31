@@ -65,12 +65,9 @@ import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.GetDomainResponse;
 import org.geotoolkit.csw.xml.GetRecordByIdResponse;
 import org.geotoolkit.csw.xml.TransactionResponse;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.ISO_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_QNAME;
-import org.geotoolkit.csw.xml.v300.AcknowledgementType;
 import org.geotoolkit.csw.xml.v300.BriefRecordType;
 import org.geotoolkit.csw.xml.v300.DeleteType;
 import org.geotoolkit.csw.xml.v300.DomainValuesType;
@@ -130,6 +127,9 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
+import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
+import org.geotoolkit.csw.xml.v300.ListOfValuesType.Value;
 
 /**
  *
@@ -186,7 +186,7 @@ public class CSWWorker3Test {
 
         /*
          *  TEST 1 : minimal getCapabilities
-         */
+
         GetCapabilitiesType request = new GetCapabilitiesType("CSW");
         AbstractCapabilities result = worker.getCapabilities(request);
 
@@ -196,16 +196,16 @@ public class CSWWorker3Test {
         assertTrue(result.getOperationsMetadata() != null);
         assertTrue(result.getServiceIdentification() != null);
         assertTrue(result.getServiceProvider() != null);
-
+ */
         /*
          *  TEST 2 : full get capabilities
          */
         AcceptVersionsType acceptVersions = new AcceptVersionsType("3.0.0");
         SectionsType sections             = new SectionsType("All");
         AcceptFormatsType acceptFormats   = new AcceptFormatsType(MimeType.APPLICATION_XML);
-        request = new GetCapabilitiesType(acceptVersions, sections, acceptFormats, null, "CSW");
+        GetCapabilitiesType request = new GetCapabilitiesType(acceptVersions, sections, acceptFormats, null, "CSW");
 
-        result = worker.getCapabilities(request);
+        AbstractCapabilities result = worker.getCapabilities(request);
 
         assertTrue(result != null);
         assertTrue(result.getVersion().equals("3.0.0"));
@@ -321,7 +321,7 @@ public class CSWWorker3Test {
          *  TEST 2 : getRecordById with the first metadata in DC mode (BRIEF).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.BRIEF),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "42292_5p_19900609195600");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "42292_5p_19900609195600");
         result = (GetRecordByIdResponse) worker.getRecordById(request);
 
         assertTrue(result != null);
@@ -330,12 +330,12 @@ public class CSWWorker3Test {
         obj = result.getAny().get(0);
         if (obj instanceof BriefRecordType) {
             BriefRecordType briefResult =  (BriefRecordType) obj;
-            BriefRecordType expBriefResult1 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1BDC.xml"));
+            BriefRecordType expBriefResult1 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1BDC.xml"));
 
             assertEquals(expBriefResult1, briefResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1BDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1BDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -346,7 +346,7 @@ public class CSWWorker3Test {
          *  TEST 3 : getRecordById with the first metadata in DC mode (SUMMARY).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.SUMMARY),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "42292_5p_19900609195600");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "42292_5p_19900609195600");
         result = (GetRecordByIdResponse) worker.getRecordById(request);
 
         assertTrue(result != null);
@@ -356,13 +356,13 @@ public class CSWWorker3Test {
 
         if (obj instanceof SummaryRecordType) {
            SummaryRecordType sumResult =  (SummaryRecordType) obj;
-           SummaryRecordType expSumResult1 =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
+           SummaryRecordType expSumResult1 =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1SDC.xml"));
 
            assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
            assertEquals(expSumResult1, sumResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1SDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1SDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -373,7 +373,7 @@ public class CSWWorker3Test {
          *  TEST 4 : getRecordById with the first metadata in DC mode (FULL).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "42292_5p_19900609195600");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "42292_5p_19900609195600");
         result = (GetRecordByIdResponse) worker.getRecordById(request);
 
         assertTrue(result != null);
@@ -383,13 +383,13 @@ public class CSWWorker3Test {
 
         if (obj instanceof RecordType) {
             RecordType recordResult = (RecordType) obj;
-            RecordType expRecordResult1 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1FDC.xml"));
+            RecordType expRecordResult1 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1FDC.xml"));
 
             assertEquals(expRecordResult1.getFormat(), recordResult.getFormat());
             assertEquals(expRecordResult1, recordResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1FDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1FDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -400,7 +400,7 @@ public class CSWWorker3Test {
          *  TEST 5 : getRecordById with the a metadata in DC mode (FULL).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "39727_22_19750113062500");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "39727_22_19750113062500");
         result = (GetRecordByIdResponse) worker.getRecordById(request);
 
         assertTrue(result != null);
@@ -410,13 +410,13 @@ public class CSWWorker3Test {
 
         if (obj instanceof RecordType) {
             RecordType recordResult = (RecordType) obj;
-            RecordType expRecordResult3 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta3FDC.xml"));
+            RecordType expRecordResult3 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta3FDC.xml"));
 
             assertEquals(expRecordResult3.getFormat(), recordResult.getFormat());
             assertEquals(expRecordResult3, recordResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta3FDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta3FDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -438,13 +438,13 @@ public class CSWWorker3Test {
 
         if (obj instanceof SummaryRecordType) {
             SummaryRecordType sumResult = (SummaryRecordType) obj;
-            SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
+            SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1SDC.xml"));
 
             assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
             assertEquals(expSumResult1, sumResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1SDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1SDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -465,13 +465,13 @@ public class CSWWorker3Test {
 
          if (obj instanceof SummaryRecordType) {
             SummaryRecordType sumResult = (SummaryRecordType) obj;
-            SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
+            SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1SDC.xml"));
 
             assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
             assertEquals(expSumResult1, sumResult);
         } else {
             Node resultNode = (Node) obj;
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1SDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1SDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -536,7 +536,7 @@ public class CSWWorker3Test {
              *  TEST 11 : getRecordById with native DC metadata.
              */
             request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                    MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
+                    MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
             result = (GetRecordByIdResponse) worker.getRecordById(request);
 
             assertTrue(result != null);
@@ -546,11 +546,11 @@ public class CSWWorker3Test {
 
             if (obj instanceof RecordType) {
                 RecordType dcResult =  (RecordType) obj;
-                RecordType dcexpResult =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta13.xml"));
+                RecordType dcexpResult =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta13.xml"));
                 assertEquals(dcexpResult, dcResult);
             } else if (obj instanceof Node) {
                 Node resultNode = (Node) obj;
-                Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta13.xml");
+                Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta13.xml");
                 DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
                 comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
                 comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -563,7 +563,7 @@ public class CSWWorker3Test {
              *  TEST 12 : getRecordById with native DC metadata applying a ElementSet Summary.
              */
             request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.SUMMARY),
-                    MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
+                    MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
             result = (GetRecordByIdResponse) worker.getRecordById(request);
 
             assertTrue(result != null);
@@ -573,11 +573,11 @@ public class CSWWorker3Test {
 
             if (obj instanceof SummaryRecordType) {
                 SummaryRecordType dcResult =  (SummaryRecordType) obj;
-                SummaryRecordType dcexpResult =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta13SDC.xml"));
+                SummaryRecordType dcexpResult =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta13SDC.xml"));
                 assertEquals(dcexpResult, dcResult);
             } else if (obj instanceof Node) {
                 Node resultNode = (Node) obj;
-                Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta13SDC.xml");
+                Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta13SDC.xml");
                 DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
                 comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
                 comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -596,7 +596,7 @@ public class CSWWorker3Test {
          *  TEST 1 : getRecordById with no identifier (waiting an exception).
          */
          GetRecordByIdType request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", null);
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", null);
         boolean exLaunched = false;
         try {
             worker.getRecordById(request);
@@ -612,7 +612,7 @@ public class CSWWorker3Test {
          *  TEST 2 : getRecordById with an unvalid identifier (waiting an exception).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "whatever");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "whatever");
         exLaunched = false;
         try {
             worker.getRecordById(request);
@@ -628,7 +628,7 @@ public class CSWWorker3Test {
          *  TEST 3 : getRecordById with an unvalid identifier (hidden metadata).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "MDWeb_FR_SY_couche_vecteur_258");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "MDWeb_FR_SY_couche_vecteur_258");
         exLaunched = false;
         try {
             worker.getRecordById(request);
@@ -660,7 +660,7 @@ public class CSWWorker3Test {
          *  TEST 4 : getRecordById with an unvalid outputFormat (waiting an exception).
          */
         request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                "ping/pong", "http://www.opengis.net/cat/csw/2.0.2", "42292_5p_19900609195600");
+                "ping/pong", "http://www.opengis.net/cat/csw/3.0", "42292_5p_19900609195600");
         exLaunched = false;
         try {
             worker.getRecordById(request);
@@ -682,40 +682,41 @@ public class CSWWorker3Test {
          *  TEST 1 : getRecords with HITS - DC mode (FULL) - CQL text: Title LIKE 90008411%
          */
 
-        List<QName> typeNames             = Arrays.asList(RECORD_QNAME);
+        List<QName> typeNames             = Arrays.asList(RECORD_300_QNAME);
         ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
         SortByType sortBy                 = null;
         QueryConstraintType constraint    = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         QueryType query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.HITS,
-                                                    null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                                    null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 0, query, null);
 
         GetRecordsResponseType result = (GetRecordsResponseType) worker.getRecords(request);
 
+        // NO resultType HITS in CSW 3.0 use maxRecords = 0
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().isEmpty());
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 0);
-        assertTrue(result.getSearchResults().getNextRecord() == 0);
+        assertTrue(result.getSearchResults().getNextRecord() == 1);
 
         /*
          *  TEST 2 : getRecords with RESULTS - DC mode (FULL) - CQL text: Title LIKE 90008411%
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy         = null;
         constraint     = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 2);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
@@ -744,8 +745,8 @@ public class CSWWorker3Test {
                 recordResult2   = temp;
             }
 
-            RecordType expRecordResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1FDC.xml"));
-            RecordType expRecordResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta2FDC.xml"));
+            RecordType expRecordResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1FDC.xml"));
+            RecordType expRecordResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta2FDC.xml"));
 
             assertEquals(expRecordResult1, recordResult1);
             assertEquals(expRecordResult2, recordResult2);
@@ -760,13 +761,13 @@ public class CSWWorker3Test {
                 resultNode2   = temp;
             }
 
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1FDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1FDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode1);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta2FDC.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta2FDC.xml");
             comparator = new DocumentComparator(expResultNode, resultNode2);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -778,32 +779,34 @@ public class CSWWorker3Test {
          *  TEST 3 : getRecords with VALIDATE - DC mode (FULL) - CQL text: Title LIKE 90008411%
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy         = null;
         constraint     = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request        = new GetRecordsType("CSW", "3.0.0", //ResultType.VALIDATE,
-                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
+        /* NO resultType VALIDATE in CSW 3.0
         assertTrue(worker.getRecords(request) instanceof AcknowledgementType);
+        */
 
         /*
          *  TEST 4 : getRecords with RESULTS - DC mode (BRIEF) - CQL text: Title LIKE 90008411%
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.BRIEF);
         sortBy         = null;
         constraint     = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                            null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 2);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.BRIEF));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
@@ -832,8 +835,8 @@ public class CSWWorker3Test {
                 briefResult2   = temp;
             }
 
-            BriefRecordType expBriefResult1 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1BDC.xml"));
-            BriefRecordType expBriefResult2 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta2BDC.xml"));
+            BriefRecordType expBriefResult1 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1BDC.xml"));
+            BriefRecordType expBriefResult2 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta2BDC.xml"));
 
             assertEquals(expBriefResult1, briefResult1);
             assertEquals(expBriefResult2, briefResult2);
@@ -848,13 +851,13 @@ public class CSWWorker3Test {
                 resultNode2   = temp;
             }
 
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1BDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1BDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode1);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta2BDC.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta2BDC.xml");
             comparator = new DocumentComparator(expResultNode, resultNode2);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -866,7 +869,7 @@ public class CSWWorker3Test {
          */
         LOGGER.finer("TEST - 5 begin");
 
-        typeNames        = Arrays.asList(RECORD_QNAME);
+        typeNames        = Arrays.asList(RECORD_300_QNAME);
         List<QName> cust = new ArrayList<>();
         cust.add(_Identifier_QNAME);
         cust.add(_Subject_QNAME);
@@ -876,12 +879,12 @@ public class CSWWorker3Test {
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(typeNames, cust, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 2);
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 2);
@@ -909,8 +912,8 @@ public class CSWWorker3Test {
                 customResult2   = temp;
             }
 
-            RecordType expCustomResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1CustomDC.xml"));
-            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta2CustomDC.xml"));
+            RecordType expCustomResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1CustomDC.xml"));
+            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta2CustomDC.xml"));
 
             assertEquals(expCustomResult1, customResult1);
             assertEquals(expCustomResult2, customResult2);
@@ -919,19 +922,20 @@ public class CSWWorker3Test {
             Node resultNode2 = (Node) result.getSearchResults().getAny().get(1);
 
             final List<String> identifierValues = NodeUtilities.getValuesFromPath(resultNode1, "/csw:Record/dc:identifier");
+            assertEquals(1, identifierValues.size());
             if (!identifierValues.get(0).equals("42292_5p_19900609195600")) {
                 Node temp = resultNode1;
                 resultNode1   = resultNode2;
                 resultNode2   = temp;
             }
 
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1CustomDC.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1CustomDC.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode1);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta2CustomDC.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta2CustomDC.xml");
             comparator = new DocumentComparator(expResultNode, resultNode2);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -942,7 +946,7 @@ public class CSWWorker3Test {
          *  TEST 6 : getRecords with RESULTS - DC mode (Custom) - CQL text: Title LIKE 90008411%
          */
 
-        typeNames        = Arrays.asList(RECORD_QNAME);
+        typeNames        = Arrays.asList(RECORD_300_QNAME);
         cust             = new ArrayList<>();
         cust.add(_BoundingBox_QNAME);
         cust.add(_Modified_QNAME);
@@ -951,12 +955,12 @@ public class CSWWorker3Test {
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(typeNames, cust, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 2);
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 2);
@@ -984,8 +988,8 @@ public class CSWWorker3Test {
                 customResult2   = temp;
             }
 
-            RecordType expCustomResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1CustomDC2.xml"));
-            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta2CustomDC2.xml"));
+            RecordType expCustomResult1 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta1CustomDC2.xml"));
+            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta2CustomDC2.xml"));
 
             assertEquals(expCustomResult1, customResult1);
             assertEquals(expCustomResult2, customResult2);
@@ -1000,13 +1004,13 @@ public class CSWWorker3Test {
                 resultNode2   = temp;
             }
 
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1CustomDC2.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta1CustomDC2.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode1);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta2CustomDC2.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta2CustomDC2.xml");
             comparator = new DocumentComparator(expResultNode, resultNode2);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -1017,7 +1021,7 @@ public class CSWWorker3Test {
          *  TEST 7 : getRecords with RESULTS - DC mode (Custom) - CQL text: Modified BETWEEN 2009-01-10 AND 2009-01-30
          */
 
-        typeNames        = Arrays.asList(RECORD_QNAME);
+        typeNames        = Arrays.asList(RECORD_300_QNAME);
         cust             = new ArrayList<>();
         cust.add(_Modified_QNAME);
         cust.add(_Identifier_QNAME);
@@ -1026,7 +1030,7 @@ public class CSWWorker3Test {
         constraint       = new QueryConstraintType("Modified BETWEEN '2009-01-10' AND '2009-01-30'", "1.0.0");
         query            = new QueryType(typeNames, cust, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 20, query, null);
+                                              null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 20, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
@@ -1062,9 +1066,9 @@ public class CSWWorker3Test {
                 }
             }
 
-            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta2CustomDC2.xml"));
-            RecordType expCustomResult3 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta3CustomDC.xml"));
-            RecordType expCustomResult4 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta4CustomDC.xml"));
+            RecordType expCustomResult2 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta2CustomDC2.xml"));
+            RecordType expCustomResult3 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta3CustomDC.xml"));
+            RecordType expCustomResult4 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta4CustomDC.xml"));
 
             assertEquals(expCustomResult2, customResult2);
             assertEquals(expCustomResult3, customResult3);
@@ -1096,19 +1100,19 @@ public class CSWWorker3Test {
             }
 
 
-            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta2CustomDC2.xml");
+            Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta2CustomDC2.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, customResult2);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta3CustomDC.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta3CustomDC.xml");
             comparator = new DocumentComparator(expResultNode, customResult3);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
             comparator.compare();
 
-            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta4CustomDC.xml");
+            expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta4CustomDC.xml");
             comparator = new DocumentComparator(expResultNode, customResult4);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -1120,63 +1124,63 @@ public class CSWWorker3Test {
          *  TEST 8 : getRecords with HITS - DC mode (FULL) - CQL text: identifier LIKE %42292_9s%
          */
 
-        typeNames             = Arrays.asList(RECORD_QNAME);
+        typeNames             = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy                 = null;
         constraint    = new QueryConstraintType("identifier LIKE '%42292_9s%'", "1.0.0");
         query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request = new GetRecordsType("CSW", "3.0.0", //ResultType.HITS,
-                                      null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                      null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 0, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().isEmpty());
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 0);
-        assertTrue(result.getSearchResults().getNextRecord() == 0);
+        assertTrue(result.getSearchResults().getNextRecord() == 1);
 
         /*
          *  TEST 8 : getRecords with HITS - DC mode (FULL) - CQL text: identifier LIKE %42292_9s%
          */
 
-        typeNames             = Arrays.asList(RECORD_QNAME);
+        typeNames             = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy                 = null;
         constraint    = new QueryConstraintType("identifier LIKE '%2292_9s_19900%'", "1.0.0");
         query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request = new GetRecordsType("CSW", "3.0.0", //ResultType.HITS,
-                                     null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                                     null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 0, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().isEmpty());
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 0);
-        assertTrue(result.getSearchResults().getNextRecord() == 0);
+        assertTrue(result.getSearchResults().getNextRecord() == 1);
 
 
         /*
          *  TEST 9 : getRecords with HITS - DC mode (FULL) - CQL text: DWITHIN(geometry, POINT(1 2), 10, kilometers)
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy         = null;
         constraint    = new QueryConstraintType("DWITHIN(geometry, POINT(1 2), 10, kilometers)", "1.0.0");
         query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request = new GetRecordsType("CSW", "3.0.0", //ResultType.HITS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 0, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().isEmpty());
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 0);
@@ -1192,20 +1196,21 @@ public class CSWWorker3Test {
     public void getRecordsSpatialTest() throws Exception {
         Unmarshaller unmarshaller = pool.acquireUnmarshaller();
         /*
-         *  TEST 1 : getRecords with HITS - DC mode (FULL) - CQL text: BBOX
+         *  TEST 1 : getRecords with RESULTS - DC mode (FULL) - CQL text: BBOX
          */
 
-        List<QName> typeNames             = Arrays.asList(RECORD_QNAME);
+        List<QName> typeNames             = Arrays.asList(RECORD_300_QNAME);
         ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
         SortByType sortBy                 = null;
         QueryConstraintType constraint    = new QueryConstraintType("BBOX(ows:BoundingBox, 10,20,30,40)", "1.0.0");
         QueryType query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         GetRecordsResponseType result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
+        assertTrue(result.getSearchResults().getElementSet() != null);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertEquals(1, result.getSearchResults().getAny().size());
         assertEquals(1, result.getSearchResults().getNumberOfRecordsMatched());
@@ -1226,13 +1231,13 @@ public class CSWWorker3Test {
         }
 
         /*
-         *  TEST 1 : getRecords with HITS - DC mode (FULL) - CQL text: BBOX
+         *  TEST 1 : getRecords with RESULTS - DC mode (FULL) - CQL text: BBOX
          */
 
         constraint    = new QueryConstraintType("BBOX(ows:BoundingBox, 13, 60, 18,69)", "1.0.0");
         query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         if (!onlyIso) {
             result = (GetRecordsResponseType) worker.getRecords(request);
@@ -1268,19 +1273,21 @@ public class CSWWorker3Test {
         /*
          *  TEST 1 : getRecords with RESULT - DC mode (FULL) - CQL text: Instrument='Instrument 007'
          */
-        List<QName> typeNames             = Arrays.asList(RECORD_QNAME);
+        List<QName> typeNames             = Arrays.asList(RECORD_300_QNAME);
         ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
         SortByType sortBy                 = null;
         QueryConstraintType constraint    = new QueryConstraintType("Instrument='Instrument 007'", "1.0.0");
         QueryType query = new QueryType(typeNames, elementSetName, sortBy, constraint);
         GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         GetRecordsResponseType result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        assertTrue(result.getSearchResults().getAny() != null);
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertEquals(1, result.getSearchResults().getAny().size());
+        assertTrue(result.getSearchResults().getElementSet() != null);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 1);
@@ -1303,18 +1310,18 @@ public class CSWWorker3Test {
          *  TEST 2 : getRecords with RESULTS - DC mode (FULL) - CQL text: Platform='Platform 007'
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy         = null;
         constraint     = new QueryConstraintType("Platform='Platform 007'", "1.0.0");
         query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 1);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
@@ -1338,18 +1345,18 @@ public class CSWWorker3Test {
          *  TEST 3 : getRecords with RESULTS - DC mode (FULL) - CQL text: Operation='Earth Observing System'
          */
 
-        typeNames      = Arrays.asList(RECORD_QNAME);
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
         elementSetName = new ElementSetNameType(ElementSetType.FULL);
         sortBy         = null;
         constraint     = new QueryConstraintType("Operation='Earth Observing System'", "1.0.0");
         query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         result = (GetRecordsResponseType) worker.getRecords(request);
 
         assertTrue(result.getSearchResults() != null);
-        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/2.0.2"));
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().size() == 1);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
         assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
@@ -1449,12 +1456,12 @@ public class CSWWorker3Test {
          * Test 1 : getRecord with bad outputFormat
          */
         ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
-        List<QName> typeNames           = Arrays.asList(RECORD_QNAME);
+        List<QName> typeNames           = Arrays.asList(RECORD_300_QNAME);
         SortByType sortBy               = null;
         QueryConstraintType constraint  = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         QueryType query                 = new QueryType(typeNames, elementSetName, sortBy, constraint);
         GetRecordsType request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, "something", "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, "something", "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         boolean exLaunched = false;
         try {
@@ -1473,7 +1480,7 @@ public class CSWWorker3Test {
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(null, elementSetName, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         exLaunched = false;
         try {
@@ -1493,7 +1500,7 @@ public class CSWWorker3Test {
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
 
         exLaunched = false;
         try {
@@ -1508,7 +1515,7 @@ public class CSWWorker3Test {
          /*
          * Test 4 : getRecord with bad outputSchema
          */
-        typeNames        = Arrays.asList(RECORD_QNAME);
+        typeNames        = Arrays.asList(RECORD_300_QNAME);
         sortBy           = null;
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(typeNames, elementSetName, sortBy, constraint);
@@ -1529,7 +1536,7 @@ public class CSWWorker3Test {
          * Test 5 : getRecord with no query
          */
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 1, 5, null, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, null, null);
 
         exLaunched = false;
         try {
@@ -1544,12 +1551,12 @@ public class CSWWorker3Test {
         /*
          * Test 7 : getRecord with bad start position
          */
-        typeNames        = Arrays.asList(RECORD_QNAME);
+        typeNames        = Arrays.asList(RECORD_300_QNAME);
         sortBy           = null;
         constraint       = new QueryConstraintType("Title LIKE '90008411%'", "1.0.0");
         query            = new QueryType(typeNames, elementSetName, sortBy, constraint);
         request          = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", 0, 5, query, null);
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 0, 5, query, null);
 
         exLaunched = false;
         try {
@@ -1577,7 +1584,7 @@ public class CSWWorker3Test {
 
         List<DomainValues> domainValues = new ArrayList<>();
         ListOfValuesType values = new  ListOfValuesType(Arrays.asList("All", "ServiceIdentification", "ServiceProvider", "OperationsMetadata", "Filter_Capabilities"));
-        DomainValuesType value  = new DomainValuesType("GetCapabilities.sections", null, values, CAPABILITIES_QNAME);
+        DomainValuesType value  = new DomainValuesType("GetCapabilities.sections", null, values, CAPABILITIES_300_QNAME);
         domainValues.add(value);
         GetDomainResponse expResult = new GetDomainResponseType(domainValues);
 
@@ -1586,7 +1593,7 @@ public class CSWWorker3Test {
 
         /*
          *  TEST 2 : getDomain 2.0.0 parameterName = GetCapabilities.sections
-         */
+
         org.geotoolkit.csw.xml.v200.GetDomainType request200 = new org.geotoolkit.csw.xml.v200.GetDomainType("CSW", "2.0.0", null, "GetCapabilities.sections");
 
         GetDomainResponse result200 = worker.getDomain(request200);
@@ -1594,21 +1601,22 @@ public class CSWWorker3Test {
         assertTrue(result200 instanceof org.geotoolkit.csw.xml.v200.GetDomainResponseType);
 
         List<DomainValues> domainValues200 = new ArrayList<>();
-        List<String> list = new ArrayList<>();
-        list.add("All");
-        list.add("ServiceIdentification");
-        list.add("ServiceProvider");
-        list.add("OperationsMetadata");
-        list.add("Filter_Capabilities");
-        org.geotoolkit.csw.xml.v200.ListOfValuesType values200 = new org.geotoolkit.csw.xml.v200.ListOfValuesType(list);
-        org.geotoolkit.csw.xml.v200.DomainValuesType value200  = new org.geotoolkit.csw.xml.v200.DomainValuesType("GetCapabilities.sections", null, values200, CAPABILITIES_QNAME);
+        List<String> list200 = new ArrayList<>();
+        list200.add("All");
+        list200.add("ServiceIdentification");
+        list200.add("ServiceProvider");
+        list200.add("OperationsMetadata");
+        list200.add("Filter_Capabilities");
+        org.geotoolkit.csw.xml.v200.ListOfValuesType values200 = new org.geotoolkit.csw.xml.v200.ListOfValuesType(list200);
+        org.geotoolkit.csw.xml.v200.DomainValuesType value200  = new org.geotoolkit.csw.xml.v200.DomainValuesType("GetCapabilities.sections", null, values200, CAPABILITIES_300_QNAME);
         domainValues200.add(value200);
         GetDomainResponse expResult200 = new org.geotoolkit.csw.xml.v200.GetDomainResponseType(domainValues200);
 
         assertEquals(expResult200, result200);
+         */
 
         /*
-         *  TEST 3 : getDomain 2.0.2 propertyName = "identifier"
+         *  TEST 3 : getDomain 3.0.0 propertyName = "identifier"
          */
         request = new GetDomainType("CSW", "3.0.0", "identifier", null);
 
@@ -1617,7 +1625,7 @@ public class CSWWorker3Test {
         assertTrue(result instanceof GetDomainResponseType);
 
         domainValues = new ArrayList<>();
-        list = new ArrayList<>();
+        List<Object> list = new ArrayList<>();
         if (!onlyIso) {
             list.add("000068C3-3B49-C671-89CF-10A39BB1B652");
         }
@@ -1639,6 +1647,12 @@ public class CSWWorker3Test {
         expResult = new GetDomainResponseType(domainValues);
 
         assertEquals(expResult.getDomainValues().size(), result.getDomainValues().size());
+        assertEquals(expResult.getDomainValues().get(0).getListOfValues().getValue().size(), result.getDomainValues().get(0).getListOfValues().getValue().size());
+        assertEquals(expResult.getDomainValues().get(0).getListOfValues().getValue(), result.getDomainValues().get(0).getListOfValues().getValue());
+        assertEquals(expResult.getDomainValues().get(0).getListOfValues(), result.getDomainValues().get(0).getListOfValues());
+        assertEquals(expResult.getDomainValues().get(0).getParameterName(), result.getDomainValues().get(0).getParameterName());
+        assertEquals(expResult.getDomainValues().get(0).getPropertyName(), result.getDomainValues().get(0).getPropertyName());
+        assertEquals(expResult.getDomainValues().get(0), result.getDomainValues().get(0));
         assertEquals(expResult, result);
 
         /*
@@ -1653,13 +1667,13 @@ public class CSWWorker3Test {
         domainValues = new ArrayList<>();
         list = new ArrayList<>();
         // no ebrim list.add("000068C3-3B49-C671-89CF-10A39BB1B652");
-        list.add("11325_158_19640418141800");
-        list.add("39727_22_19750113062500");
-        list.add("40510_145_19930221211500");
-        list.add("42292_5p_19900609195600");
-        list.add("42292_9s_19900610041000");
-        list.add("gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
-        list.add("mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4");
+        list.add(new Value("11325_158_19640418141800"));
+        list.add(new Value("39727_22_19750113062500"));
+        list.add(new Value("40510_145_19930221211500"));
+        list.add(new Value("42292_5p_19900609195600"));
+        list.add(new Value("42292_9s_19900610041000"));
+        list.add(new Value("gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX"));
+        list.add(new Value("mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4"));
         // no ebrim list.add("urn:uuid:3e195454-42e8-11dd-8329-00e08157d076");
         values = new ListOfValuesType(list);
         value  = new DomainValuesType(null, "Identifier", values, METADATA_QNAME);
@@ -1679,20 +1693,20 @@ public class CSWWorker3Test {
 
         domainValues = new ArrayList<>();
         list = new ArrayList<>();
-        list.add("64061411.bot");
-        list.add("75000111.ctd");
-        list.add("90008411-2.ctd");
-        list.add("90008411.ctd");
-        list.add("92005711.ctd");
+        list.add(new Value("64061411.bot"));
+        list.add(new Value("75000111.ctd"));
+        list.add(new Value("90008411-2.ctd"));
+        list.add(new Value("90008411.ctd"));
+        list.add(new Value("92005711.ctd"));
         if (!onlyIso) {
-            list.add("Feature Type Catalogue Extension Package");
+            list.add(new Value("Feature Type Catalogue Extension Package"));
         }
-        list.add("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico");
-        list.add("WMS Server for CORINE Land Cover France");
+        list.add(new Value("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico"));
+        list.add(new Value("WMS Server for CORINE Land Cover France"));
         if (!onlyIso) {
-            list.add("dcbbyyiioo");
-            list.add("ebrim1Title");
-            list.add("ebrim2Title");
+            list.add(new Value("dcbbyyiioo"));
+            list.add(new Value("ebrim1Title"));
+            list.add(new Value("ebrim2Title"));
         }
         values = new ListOfValuesType(list);
         value  = new DomainValuesType(null, "title", values, METADATA_QNAME);
@@ -1712,13 +1726,13 @@ public class CSWWorker3Test {
 
         domainValues = new ArrayList<>();
         list = new ArrayList<>();
-        list.add("64061411.bot");
-        list.add("75000111.ctd");
-        list.add("90008411-2.ctd");
-        list.add("90008411.ctd");
-        list.add("92005711.ctd");
-        list.add("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico");
-        list.add("WMS Server for CORINE Land Cover France");
+        list.add(new Value("64061411.bot"));
+        list.add(new Value("75000111.ctd"));
+        list.add(new Value("90008411-2.ctd"));
+        list.add(new Value("90008411.ctd"));
+        list.add(new Value("92005711.ctd"));
+        list.add(new Value("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico"));
+        list.add(new Value("WMS Server for CORINE Land Cover France"));
         values = new ListOfValuesType(list);
         value  = new DomainValuesType(null, "Title", values, METADATA_QNAME);
         domainValues.add(value);
@@ -1907,8 +1921,8 @@ public class CSWWorker3Test {
         /*
          *  TEST 2 : we add the metadata urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd (DC Record)
          */
-        RecordType ExpResult2 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta8.xml"));
-        Node       oriExpResult2 = getOriginalMetadata("org/constellation/xml/metadata/meta8.xml");
+        RecordType ExpResult2 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/v300/meta8.xml"));
+        Node       oriExpResult2 = getOriginalMetadata("org/constellation/xml/metadata/v300/meta8.xml");
 
         insert  = new InsertType(oriExpResult2);
         request = new TransactionType("CSW", "3.0.0", insert);
@@ -1919,7 +1933,7 @@ public class CSWWorker3Test {
 
         // then we must be sure that the metadata is present
         requestGRBI = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.FULL),
-                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/2.0.2", "urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+                MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", "urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
         GRresult = (GetRecordByIdResponse) worker.getRecordById(requestGRBI);
 
         assertTrue(GRresult != null);

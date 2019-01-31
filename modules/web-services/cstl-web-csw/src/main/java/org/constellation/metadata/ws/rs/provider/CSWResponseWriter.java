@@ -40,12 +40,14 @@ import static org.constellation.metadata.core.CSWConstants.CSW_SCHEMA_LOCATION;
 import static org.constellation.metadata.core.CSWConstants.ISO_SCHEMA_LOCATION;
 import org.geotoolkit.csw.xml.GetRecordByIdResponse;
 import org.geotoolkit.csw.xml.GetRecordsResponse;
+import org.geotoolkit.csw.xml.v300.InternalGetRecordByIdResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.w3c.dom.Node;
 
 /**
  * Note: replace {@code <T extends CSWResponse> by <T extends Object>} because an strange bug arrive with DescribeRecordResponse not passing in this Provider.
@@ -85,18 +87,29 @@ public class CSWResponseWriter implements HttpMessageConverter<Object> {
             if (t instanceof SerializerResponse) {
                 final SerializerResponse response   = (SerializerResponse) t;
                 final CstlXMLSerializer serializer  = response.getSerializer();
-                m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(response.getResponse()));
-                if (serializer != null) {
-                    DataWriter writer = new DataWriter(new OutputStreamWriter(outputMessage.getBody()), "UTF-8");
-                    writer.setIndentStep("   ");
-                    serializer.setContentHandler(writer);
-                    m.marshal(response.getResponse(), serializer);
-                } else  {
-                    m.marshal(response.getResponse(), outputMessage.getBody());
+                final Object objResponse            = unwrapInternalGetRecordByIdResponse(response.getResponse());
+
+                if (objResponse instanceof Node) {
+                    new NodeWriter().write((Node) objResponse, contentType, outputMessage);
+                } else {
+                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(objResponse));
+                    if (serializer != null) {
+                        DataWriter writer = new DataWriter(new OutputStreamWriter(outputMessage.getBody()), "UTF-8");
+                        writer.setIndentStep("   ");
+                        serializer.setContentHandler(writer);
+                        m.marshal(objResponse, serializer);
+                    } else  {
+                        m.marshal(objResponse, outputMessage.getBody());
+                    }
                 }
             } else {
-                m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(t));
-                m.marshal(t, outputMessage.getBody());
+                t = unwrapInternalGetRecordByIdResponse(t);
+                if (t instanceof Node) {
+                    new NodeWriter().write((Node) t, contentType, outputMessage);
+                } else {
+                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, getSchemaLocation(t));
+                    m.marshal(t, outputMessage.getBody());
+                }
             }
             CSWMarshallerPool.getInstance().recycle(m);
 
@@ -109,6 +122,18 @@ public class CSWResponseWriter implements HttpMessageConverter<Object> {
                }
             }
         }
+    }
+
+    private Object unwrapInternalGetRecordByIdResponse(Object t) {
+        if (t instanceof InternalGetRecordByIdResponse) {
+            InternalGetRecordByIdResponse igrbi = (InternalGetRecordByIdResponse) t;
+            if (!igrbi.getAny().isEmpty()) {
+                t = igrbi.getAny().get(0);
+            } else {
+                LOGGER.warning("Empty GetRecordById v300");
+            }
+        }
+        return t;
     }
 
     private static String getSchemaLocation(Object t) {

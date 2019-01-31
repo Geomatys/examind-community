@@ -186,9 +186,9 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         if (obj == null) {
             obj = getObjectFromFile(identifier);
         }
-        if (obj instanceof DefaultMetadata && mode == MetadataType.DUBLINCORE) {
+        if (obj instanceof DefaultMetadata && mode == MetadataType.DUBLINCORE_CSW202) {
             obj = translateISOtoDC((DefaultMetadata)obj, type, elementName);
-        } else if (obj instanceof RecordType && mode == MetadataType.DUBLINCORE) {
+        } else if (obj instanceof RecordType && mode == MetadataType.DUBLINCORE_CSW202) {
             obj = applyElementSet((RecordType)obj, type, elementName);
         }
 
@@ -844,7 +844,11 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
     @Override
     public List<MetadataType> getSupportedDataTypes() {
         return Arrays.asList(
-                MetadataType.ISO_19115, MetadataType.DUBLINCORE, MetadataType.EBRIM, MetadataType.ISO_19110);
+                MetadataType.ISO_19115,
+                MetadataType.DUBLINCORE_CSW202,
+                MetadataType.DUBLINCORE_CSW300,
+                MetadataType.EBRIM,
+                MetadataType.ISO_19110);
     }
 
     /**
