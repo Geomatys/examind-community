@@ -19,7 +19,6 @@
 package org.constellation.metadata.harvest;
 
 import org.apache.sis.internal.xml.LegacyNamespaces;
-import org.constellation.metadata.core.DistributedResults;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.ws.CstlServiceException;
@@ -75,7 +74,10 @@ import java.util.logging.Level;
 import static org.constellation.metadata.core.CSWConstants.CSW;
 import static org.constellation.metadata.core.CSWConstants.CSW_202_VERSION;
 import org.constellation.metadata.utils.CSWUtils;
+import org.geotoolkit.csw.xml.CswXmlFactory;
+import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 
@@ -723,10 +725,13 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
      * Transfer The request to all the servers specified in distributedServers.
      */
     @Override
-    public DistributedResults transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers,
+    public List<FederatedSearchResultBase> transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers,
             int startPosition, int maxRecords) {
-        final List<Object> additionalResults = new ArrayList<>();
-        int matched = 0;
+        String currentVersion = request.getVersion().toString();
+        int matched  = 0;
+        int returned = 0;
+
+        final List<FederatedSearchResultBase> results = new ArrayList<>();
         for (String serverURL : distributedServers) {
             request.setStartPosition(startPosition);
             request.setMaxRecords(maxRecords);
@@ -734,30 +739,29 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
             try {
 
                 final Object response = sendRequest(serverURL, request);
-
                 if (response instanceof GetRecordsResponse) {
 
                     LOGGER.log(Level.INFO, "Response of distant service:\n{0}", response.toString());
                     final GetRecordsResponse serviceResponse = (GetRecordsResponse) response;
-                    final SearchResults results = serviceResponse.getSearchResults();
+                    final SearchResults sResults = serviceResponse.getSearchResults();
 
-                    //we looking for CSW record
-                    for (Object otherRecord : results.getAny()) {
-                        if (otherRecord instanceof JAXBElement) {
-                            otherRecord = ((JAXBElement) otherRecord).getValue();
-                        }
-                        additionalResults.add(otherRecord);
-                    }
-                    matched = matched + results.getNumberOfRecordsMatched();
+                    matched  = matched  + sResults.getNumberOfRecordsMatched();
+                    returned = returned + sResults.getNumberOfRecordsReturned();
                     //if we have enought results a this point we stop requesting other CSW
-                    if (additionalResults.size() == maxRecords) {
+                    if (returned == maxRecords) {
                         break;
                     } else {
                         startPosition = 1;
-                        maxRecords    = maxRecords - additionalResults.size();
-
+                        maxRecords    = maxRecords - returned;
                     }
+
+                    results.add(CswXmlFactory.buildFederatedSearchResult(currentVersion, serverURL, sResults));
+
+                } else if (response instanceof ExceptionResponse) {
+
+                    results.add(CswXmlFactory.buildFederatedSearchException(currentVersion, serverURL, (ExceptionResponse)response));
                 }
+                // TOD handle other response
 
             } catch (MalformedURLException ex) {
                 LOGGER.log(Level.WARNING, "{0} is a malformed URL. unable to request that service", serverURL);
@@ -766,9 +770,11 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
             } catch (IOException ex) {
                 LOGGER.log(Level.INFO, "IO exeception while distibuting the request: {0}", ex.getMessage());
             }
+
+            // TODO Handle when an exception occurs
         }
 
-        return new DistributedResults(matched, additionalResults);
+        return results;
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.ElementSetType;
-import org.geotoolkit.csw.xml.ResultType;
 import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.v300.CapabilitiesType;
 import org.geotoolkit.csw.xml.v300.DistributedSearchType;
@@ -89,7 +88,9 @@ import org.junit.BeforeClass;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
+import org.geotoolkit.csw.xml.v300.FederatedSearchResultType;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -513,8 +514,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         QueryConstraintType constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
         QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         DistributedSearchType dist = new DistributedSearchType(1);
-        GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, null, null, 1, 20, query, dist);
+        GetRecordsType request = new GetRecordsType("CSW", "3.0.0", null, null, null, 1, 20, query, dist);
 
         postRequestObject(conec, request);
         Object result = unmarshallResponse(conec);
@@ -522,7 +522,14 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(result instanceof GetRecordsResponseType);
 
         GetRecordsResponseType grResult = (GetRecordsResponseType) result;
-        assertEquals(13, grResult.getSearchResults().getAny().size());
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        assertEquals(1, grResult.getSearchResults().getFederatedSearchResultBase().size());
+        assertNotNull(grResult.getSearchResults().getFederatedSearchResults().get(0));
+        assertTrue(grResult.getSearchResults().getFederatedSearchResults().get(0) instanceof FederatedSearchResultType);
+
+        FederatedSearchResultType federatedResult = (FederatedSearchResultType) grResult.getSearchResults().getFederatedSearchResults().get(0);
+        assertNotNull(federatedResult.getSearchResult());
+        assertEquals(12, federatedResult.getSearchResult().getAny().size());
 
 
 
@@ -531,8 +538,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
         query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
-        request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, null, null, 1, 20, query, null);
+        request = new GetRecordsType("CSW", "3.0.0", null, null, null, 1, 20, query, null);
 
         postRequestObject(conec, request);
         result = unmarshallResponse(conec);
@@ -549,8 +555,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
         query = new QueryType(Arrays.asList(TypeNames.RECORD_300_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         dist = new DistributedSearchType(0);
-        request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
-                null, null, null, 1, 20, query, dist);
+        request = new GetRecordsType("CSW", "3.0.0", null, null, null, 1, 20, query, dist);
 
         postRequestObject(conec, request);
         result = unmarshallResponse(conec);

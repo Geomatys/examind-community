@@ -89,7 +89,6 @@ import org.geotoolkit.ows.xml.AbstractOperation;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
 import org.geotoolkit.ows.xml.AbstractServiceProvider;
-import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.ows.xml.v100.SectionsType;
 import org.apache.sis.storage.DataStore;
@@ -149,6 +148,7 @@ import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
+import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.csw.xml.InsertResult;
 import static org.geotoolkit.csw.xml.TypeNames.DC_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM25_TYPE_NAMES;
@@ -895,7 +895,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final int nbResults = results.length;
 
         //we look for distributed queries
-        DistributedResults distributedResults = new DistributedResults();
+        List<FederatedSearchResultBase> distributedResults = new ArrayList<>();
         if (catalogueHarvester != null) {
             final DistributedSearch dSearch = request.getDistributedSearch();
             if (dSearch != null && dSearch.getHopCount() > 0) {
@@ -914,14 +914,20 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             }
         }
 
-        int nextRecord         = startPos + maxRecord;
-        final int totalMatched = nbResults + distributedResults.nbMatched;
-
+        int nextRecord   = startPos + maxRecord;
+        int totalMatched = nbResults;
+        for (FederatedSearchResultBase distR : distributedResults) {
+            totalMatched += distR.getMatched();
+        }
         if (nextRecord > totalMatched) {
             nextRecord = 0;
         }
 
-        final int maxDistributed = distributedResults.additionalResults.size();
+        int maxDistributed = 0;
+        for (FederatedSearchResultBase distR : distributedResults) {
+            maxDistributed += distR.getReturned();
+        }
+
         int max = (startPos - 1) + maxRecord;
 
         if (max > nbResults) {
@@ -959,9 +965,9 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             // we return a list of Record
             case RESULTS:
 
-                final List<Object> records                 = new ArrayList<>();
+                final List<Object> records = new ArrayList<>();
                 try {
-                    for (int i = startPos -1; i < max; i++) {
+                    for (int i = startPos - 1; i < max; i++) {
                         final Object obj = mdStore.getMetadata(results[i], mode, cstlSet(set), elementName);
                         if (obj == null && (max + 1) < nbResults) {
                             max++;
@@ -971,18 +977,22 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                         }
                     }
                 } catch (MetadataIoException ex) {
-                   CodeList execptionCode = ex.getExceptionCode();
-                   if (execptionCode == null) {
-                       execptionCode = NO_APPLICABLE_CODE;
-                   }
-                   throw new CstlServiceException(ex, execptionCode);
-               }
-                //we add additional distributed result
+                    CodeList execptionCode = ex.getExceptionCode();
+                    if (execptionCode == null) {
+                        execptionCode = NO_APPLICABLE_CODE;
+                    }
+                    throw new CstlServiceException(ex, execptionCode);
+                }
+                /*
+                 * Additional distributed result are now merged in 2.0.2 in CswXmlFactory
+                 * TODO see if max ditributed is needed.
+
                 for (int i = 0; i < maxDistributed; i++) {
 
                     final Object additionalResult = distributedResults.additionalResults.get(i);
                     records.add(additionalResult);
                 }
+                */
 
                 searchResults = CswXmlFactory.createSearchResults(version,
                                                                   id,
@@ -990,7 +1000,8 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                                                                   totalMatched,
                                                                   records,
                                                                   records.size(),
-                                                                  nextRecord);
+                                                                  nextRecord,
+                                                                  distributedResults);
                 break;
 
             //we return an Acknowledgement if the request is valid.

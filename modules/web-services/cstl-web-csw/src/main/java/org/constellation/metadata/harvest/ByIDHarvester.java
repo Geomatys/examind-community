@@ -21,7 +21,6 @@ package org.constellation.metadata.harvest;
 // J2SE dependencies
 
 import com.google.common.base.Charsets;
-import org.constellation.metadata.core.DistributedResults;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
@@ -45,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import org.constellation.metadata.utils.CSWUtils;
+import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -79,7 +79,7 @@ public class ByIDHarvester extends CatalogueHarvester {
      *
      * @param store The Writer allowing to store the metadata in the datasource.
      * @param identifierDirectory a Path of the directory containing the identifier files.
-     * 
+     *
      * @throws MetadataIoException If the parameters identifierDirectory does not point to a valid and existing directory,
      *                             or if its {@code null}.
      */
@@ -120,7 +120,7 @@ public class ByIDHarvester extends CatalogueHarvester {
         }
         return result;
     }
-    
+
     /**
      * Harvest another CSW service by getting all this records ans storing it into the database
      *
@@ -167,7 +167,7 @@ public class ByIDHarvester extends CatalogueHarvester {
 
                     //we looking for any record type
                     for (Object otherRecordObj: serviceResponse.getAny()) {
-                        
+
                         final Node otherRecord = CSWUtils.transformToNode(otherRecordObj, marshallerPool);
                         //Temporary ugly patch TODO handle update in CSW
                         try {
@@ -220,7 +220,7 @@ public class ByIDHarvester extends CatalogueHarvester {
         return result;
     }
 
-      
+
     /**
      * Send a request to another CSW service.
      *
@@ -268,8 +268,8 @@ public class ByIDHarvester extends CatalogueHarvester {
      * @return
      */
     @Override
-    public DistributedResults transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers, int startPosition, int maxRecords) {
-        throw new UnsupportedOperationException("IGN Harvester only support harvesting");
+    public List<FederatedSearchResultBase> transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers, int startPosition, int maxRecords) {
+        throw new UnsupportedOperationException("ByID Harvester only support harvesting");
     }
 
 
