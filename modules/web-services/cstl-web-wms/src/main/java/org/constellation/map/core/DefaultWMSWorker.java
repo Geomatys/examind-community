@@ -22,7 +22,6 @@ import com.codahale.metrics.annotation.Timed;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.measure.NumberRange;
 import org.apache.sis.measure.Range;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -33,7 +32,6 @@ import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.CharSequences;
 import org.apache.sis.xml.MarshallerPool;
 
 import org.constellation.api.ServiceDef;
@@ -161,9 +159,6 @@ import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
 import static org.constellation.map.core.WMSConstant.KEY_TIME;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.coverage.combineIterator.GridCombineIterator;
 import org.geotoolkit.util.NamesExt;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -174,7 +169,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createBoundingBox;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createDimension;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createGeographicBoundingBox;
@@ -195,8 +189,6 @@ import org.geotoolkit.display2d.ext.legend.DefaultLegendService;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.VerticalCRS;
-import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.MathTransform;
 
 /**
  * A WMS worker for a local WMS service which handles requests from either REST
@@ -226,14 +218,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     static {
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-
-    /**
-     * AxisDirection name for Lat/Long, Elevation, temporal dimensions.
-     */
-    private static final List<String> COMMONS_DIM = UnmodifiableArrayList.wrap(new String[] {
-            "NORTH", "EAST", "SOUTH", "WEST",
-            "UP", "DOWN",
-            "FUTURE", "PAST"});
 
     /**
      * Only Elevation dimension.
@@ -506,56 +490,17 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 dimensions.add(dim);
             }
 
-            final Object origin = layer.getOrigin();
-
-            //-- execute only if it is a CoverageResource
-            if (origin != null && origin instanceof CoverageResource) {
-                final CoverageResource covRef = (CoverageResource)origin;
-                GeneralGridGeometry gridGeom = null;
-
-                //-- try to open coverage
+            //-- execute only if it is a CoverageData
+            if (layer instanceof CoverageData) {
+                final CoverageData covdata = (CoverageData) layer;
                 try {
-                    final GridCoverageReader covReader = (GridCoverageReader) covRef.acquireReader();
-                    gridGeom = new GeneralGridGeometry(covReader.getGridGeometry(covRef.getImageIndex()));
-                    covRef.recycle(covReader);
-                } catch (DataStoreException ex) {
-                    throw new CstlServiceException(ex);
-                }
-
-                final CoordinateReferenceSystem crsLayer                       = gridGeom.getCoordinateReferenceSystem();
-                final Map<Integer, CoordinateReferenceSystem> indexedDecompose = ReferencingUtilities.indexedDecompose(crsLayer);
-
-                //-- for each CRS part if crs is not 2D part or Temporal or elevation add value
-                for (Integer key : indexedDecompose.keySet()) {
-                    final CoordinateReferenceSystem currentCrs = indexedDecompose.get(key);
-
-                    //-- in this case we add value only if crs is one dimensional -> 1 dimension -> getAxis(0).
-                    final CoordinateSystemAxis axis = currentCrs.getCoordinateSystem().getAxis(0);
-
-                    if (!COMMONS_DIM.contains(axis.getDirection().name())) {
-                        //we want values at center, not at corner
-                        final MathTransform gridToCRS = gridGeom.getGridToCRS(PixelInCell.CELL_CENTER);
-                        final NumberRange[] numberRanges = GridCombineIterator.extractAxisRanges(gridGeom.getExtent(), gridToCRS, key);
-
-                        final StringBuilder values = new StringBuilder();
-                        for (int i = 0; i < numberRanges.length; i++) {
-                            final NumberRange numberRange = numberRanges[i];
-                            values.append(numberRange.getMinDouble());
-                            if (i != numberRanges.length - 1) values.append(',');
-                        }
-                        final String unitStr = (axis.getUnit() != null) ? axis.getUnit().toString() : null;
-                        final String defaut = (!(numberRanges.length != 0)) ? ""+numberRanges[0].getMinDouble() : null;
-                        String unitSymbol;
-                        try {
-                            unitSymbol = new org.apache.sis.measure.UnitFormat(Locale.UK).format(axis.getUnit());
-                        } catch (IllegalArgumentException e) {
-                            // Workaround for one more bug in javax.measure...
-                            unitSymbol = unitStr;
-                        }
-                        dim = createDimension(queryVersion, values.toString(), axis.getName().getCode(), unitStr,
-                                unitSymbol, defaut, null, null, null);
-                        dimensions.add(dim);
+                    for (org.constellation.dto.Dimension d : covdata.getSpecialDimensions()) {
+                        dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(),
+                                d.getUnitSymbol(), d.getDefault(), null, null, null));
                     }
+                } catch (ConstellationStoreException ex) {
+                    LOGGER.log(Level.INFO, ex.getMessage(), ex);
+                    break;
                 }
             }
 

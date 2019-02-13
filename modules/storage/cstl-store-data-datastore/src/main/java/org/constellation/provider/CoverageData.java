@@ -63,4 +63,10 @@ public interface CoverageData extends GeoData {
             final Double elevation, final Date time) throws ConstellationStoreException, IOException;
 
     GeneralGridGeometry getGeometry() throws DataStoreException;
+
+    /**
+     * Return the special dimensions that are not Temporal or elevation
+     * @return
+     */
+    List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException;
 }

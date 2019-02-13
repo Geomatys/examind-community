@@ -20,10 +20,12 @@ package org.constellation.provider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -31,7 +33,9 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
+import org.apache.sis.measure.NumberRange;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
@@ -50,6 +54,7 @@ import org.geotoolkit.coverage.grid.GeneralGridGeometry;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.GridEnvelope2D;
 import org.geotoolkit.coverage.grid.GridGeometry2D;
+import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
@@ -65,6 +70,7 @@ import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
+import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.DefaultStyleFactory;
@@ -78,6 +84,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.SingleCRS;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.crs.VerticalCRS;
+import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -96,6 +103,14 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     private static final MutableStyle DEFAULT =
             new DefaultStyleFactory().style(StyleConstants.DEFAULT_RASTER_SYMBOLIZER);
+
+    /**
+     * AxisDirection name for Lat/Long, Elevation, temporal dimensions.
+     */
+    private static final List<String> COMMONS_DIM = UnmodifiableArrayList.wrap(new String[] {
+            "NORTH", "EAST", "SOUTH", "WEST",
+            "UP", "DOWN",
+            "FUTURE", "PAST"});
 
     private final GridCoverageResource ref;
 
@@ -543,6 +558,66 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             throw new ConstellationStoreException(ex);
         }
         return isGeophysic;
+    }
+
+    @Override
+    public List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException {
+        final List<org.constellation.dto.Dimension> dimensions = new ArrayList<>();
+
+        GeneralGridGeometry gridGeom = null;
+        //-- try to open coverage
+        try {
+            final GridCoverageReader covReader = (GridCoverageReader) ref.acquireReader();
+            gridGeom = covReader.getGridGeometry(ref.getImageIndex());
+            ref.recycle(covReader);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+
+        final CoordinateReferenceSystem crsLayer                       = gridGeom.getCoordinateReferenceSystem();
+        final Map<Integer, CoordinateReferenceSystem> indexedDecompose = ReferencingUtilities.indexedDecompose(crsLayer);
+
+        //-- for each CRS part if crs is not 2D part or Temporal or elevation add value
+        for (Integer key : indexedDecompose.keySet()) {
+            final CoordinateReferenceSystem currentCrs = indexedDecompose.get(key);
+
+            //-- in this case we add value only if crs is one dimensional -> 1 dimension -> getAxis(0).
+            final CoordinateSystemAxis axis = currentCrs.getCoordinateSystem().getAxis(0);
+
+            if (!COMMONS_DIM.contains(axis.getDirection().name())) {
+
+                final GridGeometryIterator ite = new GridGeometryIterator(gridGeom, key);
+                final List<NumberRange> numberRanges = new ArrayList<>();
+                while (ite.hasNext()) {
+                    GeneralGridGeometry slice = ite.next();
+                    Envelope envelope = slice.getEnvelope();
+                    numberRanges.add(NumberRange.create(envelope.getMinimum(key), true, envelope.getMaximum(key), false));
+                }
+
+                final StringBuilder values = new StringBuilder();
+                for (int i = 0,n=numberRanges.size(); i < n; i++) {
+                    final NumberRange numberRange = numberRanges.get(i);
+                    values.append(numberRange.getMinDouble());
+                    if (i != numberRanges.size() - 1) values.append(',');
+                }
+                final String unitStr = (axis.getUnit() != null) ? axis.getUnit().toString() : null;
+                final String defaut = (!(numberRanges.size() != 0)) ? ""+numberRanges.get(0).getMinDouble() : null;
+                String unitSymbol;
+                try {
+                    unitSymbol = new org.apache.sis.measure.UnitFormat(Locale.UK).format(axis.getUnit());
+                } catch (IllegalArgumentException e) {
+                    // Workaround for one more bug in javax.measure...
+                    unitSymbol = unitStr;
+                }
+                dimensions.add(new org.constellation.dto.Dimension(values.toString(),
+                                                                   axis.getName().getCode(),
+                                                                   unitStr,
+                                                                   unitSymbol,
+                                                                   defaut,
+                                                                   null,null,null));
+            }
+        }
+        return dimensions;
     }
 
 }
