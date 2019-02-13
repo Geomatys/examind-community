@@ -20,7 +20,6 @@ package org.constellation.provider;
 
 import java.awt.*;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -32,7 +31,6 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.internal.metadata.AxisDirections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -540,5 +538,20 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         return null;
     }
 
+    @Override
+    public boolean isGeophysic() throws ConstellationStoreException {
+        boolean isGeophysic = false;
+        try {
+            final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
+            final List<GridSampleDimension> dims = reader.getSampleDimensions(ref.getImageIndex());
+            if(dims!=null && !dims.isEmpty()){
+                isGeophysic = true;
+            }
+            ref.recycle(reader);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+        return isGeophysic;
+    }
 
 }

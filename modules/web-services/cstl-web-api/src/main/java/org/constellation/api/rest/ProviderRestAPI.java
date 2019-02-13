@@ -46,14 +46,10 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.coverage.GridSampleDimension;
-import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.apache.sis.storage.DataStore;
 import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
 import org.geotoolkit.io.wkt.PrjFiles;
-import org.apache.sis.storage.DataStore;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
@@ -336,29 +332,18 @@ public class ProviderRestAPI extends AbstractRestAPI {
      * @return
      */
     @RequestMapping(value="/{id}/{dataName}/isGeophysic",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity isGeophysic(
-            @PathVariable("id")        final String id,
-            @PathVariable("dataName") final String dataName) {
-
+    public ResponseEntity isGeophysic(@PathVariable("id") final String id, @PathVariable("dataName") final String dataName) {
         boolean isGeophysic = false;
         try {
             final Data data = getProviderData(id, dataName);
-
-            if(data!=null && data.getOrigin() instanceof CoverageResource){
-                final CoverageResource ref = (CoverageResource) data.getOrigin();
-                final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
-                final List<GridSampleDimension> dims = reader.getSampleDimensions(ref.getImageIndex());
-                if(dims!=null && !dims.isEmpty()){
-                    isGeophysic = true;
-                }
-                ref.recycle(reader);
+            if (data != null) {
+                isGeophysic = data.isGeophysic();
             }
-        } catch (CoverageStoreException | ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve information for dataName " + dataName, ex);
+        } catch (ConstellationStoreException | ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, "Cannot retrieve information for data " + dataName, ex);
             return new ErrorMessage(ex).build();
         }
-
-       return new ResponseEntity(new SimpleValue(isGeophysic),OK);
+        return new ResponseEntity(new SimpleValue(isGeophysic), OK);
     }
 
     /**

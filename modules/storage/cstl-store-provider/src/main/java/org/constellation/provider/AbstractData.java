@@ -185,4 +185,9 @@ public abstract class AbstractData implements Data{
     public ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException {
         return null;
     }
+
+    @Override
+    public boolean isGeophysic() throws ConstellationStoreException {
+        return false;
+    }
 }

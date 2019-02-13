@@ -147,4 +147,6 @@ public interface Data {
      */
     ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException;
 
+    boolean isGeophysic() throws ConstellationStoreException;
+
 }
