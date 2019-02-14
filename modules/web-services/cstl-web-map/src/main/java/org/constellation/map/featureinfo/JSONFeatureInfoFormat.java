@@ -167,7 +167,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             // TODO : Manage periods.
             final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            builder.append("\"time\":").append(df.format(time.get(time.size()-1))).append("\",");
+            builder.append("\"time\":\"").append(df.format(time.get(time.size()-1))).append("\",");
         }
 
         if (elevation == null) {
