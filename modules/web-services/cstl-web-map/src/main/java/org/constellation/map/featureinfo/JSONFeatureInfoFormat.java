@@ -186,7 +186,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
 
         if (elevation != null) {
-            builder.append("\"elevation\":").append(elevation).append("\",");
+            builder.append("\"elevation\":\"").append(elevation).append("\",");
         }
 
         builder.append("\"values\":{");
