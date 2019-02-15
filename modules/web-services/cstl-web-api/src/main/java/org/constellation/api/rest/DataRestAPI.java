@@ -177,6 +177,7 @@ public class DataRestAPI extends AbstractRestAPI{
      * @param serverPath A path to a data file already on the server.
      * @param dataType The type of the data (example : raster, vector, ...).
      * @param fileExtension The file extension.
+     * @param datasetName Optional dataset name where to insert the data. If not supplied, a new dataset will be created based on the fileName
      * @param req
      *
      * @return A list of Databrief extracted from the uploaded file.
@@ -186,6 +187,7 @@ public class DataRestAPI extends AbstractRestAPI{
                                      @RequestParam(name = "serverPath", required = false) String serverPath,
                                      @RequestParam("dataType") String dataType,
                                      @RequestParam("extension") String fileExtension,
+                                     @RequestParam(name = "datasetName", required = false) String datasetName,
                                      HttpServletRequest req) {
 
         try {
@@ -200,7 +202,11 @@ public class DataRestAPI extends AbstractRestAPI{
             } else {
                 return new ResponseEntity("Neither local nor server file has been provided.", HttpStatus.BAD_REQUEST);
             }
-            final String datasetName   = FilenameUtils.removeExtension(fileName);
+            boolean uniqueDS = (datasetName == null);
+            if (uniqueDS) {
+                datasetName   = FilenameUtils.removeExtension(fileName);
+            }
+
             final String providerId    = fileName + '-' + UUID.randomUUID().toString();
             String dataFile;
 
@@ -269,14 +275,22 @@ public class DataRestAPI extends AbstractRestAPI{
                 throw new UnsupportedOperationException("The uploaded file is not recognized or not supported by the application. file:" + uploadType);
             }
 
-            // 6. create dataset with unique name
-            String freeDatasetName = datasetName;
-            int i = 1;
-            while (datasetBusiness.existsByName(freeDatasetName)) {
-                freeDatasetName = datasetName + "_" + i;
-                i++;
+            // 6. get or create dataset (with unique name if not specified)
+            Integer dsId = null;
+            if (uniqueDS) {
+                String freeDatasetName = datasetName;
+                int i = 1;
+                while (datasetBusiness.existsByName(freeDatasetName)) {
+                    freeDatasetName = datasetName + "_" + i;
+                    i++;
+                }
+                datasetName = freeDatasetName;
+            } else  {
+                dsId = datasetBusiness.getDatasetId(datasetName);
             }
-            final Integer dsId = datasetBusiness.createDataset(freeDatasetName, userId, null);
+            if (dsId == null) {
+                dsId = datasetBusiness.createDataset(datasetName, userId, null);
+            }
 
             // 7. create provider and all its datas with an hidden state
             final ProviderConfiguration config = new ProviderConfiguration("data-store", subType, dataFile);
@@ -499,8 +513,10 @@ public class DataRestAPI extends AbstractRestAPI{
 
         final List<DataBrief> briefs = new ArrayList<>();
         try {
+            Map filterMap = new HashMap<>();
+            filterMap.put("term", term);
             final Map.Entry<Integer,List<MetadataBrief>> entry = metadataBusiness.filterAndGetBrief(
-                    Collections.singletonMap("term", term),null,1,Integer.MAX_VALUE);
+                    filterMap,null,1,Integer.MAX_VALUE);
 
             for (final MetadataBrief md : entry.getValue()) {
                 if (md.getDatasetId() != null) {

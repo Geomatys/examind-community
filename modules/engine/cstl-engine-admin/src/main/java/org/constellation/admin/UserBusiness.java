@@ -27,6 +27,7 @@ import org.constellation.dto.UserWithRole;
 import org.constellation.repository.UserRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -45,31 +46,37 @@ public class UserBusiness implements IUserBusiness {
     }
 
     @Override
+    @Transactional
     public CstlUser create(CstlUser user) {
         return userRepository.create(user);
     }
 
     @Override
+    @Transactional
     public CstlUser update(CstlUser user) {
         return userRepository.update(user);
     }
 
     @Override
+    @Transactional
     public void addUserToRole(Integer userId, String roleName) {
         userRepository.addUserToRole(userId, roleName);
     }
 
     @Override
+    @Transactional
     public int delete(int userId) {
         return userRepository.delete(userId);
     }
 
     @Override
+    @Transactional
     public int desactivate(int userId) {
         return userRepository.desactivate(userId);
     }
 
     @Override
+    @Transactional
     public int activate(int userId) {
         return userRepository.activate(userId);
     }
