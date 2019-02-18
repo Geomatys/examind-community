@@ -64,7 +64,7 @@ public final class CSWQueryable {
         paths.add("/gfc:FC_FeatureCatalogue/gfc:featureType/gfc:FC_FeatureType/gfc:carrierOfCharacteristics/gfc:FC_FeatureAttribute/gfc:memberName/gco:LocalName");
         ISO_FC_QUERYABLE.put("attributeName", new PathType(String.class, paths));
     }
-    
+
     /**
      * The queryable element from ISO 19115 and their path id.
      */
@@ -539,6 +539,29 @@ public final class CSWQueryable {
         paths = new ArrayList<>();
         paths.add("/csw:Record/ows:BoundingBox/@crs");
         DUBLIN_CORE_QUERYABLE.put("CRS",     new PathType(String.class, paths));
+
+        /*
+         * Temporal Extent
+         */
+        paths = new ArrayList<>();
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition/gmx:Anchor");
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition");
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition/gmx:Anchor");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
+        paths.add("/csw:Record/csw:TemporalExtent/csw:begin");
+        DUBLIN_CORE_QUERYABLE.put("TemporalExtent_begin", new PathType(Date.class, paths));
+
+        paths = new ArrayList<>();
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/gmx:Anchor");
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition");
+        paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/gmx:Anchor");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition");
+        paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
+        paths.add("/csw:Record/csw:TemporalExtent/csw:end");
+        DUBLIN_CORE_QUERYABLE.put("TemporalExtent_end", new PathType(Date.class, paths));
     }
 
     /**

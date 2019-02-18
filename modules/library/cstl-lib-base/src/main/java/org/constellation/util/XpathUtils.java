@@ -20,6 +20,7 @@
 package org.constellation.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -81,7 +82,7 @@ public class XpathUtils {
     private static String toMDPath(String xpath, final boolean content, final boolean rmTypeNode) {
         final StringBuilder result = new StringBuilder();
         final String[] parts = xpath.split("/");
-        
+
         for (int i = 0; i < parts.length; i++) {
             int separator = parts[i].indexOf(':');
             final String propName = parts[i].substring(separator + 1);
@@ -126,16 +127,16 @@ public class XpathUtils {
         }
     }
 
-    public static String getNamespaceFromPrefix(final String prefix) {
+    public static List<String> getNamespaceFromPrefix(final String prefix) {
         switch (prefix) {
-            case "gfc": return "http://www.isotc211.org/2005/gfc";
-            case "gmd": return "http://www.isotc211.org/2005/gmd";
-            case "gmi": return "http://www.isotc211.org/2005/gmi";
-            case "csw": return "http://www.opengis.net/cat/csw/2.0.2";
-            case "eb3": return "urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0";
-            case "eb2": return "urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5";
-            case "wrs": return "http://www.opengis.net/cat/wrs/1.0";
-            case "wr" : return "http://www.opengis.net/cat/wrs";
+            case "gfc": return Arrays.asList("http://www.isotc211.org/2005/gfc");
+            case "gmd": return Arrays.asList("http://www.isotc211.org/2005/gmd");
+            case "gmi": return Arrays.asList("http://www.isotc211.org/2005/gmi");
+            case "csw": return Arrays.asList("http://www.opengis.net/cat/csw/2.0.2", "http://www.opengis.net/cat/csw/3.0");
+            case "eb3": return Arrays.asList("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0");
+            case "eb2": return Arrays.asList("urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5");
+            case "wrs": return Arrays.asList("http://www.opengis.net/cat/wrs/1.0");
+            case "wr" : return Arrays.asList("http://www.opengis.net/cat/wrs");
             default: throw new IllegalArgumentException("Unexpected prefix: " + prefix);
 
         }

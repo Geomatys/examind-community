@@ -143,6 +143,7 @@ public class FilterParserUtils {
 
     /**
      * Return true is the specified property has to be treated as a date Field.
+     * TODO find a better way than using a fixed list of property names.
      *
      * @param pName A property name extract from a filter.
      * @return true is the specified property has to be treated as a date Field.
@@ -155,7 +156,9 @@ public class FilterParserUtils {
                 propertyName = propertyName.substring(semicolonPos + 1);
             }
             return propertyName.contains("Date") || propertyName.contains("Modified")  || propertyName.contains("date")
-                || propertyName.equalsIgnoreCase("TempExtent_begin") || propertyName.equalsIgnoreCase("TempExtent_end");
+                || propertyName.equalsIgnoreCase("TempExtent_begin") || propertyName.equalsIgnoreCase("TempExtent_end")
+                || propertyName.equalsIgnoreCase("TemporalExtent_begin") || propertyName.equalsIgnoreCase("TemporalExtent_end")
+                || propertyName.equalsIgnoreCase("TemporalExtent");
         }
         return false;
     }

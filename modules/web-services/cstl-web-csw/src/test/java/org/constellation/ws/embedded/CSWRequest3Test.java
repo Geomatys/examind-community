@@ -59,7 +59,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBContext;
@@ -116,7 +118,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
-    public void initPool() {
+    public void initServer() {
         if (!initialized) {
             try {
                 startServer(null);
@@ -244,6 +246,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         return "http://localhost:" +  getCurrentPort() + "/WS/csw/default?";
     }
 
+    private static String getOpenSearchURL() {
+        return "http://localhost:" +  getCurrentPort() + "/WS/csw/default/opensearch?";
+    }
+
     private static String getCsw2URL() {
         return "http://localhost:" +  getCurrentPort() + "/WS/csw/csw2?";
     }
@@ -252,7 +258,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=1)
     public void testCSWGetCapabilities() throws Exception {
 
-        initPool();
+        initServer();
 
         waitForRestStart(getCswURL());
         waitForRestStart(getCsw2URL());
@@ -332,7 +338,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=2)
     public void testCSWError() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -358,7 +364,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=3)
     public void testCSWGetDomain() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -391,8 +397,14 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(result instanceof GetDomainResponseType);
 
         values = new ArrayList<>();
-        list = new ListOfValuesType(Arrays.asList("Aliquam fermentum purus quis arcu","Fuscé vitae ligulä","Lorem ipsum","Lorem ipsum dolor sit amet",
-                "Maecenas enim","Mauris sed neque","Ut facilisis justo ut lacus","Vestibulum massa purus","Ñunç elementum"));
+        list = new ListOfValuesType(Arrays.asList("Aliquam fermentum purus quis arcu",
+                                                  "Fuscé vitae ligulä","Lorem ipsum",
+                                                  "Lorem ipsum dolor sit amet",
+                                                  "Maecenas enim",
+                                                  "Mauris sed neque",
+                                                  "Ut facilisis justo ut lacus",
+                                                  "Vestibulum massa purus",
+                                                  "Ñunç elementum"));
         values.add(new DomainValuesType(null, "title", list, new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata")));
         expResult = new GetDomainResponseType(values);
 
@@ -403,7 +415,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=4)
     public void testCSWGetRecordByID() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -454,7 +466,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Order(order=5)
     public void testCSWGetRecords() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -494,14 +506,271 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         grResult = (GetRecordsResponseType) result;
 
         assertEquals(12, grResult.getSearchResults().getAny().size());
-
     }
 
     @Test
     @Order(order=6)
+    public void testCSWOpenSearchText() throws Exception {
+
+        initServer();
+
+        /**
+         * KVP search csw output 1: term filter
+         */
+        String query = "q=Lorem";
+        URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        URLConnection conec = kvpsUrl.openConnection();
+
+        Object result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        GetRecordsResponseType grResult = (GetRecordsResponseType) result;
+
+        assertEquals(2, grResult.getSearchResults().getAny().size());
+
+        Set<String> resultID = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        assertEquals(expResultID, resultID);
+
+        /**
+         * KVP search csw output 2: term filters
+         */
+        query = "q=Lorem%2BVegetation";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(4, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 4; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        expResultID.add("urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4");
+        expResultID.add("urn:uuid:94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
+        assertEquals(expResultID, resultID);
+    }
+
+    @Test
+    @Order(order=7)
+    public void testCSWOpenSearchId() throws Exception {
+
+        initServer();
+
+        /**
+         * KVP search csw output 1: term filter
+         */
+        String query = "recordIds=urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2";
+        URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        URLConnection conec = kvpsUrl.openConnection();
+
+        Object result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        GetRecordsResponseType grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+
+        Set<String> resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        assertEquals(expResultID, resultID);
+
+        /**
+         * KVP search csw output 2: term filters
+         */
+        query = "recordIds=urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2,urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(2, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        assertEquals(expResultID, resultID);
+    }
+
+
+    @Test
+    @Order(order=8)
+    public void testCSWOpenSearchSpatial() throws Exception {
+        /**
+         * KVP search csw output 3 BBOX filter
+         */
+        String query = "bbox=60.042,13.754,68.410,17.920,urn:x-ogc:def:crs:EPSG:6.11:4326";
+        URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        URLConnection conec = kvpsUrl.openConnection();
+
+        Object result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        GetRecordsResponseType grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        Set<String> resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        assertEquals(expResultID, resultID);
+
+         /**
+         * KVP search csw output 4: geometry filter
+         */
+        query = "POLYGON((60.042%2013.754,60.042%2017.920,68.410%2017.920,68.410%2013.754,60.042%2013.754))&relation=Contains";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&geometry=" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        assertEquals(expResultID, resultID);
+
+         /**
+         * KVP search csw output 5: lat lon radius (Probably bugged as we need to set 10000km to get results...)
+         */
+        query = "lat=64.1&lon=15.2&radius=10000000";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(3, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 3; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
+        expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        expResultID.add("urn:uuid:9a669547-b69b-469f-a11f-2d875366bbdc");
+        assertEquals(expResultID, resultID);
+
+    }
+
+    @Test
+    @Order(order=9)
+    public void testCSWOpenSearchTemporal() throws Exception {
+         /**
+         * KVP search csw output 6:time instant equals
+         */
+        String query = "time=2003-05-09Z";
+        URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        URLConnection conec = kvpsUrl.openConnection();
+
+        Object result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        GetRecordsResponseType grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        Set<String> resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:e9330592-0932-474b-be34-c3a3bb67c7db");
+        assertEquals(expResultID, resultID);
+
+        /**
+         * KVP search csw output 7:time period anyInteracts
+         */
+        query = "time=2010-05-09T00:00:00Z/2011-06-14T00:00:00Z";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        assertEquals(expResultID, resultID);
+    }
+
+    @Test
+    @Order(order=10)
     public void testDistributedCSWGetRecords() throws Exception {
 
-        initPool();
+        initServer();
 
         System.out.println("\n\n DISTIBUTED SEARCH \n\n");
         // Creates a valid GetCapabilities url.
@@ -570,9 +839,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
 
     @Test
-    @Order(order=8)
+    @Order(order=11)
     public void testRestart() throws Exception {
-        initPool();
+        initServer();
 
         pool = new MarshallerPool(JAXBContext.newInstance("org.constellation.dto:"
                         + "org.constellation.dto.service.config.generic:"
@@ -607,10 +876,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=9)
+    @Order(order=12)
     public void testCSWRefreshIndex() throws Exception {
 
-        initPool();
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
@@ -724,10 +993,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=10)
+    @Order(order=13)
     public void testCSWAddToIndex() throws Exception {
 
-        initPool();
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
@@ -807,10 +1076,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=11)
+    @Order(order=14)
     public void testCSWRemoveFromIndex() throws Exception {
 
-        initPool();
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
@@ -880,10 +1149,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=12)
+    @Order(order=15)
     public void testCSWRemoveAll() throws Exception {
 
-        initPool();
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
@@ -930,9 +1199,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
+    @Order(order=16)
     public void testListAvailableService() throws Exception {
-        initPool();
+        initServer();
 
         URL niUrl = new URL("http://localhost:" + getCurrentPort() +  "/API/OGC/list");
 

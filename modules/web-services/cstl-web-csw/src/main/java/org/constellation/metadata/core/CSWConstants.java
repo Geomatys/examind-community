@@ -51,6 +51,8 @@ import static org.geotoolkit.gml.xml.v311.ObjectFactory._Envelope_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._LineString_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Point_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Polygon_QNAME;
+import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
+import org.geotoolkit.ops.xml.v110.Url;
 import org.opengis.filter.capability.FilterCapabilities;
 
 /**
@@ -66,6 +68,15 @@ public abstract class CSWConstants {
      */
     public static final String CSW_202_VERSION = "2.0.2";
     public static final String CSW = "CSW";
+
+    public static final String REQUEST_ID = "REQUESTID";
+    public static final String OUTPUT_FORMAT = "OUTPUTFORMAT";
+    public static final String RESULT_TYPE = "RESULTTYPE";
+    public static final String START_POSITION = "STARTPOSITION";
+    public static final String MAX_RECORDS = "MAXRECORDS";
+    public static final String CONSTRAINT = "CONSTRAINT";
+    public static final String CONSTRAINT_LANGUAGE = "CONSTRAINTLANGUAGE";
+    public static final String CONSTRAINT_LANGUAGE_VERSION = "CONSTRAINT_LANGUAGE_VERSION";
 
     public static final String OUTPUT_SCHEMA = "outputSchema";
     public static final String TYPENAMES = "TypeNames";
@@ -249,6 +260,7 @@ public abstract class CSWConstants {
         grParameters.add(OWSXmlFactory.buildDomain("2.0.0", "CONSTRAINTLANGUAGE", Arrays.asList("Filter", "CQL")));
 
         final List<AbstractDomain> grConstraints = new ArrayList<>();
+        grConstraints.add(OWSXmlFactory.buildDomain("2.0.0", "OpenSearchDescriptionDocument", Arrays.asList("{openSearchURL}")));
 
         final List<String> supportedISOQueryable = new ArrayList<>();
         supportedISOQueryable.add("RevisionDate");
@@ -484,6 +496,25 @@ public abstract class CSWConstants {
                                                          "/csw:Record/dc:modified"));
         ISO_BRIEF_FIELDS.put("creator",    Arrays.asList("/gmd:MD_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString",
                                                          "/csw:Record/dc:creator"));
+    }
+
+    public static final OpenSearchDescription OS_DESCRIPTION;
+    static {
+        OS_DESCRIPTION = new OpenSearchDescription("Examind OpenSearch", "Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.");
+        // Search by bbox returning csw:Record (i.e. GetRecordsResponse)
+        String type     = "application/xml";
+        String template = "{cswUrl}?service=CSW&version=3.0&q={searchTerms}&maxRecords={count?}&startPosition={startIndex?}"
+                        + "&bbox={geo:box?}&time={time:start}/{time:end}&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml";
+        Url cswURL = new Url(type, template);
+        OS_DESCRIPTION.getUrl().add(cswURL);
+
+        // Search by bbox returning ATOM
+        type     = "application/atom+xml";
+        template = "{cswUrl}?service=CSW&version=3.0&q={searchTerms}&maxRecords={count?}&startPosition={startIndex?}"
+                 + "&bbox={geo:box?}&time={time:start}/{time:end}&outputFormat=application/atom+xml";
+        Url atURL = new Url(type, template);
+        OS_DESCRIPTION.getUrl().add(atURL);
+
     }
 
     private CSWConstants() {}

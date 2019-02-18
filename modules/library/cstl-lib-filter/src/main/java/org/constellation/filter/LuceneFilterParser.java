@@ -18,17 +18,9 @@
  */
 package org.constellation.filter;
 
-// J2SE dependencies
-
 import org.apache.lucene.search.Filter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
-import org.geotoolkit.ogc.xml.v110.AndType;
-import org.geotoolkit.ogc.xml.v110.FilterType;
-import org.geotoolkit.ogc.xml.v110.LiteralType;
-import org.geotoolkit.ogc.xml.v110.OrType;
-import org.geotoolkit.ogc.xml.v110.PropertyIsEqualToType;
-import org.geotoolkit.ogc.xml.v110.PropertyNameType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.PropertyIsLike;
 
@@ -48,19 +40,16 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.ogc.xml.BinaryLogicOperator;
 import org.geotoolkit.ogc.xml.ComparisonOperator;
+import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ogc.xml.ID;
 import org.geotoolkit.ogc.xml.LogicOperator;
 import org.geotoolkit.ogc.xml.SpatialOperator;
 import org.geotoolkit.ogc.xml.TemporalOperator;
 import org.geotoolkit.ogc.xml.UnaryLogicOperator;
 import org.geotoolkit.ogc.xml.XMLFilter;
+import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
-
-
-// JAXB dependencies
-// Lucene dependencies
-// GeoAPI dependencies
-// geotoolkit dependencies
+import org.opengis.temporal.Instant;
 
 
 
@@ -105,17 +94,19 @@ public class LuceneFilterParser extends AbstractFilterParser {
         return "";
     }
 
-    private Object getTypeFilter(final List<QName> typeNames) {
+    private Object getTypeFilter(final String filterVersion, final List<QName> typeNames) {
         if (typeNames != null && !typeNames.isEmpty()) {
             if (typeNames.size() == 1) {
                 final QName typeName = typeNames.get(0);
-                return new PropertyIsEqualToType(new LiteralType(typeName.getLocalPart()), new PropertyNameType("objectType"), Boolean.FALSE);
+                final Literal lit = FilterXmlFactory.buildLiteral(filterVersion, typeName.getLocalPart());
+                return FilterXmlFactory.buildPropertyIsEquals(filterVersion, "objectType", lit, false);
             } else {
                 final List<Object> operators = new ArrayList<>();
                 for (QName typeName : typeNames) {
-                    operators.add(new PropertyIsEqualToType(new LiteralType(typeName.getLocalPart()), new PropertyNameType("objectType"), Boolean.FALSE));
+                    final Literal lit = FilterXmlFactory.buildLiteral(filterVersion, typeName.getLocalPart());
+                    operators.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "objectType", lit, false));
                 }
-                return new OrType(operators.toArray());
+                return FilterXmlFactory.buildOr(filterVersion, operators.toArray());
             }
         }
         return null;
@@ -126,11 +117,12 @@ public class LuceneFilterParser extends AbstractFilterParser {
      */
     @Override
     protected SpatialQuery getQuery(final XMLFilter queryFilter, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
+        final String filterVersion = queryFilter != null ? queryFilter.getVersion() : "1.1.0";
 
-        final Object typeFilter =  getTypeFilter(typeNames);
+        final Object typeFilter =  getTypeFilter(filterVersion, typeNames);
         final XMLFilter filter;
         if (typeFilter != null) {
-            filter = new FilterType(new AndType(queryFilter, typeFilter));
+            filter = FilterXmlFactory.buildFilter(filterVersion, FilterXmlFactory.buildAnd(filterVersion, queryFilter, typeFilter));
         } else {
             filter = queryFilter;
         }
@@ -382,20 +374,25 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * @throws FilterParserException if the specified string can not be parsed.
      */
     protected String extractDateValue(final Object literal) throws FilterParserException {
-        try {
-            synchronized(LUCENE_DATE_FORMAT) {
-                if (literal instanceof Date) {
-                    return LUCENE_DATE_FORMAT.format((Date)literal);
-                } else {
-                    Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
-                    c.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    return LUCENE_DATE_FORMAT.format(c.getTime());
+        if (literal != null) {
+            try {
+                synchronized(LUCENE_DATE_FORMAT) {
+                    if (literal instanceof Instant) {
+                        return LUCENE_DATE_FORMAT.format(((Instant)literal).getDate());
+                    } else if (literal instanceof Date) {
+                        return LUCENE_DATE_FORMAT.format((Date)literal);
+                    } else {
+                        Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
+                        c.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        return LUCENE_DATE_FORMAT.format(c.getTime());
+                    }
                 }
+            } catch (ParseException ex) {
+                throw new FilterParserException("The service was unable to parse the Date: " + literal,
+                        INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-        } catch (ParseException ex) {
-            throw new FilterParserException("The service was unable to parse the Date: " + literal,
-                    INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
         }
+        return null;
     }
 
     /**

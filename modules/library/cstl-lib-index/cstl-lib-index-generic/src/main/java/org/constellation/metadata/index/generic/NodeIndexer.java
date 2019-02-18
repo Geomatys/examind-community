@@ -35,6 +35,7 @@ import org.w3c.dom.Node;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -228,8 +229,12 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
     protected void indexQueryableSet(final Document doc, final Node metadata, final  Map<String, PathType> queryableSet, final StringBuilder anyText) throws IndexingException {
         for (final String term : queryableSet.keySet()) {
             final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, queryableSet.get(term).paths));
-
-            final NodeIndexer.TermValue values = formatStringValue(tm);
+            final NodeIndexer.TermValue values;
+            if (queryableSet.get(term).type.equals(Date.class)) {
+                values = formatDateValue(tm);
+            } else {
+                values = tm;
+            }
             indexFields(values.value, values.term, anyText, doc);
         }
     }
@@ -239,29 +244,30 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * @param values
      * @return
      */
-    private TermValue formatStringValue(final TermValue values) {
-         if ("date".equals(values.term)) {
-             final List<Object> newValues = new ArrayList<>();
-             for (Object value : values.value) {
-                 if (value instanceof String) {
-                     String stringValue = (String) value;
-                     if (stringValue.endsWith("z") || stringValue.endsWith("Z")) {
-                         stringValue = stringValue.substring(0, stringValue.length() - 1);
-                     }
-                     if (stringValue != null) {
-                        stringValue = stringValue.replace("-", "");
-                        //add time if there is no
-                        if (stringValue.length() == 8) {
-                            stringValue = stringValue + "000000";
-                        }
-                        value = stringValue;
-                     }
-                 }
-                newValues.add(value);
-             }
-             values.value = newValues;
-         }
-         return values;
+    private TermValue formatDateValue(final TermValue values) {
+
+        final List<Object> newValues = new ArrayList<>();
+        for (Object value : values.value) {
+            if (value instanceof String) {
+                String stringValue = (String) value;
+                if (stringValue.endsWith("z") || stringValue.endsWith("Z")) {
+                    stringValue = stringValue.substring(0, stringValue.length() - 1);
+                }
+                if (stringValue != null) {
+                   stringValue = stringValue.replace("-", "");
+                   stringValue = stringValue.replace(":", "");
+                   stringValue = stringValue.replace("T", "");
+                   //add time if there is no
+                   if (stringValue.length() == 8) {
+                       stringValue = stringValue + "000000";
+                   }
+                   value = stringValue;
+                }
+            }
+           newValues.add(value);
+        }
+        values.value = newValues;
+        return values;
     }
 
     /**

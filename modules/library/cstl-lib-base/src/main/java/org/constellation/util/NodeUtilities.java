@@ -499,8 +499,8 @@ public class NodeUtilities {
     }
 
     private static boolean matchType(final Node n, final String type, final String prefix) {
-        final String namespace = XpathUtils.getNamespaceFromPrefix(prefix);
-        return (type.equals(n.getLocalName()) || type.equals("*")) && namespace.equals(n.getNamespaceURI());
+        final List<String> namespaces = XpathUtils.getNamespaceFromPrefix(prefix);
+        return (type.equals(n.getLocalName()) || type.equals("*")) && namespaces.contains(n.getNamespaceURI());
     }
 
     /**

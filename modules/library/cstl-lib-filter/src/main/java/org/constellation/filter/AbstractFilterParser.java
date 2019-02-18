@@ -62,6 +62,7 @@ import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
 import org.opengis.filter.temporal.BinaryTemporalOperator;
 import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.AnyInteracts;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.util.FactoryException;
@@ -85,6 +86,8 @@ import static org.geotoolkit.ogc.xml.FilterXmlFactory.buildPropertyIsNotEquals;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.opengis.filter.PropertyIsBetween;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 
 
 /**
@@ -250,13 +253,18 @@ public abstract class AbstractFilterParser implements FilterParser {
 
             final BinaryTemporalOperator bc = (BinaryTemporalOperator) temporalOps;
             final PropertyName propertyName = (PropertyName) bc.getExpression1();
-            final Literal literal           = (Literal) bc.getExpression2();
+            final Expression literal        =  bc.getExpression2();
 
             if (propertyName == null || literal == null) {
                 throw new FilterParserException("A binary temporal operator must be constitued of a TimeObject and a property name.",
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             } else {
-                final Object literalValue = literal.getValue();
+                final Object literalValue;
+                if (literal instanceof Literal) {
+                    literalValue = ((Literal)literal).getValue();
+                } else {
+                    literalValue = literal;
+                }
 
                 if (bc instanceof TEquals) {
                     addComparisonFilter(response, propertyName, literalValue, "=");
@@ -267,9 +275,28 @@ public abstract class AbstractFilterParser implements FilterParser {
                 } else if (bc instanceof Before) {
                     addComparisonFilter(response, propertyName, literalValue, "<");
 
-                } else if (bc instanceof During) {
+                } else if (bc instanceof AnyInteracts) {
+                    if (literalValue instanceof Period) {
+                        Period p = (Period) literalValue;
+                        Instant start = p.getBeginning();
+                        Instant end   = p.getEnding();
+                        addComparisonFilter(response, propertyName, start, "<=");
+                        addComparisonFilter(response, propertyName, end, ">=");
+                    } else {
+                        throw new FilterParserException("Time AnyInteracts filter must be applied on a time Period", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+                    }
 
-                    throw new FilterParserException("TODO during", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+                } else if (bc instanceof During) {
+                    if (literalValue instanceof Period) {
+                        Period p = (Period) literalValue;
+                        Instant start = p.getBeginning();
+                        Instant end   = p.getEnding();
+                        addComparisonFilter(response, propertyName, start, "<=");
+                        addComparisonFilter(response, propertyName, end, ">=");
+
+                    } else {
+                        throw new FilterParserException("Time During filter must be applied on a time Period", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+                    }
                 } else {
                     final String operator = bc.getClass().getSimpleName();
                     throw new FilterParserException("Unsupported temporal operator: " + operator,
@@ -419,7 +446,7 @@ public abstract class AbstractFilterParser implements FilterParser {
                     geometry = GeometrytoJTS.toJTS(gmlEnvelope);
                 }
 
-                if (geometry != null) {
+                if (geometry != null && crsName != null) {
                     final int srid = SRIDGenerator.toSRID(crsName, Version.V1);
                     geometry.setSRID(srid);
                 }

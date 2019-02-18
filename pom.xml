@@ -847,6 +847,11 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-xml-opensearch</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-jaxp-gml</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>

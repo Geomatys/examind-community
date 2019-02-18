@@ -32,6 +32,7 @@
         <bean class="org.constellation.wmts.ws.rs.StreamResponseWriter" />
         <bean class="org.constellation.metadata.ws.rs.provider.CSWResponseWriter" />
         <bean class="org.constellation.metadata.ws.rs.provider.NodeWriter" />
+        <bean class="org.constellation.metadata.ws.rs.provider.OpenSearchResponseWriter" />
         <bean class="org.constellation.sos.ws.rs.provider.SOSResponseWriter" />
         <bean class="org.constellation.sos.ws.rs.provider.SensorMLWriter" />
         <bean class="org.constellation.wfs.ws.rs.FeatureTypeGJSWriter" />

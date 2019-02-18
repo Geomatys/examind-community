@@ -115,7 +115,7 @@ angular.module('cstl-webservice-create', [
                 return [{ 'id': '1.0.0', 'checked': true}];
             }
             if (self.type === 'csw') {
-                return [{ 'id': '2.0.2', 'checked': true}];
+                return [{ 'id': '2.0.2', 'checked': true}, { 'id': '3.0.0', 'checked': true}];
             }
             if (self.type === 'sos') {
                 return [{ 'id': '1.0.0'}, { 'id': '2.0.0', 'checked': true}];
@@ -330,14 +330,14 @@ angular.module('cstl-webservice-create', [
         }
         function linkProvider() {
             Examind.sos.linkSOSProvider(self.id, self.id +'-sensor').then(
-            function() {}, 
+            function() {},
             function() {
                 Growl('error','Error','Unable to link SML provider');
             });
             Examind.sos.linkSOSProvider(self.id,  self.id +'-om').then(
             function() {
                  buildOmDatasource();
-            }, 
+            },
             function() {
                 Growl('error','Error','Unable to link O&M provider');
             });

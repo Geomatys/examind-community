@@ -467,7 +467,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private void initializeRecordSchema() throws CstlServiceException {
         try {
             final Unmarshaller unmarshaller = XSDMarshallerPool.getInstance().acquireUnmarshaller();
-            schemas.put(RECORD_202_QNAME,              unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/record.xsd")));
+            schemas.put(RECORD_202_QNAME,          unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/record.xsd")));
             schemas.put(METADATA_QNAME,            unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/metadata.xsd")));
             schemas.put(EXTRINSIC_OBJECT_QNAME,    unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/ebrim-3.0.xsd")));
             schemas.put(EXTRINSIC_OBJECT_25_QNAME, unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/ebrim-2.5.xsd")));
@@ -599,7 +599,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
 
         // we update the URL
-        om.updateURL(getServiceUrl());
+        String serviceUrl = getServiceUrl();
+        if (serviceUrl != null) {
+            om.updateURL(serviceUrl);
+            String osUrl = serviceUrl.substring(0, serviceUrl.length() - 1) + "/descriptionDocument.xml";
+            CSWUtils.updateOpensearchURL(om, osUrl);
+        }
 
         // we add the cascaded services (if there is some)
         final AbstractDomain cascadedCSW  = om.getConstraint("FederatedCatalogues");

@@ -71,7 +71,7 @@ angular.module('cstl-webservice-edit', [
                 return [{ 'id': '1.0.0','checked':false}];
             }
             if ($scope.type === 'csw') {
-                return [{ 'id': '2.0.2','checked':false}];
+                return [{ 'id': '2.0.2','checked':false}, { 'id': '3.0.0', 'checked': true}];
             }
             if ($scope.type === 'sos') {
                 return [{ 'id': '1.0.0','checked':false}, { 'id': '2.0.0','checked':false}];

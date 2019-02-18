@@ -50,13 +50,13 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.w3c.dom.Node;
 
 /**
- * Note: replace {@code <T extends CSWResponse> by <T extends Object>} because an strange bug arrive with DescribeRecordResponse not passing in this Provider.
+ * Note: replaced {@code <CSWResponse> by <Object>} because an strange bug arrive with DescribeRecordResponse not passing in this HttpMessageConverter.
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class CSWResponseWriter implements HttpMessageConverter<Object> {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.ws.rs.provider");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
