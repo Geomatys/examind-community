@@ -19,10 +19,9 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.image.RenderedImage;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -30,38 +29,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.imageio.spi.ServiceRegistry;
-import javax.measure.IncommensurableException;
-import javax.measure.UnconvertibleException;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.measure.Units;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.crs.DefaultCompoundCRS;
+import org.apache.sis.image.PixelIterator;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.ArraysExt;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.display2d.canvas.AbstractGraphicVisitor;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.storage.coverage.CoverageResource;
-import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.TemporalCRS;
-import org.opengis.referencing.operation.TransformException;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -336,98 +322,62 @@ public final class FeatureInfoUtilities extends Static {
      * @return list : each entry contain a gridsampledimension and value associated.
      */
     public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final ProjectedCoverage gra,
-                                                                                   final RenderingContext2D context,
-                                                                                   final SearchAreaJ2D queryArea){
+                                                                            final RenderingContext2D context,
+                                                                            final SearchAreaJ2D queryArea){
 
         final CoverageMapLayer layer = gra.getLayer();
         Envelope objBounds = context.getCanvasObjectiveBounds();
-        CoordinateReferenceSystem objCRS = objBounds.getCoordinateReferenceSystem();
-        TemporalCRS temporalCRS = CRS.getTemporalComponent(objCRS);
-        if (temporalCRS == null) {
-            /*
-             * If there is no temporal range, arbitrarily select the latest date.
-             * This is necessary otherwise the call to reader.read(...) will scan
-             * every records in the GridCoverages table for the layer.
-             */
-            Envelope timeRange = layer.getBounds();
-            if (timeRange != null) {
-                temporalCRS = CRS.getTemporalComponent(timeRange.getCoordinateReferenceSystem());
-                if (temporalCRS != null) {
-                    try {
-                        timeRange = Envelopes.transform(timeRange, temporalCRS);
-                    } catch (TransformException e) {
-                        // Should never happen since temporalCRS is a component of layer CRS.
-                        Logging.unexpectedException(null, AbstractGraphicVisitor.class, "getCoverageValues", e);
-                        return null;
-                    }
-                    final double lastTime = timeRange.getMaximum(0);
-                    double day;
-                    try {
-                        // Arbitrarily use a time range of 1 day, to be converted in units of the temporal CRS.
-                        day = Units.DAY.getConverterToAny(temporalCRS.getCoordinateSystem().getAxis(0).getUnit()).convert(1);
-                    } catch (IncommensurableException | UnconvertibleException e) {
-                        // Should never happen since TemporalCRS use time units. But if it happen
-                        // anyway, use a time range of 1 of whatever units the temporal CRS use.
-                        Logging.unexpectedException(null, AbstractGraphicVisitor.class, "getCoverageValues", e);
-                        day = 1;
-                    }
-                    objCRS = new DefaultCompoundCRS(Collections.singletonMap(DefaultCompoundCRS.NAME_KEY,
-                            objCRS.getName().getCode() + " + time"), objCRS, temporalCRS);
-                    final GeneralEnvelope merged = new GeneralEnvelope(objCRS);
-                    GeneralEnvelope subEnv = merged.subEnvelope(0, objBounds.getDimension());
-                    subEnv.setEnvelope(objBounds);
-                    merged.setRange(objBounds.getDimension(), lastTime - day, lastTime);
-                    objBounds = merged;
-                }
-            }
-        }
-        double[] resolution = context.getResolution();
-        resolution = ArraysExt.resize(resolution, objCRS.getCoordinateSystem().getDimension());
-
-        final GridCoverageReadParam param = new GridCoverageReadParam();
-        param.setEnvelope(objBounds);
-        param.setResolution(resolution);
 
         final CoverageResource ref = layer.getCoverageReference();
-        GridCoverageReader reader = null;
-        final GridCoverage2D coverage;
-        try {
-            reader = (GridCoverageReader) ref.acquireReader();
-            coverage = (GridCoverage2D) reader.read(param);
-        } catch (CoverageStoreException ex) {
-            context.getMonitor().exceptionOccured(ex, Level.INFO);
-            return null;
-        } finally {
-            if (reader!= null) {
-                ref.recycle(reader);
+
+        if (ref instanceof org.apache.sis.storage.GridCoverageResource) {
+            //create envelope around searched area
+            final GeneralEnvelope dp = new GeneralEnvelope(objBounds);
+            final Rectangle2D bounds2D = queryArea.getObjectiveShape().getBounds2D();
+            dp.setRange(0, bounds2D.getCenterX(), bounds2D.getCenterX());
+            dp.setRange(1, bounds2D.getCenterY(), bounds2D.getCenterY());
+
+            try {
+                //slice grid geometry on envelope
+                final org.apache.sis.storage.GridCoverageResource gr = (org.apache.sis.storage.GridCoverageResource) ref;
+                final GridGeometry gridGeom = gr.getGridGeometry().derive().subgrid(dp).build();
+                final GridCoverage coverage = gr.read(gridGeom);
+                //pick first slice if several are available
+                final GridExtent extent = coverage.getGridGeometry().getExtent();
+                final long[] low = new long[extent.getDimension()];
+                final long[] high = new long[extent.getDimension()];
+                for (int i=0;i<low.length;i++) {
+                    low[i] = extent.getLow(i);
+                    high[i] = (i>1) ? low[i] : extent.getHigh(i);
+                }
+                final GridExtent subExt = new GridExtent(null, low, high, true);
+
+                //read samples from image
+                final RenderedImage img = coverage.render(subExt);
+                final int numBands = img.getSampleModel().getNumBands();
+                float[] values = new float[numBands];
+                final PixelIterator ite = PixelIterator.create(img);
+                if (ite.next()) {
+                    ite.getPixel(values);
+                } else {
+                    context.getMonitor().exceptionOccured(new DataStoreException("No pixel in image"), Level.INFO);
+                    return null;
+                }
+
+                final List<Map.Entry<SampleDimension,Object>> results = new ArrayList<>();
+                for (int i=0; i<values.length; i++){
+                    final SampleDimension sample = coverage.getSampleDimensions().get(i);
+                    results.add(new AbstractMap.SimpleImmutableEntry<SampleDimension, Object>(sample, values[i]));
+                }
+                return results;
+            } catch (DataStoreException ex) {
+                context.getMonitor().exceptionOccured(ex, Level.INFO);
+                return null;
             }
-        }
 
-        if (coverage == null) {
-            //no coverage for this BBOX
+        } else {
+            context.getMonitor().exceptionOccured(new DataStoreException("Resource is not a apache sis coverage"), Level.INFO);
             return null;
         }
-
-        final GeneralDirectPosition dp = new GeneralDirectPosition(objCRS);
-        final Rectangle2D bounds2D = queryArea.getObjectiveShape().getBounds2D();
-        dp.setOrdinate(0, bounds2D.getCenterX());
-        dp.setOrdinate(1, bounds2D.getCenterY());
-
-        float[] values = null;
-
-        try{
-            values = coverage.evaluate(dp, values);
-        }catch(CannotEvaluateException ex){
-            context.getMonitor().exceptionOccured(ex, Level.INFO);
-            values = new float[coverage.getSampleDimensions().size()];
-            Arrays.fill(values, Float.NaN);
-        }
-
-        final List<Map.Entry<SampleDimension,Object>> results = new ArrayList<>();
-        for (int i=0; i<values.length; i++){
-            final SampleDimension sample = coverage.getSampleDimensions().get(i);
-            results.add(new AbstractMap.SimpleImmutableEntry<SampleDimension, Object>(sample, values[i]));
-        }
-        return results;
     }
 }
