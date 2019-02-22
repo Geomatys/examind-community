@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.imageio.spi.ServiceRegistry;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
@@ -370,7 +371,7 @@ public final class FeatureInfoUtilities extends Static {
                     results.add(new AbstractMap.SimpleImmutableEntry<SampleDimension, Object>(sample, values[i]));
                 }
                 return results;
-            } catch (DataStoreException ex) {
+            } catch (DataStoreException | DisjointExtentException ex) {
                 context.getMonitor().exceptionOccured(ex, Level.INFO);
                 return null;
             }

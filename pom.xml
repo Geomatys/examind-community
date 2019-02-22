@@ -271,6 +271,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.apache.sis.storage</groupId>
+                <artifactId>sis-earth-observation</artifactId>
+                <version>${sis.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.opengis</groupId>
                 <artifactId>geoapi-conformance</artifactId>
                 <version>${geoapi.version}</version>
