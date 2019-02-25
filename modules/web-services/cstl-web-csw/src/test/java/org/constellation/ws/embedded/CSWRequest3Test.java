@@ -59,14 +59,17 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
@@ -78,6 +81,7 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.metadata.configuration.CSWConfigurer;
+import org.constellation.metadata.utils.CSWUtils;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
@@ -91,9 +95,14 @@ import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v300.FederatedSearchResultType;
+import org.geotoolkit.ebrim.xml.EBRIMClassesContext;
+import static org.geotoolkit.gml.xml.GMLMarshallerPool.createJAXBContext;
+import org.geotoolkit.xml.AnchoredMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.w3._2005.atom.EntryType;
+import org.w3._2005.atom.FeedType;
 
 /**
  *
@@ -202,8 +211,15 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");
 
-                // Get the list of layers
-                pool = EBRIMMarshallerPool.getInstance();
+                // JAXB pool creation
+                final Map<String,Object> properties = new HashMap<>();
+                properties.put(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
+                List<Class> classes = EBRIMClassesContext.getAllClassesList();
+                classes.add(org.w3._2005.atom.ObjectFactory.class);
+                classes.add(org.geotoolkit.ops.xml.v110.ObjectFactory.class);
+                classes.add(org.geotoolkit.georss.xml.v100.ObjectFactory.class);
+                pool = new AnchoredMarshallerPool(createJAXBContext(classes.toArray(new Class[classes.size()])), properties);
+
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
@@ -768,6 +784,74 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=10)
+    public void testCSWOpenSearchAtom() throws Exception {
+
+        initServer();
+
+        /**
+         * KVP search atom output 1: term filter
+         */
+        String query = "q=Lorem";
+        URL kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        URLConnection conec = kvpsUrl.openConnection();
+
+        Object result = unmarshallResponse(conec);
+
+        assertTrue("type was:" + result.getClass().getName(), result instanceof FeedType);
+
+        FeedType grResult = (FeedType) result;
+
+        assertEquals(2, (int) grResult.getTotalResults());
+        assertEquals(1, (int) grResult.getStartIndex());
+        assertEquals(10,(int) grResult.getItemsPerPage());
+
+        assertEquals(2, grResult.getEntries().size());
+
+        Set<String> resultID = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            EntryType r =  grResult.getEntries().get(i);
+            resultID.add(r.getId().getValue());
+        }
+
+        Set<String> expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        assertEquals(expResultID, resultID);
+
+        /**
+         * KVP search atom output 3: full search startPos=10
+         */
+        query = "";
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        conec = kvpsUrl.openConnection();
+
+        String strResult = getStringResponse(conec);
+        String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom1.xml"));
+        domCompare(strResult, expResult);
+
+        query = "startPosition=11";
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        conec = kvpsUrl.openConnection();
+
+        strResult = getStringResponse(conec);
+        expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom2.xml"));
+        domCompare(strResult, expResult);
+
+        /**
+         * KVP search atom output 4: full search maxRecords=5
+         */
+        query = "maxRecords=5";
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        conec = kvpsUrl.openConnection();
+
+        strResult = getStringResponse(conec);
+        expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom3.xml"));
+        domCompare(strResult, expResult);
+
+    }
+
+    @Test
+    @Order(order=11)
     public void testDistributedCSWGetRecords() throws Exception {
 
         initServer();
@@ -839,7 +923,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
 
     @Test
-    @Order(order=11)
+    @Order(order=12)
     public void testRestart() throws Exception {
         initServer();
 
@@ -876,7 +960,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=12)
+    @Order(order=13)
     public void testCSWRefreshIndex() throws Exception {
 
         initServer();
@@ -993,7 +1077,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
+    @Order(order=14)
     public void testCSWAddToIndex() throws Exception {
 
         initServer();
@@ -1076,7 +1160,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=14)
+    @Order(order=15)
     public void testCSWRemoveFromIndex() throws Exception {
 
         initServer();
@@ -1149,7 +1233,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=15)
+    @Order(order=16)
     public void testCSWRemoveAll() throws Exception {
 
         initServer();
@@ -1199,7 +1283,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=16)
+    @Order(order=17)
     public void testListAvailableService() throws Exception {
         initServer();
 

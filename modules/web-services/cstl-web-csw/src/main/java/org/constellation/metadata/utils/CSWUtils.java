@@ -19,11 +19,23 @@
 
 package org.constellation.metadata.utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.ParserConfigurationException;
+import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
@@ -32,18 +44,27 @@ import org.geotoolkit.csw.xml.AbstractCswRequest;
 import static org.constellation.metadata.core.CSWConstants.ACCEPTED_OUTPUT_FORMATS;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
+import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.v202.RecordType;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.dublincore.xml.AbstractSimpleLiteral;
+import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
 import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
 import org.geotoolkit.ows.xml.AbstractDomain;
 import org.geotoolkit.ows.xml.AbstractOperation;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
+import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Literal;
-import org.opengis.temporal.Instant;
+import org.w3._2005.atom.CategoryType;
+import org.w3._2005.atom.DateTimeType;
+import org.w3._2005.atom.EntryType;
+import org.w3._2005.atom.IdType;
+import org.w3._2005.atom.PersonType;
+import org.w3._2005.atom.TextType;
 import org.w3c.dom.Node;
 
 /**
@@ -51,6 +72,13 @@ import org.w3c.dom.Node;
  * @author Guilhem Legal (Geomatys)
  */
 public class CSWUtils {
+
+    public static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.utils");
+
+    private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    static {
+        ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
      /**
      * Return the request (or default) outputFormat (MIME type) of the response.
@@ -258,5 +286,160 @@ public class CSWUtils {
                 return searchTerms.substring(0, pos);
             }
         }
+    }
+
+    public static EntryType getEntryFromRecord(Record record) {
+        ISODateParser parser = new ISODateParser();
+
+        EntryType entry = new EntryType();
+        if (record.getIdentifier() != null) {
+            entry.addId(new IdType(record.getIdentifierStringValue()));
+        }
+        if (record.getTitle()!= null) {
+            entry.addTitle(new TextType(record.getTitleStringValue()));
+        }
+        if (record.getCreatorStringValue() != null) {
+            entry.addAuthor(new PersonType(record.getTitleStringValue(), null, null));
+        }
+        for (AbstractSimpleLiteral sub : record.getSubject()) {
+            entry.addCategory(new CategoryType(sub.getFirstValue(), sub.getScheme()));
+        }
+        if (record.getAbstractStringValue() != null) {
+            entry.addSummary(new TextType(record.getAbstractStringValue()));
+        }
+        for (AbstractSimpleLiteral sub : record.getContributor()) {
+            entry.addContributor(new PersonType(sub.getFirstValue(), null, null));
+        }
+        if (record.getDate()!= null) {
+            try {
+                GregorianCalendar c = new GregorianCalendar();
+                c.setTime(parser.parseToDate(record.getDateStringValue()));
+                XMLGregorianCalendar xgcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+                entry.addUpdated(new DateTimeType(xgcal));
+            } catch (DatatypeConfigurationException ex) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
+        }
+
+        org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
+
+        if (record.getTemporalExtentRange().length == 2) {
+            Date start = new Date(record.getTemporalExtentRange()[0]);
+            Date end   = new Date(record.getTemporalExtentRange()[1]);
+            String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
+            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
+        } else if (record.getTemporalExtentRange().length == 2) {
+            Date time = new Date(record.getTemporalExtentRange()[0]);
+            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(ISO8601_FORMAT.format(time))));
+        }
+
+        // TODO source ?
+
+        if (record.getLanguage() != null) {
+            entry.setLang(record.getLanguage().getFirstValue());
+        }
+        for (AbstractSimpleLiteral sub : record.getRights()) {
+            entry.addRight(new TextType(sub.getFirstValue()));
+        }
+        Object bboxObj = record.getBoundingBox();
+        if (bboxObj instanceof List) {
+            for (Object bb : (List)bboxObj) {
+                if (bb instanceof JAXBElement) {
+                    bb = ((JAXBElement)bb).getValue();
+                }
+                if (bb instanceof BoundingBox) {
+                    entry.addBox((BoundingBox) bb);
+                }
+            }
+        } else if (bboxObj instanceof JAXBElement) {
+            bboxObj = ((JAXBElement)bboxObj).getValue();
+            if (bboxObj instanceof BoundingBox) {
+                entry.addBox((BoundingBox) bboxObj);
+            }
+        } else if (bboxObj instanceof BoundingBox) {
+            entry.addBox((BoundingBox) bboxObj);
+        }
+
+        // TODO relation
+        return entry;
+    }
+
+    public static EntryType getEntryFromRecordNode(Node record) {
+        ISODateParser parser = new ISODateParser();
+
+        EntryType entry = new EntryType();
+        final List<String> identifierValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:identifier");
+        if (!identifierValues.isEmpty()) {
+            entry.addId(new IdType(identifierValues.get(0)));
+        }
+        final List<String> titleValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:title");
+        if (!titleValues.isEmpty()) {
+            entry.addTitle(new TextType(titleValues.get(0)));
+        }
+        final List<String> creatorValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:creator");
+        if (!creatorValues.isEmpty()) {
+            entry.addAuthor(new PersonType(creatorValues.get(0), null, null));
+        }
+        final List<String> subValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:subject");
+        for (String sub : subValues) {
+            entry.addCategory(new CategoryType(sub, null));
+        }
+        final List<String> absValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:abstract");
+        if (!absValues.isEmpty()) {
+            entry.addSummary(new TextType(absValues.get(0)));
+        }
+        final List<String> contValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:contributor");
+        for (String cont : contValues) {
+            entry.addContributor(new PersonType(cont, null, null));
+        }
+        final List<String> dateValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:date");
+        if (!dateValues.isEmpty()) {
+            try {
+                GregorianCalendar c = new GregorianCalendar();
+                c.setTime(parser.parseToDate(dateValues.get(0)));
+                XMLGregorianCalendar xgcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+                entry.addUpdated(new DateTimeType(xgcal));
+            } catch (DatatypeConfigurationException ex) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
+        }
+
+        final List<String> beginValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/csw:TemporalExtent/csw:begin");
+        final List<String> endValues   = NodeUtilities.getValuesFromPath(record, "/csw:Record/csw:TemporalExtent/csw:end");
+
+        org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
+
+        if (!beginValues.isEmpty() && !endValues.isEmpty()) {
+            Date start = parser.parseToDate(beginValues.get(0));
+            Date end   = parser.parseToDate(endValues.get(0));
+            String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
+            entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
+        }
+
+        // TODO source ?
+
+        final List<String> languageValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:language");
+        if (!languageValues.isEmpty()) {
+            entry.setLang(languageValues.get(0));
+        }
+        final List<String> rightsValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:rights");
+        for (String sub : rightsValues) {
+            entry.addRight(new TextType(sub));
+        }
+        final List<String> lowers = NodeUtilities.getValuesFromPath(record, "/csw:Record/ows:BoundingBox/ows:LowerCorner");
+        final List<String> uppers = NodeUtilities.getValuesFromPath(record, "/csw:Record/ows:BoundingBox/ows:UpperCorner");
+        if (!lowers.isEmpty() && !uppers.isEmpty()) {
+            String[] lo = lowers.get(0).split(" ");
+            String[] up = uppers.get(0).split(" ");
+            if (lo.length == 2 && up.length == 2) {
+                entry.addBox(Arrays.asList(Double.parseDouble(lo[0]),
+                                           Double.parseDouble(up[0]),
+                                           Double.parseDouble(lo[1]),
+                                           Double.parseDouble(up[1])));
+            }
+        }
+
+        // TODO relation
+        return entry;
     }
 }

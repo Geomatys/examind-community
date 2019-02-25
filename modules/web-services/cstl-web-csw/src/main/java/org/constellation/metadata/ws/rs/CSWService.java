@@ -646,7 +646,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                     crs = CommonCRS.WGS84.geographic();
                 }
                 AbstractGeometry geom = JTStoGeometry.toGML(gmlVersion, jtsGeom, crs);
-                if (distance != null) {
+                if (distance == null) {
                     filters.add(FilterXmlFactory.buildBinarySpatial(filterVersion, spRelation, "ows:BoundingBox", geom));
                 } else {
                     double dist = Double.parseDouble(distance);
@@ -876,7 +876,9 @@ public class CSWService extends OGCWebService<CSWworker> {
                 serviceDef = worker.getVersionFromNumber(request.getVersion());
 
                 Object response = worker.getRecords(request);
-                return new ResponseObject(response, MediaType.APPLICATION_XML, OK).getResponseEntity();
+                final String outputFormat  = CSWUtils.getOutputFormat(request);
+
+                return new ResponseObject(response, outputFormat).getResponseEntity();
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, serviceDef, worker).getResponseEntity();
             }

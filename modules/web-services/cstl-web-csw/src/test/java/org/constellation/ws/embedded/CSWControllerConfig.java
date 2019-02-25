@@ -21,6 +21,7 @@ package org.constellation.ws.embedded;
 import java.util.List;
 import org.constellation.metadata.ws.rs.provider.CSWResponseWriter;
 import org.constellation.metadata.ws.rs.provider.NodeWriter;
+import org.constellation.metadata.ws.rs.provider.OpenSearchResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -33,9 +34,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  */
 @Configuration
 public class CSWControllerConfig  extends WebMvcConfigurationSupport {
-    
+
     public CSWControllerConfig() {
-        
+
     }
 
     @Override
@@ -43,6 +44,7 @@ public class CSWControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new CSWResponseWriter());
         converters.add(new NodeWriter());
+        converters.add(new OpenSearchResponseWriter());
         converters.add(new ExceptionReportWriter());
     }
 }

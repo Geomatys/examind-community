@@ -55,7 +55,7 @@ public class OpenSearchResponseWriter implements HttpMessageConverter<OpenSearch
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_XML);
+        return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML);
     }
 
     @Override

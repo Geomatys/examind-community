@@ -54,6 +54,8 @@ import static org.geotoolkit.gml.xml.v311.ObjectFactory._Polygon_QNAME;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
 import org.opengis.filter.capability.FilterCapabilities;
+import org.w3._2005.atom.FeedType;
+import org.w3._2005.atom.PersonType;
 
 /**
  * CSW constants.
@@ -105,6 +107,7 @@ public abstract class CSWConstants {
         ACCEPTED_OUTPUT_FORMATS.add(MimeType.APPLICATION_XML);
         ACCEPTED_OUTPUT_FORMATS.add(MimeType.TEXT_HTML);
         ACCEPTED_OUTPUT_FORMATS.add(MimeType.TEXT_PLAIN);
+        ACCEPTED_OUTPUT_FORMATS.add(MimeType.APP_ATOM);
     }
 
     /**
@@ -484,6 +487,15 @@ public abstract class CSWConstants {
 
         // Create capabilities base.
         return CswXmlFactory.createCapabilities(version, servIdent, servProv, null, null, null);
+    }
+
+    public static FeedType createFeed(final String serviceUrl, final Details metadata, String osUrl) {
+        final Contact currentContact = metadata.getServiceContact();
+        PersonType author = null;
+        if (currentContact != null) {
+            author = new PersonType(currentContact.getFullname(), currentContact.getEmail(), currentContact.getUrl());
+        }
+        return new FeedType(serviceUrl, "Examind Opensearch service", author, osUrl);
     }
 
     public final static Map<String, List<String>> ISO_BRIEF_FIELDS = new HashMap<>();

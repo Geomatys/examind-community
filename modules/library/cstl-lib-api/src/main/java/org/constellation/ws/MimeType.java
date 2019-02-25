@@ -45,11 +45,11 @@ public final class MimeType {
     public static final String IMAGE_BMP       = "image/bmp";
 
     public static final String IMAGE_TIFF      = "image/tiff";
-    
+
     public static final String NETCDF          = "application/x-netcdf";
-    
+
     public static final String MATRIX          = "text/x-matrix";
-    
+
     public static final String ASCII_GRID      = "text/x-ascii-grid";
 
     public static final String APP_WMS_XML     = "application/vnd.ogc.wms_xml";
@@ -65,7 +65,9 @@ public final class MimeType {
     public static final String APP_GML3        = "application/vnd.ogc.gml3";
 
     public static final String APP_SE_XML      = "application/vnd.ogc.se_xml";
-    
+
     public static final String APP_JSON        = "application/json";
+
+    public static final String APP_ATOM        = "application/atom+xml";
 
 }

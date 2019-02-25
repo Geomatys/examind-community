@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:georss="http://www.georss.org/georss"
+        xmlns:a="http://www.w3.org/2005/Atom"
+        xmlns:os="http://a9.com/-/spec/opensearch/1.1/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <a:id>http://localhost:9090/WS/csw/default?</a:id>
+  <a:title>Examind Opensearch service</a:title>
+  <a:author/>
+  <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
+  <a:entry>
+    <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
+    <a:title>Ut facilisis justo ut lacus</a:title>
+    <a:category term="Vegetation"/>
+  </a:entry>
+  <a:entry>
+    <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
+    <a:title>Lorem ipsum</a:title>
+    <a:category term="Tourism--Greece"/>
+    <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>
+  </a:entry>
+  <os:totalResults>12</os:totalResults>
+  <os:startIndex>11</os:startIndex>
+  <os:itemsPerPage>10</os:itemsPerPage>
+</a:feed>

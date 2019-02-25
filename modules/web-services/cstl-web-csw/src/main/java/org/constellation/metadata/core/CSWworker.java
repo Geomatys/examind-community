@@ -59,7 +59,6 @@ import org.geotoolkit.csw.xml.GetDomainResponse;
 import org.geotoolkit.csw.xml.GetRecordById;
 import org.geotoolkit.csw.xml.GetRecordByIdResponse;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
-import org.geotoolkit.csw.xml.GetRecordsResponse;
 import org.geotoolkit.csw.xml.Harvest;
 import org.geotoolkit.csw.xml.HarvestResponse;
 import org.geotoolkit.csw.xml.Insert;
@@ -146,10 +145,12 @@ import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import org.constellation.metadata.legacy.MetadataConfigurationUpgrade;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.DataProviders;
+import org.constellation.ws.MimeType;
 import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.csw.xml.InsertResult;
+import org.geotoolkit.csw.xml.Record;
 import static org.geotoolkit.csw.xml.TypeNames.DC_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM25_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM30_TYPE_NAMES;
@@ -171,6 +172,9 @@ import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_202_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
+import org.geotoolkit.ops.xml.OpenSearchXmlFactory;
+import org.w3._2005.atom.EntryType;
+import org.w3._2005.atom.FeedType;
 
 
 /**
@@ -602,7 +606,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         String serviceUrl = getServiceUrl();
         if (serviceUrl != null) {
             om.updateURL(serviceUrl);
-            String osUrl = serviceUrl.substring(0, serviceUrl.length() - 1) + "/descriptionDocument.xml";
+            String osUrl = getOsUrl(serviceUrl);
             CSWUtils.updateOpensearchURL(om, osUrl);
         }
 
@@ -730,6 +734,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         return (AbstractCapabilities) c.applySections(sections);
     }
 
+    private String getOsUrl(String serviceUrl) {
+        return serviceUrl.substring(0, serviceUrl.length() - 1) + "/descriptionDocument.xml";
+    }
+
     /**
      * Web service operation which permits to search the catalog to find records.
      *
@@ -746,7 +754,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final String userLogin = getUserLogin();
 
         // verify the output format of the response
-        CSWUtils.getOutputFormat(request);
+        final String outputFormat = CSWUtils.getOutputFormat(request);
 
         //we get the output schema and verify that we handle it
         final String outputSchema;
@@ -1014,7 +1022,26 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 return CswXmlFactory.createAcknowledgement(version, id, request, System.currentTimeMillis());
         }
 
-        GetRecordsResponse response = CswXmlFactory.createGetRecordsResponse(request.getVersion().toString(), id, System.currentTimeMillis(), searchResults);
+        Object response;
+        if (MimeType.APP_ATOM.equals(outputFormat)) {
+            String serviceUrl = getServiceUrl();
+            final Details skeleton = getStaticCapabilitiesObject("csw", null);
+            FeedType feed = CSWConstants.createFeed(serviceUrl, skeleton, getOsUrl(serviceUrl));
+            for (Object record : searchResults.getAny()) {
+                if (record instanceof Record) {
+                    EntryType entry = CSWUtils.getEntryFromRecord((Record) record);
+                    feed.addEntry(entry);
+                } else if (record instanceof Node) {
+                    EntryType entry = CSWUtils.getEntryFromRecordNode((Node) record);
+                    feed.addEntry(entry);
+                } else {
+                    LOGGER.warning("can not create an entry from :" + record.getClass().getName());
+                }
+            }
+            response = OpenSearchXmlFactory.completeFeed(feed, (long)totalMatched,(long)startPos, (long)maxRecord);
+        } else {
+            response = CswXmlFactory.createGetRecordsResponse(request.getVersion().toString(), id, System.currentTimeMillis(), searchResults);
+        }
         LOGGER.log(logLevel, "GetRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
     }
