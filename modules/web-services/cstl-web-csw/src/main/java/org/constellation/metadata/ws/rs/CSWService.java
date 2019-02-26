@@ -64,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 
@@ -589,6 +588,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         String spRelation        = getParameter("relation", false);
         final String distance    = getParameter("distance", false);
         String distanceUOM       = getParameter("distance_uom", false);
+        final String geoName     = getParameter("name", false);
 
         final String lat         = getParameter("lat", false);
         final String lon         = getParameter("lon", false);
@@ -613,6 +613,11 @@ public class CSWService extends OGCWebService<CSWworker> {
             } else {
                 filters.add(FilterXmlFactory.buildOr(filterVersion, idFilters.toArray(new Object[idFilters.size()])));
             }
+        }
+
+        if (geoName != null) {
+            Literal lit = FilterXmlFactory.buildLiteral(filterVersion, geoName);
+            filters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "GeographicDescriptionCode", lit, true));
         }
 
         if (bbox != null) {
@@ -862,7 +867,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
         String cswUrl = getServiceURL() + "/csw/" + serviceId;
         CSWUtils.updateCswURL(description, cswUrl);
-        return new ResponseObject(description, MediaType.APPLICATION_XML, OK).getResponseEntity();
+        return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
     }
 
     @RequestMapping(path = "/opensearch", method = GET)

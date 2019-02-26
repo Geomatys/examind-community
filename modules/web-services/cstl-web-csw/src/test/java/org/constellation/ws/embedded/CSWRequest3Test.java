@@ -266,6 +266,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         return "http://localhost:" +  getCurrentPort() + "/WS/csw/default/opensearch?";
     }
 
+    private static String getOpenSearchDocURL() {
+        return "http://localhost:" +  getCurrentPort() + "/WS/csw/default/descriptionDocument.xml";
+    }
+
     private static String getCsw2URL() {
         return "http://localhost:" +  getCurrentPort() + "/WS/csw/csw2?";
     }
@@ -852,6 +856,19 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=11)
+    public void testCSWOpenSearchDocument() throws Exception {
+        initServer();
+
+        URL kvpsUrl = new URL(getOpenSearchDocURL());
+        URLConnection conec = kvpsUrl.openConnection();
+        String strResult = getStringResponse(conec);
+        String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/osDoc.xml"));
+        System.out.println(strResult);
+        domCompare(strResult, expResult);
+    }
+
+    @Test
+    @Order(order=12)
     public void testDistributedCSWGetRecords() throws Exception {
 
         initServer();
@@ -923,7 +940,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
 
     @Test
-    @Order(order=12)
+    @Order(order=13)
     public void testRestart() throws Exception {
         initServer();
 
@@ -960,7 +977,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
+    @Order(order=14)
     public void testCSWRefreshIndex() throws Exception {
 
         initServer();
@@ -1077,7 +1094,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=14)
+    @Order(order=15)
     public void testCSWAddToIndex() throws Exception {
 
         initServer();
@@ -1160,7 +1177,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=15)
+    @Order(order=16)
     public void testCSWRemoveFromIndex() throws Exception {
 
         initServer();
@@ -1233,7 +1250,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=16)
+    @Order(order=17)
     public void testCSWRemoveAll() throws Exception {
 
         initServer();
@@ -1283,7 +1300,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=17)
+    @Order(order=18)
     public void testListAvailableService() throws Exception {
         initServer();
 

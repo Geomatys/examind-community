@@ -53,6 +53,7 @@ import static org.geotoolkit.gml.xml.v311.ObjectFactory._Point_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Polygon_QNAME;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
+import org.geotoolkit.opsp.xml.v100.Parameter;
 import org.opengis.filter.capability.FilterCapabilities;
 import org.w3._2005.atom.FeedType;
 import org.w3._2005.atom.PersonType;
@@ -515,16 +516,121 @@ public abstract class CSWConstants {
         OS_DESCRIPTION = new OpenSearchDescription("Examind OpenSearch", "Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.");
         // Search by bbox returning csw:Record (i.e. GetRecordsResponse)
         String type     = "application/xml";
-        String template = "{cswUrl}?service=CSW&version=3.0&q={searchTerms}&maxRecords={count?}&startPosition={startIndex?}"
-                        + "&bbox={geo:box?}&time={time:start}/{time:end}&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml";
+        String template = "{cswUrl}/opensearch?service=CSW&version=3.0&"
+                        + "q={searchTerms?}&"
+                        + "maxRecords={count?}&"
+                        + "startPosition={startIndex?}&"
+                        + "bbox={geo:box?}&"
+                        + "recordIds={geo:uid?}&"
+                        + "geometry={geo:geometry?}&"
+                        + "relation={geo:relation?}&"
+                        + "lat={geo:lat?}&"
+                        + "lon={geo:lon?}&"
+                        + "radius={geo:radius?}&"
+                        + "name={geo:name?}&"
+                        + "time={time:start}/{time:end}&"
+                        + "trelation={time:relation?}&"
+                        + "outputSchema=http://www.opengis.net/cat/csw/3.0&"
+                        + "outputFormat=application/xml";
         Url cswURL = new Url(type, template);
+
+
+        List<Parameter> params = new ArrayList<>();
+        Parameter param = new Parameter("q", "{searchTerms}",
+                "Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match.");
+        params.add(param);
+
+        param = new Parameter("maxRecords", "{count}", "Number of results returned per page (default 10)");
+        param.setMinInclusive(1);
+        params.add(param);
+
+        param = new Parameter("startPosition", "{startIndex}", null);
+        param.setMinInclusive(1);
+        params.add(param);
+
+        param = new Parameter("bbox", "{geo:box}",
+                "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)");
+        params.add(param);
+
+        param = new Parameter("recordIds", "{geo:uid}", "Metadata identifier");
+        params.add(param);
+
+        param = new Parameter("geometry", "{geo:geometry}", "Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)");
+        params.add(param);
+
+        param = new Parameter("relation", "{geo:relation}", "The spatial operator to apply using the value of the geometry parameter. (default value: Intersects)");
+        param.addOption("Equals");
+        param.addOption("Disjoint");
+        param.addOption("Touches");
+        param.addOption("Within");
+        param.addOption("Overlaps");
+        param.addOption("Crosses");
+        param.addOption("Intersects");
+        param.addOption("Contains");
+        param.addOption("DWithin");
+        param.addOption("Beyond");
+        params.add(param);
+
+        param = new Parameter("lat", "{geo:lat}", "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon");
+        param.setMinInclusive(-90);
+        param.setMaxInclusive(90);
+        params.add(param);
+
+        param = new Parameter("lon", "{geo:lon}", "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat");
+        param.setMinInclusive(-90);
+        param.setMaxInclusive(90);
+        params.add(param);
+
+        param = new Parameter("radius", "{geo:radius}", "Expressed in meters - should be used with geo:lon and geo:lat");
+        param.setMinInclusive(1);
+        params.add(param);
+
+        param = new Parameter("name", "{geo:name}", "Location string e.g. Paris, France");
+        params.add(param);
+
+        param = new Parameter("time", "{time:start}/{time:end}", "Start date/End date of the time interval to be compared with the data acquisition time.");
+        params.add(param);
+
+        param = new Parameter("trelation", "{time:relation}", "The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)");
+        param.addOption("After");
+        param.addOption("Before");
+        param.addOption("Begins");
+        param.addOption("BegunBy");
+        param.addOption("TContains");
+        param.addOption("During");
+        param.addOption("EndedBy");
+        param.addOption("Ends");
+        param.addOption("TEquals");
+        param.addOption("Meets");
+        param.addOption("MetBy");
+        param.addOption("TOverlaps");
+        param.addOption("OverlappedBy");
+        param.addOption("AnyInteracts");
+        params.add(param);
+
+        cswURL.setParameters(params);
+
         OS_DESCRIPTION.getUrl().add(cswURL);
 
         // Search by bbox returning ATOM
         type     = "application/atom+xml";
-        template = "{cswUrl}?service=CSW&version=3.0&q={searchTerms}&maxRecords={count?}&startPosition={startIndex?}"
-                 + "&bbox={geo:box?}&time={time:start}/{time:end}&outputFormat=application/atom+xml";
+        template = "{cswUrl}/opensearch?service=CSW&version=3.0&"
+                 + "q={searchTerms?}&"
+                 + "maxRecords={count?}&"
+                 + "startPosition={startIndex?}"
+                 + "&bbox={geo:box?}&"
+                 + "recordIds={geo:uid?}&"
+                 + "geometry={geo:geometry?}&"
+                 + "relation={geo:relation?}&"
+                 + "lat={geo:lat?}&"
+                 + "lon={geo:lon?}&"
+                 + "radius={geo:radius?}&"
+                 + "name={geo:name?}&"
+                 + "time={time:start}/{time:end}&"
+                 + "trelation={time:relation?}&"
+                 + "outputFormat=application/atom+xml";
         Url atURL = new Url(type, template);
+        atURL.setParameters(params);
         OS_DESCRIPTION.getUrl().add(atURL);
 
     }
