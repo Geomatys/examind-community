@@ -9,13 +9,18 @@
   <a:title>Examind Opensearch service</a:title>
   <a:author/>
   <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=11&amp;outputFormat=application/atom%2Bxml" rel="self" type="application/atom+xml"/>
   <a:entry>
     <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
     <a:title>Ut facilisis justo ut lacus</a:title>
     <a:category term="Vegetation"/>
   </a:entry>
   <a:entry>
     <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
     <a:title>Lorem ipsum</a:title>
     <a:category term="Tourism--Greece"/>
     <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>

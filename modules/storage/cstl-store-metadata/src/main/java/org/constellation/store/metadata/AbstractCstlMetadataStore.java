@@ -18,15 +18,20 @@
  */
 package org.constellation.store.metadata;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.xml.namespace.QName;
 import org.constellation.api.PathType;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.*;
+import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.metadata.MetadataType;
+import org.geotoolkit.metadata.RecordInfo;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 
@@ -52,20 +57,53 @@ public abstract class AbstractCstlMetadataStore extends MetadataStore {
         }
     }
 
-    /**
-     * TODO move to geotk MetadataStore
-     */
-    public abstract List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException;
-
-    /**
-     * TODO move to geotk MetadataStore
-     */
-    public Iterator<? extends Object> getEntryIterator() throws MetadataIoException {
-        return getReader().getEntryIterator();
-    }
-
     @Override
     public GenericName getIdentifier() {
         return null;
+    }
+
+    @Override
+    public List<MetadataType> getSupportedDataTypes() {
+        return getReader().getSupportedDataTypes();
+    }
+
+    @Override
+    public Map<String, URI> getConceptMap() {
+        return getReader().getConceptMap();
+    }
+
+    @Override
+    public RecordInfo getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
+        return getReader().getMetadata(identifier, mode);
+    }
+
+    @Override
+    public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
+        return getReader().getMetadata(identifier, mode, type, elementName);
+    }
+
+    @Override
+    public Iterator<String> getIdentifierIterator() throws MetadataIoException {
+        return getReader().getIdentifierIterator();
+    }
+
+    @Override
+    public List<RecordInfo> getAllEntries() throws MetadataIoException {
+        return getReader().getAllEntries();
+    }
+
+    @Override
+    public List<String> getAllIdentifiers() throws MetadataIoException {
+        return getReader().getAllIdentifiers();
+    }
+
+    @Override
+    public int getEntryCount() throws MetadataIoException {
+        return getReader().getEntryCount();
+    }
+
+    @Override
+    public boolean existMetadata(String identifier) throws MetadataIoException {
+        return getReader().existMetadata(identifier);
     }
 }

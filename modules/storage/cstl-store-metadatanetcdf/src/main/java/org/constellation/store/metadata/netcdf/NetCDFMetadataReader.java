@@ -73,11 +73,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
+import org.geotoolkit.csw.xml.Record;
+import org.geotoolkit.csw.xml.Settable;
 
 import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory.*;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Abstract_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Modified_QNAME;
+import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
 
@@ -170,15 +173,15 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
+    public RecordInfo getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
         return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
     }
 
-     /**
+    /**
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(final String identifier, final MetadataType mode, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         Object obj = null;
         if (isCacheEnabled()) {
             obj = getFromCache(identifier);
@@ -186,15 +189,23 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         if (obj == null) {
             obj = getObjectFromFile(identifier);
         }
+        MetadataType metadataMode;
         if (obj instanceof DefaultMetadata && mode == MetadataType.DUBLINCORE_CSW202) {
+            metadataMode = MetadataType.ISO_19115;
             obj = translateISOtoDC((DefaultMetadata)obj, type, elementName);
         } else if (obj instanceof RecordType && mode == MetadataType.DUBLINCORE_CSW202) {
+            metadataMode = MetadataType.DUBLINCORE_CSW202;
             obj = applyElementSet((RecordType)obj, type, elementName);
+        } else if (obj instanceof org.geotoolkit.csw.xml.v300.RecordType && mode == MetadataType.DUBLINCORE_CSW300) {
+            metadataMode = MetadataType.DUBLINCORE_CSW300;
+            obj = applyElementSet((RecordType)obj, type, elementName);
+        } else {
+            metadataMode = MetadataType.NATIVE;
         }
 
         // marshall to DOM
         if (obj != null) {
-            return writeObjectInNode(obj, mode);
+            return new RecordInfo(identifier, writeObjectInNode(obj, mode), metadataMode, mode);
         }
         return null;
     }
@@ -343,14 +354,18 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
      * @return A record object.
      * @throws MetadataIoException If the type and the element name are null.
      */
-    private AbstractRecordType applyElementSet(final RecordType record, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
+    private Record applyElementSet(final Record record, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
 
         if (type != null) {
             switch (type) {
                 case SUMMARY:
-                    return record.toSummary();
+                    if (record instanceof Settable) {
+                        return (Record) ((Settable)record).toSummary();
+                    }
                 case BRIEF:
-                    return record.toBrief();
+                    if (record instanceof Settable) {
+                        return (Record) ((Settable)record).toBrief();
+                    }
                 default:
                     return record;
             }
@@ -722,13 +737,13 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
      * {@inheritDoc}
      */
     @Override
-    public List<? extends Object> getAllEntries() throws MetadataIoException {
+    public List<RecordInfo> getAllEntries() throws MetadataIoException {
         return getAllEntries(dataDirectory, null);
     }
 
-    private List<? extends Object> getAllEntries(final Path directory, final String parentIdentifierPrefix) throws MetadataIoException {
+    private List<RecordInfo> getAllEntries(final Path directory, final String parentIdentifierPrefix) throws MetadataIoException {
         final String identifierPrefix = computeIdentifierPrefix(directory, parentIdentifierPrefix);
-        final List<Object> results = new ArrayList<>();
+        final List<RecordInfo> results = new ArrayList<>();
         final ImageCoverageReader reader = new ImageCoverageReader();
         if (locale != null) {
             reader.setLocale(locale);
@@ -739,19 +754,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                 final String fileName = metadataFile.getFileName().toString();
                 if (fileName.endsWith(CURRENT_EXT)) {
                     final String identifier = computeIdentifier(fileName, identifierPrefix);
-                    try {
-                        reader.setInput(metadataFile);
-                        final Object metadata = reader.getMetadata();
-                        Utils.setIdentifier(identifier, metadata);
-                        if (isCacheEnabled()) {
-                            addInCache(identifier, metadata);
-                        }
-                        results.add(metadata);
-                    } catch (CoverageStoreException ex) {
-                        // throw or continue to the next file?
-                        throw new MetadataIoException("The netcdf file : " + metadataFile.toAbsolutePath().toString() + " can not be read\ncause: "
-                                + ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
-                    }
+                    results.add(getMetadata(identifier, MetadataType.NATIVE));
                 } else if (Files.isDirectory(metadataFile)) {
                     results.addAll(getAllEntries(metadataFile, identifierPrefix));
                 } else {
@@ -847,7 +850,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                 MetadataType.ISO_19115,
                 MetadataType.DUBLINCORE_CSW202,
                 MetadataType.DUBLINCORE_CSW300,
-                MetadataType.EBRIM,
+                MetadataType.EBRIM_300,
                 MetadataType.ISO_19110);
     }
 

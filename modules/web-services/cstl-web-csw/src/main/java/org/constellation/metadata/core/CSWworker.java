@@ -19,7 +19,6 @@
 package org.constellation.metadata.core;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.MonolineFormatter;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.Namespaces;
@@ -70,10 +69,7 @@ import org.geotoolkit.csw.xml.Transaction;
 import org.geotoolkit.csw.xml.TransactionResponse;
 import org.geotoolkit.csw.xml.TransactionSummary;
 import org.geotoolkit.csw.xml.Update;
-import org.geotoolkit.csw.xml.v202.AbstractRecordType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
-import org.geotoolkit.ebrim.xml.v300.IdentifiableType;
-import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.inspire.xml.InspireCapabilitiesType;
 import org.geotoolkit.inspire.xml.MultiLingualCapabilities;
 import org.geotoolkit.index.IndexingException;
@@ -150,7 +146,7 @@ import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.csw.xml.InsertResult;
-import org.geotoolkit.csw.xml.Record;
+import static org.geotoolkit.csw.xml.ResultType.HITS;
 import static org.geotoolkit.csw.xml.TypeNames.DC_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM25_TYPE_NAMES;
 import static org.geotoolkit.csw.xml.TypeNames.EBRIM30_TYPE_NAMES;
@@ -172,6 +168,7 @@ import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_202_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
 import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
+import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.ops.xml.OpenSearchXmlFactory;
 import org.w3._2005.atom.EntryType;
 import org.w3._2005.atom.FeedType;
@@ -312,24 +309,14 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             }
             LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause:{0}\n", startError);
             isStarted = false;
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException | JAXBException e) {
             startError = e.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: IllegalArgumentException: {0}\n", startError);
-            LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
-            isStarted = false;
-        } catch (IllegalStateException e) {
-            startError = e.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: IllegalStateException: {0}\n", startError);
+            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: {0}\n", startError);
             LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
             isStarted = false;
         } catch (CstlServiceException e) {
             startError = e.getLocalizedMessage();
             LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: CstlServiceException: {0}\n", startError);
-            LOGGER.log(Level.FINER, e.getLocalizedMessage(), e);
-            isStarted = false;
-        }  catch (JAXBException e) {
-            startError =  "JAXBException:" + e.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: {0}\n", startError);
             LOGGER.log(Level.FINER, e.getLocalizedMessage(), e);
             isStarted = false;
         } catch (ConfigurationException ex) {
@@ -342,6 +329,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             isStarted = false;
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, "\nThe CSW worker( {0}) is not working!\nCause: "+ex.getLocalizedMessage(), serviceID);
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             isStarted = false;
         }
     }
@@ -422,7 +410,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
             supportedTypeNames.addAll(DC_TYPE_NAMES);
         }
-        if (supportedDataTypes.contains(MetadataType.EBRIM)) {
+        if (supportedDataTypes.contains(MetadataType.EBRIM_300)) {
             supportedTypeNames.addAll(EBRIM30_TYPE_NAMES);
             supportedTypeNames.addAll(EBRIM25_TYPE_NAMES);
         }
@@ -447,7 +435,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
             acceptedResourceType.add(Namespaces.CSW);
         }
-        if (supportedDataTypes.contains(MetadataType.EBRIM)) {
+        if (supportedDataTypes.contains(MetadataType.EBRIM_300)) {
             acceptedResourceType.add(EBRIM_30);
             acceptedResourceType.add(EBRIM_25);
         }
@@ -843,8 +831,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             set = null;
         }
 
-        SearchResults searchResults = null;
-
         //we get the maxRecords wanted and start position
         final Integer maxRecord = request.getMaxRecords();
         final Integer startPos  = request.getStartPosition();
@@ -956,7 +942,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 break;
             case EBRIM_30:
             case EBRIM_25:
-                mode = MetadataType.EBRIM;
+                mode = MetadataType.EBRIM_300;
                 break;
             case LegacyNamespaces.CSW:
                 mode = MetadataType.DUBLINCORE_CSW202;
@@ -968,20 +954,17 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 throw new IllegalArgumentException("undefined outputSchema");
         }
 
+        List<RecordInfo> records = new ArrayList<>();
+        switch (resultType) {
+            // we return only the number of result matching => no metadata reading
+            case HITS: break;
 
-        switch(resultType) {
-            // we return only the number of result matching
-            case HITS:
-                searchResults = CswXmlFactory.createSearchResults(version, id, set, nbResults, nextRecord);
-                break;
-
-            // we return a list of Record
+            // we read a list of Record
             case RESULTS:
 
-                final List<Object> records = new ArrayList<>();
                 try {
                     for (int i = startPos - 1; i < max; i++) {
-                        final Object obj = mdStore.getMetadata(results[i], mode, cstlSet(set), elementName);
+                        final RecordInfo obj = mdStore.getMetadata(results[i], mode, cstlSet(set), elementName);
                         if (obj == null && (max + 1) < nbResults) {
                             max++;
 
@@ -1006,15 +989,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     records.add(additionalResult);
                 }
                 */
-
-                searchResults = CswXmlFactory.createSearchResults(version,
-                                                                  id,
-                                                                  set,
-                                                                  totalMatched,
-                                                                  records,
-                                                                  records.size(),
-                                                                  nextRecord,
-                                                                  distributedResults);
                 break;
 
             //we return an Acknowledgement if the request is valid.
@@ -1022,24 +996,37 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 return CswXmlFactory.createAcknowledgement(version, id, request, System.currentTimeMillis());
         }
 
+        // ATOM response
         Object response;
         if (MimeType.APP_ATOM.equals(outputFormat)) {
             String serviceUrl = getServiceUrl();
             final Details skeleton = getStaticCapabilitiesObject("csw", null);
             FeedType feed = CSWConstants.createFeed(serviceUrl, skeleton, getOsUrl(serviceUrl));
-            for (Object record : searchResults.getAny()) {
-                if (record instanceof Record) {
-                    EntryType entry = CSWUtils.getEntryFromRecord((Record) record);
-                    feed.addEntry(entry);
-                } else if (record instanceof Node) {
-                    EntryType entry = CSWUtils.getEntryFromRecordNode((Node) record);
-                    feed.addEntry(entry);
-                } else {
-                    LOGGER.warning("can not create an entry from :" + record.getClass().getName());
-                }
+            for (RecordInfo record : records) {
+                EntryType entry = CSWUtils.getEntryFromRecordInfo(serviceUrl, record);
+                feed.addEntry(entry);
             }
             response = OpenSearchXmlFactory.completeFeed(feed, (long)totalMatched,(long)startPos, (long)maxRecord);
+
+        // CSW response
         } else {
+            SearchResults searchResults;
+            if (resultType.equals(HITS)) {
+                searchResults = CswXmlFactory.createSearchResults(version, id, set, totalMatched, nextRecord);
+            } else {
+                final List<Object> nodes = new ArrayList<>();
+                for (final RecordInfo obj : records) {
+                     nodes.add(obj.node);
+                }
+                searchResults = CswXmlFactory.createSearchResults(version,
+                                                                  id,
+                                                                  set,
+                                                                  totalMatched,
+                                                                  nodes,
+                                                                  nodes.size(),
+                                                                  nextRecord,
+                                                                  distributedResults);
+            }
             response = CswXmlFactory.createGetRecordsResponse(request.getVersion().toString(), id, System.currentTimeMillis(), searchResults);
         }
         LOGGER.log(logLevel, "GetRecords request processed in {0} ms", (System.currentTimeMillis() - startTime));
@@ -1159,10 +1146,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 mode         = MetadataType.ISO_19110;
                 break;
             case EBRIM_30:
-                mode         = MetadataType.EBRIM;
+                mode         = MetadataType.EBRIM_300;
                 break;
             case EBRIM_25:
-                mode         = MetadataType.EBRIM;
+                mode         = MetadataType.EBRIM_300;
                 break;
             default:
                 throw new CstlServiceException("Unexpected outputSchema");
@@ -1180,13 +1167,13 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
             //we get the metadata object
             try {
-                final Object o = mdStore.getMetadata(id, mode, cstlSet(set), null);
+                final RecordInfo o = mdStore.getMetadata(id, mode, cstlSet(set), null);
                 if (o != null) {
-                    if (!matchExpectedType(o, outputSchema)) {
+                    if (!o.actualFormat.equals(mode)) {
                         LOGGER.log(Level.WARNING, "The record {0} does not correspound to {1} object.", new Object[]{id, outputSchema});
                         continue;
                     }
-                    records.add(o);
+                    records.add(o.node);
                 } else {
                     LOGGER.log(Level.WARNING, "The record {0} has not be read is null.", id);
                 }
@@ -1206,21 +1193,6 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         response = CswXmlFactory.createGetRecordByIdResponse(version, records);
         LOGGER.log(logLevel, "GetRecordById request processed in {0} ms", (System.currentTimeMillis() - startTime));
         return response;
-    }
-
-    private boolean matchExpectedType(final Object obj, final String outputSchema) {
-        if (obj instanceof Node) {
-            return true; // TODO namespace/localname verification
-        } else {
-            switch (outputSchema) {
-                case LegacyNamespaces.CSW: return AbstractRecordType.class.isInstance(obj);
-                case LegacyNamespaces.GMD: return DefaultMetadata.class.isInstance(obj);
-                case Namespaces.GFC: return FeatureCatalogueImpl.class.isInstance(obj);
-                case EBRIM_30:       return IdentifiableType.class.isInstance(obj);
-                case EBRIM_25:       return org.geotoolkit.ebrim.xml.v250.RegistryObjectType.class.isInstance(obj);
-                default: return false;
-            }
-        }
     }
 
     /**
@@ -1449,9 +1421,15 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                             totalUpdated++;
                         } else {
                             totalInserted++;
-                            Node brief = mdStore.getMetadata(metadataID, MetadataType.DUBLINCORE_CSW202, cstlSet(ElementSetType.BRIEF), null);
+                            MetadataType dcType;
+                            if (version.equals("3.0.0")) {
+                                dcType = MetadataType.DUBLINCORE_CSW300;
+                            } else {
+                                dcType = MetadataType.DUBLINCORE_CSW202;
+                            }
+                            RecordInfo brief = mdStore.getMetadata(metadataID, dcType, cstlSet(ElementSetType.BRIEF), null);
                             List<Object> objs = new ArrayList<>();
-                            objs.add(brief);
+                            objs.add(brief.node);
                             insertResults.add(CswXmlFactory.createInsertResult(version, objs, null));
                         }
 

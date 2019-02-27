@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.constellation.api.PathType;
 import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.metadata.RecordInfo;
 
 /**
  * A Lucene Index Handler for a generic Database.
@@ -158,10 +159,14 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
     @Override
     protected Object getEntry(final String identifier) throws IndexingException {
         try {
-            return store.getMetadata(identifier, MetadataType.ISO_19115);
+            RecordInfo record = store.getMetadata(identifier, MetadataType.ISO_19115);
+            if (record != null) {
+                return record.node;
+            }
         } catch (MetadataIoException ex) {
             throw new IndexingException("Metadata_IOException while reading entry for:" + identifier, ex);
         }
+        return null;
     }
 
     /**

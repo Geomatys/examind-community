@@ -21,16 +21,13 @@
 package org.constellation.store.metadata;
 
 import org.geotoolkit.csw.xml.DomainValues;
-import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 import org.constellation.api.PathType;
-import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataReader;
-import org.geotoolkit.metadata.MetadataType;
 
 /**
  *
@@ -53,18 +50,6 @@ public interface CSWMetadataReader extends MetadataReader {
      * @return a list of values the specified fields specified.
      */
     public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException ;
-
-    /**
-     * Return a metadata object from the specified identifier.
-     *
-     * @param identifier The metadata identifier.
-     * @param mode An output schema mode: EBRIM, ISO_19115, DUBLINCORE and SENSORML supported.
-     * @param type An elementSet: FULL, SUMMARY and BRIEF. (implies elementName == null)
-     * @param elementName A list of QName describing the requested fields. (implies type == null)
-     *
-     * @return A marshallable metadata object.
-     */
-    Node getMetadata(final String identifier, final MetadataType mode, final ElementSetType type, final List<QName> elementName) throws MetadataIoException;
 
     /**
      * @return the list of QName for additional queryable element.

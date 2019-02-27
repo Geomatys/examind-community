@@ -40,7 +40,7 @@ public class Session implements Closeable {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
 
     private final Connection con;
-    
+
     private final String schema;
 
     private PreparedStatement insertStatement = null;
@@ -204,6 +204,18 @@ public class Session implements Closeable {
     public ResultSet getPathIterator() {
         try {
             final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\"");
+            final ResultSet rs = stmt.executeQuery();
+            return rs;
+
+        } catch (SQLException unexpected) {
+            LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
+        }
+        return null;
+    }
+
+    public ResultSet getIterator() {
+        try {
+            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\", \"path\" FROM \"" + schema + "\".\"records\"");
             final ResultSet rs = stmt.executeQuery();
             return rs;
 

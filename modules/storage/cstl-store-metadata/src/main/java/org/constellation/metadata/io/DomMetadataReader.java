@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.io;
 
-import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.w3c.dom.Document;
@@ -67,6 +66,7 @@ import org.geotoolkit.metadata.AbstractMetadataReader;
 import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
+import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
 
@@ -123,7 +123,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
             case "Record":
                 return MetadataType.DUBLINCORE_CSW202;
             case "SensorML":
-                return MetadataType.SENSORML;
+                return MetadataType.SENSORML_200;
             case "RegistryObject":
             case "AdhocQuery":
             case "Association":
@@ -131,7 +131,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
             case "Registry":
             case "ExtrinsicObject":
             case "RegistryEntry":
-                return MetadataType.EBRIM;
+                return MetadataType.EBRIM_300;
             default:
                 return MetadataType.NATIVE;
         }
@@ -158,7 +158,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
             case "Record":
                 return MetadataType.DUBLINCORE_CSW202;
             case "SensorML":
-                return MetadataType.SENSORML;
+                return MetadataType.SENSORML_200;
             case "RegistryObject":
             case "AdhocQuery":
             case "Association":
@@ -166,7 +166,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
             case "Registry":
             case "ExtrinsicObject":
             case "RegistryEntry":
-                return MetadataType.EBRIM;
+                return MetadataType.EBRIM_300;
             default:
                 return MetadataType.NATIVE;
         }
@@ -523,8 +523,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
         final List<String> result = new ArrayList<>();
         final List<String> ids    = getAllIdentifiers();
         for (String metadataID : ids) {
-            final Node metadata = getMetadata(metadataID, MetadataType.ISO_19115);
-            final List<Object> value = NodeUtilities.extractValues(metadata, paths);
+            final RecordInfo metadata = getMetadata(metadataID, MetadataType.ISO_19115);
+            final List<Object> value = NodeUtilities.extractValues(metadata.node, paths);
             if (value != null && !value.equals(Arrays.asList("null"))) {
                 for (Object obj : value){
                     result.add(obj.toString());
@@ -544,8 +544,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      */
     protected List<String> getAllValuesFromPaths(final String metadataID, final List<String> paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
-        final Node metadata = getMetadata(metadataID, MetadataType.ISO_19115);
-        final List<Object> value = NodeUtilities.extractValues(metadata, paths);
+        final RecordInfo metadata = getMetadata(metadataID, MetadataType.ISO_19115);
+        final List<Object> value = NodeUtilities.extractValues(metadata.node, paths);
         if (value != null && !value.equals(Arrays.asList("null"))) {
             for (Object obj : value){
                 result.add(obj.toString());
@@ -575,6 +575,4 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
         return paths;
     }
 
-    @Override
-     public abstract List<Node> getAllEntries() throws MetadataIoException;
 }

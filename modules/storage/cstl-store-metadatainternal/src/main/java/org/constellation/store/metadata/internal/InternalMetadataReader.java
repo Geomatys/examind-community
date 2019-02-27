@@ -46,6 +46,7 @@ import org.constellation.business.IInternalMetadataBusiness;
 
 import static org.constellation.util.NodeUtilities.getNodeFromReader;
 import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,15 +99,15 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
-        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<QName>());
+    public RecordInfo getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
+        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
     }
 
-     /**
+    /**
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(final String identifier, final MetadataType mode, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         final String metadataString = internalMetadataBusiness.getMetadata(identifier);
         if (metadataString != null) {
             final MetadataType metadataMode;
@@ -118,26 +119,29 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
                 throw new MetadataIoException(ex);
             }
 
+            final Node n;
+
             // ISO TO CSW2
             if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
-                return translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
+                n = translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
 
             // ISO TO CSW3
             } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW300) {
-                return translateISOtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
+                n = translateISOtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
 
             // CSW3 (NO transform OR TO CSW3)
             } else if (mode == MetadataType.DUBLINCORE_CSW300 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                return  applyElementSetNode(metadataNode, type, elementName, Namespaces.CSW, mode != metadataMode);
+                n =  applyElementSetNode(metadataNode, type, elementName, Namespaces.CSW, mode != metadataMode);
 
             // CSW2 (NO transform OR TO CSW2)
             } else if (mode == MetadataType.DUBLINCORE_CSW202 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                return  applyElementSetNode(metadataNode, type, elementName, LegacyNamespaces.CSW, mode != metadataMode);
+                n =  applyElementSetNode(metadataNode, type, elementName, LegacyNamespaces.CSW, mode != metadataMode);
 
             // RETURN NATIVE
             } else {
-               return metadataNode;
+               n = metadataNode;
             }
+            return new RecordInfo(identifier, n, metadataMode, mode);
         }
         return null;
     }
@@ -204,16 +208,11 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getAllEntries() throws MetadataIoException {
-        final List<Node> result = new ArrayList<>();
+    public List<RecordInfo> getAllEntries() throws MetadataIoException {
+        final List<RecordInfo> result = new ArrayList<>();
         final List<String> metadataIds = internalMetadataBusiness.getInternalMetadataIds();
         for (String metadataID : metadataIds) {
-            final String meta = internalMetadataBusiness.getMetadata(metadataID);
-            try {
-                result.add(getNodeFromReader(new StringReader(meta)));
-            } catch (ParserConfigurationException | SAXException | IOException ex) {
-                throw new MetadataIoException(ex);
-            }
+            result.add(getMetadata(metadataID, MetadataType.NATIVE));
         }
         return result;
     }
@@ -244,7 +243,7 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
         return Arrays.asList(MetadataType.ISO_19115,
                              MetadataType.DUBLINCORE_CSW202,
                              MetadataType.DUBLINCORE_CSW300,
-                             MetadataType.EBRIM,
+                             MetadataType.EBRIM_300,
                              MetadataType.ISO_19110);
     }
 

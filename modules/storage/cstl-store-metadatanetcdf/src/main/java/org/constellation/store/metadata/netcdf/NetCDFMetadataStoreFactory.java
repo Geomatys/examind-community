@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTRA_QUERYABLE;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -58,7 +59,7 @@ public class NetCDFMetadataStoreFactory extends DataStoreFactory {
             .create(Path.class, null);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
-            BUILDER.addName(NAME).addName("NCMetadataParameters").createGroup(IDENTIFIER, CONFIG_PARAMS,FOLDER);
+            BUILDER.addName(NAME).addName("NCMetadataParameters").createGroup(IDENTIFIER, CONFIG_PARAMS,FOLDER,EXTRA_QUERYABLE);
 
     @Override
     public CharSequence getDescription() {

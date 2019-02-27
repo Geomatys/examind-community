@@ -46,6 +46,7 @@ import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.csw.xml.DomainValues;
 import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
 import org.geotoolkit.csw.xml.v202.DomainValuesType;
+import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.opengis.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,12 +133,12 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public Node getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
         return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
     }
 
     @Override
-    public Node getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         if (metadataBusiness.isLinkedMetadataToCSW(identifier, serviceID, partial, displayServiceMetadata, onlyPublished)) {
             return wrapped.getMetadata(identifier, mode, type, elementName);
         }
@@ -150,8 +151,8 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public List<? extends Object> getAllEntries() throws MetadataIoException {
-        final List<Object> result = new ArrayList<>();
+    public List<RecordInfo> getAllEntries() throws MetadataIoException {
+        final List<RecordInfo> result = new ArrayList<>();
         final List<String> metadataIds = metadataBusiness.getLinkedMetadataIDs(serviceID, partial, displayServiceMetadata, onlyPublished, "DOC");
         for (String metadataID : metadataIds) {
             result.add(wrapped.getMetadata(metadataID, MetadataType.NATIVE));
@@ -264,17 +265,17 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public Iterator<? extends Object> getEntryIterator() throws MetadataIoException {
+    public Iterator<RecordInfo> getEntryIterator() throws MetadataIoException {
         // we can't use directly the entry iterator because we need to remove the hidden/unpublished/unlinked data
         Iterator<String> idIt = getIdentifierIterator();
-        return new Iterator<Object>() {
+        return new Iterator<RecordInfo>() {
             @Override
             public boolean hasNext() {
                 return idIt.hasNext();
             }
 
             @Override
-            public Object next() {
+            public RecordInfo next() {
                 String id = idIt.next();
                 try {
                     return getMetadata(id, MetadataType.NATIVE);

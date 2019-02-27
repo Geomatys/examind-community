@@ -71,6 +71,7 @@ import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.index.tree.manager.NamedEnvelope;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.index.IndexLucene;
+import org.geotoolkit.metadata.RecordInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.InputSource;
 
@@ -266,12 +267,12 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             if (indexer != null) {
                 try {
                     for (String identifier : identifierList) {
-                        final Object obj = origStore.getMetadata(identifier, MetadataType.NATIVE);
+                        final RecordInfo obj = origStore.getMetadata(identifier, MetadataType.NATIVE);
                         if (obj == null) {
                             throw new ConfigurationException("Unable to find the metadata: " + identifier);
                         }
                         synchronized(indexer) {
-                            indexer.indexDocument(obj);
+                            indexer.indexDocument(obj.node);
                         }
                     }
                 } catch (MetadataIoException ex) {
@@ -473,7 +474,8 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             }
             final Map<String , List<String>> fieldMap = indexHandler.getBriefFieldMap(config);
             for (int i = startIndex; i<ids.size() && i<startIndex + count; i++) {
-                results.add(createBriefNode(store.getMetadata(ids.get(i),  MetadataType.NATIVE), fieldMap));
+                RecordInfo rec = store.getMetadata(ids.get(i),  MetadataType.NATIVE);
+                results.add(createBriefNode(rec.node, fieldMap));
             }
         } catch (MetadataIoException ex) {
             throw new ConfigurationException(ex);
@@ -493,7 +495,8 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
             }
 
             for (int i = startIndex; i<ids.size() && i<startIndex + count; i++) {
-                results.add(store.getMetadata(ids.get(i), metaType));
+                RecordInfo rec = store.getMetadata(ids.get(i), metaType);
+                results.add(rec.node);
             }
             return results;
         } catch (MetadataIoException ex) {

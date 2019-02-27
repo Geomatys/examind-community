@@ -116,6 +116,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import org.w3._2005.atom.FeedType;
 
 
 /**
@@ -882,6 +883,13 @@ public class CSWService extends OGCWebService<CSWworker> {
 
                 Object response = worker.getRecords(request);
                 final String outputFormat  = CSWUtils.getOutputFormat(request);
+
+                if (response instanceof FeedType) {
+                    FeedType feed = (FeedType) response;
+                    String selfRequest = getLogParameters();
+                    CSWUtils.addSelfRequest(feed, selfRequest);
+                    // TODO add next / previous
+                }
 
                 return new ResponseObject(response, outputFormat).getResponseEntity();
             } catch (CstlServiceException ex) {

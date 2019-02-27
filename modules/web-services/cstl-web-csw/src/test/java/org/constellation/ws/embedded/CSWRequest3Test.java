@@ -43,7 +43,6 @@ import org.geotoolkit.csw.xml.v300.ListOfValuesType;
 import org.geotoolkit.csw.xml.v300.ObjectFactory;
 import org.geotoolkit.csw.xml.v300.QueryConstraintType;
 import org.geotoolkit.csw.xml.v300.QueryType;
-import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.ows.xml.v200.ExceptionReport;
 import org.geotoolkit.ows.xml.v200.Operation;
 import org.junit.AfterClass;
@@ -81,7 +80,6 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.metadata.configuration.CSWConfigurer;
-import org.constellation.metadata.utils.CSWUtils;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
@@ -822,11 +820,16 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
         assertEquals(expResultID, resultID);
 
+        assertEquals(2, grResult.getLinks().size());
+        assertEquals(1, grResult.getLinksByRel("self").size());
+        assertEquals(1, grResult.getLinksByRel("search").size());
+
+
         /**
          * KVP search atom output 3: full search startPos=10
          */
         query = "";
-        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "outputFormat=application/atom%2Bxml");
         conec = kvpsUrl.openConnection();
 
         String strResult = getStringResponse(conec);
@@ -863,7 +866,6 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         URLConnection conec = kvpsUrl.openConnection();
         String strResult = getStringResponse(conec);
         String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/osDoc.xml"));
-        System.out.println(strResult);
         domCompare(strResult, expResult);
     }
 

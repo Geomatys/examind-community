@@ -63,7 +63,6 @@ import org.constellation.api.PathType;
 import org.geotoolkit.index.tree.StoreIndexException;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.LuceneUtils;
-import org.geotoolkit.nio.IOUtilities;
 
 /**
  *

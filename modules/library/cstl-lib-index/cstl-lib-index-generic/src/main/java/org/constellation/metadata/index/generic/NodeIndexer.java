@@ -40,13 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.geotoolkit.metadata.MetadataStore;
-
-// Apache Lucene dependencies
-// constellation dependencies
-// geotoolkit dependencies
-// GeoAPI dependencies
+import org.geotoolkit.metadata.RecordInfo;
 
 
 /**
@@ -153,10 +148,14 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
     @Override
     protected Node getEntry(final String identifier) throws IndexingException {
         try {
-            return (Node) store.getMetadata(identifier, MetadataType.NATIVE);
+            RecordInfo record = store.getMetadata(identifier, MetadataType.NATIVE);
+            if (record != null) {
+                return record.node;
+            }
         } catch (MetadataIoException ex) {
             throw new IndexingException("Metadata_IOException while reading entry for:" + identifier, ex);
         }
+        return null;
     }
 
     /**
@@ -299,7 +298,18 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
     @Override
     protected Iterator<Node> getEntryIterator() throws IndexingException {
         try {
-            return (Iterator<Node>) ((AbstractCstlMetadataStore)store).getEntryIterator();
+            final Iterator<RecordInfo> it = store.getEntryIterator();
+            return new Iterator<Node>() {
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Node next() {
+                    return it.next().node;
+                }
+            };
         } catch (MetadataIoException ex) {
             throw new IndexingException("Error while getting entry iterator", ex);
         }

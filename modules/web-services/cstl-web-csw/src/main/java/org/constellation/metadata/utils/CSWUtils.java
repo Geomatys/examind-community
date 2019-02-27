@@ -48,6 +48,7 @@ import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.dublincore.xml.AbstractSimpleLiteral;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
+import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
@@ -62,7 +63,10 @@ import org.opengis.filter.expression.Literal;
 import org.w3._2005.atom.CategoryType;
 import org.w3._2005.atom.DateTimeType;
 import org.w3._2005.atom.EntryType;
+import org.w3._2005.atom.FeedType;
 import org.w3._2005.atom.IdType;
+import org.w3._2005.atom.LinkType;
+import org.w3._2005.atom.ObjectFactory;
 import org.w3._2005.atom.PersonType;
 import org.w3._2005.atom.TextType;
 import org.w3c.dom.Node;
@@ -78,6 +82,16 @@ public class CSWUtils {
     private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     static {
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    private static final String GET_RECORD_BY_ID;
+    static {
+        GET_RECORD_BY_ID =  "{SURL}request=GetRecordbyid&service=CSW&version=3.0.0&id={MID}&outputschema={OUT_SCHEME}";
+    }
+
+    private static final String GET_ATOM_BY_ID;
+    static {
+        GET_ATOM_BY_ID = "{SURL}/opensearch?service=CSW&version=3.0.0&recordIds={MID}&outputformat=application/atom+xml";
     }
 
      /**
@@ -107,6 +121,14 @@ public class CSWUtils {
         }
     }
 
+    /**
+     * Marshall an object into a DOM node.
+     *
+     * @param obj Object to transform in Node.
+     * @param pool Marshaller Pool handling the object marshalling.
+     * @return
+     * @throws CstlServiceException
+     */
     public static Node transformToNode(final Object obj, final MarshallerPool pool) throws CstlServiceException {
         if (obj instanceof Node) {
             return (Node) obj;
@@ -364,35 +386,46 @@ public class CSWUtils {
         return entry;
     }
 
-    public static EntryType getEntryFromRecordNode(Node record) {
-        ISODateParser parser = new ISODateParser();
+    public static EntryType getEntryFromRecordInfo(String serviceUrl, RecordInfo record) {
 
+        ISODateParser parser = new ISODateParser();
         EntryType entry = new EntryType();
-        final List<String> identifierValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:identifier");
+        final List<String> identifierValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:identifier");
         if (!identifierValues.isEmpty()) {
             entry.addId(new IdType(identifierValues.get(0)));
         }
-        final List<String> titleValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:title");
+
+        // add alternate links
+        String openSearchUrl = serviceUrl.substring(0, serviceUrl.length() -1);
+        String atomUrl = GET_ATOM_BY_ID.replace("{SURL}", openSearchUrl).replace("{MID}", record.identifier);
+        entry.addLink(new LinkType(atomUrl, "Atom format", "alternate", "application/atom+xml"));
+
+        String outputschema = record.originalFormat.namespace;
+        String cswUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", outputschema);
+        entry.addLink(new LinkType(cswUrl, "Native format", "alternate", "application/xml"));
+
+
+        final List<String> titleValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:title");
         if (!titleValues.isEmpty()) {
             entry.addTitle(new TextType(titleValues.get(0)));
         }
-        final List<String> creatorValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:creator");
+        final List<String> creatorValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:creator");
         if (!creatorValues.isEmpty()) {
             entry.addAuthor(new PersonType(creatorValues.get(0), null, null));
         }
-        final List<String> subValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:subject");
+        final List<String> subValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:subject");
         for (String sub : subValues) {
             entry.addCategory(new CategoryType(sub, null));
         }
-        final List<String> absValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:abstract");
+        final List<String> absValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:abstract");
         if (!absValues.isEmpty()) {
             entry.addSummary(new TextType(absValues.get(0)));
         }
-        final List<String> contValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:contributor");
+        final List<String> contValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:contributor");
         for (String cont : contValues) {
             entry.addContributor(new PersonType(cont, null, null));
         }
-        final List<String> dateValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:date");
+        final List<String> dateValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:date");
         if (!dateValues.isEmpty()) {
             try {
                 GregorianCalendar c = new GregorianCalendar();
@@ -404,8 +437,8 @@ public class CSWUtils {
             }
         }
 
-        final List<String> beginValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/csw:TemporalExtent/csw:begin");
-        final List<String> endValues   = NodeUtilities.getValuesFromPath(record, "/csw:Record/csw:TemporalExtent/csw:end");
+        final List<String> beginValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/csw:TemporalExtent/csw:begin");
+        final List<String> endValues   = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/csw:TemporalExtent/csw:end");
 
         org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
 
@@ -418,16 +451,16 @@ public class CSWUtils {
 
         // TODO source ?
 
-        final List<String> languageValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:language");
+        final List<String> languageValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:language");
         if (!languageValues.isEmpty()) {
             entry.setLang(languageValues.get(0));
         }
-        final List<String> rightsValues = NodeUtilities.getValuesFromPath(record, "/csw:Record/dc:rights");
+        final List<String> rightsValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:rights");
         for (String sub : rightsValues) {
             entry.addRight(new TextType(sub));
         }
-        final List<String> lowers = NodeUtilities.getValuesFromPath(record, "/csw:Record/ows:BoundingBox/ows:LowerCorner");
-        final List<String> uppers = NodeUtilities.getValuesFromPath(record, "/csw:Record/ows:BoundingBox/ows:UpperCorner");
+        final List<String> lowers = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/ows:BoundingBox/ows:LowerCorner");
+        final List<String> uppers = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/ows:BoundingBox/ows:UpperCorner");
         if (!lowers.isEmpty() && !uppers.isEmpty()) {
             String[] lo = lowers.get(0).split(" ");
             String[] up = uppers.get(0).split(" ");
@@ -441,5 +474,31 @@ public class CSWUtils {
 
         // TODO relation
         return entry;
+    }
+
+    private static final ObjectFactory OBJ_ATOM_FACT = new ObjectFactory();
+
+    public static void addSelfRequest(FeedType feed, String selfRequest) {
+        LinkType selfLink = new LinkType(selfRequest, "self", MimeType.APP_ATOM);
+        boolean found = false;
+        int i = 0;
+        for (Object obj : feed.getAuthorOrCategoryOrContributor()) {
+            if (obj instanceof JAXBElement) {
+                JAXBElement elem = (JAXBElement) obj;
+                if (ObjectFactory._EntryTypeLink_QNAME.equals(elem.getName())
+                && elem.getValue() instanceof LinkType) {
+                    found = true;
+                } else if (found) {
+                    feed.getAuthorOrCategoryOrContributor().add(i, OBJ_ATOM_FACT.createFeedTypeLink(selfLink));
+                    return;
+                }
+            }
+            i++;
+        }
+
+        // add in last pos
+        if (!found) {
+            feed.addLink(new LinkType(selfRequest, "self", MimeType.APP_ATOM));
+        }
     }
 }

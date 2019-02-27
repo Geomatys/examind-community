@@ -19,7 +19,7 @@
 
 package org.constellation.store.metadata;
 
-import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.geotoolkit.metadata.RecordInfo;
 import org.constellation.generic.GenericReader;
 import org.constellation.generic.Values;
 import org.constellation.dto.service.config.generic.Automatic;
@@ -87,23 +87,15 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
      * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
         return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<QName>());
     }
 
     /**
-     * Return a new Metadata object read from the database for the specified identifier.
-     *
-     * @param identifier An unique identifier
-     * @param mode An output schema mode: ISO_19115 and DUBLINCORE supported.
-     * @param type An elementSet: FULL, SUMMARY and BRIEF. (implies elementName == null)
-     * @param elementName A list of QName describing the requested fields. (implies type == null)
-     * @return A metadata Object (Dublin core Record / GeotoolKit metadata)
-     *
-     * @throws org.geotoolkit.metadata.MetadataIoException
+     * {@inheritDoc}
      */
     @Override
-    public Node getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
+    public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
 
         //TODO we verify that the identifier exists
         final Values values;
@@ -113,6 +105,7 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
             throw new MetadataIoException(ex);
         }
 
+        // TODO handle transformations
         final Node result;
         if (mode == MetadataType.ISO_19115 || mode == MetadataType.NATIVE) {
             result = getISO(identifier, values);
@@ -123,7 +116,7 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
         } else {
             throw new IllegalArgumentException("Unknow or unAuthorized standard mode: " + mode);
         }
-        return result;
+        return new RecordInfo(identifier, result, mode, mode);
     }
 
     /**
@@ -171,11 +164,11 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
      * @throws org.geotoolkit.metadata.MetadataIoException
      */
     @Override
-    public List<DefaultMetadata> getAllEntries() throws MetadataIoException {
-        final List<DefaultMetadata> result = new ArrayList<>();
+    public List<RecordInfo> getAllEntries() throws MetadataIoException {
+        final List<RecordInfo> result = new ArrayList<>();
         final List<String> identifiers     = getAllIdentifiers();
         for (String id : identifiers) {
-            result.add((DefaultMetadata) getMetadata(id, MetadataType.ISO_19115, ElementSetType.FULL, null));
+            result.add(getMetadata(id, MetadataType.ISO_19115));
         }
         return result;
     }

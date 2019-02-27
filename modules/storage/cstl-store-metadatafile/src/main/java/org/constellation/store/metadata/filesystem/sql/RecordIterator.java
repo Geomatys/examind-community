@@ -32,17 +32,18 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.geotoolkit.metadata.MetadataType;
+import org.geotoolkit.metadata.RecordInfo;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class RecordIterator implements CloseableIterator<Node> {
+public class RecordIterator implements CloseableIterator<RecordInfo> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.io.filesystem.sql");
 
@@ -51,7 +52,7 @@ public class RecordIterator implements CloseableIterator<Node> {
 
     private final ResultSet rs;
 
-    private Node current = null;
+    private RecordInfo current = null;
 
     public RecordIterator(final Session session) {
         this.session = session;
@@ -70,7 +71,7 @@ public class RecordIterator implements CloseableIterator<Node> {
             LOGGER.log(Level.WARNING, "error while building XML DocumentBuilder", ex);
         }
         docBuilder = candidate;
-        this.rs = session.getPathIterator();
+        this.rs = session.getIterator();
     }
 
     @Override
@@ -80,9 +81,9 @@ public class RecordIterator implements CloseableIterator<Node> {
     }
 
     @Override
-    public Node next() {
+    public RecordInfo next() {
        findNext();
-       final Node entry = current;
+       final RecordInfo entry = current;
        current = null;
        return entry;
     }
@@ -91,9 +92,9 @@ public class RecordIterator implements CloseableIterator<Node> {
         if (current!=null) return;
         try {
             if (rs.next()) {
-                final String path = rs.getString(1);
+                final String path = rs.getString(2);
                 final Path metadataFile = IOUtilities.toPath(path);
-                current = getNodeFromFile(metadataFile);
+                current = new RecordInfo(rs.getString(2), getNodeFromFile(metadataFile), MetadataType.NATIVE, MetadataType.NATIVE);
             }
         } catch (IOException | SQLException e) {
             LOGGER.log(Level.WARNING, "error while iterating resultSet", e);
