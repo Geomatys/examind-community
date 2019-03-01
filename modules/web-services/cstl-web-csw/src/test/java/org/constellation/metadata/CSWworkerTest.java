@@ -113,10 +113,12 @@ import java.util.logging.Logger;
 import static org.constellation.metadata.core.CSWConstants.OUTPUT_SCHEMA;
 import static org.constellation.metadata.core.CSWConstants.PARAMETERNAME;
 import static org.constellation.metadata.core.CSWConstants.TYPENAMES;
-import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.ISO_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
+import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_QNAME;
+import static org.geotoolkit.metadata.TypeNames.ISO_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
+import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_202_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Date_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Format_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Identifier_QNAME;
@@ -137,8 +139,6 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import static org.constellation.test.utils.MetadataUtilities.ebrimEquals;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_202_QNAME;
 
 /**
  * Test the different methods of CSWWorker with a FileSystem reader/writer.

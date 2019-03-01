@@ -76,7 +76,7 @@ import java.util.logging.Level;
 import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.Settable;
 
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory.*;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Abstract_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Modified_QNAME;

@@ -44,7 +44,7 @@ import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.csw.xml.DomainValues;
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.geotoolkit.csw.xml.v202.DomainValuesType;
 import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.storage.DataStoreFactory;

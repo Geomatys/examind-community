@@ -69,7 +69,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
+import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
 
 /**
  * The purpose of this test is to run a "discovery" CSW and launch a spatial request on it.

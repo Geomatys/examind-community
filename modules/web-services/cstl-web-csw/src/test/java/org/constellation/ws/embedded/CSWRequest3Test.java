@@ -28,7 +28,7 @@ import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.ElementSetType;
-import org.geotoolkit.csw.xml.TypeNames;
+import org.geotoolkit.metadata.TypeNames;
 import org.geotoolkit.csw.xml.v300.CapabilitiesType;
 import org.geotoolkit.csw.xml.v300.DistributedSearchType;
 import org.geotoolkit.csw.xml.v300.DomainValuesType;

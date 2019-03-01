@@ -147,16 +147,16 @@ import org.constellation.ws.Refreshable;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.csw.xml.InsertResult;
 import static org.geotoolkit.csw.xml.ResultType.HITS;
-import static org.geotoolkit.csw.xml.TypeNames.DC_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.EBRIM25_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.EBRIM30_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.FC_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.ISO_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.containsOneOfEbrim25;
-import static org.geotoolkit.csw.xml.TypeNames.containsOneOfEbrim30;
+import static org.geotoolkit.metadata.TypeNames.DC_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.EBRIM25_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.EBRIM30_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
+import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_QNAME;
+import static org.geotoolkit.metadata.TypeNames.FC_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.ISO_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.containsOneOfEbrim25;
+import static org.geotoolkit.metadata.TypeNames.containsOneOfEbrim30;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -164,10 +164,11 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_202_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
+import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
+import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_202_QNAME;
+import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_300_QNAME;
+import static org.geotoolkit.metadata.TypeNames.DIF_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.RECORD_300_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.ops.xml.OpenSearchXmlFactory;
 import org.w3._2005.atom.EntryType;
@@ -387,9 +388,8 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         } else {
             indexer.destroy();
         }
-        initializeSupportedTypeNames();
+        initializeSupportedMetadataTypes();
         initializeSupportedSchemaLanguage();
-        initializeAcceptedResourceType();
         initializeRecordSchema();
         initializeAnchorsMap();
         loadCascadedService();
@@ -398,46 +398,14 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     /**
      * Initialize the supported type names in function of the reader capacity.
      */
-    private void initializeSupportedTypeNames() {
-        supportedTypeNames = new ArrayList<>();
-        final List<MetadataType> supportedDataTypes = mdStore.getSupportedDataTypes();
-        if (supportedDataTypes.contains(MetadataType.ISO_19115)) {
-            supportedTypeNames.addAll(ISO_TYPE_NAMES);
-        }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW202)) {
-            supportedTypeNames.addAll(DC_TYPE_NAMES);
-        }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
-            supportedTypeNames.addAll(DC_TYPE_NAMES);
-        }
-        if (supportedDataTypes.contains(MetadataType.EBRIM_300)) {
-            supportedTypeNames.addAll(EBRIM30_TYPE_NAMES);
-            supportedTypeNames.addAll(EBRIM25_TYPE_NAMES);
-        }
-        if (supportedDataTypes.contains(MetadataType.ISO_19110)) {
-            supportedTypeNames.addAll(FC_TYPE_NAMES);
-        }
-    }
-
-    /**
-     * Initialize the supported outputSchema in function of the reader capacity.
-     */
-    private void initializeAcceptedResourceType() {
+    private void initializeSupportedMetadataTypes() {
+        supportedTypeNames    = new ArrayList<>();
         acceptedResourceType = new ArrayList<>();
+
         final List<MetadataType> supportedDataTypes = mdStore.getSupportedDataTypes();
-        if (supportedDataTypes.contains(MetadataType.ISO_19115)) {
-            acceptedResourceType.add(LegacyNamespaces.GMD);
-            acceptedResourceType.add(Namespaces.GFC);
-        }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW202)) {
-            acceptedResourceType.add(LegacyNamespaces.CSW);
-        }
-        if (supportedDataTypes.contains(MetadataType.DUBLINCORE_CSW300)) {
-            acceptedResourceType.add(Namespaces.CSW);
-        }
-        if (supportedDataTypes.contains(MetadataType.EBRIM_300)) {
-            acceptedResourceType.add(EBRIM_30);
-            acceptedResourceType.add(EBRIM_25);
+        for (MetadataType metaType : supportedDataTypes) {
+            supportedTypeNames.addAll(metaType.typeNames);
+            acceptedResourceType.add(metaType.namespace);
         }
     }
 
@@ -934,25 +902,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         }
         LOGGER.log(Level.FINER, "local max = " + max + " distributed max = " + maxDistributed);
 
-        final MetadataType mode;
-        switch (outputSchema) {
-            case LegacyNamespaces.GMD:
-            case Namespaces.GFC:
-                mode = MetadataType.ISO_19115;
-                break;
-            case EBRIM_30:
-            case EBRIM_25:
-                mode = MetadataType.EBRIM_300;
-                break;
-            case LegacyNamespaces.CSW:
-                mode = MetadataType.DUBLINCORE_CSW202;
-                break;
-            case Namespaces.CSW:
-                mode = MetadataType.DUBLINCORE_CSW300;
-                break;
-            default:
-                throw new IllegalArgumentException("undefined outputSchema");
-        }
+        final MetadataType mode = MetadataType.getFromNamespace(outputSchema);
 
         List<RecordInfo> records = new ArrayList<>();
         switch (resultType) {
@@ -1131,30 +1081,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         final List<String> unexistingID = new ArrayList<>();
         final List<Object> records      = new ArrayList<>();
 
-        final MetadataType mode;
-        switch (outputSchema) {
-            case LegacyNamespaces.CSW:
-                mode         = MetadataType.DUBLINCORE_CSW202;
-                break;
-            case Namespaces.CSW:
-                mode         = MetadataType.DUBLINCORE_CSW300;
-                break;
-            case LegacyNamespaces.GMD:
-                mode         = MetadataType.ISO_19115;
-                break;
-            case Namespaces.GFC:
-                mode         = MetadataType.ISO_19110;
-                break;
-            case EBRIM_30:
-                mode         = MetadataType.EBRIM_300;
-                break;
-            case EBRIM_25:
-                mode         = MetadataType.EBRIM_300;
-                break;
-            default:
-                throw new CstlServiceException("Unexpected outputSchema");
-        }
-
+        final MetadataType mode = MetadataType.getFromNamespace(outputSchema);
         for (String id : request.getId()) {
 
             final String saved = id;

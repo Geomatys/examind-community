@@ -21,7 +21,6 @@ package org.constellation.filter;
 // J2SE dependencies
 
 import org.apache.sis.xml.MarshallerPool;
-import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
@@ -53,6 +52,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.util.Arrays;
+import javax.xml.namespace.QName;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.index.LogicalFilterType;
 
@@ -69,6 +69,7 @@ public class LuceneFilterParserTest {
 
     private LuceneFilterParser filterParser;
     private static MarshallerPool pool;
+    private static final QName METADATA_QNAME = new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata");
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -381,7 +382,7 @@ public class LuceneFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getQuery(), "CloudCover:{12 TO 2147483648}");
-        
+
         /**
          * Test 12: a simple Filter PropertyIsGreaterThan with numeric field + typeName
          */
@@ -392,7 +393,7 @@ public class LuceneFilterParserTest {
         assertTrue(filter.getId().isEmpty()   );
         assertTrue(filter.getSpatialOps()    == null);
 
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
@@ -489,12 +490,12 @@ public class LuceneFilterParserTest {
         /**
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
          */
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getQuery(), "(identifier:(*chain_acq_1*) AND objectType:\"MD_Metadata\")");
-        
+
         pool.recycle(filterUnmarshaller);
     }
 
@@ -720,17 +721,17 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getQuery(), "CreationDate:[\"20070602000000\" 30000101000000]");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
-        
+
         /**
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
          */
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getQuery(), "(objectType:\"MD_Metadata\")");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
-        assertEquals(spaQuery.getSubQueries().get(0).getQuery(),"CreationDate:[\"20070602000000\" 30000101000000]"); 
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(),"CreationDate:[\"20070602000000\" 30000101000000]");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
         pool.recycle(filterUnmarshaller);
     }

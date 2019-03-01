@@ -29,7 +29,7 @@ import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.ResultType;
-import org.geotoolkit.csw.xml.TypeNames;
+import org.geotoolkit.metadata.TypeNames;
 import org.geotoolkit.csw.xml.v202.Capabilities;
 import org.geotoolkit.csw.xml.v202.DescribeRecordResponseType;
 import org.geotoolkit.csw.xml.v202.DistributedSearchType;

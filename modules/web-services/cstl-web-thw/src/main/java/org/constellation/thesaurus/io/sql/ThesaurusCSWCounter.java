@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
@@ -43,8 +44,6 @@ import org.constellation.thesaurus.util.HTTPCommunicator;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.ResultType;
-import static org.geotoolkit.csw.xml.TypeNames.IDENTIFIER_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_202_QNAME;
 import org.geotoolkit.csw.xml.v202.GetRecordsResponseType;
 import org.geotoolkit.csw.xml.v202.GetRecordsType;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
@@ -73,6 +72,12 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     protected final String likeOperator = "ILIKE";
 
     private static final String CQL_REQUEST = "( dc:title LIKE '\"$term\"'  OR dct:abstract LIKE '\"$term\"'  OR dc:subject LIKE '\"$term\"' )";
+
+    /**
+     * a QName for csw:Record type
+     */
+    public static final QName RECORD_202_QNAME   = new QName("http://www.opengis.net/cat/csw/2.0.2", "Record");
+    public static final  QName IDENTIFIER_QNAME  = new QName("http://www.purl.org/dc/elements/1.1/", "identifier");
 
     public ThesaurusCSWCounter(final IThesaurusHandler handler) {
         this.handler = handler;

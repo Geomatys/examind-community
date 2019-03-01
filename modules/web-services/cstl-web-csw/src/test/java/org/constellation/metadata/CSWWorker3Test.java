@@ -65,9 +65,11 @@ import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.GetDomainResponse;
 import org.geotoolkit.csw.xml.GetRecordByIdResponse;
 import org.geotoolkit.csw.xml.TransactionResponse;
-import static org.geotoolkit.csw.xml.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.ISO_TYPE_NAMES;
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
+import static org.geotoolkit.metadata.TypeNames.ISO_TYPE_NAMES;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.RECORD_300_QNAME;
+import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_300_QNAME;
 import org.geotoolkit.csw.xml.v300.BriefRecordType;
 import org.geotoolkit.csw.xml.v300.DeleteType;
 import org.geotoolkit.csw.xml.v300.DomainValuesType;
@@ -127,8 +129,6 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import static org.geotoolkit.csw.xml.TypeNames.RECORD_300_QNAME;
-import static org.geotoolkit.csw.xml.TypeNames.CAPABILITIES_300_QNAME;
 import org.geotoolkit.csw.xml.v300.ListOfValuesType.Value;
 
 /**

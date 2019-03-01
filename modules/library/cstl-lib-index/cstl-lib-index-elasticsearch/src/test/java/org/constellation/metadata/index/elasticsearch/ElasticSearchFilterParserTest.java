@@ -21,7 +21,6 @@ package org.constellation.metadata.index.elasticsearch;
 // J2SE dependencies
 
 import org.apache.sis.xml.MarshallerPool;
-import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.ogc.xml.FilterMarshallerPool;
 import org.geotoolkit.ogc.xml.v110.FilterType;
@@ -42,6 +41,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.util.Arrays;
+import javax.xml.namespace.QName;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.constellation.filter.ElasticSearchFilterParser;
 import org.constellation.filter.FilterParser;
@@ -63,6 +63,7 @@ public class ElasticSearchFilterParserTest {
 
     private FilterParser filterParser;
     private static MarshallerPool pool;
+    private static final QName METADATA_QNAME = new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata");
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -346,7 +347,7 @@ public class ElasticSearchFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(nullConstraint, null, null, null);
 
         assertTrue(spaQuery.getSpatialFilter() == null);
-        
+
         assertEquals(spaQuery.getQuery(), "metafile:doc");
 
         /**
@@ -380,7 +381,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"range\":{\"CloudCover\":{\"gt\":12}}}");
-        
+
         /**
          * Test 12: a simple Filter PropertyIsGreaterThan with numeric field + typeName
          */
@@ -391,7 +392,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(filter.getId().isEmpty()   );
         assertTrue(filter.getSpatialOps()    == null);
 
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
@@ -488,12 +489,12 @@ public class ElasticSearchFilterParserTest {
         /**
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
          */
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
-        
+
         pool.recycle(filterUnmarshaller);
     }
 
@@ -716,16 +717,16 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}");
-        
+
         /**
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
          */
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter()  instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"term\":{\"objectType_sort\":\"MD_Metadata\"}},{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}]}");
-        
+
         pool.recycle(filterUnmarshaller);
     }
 
@@ -1076,7 +1077,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
-        
+
 
         /**
          * Test 2: three spatial Filter with OR
@@ -1123,7 +1124,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
-        
+
 
          /**
          * Test 3: three spatial Filter F1 AND (F2 OR F3)
@@ -1220,7 +1221,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
-        
+
         /**
          * Test 5: three spatial Filter NOT (F1 OR F2) AND F3
          */
@@ -1270,7 +1271,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"not\":{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}}]}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
-        
+
         pool.recycle(filterUnmarshaller);
     }
 
@@ -1320,10 +1321,10 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
-        
+
 
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
-        
+
         //assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
 
         /**
@@ -1366,7 +1367,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
-        
+
         /**
          * Test 3:  INTERSECT AND propertyIsEquals AND BBOX
          */
@@ -1410,7 +1411,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"and\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
-        
+
         /**
          * Test 4: PropertyIsLike OR INTERSECT OR propertyIsEquals
          */
@@ -1451,8 +1452,8 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"or\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
-        
-        
+
+
          /**
          * Test 5:  INTERSECT OR propertyIsEquals OR BBOX
          */
@@ -1496,7 +1497,7 @@ public class ElasticSearchFilterParserTest {
         assertTrue(spaQuery.getSpatialFilter() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getSpatialFilter();
         assertEquals(result.string(), "{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
-        
+
         /**
          * Test 6:  INTERSECT AND (propertyIsEquals OR BBOX)
          */

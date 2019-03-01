@@ -58,7 +58,7 @@ import org.constellation.api.PathType;
 import static org.constellation.api.CommonConstants.XML_EXT;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.util.NodeUtilities.getNodeFromPath;
-import static org.geotoolkit.csw.xml.TypeNames.METADATA_QNAME;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -306,8 +306,10 @@ public class FileMetadataReader extends DomMetadataReader implements CSWMetadata
         return Arrays.asList(MetadataType.ISO_19115,
                              MetadataType.DUBLINCORE_CSW202,
                              MetadataType.DUBLINCORE_CSW300,
+                             MetadataType.EBRIM_250,
                              MetadataType.EBRIM_300,
-                             MetadataType.ISO_19110);
+                             MetadataType.ISO_19110,
+                             MetadataType.DIF);
     }
 
     /**

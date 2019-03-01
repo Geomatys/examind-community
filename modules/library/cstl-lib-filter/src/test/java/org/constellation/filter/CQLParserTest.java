@@ -21,7 +21,6 @@ package org.constellation.filter;
 // J2SE dependencies
 
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.csw.xml.TypeNames;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
@@ -50,6 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.xml.namespace.QName;
 import org.geotoolkit.index.LogicalFilterType;
 
 import static org.junit.Assert.assertEquals;
@@ -68,6 +68,7 @@ public class CQLParserTest {
 
     private LuceneFilterParser filterParser;
     private static final Logger logger = Logging.getLogger("org.constellation.filter");
+    private static final QName METADATA_QNAME = new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata");
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -229,7 +230,7 @@ public class CQLParserTest {
         assertEquals(0, filter.getId().size() );
         assertNull(filter.getSpatialOps());
 
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
@@ -412,7 +413,7 @@ public class CQLParserTest {
         assertTrue(filter.getId().isEmpty()   );
         assertTrue(filter.getSpatialOps()    == null);
 
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 1);
@@ -871,7 +872,7 @@ public class CQLParserTest {
         assertTrue(filter.getId().isEmpty()   );
         assertTrue(filter.getSpatialOps()    != null);
 
-        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(TypeNames.METADATA_QNAME));
+        spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
         assertTrue(spaQuery.getSpatialFilter() != null);
         assertEquals(spaQuery.getQuery(), "(objectType:\"MD_Metadata\")");
