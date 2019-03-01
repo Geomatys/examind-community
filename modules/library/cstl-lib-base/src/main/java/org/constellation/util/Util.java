@@ -51,6 +51,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
@@ -61,6 +62,10 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.Extent;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.metadata.extent.GeographicExtent;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 /**
@@ -322,12 +327,47 @@ public final class Util {
      * @param description the data description to update
      */
     public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
-        double[] lower, upper;
+        double[] lower = null;
+        double[] upper = null;
         try {
-            GeneralEnvelope trsf = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
-            trsf.simplify();
-            lower = trsf.getLowerCorner().getCoordinate();
-            upper = trsf.getUpperCorner().getCoordinate();
+            GeneralEnvelope env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
+            env.simplify();
+            if (env.isEmpty()) {
+                env = null;
+                CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+
+                //search for envelope directly in geographic
+                Extent extent = crs.getDomainOfValidity();
+                if (extent != null) {
+                    for (GeographicExtent ext : extent.getGeographicElements()) {
+                        if (ext instanceof GeographicBoundingBox) {
+                            final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
+                            env = new GeneralEnvelope(geo);
+                            env.simplify();
+                        }
+                    }
+                }
+                if (env == null) {
+                    //fallback on crs validity area
+                    Envelope cdt = CRS.getDomainOfValidity(crs);
+                    if (cdt != null) {
+                        env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
+                        env.simplify();
+                        if (env.isEmpty()) {
+                            env = null;
+                        }
+                    }
+                }
+            }
+
+            if (env == null) {
+                lower = new double[]{-180, -90};
+                upper = new double[]{180, 90};
+            } else {
+                lower = env.getLowerCorner().getCoordinate();
+                upper = env.getUpperCorner().getCoordinate();
+            }
+
         } catch (Exception ignore) {
             lower = new double[]{-180, -90};
             upper = new double[]{180, 90};
