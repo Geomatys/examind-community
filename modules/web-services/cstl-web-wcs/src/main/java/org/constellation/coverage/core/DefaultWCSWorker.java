@@ -140,6 +140,8 @@ import static org.constellation.coverage.core.WCSConstant.NETCDF;
 import static org.constellation.coverage.core.WCSConstant.SUPPORTED_FORMATS_100;
 import static org.constellation.coverage.core.WCSConstant.SUPPORTED_FORMATS_111;
 import static org.constellation.coverage.core.WCSConstant.SUPPORTED_INTERPOLATIONS_V100;
+import static org.constellation.coverage.core.WCSConstant.TIF;
+import static org.constellation.coverage.core.WCSConstant.TIFF;
 import static org.constellation.coverage.core.WCSConstant.getOperationMetadata;
 import org.constellation.coverage.ws.rs.GeotiffResponse;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
@@ -1029,7 +1031,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     "Constellation does not support netcdf writing."),
                     INVALID_FORMAT, KEY_FORMAT.toLowerCase());
 
-        } else if (format.equalsIgnoreCase(GEOTIFF)) {
+        } else if (format.equalsIgnoreCase(GEOTIFF) || format.equalsIgnoreCase(TIFF) || format.equalsIgnoreCase(TIF)) {
             try {
                 GeotiffResponse response = new GeotiffResponse();
                 response.metadata = layerRef.getSpatialMetadata();
