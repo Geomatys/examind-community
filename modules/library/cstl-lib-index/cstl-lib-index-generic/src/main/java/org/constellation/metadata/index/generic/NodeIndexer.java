@@ -225,9 +225,17 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
+    protected boolean isDIF(Node meta) {
+        return "DIF".equals(meta.getLocalName());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void indexQueryableSet(final Document doc, final Node metadata, final  Map<String, PathType> queryableSet, final StringBuilder anyText) throws IndexingException {
         for (final String term : queryableSet.keySet()) {
-            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, queryableSet.get(term).paths));
+            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, queryableSet.get(term)));
             final NodeIndexer.TermValue values;
             if (queryableSet.get(term).type.equals(Date.class)) {
                 values = formatDateValue(tm);

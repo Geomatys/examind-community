@@ -59,6 +59,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
+import org.constellation.api.PathType;
 import org.constellation.jaxb.MarshallWarnings;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Text;
@@ -265,6 +266,11 @@ public class NodeUtilities {
         return nodes;
     }
 
+    public static List<Object> extractValues(final Node metadata, final PathType path) {
+        return extractValues(metadata, path, true);
+    }
+
+    @Deprecated
     public static List<Object> extractValues(final Node metadata, final List<String> paths) {
         return extractValues(metadata, paths, true);
     }
@@ -279,6 +285,39 @@ public class NodeUtilities {
      * @param parseDate if true, the Date will be parsed into a lucene format String
      * @return
      */
+    public static List<Object> extractValues(final Node metadata, final PathType path, boolean parseDate) {
+        final List<Object> response  = new ArrayList<>();
+
+        if (path != null) {
+            for (String fullPathID: path.paths) {
+
+                NodeAndOrdinal nao = extractNodes(metadata, fullPathID, false);
+                if (nao == null) {
+                    continue;
+                }
+                final List<Object> value = getStringValue(nao.nodes, nao.ordinal, path.type, parseDate);
+                if (!value.isEmpty() && !value.equals(Arrays.asList(NULL_VALUE))) {
+                    response.addAll(value);
+                }
+            }
+        }
+        if (response.isEmpty()) {
+            //result.add(NULL_VALUE); do not add null values anymore
+        }
+        return response;
+    }
+
+    /**
+     * Extract the String values denoted by the specified paths
+     * and return the values as a String values1,values2,....
+     * if there is no values corresponding to the paths the method return "null" (the string)
+     *
+     * @param metadata
+     * @param paths
+     * @param parseDate if true, the Date will be parsed into a lucene format String
+     * @return
+     */
+    @Deprecated
     public static List<Object> extractValues(final Node metadata, final List<String> paths, boolean parseDate) {
         final List<Object> response  = new ArrayList<>();
 
@@ -404,6 +443,66 @@ public class NodeUtilities {
             this.nodes = nodes;
             this.propertyName = propertyName;
         }
+    }
+
+    /**
+     * Return a String value from the specified Object.
+     * Let the number object as Number
+     */
+    private static List<Object> getStringValue(final List<Node> nodes, final int ordinal, Class type, boolean parseDate) {
+        final List<Object> result = new ArrayList<>();
+        if (nodes != null && !nodes.isEmpty()) {
+            for (Node n : nodes) {
+                final String s = n.getTextContent();
+                final String typeName = n.getLocalName();
+
+                // special case for Double List => todo find a better way
+                if (typeName.endsWith("Corner")) {
+                    if (ordinal != -1) {
+                        final String[] parts = s.split(" ");
+                        if (ordinal < parts.length) {
+                            try {
+                                result.add(Double.parseDouble(parts[ordinal]));
+                            } catch (NumberFormatException ex) {
+                                LOGGER.log(Level.WARNING, "Unable to parse the real value:{0}", s);
+                            }
+                        }
+                    } else {
+                        result.add(s);
+                    }
+                } else if (type.equals(String.class)) {
+                    result.add(s);
+                } else if (type.equals(Double.class)) {
+                    try {
+                        result.add(Double.parseDouble(s));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.log(Level.WARNING, "Unable to parse the real value:{0}", s);
+                    }
+                } else if (type.equals(Integer.class)) {
+                    try {
+                        result.add(Integer.parseInt(s));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.log(Level.WARNING, "Unable to parse the integer value:{0}", s);
+                    }
+                } else if (type.equals(Date.class)) {
+                    try {
+                        final Date d = TemporalUtilities.getDateFromString(s);
+                        if (parseDate) {
+                            synchronized (Util.LUCENE_DATE_FORMAT) {
+                                result.add(Util.LUCENE_DATE_FORMAT.format(d));
+                            }
+                        } else {
+                            result.add(d);
+                        }
+                    } catch (ParseException ex) {
+                        LOGGER.log(Level.WARNING, "Unable to parse the date value:{0}", s);
+                    }
+                } else if (s != null) {
+                    result.add(s);
+                }
+            }
+        }
+        return result;
     }
 
     /**

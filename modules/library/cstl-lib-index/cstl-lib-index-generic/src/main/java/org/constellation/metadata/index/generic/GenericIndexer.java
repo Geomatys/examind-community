@@ -233,6 +233,14 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
      * {@inheritDoc}
      */
     @Override
+    protected boolean isDIF(Object meta) {
+        return ReflectionUtilities.instanceOf("org.geotoolkit.dif.xml.v102.DIF", meta.getClass());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void indexQueryableSet(final Document doc, final Object metadata,final  Map<String, PathType> queryableSet, final StringBuilder anyText) throws IndexingException {
         final CompletionService<TermValue> cs = new BoundedCompletionService<>(this.pool, 5);
         for (final String term :queryableSet.keySet()) {

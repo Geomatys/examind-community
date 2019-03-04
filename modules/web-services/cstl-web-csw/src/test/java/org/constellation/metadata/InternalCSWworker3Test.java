@@ -98,6 +98,10 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
                 writeMetadata("ebrim3.xml",        "urn:motiive:csw-ebrim", internalProviderID);
                 writeMetadata("meta13.xml",        "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo", internalProviderID);
 
+                // add DIF metadata
+                writeMetadata("NO.009_L2-SST.xml", "L2-SST", internalProviderID);
+                writeMetadata("NO.021_L2-LST.xml", "L2-LST", internalProviderID);
+
                 writeMetadata("meta7.xml",         "MDWeb_FR_SY_couche_vecteur_258", internalProviderID, true);
 
                 //we write the configuration file
@@ -205,6 +209,12 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
         super.getRecords191152Test();
     }
 
+    @Test
+    @Override
+    @Order(order=7)
+    public void getRecordsDIFTest() throws Exception {
+        super.getRecordsDIFTest();
+    }
 
     /**
      * Tests the getRecords method
@@ -213,7 +223,7 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=7)
+    @Order(order=8)
     public void getRecordsErrorTest() throws Exception {
         super.getRecordsErrorTest();
     }
@@ -225,22 +235,10 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=8)
+    @Order(order=9)
     public void getDomainTest() throws Exception {
         super.getDomainTest();
     }
-
-    /**
-     * Tests the describeRecord method
-     *
-     * @throws java.lang.Exception
-
-    @Test
-    @Override
-    @Order(order=9)
-    public void DescribeRecordTest() throws Exception {
-        super.DescribeRecordTest();
-    }*/
 
     /**
      * Tests the transaction method

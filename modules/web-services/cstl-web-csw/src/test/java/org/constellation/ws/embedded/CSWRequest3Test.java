@@ -179,6 +179,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                 writeDataFile(dataDirectory, "urn-uuid-94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
                 writeDataFile(dataDirectory, "urn-uuid-9a669547-b69b-469f-a11f-2d875366bbdc");
                 writeDataFile(dataDirectory, "urn-uuid-e9330592-0932-474b-be34-c3a3bb67c7db");
+                writeDataFile(dataDirectory, "L2-LST");
 
                 final File subDataDirectory = new File(dataDirectory, "sub1");
                 subDataDirectory.mkdir();
@@ -416,7 +417,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         values = new ArrayList<>();
         list = new ListOfValuesType(Arrays.asList("Aliquam fermentum purus quis arcu",
-                                                  "Fuscé vitae ligulä","Lorem ipsum",
+                                                  "Fuscé vitae ligulä",
+                                                  "GCOM-C/SGLI L2 Land surface temperature",
+                                                  "Lorem ipsum",
                                                   "Lorem ipsum dolor sit amet",
                                                   "Maecenas enim",
                                                   "Mauris sed neque",
@@ -523,7 +526,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         grResult = (GetRecordsResponseType) result;
 
-        assertEquals(12, grResult.getSearchResults().getAny().size());
+        assertEquals(13, grResult.getSearchResults().getAny().size());
     }
 
     @Test
@@ -664,9 +667,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         GetRecordsResponseType grResult = (GetRecordsResponseType) result;
 
-        assertEquals(1, grResult.getSearchResults().getAny().size());
+        assertEquals(2, grResult.getSearchResults().getAny().size());
         Set<String> resultID = new HashSet<>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
             RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
             resultID.add(r.getIdentifier().getFirstValue());
@@ -674,6 +677,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         Set<String> expResultID = new HashSet<>();
         expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
 
          /**
@@ -689,9 +693,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         grResult = (GetRecordsResponseType) result;
 
-        assertEquals(1, grResult.getSearchResults().getAny().size());
+        assertEquals(2, grResult.getSearchResults().getAny().size());
         resultID = new HashSet<>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
             RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
             resultID.add(r.getIdentifier().getFirstValue());
@@ -699,6 +703,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         expResultID = new HashSet<>();
         expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
 
          /**
@@ -714,9 +719,9 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         grResult = (GetRecordsResponseType) result;
 
-        assertEquals(3, grResult.getSearchResults().getAny().size());
+        assertEquals(4, grResult.getSearchResults().getAny().size());
         resultID = new HashSet<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
             RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
             resultID.add(r.getIdentifier().getFirstValue());
@@ -726,6 +731,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
         expResultID.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
         expResultID.add("urn:uuid:9a669547-b69b-469f-a11f-2d875366bbdc");
+        expResultID.add("L2-LST");
         assertEquals(expResultID, resultID);
 
     }
@@ -901,7 +907,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         FederatedSearchResultType federatedResult = (FederatedSearchResultType) grResult.getSearchResults().getFederatedSearchResults().get(0);
         assertNotNull(federatedResult.getSearchResult());
-        assertEquals(12, federatedResult.getSearchResult().getAny().size());
+        assertEquals(13, federatedResult.getSearchResult().getAny().size());
 
 
 
@@ -994,7 +1000,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // build 2 new metadata file
         RecordType record = new RecordType();
@@ -1051,7 +1057,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(15, response.getSearchResults().getNumberOfRecordsMatched());
 
         // remove data
          // add a metadata to the index
@@ -1092,7 +1098,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
@@ -1111,7 +1117,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // build a new metadata file
         RecordType record = new RecordType();
@@ -1151,7 +1157,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
         f.delete();
@@ -1175,7 +1181,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
@@ -1194,7 +1200,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // remove metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/index/urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
@@ -1267,7 +1273,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
          // remove  all metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/records");

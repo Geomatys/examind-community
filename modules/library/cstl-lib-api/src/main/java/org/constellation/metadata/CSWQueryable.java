@@ -375,6 +375,31 @@ public final class CSWQueryable {
     }
 
 
+    /**
+     * The queryable element from DublinCore and their path id.
+     */
+    public static final Map<String, PathType> DIF_QUERYABLE = new HashMap<>();
+    static {
+        List<String> paths;
+        /*
+         * Bounding box
+         */
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Westernmost_Longitude");
+        DIF_QUERYABLE.put("WestBoundLongitude",     new PathType(Double.class, paths));
+
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Easternmost_Longitude");
+        DIF_QUERYABLE.put("EastBoundLongitude",     new PathType(Double.class, paths));
+
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Northernmost_Latitude");
+        DIF_QUERYABLE.put("NorthBoundLatitude",     new PathType(Double.class, paths));
+
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Southernmost_Latitude");
+        DIF_QUERYABLE.put("SouthBoundLatitude",     new PathType(Double.class, paths));
+    }
 
     /**
      * The queryable element from DublinCore and their path id.
@@ -394,6 +419,7 @@ public final class CSWQueryable {
         paths.add("/csw:Record/dc:title");
         paths.add("/eb3:*/eb3:Name/eb3:LocalizedString/@value");
         paths.add("/eb2:*/eb2:Name/eb2:LocalizedString/@value");
+        paths.add("/dif:DIF/dif:Entry_Title");
         DUBLIN_CORE_QUERYABLE.put("title", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -402,6 +428,7 @@ public final class CSWQueryable {
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:pointOfContact/gmd:CI_ResponsibleParty#gmd:role/gmd:CI_RoleCode/@codeListValue=originator/gmd:organisationName/gmx:Anchor");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:pointOfContact/gmd:CI_ResponsibleParty#gmd:role/gmd:CI_RoleCode/@codeListValue=originator/gmd:organisationName/gco:CharacterString");
         paths.add("/csw:Record/dc:creator");
+        paths.add("/dif:DIF/dif:Organization/dif:Organization_Name/dif:Short_Name");
         DUBLIN_CORE_QUERYABLE.put("creator", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -415,6 +442,10 @@ public final class CSWQueryable {
         //TODO @name = “http://purl.org/dc/elements/1.1/subject”
         paths.add("/eb3:*/eb3:slot/eb3:valueList/eb3:Value");
         paths.add("/eb2:*/eb2:slot/eb2:valueList/eb2:Value");
+
+        paths.add("/dif:DIF/dif:ISO_Topic_Category");
+        paths.add("/dif:DIF/dif:Ancillary_Keyword");
+        // DIF Science keywords?
         DUBLIN_CORE_QUERYABLE.put("description", new PathType(String.class, paths));
         DUBLIN_CORE_QUERYABLE.put("subject", new PathType(String.class, paths));
 
@@ -426,6 +457,7 @@ public final class CSWQueryable {
         paths.add("/csw:Record/gmd:abstract");
         paths.add("/eb3:*/eb3:Description/eb3:LocalizedString/@value");
         paths.add("/eb2:*/eb2:Description/eb2:LocalizedString/@value");
+        paths.add("/dif:DIF/dif:Summary/dif:Abstract");
         DUBLIN_CORE_QUERYABLE.put("abstract", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -450,6 +482,7 @@ public final class CSWQueryable {
         paths.add("/gmi:MI_Metadata/gmd:dateStamp/gco:DateTime");
         paths.add("/gmi:MI_Metadata/gmd:dateStamp/gco:Date");
         paths.add("/csw:Record/dc:date");
+        paths.add("/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision");
         DUBLIN_CORE_QUERYABLE.put("date", new PathType(Date.class, paths));
 
         paths = new ArrayList<>();
@@ -458,6 +491,7 @@ public final class CSWQueryable {
         paths.add("/csw:Record/dc:type");
         paths.add("/eb3:*/@objectType");
         paths.add("/eb2:*/@objectType");
+        // DIF ?
         DUBLIN_CORE_QUERYABLE.put("type", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -468,6 +502,7 @@ public final class CSWQueryable {
         paths.add("/csw:Record/dc:format");
         paths.add("/eb3:*/@mimeType");
         paths.add("/eb2:*/@mimeType");
+        // DIF ?
         DUBLIN_CORE_QUERYABLE.put("format", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -483,6 +518,8 @@ public final class CSWQueryable {
 
         paths.add("/eb2:*/@id");
         paths.add("/wr:*/@id");
+
+        paths.add("/dif:DIF/dif:Entry_ID/dif:Short_Name");
         DUBLIN_CORE_QUERYABLE.put("identifier", new PathType(String.class, paths));
 
         paths = new ArrayList<>();
@@ -516,28 +553,33 @@ public final class CSWQueryable {
         paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal");
         paths.add("/csw:Record/ows:BoundingBox/ows:LowerCorner[0]");
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Westernmost_Longitude");
         DUBLIN_CORE_QUERYABLE.put("WestBoundLongitude",     new PathType(Double.class, paths));
 
         paths = new ArrayList<>();
         paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal");
         paths.add("/csw:Record/ows:BoundingBox/ows:UpperCorner[0]");
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Easternmost_Longitude");
         DUBLIN_CORE_QUERYABLE.put("EastBoundLongitude",     new PathType(Double.class, paths));
 
         paths = new ArrayList<>();
         paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal");
         paths.add("/csw:Record/ows:BoundingBox/ows:UpperCorner[1]");
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Northernmost_Latitude");
         DUBLIN_CORE_QUERYABLE.put("NorthBoundLatitude",     new PathType(Double.class, paths));
 
         paths = new ArrayList<>();
         paths.add("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal");
         paths.add("/csw:Record/ows:BoundingBox/ows:LowerCorner[1]");
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Southernmost_Latitude");
         DUBLIN_CORE_QUERYABLE.put("SouthBoundLatitude",     new PathType(Double.class, paths));
 
         paths = new ArrayList<>();
         paths.add("/csw:Record/ows:BoundingBox/@crs");
+        paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Coordinate_System");
         DUBLIN_CORE_QUERYABLE.put("CRS",     new PathType(String.class, paths));
 
         /*
@@ -551,6 +593,7 @@ public final class CSWQueryable {
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
         paths.add("/csw:Record/csw:TemporalExtent/csw:begin");
+        paths.add("/dif:DIF/dif:Temporal_Coverage/dif:Range_DateTime/dif:Beginning_Date_Time");
         DUBLIN_CORE_QUERYABLE.put("TemporalExtent_begin", new PathType(Date.class, paths));
 
         paths = new ArrayList<>();
@@ -561,6 +604,7 @@ public final class CSWQueryable {
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition");
         paths.add("/gmi:MI_Metadata/gmd:identificationInfo/*/gmd:extent/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:position");
         paths.add("/csw:Record/csw:TemporalExtent/csw:end");
+        paths.add("/dif:DIF/dif:Temporal_Coverage/dif:Range_DateTime/dif:Ending_Date_Time");
         DUBLIN_CORE_QUERYABLE.put("TemporalExtent_end", new PathType(Date.class, paths));
     }
 

@@ -48,6 +48,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Creator_QNAME;
@@ -104,73 +105,42 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
     }
 
     protected MetadataType getMetadataType(final InputStream metadataStream, final boolean reset) throws IOException, XMLStreamException {
-        final String rootName;
+        final QName rootName;
         if (reset){
             metadataStream.mark(0);
         }
         final XMLStreamReader xsr = xif.createXMLStreamReader(metadataStream);
         xsr.nextTag();
-        rootName = xsr.getLocalName();
+        rootName = xsr.getName();
         xsr.close();
         if (reset) {
             metadataStream.reset();
         }
-
-        switch (rootName) {
-            case "MD_Metadata":
-            case "MI_Metadata":
-                return MetadataType.ISO_19115;
-            case "Record":
-                return MetadataType.DUBLINCORE_CSW202;
-            case "SensorML":
-                return MetadataType.SENSORML_200;
-            case "RegistryObject":
-            case "AdhocQuery":
-            case "Association":
-            case "RegistryPackage":
-            case "Registry":
-            case "ExtrinsicObject":
-            case "RegistryEntry":
-                return MetadataType.EBRIM_300;
-            default:
-                return MetadataType.NATIVE;
+        MetadataType result = MetadataType.getFromTypeName(rootName);
+        if (result == null) {
+            result = MetadataType.NATIVE;
         }
-        // TODO complete other metadata type
+        return result;
     }
 
     protected MetadataType getMetadataType(final Reader metadataReader, final boolean reset) throws IOException, XMLStreamException {
-        final String rootName;
+        final QName rootName;
         if (reset){
             metadataReader.mark(0);
         }
         final XMLStreamReader xsr = xif.createXMLStreamReader(metadataReader);
         xsr.nextTag();
-        rootName = xsr.getLocalName();
+        rootName = xsr.getName();
         xsr.close();
         if (reset) {
             metadataReader.reset();
         }
 
-        switch (rootName) {
-            case "MD_Metadata":
-            case "MI_Metadata":
-                return MetadataType.ISO_19115;
-            case "Record":
-                return MetadataType.DUBLINCORE_CSW202;
-            case "SensorML":
-                return MetadataType.SENSORML_200;
-            case "RegistryObject":
-            case "AdhocQuery":
-            case "Association":
-            case "RegistryPackage":
-            case "Registry":
-            case "ExtrinsicObject":
-            case "RegistryEntry":
-                return MetadataType.EBRIM_300;
-            default:
-                return MetadataType.NATIVE;
+        MetadataType result = MetadataType.getFromTypeName(rootName);
+        if (result == null) {
+            result = MetadataType.NATIVE;
         }
-        // TODO complete other metadata type
+        return result;
     }
 
     protected String formatDate(final String modValue) {
@@ -513,6 +483,214 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
         }
         return null;
     }
+
+     protected Node translateDIFtoDCNode(final Node metadata, final ElementSetType type, final List<QName> elementName, String mainNmsp) throws MetadataIoException  {
+        if (metadata != null) {
+
+            String owsNmsp;
+            if (mainNmsp.equals(Namespaces.CSW)) {
+                owsNmsp = "http://www.opengis.net/ows/2.0";
+            } else {
+                owsNmsp = "http://www.opengis.net/ows";
+            }
+            final DocumentBuilder docBuilder;
+            try {
+                docBuilder = dbf.newDocumentBuilder();
+            } catch (ParserConfigurationException ex) {
+                throw new MetadataIoException(ex);
+            }
+            final Document document = docBuilder.newDocument();
+
+            final Element root = document.createElementNS(mainNmsp, "Record");
+
+            /*
+             * BRIEF part
+             */
+            final List<String> identifierValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("identifier").paths);
+            final List<Node> identifiers = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "identifier", identifierValues, true);
+
+            if (elementName != null && elementName.contains(_Identifier_QNAME)) {
+                NodeUtilities.appendChilds(root, identifiers);
+            }
+
+            final List<String> titleValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("title").paths);
+            final List<Node> titles = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "title", titleValues, true);
+
+            if (elementName != null && elementName.contains(_Title_QNAME)) {
+                NodeUtilities.appendChilds(root, titles);
+            }
+
+            final List<String> dataTypeValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("type").paths);
+            final List<Node> dataTypes = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "type", dataTypeValues, false);
+
+            if (elementName != null && elementName.contains(_Type_QNAME)) {
+                NodeUtilities.appendChilds(root, dataTypes);
+            }
+
+            final List<String> westValues  = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("WestBoundLongitude").paths);
+            final List<String> eastValues  = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("EastBoundLongitude").paths);
+            final List<String> northValues = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("NorthBoundLatitude").paths);
+            final List<String> southValues = NodeUtilities.getValuesFromPaths(metadata, DIF_QUERYABLE.get("SouthBoundLatitude").paths);
+
+            final List<Node> bboxes = new ArrayList<>();
+            if (westValues.size()  == eastValues.size()  &&
+                eastValues.size()  == northValues.size() &&
+                northValues.size() == southValues.size()) {
+
+                for (int i = 0; i < westValues.size(); i++) {
+                    final Node bboxNode = document.createElementNS(owsNmsp, "BoundingBox");
+                    final Node crsAtt   = document.createAttribute("crs");
+                    crsAtt.setTextContent("EPSG:4326");
+                    bboxNode.getAttributes().setNamedItem(crsAtt);
+                    final Node dimAtt   = document.createAttribute("dimensions");
+                    dimAtt.setTextContent("2");
+                    bboxNode.getAttributes().setNamedItem(dimAtt);
+                    final Node lower    = document.createElementNS(owsNmsp, "LowerCorner");
+                    lower.setTextContent(westValues.get(i) + " " + southValues.get(i));
+                    bboxNode.appendChild(lower);
+                    final Node upper    = document.createElementNS(owsNmsp, "UpperCorner");
+                    upper.setTextContent(eastValues.get(i) + " " + northValues.get(i));
+                    bboxNode.appendChild(upper);
+                    bboxes.add(bboxNode);
+                }
+            } else {
+                LOGGER.warning("incoherent bboxes coordinate");
+            }
+
+            if (ElementSetType.BRIEF.equals(type)) {
+                final Element briefRoot = document.createElementNS(mainNmsp, "BriefRecord");
+                NodeUtilities.appendChilds(briefRoot, identifiers);
+                NodeUtilities.appendChilds(briefRoot, titles);
+                NodeUtilities.appendChilds(briefRoot, dataTypes);
+                NodeUtilities.appendChilds(briefRoot, bboxes);
+                return briefRoot;
+            }
+
+            /*
+             *  SUMMARY part
+             */
+            final List<String> abstractValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("abstract").paths);
+            final List<Node> abstracts = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "abstract", abstractValues, false);
+
+            if (elementName != null && elementName.contains(_Abstract_QNAME)) {
+                NodeUtilities.appendChilds(root, abstracts);
+            }
+
+            final List<String> kwValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("subject").paths);
+            final List<Node> subjects = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "subject", kwValues, false);
+
+            if (elementName != null && elementName.contains(_Subject_QNAME)) {
+                NodeUtilities.appendChilds(root, subjects);
+            }
+
+            final List<String> formValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("format").paths);
+            final List<Node> formats = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "format", formValues, false);
+
+            if (elementName != null && elementName.contains(_Format_QNAME)) {
+                 NodeUtilities.appendChilds(root, formats);
+            }
+
+            final List<String> modValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("date").paths);
+            final List<String> dateValues = new ArrayList<>();
+            for (String modValue : modValues) {
+                dateValues.add(formatDate(modValue));
+            }
+            final List<Node> modifieds = NodeUtilities.buildNodes(document, "http://purl.org/dc/terms/", "modified", dateValues, false);
+
+            if (elementName != null && elementName.contains(_Modified_QNAME)) {
+                NodeUtilities.appendChilds(root, modifieds);
+            }
+
+            if (ElementSetType.SUMMARY.equals(type)) {
+                final Element sumRoot = document.createElementNS(mainNmsp, "SummaryRecord");
+                NodeUtilities.appendChilds(sumRoot, identifiers);
+                NodeUtilities.appendChilds(sumRoot, titles);
+                NodeUtilities.appendChilds(sumRoot, dataTypes);
+                NodeUtilities.appendChilds(sumRoot, subjects);
+                NodeUtilities.appendChilds(sumRoot, formats);
+                NodeUtilities.appendChilds(sumRoot, modifieds);
+                NodeUtilities.appendChilds(sumRoot, abstracts);
+                NodeUtilities.appendChilds(sumRoot, bboxes);
+                return sumRoot;
+            }
+
+            final List<Node> dates = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "date", dateValues, false);
+
+            if (elementName != null && elementName.contains(_Date_QNAME)) {
+                NodeUtilities.appendChilds(root, dates);
+            }
+
+            final List<String> creaValues = NodeUtilities.getValuesFromPaths(metadata, DUBLIN_CORE_QUERYABLE.get("creator").paths);
+            final List<Node> creators = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "creator", creaValues, false);
+
+            if (elementName != null && elementName.contains(_Creator_QNAME)) {
+                NodeUtilities.appendChilds(root, creators);
+            }
+
+            final List<Node> descriptions = new ArrayList<>();
+        //    final List<String> desValues = NodeUtilities.getValuesFromPath(metadata, "/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:graphicOverview/gmd:MD_BrowseGraphic/gmd:fileName/gmx:FileName/@src");
+        //    final List<Node> descriptions = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "description", desValues, false);
+
+        //    if (!descriptions.isEmpty() && elementName != null && elementName.contains(_Description_QNAME)) {
+        //        NodeUtilities.appendChilds(root, descriptions);
+        //    }
+
+            final List<Node> distributors = new ArrayList<>();
+        //    final List<String> paths = new ArrayList<>();
+        //    paths.add("/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString");
+        //    paths.add("/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gmx:Anchor");
+        //    paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString");
+        //    paths.add("/gmi:MI_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gmx:Anchor");
+        //    final List<String> distValues = NodeUtilities.getValuesFromPaths(metadata, paths);
+        //    final List<Node> distributors = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "publisher", distValues, false);
+
+        //    if (elementName != null && elementName.contains(_Publisher_QNAME)) {
+        //        NodeUtilities.appendChilds(root, distributors);
+        //    }
+
+            final List<Node> languages = new ArrayList<>();
+        //    final List<String> langValues = NodeUtilities.getValuesFromPaths(metadata, ISO_QUERYABLE.get("Language").paths);
+        //    final List<Node> languages = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "language", langValues, false);
+
+        //    if (elementName != null && elementName.contains(_Language_QNAME)) {
+        //        NodeUtilities.appendChilds(root, languages);
+        //    }
+
+            if (elementName != null && (elementName.contains(_BoundingBox_QNAME) ||
+                                        elementName.contains(org.geotoolkit.ows.xml.v200.ObjectFactory._BoundingBox_QNAME))) {
+                NodeUtilities.appendChilds(root, bboxes);
+            }
+
+            /* TODO
+            final SimpleLiteral spatial = null;
+            final SimpleLiteral references = null;*/
+
+            if (ElementSetType.FULL.equals(type)) {
+                final Element recRoot = document.createElementNS(mainNmsp, "Record");
+                NodeUtilities.appendChilds(recRoot, identifiers);
+                NodeUtilities.appendChilds(recRoot, titles);
+                NodeUtilities.appendChilds(recRoot, dataTypes);
+                NodeUtilities.appendChilds(recRoot, subjects);
+                NodeUtilities.appendChilds(recRoot, formats);
+                NodeUtilities.appendChilds(recRoot, languages);
+                NodeUtilities.appendChilds(recRoot, creators);
+                NodeUtilities.appendChilds(recRoot, modifieds);
+                NodeUtilities.appendChilds(recRoot, dates);
+                NodeUtilities.appendChilds(recRoot, abstracts);
+                NodeUtilities.appendChilds(recRoot, distributors);
+                NodeUtilities.appendChilds(recRoot, descriptions);
+                NodeUtilities.appendChilds(recRoot, bboxes);
+                //NodeUtilities.appendChilds(recRoot, spatials);
+                //NodeUtilities.appendChilds(recRoot, references);
+                return recRoot;
+            }
+
+            document.appendChild(root);
+            return root;
+        }
+        return null;
+    }
+
 
     /**
      * Return all the String values corresponding to the specified list of path through all the metadatas.

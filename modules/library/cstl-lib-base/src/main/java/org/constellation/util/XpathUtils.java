@@ -24,9 +24,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Contains some old MDWeb methods that should not be used anymore.
+ * But more important the method getNamespaceFromPrefix() should be replaced with a dynamic method.
  *
  * @author Guilhem Legal (Geomatys)
  */
+@Deprecated
 public class XpathUtils {
 
     public static List<String> xpathToMDPath(final List<String> xpaths) {
@@ -122,6 +125,7 @@ public class XpathUtils {
             case "eb2": return "Ebrim v2.5";
             case "wrs": return "Web Registry Service v1.0";
             case "wr" : return "Web Registry Service v0.9";
+            case "dif" : return "NASA Directory Interchange Format";
             default: throw new IllegalArgumentException("Unexpected prefix: " + prefix);
 
         }
@@ -137,6 +141,7 @@ public class XpathUtils {
             case "eb2": return Arrays.asList("urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5");
             case "wrs": return Arrays.asList("http://www.opengis.net/cat/wrs/1.0");
             case "wr" : return Arrays.asList("http://www.opengis.net/cat/wrs");
+            case "dif": return Arrays.asList("http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/");
             default: throw new IllegalArgumentException("Unexpected prefix: " + prefix);
 
         }

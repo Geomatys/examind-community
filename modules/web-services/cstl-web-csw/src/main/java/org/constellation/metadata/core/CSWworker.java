@@ -111,6 +111,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -147,13 +148,8 @@ import org.constellation.ws.Refreshable;
 import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.csw.xml.InsertResult;
 import static org.geotoolkit.csw.xml.ResultType.HITS;
-import static org.geotoolkit.metadata.TypeNames.DC_TYPE_NAMES;
-import static org.geotoolkit.metadata.TypeNames.EBRIM25_TYPE_NAMES;
-import static org.geotoolkit.metadata.TypeNames.EBRIM30_TYPE_NAMES;
 import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_25_QNAME;
 import static org.geotoolkit.metadata.TypeNames.EXTRINSIC_OBJECT_QNAME;
-import static org.geotoolkit.metadata.TypeNames.FC_TYPE_NAMES;
-import static org.geotoolkit.metadata.TypeNames.ISO_TYPE_NAMES;
 import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.metadata.TypeNames.containsOneOfEbrim25;
 import static org.geotoolkit.metadata.TypeNames.containsOneOfEbrim30;
@@ -167,9 +163,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.geotoolkit.metadata.TypeNames.RECORD_202_QNAME;
 import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_202_QNAME;
 import static org.geotoolkit.metadata.TypeNames.CAPABILITIES_300_QNAME;
-import static org.geotoolkit.metadata.TypeNames.DIF_TYPE_NAMES;
 import static org.geotoolkit.metadata.TypeNames.RECORD_300_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
+import static org.geotoolkit.metadata.TypeNames.DIF_QNAME;
 import org.geotoolkit.ops.xml.OpenSearchXmlFactory;
 import org.w3._2005.atom.EntryType;
 import org.w3._2005.atom.FeedType;
@@ -1021,16 +1017,19 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     /**
      * Add the convertible typeName to the list.
      * Example : MD_Metadata can be converted to a csw:Record (2 or 3)
+     *
+     * TODO dynamic
      */
     private List<QName> getConvertibleTypeNames(final List<QName> typeNames) {
-        final List<QName> result = new ArrayList<>();
+        final Set<QName> result = new HashSet<>();
         for (QName typeName : typeNames) {
-            if ( (typeName.equals(RECORD_202_QNAME) || typeName.equals(RECORD_300_QNAME)) && !result.contains(METADATA_QNAME)) {
+            if ( (typeName.equals(RECORD_202_QNAME) || typeName.equals(RECORD_300_QNAME))) {
                 result.add(METADATA_QNAME);
+                result.add(DIF_QNAME);
             }
             result.add(typeName);
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
     /**

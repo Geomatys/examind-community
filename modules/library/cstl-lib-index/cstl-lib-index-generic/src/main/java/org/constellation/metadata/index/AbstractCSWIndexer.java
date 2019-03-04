@@ -60,6 +60,7 @@ import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
 import org.geotoolkit.index.tree.StoreIndexException;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.LuceneUtils;
@@ -187,6 +188,14 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
         } else if (isDublinCore(metadata)) {
 
             doc.add(new Field("objectType", "Record", SEARCH_TYPE));
+        } else if (isDIF(metadata)) {
+            final Map<String, PathType> difQueryable = removeOverridenField(DIF_QUERYABLE);
+            indexQueryableSet(doc, metadata, difQueryable, anyText);
+
+            //we add the geometry parts
+            alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, difQueryable, CommonCRS.WGS84.normalizedGeographic());
+
+            doc.add(new Field("objectType", "DIF", SEARCH_TYPE));
         } else {
             LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(metadata));
         }
@@ -511,5 +520,13 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      * @return true if the metadata object is a FeatureCatalogue object.
      */
     protected abstract boolean isFeatureCatalogue(A meta);
+
+    /**
+     * Return true if the metadata object is a DIF object.
+     *
+     * @param meta The object to index
+     * @return true if the metadata object is a FeatureCatalogue object.
+     */
+    protected abstract boolean isDIF(A meta);
 
 }

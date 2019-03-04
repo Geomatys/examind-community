@@ -121,8 +121,16 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
 
             final Node n;
 
+            // DIF TO CSW2
+            if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW202) {
+                n = translateDIFtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
+
+            // DIF TO CSW3
+            } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW300) {
+                n = translateDIFtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
+
             // ISO TO CSW2
-            if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
+            } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
                 n = translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
 
             // ISO TO CSW3

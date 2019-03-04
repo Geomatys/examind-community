@@ -130,6 +130,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.geotoolkit.csw.xml.v300.ListOfValuesType.Value;
+import org.geotoolkit.dif.xml.v102.DIF;
 
 /**
  *
@@ -1379,6 +1380,83 @@ public class CSWWorker3Test {
     }
 
     /**
+     * Tests the getRecords on DIF method
+     */
+    public void getRecordsDIFTest() throws Exception {
+
+        /*
+         *  TEST 1 : getRecords with RESULT - DC mode (FULL) - CQL text: identifier='L2-SST'
+         */
+        List<QName> typeNames             = Arrays.asList(RECORD_300_QNAME);
+        ElementSetNameType elementSetName = new ElementSetNameType(ElementSetType.FULL);
+        SortByType sortBy                 = null;
+        QueryConstraintType constraint    = new QueryConstraintType("identifier='L2-SST'", "1.0.0");
+        QueryType query = new QueryType(typeNames, elementSetName, sortBy, constraint);
+        GetRecordsType request = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, MimeType.APPLICATION_XML, "http://www.opengis.net/cat/csw/3.0", 1, 5, query, null);
+
+        GetRecordsResponseType result = (GetRecordsResponseType) worker.getRecords(request);
+
+        assertTrue(result.getSearchResults() != null);
+        assertTrue(result.getSearchResults().getAny() != null);
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
+        assertEquals(1, result.getSearchResults().getAny().size());
+        assertTrue(result.getSearchResults().getElementSet() != null);
+        assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
+        assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
+        assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 1);
+        assertTrue(result.getSearchResults().getNextRecord() == 0);
+
+        Object obj = result.getSearchResults().getAny().get(0);
+        if (obj instanceof JAXBElement) {
+            obj = ((JAXBElement) obj).getValue();
+        }
+
+        if (obj instanceof RecordType) {
+            RecordType recordResult = (RecordType) obj;
+            assertEquals(recordResult.getIdentifier().getContent().get(0), "L2-SST");
+        } else {
+            Node recordResult = (Node) obj;
+            assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "L2-SST");
+        }
+
+        /*
+         *  TEST 2 : getRecords with RESULTS - DIF mode (FULL) - CQL text: identifier='L2-SST'
+         */
+
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
+        elementSetName = new ElementSetNameType(ElementSetType.FULL);
+        sortBy         = null;
+        constraint     = new QueryConstraintType("identifier='L2-SST'", "1.0.0");
+        query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
+        request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, MimeType.APPLICATION_XML, "http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/", 1, 5, query, null);
+
+        result = (GetRecordsResponseType) worker.getRecords(request);
+
+        assertTrue(result.getSearchResults() != null);
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
+        assertTrue(result.getSearchResults().getAny().size() == 1);
+        assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
+        assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 1);
+        assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 1);
+        assertTrue(result.getSearchResults().getNextRecord() == 0);
+
+        obj = result.getSearchResults().getAny().get(0);
+        if (obj instanceof JAXBElement) {
+            obj = ((JAXBElement) obj).getValue();
+        }
+
+        if (obj instanceof DIF) {
+            RecordType recordResult = (RecordType) obj;
+            assertEquals(recordResult.getIdentifier().getContent().get(0), "L2-SST");
+        } else {
+            Node recordResult = (Node) obj;
+            assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/dif:DIF/dif:Entry_ID/dif:Short_Name").get(0), "L2-SST");
+        }
+    }
+
+    /**
      * Tests the getRecords method
      */
     public void getRecordsEbrimTest() throws Exception {
@@ -1634,6 +1712,8 @@ public class CSWWorker3Test {
         list.add("40510_145_19930221211500");
         list.add("42292_5p_19900609195600");
         list.add("42292_9s_19900610041000");
+        list.add("L2-LST");
+        list.add("L2-SST");
         list.add("gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         list.add("mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4");
         if (!onlyIso) {
@@ -1701,6 +1781,8 @@ public class CSWWorker3Test {
         if (!onlyIso) {
             list.add(new Value("Feature Type Catalogue Extension Package"));
         }
+        list.add(new Value("GCOM-C/SGLI L2 Land surface temperature"));
+        list.add(new Value("GCOM-C/SGLI L2 Sea surface temperature"));
         list.add(new Value("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico"));
         list.add(new Value("WMS Server for CORINE Land Cover France"));
         if (!onlyIso) {

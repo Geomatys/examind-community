@@ -82,7 +82,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final File configDir = ConfigDirectory.setupTestEnvironement("FSCSWWorkerTest").toFile();
+        final File configDir = ConfigDirectory.setupTestEnvironement("FSCSWWorkerTest3").toFile();
 
         File CSWDirectory  = new File(configDir, "CSW");
         CSWDirectory.mkdir();
@@ -105,6 +105,10 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
         //writeDataFile(dataDirectory, "error-meta.xml", "urn:error:file");
         writeDataFile(dataDirectory, "meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
 
+        // add DIF metadata
+        writeDataFile(dataDirectory, "NO.009_L2-SST.xml", "L2-SST");
+        writeDataFile(dataDirectory, "NO.021_L2-LST.xml", "L2-LST");
+
         // prepare an hidden metadata
         writeDataFile(dataDirectory, "meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258");
 
@@ -125,7 +129,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 params.parameter("folder").setValue(new File(dataDirectory.getPath()));
                 params.parameter("store-id").setValue("testID");
-                Integer pr = providerBusiness.create("FSmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                Integer pr = providerBusiness.create("FS3metadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
@@ -143,7 +147,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
                 serviceBusiness.create("csw", "default", configuration, d);
-                serviceBusiness.linkCSWAndProvider("default", "FSmetadataSrc");
+                serviceBusiness.linkCSWAndProvider("default", "FS3metadataSrc");
 
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
                 Unmarshaller u = pool.acquireUnmarshaller();
@@ -181,7 +185,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
             mdService.deleteAllMetadata();
         }
         fsStore1.destroyFileIndex();
-        ConfigDirectory.shutdownTestEnvironement("FSCSWWorkerTest");
+        ConfigDirectory.shutdownTestEnvironement("FSCSWWorkerTest3");
     }
 
     /**
@@ -246,6 +250,12 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
         super.getRecords191152Test();
     }
 
+    @Test
+    @Override
+    @Order(order=7)
+    public void getRecordsDIFTest() throws Exception {
+        super.getRecordsDIFTest();
+    }
 
     /**
      * Tests the getRecords method
@@ -254,7 +264,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=7)
+    @Order(order=8)
     public void getRecordsErrorTest() throws Exception {
         super.getRecordsErrorTest();
     }
@@ -266,7 +276,7 @@ public class FileSystemCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=8)
+    @Order(order=9)
     public void getDomainTest() throws Exception {
         super.getDomainTest();
     }

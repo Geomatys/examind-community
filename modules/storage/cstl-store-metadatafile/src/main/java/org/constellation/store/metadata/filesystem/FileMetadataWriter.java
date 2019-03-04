@@ -142,7 +142,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             } else {
                 session.updateRecord(identifier, f.toAbsolutePath().toString());
             }
-            
+
         } catch (SQLException| IOException | TransformerException ex) {
             throw new MetadataIoException("Unable to write the file.", ex, NO_APPLICABLE_CODE);
         }
@@ -211,7 +211,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
     public boolean isAlreadyUsedIdentifier(String metadataID) throws MetadataIoException {
         return getFileFromIdentifier(metadataID) != null;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -220,7 +220,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
         final Document metadataDoc = getDocumentFromFile(metadataID);
         for (Entry<String, Object> property : properties.entrySet()) {
             String xpath = property.getKey();
-            
+
             if (xpath.indexOf('/', 1) != -1) {
 
                 Node parent = metadataDoc.getDocumentElement();
@@ -272,12 +272,16 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
     private Path getFileFromIdentifier(final String identifier) throws MetadataIoException {
         try (Session session = source.createSession()) {
             final String path = session.getPathForRecord(identifier);
-            return Paths.get(path);
+            if (path != null) {
+                return Paths.get(path);
+            } else {
+                throw new MetadataIoException("Null path value for identifier:" + identifier, NO_APPLICABLE_CODE);
+            }
         } catch (SQLException ex) {
             throw new MetadataIoException("SQL Exception while reading path for record", ex, NO_APPLICABLE_CODE);
         }
     }
-    
+
     /**
      * Destoy all the resource and close connection.
      */

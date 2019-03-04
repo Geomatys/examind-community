@@ -186,6 +186,8 @@ public final class Utils {
         paths.add("Ebrim v2.5:*:id");
         paths.add("ISO 19110:FC_FeatureCatalogue:id");
         paths.add("SensorML:SensorML:member:process:id");
+        paths.add("SensorML:SensorML:member:process:id");
+        paths.add("NASA Directory Interchange Format:DIF:entryID:shortName");
 
         return findIdentifier(obj, paths);
     }
@@ -508,6 +510,7 @@ public final class Utils {
         paths.add("SensorML/member/System/@gml:id");
         paths.add("SensorML/member/Component/@gml:id");
         paths.add("*/@id");
+        paths.add("DIF/Entry_ID/Short_Name");
         return findIdentifierNode(node, paths);
     }
 
