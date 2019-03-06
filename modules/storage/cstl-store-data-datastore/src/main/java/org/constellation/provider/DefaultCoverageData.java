@@ -215,7 +215,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                 }
                 if (filter != null) {
                     final DefaultCoverageMapLayer cml = (DefaultCoverageMapLayer) layer;
-                    cml.setQuery(QueryBuilder.filtered(cml.getCoverageReference().getIdentifier().toString(), filter));
+                    cml.setQuery(QueryBuilder.filtered(cml.getResource().getIdentifier().toString(), filter));
                 }
             }
         }

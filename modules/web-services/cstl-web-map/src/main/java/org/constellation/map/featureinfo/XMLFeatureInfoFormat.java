@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
@@ -51,7 +52,6 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.geotoolkit.util.DateRange;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
@@ -93,7 +93,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final CoverageResource ref = coverage.getLayer().getCoverageReference();
+        final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
             fullLayerName = ref.getIdentifier();
@@ -129,7 +129,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                                           String margin, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
 
         StringBuilder builder = new StringBuilder();
-        final CoverageResource ref = coverage.getLayer().getCoverageReference();
+        final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
             fullLayerName = ref.getIdentifier();

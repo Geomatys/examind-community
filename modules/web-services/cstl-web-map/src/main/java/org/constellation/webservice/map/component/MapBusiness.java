@@ -251,7 +251,7 @@ public class MapBusiness {
                 if (mapItem instanceof CoverageMapLayer) {
                     final CoverageMapLayer cl = (CoverageMapLayer)mapItem;
                     final MutableStyle covStyle = cl.getStyle();
-                    final CoverageResource res = cl.getCoverageReference();
+                    final CoverageResource res = cl.getResource();
                     final String state = data.getStatsState();
 
                     if (!"COMPLETED".equalsIgnoreCase(state)) {

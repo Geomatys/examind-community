@@ -25,12 +25,12 @@ import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyNotFoundException;
@@ -60,7 +60,7 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
         if (results == null) {
             return;
         }
-        final CoverageResource ref = graphic.getLayer().getCoverageReference();
+        final Resource ref = graphic.getLayer().getResource();
         final String layerName;
         try {
             layerName = ref.getIdentifier().tip().toString();

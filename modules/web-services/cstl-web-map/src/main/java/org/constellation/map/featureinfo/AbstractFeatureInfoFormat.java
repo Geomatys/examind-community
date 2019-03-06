@@ -33,7 +33,6 @@ import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.display2d.service.VisitDef;
-import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.display.primitive.Graphic;
@@ -43,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.geotoolkit.map.MapLayer;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -186,7 +186,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     protected void nextProjectedCoverage(final ProjectedCoverage graphic, final RenderingContext2D context,
                                          final SearchAreaJ2D queryArea) {
 
-        final CoverageMapLayer layer = graphic.getLayer();
+        final MapLayer layer = graphic.getLayer();
         final String layerName = layer.getName();
         List<ProjectedCoverage> cov = coverages.get(layerName);
         if (cov == null) {

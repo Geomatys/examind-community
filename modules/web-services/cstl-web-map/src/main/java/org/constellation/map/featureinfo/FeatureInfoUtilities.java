@@ -46,7 +46,7 @@ import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
-import org.geotoolkit.map.CoverageMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.storage.coverage.CoverageResource;
 import org.opengis.geometry.Envelope;
 
@@ -326,10 +326,10 @@ public final class FeatureInfoUtilities extends Static {
                                                                             final RenderingContext2D context,
                                                                             final SearchAreaJ2D queryArea){
 
-        final CoverageMapLayer layer = gra.getLayer();
+        final MapLayer layer = gra.getLayer();
         Envelope objBounds = context.getCanvasObjectiveBounds();
 
-        final CoverageResource ref = layer.getCoverageReference();
+        final CoverageResource ref = (CoverageResource) layer.getResource();
 
         if (ref instanceof org.apache.sis.storage.GridCoverageResource) {
             //create envelope around searched area

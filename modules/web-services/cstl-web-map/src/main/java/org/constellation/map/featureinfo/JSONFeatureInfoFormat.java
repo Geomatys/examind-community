@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -49,7 +50,6 @@ import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.geotoolkit.util.DateRange;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
@@ -90,7 +90,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final CoverageResource ref = coverage.getLayer().getCoverageReference();
+        final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
             fullLayerName = ref.getIdentifier();

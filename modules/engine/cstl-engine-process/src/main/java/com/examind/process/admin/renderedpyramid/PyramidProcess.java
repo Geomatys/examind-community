@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.ResourceInternationalString;
 import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.data.multires.Pyramid;
@@ -13,7 +14,6 @@ import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.multires.TileGenerator;
 import org.geotoolkit.display2d.MapContextTileGenerator;
 import org.geotoolkit.image.interpolation.InterpolationCase;
-import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.process.ProcessException;
@@ -101,8 +101,9 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
                 case "data" : {
                     final List<GridCoverageResource> resources = new ArrayList<>();
                     for (MapLayer layer : context.layers()) {
-                        if (layer instanceof CoverageMapLayer) {
-                            final GridCoverageResource candidate = ((CoverageMapLayer) layer).getCoverageReference();
+                        Resource res = layer.getResource();
+                        if (res instanceof GridCoverageResource) {
+                            final GridCoverageResource candidate = (GridCoverageResource) res;
                             resources.add(candidate);
                         }
                     }

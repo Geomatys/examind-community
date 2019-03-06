@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.storage.DataStoreException;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -172,7 +173,12 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final String layerName = graphic.getLayer().getCoverageReference().getIdentifier().tip().toString();
+        final String layerName;
+        try {
+            layerName = graphic.getLayer().getResource().getIdentifier().tip().toString();
+        } catch (DataStoreException e) {
+            throw new RuntimeException(e);      // TODO
+        }
 
         LayerResult result = results.get(layerName);
         if(result==null){

@@ -39,6 +39,7 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
@@ -62,7 +63,6 @@ import org.geotoolkit.internal.jaxb.ObjectFactory;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.geotoolkit.util.DateRange;
 import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Geometry;
@@ -153,7 +153,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final CoverageResource ref = coverage.getLayer().getCoverageReference();
+        final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
             fullLayerName = ref.getIdentifier();
