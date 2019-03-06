@@ -44,6 +44,7 @@ import org.geotoolkit.csw.xml.AbstractCswRequest;
 import static org.constellation.metadata.core.CSWConstants.ACCEPTED_OUTPUT_FORMATS;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
+import org.geotoolkit.csw.xml.GetRecordsRequest;
 import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.dublincore.xml.AbstractSimpleLiteral;
@@ -478,27 +479,57 @@ public class CSWUtils {
 
     private static final ObjectFactory OBJ_ATOM_FACT = new ObjectFactory();
 
-    public static void addSelfRequest(FeedType feed, String selfRequest) {
-        LinkType selfLink = new LinkType(selfRequest, "self", MimeType.APP_ATOM);
-        boolean found = false;
-        int i = 0;
-        for (Object obj : feed.getAuthorOrCategoryOrContributor()) {
-            if (obj instanceof JAXBElement) {
-                JAXBElement elem = (JAXBElement) obj;
-                if (ObjectFactory._EntryTypeLink_QNAME.equals(elem.getName())
-                && elem.getValue() instanceof LinkType) {
-                    found = true;
-                } else if (found) {
-                    feed.getAuthorOrCategoryOrContributor().add(i, OBJ_ATOM_FACT.createFeedTypeLink(selfLink));
-                    return;
-                }
-            }
-            i++;
+    public static void addNavigationRequest(GetRecordsRequest request, FeedType feed, String selfRequest) {
+        int startPosition = request.getStartPosition();
+        int count = request.getMaxRecords();
+        int totalResult = feed.getTotalResults();
+
+        // first
+        String firstRequest = replaceStartPosition(selfRequest, 1);
+        LinkType firstLink = new LinkType(firstRequest, "first", MimeType.APP_ATOM);
+        feed.addLink(firstLink);
+
+        // previous
+        if ((startPosition - count) > 0) {
+            String prevRequest = replaceStartPosition(selfRequest, startPosition - count);
+            LinkType prevLink = new LinkType(prevRequest, "prev", MimeType.APP_ATOM);
+            feed.addLink(prevLink);
         }
 
-        // add in last pos
-        if (!found) {
-            feed.addLink(new LinkType(selfRequest, "self", MimeType.APP_ATOM));
+        //self
+        LinkType selfLink = new LinkType(selfRequest, "self", MimeType.APP_ATOM);
+        feed.addLink(selfLink);
+
+        // next
+        if ((startPosition + count) < totalResult) {
+            String nextRequest = replaceStartPosition(selfRequest, startPosition + count);
+            LinkType nextLink = new LinkType(nextRequest, "next", MimeType.APP_ATOM);
+            feed.addLink(nextLink);
+        }
+
+        //last
+        int lastStart = ((totalResult / count) * count) + 1;
+        String lastRequest = replaceStartPosition(selfRequest, lastStart);
+        LinkType lastLink = new LinkType(lastRequest, "last", MimeType.APP_ATOM);
+        feed.addLink(lastLink);
+
+    }
+
+    private static String START_PARAM = "startPosition=";
+
+    private static String replaceStartPosition(String request, int startPosition) {
+        int index = request.indexOf(START_PARAM);
+        if (index != -1) {
+            String firstPart = request.substring(0, index + START_PARAM.length());
+            int index2 = request.indexOf("&", index);
+            if (index2 != -1) {
+                String lastPart = request.substring(index2);
+                return firstPart + startPosition + lastPart;
+            } else {
+                return firstPart + startPosition;
+            }
+        } else {
+            return request + '&' + START_PARAM + startPosition;
         }
     }
 }

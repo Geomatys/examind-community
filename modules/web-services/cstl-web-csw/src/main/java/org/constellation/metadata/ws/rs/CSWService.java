@@ -887,7 +887,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                 if (response instanceof FeedType) {
                     FeedType feed = (FeedType) response;
                     String selfRequest = getLogParameters();
-                    CSWUtils.addSelfRequest(feed, selfRequest);
+                    CSWUtils.addNavigationRequest(request, feed, selfRequest);
                     // TODO add next / previous
                 }
 

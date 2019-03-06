@@ -23,8 +23,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1184,9 +1186,9 @@ public class CSWWorker3Test {
         //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
         assertTrue(result.getSearchResults().getAny().isEmpty());
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
-        assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 0);
-        assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 0);
-        assertTrue(result.getSearchResults().getNextRecord() == 0);
+        assertEquals(2, result.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(0, result.getSearchResults().getNumberOfRecordsReturned());
+        assertEquals(1, result.getSearchResults().getNextRecord());
 
         pool.recycle(unmarshaller);
     }
@@ -1213,23 +1215,33 @@ public class CSWWorker3Test {
         assertTrue(result.getSearchResults() != null);
         assertTrue(result.getSearchResults().getElementSet() != null);
         assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
-        assertEquals(1, result.getSearchResults().getAny().size());
-        assertEquals(1, result.getSearchResults().getNumberOfRecordsMatched());
-        assertEquals(1, result.getSearchResults().getNumberOfRecordsReturned());
+        assertEquals(3, result.getSearchResults().getAny().size());
+        assertEquals(3, result.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(3, result.getSearchResults().getNumberOfRecordsReturned());
         assertEquals(0, result.getSearchResults().getNextRecord());
 
-        Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        Set<String> results = new HashSet<>();
+        for (Object obj : result.getSearchResults().getAny()) {
+
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
+
+            if (obj instanceof RecordType) {
+                RecordType recordResult = (RecordType) obj;
+                results.add(recordResult.getIdentifier().getContent().get(0));
+            } else {
+                Node recordResult = (Node) obj;
+                results.add(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0));
+            }
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
-            assertEquals(recordResult.getIdentifier().getContent().get(0), "42292_9s_19900610041000");
-        } else {
-            Node recordResult = (Node) obj;
-            assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "42292_9s_19900610041000");
-        }
+        Set<String> expResults = new HashSet<>();
+        expResults.add("L2-LST");
+        expResults.add("42292_9s_19900610041000");
+        expResults.add("L2-SST");
+
+        assertEquals(expResults, results);
 
         /*
          *  TEST 1 : getRecords with RESULTS - DC mode (FULL) - CQL text: BBOX
@@ -1245,23 +1257,32 @@ public class CSWWorker3Test {
 
             assertTrue(result.getSearchResults() != null);
             assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
-            assertEquals(1, result.getSearchResults().getAny().size());
-            assertEquals(1, result.getSearchResults().getNumberOfRecordsMatched());
-            assertEquals(1, result.getSearchResults().getNumberOfRecordsReturned());
+            assertEquals(3, result.getSearchResults().getAny().size());
+            assertEquals(3, result.getSearchResults().getNumberOfRecordsMatched());
+            assertEquals(3, result.getSearchResults().getNumberOfRecordsReturned());
             assertEquals(0, result.getSearchResults().getNextRecord());
 
-            obj = result.getSearchResults().getAny().get(0);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            results = new HashSet<>();
+            for (Object obj : result.getSearchResults().getAny()) {
+                if (obj instanceof JAXBElement) {
+                    obj = ((JAXBElement) obj).getValue();
+                }
+
+                if (obj instanceof RecordType) {
+                    RecordType recordResult = (RecordType) obj;
+                    results.add(recordResult.getIdentifier().getContent().get(0));
+                } else {
+                    Node recordResult = (Node) obj;
+                    results.add(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0));
+                }
             }
 
-            if (obj instanceof RecordType) {
-                RecordType recordResult = (RecordType) obj;
-                assertEquals(recordResult.getIdentifier().getContent().get(0), "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
-            } else {
-                Node recordResult = (Node) obj;
-                assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
-            }
+            expResults = new HashSet<>();
+            expResults.add("L2-LST");
+            expResults.add("urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
+            expResults.add("L2-SST");
+
+            assertEquals(expResults, results);
         }
         pool.recycle(unmarshaller);
     }
@@ -1301,9 +1322,11 @@ public class CSWWorker3Test {
 
         if (obj instanceof RecordType) {
             RecordType recordResult = (RecordType) obj;
-            assertEquals(recordResult.getIdentifier().getContent().get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
+            String id = recordResult.getIdentifier().getContent().get(0);
+            assertEquals(id, "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         } else {
             Node recordResult = (Node) obj;
+            System.out.println(">>>>>>> " + getStringFromNode(recordResult));
             assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         }
 

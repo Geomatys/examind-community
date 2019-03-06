@@ -9,7 +9,12 @@
   <a:title>Examind Opensearch service</a:title>
   <a:author/>
   <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
-  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=11&amp;outputFormat=application/atom%2Bxml" rel="self" type="application/atom+xml"/>
+  <a:entry>
+    <a:id>urn:uuid:829babb0-b2f1-49e1-8cd5-7b489fe71a1e</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:829babb0-b2f1-49e1-8cd5-7b489fe71a1e&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:829babb0-b2f1-49e1-8cd5-7b489fe71a1e&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:title>Vestibulum massa purus</a:title>
+  </a:entry>
   <a:entry>
     <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
     <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
@@ -25,7 +30,11 @@
     <a:category term="Tourism--Greece"/>
     <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>
   </a:entry>
-  <os:totalResults>12</os:totalResults>
+  <os:totalResults>13</os:totalResults>
   <os:startIndex>11</os:startIndex>
   <os:itemsPerPage>10</os:itemsPerPage>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=1&amp;outputFormat=application/atom%2Bxml" rel="first" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=1&amp;outputFormat=application/atom%2Bxml" rel="prev" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=11&amp;outputFormat=application/atom%2Bxml" rel="self" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;startPosition=11&amp;outputFormat=application/atom%2Bxml" rel="last" type="application/atom+xml"/>
 </a:feed>

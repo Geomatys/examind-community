@@ -502,13 +502,17 @@ public abstract class CSWConstants {
     public final static Map<String, List<String>> ISO_BRIEF_FIELDS = new HashMap<>();
     static {
         ISO_BRIEF_FIELDS.put("identifier", Arrays.asList("/gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString",
-                                                         "/csw:Record/dc:identifier"));
+                                                         "/csw:Record/dc:identifier",
+                                                         "/dif:DIF/dif:Entry_ID/dif:Short_Name"));
         ISO_BRIEF_FIELDS.put("title",      Arrays.asList("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString",
-                                                         "/csw:Record/dc:title"));
+                                                         "/csw:Record/dc:title",
+                                                         "/dif:DIF/dif:Summary/dif:Abstract"));
         ISO_BRIEF_FIELDS.put("date",       Arrays.asList("/gmd:MD_Metadata/gmd:dateStamp/gco:DateTime", "/gmd:MD_Metadata/gmd:dateStamp/gco:Date",
-                                                         "/csw:Record/dc:modified"));
+                                                         "/csw:Record/dc:modified",
+                                                         "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision"));
         ISO_BRIEF_FIELDS.put("creator",    Arrays.asList("/gmd:MD_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString",
-                                                         "/csw:Record/dc:creator"));
+                                                         "/csw:Record/dc:creator",
+                                                         "/dif:DIF/dif:Organization/dif:Organization_Name/dif:Short_Name"));
     }
 
     public static final OpenSearchDescription OS_DESCRIPTION;
@@ -630,6 +634,7 @@ public abstract class CSWConstants {
                  + "trelation={time:relation?}&"
                  + "outputFormat=application/atom+xml";
         Url atURL = new Url(type, template);
+        atURL.setRel("collection");
         atURL.setParameters(params);
         OS_DESCRIPTION.getUrl().add(atURL);
 

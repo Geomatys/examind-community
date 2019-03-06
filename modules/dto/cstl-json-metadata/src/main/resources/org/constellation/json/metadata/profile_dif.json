@@ -1,0 +1,92 @@
+{
+    "root": {
+        "name": "Record",
+        "multiplicity": 1,
+        "children": [{
+                "superblock": {
+                    "name": "metadata.block.dataIdentification",
+                    "multiplicity": 1,
+                    "help": "metadata.block.dataIdentification_help",
+                    "path": null,
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.basic",
+                                "multiplicity": 1,
+                                "help": "metadata.block.basic_help",
+                                "path": null,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.identifier",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.identifier_help",
+                                            "path": "metadata.entryID.shortName",
+                                            "render": "readonly",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.title",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.title_help",
+                                            "path": "metadata.entryTitle",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.subject",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.subject_help",
+                                            "path": "metadata.ISOTopicCategory.value",
+                                            "render": "textarea",
+                                            "obligation": "O",
+                                            "completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.abstract",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.abstract_help",
+                                            "path": "metadata.summary.abstract.value",
+                                            "render": "textarea",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.boundingBox.crs",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.boundingBox.crs_help",
+                                            "path": "metadata.spatialCoverage.geometry.coordinateSystem",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

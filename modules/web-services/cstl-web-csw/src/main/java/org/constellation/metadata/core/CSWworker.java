@@ -747,7 +747,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     if (type != null) {
                         prefixs.put(type.getPrefix(), type.getNamespaceURI());
                         //for ebrim mode the user can put variable after the Qname
-                        if (type.getLocalPart().indexOf('_') != -1 && !(type.getLocalPart().startsWith("MD") || type.getLocalPart().startsWith("FC"))) {
+                        if (type.getLocalPart().indexOf('_') != -1 && !(type.getLocalPart().startsWith("MD") || type.getLocalPart().startsWith("MI") || type.getLocalPart().startsWith("FC"))) {
                             final StringTokenizer tokenizer = new StringTokenizer(type.getLocalPart(), "_;");
                             type = new QName(type.getNamespaceURI(), tokenizer.nextToken());
                             while (tokenizer.hasMoreTokens()) {

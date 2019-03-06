@@ -95,6 +95,7 @@ import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v300.FederatedSearchResultType;
 import org.geotoolkit.ebrim.xml.EBRIMClassesContext;
 import static org.geotoolkit.gml.xml.GMLMarshallerPool.createJAXBContext;
+import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -826,13 +827,13 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
         assertEquals(expResultID, resultID);
 
-        assertEquals(2, grResult.getLinks().size());
+        assertEquals(4, grResult.getLinks().size());
         assertEquals(1, grResult.getLinksByRel("self").size());
         assertEquals(1, grResult.getLinksByRel("search").size());
 
 
         /**
-         * KVP search atom output 3: full search startPos=10
+         * KVP search atom output 3: full search startPos=1
          */
         query = "";
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "outputFormat=application/atom%2Bxml");
@@ -859,6 +860,14 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom3.xml"));
+        domCompare(strResult, expResult);
+
+        query = "maxRecords=5&startPosition=6";
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml");
+        conec = kvpsUrl.openConnection();
+
+        strResult = getStringResponse(conec);
+        expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom4.xml"));
         domCompare(strResult, expResult);
 
     }
@@ -1231,7 +1240,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(11, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/index/refresh");
@@ -1254,7 +1263,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
