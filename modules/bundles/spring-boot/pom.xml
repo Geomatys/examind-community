@@ -68,10 +68,6 @@
         <!-- GEOTK dependency -->
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-legacy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-coverage-netcdf</artifactId>
             <exclusions>
                 <exclusion>

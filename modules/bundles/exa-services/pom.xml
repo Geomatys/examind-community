@@ -364,10 +364,6 @@
             <artifactId>xstream</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-legacy</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jvnet.jax-ws-commons.spring</groupId>
             <artifactId>jaxws-spring</artifactId>
         </dependency>
