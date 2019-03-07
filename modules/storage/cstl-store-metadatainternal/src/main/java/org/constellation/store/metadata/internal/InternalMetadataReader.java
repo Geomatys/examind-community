@@ -18,15 +18,11 @@
  */
 package org.constellation.store.metadata.internal;
 
-import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.constellation.admin.SpringHelper;
-import org.constellation.store.metadata.CSWMetadataReader;
 import org.constellation.metadata.io.DomMetadataReader;
 import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
-import org.geotoolkit.csw.xml.DomainValues;
-import org.geotoolkit.csw.xml.v202.DomainValuesType;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
@@ -39,15 +35,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
-import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
 import org.constellation.business.IInternalMetadataBusiness;
 
 import static org.constellation.util.NodeUtilities.getNodeFromReader;
-import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
@@ -61,7 +53,7 @@ import org.xml.sax.SAXException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class InternalMetadataReader extends DomMetadataReader implements CSWMetadataReader {
+public class InternalMetadataReader extends DomMetadataReader {
 
     @Autowired
     private IInternalMetadataBusiness internalMetadataBusiness;
@@ -99,14 +91,6 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
      * {@inheritDoc}
      */
     @Override
-    public RecordInfo getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
-        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         final String metadataString = internalMetadataBusiness.getMetadata(identifier);
         if (metadataString != null) {
@@ -119,36 +103,7 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
                 throw new MetadataIoException(ex);
             }
 
-            final Node n;
-
-            // DIF TO CSW2
-            if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW202) {
-                n = translateDIFtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
-
-            // DIF TO CSW3
-            } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW300) {
-                n = translateDIFtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
-
-            // ISO TO CSW2
-            } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
-                n = translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
-
-            // ISO TO CSW3
-            } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW300) {
-                n = translateISOtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
-
-            // CSW3 (NO transform OR TO CSW3)
-            } else if (mode == MetadataType.DUBLINCORE_CSW300 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                n =  applyElementSetNode(metadataNode, type, elementName, Namespaces.CSW, mode != metadataMode);
-
-            // CSW2 (NO transform OR TO CSW2)
-            } else if (mode == MetadataType.DUBLINCORE_CSW202 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                n =  applyElementSetNode(metadataNode, type, elementName, LegacyNamespaces.CSW, mode != metadataMode);
-
-            // RETURN NATIVE
-            } else {
-               n = metadataNode;
-            }
+            final Node n = convertAndApplyElementSet(metadataMode, mode, type, elementName, metadataNode);
             return new RecordInfo(identifier, n, metadataMode, mode);
         }
         return null;
@@ -157,43 +112,6 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
     @Override
     public boolean existMetadata(final String identifier) throws MetadataIoException {
         return internalMetadataBusiness.existMetadata(identifier);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<DomainValues> getFieldDomainofValues(final String propertyNames) throws MetadataIoException {
-        final List<DomainValues> responseList = new ArrayList<>();
-        final StringTokenizer tokens          = new StringTokenizer(propertyNames, ",");
-
-        while (tokens.hasMoreTokens()) {
-            final String token   = tokens.nextToken().trim();
-            final PathType paths = getPathForQueryable(token);
-
-            if (paths != null) {
-                final List<String> values         = getAllValuesFromPaths(paths);
-                final DomainValuesType value      = new DomainValuesType(null, token, values, METADATA_QNAME);
-                responseList.add(value);
-
-            } else {
-                throw new MetadataIoException("The property " + token + " is not queryable for now",
-                        INVALID_PARAMETER_VALUE, "propertyName");
-            }
-
-        }
-        return responseList;
-    }
-
-    @Override
-    public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException {
-        final PathType paths = getPathForQueryable(token);
-        if (paths != null) {
-            return getAllValuesFromPaths(identifier, paths);
-        } else {
-            throw new MetadataIoException("The property " + token + " is not queryable for now",
-                    INVALID_PARAMETER_VALUE, "propertyName");
-        }
     }
 
     /**
@@ -255,25 +173,5 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
                              MetadataType.EBRIM_300,
                              MetadataType.ISO_19110,
                              MetadataType.DIF);
-    }
-
-    /**
-     * Return the list of Additional queryable element.
-     */
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        List<QName> addQnames = new ArrayList<>();
-        for (Object addQname : additionalQueryable.keySet()) {
-            addQnames.add(new QName((String)addQname));
-        }
-        return addQnames;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, PathType> getAdditionalQueryablePathMap() {
-        return additionalQueryable;
     }
 }

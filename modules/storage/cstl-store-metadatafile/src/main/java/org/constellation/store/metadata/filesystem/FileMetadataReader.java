@@ -18,8 +18,6 @@
  */
 package org.constellation.store.metadata.filesystem;
 
-import org.apache.sis.internal.xml.LegacyNamespaces;
-import org.constellation.store.metadata.CSWMetadataReader;
 import org.constellation.metadata.io.DomMetadataReader;
 import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -28,8 +26,6 @@ import org.constellation.store.metadata.filesystem.sql.IdentifierIterator;
 import org.constellation.store.metadata.filesystem.sql.MetadataDatasource;
 import org.constellation.store.metadata.filesystem.sql.RecordIterator;
 import org.constellation.store.metadata.filesystem.sql.Session;
-import org.geotoolkit.csw.xml.DomainValues;
-import org.geotoolkit.csw.xml.v202.DomainValuesType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.collection.CloseableIterator;
 import org.w3c.dom.Node;
@@ -50,17 +46,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
-import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
 
 import static org.constellation.api.CommonConstants.XML_EXT;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.util.NodeUtilities.getNodeFromPath;
-import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.xml.sax.SAXException;
@@ -74,7 +66,7 @@ import org.xml.sax.SAXException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class FileMetadataReader extends DomMetadataReader implements CSWMetadataReader {
+public class FileMetadataReader extends DomMetadataReader {
 
     /**
      * The directory containing the data XML files.
@@ -130,14 +122,6 @@ public class FileMetadataReader extends DomMetadataReader implements CSWMetadata
      * {@inheritDoc}
      */
     @Override
-    public RecordInfo getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
-        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
 
         final Path metadataFile = getFileFromIdentifier(identifier);
@@ -155,36 +139,7 @@ public class FileMetadataReader extends DomMetadataReader implements CSWMetadata
                 throw new MetadataIoException("Error while reading file: " + metadataFile.getFileName(), ex, null);
             }
 
-            final Node n;
-
-            // DIF TO CSW2
-            if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW202) {
-                n = translateDIFtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
-
-            // DIF TO CSW3
-            } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW300) {
-                n = translateDIFtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
-
-            // ISO TO CSW2
-            } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
-                n = translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
-
-            // ISO TO CSW3
-            } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW300) {
-                n = translateISOtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
-
-            // CSW3 (NO transform OR TO CSW3)
-            } else if (mode == MetadataType.DUBLINCORE_CSW300 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                n = applyElementSetNode(metadataNode, type, elementName, Namespaces.CSW, mode != metadataMode);
-
-            // CSW2 (NO transform OR TO CSW2)
-            } else if (mode == MetadataType.DUBLINCORE_CSW202 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
-                n = applyElementSetNode(metadataNode, type, elementName, LegacyNamespaces.CSW, mode != metadataMode);
-
-            // RETURN NATIVE
-            } else {
-               n = metadataNode;
-            }
+            final Node n = convertAndApplyElementSet(metadataMode, mode, type, elementName, metadataNode);
             return new RecordInfo(identifier, n, metadataMode, mode);
         }
         return null;
@@ -196,43 +151,6 @@ public class FileMetadataReader extends DomMetadataReader implements CSWMetadata
             return session.existRecord(identifier);
         } catch (SQLException ex) {
             throw new MetadataIoException("SQL Exception while analyzing the file system", ex, NO_APPLICABLE_CODE);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<DomainValues> getFieldDomainofValues(final String propertyNames) throws MetadataIoException {
-        final List<DomainValues> responseList = new ArrayList<>();
-        final StringTokenizer tokens          = new StringTokenizer(propertyNames, ",");
-
-        while (tokens.hasMoreTokens()) {
-            final String token   = tokens.nextToken().trim();
-            final PathType paths = getPathForQueryable(token);
-            if (paths != null) {
-                final List<String> values         = getAllValuesFromPaths(paths);
-                final DomainValuesType value      = new DomainValuesType(null, token, values, METADATA_QNAME);
-                responseList.add(value);
-            } else {
-                throw new MetadataIoException("The property " + token + " is not queryable for now",
-                        INVALID_PARAMETER_VALUE, "propertyName");
-            }
-        }
-        return responseList;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException {
-        final PathType paths = getPathForQueryable(token);
-        if (paths != null) {
-            return getAllValuesFromPaths(identifier, paths);
-        } else {
-            throw new MetadataIoException("The property " + token + " is not queryable for now",
-                    INVALID_PARAMETER_VALUE, "propertyName");
         }
     }
 
@@ -318,26 +236,6 @@ public class FileMetadataReader extends DomMetadataReader implements CSWMetadata
                              MetadataType.EBRIM_300,
                              MetadataType.ISO_19110,
                              MetadataType.DIF);
-    }
-
-    /**
-     * Return the list of Additional queryable element.
-     */
-    @Override
-    public List<QName> getAdditionalQueryableQName() {
-        List<QName> addQnames = new ArrayList<>();
-        for (Object addQname : additionalQueryable.keySet()) {
-            addQnames.add(new QName((String)addQname));
-        }
-        return addQnames;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, PathType> getAdditionalQueryablePathMap() {
-        return additionalQueryable;
     }
 
     public final void analyzeFileSystem(final boolean force) throws MetadataIoException {

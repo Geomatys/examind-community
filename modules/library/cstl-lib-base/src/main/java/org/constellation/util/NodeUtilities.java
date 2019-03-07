@@ -296,9 +296,6 @@ public class NodeUtilities {
                 }
             }
         }
-        if (response.isEmpty()) {
-            //result.add(NULL_VALUE); do not add null values anymore
-        }
         return response;
     }
 

@@ -173,14 +173,6 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
      * {@inheritDoc}
      */
     @Override
-    public RecordInfo getMetadata(final String identifier, final MetadataType mode) throws MetadataIoException {
-        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public RecordInfo getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
         Object obj = null;
         if (isCacheEnabled()) {

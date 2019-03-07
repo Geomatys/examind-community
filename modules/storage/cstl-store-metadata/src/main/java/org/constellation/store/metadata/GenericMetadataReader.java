@@ -88,7 +88,7 @@ public abstract class GenericMetadataReader extends GenericReader implements CSW
      */
     @Override
     public RecordInfo getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
-        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<QName>());
+        return getMetadata(identifier, mode, ElementSetType.FULL, new ArrayList<>());
     }
 
     /**

@@ -44,13 +44,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
 import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
+import org.constellation.store.metadata.CSWMetadataReader;
+import org.geotoolkit.csw.xml.DomainValues;
+import org.geotoolkit.csw.xml.v202.DomainValuesType;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Creator_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Date_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory._Description_QNAME;
@@ -68,6 +73,7 @@ import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
 
@@ -76,7 +82,7 @@ import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class DomMetadataReader extends AbstractMetadataReader {
+public abstract class DomMetadataReader extends AbstractMetadataReader implements CSWMetadataReader {
 
     /**
      * A date formatter used to display the Date object for Dublin core translation.
@@ -143,7 +149,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
         return result;
     }
 
-    protected String formatDate(final String modValue) {
+    private String formatDate(final String modValue) {
         try {
             final Date d = TemporalUtilities.parseDate(modValue);
             String dateValue;
@@ -692,22 +698,92 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
     }
 
 
+     protected Node convertAndApplyElementSet(MetadataType metadataMode, MetadataType mode, ElementSetType type, List<QName> elementName, Node metadataNode) throws MetadataIoException {
+         final Node n;
+
+        // DIF TO CSW2
+        if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW202) {
+            n = translateDIFtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
+
+        // DIF TO CSW3
+        } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW300) {
+            n = translateDIFtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
+
+        // ISO TO CSW2
+        } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {
+            n = translateISOtoDCNode(metadataNode, type, elementName, LegacyNamespaces.CSW);
+
+        // ISO TO CSW3
+        } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW300) {
+            n = translateISOtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
+
+        // CSW3 (NO transform OR TO CSW3)
+        } else if (mode == MetadataType.DUBLINCORE_CSW300 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
+            n = applyElementSetNode(metadataNode, type, elementName, Namespaces.CSW, mode != metadataMode);
+
+        // CSW2 (NO transform OR TO CSW2)
+        } else if (mode == MetadataType.DUBLINCORE_CSW202 && (metadataMode == MetadataType.DUBLINCORE_CSW300 || metadataMode == MetadataType.DUBLINCORE_CSW202)) {
+            n = applyElementSetNode(metadataNode, type, elementName, LegacyNamespaces.CSW, mode != metadataMode);
+
+        // RETURN NATIVE
+        } else {
+           n = metadataNode;
+        }
+        return n;
+     }
+
+     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<DomainValues> getFieldDomainofValues(final String propertyNames) throws MetadataIoException {
+        final List<DomainValues> responseList = new ArrayList<>();
+        final StringTokenizer tokens          = new StringTokenizer(propertyNames, ",");
+
+        while (tokens.hasMoreTokens()) {
+            final String token   = tokens.nextToken().trim();
+            final PathType paths = getPathForQueryable(token);
+            if (paths != null) {
+                final List<String> values         = getAllValuesFromPaths(paths);
+                final DomainValuesType value      = new DomainValuesType(null, token, values, METADATA_QNAME);
+                responseList.add(value);
+            } else {
+                throw new MetadataIoException("The property " + token + " is not queryable for now",
+                        INVALID_PARAMETER_VALUE, "propertyName");
+            }
+        }
+        return responseList;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException {
+        final PathType paths = getPathForQueryable(token);
+        if (paths != null) {
+            return getAllValuesFromPaths(identifier, paths);
+        } else {
+            throw new MetadataIoException("The property " + token + " is not queryable for now",
+                    INVALID_PARAMETER_VALUE, "propertyName");
+        }
+    }
+
     /**
      * Return all the String values corresponding to the specified list of path through all the metadatas.
      *
      * @param paths List of path within the xml.
      */
-    protected List<String> getAllValuesFromPaths(final PathType paths) throws MetadataIoException {
+    private List<String> getAllValuesFromPaths(final PathType paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
         final List<String> ids    = getAllIdentifiers();
         for (String metadataID : ids) {
             final RecordInfo metadata = getMetadata(metadataID, MetadataType.ISO_19115);
             final List<Object> value = NodeUtilities.extractValues(metadata.node, paths);
-            if (value != null && !value.equals(Arrays.asList("null"))) {
-                for (Object obj : value){
-                    result.add(obj.toString());
-                }
+            for (Object obj : value){
+                result.add(obj.toString());
             }
+
         }
         Collections.sort(result);
         return result;
@@ -720,14 +796,12 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      * @param metadataID Metadata identifier.
      * @param paths List of path within the xml.
      */
-    protected List<String> getAllValuesFromPaths(final String metadataID, final PathType paths) throws MetadataIoException {
+    private List<String> getAllValuesFromPaths(final String metadataID, final PathType paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
         final RecordInfo metadata = getMetadata(metadataID, MetadataType.ISO_19115);
         final List<Object> value = NodeUtilities.extractValues(metadata.node, paths);
-        if (value != null && !value.equals(Arrays.asList("null"))) {
-            for (Object obj : value){
+        for (Object obj : value){
                 result.add(obj.toString());
-            }
         }
         Collections.sort(result);
         return result;
@@ -738,7 +812,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      *
      * @param token a queryable.
      */
-    protected PathType getPathForQueryable(String token) throws MetadataIoException {
+    private PathType getPathForQueryable(String token) throws MetadataIoException {
         if (ISO_QUERYABLE.get(token) != null) {
             return ISO_QUERYABLE.get(token);
         } else if (DUBLIN_CORE_QUERYABLE.get(token) != null) {
@@ -749,6 +823,26 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
             throw new MetadataIoException("The property " + token + " is not queryable",
                     INVALID_PARAMETER_VALUE, "propertyName");
         }
+    }
+
+    /**
+     * Return the list of Additional queryable element.
+     */
+    @Override
+    public List<QName> getAdditionalQueryableQName() {
+        List<QName> addQnames = new ArrayList<>();
+        for (Object addQname : additionalQueryable.keySet()) {
+            addQnames.add(new QName((String)addQname));
+        }
+        return addQnames;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, PathType> getAdditionalQueryablePathMap() {
+        return additionalQueryable;
     }
 
 }
