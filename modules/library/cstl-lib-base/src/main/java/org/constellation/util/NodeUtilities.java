@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -286,7 +287,7 @@ public class NodeUtilities {
         if (path != null) {
             for (String fullPathID: path.paths) {
 
-                NodeAndOrdinal nao = extractNodes(metadata, fullPathID, false);
+                NodeAndOrdinal nao = extractNodes(metadata, fullPathID, path.prefixMapping, false);
                 if (nao == null) {
                     continue;
                 }
@@ -299,6 +300,68 @@ public class NodeUtilities {
         return response;
     }
 
+    /**
+     * Extract the nodes from the document within the specified path.
+     *
+     * @param metadata The Document/Node to perform the extraction on.
+     * @param xPath A path to the node to extract.
+     * @param prefixMapping a map describing the namespace correspounding to the prefix used in the Xpath.
+     * @param create if {@code true} the missing nodes while be created.
+     *
+     * @return An object containing The extract node, the ordinal and propertyName.
+     */
+    public static NodeAndOrdinal extractNodes(final Node metadata, String xPath, Map<String, String> prefixMapping, boolean create) {
+        // remove Standard
+        final String prefix    = xPath.substring(1, xPath.indexOf(':'));
+        final String pathNmsp  = prefixMapping.get(prefix);
+        xPath = xPath.substring(xPath.indexOf(':') + 1);
+        final String pathType =  xPath.substring(0, xPath.indexOf('/'));
+        if (!matchRootName(metadata, pathType, pathNmsp)) {
+            return null;
+        }
+         String pathID;
+         String conditionalPath  = null;
+         String conditionalValue = null;
+
+         // if the path ID contains a # we have a conditional value next to the searched value.
+         final int separator = xPath.indexOf('#');
+         if (separator != -1) {
+             pathID               = xPath.substring(0, separator);
+             conditionalPath      = pathID + '/' + xPath.substring(separator + 1, xPath.indexOf('='));
+             conditionalValue     = xPath.substring(xPath.indexOf('=') + 1);
+             int nextSeparator    = conditionalValue.indexOf('/');
+             if (nextSeparator == -1) {
+                 throw new IllegalArgumentException("A conditionnal path must be in the form ...start_path#conditional_path=value/endPath");
+             } else {
+                 pathID = pathID + conditionalValue.substring(nextSeparator);
+                 conditionalValue = conditionalValue.substring(0, nextSeparator);
+             }
+         } else {
+             pathID = xPath;
+         }
+
+         final String propertyName;
+         int ordinal = -1;
+         if (pathID.endsWith("]") && pathID.indexOf('[') != -1) {
+             try {
+                 ordinal = Integer.parseInt(pathID.substring(pathID.lastIndexOf('[') + 1, pathID.length() - 1));
+             } catch (NumberFormatException ex) {
+                 LOGGER.warning("Unable to parse last path ordinal");
+             }
+             propertyName = pathID.substring(pathID.lastIndexOf('/') + 1, pathID.indexOf('['));
+         } else {
+             propertyName = pathID.substring(pathID.lastIndexOf('/') + 1, pathID.length());
+         }
+         final List<Node> nodes;
+         if (conditionalPath == null) {
+             nodes = getNodeFromPath(metadata, pathID, create);
+         } else {
+             nodes  = getNodeFromConditionalPath(pathID, conditionalPath, conditionalValue, metadata); // create?
+         }
+         return new NodeAndOrdinal(ordinal, nodes, propertyName);
+    }
+
+    @Deprecated
     public static NodeAndOrdinal extractNodes(final Node metadata, String fullPathID, boolean create) {
         // remove Standard
         final String pathPrefix = fullPathID.substring(1, fullPathID.indexOf(':'));
@@ -534,7 +597,7 @@ public class NodeUtilities {
      * @return true if the candidate node match the namespace/localPart specified
      */
     private static boolean matchRootName(final Node n, final String localPart, final String namespace) {
-        return (localPart.equals(n.getLocalName()) || localPart.equals("*")) && (namespace.equals(n.getNamespaceURI()) || namespace.equals("*"));
+        return (localPart.equals(n.getLocalName()) || localPart.equals("*")) && (namespace == null || namespace.equals(n.getNamespaceURI()) || namespace.equals("*"));
     }
 
     /**
@@ -542,15 +605,15 @@ public class NodeUtilities {
      *
      * @param nodes The parent object on witch call the setters.
      * @param propertyName The name of the property to update on the parent (can contain an ordinal).
+     * @param propNmsp The namespace of the property to update on the parent (can contain an ordinal).
      * @param value The new value to update.
      *
      */
-    public static void updateObjects(List<Node> nodes, String propertyName, Node value) {
+    public static void updateObjects(List<Node> nodes, String propertyName, String propNmsp, Node value) {
 
         Class parameterType = value.getClass();
         LOGGER.log(Level.FINER, "parameter type:{0}", parameterType);
 
-        final String fullPropertyName = propertyName;
         final int ordinal             = NodeUtilities.extractOrdinal(propertyName);
         if (propertyName.indexOf('[') != -1) {
             propertyName = propertyName.substring(0, propertyName.indexOf('['));
@@ -561,7 +624,7 @@ public class NodeUtilities {
 
             // ADD
             if (toUpdate.isEmpty()) {
-                final Node newNode = e.getOwnerDocument().createElementNS("TODO", propertyName);
+                final Node newNode = e.getOwnerDocument().createElementNS(propNmsp, propertyName);
                 final Node clone   = e.getOwnerDocument().importNode(value, true);
                 newNode.appendChild(clone);
                 e.appendChild(newNode);

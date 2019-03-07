@@ -462,7 +462,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:dateStamp");
         expResult.add("ISO 19115-2:MI_Metadata:dateStamp");
         expResult.add("Catalog Web Service:Record:date:content");
-        expResult.add("NASA Directory Interchange Format:DIF:Metadata_Dates"); // erroned todo correct (but not used anymore) // erroned todo correct (but not used anymore)
+        expResult.add("NASA Directory Interchange Format:DIF:Metadata_Dates"); // erroned todo correct (but not used anymore) 
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("date").paths);
         assertEquals(expResult, result);
 

@@ -52,6 +52,8 @@ import javax.xml.stream.XMLInputFactory;
 import org.constellation.admin.SpringHelper;
 
 import static java.nio.file.StandardOpenOption.*;
+import org.constellation.metadata.CSWQueryable;
+import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
 
 import static org.constellation.util.NodeUtilities.updateObjects;
 import static org.constellation.util.NodeUtilities.extractNodes;
@@ -234,18 +236,24 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
                 // we update the metadata
                 final Node value = (Node) property.getValue();
 
-                //remove namespace on propertyName
-                String propertyName = nao.propertyName;
-                final int separatorIndex = propertyName.indexOf(':');
+                String propertyName;
+                String propertyNmsp;
+                final int separatorIndex = nao.propertyName.indexOf(':');
                 if (separatorIndex != -1) {
-                    propertyName = propertyName.substring(separatorIndex + 1);
+                    String prefix = nao.propertyName.substring(0, separatorIndex);
+                    propertyNmsp = ALL_PREFIX_MAPPING.get(prefix); // TODO the mapping should be provided by the parameters.
+                    propertyName = nao.propertyName.substring(separatorIndex + 1);
+                } else {
+                    propertyNmsp = null;
+                    propertyName = nao.propertyName;
                 }
+
                 List<Node> nodes = new ArrayList<>();
                 for (Node n : nao.nodes) {
                     nodes.add(n.getParentNode());
                 }
 
-                updateObjects(nodes, propertyName, value);
+                updateObjects(nodes, propertyName, propertyNmsp, value);
 
                 // we finish by updating the metadata.
                 deleteMetadata(metadataID);

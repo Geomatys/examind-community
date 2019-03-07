@@ -1326,7 +1326,7 @@ public class CSWWorker3Test {
             assertEquals(id, "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         } else {
             Node recordResult = (Node) obj;
-            System.out.println(">>>>>>> " + getStringFromNode(recordResult));
+            //System.out.println(">>>>>>> " + getStringFromNode(recordResult));
             assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         }
 

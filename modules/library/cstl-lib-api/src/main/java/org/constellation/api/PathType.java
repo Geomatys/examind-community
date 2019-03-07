@@ -20,6 +20,7 @@
 package org.constellation.api;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -29,9 +30,11 @@ public class PathType {
 
     public List<String> paths;
     public Class type;
+    public Map<String, String> prefixMapping;
 
-    public PathType(Class type, List<String> paths) {
+    public PathType(Class type, List<String> paths, Map<String, String> prefixMapping) {
         this.type = type;
         this.paths = paths;
+        this.prefixMapping = prefixMapping;
     }
 }

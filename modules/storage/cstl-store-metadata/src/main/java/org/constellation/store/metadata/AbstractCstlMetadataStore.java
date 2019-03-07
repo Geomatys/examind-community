@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import org.constellation.api.PathType;
+import org.constellation.metadata.CSWQueryable;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.*;
 import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -52,7 +53,8 @@ public abstract class AbstractCstlMetadataStore extends MetadataStore {
                 final String key      =  (String) extraQueryable.parameter(EXTRA_QUERYABLE_KEY.getName().toString()).getValue();
                 final String[] values =  (String[]) extraQueryable.parameter(EXTRA_QUERYABLE_VALUE.getName().toString()).getValue();
                 final Class type      =  (Class) extraQueryable.parameter(EXTRA_QUERYABLE_TYPE.getName().toString()).getValue();
-                additionalQueryable.put(key, new PathType(type, Arrays.asList(values)));
+                // TODO made get prefix mapping from a aprameter
+                additionalQueryable.put(key, new PathType(type, Arrays.asList(values), CSWQueryable.ALL_PREFIX_MAPPING));
             }
         }
     }
