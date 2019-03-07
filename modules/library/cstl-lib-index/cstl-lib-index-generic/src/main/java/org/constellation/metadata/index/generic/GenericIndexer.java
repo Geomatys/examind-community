@@ -47,6 +47,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.constellation.api.PathType;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
+import org.constellation.metadata.index.SpecificQueryablePart;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.RecordInfo;
 
@@ -193,48 +197,23 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isISO19139(final Object meta) {
-        return meta instanceof Metadata;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDublinCore(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v202.RecordType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim25(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim30(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v300.IdentifiableType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isFeatureCatalogue(Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.feature.catalog.FeatureCatalogueImpl", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDIF(Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.dif.xml.v102.DIF", meta.getClass());
+    protected SpecificQueryablePart getSpecificQueryableByType(Object meta) {
+        if (meta instanceof Metadata) {
+            return new SpecificQueryablePart(ISO_QUERYABLE, "MD_Metadata", true);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v202.RecordType", meta.getClass()) ||
+                   ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v300.RecordType", meta.getClass())) {
+            return new SpecificQueryablePart(null, "Record", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", meta.getClass()) ||
+                   ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v300.IdentifiableType", meta.getClass())) {
+            return new SpecificQueryablePart(null, "Ebrim", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.feature.catalog.FeatureCatalogueImpl", meta.getClass())) {
+            return new SpecificQueryablePart(ISO_FC_QUERYABLE, "FC_FeatureCatalogue", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.dif.xml.v102.DIF", meta.getClass())) {
+            return new SpecificQueryablePart(DIF_QUERYABLE, "DIF", true);
+        } else {
+            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(meta));
+            return new SpecificQueryablePart(null, "Unknow", false);
+        }
     }
 
     /**

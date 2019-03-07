@@ -19,8 +19,6 @@
 
 package org.constellation.metadata.index;
 
-// J2SE dependencies
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DoubleField;
@@ -55,11 +53,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
-import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
-import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
-import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
 import org.geotoolkit.index.tree.StoreIndexException;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.LuceneUtils;
@@ -163,41 +158,16 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
         final StringBuilder anyText     = new StringBuilder();
         boolean alreadySpatiallyIndexed = false;
 
-        // For an ISO 19139 object
-        if (isISO19139(metadata)) {
-            final Map<String, PathType> isoQueryable = removeOverridenField(ISO_QUERYABLE);
-            indexQueryableSet(doc, metadata, isoQueryable, anyText);
-
-            //we add the geometry parts
-            alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, isoQueryable, CommonCRS.WGS84.normalizedGeographic());
-
-            doc.add(new Field("objectType", "MD_Metadata", SEARCH_TYPE));
-
-        } else if (isEbrim30(metadata)) {
-           // TODO
-            doc.add(new Field("objectType", "Ebrim", SEARCH_TYPE));
-        } else if (isEbrim25(metadata)) {
-            // TODO
-            doc.add(new Field("objectType", "Ebrim", SEARCH_TYPE));
-        } else if (isFeatureCatalogue(metadata)) {
-            final Map<String, PathType> fcQueryable = removeOverridenField(ISO_FC_QUERYABLE);
-            indexQueryableSet(doc, metadata, fcQueryable, anyText);
-
-            doc.add(new Field("objectType", "FC_FeatureCatalogue", SEARCH_TYPE));
-        } else if (isDublinCore(metadata)) {
-
-            doc.add(new Field("objectType", "Record", SEARCH_TYPE));
-        } else if (isDIF(metadata)) {
-            final Map<String, PathType> difQueryable = removeOverridenField(DIF_QUERYABLE);
-            indexQueryableSet(doc, metadata, difQueryable, anyText);
-
-            //we add the geometry parts
-            alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, difQueryable, CommonCRS.WGS84.normalizedGeographic());
-
-            doc.add(new Field("objectType", "DIF", SEARCH_TYPE));
-        } else {
-            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(metadata));
+        SpecificQueryablePart spe = getSpecificQueryableByType(metadata);
+        if (spe.queryable != null) {
+            final Map<String, PathType> speQueryable = removeOverridenField(spe.queryable);
+            indexQueryableSet(doc, metadata, speQueryable, anyText);
+            if (spe.spatial) {
+                //we add the geometry parts
+                alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, speQueryable, CommonCRS.WGS84.normalizedGeographic());
+            }
         }
+        doc.add(new Field("objectType", spe.type, SEARCH_TYPE));
 
         // All metadata types must be compatible with dublinCore.
         final Map<String, PathType> dcQueryable = removeOverridenField(DUBLIN_CORE_QUERYABLE);
@@ -484,52 +454,13 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      */
     protected abstract List<Object> getValues(final A meta, final PathType paths) throws IndexingException;
 
-    /**
-     * Return true if the metadata object is a ISO19139 object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a ISO19139 object.
-     */
-    protected abstract boolean isISO19139(A meta);
 
     /**
-     * Return true if the metadata object is a DublinCore object.
+     * Return a specific set of queryable dependeing on the metadata type.
+     * Return also the metadata type;
      *
-     * @param meta The object to index
-     * @return true if the metadata object is a DublinCore object.
+     * @param meta The object to index.
      */
-    protected abstract boolean isDublinCore(A meta);
-
-    /**
-     * Return true if the metadata object is a Ebrim version 2.5 object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a Ebrim version 2.5 object.
-     */
-    protected abstract boolean isEbrim25(A meta);
-
-    /**
-     * Return true if the metadata object is a Ebrim version 3.0 object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a Ebrim version 3.0 object.
-     */
-    protected abstract boolean isEbrim30(A meta);
-
-    /**
-     * Return true if the metadata object is a FeatureCatalogue object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a FeatureCatalogue object.
-     */
-    protected abstract boolean isFeatureCatalogue(A meta);
-
-    /**
-     * Return true if the metadata object is a DIF object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a FeatureCatalogue object.
-     */
-    protected abstract boolean isDIF(A meta);
+    protected abstract SpecificQueryablePart getSpecificQueryableByType(A meta);
 
 }

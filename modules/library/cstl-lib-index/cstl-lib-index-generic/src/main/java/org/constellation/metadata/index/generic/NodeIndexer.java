@@ -40,6 +40,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
+import org.constellation.metadata.index.SpecificQueryablePart;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.RecordInfo;
 
@@ -182,51 +186,27 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isISO19139(final Node meta) {
-        return "MD_Metadata".equals(meta.getLocalName()) ||
-               "MI_Metadata".equals(meta.getLocalName());
-    }
+    protected SpecificQueryablePart getSpecificQueryableByType(Node meta) {
+        if ("MD_Metadata".equals(meta.getLocalName()) ||
+            "MI_Metadata".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(ISO_QUERYABLE, "MD_Metadata", true);
+        } else if ("Record".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(null, "Record", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDublinCore(final Node meta) {
-        return "Record".equals(meta.getLocalName());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim25(final Node meta) {
         // TODO list rootElement
-        return "RegistryObject".equals(meta.getLocalName());
-    }
+        } else if ("RegistryObject".equals(meta.getLocalName()) ||
+                   "Identifiable".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(null, "Ebrim", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim30(final Node meta) {
-        // TODO list rootElement
-        return "Identifiable".equals(meta.getLocalName());
-    }
+        } else if ("FC_FeatureCatalogue".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(ISO_FC_QUERYABLE, "FC_FeatureCatalogue", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isFeatureCatalogue(Node meta) {
-        return "FC_FeatureCatalogue".equals(meta.getLocalName());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDIF(Node meta) {
-        return "DIF".equals(meta.getLocalName());
+        } else if ("DIF".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(DIF_QUERYABLE, "DIF", true);
+        } else {
+            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(meta));
+            return new SpecificQueryablePart(null, "Unknow", false);
+        }
     }
 
     /**
