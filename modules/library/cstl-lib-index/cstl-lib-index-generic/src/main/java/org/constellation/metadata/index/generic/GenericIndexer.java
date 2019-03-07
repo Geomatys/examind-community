@@ -310,18 +310,9 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
      */
     @Override
     @Deprecated
-    protected String getValues(final Object metadata, final List<String> paths) {
-        final List<String> mdpaths = XpathUtils.xpathToMDPath(paths);
-        final List<Object> values =  Utils.extractValues(metadata, mdpaths);
-        final StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            sb.append(value).append(',');
-        }
-        if (!sb.toString().isEmpty()) {
-            // we remove the last ','
-            sb.delete(sb.length() - 1, sb.length());
-        }
-        return sb.toString();
+    protected List<Object> getValues(final Object metadata, final PathType pathType) {
+        final List<String> mdpaths = XpathUtils.xpathToMDPath(pathType.paths);
+        return  Utils.extractValues(metadata, mdpaths);
     }
 
     @Override

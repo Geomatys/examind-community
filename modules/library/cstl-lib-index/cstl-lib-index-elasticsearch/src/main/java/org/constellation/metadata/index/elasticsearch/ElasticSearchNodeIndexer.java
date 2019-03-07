@@ -90,18 +90,8 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    protected String getValues(final Node metadata, final List<String> paths) {
-        final List<Object> values =  NodeUtilities.extractValues(metadata, paths);
-        final StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            sb.append(value).append(',');
-        }
-        if (!sb.toString().isEmpty()) {
-            // we remove the last ','
-            sb.delete(sb.length() - 1, sb.length());
-        }
-        return sb.toString();
+    protected List<Object> getValues(final Node metadata, final PathType paths) {
+        return NodeUtilities.extractValues(metadata, paths);
     }
 
     /**
@@ -111,7 +101,7 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
     protected void indexQueryableSet(final Map doc, final Node metadata, final  Map<String, PathType> queryableSet, final StringBuilder anyText) throws IndexingException {
         for (final String term : queryableSet.keySet()) {
             final PathType ptype = queryableSet.get(term);
-            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, ptype.paths, false));
+            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, ptype, false));
 
             final ElasticSearchNodeIndexer.TermValue values = formatStringValue(tm, ptype.type);
             indexFields(ptype.type, values.value, values.term, anyText, doc);

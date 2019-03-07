@@ -270,11 +270,6 @@ public class NodeUtilities {
         return extractValues(metadata, path, true);
     }
 
-    @Deprecated
-    public static List<Object> extractValues(final Node metadata, final List<String> paths) {
-        return extractValues(metadata, paths, true);
-    }
-
     /**
      * Extract the String values denoted by the specified paths
      * and return the values as a String values1,values2,....
@@ -296,82 +291,6 @@ public class NodeUtilities {
                     continue;
                 }
                 final List<Object> value = getStringValue(nao.nodes, nao.ordinal, path.type, parseDate);
-                if (!value.isEmpty() && !value.equals(Arrays.asList(NULL_VALUE))) {
-                    response.addAll(value);
-                }
-            }
-        }
-        if (response.isEmpty()) {
-            //result.add(NULL_VALUE); do not add null values anymore
-        }
-        return response;
-    }
-
-    /**
-     * Extract the String values denoted by the specified paths
-     * and return the values as a String values1,values2,....
-     * if there is no values corresponding to the paths the method return "null" (the string)
-     *
-     * @param metadata
-     * @param paths
-     * @param parseDate if true, the Date will be parsed into a lucene format String
-     * @return
-     */
-    @Deprecated
-    public static List<Object> extractValues(final Node metadata, final List<String> paths, boolean parseDate) {
-        final List<Object> response  = new ArrayList<>();
-
-        if (paths != null) {
-            for (String fullPathID: paths) {
-
-               /* remove Standard
-               final String pathPrefix = fullPathID.substring(1, fullPathID.indexOf(':'));
-               fullPathID = fullPathID.substring(fullPathID.indexOf(':') + 1);
-               final String pathType =  fullPathID.substring(0, fullPathID.indexOf('/'));
-               if (!matchType(metadata, pathType, pathPrefix)) {
-                   continue;
-               }
-                String pathID;
-                String conditionalPath  = null;
-                String conditionalValue = null;
-
-                // if the path ID contains a # we have a conditional value next to the searched value.
-                final int separator = fullPathID.indexOf('#');
-                if (separator != -1) {
-                    pathID               = fullPathID.substring(0, separator);
-                    conditionalPath      = pathID + '/' + fullPathID.substring(separator + 1, fullPathID.indexOf('='));
-                    conditionalValue     = fullPathID.substring(fullPathID.indexOf('=') + 1);
-                    int nextSeparator    = conditionalValue.indexOf('/');
-                    if (nextSeparator == -1) {
-                        throw new IllegalArgumentException("A conditionnal path must be in the form ...start_path#conditional_path=value/endPath");
-                    } else {
-                        pathID = pathID + conditionalValue.substring(nextSeparator);
-                        conditionalValue = conditionalValue.substring(0, nextSeparator);
-                    }
-                } else {
-                    pathID = fullPathID;
-                }
-
-                int ordinal = -1;
-                if (pathID.endsWith("]") && pathID.indexOf('[') != -1) {
-                    try {
-                        ordinal = Integer.parseInt(pathID.substring(pathID.lastIndexOf('[') + 1, pathID.length() - 1));
-                    } catch (NumberFormatException ex) {
-                        LOGGER.warning("Unable to parse last path ordinal");
-                    }
-                }
-                final List<Node> nodes;
-                if (conditionalPath == null) {
-                    nodes = getNodeFromPath(metadata, pathID);
-                } else {
-                    nodes  = getNodeFromConditionalPath(pathID, conditionalPath, conditionalValue, metadata);
-                }*/
-
-                NodeAndOrdinal nao = extractNodes(metadata, fullPathID, false);
-                if (nao == null) {
-                    continue;
-                }
-                final List<Object> value = getStringValue(nao.nodes, nao.ordinal, parseDate);
                 if (!value.isEmpty() && !value.equals(Arrays.asList(NULL_VALUE))) {
                     response.addAll(value);
                 }
@@ -597,9 +516,28 @@ public class NodeUtilities {
         return result;
     }
 
+    /**
+     * @deprecated This method should be replaced by {@link  NodeUtilities#matchRootName(org.w3c.dom.Node, java.lang.String, java.lang.String)}
+     * because the prefix can change and does not reflect a real namespace.
+     */
+    @Deprecated
     private static boolean matchType(final Node n, final String type, final String prefix) {
         final List<String> namespaces = XpathUtils.getNamespaceFromPrefix(prefix);
         return (type.equals(n.getLocalName()) || type.equals("*")) && namespaces.contains(n.getNamespaceURI());
+    }
+
+    /**
+     * Return {@code true} if the candidate Node match the specified QName.
+     * '*' can be used in namespace/local part for any match.
+     *
+     * @param n The candidate Node.
+     * @param localPart Expected local part or '*' for any match.
+     * @param namespace Expected namespace or '*' for any match.
+     *
+     * @return true if the candidate node match the namespace/localPart specified
+     */
+    private static boolean matchRootName(final Node n, final String localPart, final String namespace) {
+        return (localPart.equals(n.getLocalName()) || localPart.equals("*")) && (namespace.equals(n.getNamespaceURI()) || namespace.equals("*"));
     }
 
     /**

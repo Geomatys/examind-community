@@ -697,7 +697,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      *
      * @param paths List of path within the xml.
      */
-    protected List<String> getAllValuesFromPaths(final List<String> paths) throws MetadataIoException {
+    protected List<String> getAllValuesFromPaths(final PathType paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
         final List<String> ids    = getAllIdentifiers();
         for (String metadataID : ids) {
@@ -720,7 +720,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      * @param metadataID Metadata identifier.
      * @param paths List of path within the xml.
      */
-    protected List<String> getAllValuesFromPaths(final String metadataID, final List<String> paths) throws MetadataIoException {
+    protected List<String> getAllValuesFromPaths(final String metadataID, final PathType paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
         final RecordInfo metadata = getMetadata(metadataID, MetadataType.ISO_19115);
         final List<Object> value = NodeUtilities.extractValues(metadata.node, paths);
@@ -738,19 +738,17 @@ public abstract class DomMetadataReader extends AbstractMetadataReader {
      *
      * @param token a queryable.
      */
-    protected List<String> getPathForQueryable(String token) throws MetadataIoException {
-        final List<String> paths;
+    protected PathType getPathForQueryable(String token) throws MetadataIoException {
         if (ISO_QUERYABLE.get(token) != null) {
-            paths = ISO_QUERYABLE.get(token).paths;
+            return ISO_QUERYABLE.get(token);
         } else if (DUBLIN_CORE_QUERYABLE.get(token) != null) {
-            paths = DUBLIN_CORE_QUERYABLE.get(token).paths;
+            return DUBLIN_CORE_QUERYABLE.get(token);
         } else if (additionalQueryable.get(token) != null) {
-            paths = additionalQueryable.get(token).paths;
+            return additionalQueryable.get(token);
         } else {
             throw new MetadataIoException("The property " + token + " is not queryable",
                     INVALID_PARAMETER_VALUE, "propertyName");
         }
-        return paths;
     }
 
 }

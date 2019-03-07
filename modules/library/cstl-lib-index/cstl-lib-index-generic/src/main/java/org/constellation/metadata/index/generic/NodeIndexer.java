@@ -289,18 +289,8 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    protected String getValues(final Node metadata, final List<String> paths) {
-        final List<Object> values =  NodeUtilities.extractValues(metadata, paths);
-        final StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            sb.append(value).append(',');
-        }
-        if (!sb.toString().isEmpty()) {
-            // we remove the last ','
-            sb.delete(sb.length() - 1, sb.length());
-        }
-        return sb.toString();
+    protected List<Object> getValues(final Node metadata, final PathType paths) {
+        return NodeUtilities.extractValues(metadata, paths);
     }
 
     @Override

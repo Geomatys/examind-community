@@ -63,7 +63,7 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
     private static final Path configDirectory  = Paths.get("GenericNodeIndexTest");
 
     private static boolean configured = false;
-    
+
     @PostConstruct
     public void setUpClass() throws Exception {
         if (!configured) {
@@ -187,20 +187,20 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
     @Order(order = 9)
     public void extractValuesTest() throws Exception {
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta7.xml");
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate").paths);
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate"));
         assertEquals(Arrays.asList("20060101000000"), result);
 
         n = getOriginalMetadata("org/constellation/xml/metadata/meta3.xml");
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate"));
         assertEquals(new ArrayList<>(), result);
 
         n = getOriginalMetadata("org/constellation/xml/metadata/meta1.xml");
 
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_begin").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_begin"));
         assertEquals(Arrays.asList("19900605000000"), result);
 
 
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_end").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_end"));
         assertEquals(Arrays.asList("19900702000000"), result);
 
     }
@@ -210,7 +210,7 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
     public void extractValuesTest2() throws Exception {
 
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta8.xml");
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.DUBLIN_CORE_QUERYABLE.get("WestBoundLongitude").paths);
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.DUBLIN_CORE_QUERYABLE.get("WestBoundLongitude"));
         assertEquals(Arrays.asList(60.042), result);
 
 
@@ -230,15 +230,15 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
         List<Object> result = GenericIndexer.extractValues(meta4, Arrays.asList("ISO 19115:MD_Metadata:identificationInfo:extent:temporalElement:extent#id=[0-9]+-all:beginPosition"));
         assertEquals(Arrays.asList("20081101000000"), result);*/
     }
-    
+
     @Test
     @Order(order = 11)
     public void extractValuesTest3() throws Exception {
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta7.xml");
-        
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TopicCategory").paths);
+
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TopicCategory"));
         assertEquals(Arrays.asList("environment"), result);
-        
+
     }
 
     public static List<Node> fillTestData() throws Exception {
@@ -270,7 +270,7 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
 
         obj = getOriginalMetadata("org/constellation/xml/metadata/imageMetadata.xml");
         result.add(obj);
-        
+
         obj = getOriginalMetadata("org/constellation/xml/metadata/metaNan.xml");
         result.add(obj);
 

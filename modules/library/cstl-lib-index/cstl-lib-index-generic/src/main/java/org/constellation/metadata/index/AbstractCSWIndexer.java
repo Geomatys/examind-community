@@ -50,7 +50,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -416,10 +415,10 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      */
     private boolean indexSpatialPart(Document doc, A form, Map<String, PathType> queryableSet, CoordinateReferenceSystem crs) throws IndexingException {
 
-        final List<Double> minxs = extractPositions(form, queryableSet.get("WestBoundLongitude").paths);
-        final List<Double> maxxs = extractPositions(form, queryableSet.get("EastBoundLongitude").paths);
-        final List<Double> maxys = extractPositions(form, queryableSet.get("NorthBoundLatitude").paths);
-        final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude").paths);
+        final List<Double> minxs = extractPositions(form, queryableSet.get("WestBoundLongitude"));
+        final List<Double> maxxs = extractPositions(form, queryableSet.get("EastBoundLongitude"));
+        final List<Double> maxys = extractPositions(form, queryableSet.get("NorthBoundLatitude"));
+        final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude"));
         try {
             if (minxs.size() == minys.size() && minys.size() == maxxs.size() && maxxs.size() == maxys.size()) {
                 addBoundingBox(doc, minxs, maxxs, minys, maxys, crs);
@@ -442,13 +441,18 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
       *
       * @throws IndexingException
       */
-    private List<Double> extractPositions(A metadata, List<String> paths) throws IndexingException {
-        final String coord            = getValues(metadata, paths);
-        final StringTokenizer tokens  = new StringTokenizer(coord, ",;");
-        final List<Double> coordinate = new ArrayList<>(tokens.countTokens());
+    private List<Double> extractPositions(A metadata, PathType paths) throws IndexingException {
+        final List<Object> coord = getValues(metadata, paths);
+        final List<Double> coordinate = new ArrayList<>();
         try {
-            while (tokens.hasMoreTokens()) {
-                coordinate.add(Double.parseDouble(tokens.nextToken()));
+            for (Object obj : coord) {
+                if (obj instanceof Double) {
+                    coordinate.add((Double)obj);
+                } else if (obj instanceof Integer) {
+                    coordinate.add(((Integer)obj).doubleValue());
+                } else {
+                    coordinate.add(Double.parseDouble(String.valueOf(obj)));
+                }
             }
         } catch (NumberFormatException e) {
             if (!coord.equals(NULL_VALUE)) {
@@ -473,13 +477,12 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      * Extract some values from a metadata object using  the list of paths.
      *
      * @param meta The object to index.
-     * @param paths A list of paths where to find the information within the metadata.
+     * @param paths A list of paths where to find the information within the metadata, along with the expected type.
      *
-     * @return A String containing one or more informations (comma separated) find in the metadata.
+     * @return A List of extracted values found in the metadata.
      * @throws IndexingException
      */
-    @Deprecated
-    protected abstract String getValues(final A meta, final List<String> paths) throws IndexingException;
+    protected abstract List<Object> getValues(final A meta, final PathType paths) throws IndexingException;
 
     /**
      * Return true if the metadata object is a ISO19139 object.

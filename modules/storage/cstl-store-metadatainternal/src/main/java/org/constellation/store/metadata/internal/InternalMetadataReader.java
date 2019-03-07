@@ -168,10 +168,10 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
         final StringTokenizer tokens          = new StringTokenizer(propertyNames, ",");
 
         while (tokens.hasMoreTokens()) {
-            final String token       = tokens.nextToken().trim();
-            final List<String> paths = getPathForQueryable(token);
+            final String token   = tokens.nextToken().trim();
+            final PathType paths = getPathForQueryable(token);
 
-            if (!paths.isEmpty()) {
+            if (paths != null) {
                 final List<String> values         = getAllValuesFromPaths(paths);
                 final DomainValuesType value      = new DomainValuesType(null, token, values, METADATA_QNAME);
                 responseList.add(value);
@@ -187,8 +187,8 @@ public class InternalMetadataReader extends DomMetadataReader implements CSWMeta
 
     @Override
     public List<String> getFieldDomainofValuesForMetadata(String token, String identifier) throws MetadataIoException {
-        final List<String> paths = getPathForQueryable(token);
-        if (!paths.isEmpty()) {
+        final PathType paths = getPathForQueryable(token);
+        if (paths != null) {
             return getAllValuesFromPaths(identifier, paths);
         } else {
             throw new MetadataIoException("The property " + token + " is not queryable for now",
