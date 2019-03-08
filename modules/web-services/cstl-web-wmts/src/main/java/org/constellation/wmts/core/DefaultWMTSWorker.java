@@ -67,6 +67,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.coverage.finder.StrictlyCoverageFinder;
+import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.data.multires.Mosaic;
 import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.data.multires.Pyramid;
@@ -110,7 +111,6 @@ import org.geotoolkit.wmts.xml.v100.TileMatrix;
 import org.geotoolkit.wmts.xml.v100.TileMatrixSet;
 import org.geotoolkit.wmts.xml.v100.TileMatrixSetLink;
 import org.geotoolkit.wmts.xml.v100.URLTemplateType;
-import org.opengis.coverage.Coverage;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
@@ -614,7 +614,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final MutableStyle style     = getStyle(styleRef);
 
 
-        Coverage c = null;
+        GridCoverage c = null;
         //       -- create the rendering parameter Map
         Double elevation =  null;
         Date time        = null;
