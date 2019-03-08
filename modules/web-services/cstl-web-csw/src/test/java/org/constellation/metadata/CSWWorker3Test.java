@@ -1430,18 +1430,24 @@ public class CSWWorker3Test {
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 1);
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
-        Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
-        }
+        Set<String> results = new HashSet<>();
+        for (Object obj : result.getSearchResults().getAny()) {
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
-            assertEquals(recordResult.getIdentifier().getContent().get(0), "L2-SST");
-        } else {
-            Node recordResult = (Node) obj;
-            assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0), "L2-SST");
+            if (obj instanceof RecordType) {
+                RecordType recordResult = (RecordType) obj;
+                results.add(recordResult.getIdentifier().getContent().get(0));
+            } else {
+                Node recordResult = (Node) obj;
+                results.add(NodeUtilities.getValuesFromPath(recordResult, "/csw:Record/dc:identifier").get(0));
+            }
         }
+        Set<String> expResults = new HashSet<>();
+        expResults.add("L2-SST");
+
+        assertEquals(expResults, results);
 
         /*
          *  TEST 2 : getRecords with RESULTS - DIF mode (FULL) - CQL text: identifier='L2-SST'
@@ -1465,18 +1471,108 @@ public class CSWWorker3Test {
         assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 1);
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
-        obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
-        }
+        results = new HashSet<>();
+        for (Object obj : result.getSearchResults().getAny()) {
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
 
-        if (obj instanceof DIF) {
-            RecordType recordResult = (RecordType) obj;
-            assertEquals(recordResult.getIdentifier().getContent().get(0), "L2-SST");
-        } else {
-            Node recordResult = (Node) obj;
-            assertEquals(NodeUtilities.getValuesFromPath(recordResult, "/dif:DIF/dif:Entry_ID/dif:Short_Name").get(0), "L2-SST");
+            if (obj instanceof DIF) {
+                RecordType recordResult = (RecordType) obj;
+                results.add(recordResult.getIdentifier().getContent().get(0));
+            } else {
+                Node recordResult = (Node) obj;
+                results.add(NodeUtilities.getValuesFromPath(recordResult, "/dif:DIF/dif:Entry_ID/dif:Short_Name").get(0));
+            }
         }
+        expResults = new HashSet<>();
+        expResults.add("L2-SST");
+
+        assertEquals(expResults, results);
+
+        /*
+         *  TEST 3 : getRecords with RESULTS - DIF mode (FULL) - CQL text: Platform='GCOM-C'
+         */
+
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
+        elementSetName = new ElementSetNameType(ElementSetType.FULL);
+        sortBy         = null;
+        constraint     = new QueryConstraintType("Platform='GCOM-C'", "1.0.0");
+        query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
+        request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, MimeType.APPLICATION_XML, "http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/", 1, 5, query, null);
+
+        result = (GetRecordsResponseType) worker.getRecords(request);
+
+        assertTrue(result.getSearchResults() != null);
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
+        assertTrue(result.getSearchResults().getAny().size() == 2);
+        assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
+        assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
+        assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 2);
+        assertTrue(result.getSearchResults().getNextRecord() == 0);
+
+        results = new HashSet<>();
+        for (Object obj : result.getSearchResults().getAny()) {
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
+
+            if (obj instanceof DIF) {
+                RecordType recordResult = (RecordType) obj;
+                results.add(recordResult.getIdentifier().getContent().get(0));
+            } else {
+                Node recordResult = (Node) obj;
+                results.add(NodeUtilities.getValuesFromPath(recordResult, "/dif:DIF/dif:Entry_ID/dif:Short_Name").get(0));
+            }
+        }
+        expResults = new HashSet<>();
+        expResults.add("L2-SST");
+        expResults.add("L2-LST");
+
+        assertEquals(expResults, results);
+
+        /*
+         *  TEST 4 : getRecords with RESULTS - DIF mode (FULL) - CQL text: Instrument='SGLI'
+         */
+
+        typeNames      = Arrays.asList(RECORD_300_QNAME);
+        elementSetName = new ElementSetNameType(ElementSetType.FULL);
+        sortBy         = null;
+        constraint     = new QueryConstraintType("Instrument='SGLI'", "1.0.0");
+        query          = new QueryType(typeNames, elementSetName, sortBy, constraint);
+        request        = new GetRecordsType("CSW", "3.0.0", //ResultType.RESULTS,
+                null, MimeType.APPLICATION_XML, "http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/", 1, 5, query, null);
+
+        result = (GetRecordsResponseType) worker.getRecords(request);
+
+        assertTrue(result.getSearchResults() != null);
+        //assertTrue(result.getSearchResults().getRecordSchema().equals("http://www.opengis.net/cat/csw/3.0"));
+        assertTrue(result.getSearchResults().getAny().size() == 2);
+        assertTrue(result.getSearchResults().getElementSet().equals(ElementSetType.FULL));
+        assertTrue(result.getSearchResults().getNumberOfRecordsMatched() == 2);
+        assertTrue(result.getSearchResults().getNumberOfRecordsReturned() == 2);
+        assertTrue(result.getSearchResults().getNextRecord() == 0);
+
+        results = new HashSet<>();
+        for (Object obj : result.getSearchResults().getAny()) {
+            if (obj instanceof JAXBElement) {
+                obj = ((JAXBElement) obj).getValue();
+            }
+
+            if (obj instanceof DIF) {
+                RecordType recordResult = (RecordType) obj;
+                results.add(recordResult.getIdentifier().getContent().get(0));
+            } else {
+                Node recordResult = (Node) obj;
+                results.add(NodeUtilities.getValuesFromPath(recordResult, "/dif:DIF/dif:Entry_ID/dif:Short_Name").get(0));
+            }
+        }
+        expResults = new HashSet<>();
+        expResults.add("L2-SST");
+        expResults.add("L2-LST");
+
+        assertEquals(expResults, results);
     }
 
     /**

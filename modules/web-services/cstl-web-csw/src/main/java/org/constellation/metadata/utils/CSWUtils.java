@@ -466,10 +466,10 @@ public class CSWUtils {
             String[] lo = lowers.get(0).split(" ");
             String[] up = uppers.get(0).split(" ");
             if (lo.length == 2 && up.length == 2) {
-                entry.addBox(Arrays.asList(Double.parseDouble(lo[0]),
-                                           Double.parseDouble(up[0]),
-                                           Double.parseDouble(lo[1]),
-                                           Double.parseDouble(up[1])));
+                entry.addBox(Arrays.asList(Double.parseDouble(lo[1]),
+                                           Double.parseDouble(lo[0]),
+                                           Double.parseDouble(up[1]),
+                                           Double.parseDouble(up[0])));
             }
         }
 

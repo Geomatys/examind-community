@@ -44,10 +44,23 @@
                                     }, {
                                         "type": "field",
                                         "field": {
-                                            "name": "metadata.field.subject",
+                                            "name": "metadata.field.topicCategory",
                                             "multiplicity": 62,
-                                            "help": "metadata.field.subject_help",
+                                            "help": "metadata.field.topicCategory_help",
                                             "path": "metadata.ISOTopicCategory.value",
+                                            "render": "textarea",
+                                            "obligation": "O",
+                                            "completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    },{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.keyword",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.keyword_help",
+                                            "path": "metadata.ancillaryKeyword",
                                             "render": "textarea",
                                             "obligation": "O",
                                             "completion" : "EXTENDED",
@@ -77,6 +90,242 @@
                                             "render": "text",
                                             "obligation": "M",
                                             "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.geographicExtension",
+                                "multiplicity": 1,
+                                "help": "metadata.block.geographicExtension_help",
+                                "path": "metadata.spatialCoverage.geometry.boundingRectangle",
+                                "render": "BOUNDINGBOX",
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.westBoundLongitude",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.westBoundLongitude_help",
+                                            "path": "metadata.spatialCoverage.geometry.boundingRectangle.westernmostLongitude",
+                                            "render": "decimal",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": -180,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.eastBoundLongitude",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.eastBoundLongitude_help",
+                                            "path": "metadata.spatialCoverage.geometry.boundingRectangle.easternmostLongitude",
+                                            "render": "decimal",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": 180,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.northBoundLatitude",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.northBoundLatitude_help",
+                                            "path": "metadata.spatialCoverage.geometry.boundingRectangle.northernmostLatitude",
+                                            "render": "decimal",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": 90,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.southBoundLatitude",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.southBoundLatitude_help",
+                                            "path": "metadata.spatialCoverage.geometry.boundingRectangle.southernmostLatitude",
+                                            "render": "decimal",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": -90,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.distributionInfo",
+                                "multiplicity": 62,
+                                "help": "metadata.block.distributionInfo_help",
+                                "path": "metadata.relatedURL",
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.transfertOptionLinkage",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.transfertOptionLinkage_help",
+                                            "path": "metadata.relatedURL.URL",
+                                            "render": "web",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.transfertOptionLinkageProtocol",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.transfertOptionLinkageProtocol_help",
+                                            "path": "metadata.relatedURL.URLContentType.type",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.pointOfContact",
+                                "multiplicity": 62,
+                                "help": "metadata.block.pointOfContact_help",
+                                "path": "metadata.organization",
+                                "render": "CONTACT",
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.organisationName",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.organisationName_help",
+                                            "path": "metadata.organization.organizationName.shortName",
+                                            "render": "text",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.role",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.role_help",
+                                            "path": "metadata.organization.OrganizationType",
+                                            "render": "Role.codelist",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": "CI_RoleCode.pointOfContact",
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.individualName",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.individualName_help",
+                                            "path": "metadata.organization.personnel.contactPerson.lastName",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.positionName",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.positionName_help",
+                                            "path": "metadata.organization.personnel.role",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.deliveryPoint",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.deliveryPoint_help",
+                                            "path": "metadata.organization.personnel.contactPerson.address.streetAddress",
+                                            "render": "textarea",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.city",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.city_help",
+                                            "path": "metadata.organization.personnel.contactPerson.address.city",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.postalCode",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.postalCode_help",
+                                            "path": "metadata.organization.personnel.contactPerson.address.postalCode",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.country",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.country_help",
+                                            "path": "metadata.organization.personnel.contactPerson.address.country",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": "France",
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.electronicMailAddress",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.electronicMailAddress_help",
+                                            "path": "metadata.organization.personnel.contactPerson.email",
+                                            "render": "mail",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.voice",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.voice_help",
+                                            "path": "metadata.identificationInfo.pointOfContact.contactInfo.phone.voice",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.linkage",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.linkage_help",
+                                            "path": "metadata.identificationInfo.pointOfContact.contactInfo.onlineResource.linkage",
+                                            "render": "web",
+                                            "obligation": "O","completion" : "EXTENDED",
                                             "defaultValue": null,
                                             "value": null
                                         }

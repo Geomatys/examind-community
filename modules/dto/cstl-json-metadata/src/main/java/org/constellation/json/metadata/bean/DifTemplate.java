@@ -19,10 +19,7 @@
 package org.constellation.json.metadata.bean;
 
 import org.apache.sis.metadata.MetadataStandard;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.json.metadata.Template;
-import org.constellation.metadata.utils.MetadataFeeder;
-import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.dif.xml.v102.DIF;
 import org.geotoolkit.dif.xml.v102.EntryIDType;
 import org.springframework.stereotype.Component;

@@ -33,7 +33,7 @@
             Temporal coverage: 1-Day
             Product Unit : Kelvin</a:summary>
     <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
-    <georss:box>-180.0 180.0 -90.0 90.0</georss:box>
+    <georss:box>-90.0 -180.0 90.0 180.0</georss:box>
   </a:entry>
   <a:entry>
     <a:id>urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493</a:id>
@@ -51,7 +51,7 @@
     <a:category term="Vegetation-Cropland"/>
     <a:summary>Curabitur lacinia, ante non porta tempus, mi lorem feugiat odio, eget suscipit eros pede ac velit.</a:summary>
     <a:updated>2006-03-26T01:00:00.000+01:00</a:updated>
-    <georss:box>47.595 51.217 -4.097 0.889</georss:box>
+    <georss:box>-4.097 47.595 0.889 51.217</georss:box>
   </a:entry>
   <a:entry>
     <a:id>urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2</a:id>

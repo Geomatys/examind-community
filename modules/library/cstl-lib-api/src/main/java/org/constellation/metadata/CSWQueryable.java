@@ -441,6 +441,14 @@ public final class CSWQueryable {
         paths = new ArrayList<>();
         paths.add("/dif:DIF/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle/dif:Southernmost_Latitude");
         DIF_QUERYABLE.put("SouthBoundLatitude",     new PathType(Double.class, paths, DIF_PREFIX_MAPPING));
+
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Platform/dif:Short_Name");
+        DIF_QUERYABLE.put("Platform", new PathType(String.class, paths, ISO_PREFIX_MAPPING));
+
+        paths = new ArrayList<>();
+        paths.add("/dif:DIF/dif:Platform/dif:Instrument/dif:Short_Name");
+        DIF_QUERYABLE.put("Instrument", new PathType(String.class, paths, ISO_PREFIX_MAPPING));
     }
 
     /**

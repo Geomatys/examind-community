@@ -193,9 +193,12 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
         } else if ("Record".equals(meta.getLocalName())) {
             return new SpecificQueryablePart(null, "Record", false);
 
-        // TODO list rootElement
+        // TODO list all root elements
         } else if ("RegistryObject".equals(meta.getLocalName()) ||
-                   "Identifiable".equals(meta.getLocalName())) {
+                   "Identifiable".equals(meta.getLocalName())   ||
+                   "RegistryPackage".equals(meta.getLocalName()) ||
+                   "ExtrinsicObject".equals(meta.getLocalName())) {
+
             return new SpecificQueryablePart(null, "Ebrim", false);
 
         } else if ("FC_FeatureCatalogue".equals(meta.getLocalName())) {

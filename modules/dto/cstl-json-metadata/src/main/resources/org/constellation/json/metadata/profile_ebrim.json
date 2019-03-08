@@ -1,0 +1,40 @@
+{
+    "root": {
+        "name": "Record",
+        "multiplicity": 1,
+        "children": [{
+                "superblock": {
+                    "name": "metadata.block.dataIdentification",
+                    "multiplicity": 1,
+                    "help": "metadata.block.dataIdentification_help",
+                    "path": null,
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.basic",
+                                "multiplicity": 1,
+                                "help": "metadata.block.basic_help",
+                                "path": null,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.identifier",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.identifier_help",
+                                            "path": "metadata.id",
+                                            "render": "readonly",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
