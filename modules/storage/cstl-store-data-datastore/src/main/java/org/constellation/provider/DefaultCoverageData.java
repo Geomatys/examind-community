@@ -341,7 +341,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         try {
             reader = ref.acquireReader();
             return reader.getCoverageMetadata();
-        } catch (CancellationException | CoverageStoreException ex) {
+        } catch (CancellationException | DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         } finally {
             if (reader != null) {
@@ -356,7 +356,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         try {
             reader = ref.acquireReader();
             return reader.getSampleDimensions();
-        } catch (CancellationException | CoverageStoreException ex) {
+        } catch (CancellationException | DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         } finally {
             if (reader != null) {
@@ -375,18 +375,10 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      */
     @Override
     public GridGeometry getGeometry() throws CoverageStoreException {
-        final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
         try {
-            final GridGeometry gg = reader.getGridGeometry();
-            ref.recycle(reader);
-            return gg;
-        } catch (RuntimeException | CoverageStoreException e) {
-            try {
-                reader.dispose();
-            } catch (Exception bis) {
-                e.addSuppressed(bis);
-            }
-            throw e;
+            return ref.getGridGeometry();
+        } catch (DataStoreException e) {
+            throw new CoverageStoreException(e.getMessage(), e);
         }
     }
 
@@ -473,15 +465,13 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             }
 
             // Geographic extent description.
-            final GridCoverageReader reader = ref.acquireReader();
-            final GridGeometry ggg = reader.getGridGeometry();
+            final GridGeometry ggg = ref.getGridGeometry();
             if(ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
                 final Envelope envelope = ggg.getEnvelope();
                 Util.fillGeographicDescription(envelope, description);
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-            ref.recycle(reader);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -570,9 +560,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         GridGeometry gridGeom = null;
         //-- try to open coverage
         try {
-            final GridCoverageReader covReader = (GridCoverageReader) ref.acquireReader();
-            gridGeom = covReader.getGridGeometry();
-            ref.recycle(covReader);
+            gridGeom = ref.getGridGeometry();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }

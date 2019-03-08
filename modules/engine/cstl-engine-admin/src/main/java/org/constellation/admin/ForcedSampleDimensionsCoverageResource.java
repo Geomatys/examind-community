@@ -58,13 +58,13 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
     }
 
     @Override
-    public GridCoverageReader acquireReader() throws CoverageStoreException {
+    public GridCoverageReader acquireReader() throws DataStoreException {
         final GridCoverageReader baseReader = (GridCoverageReader) baseRef.acquireReader();
         return new ForcedSDCoverageReader(baseReader);
     }
 
     @Override
-    public GridCoverageWriter acquireWriter() throws CoverageStoreException {
+    public GridCoverageWriter acquireWriter() throws DataStoreException {
         throw new CoverageStoreException("Not supported.");
     }
 
@@ -88,22 +88,22 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
         }
 
         @Override
-        public GenericName getCoverageName() throws CoverageStoreException, CancellationException {
+        public GenericName getCoverageName() throws DataStoreException, CancellationException {
             return baseReader.getCoverageName();
         }
 
         @Override
-        public GridGeometry getGridGeometry() throws CoverageStoreException, CancellationException {
+        public GridGeometry getGridGeometry() throws DataStoreException, CancellationException {
             return baseReader.getGridGeometry();
         }
 
         @Override
-        public List<SampleDimension> getSampleDimensions() throws CoverageStoreException, CancellationException {
+        public List<SampleDimension> getSampleDimensions() throws DataStoreException, CancellationException {
             return dimensions;
         }
 
         @Override
-        public GridCoverage read(GridCoverageReadParam param) throws CoverageStoreException, CancellationException {
+        public GridCoverage read(GridCoverageReadParam param) throws DataStoreException, CancellationException {
             final GridCoverage baseCoverage = baseReader.read(param);
             if(!(baseCoverage instanceof GridCoverage2D)){
                 throw new CoverageStoreException("Forced alpha reader only support grid coverage 2d, but found a "+baseCoverage.getClass().getName());

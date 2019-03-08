@@ -63,7 +63,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.data.AbstractFolderFeatureStoreFactory;
 import org.geotoolkit.data.FileFeatureStoreFactory;
@@ -355,7 +354,7 @@ public final class DataProviders extends Static{
                 final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
                 gg = reader.getGridGeometry();
                 inRef.recycle(reader);
-            } catch(CoverageStoreException ex) {
+            } catch(DataStoreException ex) {
                 throw new ConstellationException("Failed to extract grid geometry for data "+dataId+". ",ex);
             }
             final double geospanX = env.getSpan(0);

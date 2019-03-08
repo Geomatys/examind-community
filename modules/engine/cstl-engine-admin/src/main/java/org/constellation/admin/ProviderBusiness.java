@@ -82,7 +82,6 @@ import org.constellation.util.ParamUtilities;
 import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.ViewType;
-import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReadParam;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
@@ -785,7 +784,7 @@ public class ProviderBusiness implements IProviderBusiness {
             final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
             gg = reader.getGridGeometry();
             inRef.recycle(reader);
-        } catch (CoverageStoreException ex) {
+        } catch (DataStoreException ex) {
             throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
         }
 
@@ -930,7 +929,7 @@ public class ProviderBusiness implements IProviderBusiness {
         return result;
     }
 
-    private RenderedImage readSmallImage(GridCoverageReader reader, GridGeometry gg) throws CoverageStoreException{
+    private RenderedImage readSmallImage(GridCoverageReader reader, GridGeometry gg) throws DataStoreException{
         //read a single pixel value
         try {
             double[] resolution = gg.getResolution(false);

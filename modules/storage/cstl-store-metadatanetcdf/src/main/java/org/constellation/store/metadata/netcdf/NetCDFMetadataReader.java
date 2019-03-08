@@ -18,27 +18,30 @@
  */
 package org.constellation.store.metadata.netcdf;
 
+import java.util.*;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.XML;
+import static org.constellation.api.CommonConstants.NETCDF_EXT;
 import org.constellation.api.PathType;
 import org.constellation.jaxb.MarshallWarnings;
-import static org.constellation.api.CommonConstants.NETCDF_EXT;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
-import org.geotoolkit.metadata.AbstractMetadataReader;
-import org.constellation.store.metadata.CSWMetadataReader;
-import org.geotoolkit.metadata.ElementSetType;
-import org.geotoolkit.metadata.MetadataIoException;
-import org.geotoolkit.metadata.MetadataType;
 import org.constellation.metadata.utils.Utils;
+import org.constellation.store.metadata.CSWMetadataReader;
 import org.constellation.util.ReflectionUtilities;
-import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.ImageCoverageReader;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.v202.*;
+import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory.*;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
+import org.geotoolkit.metadata.AbstractMetadataReader;
+import org.geotoolkit.metadata.ElementSetType;
+import org.geotoolkit.metadata.MetadataIoException;
+import org.geotoolkit.metadata.MetadataType;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import org.geotoolkit.ows.xml.v100.BoundingBoxType;
 import org.opengis.metadata.citation.Responsibility;
 import org.opengis.metadata.citation.ResponsibleParty;
@@ -71,17 +74,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.logging.Level;
 import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.Settable;
 
 import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
-import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory.*;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Abstract_QNAME;
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Modified_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
 
 /**
@@ -323,12 +323,12 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                 final Object obj = reader.getMetadata();
                 Utils.setIdentifier(identifier, obj);
                 return obj;
-            } catch (CoverageStoreException | IllegalArgumentException ex) {
+            } catch (DataStoreException | IllegalArgumentException ex) {
                 throw new MetadataIoException("The netcdf file : " + metadataFile.getFileName().toString() + " can not be read\ncause: " + ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
             } finally {
                 try {
                     reader.dispose();
-                } catch (CoverageStoreException ex) {
+                } catch (DataStoreException ex) {
                     LOGGER.log(Level.WARNING, null, ex);
                 }
             }
@@ -670,7 +670,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                             }
                         }
                         //continue to the next file
-                    } catch (CoverageStoreException | IllegalArgumentException ex) {
+                    } catch (DataStoreException | IllegalArgumentException ex) {
                         LOGGER.log(Level.WARNING, "The netcdf file : {0} can not be read\ncause: {1}", new Object[]{fileName, ex.getMessage()});
                     }
 
@@ -687,7 +687,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         } finally {
             try {
                 reader.dispose();
-            } catch (CoverageStoreException ex) {
+            } catch (DataStoreException ex) {
                 LOGGER.log(Level.WARNING, null, ex);
             }
         }
@@ -760,7 +760,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         } finally {
             try {
                 reader.dispose();
-            } catch (CoverageStoreException ex) {
+            } catch (DataStoreException ex) {
                 // throw or continue to the next file?
                 LOGGER.log(Level.WARNING, "Unable to close the imageCoverageReader", ex);
             }

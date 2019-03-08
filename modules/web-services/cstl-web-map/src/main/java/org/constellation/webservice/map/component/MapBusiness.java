@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.admin.util.ImageStatisticDeserializer;
 import org.constellation.business.IDataBusiness;
@@ -53,7 +54,6 @@ import org.constellation.ws.CstlServiceException;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.geotoolkit.coverage.amended.AmendedCoverageResource;
-import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -288,11 +288,11 @@ public class MapBusiness {
                         reader = (GridCoverageReader) res.acquireReader();
                         oldSampleDimensions = reader.getSampleDimensions();
                         res.recycle(reader);
-                    } catch (CoverageStoreException ex) {
+                    } catch (DataStoreException ex) {
                         if (reader != null) {
                             try {
                                 reader.dispose();
-                            } catch (CoverageStoreException ex1) {
+                            } catch (DataStoreException ex1) {
                                 ex.addSuppressed(ex1);
                             }
                         }
