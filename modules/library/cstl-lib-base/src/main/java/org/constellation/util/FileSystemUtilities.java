@@ -69,11 +69,10 @@ public class FileSystemUtilities {
                     char[] pwd = password.toCharArray();
                     prop.put("password", pwd);
                 }
-                // TODO allow to configure via envronnement variable or via UI ?
-                prop.put("clientConnectionCount", 5);
-                prop.put("connectionMode", "PASSIVE");
-                prop.put("printCommand", Application.getBooleanProperty(AppProperty.CSTL_FTP_VERBOSE_LOG, false));
-                prop.put("bufferSize", 1024 * 1024);
+                prop.put("clientConnectionCount", Application.getIntegerProperty(AppProperty.CSTL_FTP_CLIENT_CONNECTION_COUNT, 5));
+                prop.put("connectionMode",        Application.getProperty(AppProperty.CSTL_FTP_CLIENT_CONNECTION_MODE,         "PASSIVE"));
+                prop.put("printCommand",          Application.getBooleanProperty(AppProperty.CSTL_FTP_VERBOSE_LOG,             false));
+                prop.put("bufferSize",            Application.getIntegerProperty(AppProperty.CSTL_FTP_CLIENT_BUFFER_SIZE,      1024 * 1024));
 
                 baseURI = new URI(baseUrl);
                 userURI = new URI(userUrl);

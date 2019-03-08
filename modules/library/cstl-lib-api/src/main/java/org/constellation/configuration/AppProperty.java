@@ -107,11 +107,32 @@ public enum AppProperty {
 
     ES_MASTER_NAME("es.master.name"),
 
+    /**
+     * If set to true, a new metadata FC_FeatureCalogue wil be created at vector data import (default is false).
+     */
     GENERATE_FEATURE_CATALOG("generate.feature.catalog"),
 
     CREATE_DATASET_METADATA("create.dataset.metadata"),
 
+    /**
+     * Flag enabling the FTP robitimus provider debug log (default is false).
+     */
     CSTL_FTP_VERBOSE_LOG("cstl.ftp.verbose.log"),
+
+    /**
+     * Flag changing the FTP robitimus provider connection pool size (default is 5).
+     */
+    CSTL_FTP_CLIENT_CONNECTION_COUNT("cstl.ftp.client.connection.count"),
+
+    /**
+     * Flag changing the FTP robitimus provider connection mode (default is "PASSIVE").
+     */
+    CSTL_FTP_CLIENT_CONNECTION_MODE("cstl.ftp.client.connection.mode"),
+
+    /**
+     * Flag enabling the FTP robitimus provider buffer size (default is 1024 * 1024).
+     */
+    CSTL_FTP_CLIENT_BUFFER_SIZE("cstl.ftp.client.buffer.size"),
 
     CSTL_MAPSERVER_GFI_OUTPUT("cstl.mapserver.gfi.output"),
 
