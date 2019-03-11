@@ -34,9 +34,11 @@ import javax.inject.Inject;
 import javax.measure.Unit;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.internal.storage.StoreResource;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.admin.util.ImageStatisticDeserializer;
 import org.constellation.business.IDataBusiness;
@@ -54,7 +56,6 @@ import org.constellation.ws.CstlServiceException;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.geotoolkit.coverage.amended.AmendedCoverageResource;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.OutputDef;
@@ -68,7 +69,6 @@ import org.geotoolkit.map.MapItem;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.style.Style;
@@ -281,20 +281,10 @@ public class MapBusiness {
                     }
 
                     //get original sample dimensions
-                    GridCoverageReader reader = null;
                     final List<SampleDimension> oldSampleDimensions;
                     try {
-                        reader = (GridCoverageReader) res.acquireReader();
-                        oldSampleDimensions = reader.getSampleDimensions();
-                        res.recycle(reader);
+                        oldSampleDimensions = res.getSampleDimensions();
                     } catch (DataStoreException ex) {
-                        if (reader != null) {
-                            try {
-                                reader.dispose();
-                            } catch (DataStoreException ex1) {
-                                ex.addSuppressed(ex1);
-                            }
-                        }
                         throw new ConfigurationException(ex.getMessage(), ex);
                     }
 
@@ -337,7 +327,7 @@ public class MapBusiness {
                     }
 
                     //create amended resource
-                    final AmendedCoverageResource r = new AmendedCoverageResource((GridCoverageResource)res, res.getOriginator());
+                    final AmendedCoverageResource r = new AmendedCoverageResource((org.geotoolkit.storage.coverage.GridCoverageResource) res, ((StoreResource) res).getOriginator());
                     r.setOverrideDims(newSampleDimensions);
 
                     final CoverageMapLayer cml = MapBuilder.createCoverageLayer(r, covStyle);
