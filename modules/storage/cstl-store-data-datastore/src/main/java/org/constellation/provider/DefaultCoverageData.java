@@ -61,6 +61,7 @@ import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReadParam;
 import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.geotoolkit.coverage.io.ImageCoverageReader;
 import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.query.QueryBuilder;
@@ -344,7 +345,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         GridCoverageReader reader = null;
         try {
             reader = ref.acquireReader();
-            return reader.getCoverageMetadata();
+            if (reader instanceof ImageCoverageReader) {
+                return ((ImageCoverageReader)reader).getCoverageMetadata();
+            } else {
+                return null;
+            }
         } catch (CancellationException | DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         } finally {

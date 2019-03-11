@@ -28,6 +28,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
+import org.geotoolkit.coverage.io.AbstractGridCoverageReader;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReadParam;
 import org.geotoolkit.coverage.io.GridCoverageReader;
@@ -78,7 +79,7 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
     }
 
 
-    private class ForcedSDCoverageReader extends GridCoverageReader{
+    private class ForcedSDCoverageReader extends AbstractGridCoverageReader {
 
         private final GridCoverageReader baseReader;
 

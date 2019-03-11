@@ -1121,7 +1121,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             reader = (GridCoverageReader) ref.acquireReader();
             gridGeometry = reader.getGridGeometry();
             crs = gridGeometry.getCoordinateReferenceSystem();
-            metadata = reader.getCoverageMetadata();
+            metadata = layerRef.getSpatialMetadata();
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         } finally {
