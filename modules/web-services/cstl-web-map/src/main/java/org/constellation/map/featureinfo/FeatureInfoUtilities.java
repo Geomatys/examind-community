@@ -37,6 +37,7 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
@@ -47,7 +48,6 @@ import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.opengis.geometry.Envelope;
 
 /**
@@ -329,7 +329,7 @@ public final class FeatureInfoUtilities extends Static {
         final MapLayer layer = gra.getLayer();
         Envelope objBounds = context.getCanvasObjectiveBounds();
 
-        final CoverageResource ref = (CoverageResource) layer.getResource();
+        final Resource ref = layer.getResource();
 
         if (ref instanceof org.apache.sis.storage.GridCoverageResource) {
             //create envelope around searched area

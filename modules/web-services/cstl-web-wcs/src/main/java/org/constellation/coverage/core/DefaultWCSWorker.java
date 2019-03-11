@@ -176,7 +176,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
-import org.geotoolkit.storage.coverage.CoverageResource;
+import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.swe.xml.v200.AllowedValuesPropertyType;
 import org.geotoolkit.swe.xml.v200.AllowedValuesType;
 import org.geotoolkit.swe.xml.v200.DataRecordPropertyType;
@@ -1112,7 +1112,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
 
         final SpatialMetadata metadata;
-        final CoverageResource ref = (CoverageResource) layerRef.getOrigin();
+        final GridCoverageResource ref = (GridCoverageResource) layerRef.getOrigin();
         GridCoverageReader reader = null;
         final GridGeometry gridGeometry;
 

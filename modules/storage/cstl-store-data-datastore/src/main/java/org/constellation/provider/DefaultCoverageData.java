@@ -444,7 +444,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     @Override
     public DataStore getStore() {
-        return ref.getStore();
+        return ref.getOriginator();
     }
 
     @Override

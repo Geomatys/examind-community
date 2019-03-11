@@ -97,7 +97,7 @@ import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.CoverageResource;
+import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
@@ -773,12 +773,12 @@ public class ProviderBusiness implements IProviderBusiness {
 
         final Object origin = providerData.getOrigin();
 
-        if(!(origin instanceof CoverageResource)) {
+        if(!(origin instanceof GridCoverageResource)) {
             throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
         }
 
         //init coverage reference and grid geometry
-        CoverageResource inRef = (CoverageResource) origin;
+        GridCoverageResource inRef = (GridCoverageResource) origin;
         final GridGeometry gg;
         try {
             final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();

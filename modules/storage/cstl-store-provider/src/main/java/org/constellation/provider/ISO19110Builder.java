@@ -10,23 +10,22 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-
 import org.apache.sis.internal.jaxb.gco.Multiplicity;
 import org.apache.sis.measure.NumberRange;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.util.StoreUtilities;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.feature.catalog.FeatureTypeImpl;
-import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.FeatureSet;
-import org.constellation.util.StoreUtilities;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.CoverageResource;
+import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureAssociationRole;
@@ -87,8 +86,8 @@ public class ISO19110Builder {
         catalogue.setId("fc-" + UUID.randomUUID().toString());
         for (Resource rs : ressources) {
             final FeatureTypeImpl featureType;
-            if (rs instanceof CoverageResource) {
-                featureType = createCatalogueFeatureFromCoverageResource((CoverageResource) rs);
+            if (rs instanceof GridCoverageResource) {
+                featureType = createCatalogueFeatureFromCoverageResource((GridCoverageResource) rs);
             } else if (rs instanceof FeatureSet) {
                 featureType = createCatalogueFeatureFromFeatureSet((FeatureSet)rs);
             } else {
@@ -150,7 +149,7 @@ public class ISO19110Builder {
         return featureType;
     }
 
-    public static FeatureTypeImpl createCatalogueFeatureFromCoverageResource(final CoverageResource cr) throws DataStoreException {
+    public static FeatureTypeImpl createCatalogueFeatureFromCoverageResource(final GridCoverageResource cr) throws DataStoreException {
         final GridCoverageReader gcr = (GridCoverageReader) cr.acquireReader();
         final Metadata meta = gcr.getMetadata();
         final FeatureTypeImpl featureType = new FeatureTypeImpl();

@@ -69,7 +69,7 @@ import org.geotoolkit.data.FileFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.CoverageResource;
+import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
@@ -208,8 +208,8 @@ public final class DataProviders extends Static{
 
         for (final Resource rs : DataStores.flatten(store, false)) {
             GenericName name = NamesExt.create(getResourceIdentifier(rs));
-             if (rs instanceof CoverageResource) {
-                final CoverageResource coverageReference = (CoverageResource) rs;
+             if (rs instanceof GridCoverageResource) {
+                final GridCoverageResource coverageReference = (GridCoverageResource) rs;
                 final GridCoverageReader coverageReader = (GridCoverageReader) coverageReference.acquireReader();
                 try {
                     final CoordinateReferenceSystem crs = coverageReader.getGridGeometry().getCoordinateReferenceSystem();
@@ -346,9 +346,9 @@ public final class DataProviders extends Static{
             throw new ConstellationException("Failed to transform envelope to input CRS", ex);
         }
 
-        if(origin instanceof CoverageResource){
+        if(origin instanceof GridCoverageResource){
             //calculate pyramid scale levels
-            final CoverageResource inRef = (CoverageResource) origin;
+            final GridCoverageResource inRef = (GridCoverageResource) origin;
             final GridGeometry gg;
             try{
                 final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
@@ -556,7 +556,7 @@ public final class DataProviders extends Static{
                         sb.append(margin).append("Aggregate: ").append(resId).append('\n');
 
 
-                    } else if (resource instanceof FeatureSet | resource instanceof CoverageResource) {
+                    } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
                         FeatureSet a = (FeatureSet) resource;
                         sb.append(margin).append("Resource: ").append(resId).append('\n');
                         ResourceData d = new ResourceData(resId, getType(resource));
@@ -668,7 +668,7 @@ public final class DataProviders extends Static{
                         sb.append(margin).append("Aggregate: ").append(resId).append('\n');
 
 
-                    } else if (resource instanceof FeatureSet | resource instanceof CoverageResource) {
+                    } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
                         FeatureSet a = (FeatureSet) resource;
                         sb.append(margin).append("Resource: ").append(resId).append('\n');
                         ResourceData d = new ResourceData(resId, getType(resource));
@@ -714,7 +714,7 @@ public final class DataProviders extends Static{
     }
 
     private static String getType(Resource r) throws DataStoreException {
-        if (r instanceof CoverageResource) {
+        if (r instanceof GridCoverageResource) {
             return "raster";
         } else if (r instanceof FeatureSet) {
             return "vector";

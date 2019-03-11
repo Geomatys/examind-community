@@ -68,7 +68,6 @@ import org.geotoolkit.map.MapItem;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
@@ -251,7 +250,7 @@ public class MapBusiness {
                 if (mapItem instanceof CoverageMapLayer) {
                     final CoverageMapLayer cl = (CoverageMapLayer)mapItem;
                     final MutableStyle covStyle = cl.getStyle();
-                    final CoverageResource res = cl.getResource();
+                    final GridCoverageResource res = cl.getResource();
                     final String state = data.getStatsState();
 
                     if (!"COMPLETED".equalsIgnoreCase(state)) {
@@ -338,7 +337,7 @@ public class MapBusiness {
                     }
 
                     //create amended resource
-                    final AmendedCoverageResource r = new AmendedCoverageResource((GridCoverageResource)res, res.getStore());
+                    final AmendedCoverageResource r = new AmendedCoverageResource((GridCoverageResource)res, res.getOriginator());
                     r.setOverrideDims(newSampleDimensions);
 
                     final CoverageMapLayer cml = MapBuilder.createCoverageLayer(r, covStyle);

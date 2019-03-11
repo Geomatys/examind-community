@@ -33,7 +33,6 @@ import org.geotoolkit.coverage.io.GridCoverageReadParam;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.io.GridCoverageWriter;
 import org.geotoolkit.storage.coverage.AbstractCoverageResource;
-import org.geotoolkit.storage.coverage.CoverageResource;
 import org.opengis.util.GenericName;
 
 /**
@@ -44,9 +43,9 @@ public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageReso
 
 
     private final List<SampleDimension> dimensions;
-    private final CoverageResource baseRef;
+    private final org.geotoolkit.storage.coverage.GridCoverageResource baseRef;
 
-    public ForcedSampleDimensionsCoverageResource(CoverageResource baseRef, List<SampleDimension> dimensions) throws DataStoreException {
+    public ForcedSampleDimensionsCoverageResource(org.geotoolkit.storage.coverage.GridCoverageResource baseRef, List<SampleDimension> dimensions) throws DataStoreException {
         super(null, baseRef.getIdentifier());
         this.baseRef = baseRef;
         this.dimensions = dimensions;
