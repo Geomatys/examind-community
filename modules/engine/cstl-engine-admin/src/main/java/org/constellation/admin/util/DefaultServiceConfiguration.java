@@ -76,6 +76,7 @@ public class DefaultServiceConfiguration {
 
         //JSON
         featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON_UTF8, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
 
         return featureInfos;
     }

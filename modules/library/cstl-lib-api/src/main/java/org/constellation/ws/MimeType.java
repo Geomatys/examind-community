@@ -70,4 +70,6 @@ public final class MimeType {
 
     public static final String APP_ATOM        = "application/atom+xml";
 
+    public static final String APP_JSON_UTF8   = "application/json; charset=utf-8";
+
 }

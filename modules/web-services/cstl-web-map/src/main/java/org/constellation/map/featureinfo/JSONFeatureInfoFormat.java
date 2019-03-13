@@ -365,6 +365,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         //will return map server GML
         mimes.add(MimeType.APP_JSON);
+        mimes.add(MimeType.APP_JSON_UTF8);
         return mimes;
     }
 }
