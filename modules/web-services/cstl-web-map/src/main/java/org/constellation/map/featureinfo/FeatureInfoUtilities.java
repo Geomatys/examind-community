@@ -43,11 +43,13 @@ import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
+import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.storage.coverage.CoverageUtilities;
 import org.opengis.geometry.Envelope;
 
 /**
@@ -341,8 +343,15 @@ public final class FeatureInfoUtilities extends Static {
             try {
                 //slice grid geometry on envelope
                 final org.apache.sis.storage.GridCoverageResource gr = (org.apache.sis.storage.GridCoverageResource) ref;
-                final GridGeometry gridGeom = gr.getGridGeometry().derive().subgrid(dp).build();
-                final GridCoverage coverage = gr.read(gridGeom);
+                final GridGeometry gridGeom = gr.getGridGeometry().derive().subgrid(dp).sliceByRatio(0.5, 0, 1).build();
+                GridCoverage coverage = gr.read(gridGeom);
+
+                //convert image to geophysic
+                //TODO replace by SIS API when available
+                if (coverage.getSampleDimensions() != null && !coverage.getSampleDimensions().isEmpty()) {
+                    coverage = org.geotoolkit.internal.coverage.CoverageUtilities.toGeotk(coverage).view(ViewType.GEOPHYSICS);
+                }
+
                 //pick first slice if several are available
                 final GridExtent extent = coverage.getGridGeometry().getExtent();
                 final long[] low = new long[extent.getDimension()];
