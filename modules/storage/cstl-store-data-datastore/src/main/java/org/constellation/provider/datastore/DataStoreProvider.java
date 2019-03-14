@@ -151,8 +151,8 @@ public class DataStoreProvider extends AbstractDataProvider{
         final org.apache.sis.storage.DataStore store = getMainStore();
         try {
             final Resource rs = StoreUtilities.findResource(store, key.toString());
-            if (rs instanceof GridCoverageResource) {
-                return new DefaultCoverageData(key, (GridCoverageResource) rs);
+            if (rs instanceof org.apache.sis.storage.GridCoverageResource) {
+                return new DefaultCoverageData(key, (org.apache.sis.storage.GridCoverageResource) rs, store);
             } else if (rs instanceof FeatureSet){
                 return new DefaultFeatureData(key, store, null, null, null, null, null, version);
             }
@@ -173,15 +173,11 @@ public class DataStoreProvider extends AbstractDataProvider{
         try {
 
             for (final Resource rs : DataStores.flatten(store, true)) {
-                GenericName rsName = rs.getIdentifier();
-                if (rsName != null) {
-                    if (rs instanceof FeatureSet) {
-                        if (!index.contains(rsName)) {
-                            index.add(rsName);
-                        }
-                    } else if (!(rs instanceof Aggregate)) {
-                        if (!index.contains(rsName)) {
-                            index.add(rsName);
+                if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
+                    GenericName name = NamesExt.valueOf(DataProviders.getResourceIdentifier(rs));
+                    if (name != null) {
+                        if (!index.contains(name)) {
+                            index.add(name);
                         }
                     }
                 }

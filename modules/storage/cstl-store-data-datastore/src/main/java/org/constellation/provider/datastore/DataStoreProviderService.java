@@ -51,12 +51,12 @@ public class DataStoreProviderService extends AbstractDataProviderFactory {
         final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.getAllFactories(org.apache.sis.storage.DataStoreProvider.class).iterator();
         while(ite.hasNext()){
             org.apache.sis.storage.DataStoreProvider provider = ite.next();
-            
-            // for now we exclude the pure sis providers
-            if (provider.getClass().getName().startsWith("org.apache.sis")) {
+
+            // for now we exclude the pure sis internal providers
+            if (provider.getClass().getName().startsWith("org.apache.sis.internal")) {
                 continue;
             }
-                
+
             //copy the descriptor with a minimum number of zero
             final ParameterDescriptorGroup desc = provider.getOpenParameters();
 
@@ -65,7 +65,7 @@ public class DataStoreProviderService extends AbstractDataProviderFactory {
                 BUILDER.addName(alias);
             }
             final ParameterDescriptorGroup mindesc = BUILDER.createGroup(0, 1, desc.descriptors().toArray(new GeneralParameterDescriptor[0]));
-            
+
             descs.add(mindesc);
         }
 

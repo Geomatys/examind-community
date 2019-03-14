@@ -33,9 +33,10 @@ import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
@@ -45,6 +46,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.api.DataType;
 import org.constellation.dto.BandDescription;
@@ -54,18 +56,17 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.grid.GridGeometry2D;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.io.ImageCoverageReader;
 import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
+import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.map.DefaultCoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
@@ -74,7 +75,6 @@ import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
@@ -116,10 +116,13 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             "FUTURE", "PAST"});
 
     private final GridCoverageResource ref;
+    private final DataStore store;
 
-    public DefaultCoverageData(final GenericName name, final GridCoverageResource ref){
+
+    public DefaultCoverageData(final GenericName name, final GridCoverageResource ref, final DataStore store){
         super(name, Collections.EMPTY_LIST);
         this.ref = ref;
+        this.store = store;
     }
 
     @Override
@@ -134,13 +137,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public GridCoverage2D getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation,
                                       final Date time) throws ConstellationStoreException, IOException
     {
-        GridCoverageReadParam param = new GridCoverageReadParam();
+        double[] res = null;
         if (envelope != null) {
-            param.setEnvelope(envelope);
-
             if (dimension!=null) {
                 //compute resolution
-                double[] res = new double[envelope.getDimension()];
+                res = new double[envelope.getDimension()];
                 for (int i = 0 ; i < envelope.getDimension(); i++) {
                     switch (i) {
                         case 0: res[i] = envelope.getSpan(i) / dimension.width; break;
@@ -148,36 +149,31 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                         default : res[i] = envelope.getSpan(i); break;
                     }
                 }
-                param.setResolution(res);
             }
         }
-        param.setDeferred(true);
 
-        GridCoverageReader reader = null;
+
         try {
-            reader = ref.acquireReader();
 
-            if (dimension != null) {
-                final CoordinateReferenceSystem crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
-                final Envelope envelope2D = Envelopes.transform(envelope, crs2D);
-                final GridExtent ext = new GridExtent(null, new long[]{0,0}, new long[]{dimension.width, dimension.height}, false);
-                final GridGeometry2D gridGeom = new GridGeometry2D(ext, envelope2D);
-                final GridCoverage2D cov      = (GridCoverage2D) reader.read(param);
-                return new ResampleProcess(cov, crs2D, gridGeom, null, null).executeNow();
+            final CoordinateReferenceSystem crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+
+            final GridGeometry gridGeom = ref.getGridGeometry();
+            GridDerivation gd;
+            if (res != null) {
+                gd = gridGeom.derive().subgrid(envelope, res);
             } else {
-                return (GridCoverage2D) reader.read(param);
+                gd = gridGeom.derive().subgrid(envelope);
             }
+            final GridCoverage cov      =  ref.read(gd.build());
+            final GridCoverage2D cov2d  = CoverageUtilities.toGeotk(cov);
+            return new ResampleProcess(cov2d, crs2D, gridGeom, null, null).executeNow();
+
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
 
-        } catch (CancellationException | ProcessException | TransformException ex) {
+        } catch (CancellationException | ProcessException ex) {
             throw new IOException(ex.getMessage(), ex);
-        } finally {
-            if (reader != null) {
-                ref.recycle(reader);
-            }
         }
-
     }
 
     /**
@@ -342,35 +338,34 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     @Override
     public SpatialMetadata getSpatialMetadata() throws ConstellationStoreException {
-        GridCoverageReader reader = null;
-        try {
-            reader = ref.acquireReader();
-            if (reader instanceof ImageCoverageReader) {
-                return ((ImageCoverageReader)reader).getCoverageMetadata();
-            } else {
-                return null;
+        if (ref instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
+            org.geotoolkit.storage.coverage.GridCoverageResource gref = (org.geotoolkit.storage.coverage.GridCoverageResource) ref;
+            GridCoverageReader reader = null;
+            try {
+                reader = gref.acquireReader();
+                if (reader instanceof ImageCoverageReader) {
+                    return ((ImageCoverageReader)reader).getCoverageMetadata();
+                } else {
+                    return null;
+                }
+            } catch (CancellationException | DataStoreException ex) {
+                throw new ConstellationStoreException(ex);
+            } finally {
+                if (reader != null) {
+                    gref.recycle(reader);
+                }
             }
-        } catch (CancellationException | DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        } finally {
-            if (reader != null) {
-                ref.recycle(reader);
-            }
+        } else {
+            return null;
         }
     }
 
     @Override
     public List<SampleDimension> getSampleDimensions() throws ConstellationStoreException {
-        GridCoverageReader reader = null;
         try {
-            reader = ref.acquireReader();
-            return reader.getSampleDimensions();
+            return ref.getSampleDimensions();
         } catch (CancellationException | DataStoreException ex) {
             throw new ConstellationStoreException(ex);
-        } finally {
-            if (reader != null) {
-                ref.recycle(reader);
-            }
         }
     }
 
@@ -453,7 +448,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     @Override
     public DataStore getStore() {
-        return ref.getOriginator();
+        return store;
     }
 
     @Override
@@ -550,12 +545,10 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public boolean isGeophysic() throws ConstellationStoreException {
         boolean isGeophysic = false;
         try {
-            final GridCoverageReader reader = (GridCoverageReader) ref.acquireReader();
-            final List<SampleDimension> dims = reader.getSampleDimensions();
+            final List<SampleDimension> dims = ref.getSampleDimensions();
             if(dims!=null && !dims.isEmpty()){
                 isGeophysic = true;
             }
-            ref.recycle(reader);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
