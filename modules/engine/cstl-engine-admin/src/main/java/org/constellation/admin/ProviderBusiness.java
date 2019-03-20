@@ -47,6 +47,7 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.IOUtilities;
 import org.constellation.api.DataType;
@@ -79,11 +80,7 @@ import org.constellation.provider.SensorProvider;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.util.ParamUtilities;
-import org.geotoolkit.coverage.grid.GridCoverage;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.ViewType;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
@@ -97,7 +94,6 @@ import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
@@ -781,19 +777,14 @@ public class ProviderBusiness implements IProviderBusiness {
         GridCoverageResource inRef = (GridCoverageResource) origin;
         final GridGeometry gg;
         try {
-            final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-            gg = reader.getGridGeometry();
-            inRef.recycle(reader);
+            gg = inRef.getGridGeometry();
         } catch (DataStoreException ex) {
             throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
         }
 
-
         //find the type of data we are dealing with, geophysic or photographic
         try {
-            final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-            final List<SampleDimension> sampleDimensions = reader.getSampleDimensions();
-            inRef.recycle(reader);
+            final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
             if (sampleDimensions != null) {
                 final int nbBand = sampleDimensions.size();
                 boolean hasCategories = false;
@@ -801,20 +792,20 @@ public class ProviderBusiness implements IProviderBusiness {
                     hasCategories = hasCategories || sampleDimensions.get(i).getCategories() != null;
                 }
 
-                if(!hasCategories){
+                if (!hasCategories) {
                     //no sample dimension categories, we force some categories
                     //this is a bypass solution to avoid black border images in pyramids
                     //note : we need a pyramid storage model that doesn't produce any pixels
                     //outside the original coverage area
 
-                    RenderedImage img = readSmallImage(reader, gg);
+                    RenderedImage img = readSmallImage(inRef, gg);
 
                     final List<SampleDimension> newDims = new ArrayList<>();
                     for (int i = 0; i < nbBand; i++) {
                         final SampleDimension sd = sampleDimensions.get(i);
                         final int dataType = img.getSampleModel().getDataType();
                         NumberRange range;
-                        switch(dataType){
+                        switch (dataType) {
                             case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
                             case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
                             case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
@@ -929,7 +920,7 @@ public class ProviderBusiness implements IProviderBusiness {
         return result;
     }
 
-    private RenderedImage readSmallImage(GridCoverageReader reader, GridGeometry gg) throws DataStoreException{
+    private RenderedImage readSmallImage(GridCoverageResource ref, GridGeometry gg) throws DataStoreException{
         //read a single pixel value
         try {
             double[] resolution = gg.getResolution(false);
@@ -937,13 +928,9 @@ public class ProviderBusiness implements IProviderBusiness {
             for(int i=0;i<resolution.length;i++){
                 resolution[i] = envelope.getSpan(i)/ 5.0;
             }
-            GridCoverageReadParam params = new GridCoverageReadParam();
-            params.setEnvelope(envelope);
-            params.setResolution(resolution);
-            GridCoverage cov = reader.read(params);
-            if (cov instanceof GridCoverage2D) {
-                return ((GridCoverage2D) cov).getRenderedImage();
-            }
+
+            GridGeometry query = gg.derive().subgrid(envelope, resolution).sliceByRatio(0.5, 0,1).build();
+            return ref.read(query).render(null);
         } catch (IncompleteGridGeometryException ex){}
         return null;
     }

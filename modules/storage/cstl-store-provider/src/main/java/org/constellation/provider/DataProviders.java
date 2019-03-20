@@ -63,13 +63,12 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.data.AbstractFolderFeatureStoreFactory;
 import org.geotoolkit.data.FileFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
+import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
@@ -210,14 +209,9 @@ public final class DataProviders extends Static{
             GenericName name = NamesExt.create(getResourceIdentifier(rs));
              if (rs instanceof GridCoverageResource) {
                 final GridCoverageResource coverageReference = (GridCoverageResource) rs;
-                final GridCoverageReader coverageReader = (GridCoverageReader) coverageReference.acquireReader();
-                try {
-                    final CoordinateReferenceSystem crs = coverageReader.getGridGeometry().getCoordinateReferenceSystem();
-                    if(crs!=null) {
-                        nameCoordinateReferenceSystemHashMap.put(name,crs);
-                    }
-                }finally {
-                    coverageReference.recycle(coverageReader);
+                final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
+                if (crs != null) {
+                    nameCoordinateReferenceSystemHashMap.put(name,crs);
                 }
             } else if (rs instanceof FeatureSet) {
                 FeatureSet fs = (FeatureSet) rs;
@@ -350,11 +344,9 @@ public final class DataProviders extends Static{
             //calculate pyramid scale levels
             final GridCoverageResource inRef = (GridCoverageResource) origin;
             final GridGeometry gg;
-            try{
-                final GridCoverageReader reader = (GridCoverageReader) inRef.acquireReader();
-                gg = reader.getGridGeometry();
-                inRef.recycle(reader);
-            } catch(DataStoreException ex) {
+            try {
+                gg = inRef.getGridGeometry();
+            } catch (DataStoreException ex) {
                 throw new ConstellationException("Failed to extract grid geometry for data "+dataId+". ",ex);
             }
             final double geospanX = env.getSpan(0);

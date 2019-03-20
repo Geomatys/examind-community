@@ -18,104 +18,83 @@
  */
 package org.constellation.admin;
 
-import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
-import org.geotoolkit.coverage.grid.GridCoverage;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.io.AbstractGridCoverageReader;
 import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.coverage.io.GridCoverageWriter;
-import org.geotoolkit.storage.coverage.AbstractCoverageResource;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
 
 /**
  *
  * @author Johann Sorel (Geomatys)
  */
-public class ForcedSampleDimensionsCoverageResource extends AbstractCoverageResource {
+public class ForcedSampleDimensionsCoverageResource implements GridCoverageResource {
 
 
     private final List<SampleDimension> dimensions;
-    private final org.geotoolkit.storage.coverage.GridCoverageResource baseRef;
+    private final GridCoverageResource base;
 
-    public ForcedSampleDimensionsCoverageResource(org.geotoolkit.storage.coverage.GridCoverageResource baseRef, List<SampleDimension> dimensions) throws DataStoreException {
-        super(null, baseRef.getIdentifier());
-        this.baseRef = baseRef;
+    public ForcedSampleDimensionsCoverageResource(GridCoverageResource baseRef, List<SampleDimension> dimensions) throws DataStoreException {
+        this.base = baseRef;
         this.dimensions = dimensions;
     }
 
     @Override
-    public boolean isWritable() throws DataStoreException {
-        return false;
-    }
-
-    @Override
-    public GridCoverageReader acquireReader() throws DataStoreException {
-        final GridCoverageReader baseReader = (GridCoverageReader) baseRef.acquireReader();
-        return new ForcedSDCoverageReader(baseReader);
-    }
-
-    @Override
-    public GridCoverageWriter acquireWriter() throws DataStoreException {
-        throw new CoverageStoreException("Not supported.");
-    }
-
-    @Override
-    public Image getLegend() throws DataStoreException {
-        return null;
-    }
-
-    @Override
     public GridGeometry getGridGeometry() throws DataStoreException {
-        return ((GridCoverageResource) baseRef).getGridGeometry();
+        return base.getGridGeometry();
     }
 
-
-    private class ForcedSDCoverageReader extends AbstractGridCoverageReader {
-
-        private final GridCoverageReader baseReader;
-
-        public ForcedSDCoverageReader(GridCoverageReader baseReader){
-            this.baseReader = baseReader;
-        }
-
-        @Override
-        public GenericName getCoverageName() throws DataStoreException, CancellationException {
-            return baseReader.getCoverageName();
-        }
-
-        @Override
-        public GridGeometry getGridGeometry() throws DataStoreException, CancellationException {
-            return baseReader.getGridGeometry();
-        }
-
-        @Override
-        public List<SampleDimension> getSampleDimensions() throws DataStoreException, CancellationException {
-            return dimensions;
-        }
-
-        @Override
-        public GridCoverage read(GridCoverageReadParam param) throws DataStoreException, CancellationException {
-            final GridCoverage baseCoverage = baseReader.read(param);
-            if(!(baseCoverage instanceof GridCoverage2D)){
-                throw new CoverageStoreException("Forced alpha reader only support grid coverage 2d, but found a "+baseCoverage.getClass().getName());
-            }
-            final GridCoverage2D cov2d = (GridCoverage2D) baseCoverage;
-            final RenderedImage ri = cov2d.getRenderedImage();
-            return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
-                    dimensions.toArray(new SampleDimension[0]), null, cov2d.getProperties(), null);
-
-        }
-
+    @Override
+    public List<SampleDimension> getSampleDimensions() throws DataStoreException {
+        return dimensions;
     }
 
+    @Override
+    public GridCoverage read(GridGeometry domain, int... range) throws DataStoreException {
+
+        final GridCoverage baseCoverage = base.read(domain, range);
+
+        if (!(baseCoverage instanceof GridCoverage2D)) {
+            throw new CoverageStoreException("Forced alpha reader only support grid coverage 2d, but found a "+baseCoverage.getClass().getName());
+        }
+        final GridCoverage2D cov2d = (GridCoverage2D) baseCoverage;
+        final RenderedImage ri = cov2d.getRenderedImage();
+        return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
+                dimensions.toArray(new SampleDimension[0]), null, cov2d.getProperties(), null);
+    }
+
+    @Override
+    public Envelope getEnvelope() throws DataStoreException {
+        return base.getEnvelope();
+    }
+
+    @Override
+    public GenericName getIdentifier() throws DataStoreException {
+        return base.getIdentifier();
+    }
+
+    @Override
+    public Metadata getMetadata() throws DataStoreException {
+        return base.getMetadata();
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> listener, Class<T> eventType) {
+        base.addListener(listener, eventType);
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> listener, Class<T> eventType) {
+        base.removeListener(listener, eventType);
+    }
 
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.ResourceInternationalString;
 import org.geotoolkit.data.multires.MultiResolutionResource;
@@ -21,7 +22,6 @@ import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.processing.ForwardProcessListener;
 import org.geotoolkit.storage.coverage.CoverageTileGenerator;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -114,7 +114,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
                     CoverageTileGenerator ctg;
                     try {
-                        ctg = new CoverageTileGenerator(resources.get(0));
+                        ctg = new CoverageTileGenerator((org.geotoolkit.storage.coverage.GridCoverageResource) resources.get(0));
                     } catch (DataStoreException ex) {
                         throw new ProcessException(ex.getMessage(), this, ex);
                     }

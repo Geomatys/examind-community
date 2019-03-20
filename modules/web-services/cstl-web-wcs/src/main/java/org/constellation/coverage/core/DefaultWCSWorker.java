@@ -176,7 +176,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
+import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.swe.xml.v200.AllowedValuesPropertyType;
 import org.geotoolkit.swe.xml.v200.AllowedValuesType;
 import org.geotoolkit.swe.xml.v200.DataRecordPropertyType;
@@ -1113,21 +1113,17 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
         final SpatialMetadata metadata;
         final GridCoverageResource ref = (GridCoverageResource) layerRef.getOrigin();
-        GridCoverageReader reader = null;
         final GridGeometry gridGeometry;
 
         final CoordinateReferenceSystem crs;
         try {
-            reader = (GridCoverageReader) ref.acquireReader();
-            gridGeometry = reader.getGridGeometry();
+            gridGeometry = ref.getGridGeometry();
             crs = gridGeometry.getCoordinateReferenceSystem();
             metadata = layerRef.getSpatialMetadata();
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         } catch (DataStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        } finally {
-            if (reader!=null) ref.recycle(reader);
         }
 
         //combine envelope with domain subset

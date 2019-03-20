@@ -15,6 +15,7 @@ import org.apache.sis.measure.NumberRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
@@ -25,7 +26,6 @@ import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.feature.catalog.FeatureTypeImpl;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureAssociationRole;
@@ -150,8 +150,14 @@ public class ISO19110Builder {
     }
 
     public static FeatureTypeImpl createCatalogueFeatureFromCoverageResource(final GridCoverageResource cr) throws DataStoreException {
-        final GridCoverageReader gcr = (GridCoverageReader) cr.acquireReader();
-        final Metadata meta = gcr.getMetadata();
+
+        Metadata meta = cr.getMetadata();
+        if (cr instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
+            final GridCoverageReader gcr = (GridCoverageReader) ((org.geotoolkit.storage.coverage.GridCoverageResource) cr).acquireReader();
+            meta = gcr.getMetadata();
+            ((org.geotoolkit.storage.coverage.GridCoverageResource) cr).recycle(gcr);
+        }
+
         final FeatureTypeImpl featureType = new FeatureTypeImpl();
         final LocalName localName         = cr.getIdentifier().tip();
         featureType.setTypeName(localName);

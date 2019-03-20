@@ -327,10 +327,14 @@ public class MapBusiness {
                     }
 
                     //create amended resource
-                    final AmendedCoverageResource r = new AmendedCoverageResource((org.geotoolkit.storage.coverage.GridCoverageResource) res, ((StoreResource) res).getOriginator());
-                    r.setOverrideDims(newSampleDimensions);
+                    GridCoverageResource resource = res;
+                    if (res instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
+                        final AmendedCoverageResource r = new AmendedCoverageResource((org.geotoolkit.storage.coverage.GridCoverageResource) res, ((StoreResource) res).getOriginator());
+                        r.setOverrideDims(newSampleDimensions);
+                        resource = r;
+                    }
 
-                    final CoverageMapLayer cml = MapBuilder.createCoverageLayer(r, covStyle);
+                    final CoverageMapLayer cml = MapBuilder.createCoverageLayer(resource, covStyle);
                     cml.setDescription(cl.getDescription());
                     cml.setElevationModel(cl.getElevationModel());
                     cml.setOpacity(cl.getOpacity());
