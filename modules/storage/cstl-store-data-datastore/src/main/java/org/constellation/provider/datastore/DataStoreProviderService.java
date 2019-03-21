@@ -23,10 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStores;
 import org.constellation.provider.AbstractDataProviderFactory;
 import org.constellation.provider.DataProvider;
 import static org.constellation.provider.ProviderParameters.createDescriptor;
-import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -48,12 +48,17 @@ public class DataStoreProviderService extends AbstractDataProviderFactory {
 
     static {
         final List<ParameterDescriptorGroup> descs = new ArrayList<>();
-        final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.getAllFactories(org.apache.sis.storage.DataStoreProvider.class).iterator();
-        while(ite.hasNext()){
+        final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.providers().iterator();
+        while (ite.hasNext()) {
             org.apache.sis.storage.DataStoreProvider provider = ite.next();
 
+            String name = provider.getClass().getName();
             // for now we exclude the pure sis internal providers
-            if (provider.getClass().getName().startsWith("org.apache.sis.internal")) {
+            if (name.startsWith("org.apache.sis.internal")) {
+                continue;
+            }
+            //for now exclude stores who use the same identifier as geotoolkit
+            if (name.equals("org.apache.sis.storage.earthobservation.LandsatStoreProvider")) {
                 continue;
             }
 
