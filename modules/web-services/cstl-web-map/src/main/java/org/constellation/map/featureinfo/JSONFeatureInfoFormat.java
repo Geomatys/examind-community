@@ -18,20 +18,6 @@
  */
 package org.constellation.map.featureinfo;
 
-import java.awt.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
@@ -58,6 +44,14 @@ import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
 import org.opengis.util.GenericName;
 import org.constellation.api.DataType;
+
+import java.awt.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A generic FeatureInfoFormat that produce JSON output for Features and Coverages.
@@ -98,7 +92,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             throw new RuntimeException(e);      // TODO
         }
         String layerName = fullLayerName.tip().toString();
-
+        // TODO: Jackson binding
         StringBuilder builder = new StringBuilder();
         builder.append("{\"Layer\":\"").append(layerName).append("\",");
 
@@ -196,7 +190,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             if (value == null) {
                 continue;
             }
-            String bandName = "band_"+index;
+            String bandName = "band_"+index++;
             String unit = entry.getKey().getUnits().map(u -> u.getSymbol()).orElse(null);
             builder.append("\"").append(bandName).append("\":{");
             if (unit != null) {

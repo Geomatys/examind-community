@@ -18,39 +18,50 @@
  */
 package org.constellation.map.featureinfo;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.image.RenderedImage;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import javax.imageio.spi.ServiceRegistry;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.image.PixelIterator;
+import org.apache.sis.internal.metadata.AxisDirections;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
-import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
-import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.storage.coverage.CoverageUtilities;
-import org.opengis.geometry.Envelope;
+import org.geotoolkit.math.XMath;
+import org.opengis.geometry.DirectPosition;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.SingleCRS;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.CoordinateOperation;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.MathTransform1D;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
+
+import javax.imageio.spi.ServiceRegistry;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
+import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Set of utilities methods for FeatureInfoFormat and GetFeatureInfoCfg manipulation.
@@ -326,68 +337,120 @@ public final class FeatureInfoUtilities extends Static {
      */
     public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final ProjectedCoverage gra,
                                                                             final RenderingContext2D context,
-                                                                            final SearchAreaJ2D queryArea){
-
-        final MapLayer layer = gra.getLayer();
-        Envelope objBounds = context.getCanvasObjectiveBounds();
-
-        final Resource ref = layer.getResource();
-
-        if (ref instanceof org.apache.sis.storage.GridCoverageResource) {
+                                                                            final SearchAreaJ2D queryArea) {
+        final Resource ref = gra.getLayer().getResource();
+        if (ref instanceof GridCoverageResource) {
             //create envelope around searched area
-            final GeneralEnvelope dp = new GeneralEnvelope(objBounds);
+            final GeneralEnvelope searchEnv = new GeneralEnvelope(context.getCanvasObjectiveBounds());
+            final int xAxis = AxisDirections.indexOfColinear(
+                    context.getObjectiveCRS().getCoordinateSystem(),
+                    context.getObjectiveCRS2D().getCoordinateSystem()
+            );
             final Rectangle2D bounds2D = queryArea.getObjectiveShape().getBounds2D();
-            dp.setRange(0, bounds2D.getCenterX(), bounds2D.getCenterX());
-            dp.setRange(1, bounds2D.getCenterY(), bounds2D.getCenterY());
+            searchEnv.setRange(xAxis, bounds2D.getMinX(), bounds2D.getMaxX());
+            searchEnv.setRange(xAxis+1, bounds2D.getMinY(), bounds2D.getMaxY());
 
             try {
-                //slice grid geometry on envelope
-                final org.apache.sis.storage.GridCoverageResource gr = (org.apache.sis.storage.GridCoverageResource) ref;
-                final GridGeometry gridGeom = gr.getGridGeometry().derive().subgrid(dp).sliceByRatio(0.5, 0, 1).build();
-                GridCoverage coverage = gr.read(gridGeom);
+                return getCoverageValues((GridCoverageResource)ref, searchEnv.getMedian())
+                        .collect(Collectors.toList());
+            } catch (DataStoreException|FactoryException|TransformException ex) {
 
-                //convert image to geophysic
-                //TODO replace by SIS API when available
-                if (coverage.getSampleDimensions() != null && !coverage.getSampleDimensions().isEmpty()) {
-                    coverage = org.geotoolkit.internal.coverage.CoverageUtilities.toGeotk(coverage).view(ViewType.GEOPHYSICS);
-                }
-
-                //pick first slice if several are available
-                final GridExtent extent = coverage.getGridGeometry().getExtent();
-                final long[] low = new long[extent.getDimension()];
-                final long[] high = new long[extent.getDimension()];
-                for (int i=0;i<low.length;i++) {
-                    low[i] = extent.getLow(i);
-                    high[i] = (i>1) ? low[i] : extent.getHigh(i);
-                }
-                final GridExtent subExt = new GridExtent(null, low, high, true);
-
-                //read samples from image
-                final RenderedImage img = coverage.render(subExt);
-                final int numBands = img.getSampleModel().getNumBands();
-                float[] values = new float[numBands];
-                final PixelIterator ite = PixelIterator.create(img);
-                if (ite.next()) {
-                    ite.getPixel(values);
-                } else {
-                    context.getMonitor().exceptionOccured(new DataStoreException("No pixel in image"), Level.INFO);
-                    return null;
-                }
-
-                final List<Map.Entry<SampleDimension,Object>> results = new ArrayList<>();
-                for (int i=0; i<values.length; i++){
-                    final SampleDimension sample = coverage.getSampleDimensions().get(i);
-                    results.add(new AbstractMap.SimpleImmutableEntry<SampleDimension, Object>(sample, values[i]));
-                }
-                return results;
-            } catch (DataStoreException | DisjointExtentException ex) {
                 context.getMonitor().exceptionOccured(ex, Level.INFO);
                 return null;
             }
-
         } else {
             context.getMonitor().exceptionOccured(new DataStoreException("Resource is not a apache sis coverage"), Level.INFO);
             return null;
         }
+    }
+
+    /**
+     * TODO : we should allow for interpolation. It would mean to set rounding method to enclosing, and compute average
+     * of image values using specified interpolation method.
+     * TODO : replace map entries with proper abstraction containing number values.
+     *
+     * @param datasource Coverage data to extract data from.
+     * @param location The point in space and time to extract value from.
+     * @return List of all samples present at given location. The list contains a pair whose key is the sample metadata,
+     * and the value is GEOPHYSIC value associated to the input point for this sample. Note that transformation of
+     * values will only occurred on stream consumption. It means that {@link BackingStoreException} can be thrown,
+     * wrapping an underlying {@link TransformException}.
+     * @throws DataStoreException If we cannot inspect given resource (acquire grid geometry or read pixels)
+     * @throws FactoryException If analyzed coverage cannot give back a single point, then we try to manually find a
+     * transform between wanted location and data grid. If it fails, this error is thrown.
+     * @throws TransformException In case of error while manually projecting input location in target grid.
+     */
+    public static Stream<Map.Entry<SampleDimension, Object>> getCoverageValues(final GridCoverageResource datasource, final DirectPosition location) throws DataStoreException, FactoryException, TransformException {
+        final GridGeometry pointGeom = datasource.getGridGeometry().derive()
+                .rounding(GridRoundingMode.NEAREST)
+                .slice(location)
+                .build();
+
+        final GridCoverage cvg = datasource.read(pointGeom);
+        // TODO: we should check further read coordinates, but it would require more processing, so for now stay simple:
+        //  ensure we've got our 1 pixel large image.
+        final GridGeometry effectiveGeom = cvg.getGridGeometry();
+        final GridExtent effectiveExtent = effectiveGeom.getExtent();
+        final boolean isTooLarge = IntStream.range(0, effectiveExtent.getDimension())
+                .mapToLong(effectiveExtent::getSize)
+                .anyMatch(size -> size > 1);
+        final Point pixelCoord = new Point();
+        if (isTooLarge) {
+            // Ok, what we can do here is project our point in output image to get the precise pixel. It will be costly,
+            // but for now I can't think of a better solution.
+            final CoordinateReferenceSystem baseCrs = effectiveGeom.getCoordinateReferenceSystem();
+            final SingleCRS hCrs = CRS.getHorizontalComponent(baseCrs);
+            final int xAxis = AxisDirections.indexOfColinear(baseCrs.getCoordinateSystem(), hCrs.getCoordinateSystem());
+            final GridGeometry geom2d = effectiveGeom.reduce(xAxis, xAxis + 1);
+            final CoordinateOperation op = CRS.findOperation(location.getCoordinateReferenceSystem(), geom2d.getCoordinateReferenceSystem(), null);
+            final MathTransform objective2Grid = MathTransforms.concatenate(op.getMathTransform(), geom2d.getGridToCRS(PixelInCell.CELL_CENTER).inverse());
+            final DirectPosition gridPt = objective2Grid.transform(location, null);
+            final GridExtent extent2d = geom2d.getExtent();
+            pixelCoord.setLocation(clamp(gridPt, extent2d, 0), clamp(gridPt, extent2d, 1));
+        }
+        final RenderedImage image = cvg.render(effectiveExtent);
+        // We checked that we've got a single point image, so we can short-circuit a lot of things here
+        final Raster tile = image.getTile(0, 0);
+        final int numBands = tile.getNumBands();
+        final List<SampleDimension> sampleDims = cvg.getSampleDimensions();
+        if (sampleDims == null || sampleDims.size() < numBands) {
+            throw new IllegalStateException("Sample dimensions don't match image band number !");
+        }
+
+        final double[] pixel = tile.getPixel(pixelCoord.x, pixelCoord.y, new double[numBands]);
+        return IntStream.range(0, numBands)
+                .mapToObj(i -> {
+                   final SampleDimension sd = sampleDims.get(i);
+                   final Double geophysicVal = sd.getTransferFunction()
+                           .filter(t -> !t.isIdentity())
+                           .map(transfer -> uncheck(transfer, pixel[i]))
+                           .orElse(pixel[i]);
+                    return new AbstractMap.SimpleImmutableEntry<>(sd, geophysicVal);
+                });
+    }
+
+    /**
+     * Just apply given math transform to input value, but wraps potential transformation exception into a
+     * {@link BackingStoreException}.
+     *
+     * @param function The math transform to apply.
+     * @param value The value to transform.
+     * @return Transformed value.
+     * @throws BackingStoreException If any {@link TransformException} happened while applying transformation.
+     */
+    private static double uncheck(final MathTransform1D function, final double value) throws BackingStoreException {
+        try {
+            return function.transform(value);
+        } catch (TransformException e) {
+            throw new BackingStoreException(e);
+        }
+    }
+
+    private static int clamp(final DirectPosition source, final GridExtent bounds, final int dimension) {
+        return (int) XMath.clamp(
+                Math.round(source.getOrdinate(dimension)),
+                bounds.getLow(dimension),
+                bounds.getHigh(dimension)
+        );
     }
 }
