@@ -18,33 +18,24 @@
  */
 package org.constellation.admin;
 
-import org.constellation.dto.service.config.wxs.LayerSummary;
-import org.constellation.dto.DataBrief;
-import org.constellation.dto.StyleBrief;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.TargetNotFoundException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.IOUtilities;
 import org.constellation.api.StyleType;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IStyleBusiness;
+import org.constellation.business.*;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.DataBrief;
 import org.constellation.dto.Style;
-import org.constellation.repository.DataRepository;
-import org.constellation.repository.LayerRepository;
-import org.constellation.repository.ProviderRepository;
-import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.StyleRepository;
+import org.constellation.dto.StyleBrief;
+import org.constellation.dto.service.config.wxs.LayerSummary;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.TargetNotFoundException;
+import org.constellation.repository.*;
 import org.geotoolkit.display2d.ext.cellular.CellSymbolizer;
 import org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer;
+import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
 import org.geotoolkit.factory.FactoryFinder;
 import org.geotoolkit.factory.Hints;
-import org.geotoolkit.sld.MutableLayer;
-import org.geotoolkit.sld.MutableLayerStyle;
-import org.geotoolkit.sld.MutableNamedLayer;
-import org.geotoolkit.sld.MutableStyledLayerDescriptor;
-import org.geotoolkit.sld.MutableUserLayer;
+import org.geotoolkit.sld.*;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.style.MutableFeatureTypeStyle;
@@ -63,12 +54,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -672,9 +658,12 @@ public class StyleBusiness implements IStyleBusiness {
         for (final MutableFeatureTypeStyle fts : style.featureTypeStyles()) {
             for (final MutableRule rule : fts.rules()) {
                 for (final Symbolizer symbolizer : rule.symbolizers()) {
+                    // TODO: find a better strategy for style classification
                     if (symbolizer instanceof RasterSymbolizer ||
                         symbolizer instanceof CellSymbolizer ||
-                        symbolizer instanceof DynamicRangeSymbolizer) {
+                        symbolizer instanceof DynamicRangeSymbolizer ||
+                        symbolizer instanceof IsolineSymbolizer
+                    ) {
                         return "COVERAGE";
                     }
                 }
