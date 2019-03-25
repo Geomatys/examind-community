@@ -18,11 +18,15 @@
  */
 package org.constellation.map.featureinfo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.map.featureinfo.dto.CoverageInfo;
 import org.constellation.provider.Data;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -46,8 +50,9 @@ import org.opengis.util.GenericName;
 import org.constellation.api.DataType;
 
 import java.awt.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
@@ -60,12 +65,18 @@ import java.util.logging.Logger;
  *     <li>text/html</li>
  * </ul>
  *
+ * TODO: Make proper Jackson bindings, do not extend text format which is too constraining.
+ *
  * @author Guilhem Legal (Geomatys)
  * @author Johann Sorel (Geomatys)
  */
 public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
+
+    private static final ObjectWriter COVERAGE_WRITER = new ObjectMapper()
+            .disable(SerializationFeature.INDENT_OUTPUT)
+            .writerFor(CoverageInfo.class);
 
     private GetFeatureInfo gfi;
 
@@ -94,11 +105,8 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         String layerName = fullLayerName.tip().toString();
         // TODO: Jackson binding
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"Layer\":\"").append(layerName).append("\",");
 
         builder.append(coverageToJSON(fullLayerName, results, gfi, getLayersDetails()));
-
-        builder.append("}");
 
         if (builder.length() > 0) {
             List<String> strs = coverages.get(layerName);
@@ -113,8 +121,6 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     protected static String coverageToJSON(final GenericName fullLayerName,
             final List<Map.Entry<SampleDimension,Object>> results, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
-
-        StringBuilder builder = new StringBuilder();
 
         Data layerPostgrid = null;
 
@@ -157,13 +163,6 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             }
         }
 
-        if (time != null && !time.isEmpty()) {
-            // TODO : Manage periods.
-            final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            builder.append("\"time\":\"").append(df.format(time.get(time.size()-1))).append("\",");
-        }
-
         if (elevation == null) {
             SortedSet<Number> elevs = null;
             if (layerPostgrid != null) {
@@ -179,30 +178,40 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             }
         }
 
-        if (elevation != null) {
-            builder.append("\"elevation\":\"").append(elevation).append("\",");
-        }
+        final Instant javaTime = time == null || time.isEmpty() ? null : time.get(time.size() - 1).toInstant();
+        final CoverageInfo info = new CoverageInfo(fullLayerName.toString(), javaTime, elevation);
 
-        builder.append("\"values\":{");
-        int index = 0;
+        final List<CoverageInfo.Sample> outValues = info.getValues();
         for (final Map.Entry<SampleDimension,Object> entry : results) {
             final Object value = entry.getValue();
-            if (value == null) {
-                continue;
+            if (value instanceof Number) {
+                final Number nValue = (Number) value;
+                if (Double.isFinite(nValue.doubleValue())) {
+
+                    final SampleDimension sd = entry.getKey();
+                    outValues.add(new CoverageInfo.Sample(
+                            sd.getName().tip().toString(),
+                            nValue,
+                            sd.getUnits().orElse(null)
+                    ));
+                } else {
+                    // Could no-data reach this point ?
+                    LOGGER.log(Level.FINE, "Ignoring non finite value");
+                }
+            } else {
+                LOGGER.log(Level.FINE, "Ignoring unsupported data type: {0}", value == null? "null" : value.getClass().getCanonicalName());
             }
-            String bandName = "band_"+index++;
-            String unit = entry.getKey().getUnits().map(u -> u.getSymbol()).orElse(null);
-            builder.append("\"").append(bandName).append("\":{");
-            if (unit != null) {
-                builder.append("\"unit\":\"").append(unit).append("\",");
-            }
-            builder.append("\"value\":\"").append(value).append("\"},");
         }
-        if (!results.isEmpty()) {
-            builder.deleteCharAt(builder.length() - 1);
+
+        if (outValues.isEmpty()) {
+            return "";
         }
-        builder.append("}");
-        return builder.toString();
+
+        try {
+            return COVERAGE_WRITER.writeValueAsString(info);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot write JSON for GetFeatureInfo of coverage: "+fullLayerName, e);
+        }
     }
 
     /**
@@ -324,6 +333,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             maxValue = 1;
         }
 
+        // TODO: Proper Jackson binding. Here, I don't think we're making a proper JSON array.
 
         final StringBuilder builder = new StringBuilder();
 
