@@ -40,6 +40,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.WritableAggregate;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
@@ -81,7 +82,6 @@ import org.geotoolkit.owc.xml.v10.OfferingType;
 import org.geotoolkit.owc.xml.v10.OperationType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
-import org.geotoolkit.storage.coverage.CoverageStore;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.MutableStyle;
@@ -628,14 +628,14 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
         try {
             //create the output pyramid coverage reference
-            CoverageStore pyramidStore = (CoverageStore) outProvider.getMainStore();
+            DataStore pyramidStore = outProvider.getMainStore();
             outRef = (XMLCoverageResource) ((WritableAggregate)pyramidStore).add(new DefiningCoverageResource(NamesExt.create(dataName)));
             outRef.setPackMode(ViewType.RENDERED);
             ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
             //this produces an update event which will create the DataRecord
             outProvider.reload();
 
-            pyramidStore = (CoverageStore) outProvider.getMainStore();
+            pyramidStore = outProvider.getMainStore();
             outRef = (XMLCoverageResource) pyramidStore.findResource(outRef.getIdentifier().toString());
             //create database data object
              providerBusiness.createOrUpdateData(pyramidProvider, null, false);
