@@ -41,8 +41,12 @@ import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.util.IOUtilities;
 import org.constellation.api.DataType;
@@ -1151,9 +1155,28 @@ public class ProviderBusiness implements IProviderBusiness {
                 }
             }
             if (!found) {
+                DataType type = provider.getDataType();
                 String subType  = null;
                 boolean included = true;
                 Boolean rendered = null;
+
+                try {
+                    final DataStore store = provider.getMainStore();
+                    Resource resource = store.findResource(key.toString());
+                    if (resource instanceof PyramidalCoverageResource) {
+                        type = DataType.COVERAGE;
+                        subType = "pyramid";
+                    } else if (resource instanceof GridCoverageResource) {
+                        type = DataType.COVERAGE;
+                    } else if (resource instanceof FeatureSet) {
+                        type = DataType.VECTOR;
+                    }
+                } catch (DataStoreException ex) {
+                    //fallback on provider metadatas
+                } catch (Exception ex) {
+                    //may be caused by the store itself for various reasons
+                }
+
                 if (DataType.COVERAGE.equals(provider.getDataType()) ||
                     DataType.VECTOR.equals(provider.getDataType())) {
                     Data providerData = provider.get(key);
@@ -1165,7 +1188,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 }
 
                 Integer dataId = dataBusiness.create(name,
-                            pr.getIdentifier(), provider.getDataType().name(), provider.isSensorAffectable(),
+                            pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
                             included, rendered, subType, null, hideNewData, owner);
 
 
