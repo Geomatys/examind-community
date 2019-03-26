@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."dataset" ADD COLUMN "type" character varying;

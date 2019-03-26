@@ -1,0 +1,5 @@
+{
+  "dataset.explorer.error.nodata" : "Il n'y a aucune donnée dans ce jeu de données",
+  "dataset.explorer.error.getdata" : "Une erreur est apparu lors de la récupération des donnés de ce jeu de données",
+  "dataset.explorer.error.invalid" : "Le jeu de données fournit est invalide"
+}

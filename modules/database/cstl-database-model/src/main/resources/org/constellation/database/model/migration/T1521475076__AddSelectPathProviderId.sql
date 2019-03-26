@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource_selected_path" ADD COLUMN "provider_id" integer DEFAULT -1 NOT NULL;

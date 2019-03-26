@@ -1,0 +1,254 @@
+{
+    "root": {
+        "name": null,
+        "multiplicity": 0,
+        "children": [{
+                "superblock": {
+                    "name": "INSPIRE.cg2a_dataset_geo.dataQuality",
+                    "multiplicity": 1,
+                    "help": "INSPIRE.cg2a_dataset_geo.dataQuality_help",
+                    "path": null,
+                    "render": null,
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "INSPIRE.cg2a_dataset_geo.dataQuality.scope",
+                                "multiplicity": 1,
+                                "help": "INSPIRE.cg2a_dataset_geo.dataQuality.scope_help",
+                                "path": null,
+                                "render": null,
+                                "ignore": null,
+                                "type": null,
+                                "strict": false,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.scopeLevel",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.scopeLevel_help",
+                                            "path": "metadata[0].dataQualityInfo[0].scope[0].level[0]",
+                                            "type": null,
+                                            "render": "CODELIST.readonly",
+                                            "defaultValue": "MD_ScopeCode.dataset",
+                                            "value": "MD_ScopeCode.dataset",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report",
+                                "multiplicity": 62,
+                                "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report_help",
+                                "path": "metadata[0].dataQualityInfo[0].report[0]",
+                                "render": null,
+                                "ignore": null,
+                                "type": null,
+                                "strict": false,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.title",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.title_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[0].result[0].specification[0].title[0]",
+                                            "type": null,
+                                            "render": "predefinedValues.select",
+                                            "defaultValue": null,
+                                            "value": "Data Specification on Buildings",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": ["Data Specification on Agricultural and Aquaculture Facilities", "Data Specification on Area management / restriction / regulation zones and reporting units", "Data Specification on Atmospheric Conditions- Meteorological geographical features", "Data Specification on Bio-geographical regions", "Data Specification on Buildings", "Data Specification on Elevation", "Data Specification on Energy Resources", "Data Specification on Environmental monitoring Facilities", "Data Specification on Geology", "Data Specification on Habitats and biotopes", "Data Specification on Human health and safety", "Data Specification on Land cover", "Data Specification on Land use", "Data Specification on Mineral Resources", "Data Specification on Natural risk zones", "Data Specification on Oceanographic geographical features", "Data Specification on Orthoimagery", "Data Specification on Population distribution - demography", "Data Specification on Production and Industrial Facilities", "Data Specification on Sea regions", "Data Specification on Soil", "Data Specification on Species distribution", "Data Specification on Statistical units", "Data Specification on Utility and Government Services", "INSPIRE Data Specification on Administrative Units", "INSPIRE Data Specification on Cadastral Parcels", "INSPIRE Data Specification on Geographical Names", "INSPIRE Data Specification on Hydrography", "INSPIRE Data Specification on Protected Sites", "INSPIRE Data Specification on Transport Networks", "INSPIRE Data Specifications on Addresses", "INSPIRE Specification on Coordinate Reference Systems", "INSPIRE Specification on Geographical Grid Systems", "No INSPIRE Data Specification", "RÈGLEMENT (UE) N°1089/2010"],
+                                            "strict": true,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.date",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.date_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[0].result[0].specification[0].date[0].date[0]",
+                                            "type": null,
+                                            "render": "readonly",
+                                            "defaultValue": "2010-05-03",
+                                            "value": "2010-05-03",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.dateType",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.dateType_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[0].result[0].specification[0].date[0].dateType[0]",
+                                            "type": null,
+                                            "render": "CODELIST.readonly",
+                                            "defaultValue": "CI_DateTypeCode.publication",
+                                            "value": "CI_DateTypeCode.publication",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultPass",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultPass_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[0].result[0].pass[0]",
+                                            "type": null,
+                                            "render": "predefinedValues.select.ResultPass",
+                                            "defaultValue": "nilReason:unknown",
+                                            "value": "nilReason:unknown",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": ["nilReason:unknown", "false", "true"],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultExplanation",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultExplanation_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[0].result[0].explanation[0]",
+                                            "type": null,
+                                            "render": "textarea",
+                                            "defaultValue": "See the referenced specification",
+                                            "value": "See the referenced specification",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report",
+                                "multiplicity": 62,
+                                "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report_help",
+                                "path": "metadata[0].dataQualityInfo[0].report[2]",
+                                "render": null,
+                                "ignore": null,
+                                "type": null,
+                                "strict": false,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.title",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.title_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[2].result[0].specification[0].title[0]",
+                                            "type": null,
+                                            "render": "predefinedValues.select",
+                                            "defaultValue": null,
+                                            "value": "Data Specification on Elevation",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": ["Data Specification on Agricultural and Aquaculture Facilities", "Data Specification on Area management / restriction / regulation zones and reporting units", "Data Specification on Atmospheric Conditions- Meteorological geographical features", "Data Specification on Bio-geographical regions", "Data Specification on Buildings", "Data Specification on Elevation", "Data Specification on Energy Resources", "Data Specification on Environmental monitoring Facilities", "Data Specification on Geology", "Data Specification on Habitats and biotopes", "Data Specification on Human health and safety", "Data Specification on Land cover", "Data Specification on Land use", "Data Specification on Mineral Resources", "Data Specification on Natural risk zones", "Data Specification on Oceanographic geographical features", "Data Specification on Orthoimagery", "Data Specification on Population distribution - demography", "Data Specification on Production and Industrial Facilities", "Data Specification on Sea regions", "Data Specification on Soil", "Data Specification on Species distribution", "Data Specification on Statistical units", "Data Specification on Utility and Government Services", "INSPIRE Data Specification on Administrative Units", "INSPIRE Data Specification on Cadastral Parcels", "INSPIRE Data Specification on Geographical Names", "INSPIRE Data Specification on Hydrography", "INSPIRE Data Specification on Protected Sites", "INSPIRE Data Specification on Transport Networks", "INSPIRE Data Specifications on Addresses", "INSPIRE Specification on Coordinate Reference Systems", "INSPIRE Specification on Geographical Grid Systems", "No INSPIRE Data Specification", "RÈGLEMENT (UE) N°1089/2010"],
+                                            "strict": true,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.date",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.date_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[2].result[0].specification[0].date[0].date[0]",
+                                            "type": null,
+                                            "render": "readonly",
+                                            "defaultValue": "2010-05-03",
+                                            "value": "2010-05-03",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.dateType",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.dateType_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[2].result[0].specification[0].date[0].dateType[0]",
+                                            "type": null,
+                                            "render": "CODELIST.readonly",
+                                            "defaultValue": "CI_DateTypeCode.publication",
+                                            "value": "CI_DateTypeCode.publication",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultPass",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultPass_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[2].result[0].pass[0]",
+                                            "type": null,
+                                            "render": "predefinedValues.select.ResultPass",
+                                            "defaultValue": "nilReason:unknown",
+                                            "value": "nilReason:unknown",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": ["nilReason:unknown", "false", "true"],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultExplanation",
+                                            "multiplicity": 1,
+                                            "help": "INSPIRE.cg2a_dataset_geo.dataQuality.report.resultExplanation_help",
+                                            "path": "metadata[0].dataQualityInfo[0].report[2].result[0].explanation[0]",
+                                            "type": null,
+                                            "render": "textarea",
+                                            "defaultValue": "See the referenced specification",
+                                            "value": "See the referenced specification",
+                                            "obligation": "M",
+                                            "ignore": null,
+                                            "tag": null,
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }]
+                            }
+                        }]
+                }
+            }]
+    }
+   
+}

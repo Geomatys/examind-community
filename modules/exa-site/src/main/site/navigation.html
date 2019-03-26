@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta charset="UTF-8">
+		<style type="text/css">
+			body {
+				margin:0;
+				background: transparent url(./resources/pattern.jpg);
+				color: #DDD;
+			}
+			h2 {
+				text-align: left
+			}
+			ul {
+				list-style: outside none none;
+				padding: 0px 0px 0px 10px;
+			}
+			li {
+				margin:0;
+				padding:0;
+			}
+			a {
+				color: inherit;
+				text-decoration: none;
+			}
+			.menu {
+				margin: 40px;
+			}
+		</style>
+	</head>
+
+<body>
+<div >
+
+<div style="background-image:linear-gradient(to bottom,#8f8f8f 0,#505050 80px); background-repeat:repeat-x;">
+	<center>
+	<a href="./introduction.html" target="page">
+		<img src="./resources/examind-server-white.png" width="240" style="margin:10px;filter: drop-shadow(0px 0px 5px #333); "/>
+	</a>
+	<br>
+	Version : ${project.version}
+	</center>
+</div>
+
+<br/>
+<br/>
+
+<div class="menu">
+
+    <!-- On doit ajouter ici les liens vers les pages HTML (copiées ou générées à partir de la source correspondante en 
+    Markdown) considérées comme des points d'entrée de la documentation. -->
+	<h2>Rédiger de la documentation</h2>
+    	<ul>
+    		<li><a href="${howToDoc.path}/sample_page1.html" target="page">Page convertie de markdown à HTML</a></li>
+    		<li><a href="${howToDoc.path}/sample_page2.html" target="page">Page rédigée en HTML</a></li>
+    	</ul>
+
+	<h2>Liens</h2>
+	<ul>
+		<li><a href="http://www.geoapi.org" target="blank">GeoAPI</a></li>
+		<li><a href="http://sis.apache.org" target="blank">Apache-SIS</a></li>
+		<li><a href="http://www.geotoolkit.org" target="blank">GeotoolKit</a></li>
+		<li><a href="https://www.geomatys.com" target="blank">Geomatys</a></li>
+	</ul>
+</div>
+
+
+</div>
+
+<div style="position:absolute; bottom:0; align:center; width:100%">
+<center>
+<img src="./resources/logo-geomatys-footer.svg" width="120"/>
+</center>
+</div>
+
+</body>
+</html>

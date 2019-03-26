@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.examind.community</groupId>
+        <artifactId>modules</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>exa-site</artifactId>
+    <packaging>jar</packaging>
+    <description>
+        The purpose of this module is to provide and maintain the Examind Community user documentation achieving to goals.
+        First, it must be easy to edit by developers using the markdown format. Second, it must be easy to read by final
+        users using HTML semantics, CSS styles and syntax highlighting.
+        So, the way to write user documentation is simply to create new markdown pages in the ${site.resource.dir}
+        directory or in subdirectories.
+        It is also possible to write HTML documentation. To do so, it is recommended to check the page style follows
+        the same pattern of generated HTML pages from Markdown sources, and the page name is not in conflict with
+        a generated HTML page name.
+    </description>
+
+    <properties>
+        <!-- /!\ This property is not directly used in the POM configuration file, but it is in the header and footer patterns
+        to be replaced by the version number indicated below, and, so on, easily updated. /!\ -->
+        <highlight.version>9.12.0</highlight.version>
+        <site.resource.dir>src/main/site</site.resource.dir>
+        <!-- This is the path of the path of the documentation directory containing the sample files. -->
+        <howToDoc.path>howToDoc</howToDoc.path>
+    </properties>
+
+    <build>
+        <resources>
+            <!-- add resource path for markdown and html site page resources -->
+            <resource>
+                <directory>${site.resource.dir}</directory>
+                <!-- replace property expressions by their value into when copying resources into target directory (i.e. ${basedir} => /path/to/base/dir) -->
+                <filtering>true</filtering>
+                <!-- folder is ./target/site-tmp , to avoid to put markdown and html resources into ./target/classes directory -->
+                <targetPath>../site-tmp</targetPath>
+            </resource>
+        </resources>
+
+
+        <plugins>
+
+            <!-- Transform markdown documentation resources to HTML pages -->
+            <plugin>
+                <groupId>com.ruleoftech</groupId>
+                <artifactId>markdown-page-generator-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <headerHtmlFile>${basedir}/target/site-tmp/templateHeader.html</headerHtmlFile>
+                    <footerHtmlFile>${basedir}/target/site-tmp/templateFooter.html</footerHtmlFile>
+                    <inputDirectory>${basedir}/target/site-tmp/</inputDirectory>
+                    <outputDirectory>${basedir}/target/site/html</outputDirectory>
+                    <!-- we can not use this, base folder name is copied in the target directory,
+                    so we can not copy root files (like index.html) with it-->
+                    <!--copyDirectories></copyDirectories-->
+                    <recursiveInput>true</recursiveInput>
+                    <inputEncoding>UTF-8</inputEncoding>
+                    <outputEncoding>UTF-8</outputEncoding>
+                    <pegdownExtensions>TABLES,FENCED_CODE_BLOCKS,AUTOLINKS</pegdownExtensions>
+                </configuration>
+            </plugin>
+
+            <!-- Copy HTML pages which have not been generated from markdown resources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="target/site/html"/>
+                                <copy todir="target/site/html">
+                                    <fileset dir="target/site-tmp">
+                                        <exclude name="**/*.md"/>
+                                        <exclude name="**/templateHeader.html"/>
+                                        <exclude name="**/templateFooter.html"/>
+                                    </fileset>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

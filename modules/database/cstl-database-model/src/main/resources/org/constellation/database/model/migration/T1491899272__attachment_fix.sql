@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."attachment" ALTER COLUMN content DROP NOT NULL;

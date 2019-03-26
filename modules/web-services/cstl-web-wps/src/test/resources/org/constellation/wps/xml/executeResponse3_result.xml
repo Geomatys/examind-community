@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<wps:ExecuteResponse xmlns:gml="http://www.opengis.net/gml"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:ows="http://www.opengis.net/ows/1.1"
+                     xmlns:wps="http://www.opengis.net/wps/1.0.0"
+                     xmlns:xlink="http://www.w3.org/1999/xlink"
+                     xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"
+                     serviceInstance="http://localhost:9090/WS/wps/default?SERVICE=WPS&amp;REQUEST=GetCapabilities" service="WPS" version="1.0.0" xml:lang="en-EN">
+  <wps:Process wps:processVersion="1.0.0">
+    <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection</ows:Identifier>
+    <ows:Title>Geotoolkit : Jts:intersection</ows:Title>
+    <ows:Abstract>Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
+  </wps:Process>
+  <wps:Status creationTime="2016-10-12T16:05:48.468+02:00">
+    <wps:ProcessSucceeded>Process completed.</wps:ProcessSucceeded>
+  </wps:Status>
+  <wps:ProcessOutputs>
+    <wps:Output>
+      <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection:output:result_geom</ows:Identifier>
+      <ows:Title>Result_geom</ows:Title>
+      <ows:Abstract>The intersection geometry result</ows:Abstract>
+      <wps:Data><wps:ComplexData mimeType="application/gml+xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"><gml:Polygon srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+            <gml:exterior>
+              <gml:LinearRing srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+<gml:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</gml:posList>
+              </gml:LinearRing>
+            </gml:exterior>
+          </gml:Polygon></wps:ComplexData></wps:Data>
+    </wps:Output>
+  </wps:ProcessOutputs>
+</wps:ExecuteResponse>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<wps:ExecuteResponse
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:wps="http://www.opengis.net/wps/1.0.0"
+    xmlns:ows="http://www.opengis.net/ows/1.1"
+    xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"
+    serviceInstance="http://localhost:9090/WS/wps/default?SERVICE=WPS&amp;REQUEST=GetCapabilities" service="WPS" version="1.0.0" xml:lang="en-EN">
+  <wps:Process wps:processVersion="1.0.0">
+    <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection</ows:Identifier>
+    <ows:Title>Geotoolkit : Jts:intersection</ows:Title>
+    <ows:Abstract>Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
+  </wps:Process>
+  <wps:Status creationTime="2016-10-12T16:05:48.468+02:00">
+    <wps:ProcessAccepted>Process urn:exa:wps:geotoolkit::jts:intersection accepted.</wps:ProcessAccepted>
+  </wps:Status>
+</wps:ExecuteResponse>

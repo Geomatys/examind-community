@@ -1,0 +1,53 @@
+version: "2"
+
+services :
+    exa-db:
+       image: postgres:9.6.7-alpine
+       restart: "no"
+       volumes:
+         - "./mount/exa-db/pgdata/:/var/lib/postgresql/data/"
+       ports:
+         - "5440:5432"
+       environment:
+        POSTGRES_DB: examind
+        POSTGRES_USER: examind
+        POSTGRES_PASSWORD: examind
+        PGDATA: /var/lib/postgresql/data/pgdata/
+
+    exa-dbpostgis:
+         image: docker.geomatys.com/geomatys-ubu-postgis
+         restart: "no"
+         volumes:
+          - "./mount/exa-dbpostgis/pgdata:/var/lib/postgis/data"
+         ports:
+          - "5441:5432"
+         environment:
+           PGDATA: /var/lib/postgis/data
+
+    examind:
+       image: docker.geomatys.com/tomcat-gdal:7-jre8u181-debian
+       restart: "no"
+       volumes:
+         - "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"
+         - "./mount/examind/tomcat/fs/:/usr/local/tomcat/fs/"
+         - "./mount/examind/tomcat/bin/setenv.sh:/usr/local/tomcat/bin/setenv.sh"
+         - "./mount/examind/tomcat/conf/server.xml:/usr/local/tomcat/conf/server.xml"
+         - "./mount/examind/data/:/var/examind/"
+       depends_on:
+         - exa-db
+         - exa-dbpostgis
+       ports:
+         - "8080:8080"
+         - "8000:8000"
+       environment:
+         DATABASE_URL: "postgres://examind:examind@exa-db:5432/examind"
+         EPSG_DATABASE_URL: "postgres://examind:examind@exa-db:5432/examind"
+         CSTL_SECRET: examind-secret
+         SPRING_PROFILES_ACTIVE: standard
+         CSTL_SERVICE_URL: "http://localhost:8080/examind/WS"
+         CSTL_URL: "http://localhost:8080/examind"
+         CSTL_HOME: /var/examind/
+         CATALINA_OPTS: "-Xms512m -Xmx4G -Dfile.encoding=UTF-8"
+         JPDA_ADDRESS: 8000
+         JPDA_TRANSPORT: dt_socket
+       command: catalina.sh jpda run

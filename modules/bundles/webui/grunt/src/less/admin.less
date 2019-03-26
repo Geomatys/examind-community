@@ -1,0 +1,158 @@
+/*
+ * Constellation - An open source and standard compliant SDI
+ *
+ *    http://www.constellation-sdi.org
+ *
+ *    Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#platformAdmin {
+  padding: 40pt 0;
+
+  .rightPanel {
+    .panel.panel-default {
+      border-color: #3c3c3c;
+      box-shadow: 5px 5px 10px rgba(51, 51, 51, 0.75);
+      background-color: #383838;
+      color: #ccc;
+
+      > .panel-heading {
+        color: #ccc;
+        background-color: #2c2c2c;
+        border-color: #3c3c3c;
+      }
+
+      .table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {
+        background-color: #5F5F5F;
+      }
+      .table > tbody > tr > td {
+        border: 0;
+        padding: 10px 0 5px 10px;
+      }
+
+      .buttonsCol .btn-default{
+        color:#ddd;
+        background-color:rgba(0,0,0,.3);
+        border-color:#777;
+        &:hover{
+          background-color:#777;
+        }
+        &.btn-success {
+          background-color: rgba(98, 196, 98, 0.75);
+          &:hover{
+            background-color: #62c462;
+          }
+        }
+        &.btn-primary {
+          background-color: rgba(66, 139, 202, 0.75);
+          &:hover{
+            background-color: #428bca;
+          }
+        }
+        &.btn-info {
+          background-color: rgba(91, 192, 222, 0.75);
+          &:hover{
+            background-color: #5bc0de;
+          }
+        }
+        &.btn-warning {
+          background-color: rgba(240, 173, 78, 0.75);
+          &:hover{
+            background-color: #f0ad4e;
+          }
+        }
+        &.btn-danger {
+          background-color: rgba(238, 95, 91, 0.75);
+          &:hover{
+            background-color: #ee5f5b;
+          }
+        }
+      }
+
+    }
+  }
+
+  .menuLeft {
+    .panel.panel-default {
+      border-color: #3c3c3c;
+      box-shadow: 5px 5px 10px rgba(51, 51, 51, 0.75);
+      background-color: #383838;
+      color: #ccc;
+
+      > .panel-heading {
+        color: #ccc;
+        background-color: #2c2c2c;
+        border-color: #3c3c3c;
+        background-image: none;
+      }
+    }
+    .list-group-item{
+      background-color: transparent;
+      border-color: #3c3c3c;
+      color: #777777;
+      &.active{
+        background-color: #2e8bbf;
+        border-color: #297dad;
+        color: #fff;
+      }
+    }
+  }
+}
+
+.menuLeft .list-group-item:first-child{
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.menuLeft .list-group-item:last-child{
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.menuLeft .list-group{
+  margin-bottom:0;
+}
+.menuLeft .list-group-item{
+  cursor:pointer;
+}
+a.list-group-item{
+  color:#428BCA;
+}
+.menuLeft .panel-title{
+  color:#919191;
+}
+.menuLeft .panel{
+  margin-bottom: -2px;
+}
+
+.menuLeft
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus{
+  background-color: #2e8bbf;
+  border-color: #297dad;
+}
+
+.well-header {
+  background-color: #F8F8F8;
+  background-image: linear-gradient(to bottom, #FFFFFF, #EEEEEE);
+  background-repeat: repeat-x;
+  padding:15px;
+}
+
+h3.panel-title{
+  color:#777;
+}
+
+.permissionsList select[multiple]{
+  font-size:12px;
+}

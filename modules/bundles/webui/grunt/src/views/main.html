@@ -1,0 +1,56 @@
+<div class="row accueil-header-logo"
+     ng-include="'views/parts/welcome-header.html'">
+</div>
+
+<div class="row" id="main">
+    <div class="col-sm-6">
+        <div class="well accueil-well main-block-left"
+             ng-include="'views/parts/welcome-block-left.html'">
+        </div>
+    </div>
+
+    <div class="col-sm-6" ng-if="authenticated">
+        <div class="well main-block-right main-block-stat" ng-init="countStats()">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <h1 translate="homepage.statistics.title">Statistics</h1>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="accueil-stat-blocs">
+                                    <div class="img-right-block-service"></div>
+                                    <p class="col-xs-12 label-stat" translate="homepage.statistics.services"><strong>Active Services</strong></p>
+                                    <p class="col-xs-12" style="font-size:30px; font-weight:bold;">{{nbservices}}</p>
+                                </div>
+                            </div>
+                            <div class="col-xs-6" >
+                                <div class="accueil-stat-blocs">
+                                    <div class="img-right-block-data"></div>
+                                    <p class="col-xs-12 label-stat" translate="homepage.statistics.data"><strong>Integrated Data</strong></p>
+                                    <p class="col-xs-12" style="font-size:30px; font-weight:bold;">{{nbdata}}</p>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row blocs-bottom">
+                            <div class="col-xs-6" >
+                                <div class="accueil-stat-blocs">
+                                    <div class="img-right-block-user"></div>
+                                    <p class="col-xs-12 label-stat" translate="homepage.statistics.users"><strong>Created Users</strong></p>
+                                    <p class="col-xs-12" style="font-size:30px; font-weight:bold;">{{nbusers}}</p>
+                                </div>
+                            </div>
+                            <div class="col-xs-6" >
+                                <div class="accueil-stat-blocs">
+                                    <div class="img-right-block-process"></div>
+                                    <p class="col-xs-12 label-stat" translate="homepage.statistics.process"><strong>Process</strong></p>
+                                    <p class="col-xs-12" style="font-size:30px; font-weight:bold;">{{nbprocess}}</p>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

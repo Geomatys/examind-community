@@ -1,0 +1,80 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <http pattern="/API/**"
+          create-session="never"
+          request-matcher="ant"
+          use-expressions="true"
+          auto-config="false"
+          entry-point-ref="unauthorizedEntryPoint">
+        <csrf disabled="true"/>
+        <custom-filter ref="cstlAuthenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER" />
+
+        <!-- no authentication on login requests -->
+        <intercept-url pattern="/API/auth/login" access="permitAll" />
+        <intercept-url pattern="/API/auth/forgotPassword" access="permitAll" />
+        <intercept-url pattern="/API/auth/resetPassword" access="permitAll" />
+        <intercept-url pattern="/API/auth/ping" access="permitAll" />
+        <intercept-url pattern="/API/metadata/metadataJson/resolve/**" access="permitAll" />
+
+        <!-- administrator only -->
+        <intercept-url pattern="/API/admin/**" access="hasAuthority('cstl-admin')" />
+        <intercept-url pattern="/API/cluster/**" access="hasAuthority('cstl-admin')" />
+        <intercept-url pattern="/API/user/**" access="hasAuthority('cstl-admin')" />
+        <intercept-url pattern="/API/role/**" access="hasAuthority('cstl-admin')" />
+
+        <!-- other apis requiere authentication -->
+        <intercept-url pattern="/API/**" access="authenticated" />
+
+        <session-management session-authentication-strategy-ref="sessionAuthenticationStrategy" />
+    </http>
+
+    <http pattern="/**"
+          create-session="never"
+          request-matcher="ant"
+          use-expressions="true"
+          auto-config="false"
+          entry-point-ref="unauthorizedEntryPoint">
+        <csrf disabled="true"/>
+        <access-denied-handler error-page="/login.html"/>
+        <custom-filter ref="cstlAuthenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER" />
+
+        <!--
+            Keep in mind that intercept-url pattern are ordered
+            Higher in list is more specific
+        -->
+
+        <!-- Limited access page/resources -->
+        <intercept-url pattern="/admin.html" access="authenticated"/>
+
+        <!-- Constellation Open resources -->
+        <intercept-url pattern="/**/*.html" access="permitAll"/>
+        <intercept-url pattern="/**/*.js" access="permitAll"/>
+        <intercept-url pattern="/**/*.css" access="permitAll"/>
+        <intercept-url pattern="/**/*.json" access="permitAll"/>
+        <intercept-url pattern="/**/*.jsp" access="permitAll"/>
+
+        <!-- /api specific endpoints -->
+        <!--<intercept-url pattern="/api/1/session/account" access="permitAll"/>-->
+
+        <!-- /WS specific endpoints -->
+        <intercept-url pattern="/WS/configuration/**" access="hasAuthority('cstl-admin')" />
+        <intercept-url pattern="/WS/*/admin/**" access="hasAuthority('cstl-admin')" />
+
+        <!-- generic endpoints -->
+        <intercept-url pattern="/WS/**" access="permitAll" />
+
+        <intercept-url pattern="/img/**" access="permitAll"/>
+        <intercept-url pattern="/images/**" access="permitAll"/>
+        <intercept-url pattern="/icons/**" access="permitAll"/>
+        <intercept-url pattern="/app/**" access="permitAll"/>
+        <intercept-url pattern="/fonts/**" access="permitAll"/>
+        <intercept-url pattern="/webdav/**" access="permitAll"/>
+
+        <intercept-url pattern="/**" access="hasAuthority('cstl-admin')"/>
+
+    </http>
+
+</beans:beans>

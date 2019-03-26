@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="UTF-8">
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/${highlight.version}/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#555}
+   table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}
+   pre code,table,table tr{padding:0}
+   hr,pre code{background:0 0}
+   body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#eee;word-wrap:break-word;padding:10px 15px}
+   strong,table tr th{font-weight:700}
+   h1{font-size:2em;text-align:center}
+   h2{font-size:1.75em;background-image: url('../resources/logo-server.png'),url('./resources/logo-server.png'); background-size: contain; background-repeat:no-repeat; padding-left: 40px; color: #9dbb91;}
+   h3{font-size:1.5em}
+   h4{font-size:1.25em}
+   h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}
+   h1{border-bottom:1px solid #eee;margin:1em;}
+   h2{margin:1em;}
+   hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}
+   a{color:#91A3C4}
+   a.absent{color:#c00}
+   ol,ul{padding-left:15px;margin-left:5px}
+   ol{list-style-type:lower-roman}
+   table tr{border-top:1px solid #ccc;margin:0}
+   table tr:nth-child(2n){background-color:#aaa}
+   table tr td :first-child,
+   table tr th :first-child{margin-top:0}
+   table tr td :last-child,
+   table tr th :last-child{margin-bottom:0}
+   img{max-width:100%;border-width: 2px;border-radius:30px;border-style:dotted;}
+   blockquote{padding:0 15px;border-left:4px solid #ccc}
+   code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px;color: #555;}
+   pre code{margin:0;white-space:pre;border:none}.highlight
+   pre,pre{background-color:#f8f8f8;border:1px dotted #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:5px;margin: 5px 5px 5px 15px;display:inline-block;}
+  </style>
+  <title>Documentation utilisateur Examind</title>
+</head>
+<body>
+<h1>Exemple de documentation utilisateur rédigée en HTML</h1>
+
+<h2>Un titre principal</h2>
+
+<p>Cette page d'exemple de la documentation a été rédigée directement en HTML en prenant soin de respecter la mise en forme des pages
+générées à partir des sources en Markdown, comme l'a été <a href="sample_page1.html">celle-là</a>.</p>
+
+
+<p>Code :</p>
+<pre><code class="Java">import com.examind.storage.FeatureResource;
+import com.examind.storage.Features;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+
+final FeatureResource fr = ...;
+/* Pour représenter l&#39;information de façon la plus précise possible,
+ * on va tenter de récupérer le système de projection associé à la
+ * propriété géométrique de notre ressource. L&#39;information n&#39;est
+ * cependant pas obligatoire, on va donc prévoir de continuer sans.
+ */
+final DefaultFeatureType type = fr.getType();
+final PropertyType geometryType = type.getProperty(&quot;geometry&quot;);
+final Optional&lt;CoordinateReferenceSystem&gt; crs = Features.fetchCRS(geometryType);
+crs.ifPresent(System.out::println);
+
+final GeneralEnvelope resultEnvelope = crs
+        // Si on a trouvé le système de coordonnées, on crée une envelope dans ce CRS.
+        .map(GeneralEnvelope::new)
+        // Par défaut, on crée une envelope à 2 dimensions
+        .orElseGet(() -&gt; new GeneralEnvelope(2));
+
+/* On va parcourir l&#39;ensemble des entités contenues dans la ressource.
+ * On extrait la géométrie de chacune, puis leur enveloppe au format JTS.
+ * Ensuite, on les fusionne toutes afin d&#39;obtenir la couverture globale
+ * de la donnée. Pour finir, on
+ * convertit le résultat dans l&#39;API SIS, car elle permet de garder la
+ * définition du CRS.
+ */
+Optional&lt;Envelope&gt; envelope = fr.read(null)
+        // On récupère la propriété censée contenir la géométrie
+        .map(f -&gt; f.getProperty(&quot;geometry&quot;))
+        // On exrait la valeur de la propriété, en vérifiant bien qu&#39;elle est géométrique (et non nulle).
+        .map(p -&gt; p.getValue())
+        .filter(value -&gt; value instanceof Geometry)
+        .map(value -&gt; (Geometry)value)
+        // On demande l&#39;envelope
+        .map(Geometry::getEnvelopeInternal)
+        // On fusionne toutes les enveloppes.
+        .reduce((e1, e2) -&gt; {
+            e1.expandToInclude(e2);
+            return e1;
+        });
+
+envelope.ifPresent(jtsEnvelope -&gt; {
+    // Mapping entre l&#39;API JTS et l&#39;API SIS
+    resultEnvelope.setRange(0, jtsEnvelope.getMinX(), jtsEnvelope.getMaxX());
+    resultEnvelope.setRange(1, jtsEnvelope.getMinY(), jtsEnvelope.getMaxY());
+
+    System.out.printf(&quot;%nEnvelope de la ressource :%n%s&quot;, resultEnvelope);
+});
+</code></pre>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/${highlight.version}/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+</body>
+<footer>
+</footer>
+</html>

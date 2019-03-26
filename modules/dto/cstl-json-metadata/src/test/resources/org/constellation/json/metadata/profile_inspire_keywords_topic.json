@@ -1,0 +1,148 @@
+{
+    "root": {
+        "name": "MD_Metadata",
+        "multiplicity": 1,
+        "children": [{
+                "superblock": {
+                    "name": "metadata.block.dataIdentification",
+                    "multiplicity": 1,
+                    "help": "metadata.block.dataIdentification_help",
+                    "path": null,
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.inspire_descriptiveKeyword",
+                                "multiplicity": 1,
+                                "help": "metadata.block.inspire_descriptiveKeyword_help",
+                                "path": "metadata.identificationInfo.descriptiveKeywords",
+                                "strict": true,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.inspire_keyword",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.inspire_keyword_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.keyword",
+                                            "render": "INSPIRE_ISO.codelist",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.inspire_thesaurusTitle",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.inspire_thesaurusTitle_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.title",
+                                            "render": "readonly",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": "GEMET - INSPIRE themes, version 1.0",
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.inspire_thesaurusDate",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.inspire_thesaurusDate_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.date.date",
+                                            "render": "DATE.readonly",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": "2008-06-01",
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.inspire_thesaurusDateType",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.inspire_thesaurusDateType_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.date.dateType",
+                                            "render": "CODELIST.readonly",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": "CI_DateTypeCode.publication",
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.topicCategory",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.topicCategory_help",
+                                            "path": "metadata.identificationInfo.topicCategory",
+                                            "render": "ISO_INSPIRE.codelist",
+                                            "obligation": "M","completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "outOfBlock": true,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.descriptiveKeyword",
+                                "multiplicity": 62,
+                                "help": "metadata.block.descriptiveKeyword_help",
+                                "path": "metadata.identificationInfo.descriptiveKeywords",
+                                "ignore": "1 1",
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.keyword",
+                                            "multiplicity": 62,
+                                            "help": "metadata.field.keyword_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.keyword",
+                                            "render": "KEYWORD.text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.thesaurusTitle",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.thesaurusTitle_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.title",
+                                            "render": "text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.thesaurusDate",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.thesaurusDate_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.date.date",
+                                            "render": "DATE.text",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.thesaurusDateType",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.thesaurusDateType_help",
+                                            "path": "metadata.identificationInfo.descriptiveKeywords.thesaurusName.date.dateType",
+                                            "render": "DATE.codelist",
+                                            "obligation": "O","completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

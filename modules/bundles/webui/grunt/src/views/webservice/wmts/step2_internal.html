@@ -1,0 +1,176 @@
+<div class="row" ng-controller="Step1WMTSInternalDataController">
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="padding-left: 0;padding-right: 0;">
+        <div class="dashboard dashboard-wmts-internal list-style-modal">
+            <div class="navbar sort-navbar" style="margin-bottom: 6px;">
+                <div class="navbar-inner" style="padding-right: 10px;">
+                    <ul class="nav nav-style">
+                        <li ng-click="clickFilter('name')">
+                            <a style="padding:10px;">
+                                <span translate="label.title">Title</span>
+                                <i class="fa fa-caret-up" ng-if="wrap.ordertype === 'name' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down" ng-if="wrap.ordertype === 'name' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="clickFilter('date')">
+                            <a style="padding:10px;">
+                                <span translate="service.edit.dashboard.header.date">Date</span>
+                                <i class="fa fa-caret-up" ng-if="wrap.ordertype === 'date' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down" ng-if="wrap.ordertype === 'date' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="clickFilter('owner')">
+                            <a style="padding:10px;">
+                                <span translate="service.edit.dashboard.header.owner">Owner</span>
+                                <i class="fa fa-caret-up" ng-if="wrap.ordertype === 'owner' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down" ng-if="wrap.ordertype === 'owner' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="clickFilter('type')">
+                            <a style="padding:10px;">
+                                <span translate="service.edit.dashboard.header.type">Type</span>
+                                <i class="fa fa-caret-up" ng-if="wrap.ordertype === 'type' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down" ng-if="wrap.ordertype === 'type' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                    </ul>
+                    <button type="button" ng-click="wrap.ordertype='name';wrap.orderreverse=false" class="btn btn-xs btn-data">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <button type="button" ng-click="searchVisible= !searchVisible" class="btn btn-xs btn-data">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    <div class="pull-right col-xs-7 col-sm-7 col-md-3 col-lg-4"
+                         style="padding-left:10px;padding-right:0;"
+                         ng-if="searchVisible">
+                        <div style="position:relative;">
+                            <input type="text"
+                                   ng-model="wrap.filtertext"
+                                   class="search-query form-control form-control-fix"
+                                   style="height: 30px;"
+                                   placeholder="{{'label.search' | translate}}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dash-inner modal-inner-list" style="padding: 0">
+                <div id="list" data-role="list" style="height: 100%;">
+                    <div class="pagination-wrapper pagination-data">
+                        <div class="col-xs-12" style="padding: 0;">
+                            <strong class="col-xs-8" style="padding-right: 0;">
+                                <span class="nb-results pull-left">{{wrap.countdata}}&nbsp;</span>
+                                <span class="nb-results" translate="label.count.data">available data</span>
+                            </strong>
+                            <div class="pull-right col-xs-4" style="padding-right:0;padding-left: 0">
+                                <input type="checkbox"
+                                       ng-model="dataSelect.all"
+                                       id="selectAll"
+                                       ng-change="selectAllData()"/>
+                                <span style="color:#ccc;" translate="label.select.all">Select all</span>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-left: 0; margin-right: 0;">
+                            <div class="col-sm-9" style="padding:0; margin-top: 5px;"
+                                 page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                                 on-select-page="displayPage(page)"></div>
+                            <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                    style="padding:5px;margin-right:0;margin-top:5px;"
+                                    ng-model="wrap.nbbypage">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="item-list">
+                        <div ng-repeat="data in wrap.dataList">
+                            <div class="item {{data.type | lowercase}}"
+                                 ng-class="{selected:isInSelected(data)}"
+                                 ng-click="toggleDataInArray(data)"
+                                 data-name="{{data.provider+':'+data.name}}">
+                                <div class="top">
+                                    <span class="item-title title-modal">{{truncate(data.name,40)}}</span>
+                                    <span class="pull-right text-right item-list-style"
+                                          style="font-size:14px;">{{data.type}}</span>
+                                    <img ng-if="data.type=='VECTOR' && (data.subtype=='Point' || data.subtype=='MultiPoint')"
+                                         ng-src="{{isInSelected(data)?'img/vector-multipoint-selected.svg':'img/vector-multipoint.svg'}}"
+                                         class="pull-right vector-symbol"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                    <img ng-if="data.type=='VECTOR' && (data.subtype=='Polygon' || data.subtype=='MultiPolygon')"
+                                         ng-src="{{isInSelected(data)?'img/vector-poly-selected.svg':'img/vector-poly.svg'}}"
+                                         class="pull-right vector-symbol"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                    <img ng-if="data.type=='VECTOR' && (data.subtype=='LineString' || data.subtype=='MultiLineString')"
+                                         ng-src="{{isInSelected(data)?'img/vector-polyline-selected.svg':'img/vector-polyline.svg'}}"
+                                         class="pull-right vector-symbol"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                    <img ng-if="data.subtype=='Geometry' && data.type!='SENSOR'"
+                                         ng-src="{{isInSelected(data)?'img/vector-multigeometry-selected.svg':'img/vector-multigeometry.svg'}}"
+                                         class="pull-right vector-symbol"
+                                         style="margin-top:6px; margin-right:10px; width:22px;" />
+                                </div>
+                                <div class="bottom">
+                                    <div class="hidden-md hidden-lg">
+                                        <div class="block tooltipicon"
+                                             style="margin-top:0;text-shadow: none;">
+                                            <i class="fa fa-calendar"
+                                               tooltip data-placement="right"
+                                               title="{{data.date | date:'yyyy-MM-dd'}}"></i>
+                                        </div>
+                                        <div class="block tooltipicon"
+                                             style="margin-top:0;text-shadow: none;">
+                                            <i class="fa fa-user"
+                                               tooltip data-placement="right"
+                                               title="{{data.owner}}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="hidden-xs hidden-sm">
+                                        <div class="block">
+                                            <i class="fa fa-calendar"></i>{{data.date | date:'yyyy-MM-dd'}}
+                                        </div>
+                                        <div class="block">
+                                            <i class="fa fa-user"></i>{{data.owner}}
+                                        </div>
+                                    </div>
+                                    <div class="block pull-right" ng-if="data.targetStyle.length==0">
+                                        <i class="fa fa-paint-brush" title="Style SLD"></i>default
+                                    </div>
+                                    <div class="block pull-right" ng-if="data.targetStyle.length==1">
+                                        <i class="fa fa-paint-brush" title="Style SLD"></i>{{truncate(data.targetStyle[0].name,15)}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn-group pull-right" style="margin-top: -34px;"
+                                 ng-if="data.targetStyle.length>1">
+                                <button type="button"
+                                        class="btn btn-sm btn-default dropdown-toggle"
+                                        data-toggle="dropdown"
+                                        style="margin-right: 6px; margin-top: 4px; padding: 4px; z-index: 1;"
+                                        title="Style SLD">
+                                    <span style="font-size: 11px;">
+                                        <i class="fa fa-paint-brush" style="margin-right:6px;"></i>{{truncate(data.targetStyle[0].name,20)}}
+                                    </span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" style="font-size: 12px;text-shadow: none;z-index: 2;">
+                                    <li ng-repeat="targetStyle in data.targetStyle"
+                                        ng-click="setTargetStyle(data,$index);">
+                                        <a><span>{{truncate(targetStyle.name,30)}}</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+        <div id="styledMapPreviewForWMTS" style="height: 500px; width:100%;padding: 0;"></div>
+    </div>
+</div>

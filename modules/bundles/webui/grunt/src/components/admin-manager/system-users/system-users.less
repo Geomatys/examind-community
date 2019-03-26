@@ -1,0 +1,87 @@
+@import "edit-user/edit-user";
+
+system-users {
+  .panel-body {
+
+    .logo-wrapper {
+      margin-top: 0;
+
+      .add-user-btn {
+        padding: 15px 19px;
+
+        span:nth-child(1) {
+          margin-right: 5px;
+        }
+      }
+    }
+
+    .search-block {
+      margin-top: 8px;
+      > div {
+        padding-left: 15px;
+        margin-top: 5px;
+
+        i {
+          vertical-align: top;
+        }
+      }
+    }
+
+    .data-count-block {
+      margin-top: 8px;
+      > div {
+        padding-left: 20px
+      }
+    }
+
+    .pagination-block {
+      margin-top: 8px;
+      > div {
+        padding-left: 15px;
+        margin-top: 5px;
+      }
+
+      select {
+        padding-left: 5px;
+        padding-right: 5px;
+        margin-right: 15px;
+        margin-top: 5px;
+        width: 65px;
+      }
+
+    }
+
+    .user-table {
+      border: none;
+
+      tr {
+        height: 40px;
+        > td {
+          padding-top: 10px;
+          padding-left: 15px;
+        }
+      }
+
+      thead tr td {
+        font-weight: bold;
+        border: none;
+        border-bottom: solid 2px #dddddd;
+      }
+
+      tbody > tr {
+        cursor: pointer;
+
+        button {
+          width: 100px;
+        }
+
+        > td.user-delete {
+          background-color: transparent;
+          border: none;
+        }
+      }
+
+    }
+  }
+
+}

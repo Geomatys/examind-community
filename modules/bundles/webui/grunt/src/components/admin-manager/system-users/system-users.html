@@ -1,0 +1,103 @@
+<div class="panel panel-default" id="adminUser">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{'users.title' | translate}}</h3>
+    </div>
+    <div class="panel-body">
+        <div class="logo-wrapper row">
+            <div class="col-sm-12">
+                <div ng-click="ctrl.add()" class="dropdown pull-right">
+                    <a  data-toggle="dropdown" class="btn btn-add btn-lg add-user-btn">
+                        <span class="fa fa-plus"></span>
+                        <span>{{'users.add' | translate}}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row search-block">
+            <div class="col-sm-4 input-group">
+                <input type="text"
+                       class="form-control searchbox"
+                       ng-model="ctrl.pagedSearchService.query.text"
+                       ng-enter="ctrl.pagedSearchService.setPage(1)"
+                       placeholder="{{'label.user.search' | translate}}"/>
+                <span class="input-group-btn">
+                    <button class="btn btn-info btn-data searchbtn searchbox" type="button"
+                            ng-click="ctrl.pagedSearchService.setPage(1)" title="{{'label.search' | translate}}">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="row data-count-block">
+            <div class="col-sm-9">
+                <span translate="users.count" translate-values="{total: '{{ ctrl.page.total }}'}">There are {{ total }} user(s)</span>
+            </div>
+        </div>
+        <div class="row pagination-block">
+            <div class="col-sm-9"
+                 style="padding-left:15px; margin-top: 5px;"
+                 page-switcher="{page:ctrl.page.number,size:ctrl.page.size,count:ctrl.page.total}"
+                 on-select-page="ctrl.pagedSearchService.setPage(page)">
+            </div>
+            <select class="nb-per-page input-small form-control pull-right col-xs-2"
+                    ng-model="ctrl.pagedSearchService.query.size"
+                    ng-change="ctrl.pagedSearchService.setPage(1)">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="container">
+            <div class="row">
+                <table class="table table-condensed table-striped table-responsive user-table">
+                    <thead>
+                        <tr title="click to order">
+                            <th ng-click="ctrl.pagedSearchService.sortBy('cstl_user.login')">
+                                <span>{{'settings.form.login' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('cstl_user.login')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('cstl_user.login')"></i>
+                            </th>
+                            <th ng-click="ctrl.pagedSearchService.sortBy('cstl_user.firstname')">
+                                <span>{{'settings.form.firstname' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('cstl_user.firstname')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('cstl_user.firstname')"></i>
+                            </th>
+                            <th ng-click="ctrl.pagedSearchService.sortBy('cstl_user.lastname')">
+                                <span>{{'settings.form.lastname' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('cstl_user.lastname')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('cstl_user.lastname')"></i>
+                            </th>
+                            <th ng-click="ctrl.pagedSearchService.sortBy('cstl_user.email')">
+                                <span>{{'settings.form.email' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('cstl_user.email')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('cstl_user.email')"></i>
+                            </th>
+                            <th ng-click="ctrl.pagedSearchService.sortBy('user_x_role.role')">
+                                <span>{{'settings.form.role' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('user_x_role.role')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('user_x_role.role')"></i>
+                            </th>
+                            <th ng-click="ctrl.pagedSearchService.sortBy('cstl_user.active')">
+                                <span>{{'settings.form.state' | translate}}</span>
+                                <i class="fa" ng-show="ctrl.pagedSearchService.isSortedBy('cstl_user.active')" ng-class="ctrl.pagedSearchService.getSortOrderIcon('cstl_user.active')"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="user in ctrl.page.content">
+                            <td ng-click="ctrl.edit(user.id)">{{user.login}}</td>
+                            <td ng-click="ctrl.edit(user.id)">{{user.firstname}}</td>
+                            <td ng-click="ctrl.edit(user.id)">{{user.lastname}}</td>
+                            <td ng-click="ctrl.edit(user.id)">{{user.email}}</td>
+                            <td ng-click="ctrl.edit(user.id)">{{user.roles[0]}}</td>
+                            <td>
+                                <button class="btn btn-sm"
+                                        ng-class="{'btn-add': user.active, 'btn-warning': !user.active}"
+                                        translate="{{user.active ? 'label.users.enable' : 'label.users.disable'}}"
+                                        ng-click="ctrl.updateValidation(user.id)">
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

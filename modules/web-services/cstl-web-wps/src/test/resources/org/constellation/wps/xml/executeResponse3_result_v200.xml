@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns14:Result xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns7="http://geotoolkit.org" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:ns12="http://www.opengis.net/gml" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:ns14="http://www.opengis.net/wps/2.0" xmlns:ns15="http://www.opengis.net/ows/2.0">
+  <ns14:Output id="urn:exa:wps:geotoolkit::jts:intersection:output:result_geom">
+    <ns14:JobID>ecbc4579-5175-423a-9bce-a7572ec75363</ns14:JobID>
+    <ns14:Data mimeType="application/geo+json" encoding="utf-8"><![CDATA[{
+  "type" : "Polygon",
+  "coordinates" : [ [ [ 3, 3 ], [ 3, 4 ], [ 4, 4 ], [ 4, 3 ], [ 3, 3 ] ] ]
+}]]></ns14:Data>
+  </ns14:Output>
+</ns14:Result>

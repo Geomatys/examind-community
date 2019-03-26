@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:ExceptionReport xmlns:ows="http://www.opengis.net/ows" xmlns:ns2="http://www.opengis.net/ows/1.1" xmlns:ns3="http://www.opengis.net/ows/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.0" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsExceptionReport.xsd">
+  <ns3:Exception exceptionCode="InvalidParameterValue" locator="identifier">
+    <ns3:ExceptionText>The process identifier : urn:exa:wps:geotoolkit::bad does not exist.</ns3:ExceptionText>
+  </ns3:Exception>
+</ns3:ExceptionReport>

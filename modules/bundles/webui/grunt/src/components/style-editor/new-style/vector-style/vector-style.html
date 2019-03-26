@@ -1,0 +1,732 @@
+<div class="createStyle-vector">
+    <!--The left part of the dashboard-->
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <div ng-if="!vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoIntervalEditor && !vectorCtrl.helper.enableAutoUniqueEditor">
+            <!--Style name section-->
+            <div class="form-group col-xs-12 style-name-block">
+                <label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                    {{'style.editor.new.vector.label.style.name' | translate}}
+                </label>
+                <div class="col-xs-7 col-sm-7 col-md-8">
+                    <input ng-if="!vectorCtrl.isSelectedChooser('edit')"
+                           type="text"
+                           class="form-control form-control-fix"
+                           ng-model="vectorCtrl.newStyle.name"/>
+                    <label class="title" ng-if="vectorCtrl.isSelectedChooser('edit')">
+                        {{vectorCtrl.newStyle.name}}
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-12" ng-if="vectorCtrl.helper.noNameErr">
+                <div class="alert alert-danger alert-no-name">
+                    {{'style.editor.new.vector.label.alert.no.name' | translate}}
+                </div>
+            </div>
+            <!--Rules header section-->
+            <div>
+                <div class="sld-panel">
+                    <div class="panel-heading well-sld-header">
+                        <strong>{{'style.editor.new.vector.label.rules' | translate}}</strong>
+                        <div class="dropdown pull-right">
+                            <a data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+                                <span class="fa fa-plus"></span>
+                                <span>{{'style.editor.new.vector.label.new.rules' | translate}}</span>
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a ng-click="vectorCtrl.createManualRule()">
+                                        {{'style.editor.new.vector.label.new.rules.manual' | translate}}
+                                    </a>
+                                </li>
+                                <li ng-if="vectorCtrl.selectedDataRef.dataLayer">
+                                    <a ng-click="vectorCtrl.createAutoIntervalRule()">
+                                        {{'style.editor.new.vector.label.new.rules.auto_interval' | translate}}
+                                    </a>
+                                </li>
+                                <li ng-if="vectorCtrl.selectedDataRef.dataLayer">
+                                    <a ng-click="vectorCtrl.createAutoValuesRule()">
+                                        {{'style.editor.new.vector.label.new.rules.auto_values' | translate}}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!--The rules list-->
+                    <div class="panel-body">
+                        <div class="list-group">
+                            <a class="list-group-item"
+                               title="{{rule.title}}"
+                               ng-class="{active:vectorCtrl.isSelectedRule(rule)}"
+                               ng-repeat="rule in vectorCtrl.newStyle.rules"
+                               ng-click="vectorCtrl.setSelectedRule(rule);">
+                                {{rule.name}}
+                            </a>
+                        </div>
+                    </div>
+                    <!--The helper list-->
+                    <div class="panel-sld-footer">
+                        <button class="btn btn-primary"
+                                type="button"
+                                ng-click="vectorCtrl.editSelectedRule();">
+                            {{'style.editor.new.vector.label.edit' | translate}}
+                        </button>
+                        <button class="btn btn-primary"
+                                type="button"
+                                ng-click="vectorCtrl.moveUpRule();">
+                            <span class="glyphicon glyphicon-chevron-up"></span>
+                        </button>
+                        <button class="btn btn-primary"
+                                type="button"
+                                ng-click="vectorCtrl.moveDownRule();">
+                            <span class="glyphicon glyphicon-chevron-down"></span>
+                        </button>
+                        <button class="btn btn-primary"
+                                type="button"
+                                ng-click="vectorCtrl.deleteSelectedRule();">
+                            {{'style.editor.new.vector.label.delete' | translate}}
+                        </button>
+                        <button class="btn btn-primary"
+                                type="button"
+                                ng-click="vectorCtrl.deleteAllRules();">
+                            {{'style.editor.new.vector.label.delete.all' | translate}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Add rule section-->
+        <!--Manuelle creation of style section-->
+        <div ng-if="vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoIntervalEditor && !vectorCtrl.helper.enableAutoUniqueEditor"
+             class="actions-tab">
+            <ul class="nav nav-tabs" ng-init="vectorCtrl.initSelectedRuleTab()">
+                <li ng-class="{active: vectorCtrl.isSelectedRuleTab('description')}">
+                    <a ng-click="vectorCtrl.changeSelectedRuleTab('description')" data-toggle="tab">
+                        <span>{{'style.editor.new.vector.label.description' | translate}}</span>
+                    </a>
+                </li>
+                <li ng-class="{active: vectorCtrl.isSelectedRuleTab('symbols')}">
+                    <a ng-click="vectorCtrl.changeSelectedRuleTab('symbols')" data-toggle="tab">
+                        <span>{{'style.editor.new.vector.label.symbols' | translate}}</span>
+                    </a>
+                </li>
+                <li ng-class="{active: vectorCtrl.isSelectedRuleTab('filters')}">
+                    <a ng-click="vectorCtrl.changeSelectedRuleTab('filters')" data-toggle="tab">
+                        <span>{{'style.editor.new.vector.label.filters' | translate}}</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane tab-style-edition"
+                     ng-class="{active: vectorCtrl.isSelectedRuleTab('description')}">
+                    <form class="form-horizontal form-style" role="form">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-11 col-md-11 col-lg-11 desc-form">
+                                <div class="form-group">
+                                    <label for="inputrulename"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.vector.label.name' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <input type="text"
+                                               class="form-control form-control-fix"
+                                               id="inputrulename"
+                                               ng-model="vectorCtrl.helper.selectedRule.name"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputRuleTitle"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.vector.label.title' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <input type="text"
+                                               class="form-control form-control-fix"
+                                               id="inputRuleTitle"
+                                               ng-model="vectorCtrl.helper.selectedRule.title"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputRuleDesc"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.vector.label.description' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <textarea id="inputRuleDesc"
+                                                  class="form-control form-control-fix"
+                                                  rows="3"
+                                                  ng-model="vectorCtrl.helper.selectedRule.description"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane tab-style-edition" ng-class="{active: vectorCtrl.isSelectedRuleTab('symbols')}">
+                    <form class="form-horizontal form-style" role="form">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-11 col-md-11 col-lg-11 col-sm-offset-1 symbols-form">
+                                <div class="form-group">
+                                    <label for="selectsymbolizer"
+                                           class="col-xs-12 col-md-10 col-md-offset-1">
+                                        {{'style.editor.new.vector.label.add.symbolizer' | translate}}
+                                    </label>
+                                    <div class="col-xs-12 col-md-10 col-md-offset-1">
+                                        <select id="selectsymbolizer"
+                                                class="col-xs-8 form-control"
+                                                ng-model="vectorCtrl.helper.selectedSymbolizerType">
+                                            <option ng-repeat="item in vectorCtrl.symbolizerTypes track by item.id" ng-value="item.value">
+                                                {{item.translateKey | translate}}
+                                            </option>
+                                        </select>
+                                        <button class="col-xs-3 btn btn-primary"
+                                                type="button"
+                                                ng-click="vectorCtrl.addSymbolizer();">{{'style.editor.new.vector.label.add' | translate}}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row accordion-container">
+                            <accordion close-others="false">
+                                <accordion-group
+                                        ng-repeat="symbolizer in vectorCtrl.helper.selectedRule.symbolizers"
+                                        is-open="status.open">
+                                    <accordion-heading>
+                                        <div>
+                                            <i class="pull-left glyphicon"
+                                               ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
+                                            <span>{{symbolizer.name}}</span>
+                                            <button type="button"
+                                                    class="pull-right btn btn-xs btn-remove"
+                                                    ng-click="vectorCtrl.removeSymbolizer(symbolizer);$event.stopPropagation();">
+                                                <span class="sld-color glyphicon glyphicon-remove"></span>
+                                            </button>
+                                        </div>
+                                    </accordion-heading>
+                                    <div ng-if="symbolizer['@symbol'] === 'point'">
+                                        <point-symbolizer symbolizer="symbolizer"
+                                                          attributes-type-number="vectorCtrl.selectedDataProperties.attributesTypeNumber"></point-symbolizer>
+                                    </div>
+                                    <div ng-if="symbolizer['@symbol'] === 'line'">
+                                        <line-symbolizer symbolizer="symbolizer"
+                                                         attributes-type-number="vectorCtrl.selectedDataProperties.attributesTypeNumber"></line-symbolizer>
+                                    </div>
+                                    <div ng-if="symbolizer['@symbol'] === 'polygon'">
+                                        <polygon-symbolizer symbolizer="symbolizer"
+                                                            attributes-type-number="vectorCtrl.selectedDataProperties.attributesTypeNumber"></polygon-symbolizer>
+                                    </div>
+                                    <div ng-if="symbolizer['@symbol'] === 'text'">
+                                        <text-symbolizer
+                                                symbolizer="symbolizer"
+                                                attributes-exclude-geometry="vectorCtrl.selectedDataProperties.attributesExcludeGeometry"
+                                                attributes-type-number="vectorCtrl.selectedDataProperties.attributesTypeNumber"
+                                                load-data-properties="vectorCtrl.loadDataProperties"></text-symbolizer>
+                                    </div>
+                                </accordion-group>
+                            </accordion>
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane tab-style-edition" ng-class="{active: vectorCtrl.isSelectedRuleTab('filters')}">
+                    <div class="filters-content">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <strong>{{'style.editor.new.vector.label.filter.scale' | translate}}</strong>
+                                <i popover-placement="bottom"
+                                   popover-trigger="mouseenter"
+                                   popover="{{'style.editor.new.vector.label.scale.help' | translate}}"
+                                   popover-title="{{'style.editor.new.vector.label.scale.help.title' | translate}}">
+                                             <span id="questionSign" class="glyphicon glyphicon-question-sign"></span>
+                                </i>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12">
+                                <form class="form-horizontal form-style filters-form" role="form">
+                                    <div class="form-group">
+                                        <label for="minScale"
+                                               class="col-xs-5 col-sm-5 col-md-5 col-lg-4 control-label">
+                                            {{'style.editor.new.vector.label.filter.scale.min' | translate}}
+                                        </label>
+                                        <div class="col-xs-7 col-sm-7 col-md-6 col-lg-6">
+                                            <span class="pull-left absolute-elt"
+                                                  ng-if="vectorCtrl.helper.selectedRule.minScale != undefined && vectorCtrl.helper.selectedRule.minScale !== 0">1/</span>
+                                            <div class="input-group">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="minScale"
+                                                       ng-model="vectorCtrl.helper.selectedRule.minScale"
+                                                       min="0"/>
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-info"
+                                                            type="button"
+                                                            ng-click="vectorCtrl.setMinScale();"
+                                                            title="{{'style.editor.new.vector.label.get.scale' | translate}}">
+                                                        <i class="glyphicon glyphicon-arrow-left"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maxScale"
+                                               class="col-xs-5 col-sm-5 col-md-5 col-lg-4 control-label">
+                                            {{'style.editor.new.vector.label.filter.scale.max' | translate}}
+                                        </label>
+                                        <div class="col-xs-7 col-sm-7 col-md-6 col-lg-6">
+                                            <span class="pull-left absolute-elt"
+                                                  ng-if="vectorCtrl.helper.selectedRule.maxScale != undefined && vectorCtrl.helper.selectedRule.maxScale !== 0">1/</span>
+                                            <div class="input-group">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="maxScale"
+                                                       ng-model="vectorCtrl.helper.selectedRule.maxScale"
+                                                       min="0"/>
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-info"
+                                                            type="button"
+                                                            ng-click="vectorCtrl.setMaxScale();"
+                                                            title="{{'style.editor.new.vector.label.get.scale' | translate}}">
+                                                        <i class="glyphicon glyphicon-arrow-left"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-xs-5 col-sm-5 col-md-6 col-lg-6 emphase-container">
+                                            <em>{{'style.editor.new.vector.label.current.scale' | translate}}</em>
+                                        </label>
+                                        <em class="col-xs-7 col-sm-7 col-md-6 col-lg-6 currentScale"></em>
+                                    </div>
+                                    <hr/>
+                                    <div class="form-group">
+                                        <div class="col-xs-12 filter-by-block">
+                                            <div class="col-xs-7">
+                                                <label>
+                                                    <strong>{{'style.editor.new.vector.label.filter.enabled' | translate}}</strong>
+                                                    <input type="checkbox"
+                                                           ng-model="vectorCtrl.filter.filtersEnabled"
+                                                           ng-click="vectorCtrl.filter.filtersEnabled = !vectorCtrl.filter.filtersEnabled; vectorCtrl.applyFilter();"/>
+                                                </label>
+                                            </div>
+                                            <div class="col-xs-5">
+                                                <select class="form-control form-control-fix"
+                                                        ng-model="vectorCtrl.filter.filterMode"
+                                                        ng-change="vectorCtrl.setFilterMode();">
+                                                    <option value="simple">
+                                                        {{'style.editor.new.vector.label.filter.mode.simple' | translate}}
+                                                    </option>
+                                                    <option value="expert">
+                                                        {{'style.editor.new.vector.label.filter.mode.expert' | translate}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"
+                                         ng-show="vectorCtrl.filter.filtersEnabled && !vectorCtrl.filter.showFilterTextArea"
+                                         style="margin-left:0;">
+                                        <table ng-init="vectorCtrl.restoreFilters();">
+                                            <tbody>
+                                            <tr ng-repeat="filter in vectorCtrl.filter.filters">
+                                                <td>
+                                                    <select class="form-control form-control-fix"
+                                                            ng-init="vectorCtrl.loadDataProperties();"
+                                                            ng-model="filter.attribute"
+                                                            ng-helper="dp.name as dp.name for dp in vectorCtrl.selectedDataProperties.attributesExcludeGeometry"
+                                                            ng-change="vectorCtrl.applyFilter();">
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control form-control-fix"
+                                                            ng-init="vectorCtrl.loadDataProperties();"
+                                                            ng-model="filter.comparator"
+                                                            ng-change="vectorCtrl.applyFilter();">
+                                                        <option ng-repeat="item in vectorCtrl.comparatorList track by item.id" ng-value="item.value">
+                                                            {{item.name}}
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-fix"
+                                                           ng-model="filter.value"
+                                                           ng-change="vectorCtrl.applyFilter();"
+                                                           debounce="200"/>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control form-control-fix"
+                                                            ng-model="filter.operator"
+                                                            ng-change="vectorCtrl.addNewFilter(filter.operator,$index);">
+                                                        <option value=""></option>
+                                                        <option value="AND">AND</option>
+                                                        <option value="OR">OR</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="form-group" ng-show="vectorCtrl.filter.showFilterTextArea">
+                                        <label for="inputFilterComplex"
+                                               class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                            {{'style.editor.new.vector.label.filters.expression' | translate}}
+                                        </label>
+                                        <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
+                                            <textarea id="inputFilterComplex"
+                                                      class="form-control form-control-fix"
+                                                      rows="3"
+                                                      ng-model="vectorCtrl.helper.selectedRule.filter"
+                                                      debounce="200"></textarea>
+                                        </div>
+                                        <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1 remove-filter-exp-block">
+                                            <button type="button"
+                                                    class="btn btn-default"
+                                                    ng-click="vectorCtrl.helper.selectedRule.filter = null; vectorCtrl.filter.showFilterTextArea=false;">
+                                                <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Auto creation of style by Interval-->
+        <div ng-if="vectorCtrl.helper.enableAutoIntervalEditor && !vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoUniqueEditor">
+            <div class="sld-content">
+                <span>{{'style.editor.new.vector.label.configuration' | translate}}</span>
+                <form class="form-horizontal auto-interval-form" role="form">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.attribute.field' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <select class="form-control form-control-fix"
+                                        ng-init="vectorCtrl.loadDataProperties();"
+                                        ng-model="vectorCtrl.autoIntervalValues.attr">
+                                    <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesTypeNumber" ng-value="dp.name">
+                                        {{dp.name}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.intervals.count' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <input type="number"
+                                       class="form-control form-control-fix"
+                                       ng-model="vectorCtrl.autoIntervalValues.nbIntervals"
+                                       min="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.quantization.method' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <select class="form-control form-control-fix"
+                                        ng-model="vectorCtrl.autoIntervalValues.method">
+                                    <option value="equidistant">
+                                        {{'style.editor.new.vector.label.equidistant.cutting' | translate}}
+                                    </option>
+                                    <option value="mediane">
+                                        {{'style.editor.new.vector.label.mediane.cut' | translate}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.symbol.type' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <select class="form-control form-control-fix"
+                                        ng-model="vectorCtrl.autoIntervalValues.symbol">
+                                    <option value="point">{{'style.editor.new.vector.label.point' | translate}}</option>
+                                    <option value="line">{{'style.editor.new.vector.label.line' | translate}}</option>
+                                    <option value="polygon">{{'style.editor.new.vector.label.polygon' | translate}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.palette' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 palette-btn-block">
+                                <div class="pull-right btn-group dropup select select-block">
+                                    <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
+                                        <span class="filter-option pull-left">
+                                            <img class="img_palette img_palette_ajust"
+                                                 ng-src="{{vectorCtrl.autoIntervalValues.palette.img_palette}}"/>
+                                        </span>&nbsp;
+                                        <span class="caret"></span>
+                                    </button>
+                                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+                                    <ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(0)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette0.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(1)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(2)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(3)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(4)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorInterval(5)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label ">
+                                {{'style.editor.new.vector.label.palette.custom' | translate}}
+                            </label>
+                            <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+                                <input type="checkbox"
+                                       ng-model="vectorCtrl.autoIntervalValues.customPalette.enabled"
+                                       ng-change="vectorCtrl.affectDefaultPalette();"/>
+                            </div>
+                            <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 custom-palette"
+                                 ng-show="vectorCtrl.autoIntervalValues.customPalette.enabled">
+                                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                    <input type='text'
+                                           name="picker"
+                                           class="picker"
+                                           spectrum
+                                           ng-model="vectorCtrl.autoIntervalValues.customPalette.color1"/>
+                                </div>
+                                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                    <input type='text'
+                                           name="picker"
+                                           class="picker"
+                                           spectrum
+                                           ng-model="vectorCtrl.autoIntervalValues.customPalette.color2"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.reverse.colors' | translate}}
+                            </label>
+                            <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+                                <input type="checkbox" ng-model="vectorCtrl.autoIntervalValues.palette.reverseColors"/>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <button type="button"
+                        class="btn btn-primary pull-right"
+                        ng-click="vectorCtrl.generateAutoInterval()">
+                    <span>{{'style.editor.new.vector.label.generate.rules' | translate}}</span>
+                </button>
+            </div>
+        </div>
+        <!--Auto creation of style by Unique value -->
+        <div ng-if="vectorCtrl.helper.enableAutoUniqueEditor && !vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoIntervalEditor">
+            <div class="sld-content">
+                <span class="sld-label-title">{{'style.editor.new.vector.label.configuration' | translate}}</span>
+                <form class="form-horizontal form-style unique-values-form" role="form">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.attribute.field' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <select class="form-control form-control-fix"
+                                        ng-init="vectorCtrl.loadDataProperties();"
+                                        ng-model="vectorCtrl.autoUniqueValues.attr">
+                                    <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesExcludeGeometry"
+                                            ng-value="dp.name">{{dp.name}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.symbol.type' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <select class="form-control form-control-fix"
+                                        ng-model="vectorCtrl.autoUniqueValues.symbol">
+                                    <option value="point">{{'style.editor.new.vector.label.point' | translate}}</option>
+                                    <option value="line">{{'style.editor.new.vector.label.line' | translate}}</option>
+                                    <option value="polygon">{{'style.editor.new.vector.label.polygon' | translate}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.palette' | translate}}
+                            </label>
+                            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                <div class="pull-right btn-group select select-block">
+                                    <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
+                                            <span class="filter-option pull-left">
+                                                <img class="img_palette img_palette_ajust"
+                                                     ng-src="{{vectorCtrl.autoUniqueValues.palette.img_palette}}"/>
+                                            </span>&nbsp;
+                                        <span class="caret"></span>
+                                    </button>
+                                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+                                    <ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu">
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(0)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette0.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(1)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(2)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(3)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(4)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
+                                        </li>
+                                        <li ng-click="vectorCtrl.choosePaletteVectorUnique(5)">
+                                            <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.palette.custom' | translate}}
+                            </label>
+                            <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+                                <input type="checkbox"
+                                       ng-model="vectorCtrl.autoUniqueValues.customPalette.enabled"
+                                       ng-change="vectorCtrl.affectDefaultPalette();"/>
+                            </div>
+                            <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 custom-palette" ng-show="vectorCtrl.autoUniqueValues.customPalette.enabled">
+                                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                    <input type='text'
+                                           name="picker"
+                                           class="picker"
+                                           spectrum
+                                           ng-model="vectorCtrl.autoUniqueValues.customPalette.color1"/>
+                                </div>
+                                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                    <input type='text'
+                                           name="picker"
+                                           class="picker"
+                                           spectrum
+                                           ng-model="vectorCtrl.autoUniqueValues.customPalette.color2"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                                {{'style.editor.new.vector.label.reverse.colors' | translate}}
+                            </label>
+                            <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+                                <input type="checkbox"
+                                       ng-model="vectorCtrl.autoUniqueValues.palette.reverseColors"/>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <button type="button"
+                        class="btn btn-primary pull-right"
+                        ng-click="vectorCtrl.generateAutoUnique()">
+                    <span>{{'style.editor.new.vector.label.generate.rules' | translate}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!--The right part of the dashboard-->
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 map-content">
+        <div class="row">
+            <div class="col-xs-8">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="vectorCtrl.helper.autoPreview">
+                        <span>{{'style.editor.new.vector.label.auto.preview' | translate}}</span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <button type="button" class="pull-right btn btn-add"
+                        ng-click="vectorCtrl.displayNewStyle('styledMapOL',null);"
+                        ng-show="!vectorCtrl.helper.autoPreview">
+                    <span>{{'style.editor.new.vector.label.style.preview' | translate}}</span>
+                </button>
+            </div>
+        </div>
+        <div ng-if="vectorCtrl.shouldDisplayVectorChart()">
+            <div class="btn-group-vertical">
+                <button type="button"
+                        class="btn"
+                        ng-class="{'btn-info': vectorCtrl.helper.enabledVectorChart,'btn-default': !vectorCtrl.helper.enabledVectorChart}"
+                        ng-click="vectorCtrl.toggleVectorChart()"
+                        title="{{'style.editor.new.vector.label.toggle.histogram.values' | translate}}">
+                    <i class="glyphicon glyphicon-stats"></i>
+                </button>
+            </div>
+        </div>
+        <div id="styledMapOL" class="fixed-map"></div>
+        <div class="c3Chart vector-chart-block" ng-if="vectorCtrl.shouldDisplayVectorChart()" collapse="!vectorCtrl.helper.enabledVectorChart">
+            <div>
+                <div>
+                    <div class="form-group col-xs-10 col-sm-10 col-md-10 col-lg-10 pull-right">
+                        <label class="col-xs-6 col-sm-6 col-md-6 col-lg-6 control-label">
+                            {{'style.editor.new.vector.label.attribute.field' | translate}}
+                        </label>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                            <select class="form-control form-control-fix"
+                                    ng-init="vectorCtrl.loadDataProperties();"
+                                    ng-model="vectorCtrl.chart.attribute"
+                                    ng-change="vectorCtrl.loadPlotForAttribute();">
+                                <option value=""></option>
+                                <option ng-repeat="dp in vectorCtrl.selectedDataProperties.attributesExcludeGeometry"
+                                        ng-value="dp.name">{{dp.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="vectorCtrl.chart.max !== null && vectorCtrl.chart.min !== null">
+                    <span>Min: {{ vectorCtrl.chart.min }}</span>
+                    <span>Max: {{ vectorCtrl.chart.max }}</span>
+                </div>
+                <div>
+                    <div id="chart" ng-init="vectorCtrl.initVectorPlot();"></div>
+                </div>
+            </div>
+            <button type="button" class="close" ng-click="vectorCtrl.disableVectorChart()">×</button>
+        </div>
+    </div>
+
+    <div class="creation-actions">
+        <button type="button"
+                class="btn btn-primary pull-right"
+                ng-if="!vectorCtrl.helper.enableRuleEditor && !vectorCtrl.helper.enableAutoIntervalEditor && !vectorCtrl.helper.enableAutoUniqueEditor"
+                ng-click="vectorCtrl.createStyle();">
+            <span>{{'style.editor.new.label.create.style' | translate}}</span>
+        </button>
+        <button type="button"
+                class="btn btn-primary pull-right"
+                ng-if="vectorCtrl.helper.enableRuleEditor || vectorCtrl.helper.enableAutoIntervalEditor || vectorCtrl.helper.enableAutoUniqueEditor"
+                ng-click="vectorCtrl.goBackToRulesList();">
+            <span>{{'style.editor.new.label.back.rules.list' | translate}}</span>
+        </button>
+    </div>
+</div>

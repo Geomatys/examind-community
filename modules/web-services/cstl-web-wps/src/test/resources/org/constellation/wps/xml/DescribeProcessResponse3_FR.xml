@@ -1,0 +1,120 @@
+<?xml version='1.0'?>
+<wps:ProcessDescriptions xmlns:ns14="http://www.opengis.net/wps/1.0.0"
+                         xmlns:xlink="http://www.w3.org/1999/xlink"
+                         xmlns:ns10="http://www.opengis.net/ows/1.1"
+                         xmlns:wps="http://www.opengis.net/wps/1.0.0"
+                         xmlns:ows="http://www.opengis.net/ows/1.1"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"
+                         service="WPS" version="1.0.0" xml:lang="fr-FR">
+    <ProcessDescription ns14:processVersion="1.0.0">
+        <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:isoline</ns10:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:isoline</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Créer une FeatureCollection d'isoligne à partir d'un GridCoverage et d'un tableau d'intervales.</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inCoverage</ns10:Identifier>
+                <ows:Title>InCoverage</ows:Title>
+                <ows:Abstract>Grid coverage en entrée.</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inIntervals</ns10:Identifier>
+                <ows:Title>InIntervals</ows:Title>
+                <ows:Abstract>Tabeau d'intervalles</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:output:outFeatureCollection</ns10:Identifier>
+                <ows:Title>OutFeatureCollection</ows:Title>
+                <ows:Abstract>FeatureCollection d'isoligne en sortie.</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+</wps:ProcessDescriptions>

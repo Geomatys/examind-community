@@ -1,0 +1,70 @@
+<div class="row">
+    <div id="addDataWizard" class="wizard_container sw-main sw-theme-arrows">
+        <ul class="nav nav-tabs breadcrumb_wizard_step step-anchor">
+            <li ng-repeat="step in wizDataImportCtrl.stepsConfig.stepsList"
+                ng-class="{'active':wizDataImportCtrl.isSelectedStep(step.id),'done':wizDataImportCtrl.isFinishedStep(step.index)}">
+                <a>
+                    <span>{{'wiz.data.import.label.step'| translate}}&nbsp;{{step.name}} </span><br>
+                    <small>{{step.desc | translate}}</small>
+                </a>
+            </li>
+        </ul>
+        <div class="steps sw-container">
+            <div id="step-1" ng-if="wizDataImportCtrl.isSelectedStep('step-1')" class="step-content">
+                <step1-wizard wizard-values="wizDataImportCtrl.wizardValues"></step1-wizard>
+            </div>
+            <div id="step-2" ng-if="wizDataImportCtrl.isSelectedStep('step-2')" class="step-content">
+                <step2-wizard wizard-values="wizDataImportCtrl.wizardValues"></step2-wizard>
+            </div>
+            <div id="step-3" ng-if="wizDataImportCtrl.isSelectedStep('step-3')" class="step-content">
+                <step3-wizard wizard-values="wizDataImportCtrl.wizardValues"></step3-wizard>
+            </div>
+            <div id="step-4" ng-if="wizDataImportCtrl.isSelectedStep('step-4')" class="step-content">
+                <step4-wizard wizard-values="wizDataImportCtrl.wizardValues"></step4-wizard>
+            </div>
+            <div id="step-5" ng-if="wizDataImportCtrl.isSelectedStep('step-5')" class="step-content">
+                <step5-wizard wizard-values="wizDataImportCtrl.wizardValues"></step5-wizard>
+            </div>
+            <div id="step-2-s63" ng-if="wizDataImportCtrl.isSelectedStep('step-2-s63')" class="step-content">
+                <step2-s63 wizard-values="wizDataImportCtrl.wizardValues"></step2-s63>
+            </div>
+            <div id="step-3-s63" ng-if="wizDataImportCtrl.isSelectedStep('step-3-s63')" class="step-content">
+                <step3-s63 wizard-values="wizDataImportCtrl.wizardValues"></step3-s63>
+            </div>
+            <div id="step-4-s63" ng-if="wizDataImportCtrl.isSelectedStep('step-4-s63')" class="step-content">
+                <step4-s63 wizard-values="wizDataImportCtrl.wizardValues"></step4-s63>
+            </div>
+            <div id="step-5-s63" ng-if="wizDataImportCtrl.isSelectedStep('step-5-s63')" class="step-content">
+                <step5-s63 wizard-values="wizDataImportCtrl.wizardValues"></step5-s63>
+            </div>
+        </div>
+        <div class="wizard-action-bar">
+            <button class="btn btn-danger pull-left"
+                    ng-if="wizDataImportCtrl.showBtn('cancel')"
+                    ng-click="wizDataImportCtrl.cancel()">
+                <span>{{'wiz.data.import.cancel' | translate}}</span>
+            </button>
+
+            <button class="btn btn-success pull-right ac-btn"
+                    ng-if="wizDataImportCtrl.showBtn('finish')"
+                    ng-disabled="wizDataImportCtrl.disableFinishBtn()"
+                    ng-click="wizDataImportCtrl.finish()">
+                <span>{{'wiz.data.import.finish' | translate}}</span>
+            </button>
+
+            <button class="btn btn-primary pull-right ac-btn"
+                    ng-if="wizDataImportCtrl.showBtn('next')"
+                    ng-disabled="wizDataImportCtrl.disableNextBtn()"
+                    ng-click="wizDataImportCtrl.goToNextStep()">
+                <span>{{'wiz.data.import.next' | translate}}</span>
+                <span class="fa fa-arrow-right"></span>
+            </button>
+            <button class="btn btn-default pull-right ac-btn"
+                    ng-if="wizDataImportCtrl.showBtn('previous')"
+                    ng-click="wizDataImportCtrl.goToPreviousStep()">
+                <span class="fa fa-arrow-left"></span>
+                <span>{{'wiz.data.import.previous' | translate}}</span>
+            </button>
+        </div>
+    </div>
+</div>

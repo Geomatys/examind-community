@@ -1,0 +1,166 @@
+<form class="form-horizontal form-style" role="form">
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="edition.style.label.name">Name</label>
+        <div class="col-sm-8 col-md-9">
+            <input type="text"
+                   class="form-control form-control-fix"
+                   ng-model="symbolizer.name"
+                   debounce="200"/>
+        </div>
+    </div>
+    <hr/>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.label">Label</label>
+        <div class="col-sm-6 col-md-7">
+            <input type="text"
+                   class="form-control form-control-fix"
+                   ng-model="symbolizer.label"
+                   debounce="200"/>
+        </div>
+        <div class="col-sm-1 col-md-2 div-padding-left-0">
+            <button type="button"
+                    class="btn btn-default"
+                    ng-style="dispPropNames?styleBtnSelected:styleBtnDefault"
+                    ng-click="symbolizer.label='';dispPropNames=!dispPropNames"
+                    title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':!dispPropNames,'glyphicon-remove':dispPropNames}"></span>
+            </button>
+        </div>
+        <div class="col-sm-6 col-md-offset-3 col-md-6"
+             ng-show="dispPropNames"
+             style="margin-top:10px;">
+            <select class="form-control form-control-fix"
+                    ng-init="loadDataProperties();"
+                    ng-model="symbolizer.label"
+                    ng-options="dp.name as dp.name for dp in $parent.attributesExcludeGeometry">
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.font">Font</label>
+        <div class="col-sm-6 col-md-7">
+            <select class="form-control form-control-fix"
+                    ng-init="$parent.initFontFamilies(symbolizer)"
+                    ng-model="symbolizer.font.family[0]">
+                <option value="Arial" style="font-family: Arial;">Arial</option>
+                <option value="Calibri" style="font-family: Calibri;">Calibri</option>
+                <option value="Courier" style="font-family: Courier;">Courier</option>
+                <option value="Lucida" style="font-family: Lucida;">Lucida</option>
+                <option value="Times" style="font-family: Times;">Times</option>
+                <option value="Times New Roman" style="font-family: Times New Roman;">Times New Roman</option>
+                <option value="Trebuchet" style="font-family: Trebuchet;">Trebuchet</option>
+                <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" ng-init="advTSize=!isExpressionNumber(symbolizer.font.size);">
+        <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label"
+               translate="sldeditor.edition.size">Size</label>
+        <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+            <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 div-padding-left-0"
+                 ng-show="isExpressionNumber(symbolizer.font.size) && !advTSize">
+                <input class="slider"
+                       type="range"
+                       ng-model="symbolizer.font.size" max="50" min="1" step="1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 div-padding-left-0"
+                 ng-show="isExpressionNumber(symbolizer.font.size) && !advTSize">
+                <input class="form-control form-control-fix"
+                       style="padding: 6px 4px;"
+                       type="text"
+                       ng-model="symbolizer.font.size"
+                       min="1"
+                       max="50"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"
+                 style="padding: 0;"
+                 ng-show="advTSize || !isExpressionNumber(symbolizer.font.size)">
+                <select class="form-control form-control-fix"
+                        ng-model="selectAttrPSize"
+                        ng-change="setAttrToInputSize(selectAttrPSize,symbolizer.font)">
+                    <option ng-repeat="dp in attributesTypeNumber" ng-value="dp.name">{{dp.name}}</option>
+                </select>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
+                 style="padding-left: 5px;padding-right: 5px;"
+                 ng-show="advTSize || !isExpressionNumber(symbolizer.font.size)">
+                <input class="form-control form-control-fix"
+                       type="text"
+                       placeholder="attr * 12 / max"
+                       ng-model="symbolizer.font.size"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-style="advTSize?styleBtnSelected:styleBtnDefault"
+                        ng-click="symbolizer.font.size=12;advTSize=!advTSize;"
+                        title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':isExpressionNumber(symbolizer.font.size) && !advTSize,'glyphicon-remove':advTSize || !isExpressionNumber(symbolizer.font.size)}"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label">Style</label>
+        <div class="col-sm-8 btn-group" data-toggle="buttons">
+            <label class="btn btn-default"
+                   style="color: #666;"
+                   ng-class="{active2:symbolizer.font.bold, inactive2:!symbolizer.font.bold}"
+                   ng-click="symbolizer.font.bold = !symbolizer.font.bold">
+                <input type="checkbox"
+                       class="btn btn-default"
+                       ng-checked="symbolizer.font.bold"/>
+                <b>B</b>
+            </label>
+            <label class="btn btn-default"
+                   ng-class="{active2:symbolizer.font.italic, inactive2:!symbolizer.font.italic}"
+                   ng-click="symbolizer.font.italic = !symbolizer.font.italic"
+                   style="width: 35px;color: #666;">
+                <input type="checkbox"
+                       class="btn btn-default"
+                       ng-checked="symbolizer.font.italic"/>
+                <i>I</i>
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.color">Color</label>
+        <div class="col-sm-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="affectAlpha(value, symbolizer.fill)"
+                   ng-model="symbolizer.fill.color"/>
+        </div>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-xs-10">
+            <strong style="font-size: 13px;">Halo</strong>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.color">Color</label>
+        <div class="col-sm-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="affectAlpha(value, symbolizer.halo.fill)"
+                   ng-model="symbolizer.halo.fill.color"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.radius">Radius</label>
+        <div class="col-sm-4 col-md-3">
+            <input type="number"
+                   class="form-control"
+                   ng-model="symbolizer.halo.radius"
+                   debounce="200"/>
+        </div>
+    </div>
+</form>

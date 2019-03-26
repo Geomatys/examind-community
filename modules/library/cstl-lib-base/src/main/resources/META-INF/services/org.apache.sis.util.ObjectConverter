@@ -1,0 +1,9 @@
+org.constellation.util.converter.DataReferenceToStringConverter
+org.constellation.util.converter.StringToDataReferenceConverter
+org.constellation.util.converter.StringToStyleReferenceConverter
+org.constellation.util.converter.StyleReferenceToStringConverter
+org.constellation.util.converter.CRSConverters$String2CoordinateReferenceSystem
+org.constellation.util.converter.CRSConverters$Map2CoordinateReferenceSystem
+org.constellation.util.converter.CRSConverters$String2CRSProcessReference
+org.constellation.util.converter.DataSourceToStringConverter
+org.constellation.util.converter.StringToDataSourceConverter

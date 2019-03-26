@@ -1,0 +1,319 @@
+<div class="logo-wrapper row">
+    <div class="col-sm-9">
+        <h3 class="header-title" translate="page.header.title.sensors">Sensors Dashboard</h3>
+    </div>
+    <div class="col-sm-3">
+        <div class="pull-right">
+            <a class="btn btn-add btn-lg"
+               ng-click="addSensor()"
+               style="margin-top:8px;padding:15px 19px;">
+                <span class="fa fa-plus" style="margin-right:5px;"></span>
+                <span translate="label.add.sensors">Add sensor</span>
+            </a>
+        </div>
+    </div>
+</div>
+<div id="sensorDashboard" class="row" ng-init="init()">
+    <div class="col-sm-12">
+        <div class="frame dashboard">
+            <div class="navbar navbar-default" style="margin-bottom: 0px;">
+                <div class="navbar-header">
+                    <a class="navbar-brand"
+                       translate="sensors.information.title">Available sensors</a>
+                </div>
+            </div>
+            <div class="navbar sort-navbar">
+                <div class="navbar-inner">
+                    <ul class="nav nav-style">
+                        <li ng-click="wrap.ordertype='id';wrap.orderreverse=!wrap.orderreverse">
+                            <a>
+                                <span translate="label.title">Title</span>
+                                <i class="fa fa-caret-up"
+                                   ng-if="wrap.ordertype == 'id' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down"
+                                   ng-if="wrap.ordertype == 'id' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="wrap.ordertype='date';wrap.orderreverse=!wrap.orderreverse">
+                            <a>
+                                <span translate="label.date">Date</span>
+                                <i class="fa fa-caret-up"
+                                   ng-if="wrap.ordertype == 'date' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down"
+                                   ng-if="wrap.ordertype == 'date' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="wrap.ordertype='owner';wrap.orderreverse=!wrap.orderreverse">
+                            <a>
+                                <span translate="label.owner">owner</span>
+                                <i class="fa fa-caret-up"
+                                   ng-if="wrap.ordertype == 'owner' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down"
+                                   ng-if="wrap.ordertype == 'owner' && !wrap.orderreverse"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                    </ul>
+                    <button type="button"
+                            ng-click="resetFilters();"
+                            title="{{'label.search.refresh' | translate }}"
+                            class="btn btn-xs btn-info btn-data btn-sos">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <div class="pull-right">
+                        <div style="position:relative;">
+                            <div class="ajax-loader" style="right:0;position:absolute;"></div>
+                            <input type="text"
+                                   ng-model="wrap.filtertext"
+                                   class="searchbox search-query form-control form-control-fix"
+                                   placeholder="{{'label.search' | translate}}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dash-inner row">
+                <div class="pull-left"
+                     id="contentList"
+                     style="width: 60%; margin-bottom: 5px;"
+                     ng-init="sensorCtrl.smallMode=false">
+                    <div id="list" data-role="list">
+                        <div class="pagination-wrapper pagination-data pagination-sos">
+                            <strong class="col-lg-6 col-xs-8 col-md-6">
+                                <span class="nb-results pull-left">{{wrap.countdata}}&nbsp;</span>
+                                <span class="nb-results" translate="label.count.sensors">available sensors</span>
+                            </strong>
+                            <div class="hidden-sm hidden-xs pull-right col-md-6"
+                                 style="padding-right:0;">
+                                <button type="button"
+                                        ng-click="sensorCtrl.smallMode=true"
+                                        class="pull-right btn btn-xs btn-info btn-sos  btn-data"
+                                        ng-class="{'btn-small-selected':sensorCtrl.smallMode}"
+                                        style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
+                                    <img src="img/btn-display-reduced.svg" alt="" />
+                                </button>
+                                <button type="button"
+                                        ng-click="sensorCtrl.smallMode=false"
+                                        class="pull-right btn btn-xs btn-info btn-sos btn-data"
+                                        ng-class="{'btn-small-selected':!sensorCtrl.smallMode}"
+                                        style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
+                                    <img src="img/btn-display-normal.svg" alt="" />
+                                </button>
+                                <p class="pull-right" style="margin-top:12px;" translate="label.display">Display :</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-9"
+                                     style="padding-left:15px; margin-top: 5px;"
+                                     page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                                     on-select-page="displayPage(page)"></div>
+                                <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                        style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                        ng-model="wrap.nbbypage">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="item-list">
+                            <div ng-repeat="sosdata in wrap.dataList"
+                                 ng-class="{'col-xs-6':sensorCtrl.smallMode}"
+                                 style="padding-left:0;">
+                                <div class="item"
+                                     ng-class="{'sensor-sos':sosdata.type!='System','sensor-system':sosdata.type=='System','selected':sosdata.id==sensorCtrl.selectedSensor.id, 'style-small':sensorCtrl.smallMode}"
+                                     ng-click="toggleSelectSensor(sosdata);selectSensorsChild(null);">
+                                    <div class="top">
+                                        <span class="item-title"
+                                              ng-class="{'title-sensorSystem':sosdata.type=='System'}"
+                                              title="{{sosdata.identifier}}">{{truncate(sensorCtrl.smallMode,sosdata.identifier)}}</span>
+                                        <span ng-if="sosdata.type=='System' && !sensorCtrl.smallMode"
+                                              class="pull-right text-right item-list-style"
+                                              style="width:172px;"
+                                              translate="label.sensor.system">sensor system</span>
+                                        <span ng-if="sosdata.type!='System'"
+                                              class="pull-right text-right item-list-style"
+                                              translate="label.sensor">sensor</span>
+                                    </div>
+                                    <div class="bottom">
+                                        <div ng-class="{'hidden':!sensorCtrl.smallMode}">
+                                            <div class="block tooltipicon"
+                                                 style="margin-top:0;text-shadow: none;">
+                                                <i class="fa fa-calendar"
+                                                   tooltip data-placement="top"
+                                                   title="{{sosdata.createDate | date:'yyyy-MM-dd'}}"></i>
+                                            </div>
+                                            <div class="block tooltipicon"
+                                                 style="margin-top:0;text-shadow: none;">
+                                                <i class="fa fa-user"
+                                                   tooltip data-placement="top"
+                                                   title="{{sosdata.owner}}"></i>
+                                            </div>
+                                        </div>
+                                        <div ng-class="{'hidden':sensorCtrl.smallMode}">
+                                            <div class="block">
+                                                <i class="fa fa-calendar"></i>{{sosdata.createDate | date:'yyyy-MM-dd'}}
+                                            </div>
+                                            <div class="block">
+                                                <i class="fa fa-user"></i>{{sosdata.owner}}
+                                            </div>
+                                        </div>
+                                        <div class="block pull-right">
+                                            <i class="fa fa-paperclip"></i>
+                                            <span ng-if="sosdata.children == null || sosdata.children.length == 0"
+                                                  translate="md.listing.no.sensor">No</span>
+                                            <span ng-if="sosdata.children.length > 0">{{sosdata.children.length}}</span>
+                                            <span translate="service.edit.dashboard.sensors.list.associated" ng-class="{hide:sensorCtrl.smallMode}">associated sensors</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="item sensor-sos"
+                                     style="margin-top:0;"
+                                     ng-if="sosdata.id==sensorCtrl.selectedSensor.id"
+                                     ng-repeat="soschild in sosdata.children"
+                                     ng-class="{'selected':soschild.id==sensorCtrl.selectedSensorsChild.id,'child':!sensorCtrl.smallMode,'col-xs-11':sensorCtrl.smallMode,'col-sm-offset-1':sensorCtrl.smallMode, 'style-small':sensorCtrl.smallMode}"
+                                     ng-click="selectSensorsChild(soschild)">
+                                    <div class="top">
+                                        <span class="item-title"
+                                              title="{{soschild.identifier}}">{{truncate(sensorCtrl.smallMode,soschild.identifier)}}</span>
+                                        <span class="pull-right text-right item-list-style"
+                                              translate="label.sensor">sensor</span>
+                                    </div>
+                                    <div class="bottom">
+                                        <div ng-class="{'hidden':!sensorCtrl.smallMode}">
+                                            <div class="block tooltipicon"
+                                                 style="margin-top:0;text-shadow: none;">
+                                                <i class="fa fa-calendar"
+                                                   tooltip data-placement="top"
+                                                   title="{{soschild.createDate | date:'yyyy-MM-dd'}}"></i>
+                                            </div>
+                                            <div class="block tooltipicon"
+                                                 style="margin-top:0;text-shadow: none;">
+                                                <i class="fa fa-user"
+                                                   tooltip data-placement="top"
+                                                   title="{{soschild.owner}}"></i>
+                                            </div>
+                                        </div>
+                                        <div ng-class="{'hidden':sensorCtrl.smallMode}">
+                                            <div class="block">
+                                                <i class="fa fa-calendar"></i>{{soschild.createDate | date:'yyyy-MM-dd'}}
+                                            </div>
+                                            <div class="block">
+                                                <i class="fa fa-user"></i>{{soschild.owner}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pull-left" style="width: 40%;">
+                    <div id="block-information-right" style="padding: 10px;">
+                        <div id="section">
+                            <div class="alert alert-sos alert-info alert-data"
+                                 ng-class="{hide: sensorCtrl.selectedSensor}">
+                                <h4 translate="label.no.selected.sensor">No selected sensor</h4>
+                                <p translate="msg.no.selected.sensor"
+                                   style="font-weight:normal;">Click on a data to display more information</p>
+                            </div>
+                            <div class="selected-item"
+                                 id="selected-item"
+                                 ng-class="{hide: !sensorCtrl.selectedSensor}">
+                                <div class="block-header block-header-sos"
+                                     ng-click="toggleUpDownSelected()">
+                                    <strong class="item-title title-bloc"
+                                            title="{{sensorCtrl.selectedSensor.identifier}}">{{truncateTitleBlock(sensorCtrl.selectedSensor.identifier)}}</strong>
+                                    <i class="fa fa-chevron-down pull-right"></i>
+                                </div>
+                                <div style="display: none;">
+                                    <div class="block-content">
+                                        <div class="row description-block">
+                                            <div class="col-sm-3 col-md-2">
+                                                <img src="img/block-content-owner.svg" alt="" />
+                                            </div>
+                                            <div class="col-sm-9 col-md-10 description-text">
+                                                <span>{{sensorCtrl.selectedSensor.owner}}</span>
+                                            </div>
+                                        </div>
+                                        <div class="row description-block">
+                                            <div class="col-sm-3 col-md-2">
+                                                <img src="img/block-content-date.svg" alt="" />
+                                            </div>
+                                            <div class="col-sm-9 col-md-10 description-text">
+                                                <span>{{sensorCtrl.selectedSensor.createDate | date:'yyyy-MM-dd'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="block-content" ng-if="sensorCtrl.selectedSensorsChild">
+                                        <h6 translate="label.title">Title</h6>
+                                        <span>{{truncateTitleBlock(sensorCtrl.selectedSensorsChild.identifier)}}</span>
+                                        <div class="separator"></div>
+                                        <h6 translate="label.type">Type</h6>
+                                        <span translate="label.sensor">sensor</span>
+                                    </div>
+                                </div>
+                                <div class="block-action">
+                                    <div class="row">
+                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                            <span class="tooltipicon">
+                                                <button type="button"
+                                                        class="btn btn-sos"
+                                                        ng-click="displayMetadataSensorML()"
+                                                        data-placement="bottom"
+                                                        title="{{'sensor.metadata.listing.selected.view.button' | translate }}" tooltip>
+                                                    <i class="glyphicon glyphicon-file"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                            <span class="tooltipicon">
+                                                <button type="button"
+                                                        class="btn btn-sos"
+                                                        ng-click="displayMetadataSensorMLEditor();"
+                                                        data-placement="bottom"
+                                                        title="{{'sensor.metadata.listing.selected.edit.button' | translate }}" tooltip>
+                                                    <i class="glyphicon glyphicon-pencil"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                            <span class="tooltipicon">
+                                                <a class="btn btn-sos"
+                                                   ng-href="{{sensorCtrl.cstlUrl}}API/sensors/{{sensorCtrl.selectedSensorsChild?sensorCtrl.selectedSensorsChild.id:sensorCtrl.selectedSensor.id}}/metadata/download?token={{authToken}}"
+                                                   data-placement="bottom"
+                                                   title="{{'sensor.metadata.listing.selected.export.button' | translate }}" tooltip>
+                                                    <i class="fa fa-download"></i>
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                            <span class="tooltipicon">
+                                                <button type="button"
+                                                        class="btn btn-sos"
+                                                        ng-click="deleteSensor();"
+                                                        data-placement="bottom"
+                                                        title="{{'sensor.listing.selected.delete.button' | translate }}" tooltip>
+                                                    <i class="glyphicon glyphicon-trash"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div scroll-to=""
+     id="backtotop"
+     class="backtotop"
+     ng-hide="sensorCtrl.hideScroll">
+    <span class="glyphicon glyphicon-chevron-up"></span>
+</div>

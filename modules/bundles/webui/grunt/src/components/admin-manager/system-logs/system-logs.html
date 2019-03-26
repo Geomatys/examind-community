@@ -1,0 +1,85 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{'global.menu.admin.logs' | translate}}</h3>
+    </div>
+    <div class="panel-body" ng-init="init()">
+        <div>
+            <div class="pagination-wrapper pagination-data">
+                <strong translate="logs.nbloggers" translate-values="{total: '{{ wrap.countdata }}'}">
+                    There are {{ wrap.countdata }} loggers.
+                </strong>
+                <div class="row search-block">
+                    <div class="col-sm-6 col-md-5 col-lg-4">
+                        <input type="text"
+                               ng-model="wrap.filtertext"
+                               class="form-control form-control-fix"
+                               placeholder="{{'label.search' | translate}}" />
+                    </div>
+                </div>
+                <div class="row pagination-block">
+                    <div class="col-sm-9"
+                         style="padding-left:15px; margin-top: 5px;"
+                         page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                         on-select-page="displayPage(page)"></div>
+                    <select class="nb-per-page input-small form-control pull-right col-xs-2"
+                            ng-change="displayPage(1)"
+                            ng-model="wrap.nbbypage">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <table class="table table-condensed table-striped table-bordered table-responsive user-table">
+                <thead>
+                    <tr>
+                    <td ng-click="wrap.ordertype='name';wrap.orderreverse=!wrap.orderreverse">
+                        <a>
+                            <span>{{'logs.table.name' | translate}}</span>
+                            <i class="fa fa-caret-up"
+                               ng-if="wrap.ordertype === 'name' && wrap.orderreverse"></i>
+                            <i class="fa fa-caret-down"
+                               ng-if="wrap.ordertype === 'name' && !wrap.orderreverse"></i>
+                        </a>
+                    </td>
+                    <td ng-click="wrap.ordertype='level';wrap.orderreverse=!wrap.orderreverse">
+                        <a>
+                            <span>{{'logs.table.level' | translate}}</span>
+                            <i class="fa fa-caret-up" ng-if="wrap.ordertype === 'level' && wrap.orderreverse"></i>
+                            <i class="fa fa-caret-down" ng-if="wrap.ordertype === 'level' && !wrap.orderreverse"></i>
+                        </a>
+                    </td>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="logger in wrap.dataList | filter:filter | orderBy:predicate:reverse">
+                        <td class="packageCol">
+                            <small>{{logger.name}}</small>
+                        </td>
+                        <td class="buttonsCol">
+                            <div>
+                                <button ng-click="changeLevel(logger.name, 'TRACE')"
+                                        ng-class="(logger.level=='TRACE') ? 'btn-danger' : 'btn-default'"
+                                        class="btn btn-default btn-xs">TRACE</button>
+                                <button ng-click="changeLevel(logger.name, 'DEBUG')"
+                                        ng-class="(logger.level=='DEBUG') ? 'btn-warning' : 'btn-default'"
+                                        class="btn btn-default btn-xs">DEBUG</button>
+                                <button ng-click="changeLevel(logger.name, 'INFO')"
+                                        ng-class="(logger.level=='INFO') ? 'btn-info' : 'btn-default'"
+                                        class="btn btn-default btn-xs">INFO</button>
+                                <button ng-click="changeLevel(logger.name, 'WARN')"
+                                        ng-class="(logger.level=='WARN') ? 'btn-success' : 'btn-default'"
+                                        class="btn btn-default btn-xs">WARN</button>
+                                <button ng-click="changeLevel(logger.name, 'ERROR')"
+                                        ng-class="(logger.level=='ERROR') ? 'btn-primary' : 'btn-default'"
+                                        class="btn btn-default btn-xs">ERROR</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

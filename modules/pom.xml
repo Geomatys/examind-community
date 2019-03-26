@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.examind.community</groupId>
+        <artifactId>examind</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.examind.community</groupId>
+    <artifactId>modules</artifactId>
+    <packaging>pom</packaging>
+    <name>Modules</name>
+    <description>Examind's modules.</description>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <spring.profiles.active>${spring.profiles.active}</spring.profiles.active>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- =========================================================== -->
+    <!--     Modules included in the build                           -->
+    <!-- =========================================================== -->
+    <modules>
+        <module>dto</module>
+        <module>database</module>
+        <module>library</module>
+        <module>storage</module>
+        <module>engine</module>
+        <module>testing</module>
+        <module>web-services</module>
+        <module>bundles</module>
+        <module>exa-site</module>
+    </modules>
+
+</project>

@@ -1,0 +1,129 @@
+<div class="row" ng-controller="WPSSourceTaskController as wpsCtrl">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left: 0;padding-right: 0;">
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: wpsCtrl.chosenTab=='cstlWPS'}">
+                <a ng-click="wpsCtrl.switchTab('cstlWPS')" data-toggle="tab">
+                    <span translate="tasks.modal.tab.source.internalWps">Internal WPS</span>
+                </a>
+            </li>
+            <li ng-class="{active: wpsCtrl.chosenTab=='extWPS'}">
+                <a ng-click="wpsCtrl.switchTab('extWPS')" data-toggle="tab">
+                    <span translate="tasks.modal.tab.source.externalWps">External WPS</span>
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane tab-style-edition" ng-class="{active:wpsCtrl.chosenTab=='cstlWPS'}">
+                <div class="dashboard list-style-modal" style="height: 460px;">
+                    <div class="dash-inner">
+                        <div id="list" data-role="list">
+                            <div class="item-list">
+                                <div style="margin-top: 10px;">
+                                    <accordion close-others="true">
+                                        <accordion-group ng-repeat="wps in wpsCtrl.servicesArray"
+                                                         ng-class="{'selected':wps.selected}"
+                                                         ng-click="wpsCtrl.updateSelectedWPS()"
+                                                         is-open="wps.selected">
+                                            <accordion-heading>
+                                                <div style="cursor:pointer;"
+                                                     ng-class="{'selected':wps.selected}"
+                                                     ng-click="wpsCtrl.loadProcessList(wps)">
+                                                    <i class="pull-left glyphicon"
+                                                       ng-class="{'glyphicon-chevron-down': wps.selected, 'glyphicon-chevron-right': !wps.selected}"></i>
+                                                    <span style="margin-left:10pt;font-size:14px;">Service : {{wps.name}}</span>
+                                                    <span class="pull-right">{{wps.layersNumber}} {{"label.processes" | translate}}</span>
+                                                </div>
+                                            </accordion-heading>
+                                            <div class="dash-inner row">
+                                                <div style="height:30px;" ng-if="wps.processList">
+                                                    <input type="text"
+                                                           ng-model="wps.filtertext"
+                                                           class="searchbox search-query form-control form-control-fix pull-right"
+                                                           placeholder="{{'label.search' | translate}}" />
+                                                </div>
+                                                <div data-role="list">
+                                                    <div ng-repeat="p in wps.processList | filter:wps.filtertext">
+                                                        <div class="item process-child" style="cursor: default;">
+                                                            <div class="top">
+                                                                <span class="item-title" title="{{p.id}}">{{p.id}}</span>
+                                                                <span class="pull-right text-right item-list-style"
+                                                                      title="{{p.title}}"
+                                                                      style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;max-width: 120px;font-size: 10px;">{{p.title}}</span>
+                                                            </div>
+                                                            <div class="bottom">
+                                                                <div class="block"
+                                                                     style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;max-width: 450px;"
+                                                                     title="{{p.description}}">
+                                                                    <i class="fa fa-info"></i>{{p.description}}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </accordion-group>
+                                    </accordion>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane tab-style-edition" ng-class="{active:wpsCtrl.chosenTab==='extWPS'}">
+                <div class="form-group col-xs-12" style="margin-top:10px;">
+                    <label for="inputwpsurl"
+                           class="col-xs-4 control-label service-url-label"
+                           translate="service.menu.url.label">Service URL</label>
+                    <div class="col-xs-6"
+                         style="padding-left:0;">
+                        <input type="text"
+                               class="form-control form-control-fix"
+                               id="inputwpsurl"
+                               ng-model="wpsCtrl.external.serviceUrl"/>
+                    </div>
+                    <div class="col-xs-2"
+                         style="padding-left:2px;padding-right:0;">
+                        <button type="button"
+                                class="btn btn-default"
+                                ng-click="wpsCtrl.searchAndDisplayWpsProcesses()">
+                            <span translate="label.validate">Validate</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-xs-12"
+                     style="margin-top:50px;height: 400px;overflow-x: hidden;overflow-y: auto;">
+                    <div class="dashboard">
+                        <div class="dash-inner">
+                            <div style="height:30px;" ng-if="wpsCtrl.external.processList">
+                                <input type="text"
+                                       ng-model="wpsCtrl.external.filtertext"
+                                       class="searchbox search-query form-control form-control-fix pull-right"
+                                       placeholder="{{'label.search' | translate}}" />
+                            </div>
+                            <div data-role="list">
+                                <div class="item-list">
+                                    <div ng-repeat="p in wpsCtrl.external.processList | filter:wpsCtrl.external.filtertext">
+                                        <div class="item process-child" style="cursor: default;">
+                                            <div class="top">
+                                                <span class="item-title" title="{{p.id}}">{{p.id}}</span>
+                                                <span class="pull-right text-right item-list-style"
+                                                      title="{{p.title}}"
+                                                      style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;max-width: 120px;font-size: 10px;">{{p.title}}</span>
+                                            </div>
+                                            <div class="bottom">
+                                                <div class="block" style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;max-width: 450px;"
+                                                     title="{{p.description}}">
+                                                    <i class="fa fa-info"></i>{{p.description}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

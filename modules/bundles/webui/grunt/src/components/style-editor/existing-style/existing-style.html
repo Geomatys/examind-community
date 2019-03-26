@@ -1,0 +1,133 @@
+<div id="existing_style">
+    <div class="col-xs-12 col-md-6 existing-styles-dashboard">
+        <div class="list-style">
+            <div class="navbar sort-navbar">
+                <div class="navbar-inner">
+                    <ul class="nav nav-style">
+                        <li ng-click="existingCtrl.pagedSearchService.sortBy('name')">
+                            <a>
+                                <span translate="label.title">Title</span>
+                                <i class="fa" ng-class="existingCtrl.pagedSearchService.getSortOrderIcon('name')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="existingCtrl.pagedSearchService.sortBy('date')">
+                            <a>
+                                <span translate="label.date">Date</span>
+                                <i class="fa" ng-class="existingCtrl.pagedSearchService.getSortOrderIcon('date')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="existingCtrl.pagedSearchService.sortBy('owner')">
+                            <a>
+                                <span translate="label.owner">Owner</span>
+                                <i class="fa" ng-class="existingCtrl.pagedSearchService.getSortOrderIcon('owner')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                    </ul>
+                    <button type="button" class="btn btn-xs btn-info" title="{{'label.search.refresh' | translate }}"
+                            ng-click="existingCtrl.pagedSearchService.reset()">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <form class="pull-right quick-search" ng-submit="existingCtrl.pagedSearchService.setPage(1)">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="{{'label.search'|translate}}"
+                                   ng-model="existingCtrl.pagedSearchService.query.text"/>
+                            <span class="input-group-btn">
+                        <button type="button" class="btn btn-info btn-data"
+                                ng-disabled="existingCtrl.searchStatus === -1"
+                                ng-click="existingCtrl.pagedSearchService.setPage(1)">
+                            <i class="fa fa-search"
+                               ng-class="{'fa-search': existingCtrl.searchStatus > -1, 'fa-spinner': existingCtrl.searchStatus < 0, 'fa-spin': existingCtrl.searchStatus < 0}"></i>
+                        </button>
+                    </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- The content of the left part-->
+            <div class="dash-inner">
+                <div class="list">
+                    <!--The style pagination bar part-->
+                    <div class="pagination-style-editor">
+                        <strong class="col-xs-12">
+                            <span class="nb-results pull-left">{{ existingCtrl.page.total }}</span>
+                            <span class="nb-results" translate="label.count.style">available style(s)</span>
+                        </strong>
+                        <div class="row pagination-style-container">
+                            <div class="col-sm-9"
+                                 page-switcher="{page:existingCtrl.page.number, size:existingCtrl.page.size, count:existingCtrl.page.total}"
+                                 on-select-page="existingCtrl.pagedSearchService.setPage(page)"></div>
+
+                            <select class="nb-per-page input-small form-control pull-right col-xs-2"
+                                    ng-model="existingCtrl.pagedSearchService.query.size"
+                                    ng-change="existingCtrl.pagedSearchService.setPage(1)"
+                                    ng-options="s as s for s in [5,10,20,50,100]">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!--The item list in the left part-->
+                    <div class="item-list">
+                        <div ng-repeat="style in existingCtrl.page.content">
+                            <!--the right little menu caret-->
+                            <div class="btn-group btn-options pull-right">
+                                <button type="button"
+                                        class="btn btn-sm btn-default dropdown-toggle"
+                                        data-toggle="dropdown">
+                                    <span class="glyphicon glyphicon-cog"></span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li ng-click="existingCtrl.editStyle(style);">
+                                        <a><span>{{'edition.style.label.edit' | translate}}</span></a>
+                                    </li>
+                                    <li ng-click="existingCtrl.duplicateStyle(style);">
+                                        <a><span>{{'sldeditor.edition.duplicate' | translate}}</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!---->
+                            <div class="item style-{{style.type | lowercase}}-small"
+                                 ng-class="{'selected-style': existingCtrl.isSelected(style)}"
+                                 ng-click="existingCtrl.selectStyle(style);">
+                                <!--Top Item Line-->
+                                <div class="top">
+                                    <span class="item-title">
+                                        {{style.name}}
+                                    </span>
+                                    <span class="pull-right text-right">
+                                        {{style.type}}
+                                    </span>
+                                </div>
+                                <!--Bottom Item Line-->
+                                <div class="bottom">
+                                    <div class="block">
+                                        <i class="fa fa-calendar"></i>{{style.date | date:'yyyy-MM-dd'}}
+                                    </div>
+                                    <div class="block block-owner">
+                                        <i class="fa fa-user"></i>{{style.owner}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--The previous map part in the right -->
+    <div class="col-xs-12 col-md-6 col-lg-6">
+        <div id="styledMapWithSelectedStyle" class="fixed-map"></div>
+    </div>
+
+    <div class="association-bar">
+        <button class="btn btn-primary pull-right"
+                ng-disabled="existingCtrl.disableAssociateBtn()"
+                ng-click="existingCtrl.associateStyleToDataLayer()">
+            <span>{{'dataset.editor.existing.label.associate.style' | translate}}</span>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+<div id="part1DataServer"
+     class="container"
+     ng-controller="ModalImportDataStep1ServerController">
+    <ul class="row breadcrumb col-sm-12" style="margin: 5pt;">
+        <div class="form-group">
+            <label class="col-sm-4 col-xs-5"
+                   translate="data.modal.import.server.label">Fill the server Path</label>
+            <div class="btn-lg tooltipicon">
+                <span type="button"
+                      class="glyphicon glyphicon-info-sign"
+                      tooltip
+                      data-placement="right"
+                      title="{{'tooltip.data.add.choicedata.server' | translate }}" ></span>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                <input type="text"
+                       placeholder="{{'data.modal.import.server.label'| translate}}"
+                       ng-model="import.currentPath"
+                       size="70"
+                       id="currentPath"
+                       class="form-control form-control-fix"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+                <button class="btn btn-add ng-scope"
+                        role="button"
+                        translate="data.modal.import.server.label.list"
+                        ng-click="load()"
+                        id="buttonCurrentPath"
+                        ng-if="import.currentPath">List files</button>
+            </div>
+        </div>
+    </ul>
+    <div class="row">
+        <div class="col-sm-12 well block-folders" style="overflow:auto; height:275px;">
+            <ul class="unstyled">
+                <li ng-repeat="item in columns | filter:search">
+                    <i class="fa"
+                       ng-class="{'fa-folder':item.folder && !startWith(item.path),'fa-folder-open':item.folder && startWith(item.path),'fa-file':!item.folder}"></i>
+                    <a ng-class="{'link-sel':startWith(item.path)}"
+                       title="{{item.name}}"
+                       type="button"
+                       ng-click="select(item)">{{item.name}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    </div>
+</div>

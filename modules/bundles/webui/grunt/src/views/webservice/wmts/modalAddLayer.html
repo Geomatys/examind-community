@@ -1,0 +1,110 @@
+<div id="chooseDataModalWMTS" class="modal-dialog modal-dialog-resp-height"
+        ng-class="{'modal-dialog-sld':mode.display==='internal' || mode.display==='mapcontext'}">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="dismiss()">×</button>
+            <h4 class="modal-title"
+                ng-if="mode.display==='sourceSelection'"
+                translate="service.edit.dashboard.wmts.select.source">Select how to build the layer</h4>
+            <h4 ng-if="mode.display==='internal'"
+                class="modal-title"
+                translate="service.edit.dashboard.wmts.select.internal">Select one or more data in the list</h4>
+            <h4 ng-if="mode.display==='mapcontext'"
+                class="modal-title"
+                translate="service.edit.dashboard.wmts.select.mapcontext">Select one mapcontext in the list</h4>
+            <h4 ng-if="mode.display==='lastStep'"
+                class="modal-title"
+                translate="service.edit.dashboard.wmts.select.fillName">Enter WMTS layer name</h4>
+        </div>
+        <div class="modal-body modal-body-style">
+            <div ng-if="mode.display==='sourceSelection'">
+                <div ng-include="'views/webservice/wmts/step1.html'"></div>
+            </div>
+            <div ng-if="mode.display==='internal'">
+                <div ng-include="'views/webservice/wmts/step2_internal.html'"></div>
+            </div>
+            <div ng-if="mode.display==='mapcontext'">
+                <div ng-include="'views/webservice/wmts/step2_mapcontext.html'"></div>
+            </div>
+            <div ng-if="mode.display==='lastStep'">
+                <form class="form-horizontal" style="margin:18px;" id="laststepform" name="laststepform">
+                    <div class="form-group">
+                        <label class="col-sm-4 col-md-4 control-label"
+                               style="color: #ddd"
+                               translate="service.edit.dashboard.wmts.select.layerName">Layer name</label>
+                        <div class="col-sm-7">
+                            <input type="text"
+                                   class="form-control form-control-fix"
+                                   ng-class="{'highlight-invalid':!isValidWMTSLayerName()}"
+                                   ng-model="values.userLayerName"
+                                   debounce="200"
+                                   ng-required="true"
+                                   placeholder="{{'service.edit.dashboard.wmts.select.fillName' | translate}}"
+                                   name="layerNameField"/>
+                            <div ng-if="!isValidWMTSLayerName()"
+                                 class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-error animate">
+                                <i class="fa fa-caret-up"></i>
+                                <span translate="service.edit.dashboard.wmts.validation.name">The name is required and should not contain any special characters or space characters.</span>
+                            </div>
+                            <div ng-if="isLayerNameExists()"
+                                 class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-error animate">
+                                <i class="fa fa-caret-up"></i>
+                                <span translate="service.edit.dashboard.wmts.validation.nameExists">The layer name already exists.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 col-md-4 control-label"
+                               style="color: #ddd"
+                               translate="layer.listing.data.upload.selectEPSG">Select projection</label>
+                        <div class="col-sm-7">
+                            <input type="text"
+                                   ng-model="values.selectedProjection"
+                                   typeahead="crs as crs.desc for crs in values.epsgList | filter:{desc:$viewValue} | limitTo:8"
+                                   class="form-control"
+                                   placeholder="{{'layer.listing.data.upload.typeEPSG' | translate}}"/>
+                            <div ng-if="values.selectedProjection.code != '3857'"
+                                 class="col-xs-12 col-sm-12 col-md-12 col-lg-12 control-warning animate">
+                                <i class="fa fa-warning"></i>
+                                <span translate="service.edit.dashboard.wmts.warning.projectionChange"></span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-list-data">
+            <button type="button"
+                    ng-if="mode.display==='sourceSelection'"
+                    class="btn btn-default"
+                    ng-click="dismiss()"
+                    translate="label.close">Close</button>
+            <button type="button"
+                    ng-if="mode.display==='internal' || mode.display==='mapcontext'"
+                    class="btn btn-default"
+                    ng-click="mode.display='sourceSelection'"
+                    translate="label.previous">Previous</button>
+            <button type="button"
+                    ng-if="mode.display==='lastStep'"
+                    class="btn btn-default"
+                    ng-click="mode.display=mode.previous;mode.previous='lastStep';"
+                    translate="label.previous">Previous</button>
+            <button type="button"
+                    ng-if="mode.display==='internal' && values.listSelect.length > 0"
+                    class="btn btn-add"
+                    ng-click="goToLastStep()"
+                    translate="label.next">Next</button>
+            <button type="button"
+                    ng-if="mode.display==='mapcontext' && values.selectedContext"
+                    class="btn btn-add"
+                    ng-click="goToLastStep()"
+                    translate="label.next">Next</button>
+            <button id="submitWMTSLayer"
+                    ng-if="mode.display=='lastStep' && isValidWMTSLayerName() && values.userLayerName.length>0 && !isLayerNameExists()"
+                    type="button"
+                    class="btn btn-add"
+                    ng-click="submitWMTSLayer()"
+                    translate="label.finish">Finish</button>
+        </div>
+    </div>
+</div>

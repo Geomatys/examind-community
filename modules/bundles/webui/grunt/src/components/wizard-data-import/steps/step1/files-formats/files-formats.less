@@ -1,0 +1,325 @@
+files-formats {
+  .format-handler-block {
+    background-color: rgba(102, 102, 102, .8);
+    padding: 10px;
+    border-radius: 8px;
+
+    .format-block {
+      background-color: rgba(91, 192, 222, .1);
+      border: 1px solid #424242;
+      border-radius: 8px;
+      font-size: 12px;
+      margin: 0 0 5px 0;
+
+      .format-msg {
+        padding: 9px 0;
+
+        p {
+          display: inline;
+          margin-bottom: 0;
+          font-weight: 700;
+        }
+
+        i {
+          margin: 5px 10px 6px 15px;
+          font-size: 20px;
+          height: 20px;
+          vertical-align: middle;
+        }
+
+        .analysis {
+          display: inline;
+
+          span {
+            /**
+             * Use the blink animation, which is defined above
+             */
+            animation-name: blink;
+            /**
+             * The animation should take 1.4 seconds
+             */
+            animation-duration: 1.4s;
+            /**
+             * It will repeat itself forever
+             */
+            animation-iteration-count: infinite;
+            /**
+             * This makes sure that the starting style (opacity: .2)
+             * of the animation is applied before the animation starts.
+             * Otherwise we would see a short flash or would have
+             * to set the default styling of the dots to the same
+             * as the animation. Same applies for the ending styles.
+             */
+            animation-fill-mode: both;
+          }
+
+          span:nth-child(2) {
+            /**
+             * Starts the animation of the third dot
+             * with a delay of .2s, otherwise all dots
+             * would animate at the same time
+             */
+            animation-delay: .2s;
+          }
+
+          span:nth-child(3) {
+            /**
+             * Starts the animation of the third dot
+             * with a delay of .4s, otherwise all dots
+             * would animate at the same time
+             */
+            animation-delay: .4s;
+          }
+
+        }
+
+        .popover {
+          background-color: rgba(102, 102, 102, .9);
+
+          .arrow:after {
+            border-bottom-color: rgba(102, 102, 102, .9) !important;
+          }
+
+          .popover-title {
+            background-color: rgba(102, 102, 102, .1);
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, .3);
+          }
+
+          .popover-content {
+            background-color: rgba(102, 102, 102, .3);
+            font-size: 13px;
+            text-align: center;
+          }
+
+        }
+
+      }
+
+      form {
+        padding: 8px 13px;
+
+        .form-group {
+          margin-bottom: 0 !important;
+        }
+      }
+
+      &.failure {
+        background-color: rgba(217, 83, 79, 0.5) !important;
+      }
+
+    }
+
+    .file-explorer-block {
+      min-height: 460px;
+      max-height: 460px;
+      overflow: hidden;
+    }
+
+    .config-block {
+      margin: 0;
+
+      > div {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .adv-conf-block {
+        background-color: rgba(91, 192, 222, .1);
+        border: 1px solid #424242;
+        font-size: 14px;
+        margin: 0;
+        border-radius: 0 0 8px 8px;
+
+        .adv-conf {
+          padding: 10px;
+
+          > div {
+            display: inline;
+          }
+
+          i {
+            line-height: 24px;
+            font-size: 18px;
+          }
+
+          label {
+            margin-bottom: 0;
+          }
+
+          .popover {
+            background-color: rgba(102, 102, 102, .9);
+
+            .arrow:after {
+              border-bottom-color: rgba(102, 102, 102, .9) !important;
+              border-top-color: rgba(102, 102, 102, .9) !important;
+            }
+
+            .popover-title {
+              background-color: rgba(102, 102, 102, .1);
+              font-weight: bold;
+              text-align: center;
+              font-size: 14px;
+              border-bottom: 1px solid rgba(0, 0, 0, .3);
+            }
+
+            .popover-content {
+              background-color: rgba(102, 102, 102, .3);
+              font-size: 13px;
+              text-align: center;
+            }
+
+          }
+
+          .tgl-container {
+            width: fit-content;
+            font-size: 12px;
+
+            .tgl {
+              display: none;
+
+              // add default box-sizing for this scope
+              &,
+              &:after,
+              &:before,
+              & *,
+              & *:after,
+              & *:before,
+              & + .tgl-btn {
+                box-sizing: border-box;
+                &::selection {
+                  background: none;
+                }
+              }
+
+              + .tgl-btn {
+                outline: 0;
+                display: inline-block;
+                width: 4em;
+                height: 2em;
+                position: relative;
+                cursor: pointer;
+                user-select: none;
+                &:after,
+                &:before {
+                  position: relative;
+                  display: block;
+                  content: "";
+                  width: 50%;
+                  height: 100%;
+                }
+
+                &:after {
+                  left: 0;
+                }
+
+                &:before {
+                  display: none;
+                }
+              }
+
+              &:checked + .tgl-btn:after {
+                left: 50%;
+              }
+            }
+
+            .tgl-ios {
+              + .tgl-btn {
+                border-radius: 2em;
+                padding: 2px;
+                transition: all .4s ease;
+                border: 1px solid #e8eae9;
+                &:after {
+                  border-radius: 2em;
+                  background: #fbfbfb;
+                  transition: left .3s cubic-bezier(
+                          0.175, 0.885, 0.320, 1.275
+                  ),
+                  padding .3s ease, margin .3s ease;
+                  box-shadow: 0 0 0 1px rgba(0, 0, 0, .1),
+                  0 4px 0 rgba(0, 0, 0, .08);
+                }
+
+                &:hover:after {
+                  will-change: padding;
+                }
+
+                &:active {
+                  box-shadow: inset 0 0 0 2em #e8eae9;
+                  &:after {
+                    padding-right: .8em;
+                  }
+                }
+
+                &.disabled {
+                  background-color: #ccc !important;
+                  text-shadow: 1px 1px #fff !important;
+                  border: 1px solid gray !important;
+                }
+
+              }
+
+              &:checked + .tgl-btn {
+                background: #86d993;
+                &:active {
+                  box-shadow: none;
+                  &:after {
+                    margin-left: -.8em;
+                  }
+                }
+              }
+            }
+          }
+
+        }
+
+      }
+
+    }
+
+    .json-form-builder-block {
+      background-color: rgba(102, 102, 102, .5);
+      padding: 5px;
+      overflow: hidden;
+      border-radius: 5px;
+      margin-top: 5px;
+
+      .form-block {
+        margin: 0;
+        padding-left: 15px;
+        padding-top: 15px;
+        background-color: rgba(91, 192, 222, .1);
+        border: 1px solid #424242;
+        overflow: hidden;
+        border-radius: 5px;
+      }
+    }
+
+    @keyframes blink {
+      /**
+       * At the start of the animation the dot
+       * has an opacity of .2
+       */
+      0% {
+        opacity: .4;
+      }
+      /**
+       * At 20% the dot is fully visible and
+       * then fades out slowly
+       */
+      20% {
+        opacity: 1;
+      }
+      /**
+       * Until it reaches an opacity of .2 and
+       * the animation can start again
+       */
+      100% {
+        opacity: .4;
+      }
+    }
+
+  }
+}

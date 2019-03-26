@@ -1,0 +1,314 @@
+<div class="createStyle-raster">
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <div ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.none">
+            <div>
+                <div class="form-group col-xs-12 style-name-container">
+                    <label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                        {{'style.editor.new.raster.label.style.name' | translate}}
+                    </label>
+                    <div class="col-xs-7 col-sm-7 col-md-8">
+                        <input ng-if="!rasterCtrl.isSelectedChooser('edit')"
+                               type="text"
+                               class="form-control form-control-fix"
+                               ng-model="rasterCtrl.newStyle.name"/>
+                        <label ng-if="rasterCtrl.isSelectedChooser('edit')">
+                            {{rasterCtrl.newStyle.name}}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12" ng-if="rasterCtrl.helper.noNameErr">
+                <div class="alert alert-danger noNameErr">
+                    {{'style.editor.new.raster.label.no.name' | translate}}
+                </div>
+            </div>
+            <div>
+                <div class="sld-panel">
+                    <div class="panel-heading well-sld-header">
+                        <strong>{{'style.editor.new.raster.label.rules' | translate}}</strong>
+                        <div class="dropdown pull-right">
+                            <a data-toggle="dropdown" class="btn btn-add dropdown-toggle">
+                                <span class="fa fa-plus"></span>
+                                <span>{{'style.editor.new.raster.label.new.rules' | translate}}</span>
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a ng-click="rasterCtrl.createColorAndPaletteRule()">
+                                        {{'style.editor.new.raster.label.new.rules.raster.palette' | translate}}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ng-click="rasterCtrl.createCellsRule()">
+                                        {{'style.editor.new.raster.label.new.rules.raster.cells' | translate}}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a ng-click="rasterCtrl.createDynamicRangesRule()">
+                                        {{'style.editor.new.raster.label.new.rules.raster.dynamic' | translate}}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="list-group">
+                            <a class="list-group-item"
+                               ng-repeat="rule in rasterCtrl.newStyle.rules"
+                               ng-class="{active:rasterCtrl.isSelectedRule(rule)}"
+                               ng-click="rasterCtrl.setSelectedRule(rule);">
+                                {{rule.name}}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="panel-sld-footer">
+                        <button class="btn btn-primary" type="button" ng-click="rasterCtrl.editSelectedRasterRule();">
+                            {{'style.editor.new.raster.label.edit' | translate}}
+                        </button>
+                        <button class="btn btn-primary" type="button" ng-click="rasterCtrl.moveUpRule();">
+                            <span class="glyphicon glyphicon-chevron-up"></span>
+                        </button>
+                        <button class="btn btn-primary" type="button" ng-click="rasterCtrl.moveDownRule();">
+                            <span class="glyphicon glyphicon-chevron-down"></span>
+                        </button>
+                        <button class="btn btn-primary" type="button" ng-click="rasterCtrl.deleteSelectedRule();">
+                            {{'style.editor.new.raster.label.delete' | translate}}
+                        </button>
+                        <button class="btn btn-primary" type="button" ng-click="rasterCtrl.deleteAllRules();">
+                            {{'style.editor.new.raster.label.delete.all' | translate}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="rasterCtrl.helper.enableRaster !== rasterCtrl.RASTER_STYLE_TYPE.none" class="actions-tab">
+            <ul class="nav nav-tabs" ng-init="rasterCtrl.initSelectedRuleTab()">
+                <li ng-class="{active: rasterCtrl.isSelectedRuleTab('description')}">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('description');" data-toggle="tab">
+                        <span>{{'style.editor.new.raster.label.description' | translate}}</span>
+                    </a>
+                </li>
+                <li ng-class="{active: rasterCtrl.isSelectedRuleTab('symbols')}">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('symbols');" data-toggle="tab">
+                        <span>{{'style.editor.new.raster.label.symbols' | translate}}</span>
+                    </a>
+                </li>
+                <li ng-class="{active: rasterCtrl.isSelectedRuleTab('filters')}">
+                    <a ng-click="rasterCtrl.changeSelectedRuleTab('filters')" data-toggle="tab">
+                        <span>{{'style.editor.new.raster.label.filters' | translate}}</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane tab-style-edition"
+                     ng-class="{active: rasterCtrl.isSelectedRuleTab('description')}">
+                    <form class="form-horizontal form-style" role="form">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-11 col-md-11 col-lg-11 desc-form-content">
+                                <div class="form-group">
+                                    <label for="inputrulename"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.raster.label.name' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="inputrulename"
+                                               ng-model="rasterCtrl.helper.selectedRule.name"
+                                               debounce="200"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputRuleTitle"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.raster.label.title' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="inputRuleTitle"
+                                               ng-model="rasterCtrl.helper.selectedRule.title"
+                                               debounce="200"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputRuleDesc"
+                                           class="col-xs-4 col-sm-4 col-md-4 col-lg-4 control-label">
+                                        {{'style.editor.new.raster.label.description' | translate}}
+                                    </label>
+                                    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+                                        <textarea id="inputRuleDesc"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  ng-model="rasterCtrl.helper.selectedRule.description"
+                                                  debounce="200"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane tab-style-edition" ng-class="{active: rasterCtrl.isSelectedRuleTab('symbols')}">
+                    <div ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.palette">
+                        <raster-sld class="accordion-container"
+                                    helper="rasterCtrl.helper"
+                                    raster-palette="rasterCtrl.rasterPalette"
+                                    selected-data-properties="rasterCtrl.selectedDataProperties"
+                                    draw-thresholds="rasterCtrl.drawThresholds"
+                                    display-new-style="rasterCtrl.displayNewStyle"
+                                    generate-raster-palette="rasterCtrl.generateRasterPalette"></raster-sld>
+                    </div>
+                    <div ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.cell">
+                        <raster-cells selected-rule="rasterCtrl.helper.selectedRule"
+                                      raster-cells="rasterCtrl.rasterCells"></raster-cells>
+                    </div>
+                    <div ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.dynamic">
+                        <raster-dynamic-range class="accordion-container"
+                                              helper="rasterCtrl.helper"
+                                              raster-dynamic="rasterCtrl.rasterDynamic"
+                                              selected-data-properties="rasterCtrl.selectedDataProperties"></raster-dynamic-range>
+                    </div>
+                </div>
+                <div class="tab-pane tab-style-edition" ng-class="{active: rasterCtrl.isSelectedRuleTab('filters')}">
+                    <div class="filters-content">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <strong translate="edition.style.label.filterScale">
+                                    {{'style.editor.new.raster.label.filter.scale' | translate}}
+                                </strong>
+                                <i popover-placement="bottom"
+                                   popover-trigger="mouseenter"
+                                   popover="{{'style.editor.new.raster.label.scale.help' | translate}}"
+                                   popover-title="{{'style.editor.new.raster.label.scale.help.title' | translate}}">
+                                             <span class="glyphicon glyphicon-question-sign"></span>
+                                </i>
+                            </div>
+                        </div>
+                        <div class="row form-container">
+                            <div class="col-sm-12 col-md-12">
+                                <form class="form-horizontal form-style" role="form">
+                                    <div class="form-group">
+                                        <label for="minScale" class="col-xs-5 col-sm-5 col-md-5 col-lg-4 control-label">
+                                            {{'style.editor.new.raster.label.filter.scale.min' | translate}}
+                                        </label>
+                                        <div class="col-xs-7 col-sm-7 col-md-6 col-lg-6">
+                                            <span class="pull-left min-scale-block"
+                                                  ng-if="rasterCtrl.helper.selectedRule.minScale != undefined && rasterCtrl.helper.selectedRule.minScale !== 0">1/</span>
+                                            <div class="input-group">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="minScale"
+                                                       ng-model="rasterCtrl.helper.selectedRule.minScale"
+                                                       min="0"
+                                                       debounce="200"/>
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-info"
+                                                            type="button"
+                                                            ng-click="rasterCtrl.setMinScale();"
+                                                            title="{{'style.editor.new.raster.label.get.scale' | translate}}">
+                                                        <i class="glyphicon glyphicon-arrow-left"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maxScale" class="col-xs-5 col-sm-5 col-md-5 col-lg-4 control-label">
+                                            {{'style.editor.new.raster.label.filter.scale.max' | translate}}
+                                        </label>
+                                        <div class="col-xs-7 col-sm-7 col-md-6 col-lg-6">
+                                            <span class="pull-left max-scale-block"
+                                                  ng-if="rasterCtrl.helper.selectedRule.maxScale != undefined && rasterCtrl.helper.selectedRule.maxScale !== 0">1/</span>
+                                            <div class="input-group">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="maxScale"
+                                                       ng-model="rasterCtrl.helper.selectedRule.maxScale"
+                                                       min="0"
+                                                       debounce="200"/>
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-info"
+                                                            type="button"
+                                                            ng-click="rasterCtrl.setMaxScale();"
+                                                            title="{{'style.editor.new.raster.label.get.scale' | translate}}">
+                                                        <i class="glyphicon glyphicon-arrow-left"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-xs-5 col-sm-5 col-md-6 col-lg-6 current-scale">
+                                            <em>{{'style.editor.new.raster.label.current.scale' | translate}}</em>
+                                        </label>
+                                        <em class="col-xs-7 col-sm-7 col-md-6 col-lg-6 currentScale"></em>
+                                    </div>
+                                    <hr/>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <div class="row auto-preview-block">
+            <div class="col-xs-8">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="rasterCtrl.helper.autoPreview"/>
+                            <span>
+                                {{'style.editor.new.raster.label.auto.preview' | translate}}
+                            </span>
+                    </label>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <button type="button" class="pull-right btn btn-add"
+                        ng-click="rasterCtrl.displayNewStyle('styledMapOL',null);"
+                        ng-show="!rasterCtrl.helper.autoPreview">
+                    <span>{{'style.editor.new.raster.label.style.preview' | translate}}</span>
+                </button>
+            </div>
+        </div>
+        <div class="chart-block">
+            <div class="btn-group-vertical">
+                <button type="button"
+                        class="btn"
+                        ng-class="{'btn-info': rasterCtrl.helper.enabledRasterChart,'btn-default': !rasterCtrl.helper.enabledRasterChart}"
+                        ng-click="rasterCtrl.toggleRasterChart();"
+                        title="{{'style.editor.new.raster.label.toggle.histogram.values' | translate}}">
+                    <i class="glyphicon glyphicon-stats"></i>
+                </button>
+            </div>
+        </div>
+        <div id="styledMapOL"></div>
+        <div class="c3Chart raster-chart-block" collapse="!rasterCtrl.helper.enabledRasterChart">
+            <div>
+                <div>
+                    <div id="chartRaster" ng-init="rasterCtrl.initRasterPlot();"></div>
+                    <div id="chart_ajax_loader"></div>
+                </div>
+            </div>
+            <button class="close"
+                    ng-click="rasterCtrl.helper.enabledRasterChart = false;"
+                    type="button">×
+            </button>
+        </div>
+    </div>
+    <div class="creation-actions">
+        <button type="button"
+                class="btn btn-primary pull-right"
+                ng-if="rasterCtrl.helper.enableRaster === rasterCtrl.RASTER_STYLE_TYPE.none"
+                ng-click="rasterCtrl.createStyle();">
+            <span>{{'style.editor.new.label.create.style' | translate}}</span>
+        </button>
+        <button type="button"
+                ng-if="rasterCtrl.helper.enableRaster !== rasterCtrl.RASTER_STYLE_TYPE.none"
+                class="btn btn-primary pull-right"
+                ng-click="rasterCtrl.goBackToRulesList();">
+            <span>{{'style.editor.new.label.back.rules.list' | translate}}</span>
+        </button>
+    </div>
+</div>

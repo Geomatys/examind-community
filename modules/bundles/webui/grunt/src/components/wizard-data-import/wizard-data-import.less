@@ -1,0 +1,216 @@
+// Import sub-components styles
+@import "steps/step1/step1";
+@import "steps/step2/step2";
+@import "steps/step3/step3";
+@import "steps/step4/step4";
+@import "steps/step5/step5";
+
+// Import S63 style steps
+@import "s63-steps/step2-s63/step2-s63";
+@import "s63-steps/step3-s63/step3-s63";
+@import "s63-steps/step4-s63/step4-s63";
+@import "s63-steps/step5-s63/step5-s63";
+
+
+wizard-data-import {
+  > div {
+    padding-top: 10px;
+  }
+  .wizard_container {
+    border-radius: 5px;
+    border: 1px solid #2c2c2c;
+    background-color: rgba(0, 0, 0, .3);
+  }
+
+  .breadcrumb_wizard_step {
+    border-bottom: 1px solid rgba(28, 28, 28, 0.9);
+    background-color: rgba(28, 28, 28, 0.9);
+    border-radius: 5px 5px 0 0;
+    list-style: none;
+    overflow: hidden;
+
+    a {
+      color: #ddd !important;
+      font-size: 14px !important;
+      border-radius: 0 !important;
+      border-color: rgba(28, 28, 28, 0.9) !important;
+
+      small {
+        font-style: italic;
+      }
+    }
+
+    a:hover {
+      background-color: transparent;
+    }
+  }
+
+  .steps {
+    color: #ddd;
+  }
+
+  .wizard-action-bar {
+    position: relative;
+    overflow: hidden;
+    background-color: rgba(28, 28, 28, 0.9);
+    padding: 8px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+
+    .ac-btn {
+      margin: 0 10px 0 10px;
+    }
+  }
+
+  .sw-main {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+    .sw-container {
+      display: block;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .step-content {
+      position: relative;
+      margin: 0;
+    }
+    .sw-toolbar {
+      margin-left: 0;
+    }
+  }
+  .sw-theme-arrows {
+    border-radius: 5px;
+    > .sw-container {
+      min-height: 450px;
+    }
+    .step-content {
+      padding: 0 10px 10px;
+      text-align: left;
+    }
+    .sw-toolbar {
+      padding-left: 10px;
+      padding-right: 10px;
+      margin-bottom: 0 !important;
+      border-radius: 5px;
+    }
+    > ul.step-anchor {
+      display: block;
+      border: 0;
+      padding: 0;
+      border-radius: 5px 5px 0 0;
+      list-style: none;
+      overflow: hidden;
+      li + li:before {
+        padding: 0;
+      }
+      > li {
+        > a, > a:hover {
+          color: #bbb;
+          text-decoration: none;
+          padding: 10px 0 10px 45px;
+          position: relative;
+          display: block;
+          border: 0 !important;
+          border-radius: 0;
+          outline-style: none;
+        }
+        > a {
+          &:after {
+            content: " ";
+            display: block;
+            width: 0;
+            height: 0;
+            border-top: 50px solid transparent;
+            border-bottom: 50px solid transparent;
+            border-left: 30px solid rgba(28, 28, 28, 1);
+            position: absolute;
+            top: 49%;
+            margin-top: -50px;
+            left: 100%;
+            z-index: 2;
+          }
+          &:before {
+            content: " ";
+            display: block;
+            width: 0;
+            height: 0;
+            border-top: 50px solid transparent;
+            border-bottom: 50px solid transparent;
+            border-left: 30px solid #666;
+            position: absolute;
+            top: 49%;
+            margin-top: -50px;
+            margin-left: 1px;
+            left: 100%;
+            z-index: 1;
+          }
+          &:hover {
+            color: #bbb;
+            text-decoration: none;
+            outline-style: none;
+            cursor: auto;
+            border-color: rgba(102, 102, 102, .3);
+          }
+        }
+        &:first-child > a {
+          padding-left: 15px;
+        }
+        &.clickable > a:hover {
+          color: #4285F4 !important;
+          background: #46b8da !important;
+        }
+        &.active > a {
+          border-color: #428bca !important;
+          color: #fff !important;
+          background: #428bca !important;
+          &:after {
+            border-left: 30px solid #428bca !important;
+          }
+        }
+        &.done > a {
+          border-color: #5cb85c !important;
+          color: #fff !important;
+          background: #5cb85c !important;
+          &:after {
+            border-left: 30px solid #5cb85c;
+          }
+        }
+        &.danger > a {
+          border-color: #d9534f !important;
+          color: #d9534f !important;
+          background: #fff !important;
+        }
+        &.disabled > a, .sw-theme-arrows > ul.step-anchor > li.disabled > a:hover {
+          color: #eee !important;
+        }
+      }
+    }
+  }
+
+  /* Responsive CSS */
+  @media screen and (max-width: 992px) {
+    .sw-theme-arrows {
+      > ul.step-anchor {
+        border: 0;
+        > li {
+          > a, > a:hover {
+            padding-left: 15px;
+            margin-right: 0;
+            margin-bottom: 1px;
+          }
+          > a:after, > a:before {
+            display: none;
+          }
+        }
+      }
+      > .nav-tabs > li {
+        float: none !important;
+        margin-bottom: 0;
+      }
+    }
+  }
+}

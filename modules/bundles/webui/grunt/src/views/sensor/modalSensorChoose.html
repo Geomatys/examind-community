@@ -1,0 +1,185 @@
+<div class="modal-dialog modal-dialog-resp-height">
+    <div class="modal-content modalSensorChoose">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="close()">×</button>
+            <h4 class="modal-title" translate="data.modal.choose.sensor">Link sensor</h4>
+        </div>
+        <div class="modal-body modal-body-list-data" style="max-height:575px;overflow-y:auto;">
+            <div class="form-group" style="margin: 20px;color: #ccc;">
+                <label class="control-label">Association type</label>
+                <select class="form-control" ng-model="sensorModalOpts.sensorMode" id="selectSensor">
+                    <option value="existing">Existing sensor</option>
+                    <option value="sensorml">Import sensorML</option>
+                    <option value="automatic">Automatic</option>
+                </select>
+            </div>
+            <div ng-if="sensorModalOpts.sensorMode=='existing'">
+                <div class="dashboard" ng-init="initDashboardSensor()">
+                    <div class="navbar sort-navbar" style="margin-bottom:6px;">
+                        <div class="navbar-inner">
+                            <ul class="nav nav-style">
+                                <li ng-click="wrap.ordertype='name';wrap.orderreverse=false">
+                                    <a translate="service.edit.dashboard.header.title">Title
+                                        <i class="fa fa-caret-up"></i>
+                                        <i class="fa fa-caret-down"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="wrap.ordertype='date';wrap.orderreverse=true">
+                                    <a translate="service.edit.dashboard.header.date">Date
+                                        <i class="fa fa-caret-up"></i>
+                                        <i class="fa fa-caret-down"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="wrap.ordertype='owner';wrap.orderreverse=false">
+                                    <a translate="service.edit.dashboard.header.owner">Owner
+                                        <i class="fa fa-caret-up"></i>
+                                        <i class="fa fa-caret-down"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="wrap.ordertype='owner';wrap.orderreverse=false">
+                                    <a translate="service.edit.dashboard.header.type">Type
+                                        <i class="fa fa-caret-up"></i>
+                                        <i class="fa fa-caret-down"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                            </ul>
+                            <button type="button"
+                                    ng-click="wrap.ordertype='name';wrap.orderreverse=false"
+                                    class="btn btn-xs btn-data btn-sos">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="pull-right">
+                                <div style="position:relative;">
+                                    <div class="ajax-loader" style="right:0;position:absolute;"></div>
+                                    <input type="text"
+                                           ng-model="wrap.filtertext"
+                                           class="searchbox search-query form-control form-control-fix"
+                                           placeholder="..." />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dash-inner row dashboard">
+                        <div id="list" data-role="list">
+                            <div class="pagination-wrapper pagination-sos pagination-data">
+                                <strong>
+                                    <span class="nb-results pull-left">{{wrap.countdata}}&nbsp;</span>
+                                    <span class="nb-results" translate="label.count.sensors">available sensors</span>
+                                </strong>
+                                <div class="row" style="margin-left: 0; margin-right: 0;">
+                                    <div class="col-sm-9" style="padding-left:15px; margin-top: 5px;"
+                                         page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                                         on-select-page="displayPage(page)"></div>
+                                    <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                            style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                            ng-model="wrap.nbbypage">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="item-list">
+                                <div ng-repeat="sosdata in wrap.dataList">
+                                    <div class="item sensorChoose"
+                                         ng-class="{'sensor-sos':sosdata.type!='System','sensor-system':sosdata.type=='System','selected':sosdata.id==sensorModalOpts.selectedSensor.id}"
+                                         ng-click="toggleSelectSensor(sosdata);selectSensorsChild(null);">
+                                        <div class="top">
+                                            <span class="item-title">{{truncate(sosdata.identifier)}}</span>
+                                            <span ng-if="sosdata.type=='System'"
+                                                  class="pull-right text-right item-list-style"
+                                                  style="font-size:14px;"
+                                                  translate="label.sensor.system">sensor system</span>
+                                            <span ng-if="sosdata.type!='System'"
+                                                  class="pull-right text-right item-list-style"
+                                                  style="font-size:14px;"
+                                                  translate="label.sensor">sensor</span>
+                                        </div>
+                                        <div class="bottom">
+                                            <div class="block">
+                                                <i class="fa fa-calendar"></i>{{sosdata.createDate | date:'yyyy-MM-dd'}}
+                                            </div>
+                                            <div class="block">
+                                                <i class="fa fa-user"></i>{{sosdata.creator}}
+                                            </div>
+                                            <div class="block pull-right">
+                                                <i class="fa fa-paperclip"></i>
+                                                <span ng-if="sosdata.children == null || sosdata.children.length == 0"
+                                                      translate="md.listing.no.data">No</span>
+                                                <span ng-if="sosdata.children.length > 0">{{sosdata.children.length}}</span>
+                                                <span translate="service.edit.dashboard.sensors.list.associated">associated sensors</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item child sensor-sos sensorChoose"
+                                         ng-if="sosdata.id==sensorModalOpts.selectedSensor.id"
+                                         ng-repeat="soschild in sosdata.children"
+                                         ng-class="{'selected':soschild.id==sensorModalOpts.selectedSensorsChild.id}"
+                                         ng-click="selectSensorsChild(soschild)">
+                                        <div class="top">
+                                            <span class="item-title">{{truncate(soschild.identifier)}}</span>
+                                            <span class="pull-right text-right item-list-style"
+                                                  style="font-size:14px;"
+                                                  translate="label.sensor">sensor</span>
+                                        </div>
+                                        <div class="bottom">
+                                            <div class="block">
+                                                <i class="fa fa-calendar"></i>{{soschild.createDate | date:'yyyy-MM-dd'}}
+                                            </div>
+                                            <div class="block">
+                                                <i class="fa fa-user"></i>{{soschild.creator}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="sensorModalOpts.sensorMode=='sensorml'"
+                 style="border-top: solid 1px #ddd; padding-top: 10px;">
+                <form id="uploadSensor" class="form-horizontal">
+                    <label class="col-sm-2 col-xs-3" translate="label.sensor">Sensor</label>
+                    <div class="btn-lg tooltipicon">
+                        <span type="button" class="glyphicon glyphicon-info-sign"
+                              tooltip data-placement="right" title="{{'tooltip.sensor.add' | translate }}" ></span>
+                    </div>
+                    <div class="fileinput fileinput-new col-xs-6"
+                         style="margin-top:5px;"
+                         data-provides="fileinput">
+                        <div class="input-group">
+                            <div class="form-control uneditable-input"
+                                 data-trigger="fileinput">
+                                <i class="glyphicon glyphicon-file fileinput-exists"></i>
+                                <span class="fileinput-filename"></span>
+                            </div>
+                            <span class="input-group-addon btn btn-default btn-file">
+                                <span class="fileinput-new"
+                                      translate="data.modal.select">Select file</span>
+                                <span class="fileinput-exists"
+                                      translate="data.modal.change">Change</span>
+                                <input id="sensorFile" type="file" name="data"/>
+                            </span>
+                            <a class="input-group-addon btn btn-default fileinput-exists"
+                               data-dismiss="fileinput"
+                               translate="data.modal.remove">Remove</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div ng-if="sensorModalOpts.sensorMode === 'automatic'">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" ng-click="close()">{{'data.modal.cancel' | translate}}</button>
+            <button type="button" class="btn btn-add" ng-click="choose()">{{'label.validate' | translate}}</button>
+        </div>
+    </div>
+</div>

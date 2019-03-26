@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: examind-examind
+  name: examind-examind
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: examind-examind
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-geomatys-private
+      containers:
+        - name: examind
+          image: docker.geomatys.com/tomcat-gdal:7-jre8-debian
+          restartPolicy: Always
+          command:
+            - catalina.sh jpda run
+          ports:
+            - containerPort: 8000
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: postgres://examind:examind@examind-db.<namespace>:5432/examind
+            - name: EPSG_DATABASE_URL
+              value: postgres://examind:examind@examind-db.<namespace>:5432/examind
+            - name: CSTL_SECRET
+              value: examind-secret
+            - name: SPRING_PROFILES_ACTIVE
+              value: standard
+            - name: CSTL_SERVICE_URL
+              value: http://localhost:8080/examind/WS
+            - name: CSTL_URL
+              value: http://localhost:8080/examind
+            - name: CSTL_HOME
+              value: /var/examind/.constellation
+            - name: CATALINA_OPTS
+              value: -Xms512m -Xmx4G -Dfile.encoding=UTF-8
+            - name: JPDA_ADDRESS
+              value: "8000"
+            - name: JPDA_TRANSPORT
+              value: dt_socket
+          volumeMounts:
+            - mountPath: /usr/local/tomcat/webapps/
+              name: examind-webapps
+            - mountPath: /usr/local/tomcat/fs/
+              name: examind-fs
+            - mountPath: /usr/local/tomcat/bin/setenv.sh
+              name: examind-config
+              subPath: setenv.sh
+            - mountPath: /usr/local/tomcat/conf/server.xml
+              name: examind-config
+              subPath: server.xml
+            - mountPath: /var/examind/
+              name: examind-data
+      volumes:
+      - name: examind-webapps
+        persistentVolumeClaim:
+          claimName: examind-webapps
+      - name: examind-fs
+        persistentVolumeClaim:
+          claimName: examind-fs
+      - name: examind-config
+        persistentVolumeClaim:
+          claimName: examind-config
+      - name: examind-data
+        persistentVolumeClaim:
+          claimName: examind-data

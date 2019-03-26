@@ -1,0 +1,69 @@
+<div class="step4-content">
+    <div class="step4-header center">
+        <label class="pull-left">{{'wiz.data.import.step4.label.metadata' | translate}}</label>
+        <i class="pull-left fa fa-files-o" aria-hidden="true"></i>
+        <div class="btn-group btn-group-md" role="group" ng-show="step4WizCtrl.showMdStandard()">
+            <button type="button" class="btn btn-primary"
+                    ng-class="{'btn-success':step4WizCtrl.isSelectedMDStandard('iso19115')}"
+                    ng-click="step4WizCtrl.changeMDStandard('iso19115')">
+                {{'wiz.data.import.step4.label.iso19115' | translate}}
+            </button>
+            <button type="button" class="btn btn-primary"
+                    ng-class="{'btn-success':step4WizCtrl.isSelectedMDStandard('iso19110')}"
+                    ng-click="step4WizCtrl.changeMDStandard('iso19110')">
+                {{'wiz.data.import.step4.label.iso19110' | translate}}
+            </button>
+        </div>
+    </div>
+    <div class="step4-body">
+        <scroll-bottom></scroll-bottom>
+        <div class="data-layers-pagination" ng-if="step4WizCtrl.wizardValues.step4.pagination.show">
+            <button class="btn btn-primary back"
+                    ng-if="!step4WizCtrl.wizardValues.step4.batchMode"
+                    ng-disabled="!step4WizCtrl.canGoToPreviousDataLayer()"
+                    ng-click="step4WizCtrl.goToPreviousDataLayer()">
+                <i class="fa fa-caret-left"></i>
+            </button>
+            <span class="label label-primary" ng-if="!step4WizCtrl.wizardValues.step4.batchMode">
+                {{'wiz.data.import.step4.label.layer' | translate}}&nbsp;{{step4WizCtrl.wizardValues.step4.pagination.current}}/{{step4WizCtrl.wizardValues.step4.pagination.total}}&nbsp;:&nbsp;{{step4WizCtrl.wizardValues.step4.selectedMd.title}}
+            </span>
+            <button class="btn btn-primary next"
+                    ng-if="!step4WizCtrl.wizardValues.step4.batchMode"
+                    ng-disabled="!step4WizCtrl.canGoToNextDataLayer()"
+                    ng-click="step4WizCtrl.goToNextDataLayer()">
+                <i class="fa fa-caret-right"></i>
+            </button>
+            <div class="pull-right tgl-container">
+                <table>
+                    <tr>
+                        <td><label>{{'wiz.data.import.step4.label.one.by.one' | translate}}</label></td>
+                        <td>
+                            <input class="tgl tgl-ios" id="mdBatchMode"
+                                   ng-model="step4WizCtrl.wizardValues.step4.batchMode"
+                                   ng-change="step4WizCtrl.changeBatchMode()" type="checkbox"/>
+                            <label class="tgl-btn" for="mdBatchMode"></label>
+                        </td>
+                        <td><label>{{'wiz.data.import.step4.label.batch' | translate}}</label></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <metadata-editor ng-if="!step4WizCtrl.wizardValues.step1.advConfig.batchMode && !step4WizCtrl.wizardValues.step4.batchMode"
+                         load="step4WizCtrl.loadHelper"
+                         metadata-values="step4WizCtrl.metadataValues"
+                         show-map="true"
+                         save-function="step4WizCtrl.saveMdFunction">
+        </metadata-editor>
+        <metadata-editor ng-if="step4WizCtrl.wizardValues.step1.advConfig.batchMode || step4WizCtrl.wizardValues.step4.batchMode"
+                         load="step4WizCtrl.loadHelper"
+                         metadata-values="step4WizCtrl.metadataValues">
+        </metadata-editor>
+    </div>
+</div>
+
+
+
+
+
+
+

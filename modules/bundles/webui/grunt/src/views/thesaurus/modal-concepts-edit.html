@@ -1,0 +1,131 @@
+<div>
+    <h4 translate="thesaurus.title.edit_concept">Edit concept</h4>
+    <form name="conceptForm" class="row" ng-if="mc.edit.concept">
+        <div class="col-sm-6">
+
+            <!-- Preferred label -->
+            <div class="form-group">
+                <label for="inputPrefLabel" class="control-label" translate="thesaurus.label.pref_labels">Prefered label :</label>
+                <div class="input-group">
+                    <div class="input-group-addon">{{mc.lang}}</div>
+                    <input id="inputPrefLabel" type="text" class="form-control" ng-model="mc.edit.concept.prefLabel[mc.lang]"/>
+                </div>
+            </div>
+
+            <!-- Definition -->
+            <div class="form-group">
+                <label for="inputDefinition" class="control-label" translate="thesaurus.label.definition">Definition :</label>
+                <div class="input-group">
+                    <div class="input-group-addon">{{mc.lang}}</div>
+                    <textarea id="inputDefinition" class="form-control" rows="8" style="resize:vertical;" ng-model="mc.edit.concept.definition[mc.lang]"></textarea>
+                </div>
+            </div>
+
+            <!-- Alternative labels -->
+            <div class="form-group">
+                <label class="control-label" translate="thesaurus.label.alt_labels">Alternative labels :</label>
+                <div class="input-group" ng-repeat="altLabel in mc.edit.concept.altLabels[mc.lang] track by $index">
+                    <div class="input-group-addon">{{mc.lang}}</div>
+                    <input type="text" class="form-control" ng-model="mc.edit.concept.altLabels[mc.lang][$index]"/>
+                    <div class="input-group-addon btn" ng-click="mc.edit.concept.altLabels[mc.lang].splice($index,1)"><i class="fa fa-minus"></i></div>
+                    <div class="input-group-addon btn" ng-click="mc.edit.concept.altLabels[mc.lang].splice($index+1,0,null)"><i class="fa fa-plus"></i></div>
+                </div>
+                <div class="clearfix"></div>
+                <button ng-show="!mc.edit.concept.altLabels[mc.lang].length" type="button" class="btn btn-default" ng-click="mc.edit.concept.altLabels[mc.lang].push(null)">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-sm-6">
+
+            <!-- Broaders -->
+            <div class="form-group">
+                <label class="control-label" translate="thesaurus.label.broaders">Parent concepts :</label>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="mc.edit.concept.topConcept"/>
+                        <span style="line-height:20px" translate="thesaurus.label.set_top_concept">Define as "top concept".</span>
+                    </label>
+                </div>
+                <p class="help-block text-right" ng-show="mc.edit.concept.topConcept">
+                    <i class="fa fa-info"></i>&nbsp;
+                    <span translate="thesaurus.text.top_concept_help">A "top concept" has no parents.</span>
+                </p>
+                <div ng-hide="mc.edit.concept.topConcept">
+                    <div class="concept-list">
+                        <div class="empty" ng-show="!mc.edit.concept.broaders.length" translate="thesaurus.text.no_broaders">No broader</div>
+                        <div class="concept" ng-repeat="broader in mc.edit.concept.broaders">
+                            <span>{{broader.prefLabel[mc.lang] || broader.altLabels[mc.lang][0] || broader.uri}}</span>
+                            <a type="button" class="pull-right" ng-click="mc.edit.concept.broaders.splice($index,1)">
+                                <i class="fa fa-minus"></i>&nbsp;
+                                <span translate="thesaurus.link.remove">Remove</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button type="button" class="btn btn-default" ng-click="mc.select.setup(mc.edit.concept.broaders)">
+                            <i class="fa fa-plus"></i>&nbsp;
+                            <span translate="thesaurus.btn.add"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Narrowers -->
+            <div class="form-group">
+                <label class="control-label" translate="thesaurus.label.narrowers">Children concepts :</label>
+                <div class="concept-list">
+                    <div class="empty" ng-show="!mc.edit.concept.narrowers.length" translate="thesaurus.text.no_narrowers">No narrower</div>
+                    <div class="concept" ng-repeat="narrower in mc.edit.concept.narrowers">
+                        <span>{{narrower.prefLabel[mc.lang] || narrower.altLabels[mc.lang][0] || narrower.uri}}</span>
+                        <a type="button" class="pull-right" ng-click="mc.edit.concept.narrowers.splice($index,1)">
+                            <i class="fa fa-minus"></i>&nbsp;
+                            <span translate="thesaurus.link.remove">Remove</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button type="button" class="btn btn-default" ng-click="mc.select.setup(mc.edit.concept.narrowers)">
+                        <i class="fa fa-plus"></i>&nbsp;
+                        <span translate="thesaurus.btn.add"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Related -->
+            <div class="form-group">
+                <label class="control-label" translate="thesaurus.label.related">Related concepts :</label>
+                <div class="concept-list">
+                    <div class="empty" ng-show="!mc.edit.concept.related.length" translate="thesaurus.text.no_related">No related</div>
+                    <div class="concept" ng-repeat="related in mc.edit.concept.related">
+                        <span>{{related.prefLabel[mc.lang] || related.altLabels[mc.lang][0] || related.uri}}</span>
+                        <a type="button" class="pull-right" ng-click="mc.edit.concept.related.splice($index,1)">
+                            <i class="fa fa-minus"></i>&nbsp;
+                            <span translate="thesaurus.link.remove">Remove</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button type="button" class="btn btn-default" ng-click="mc.select.setup(mc.edit.concept.related)">
+                        <i class="fa fa-plus"></i>&nbsp;
+                        <span translate="thesaurus.btn.add"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Actions -->
+    <div class="text-right">
+        <button type="button" class="btn btn-default" ng-click="mc.edit.cancel()">
+            <i class="fa fa-chevron-left"></i>&nbsp;
+            <span translate="thesaurus.btn.back_to_concept_tree">Back to concept tree</span>
+        </button>
+        <button type="button" class="btn btn-thesaurus" ng-click="mc.edit.validate()">
+            <i class="fa fa-save" ng-show="mc.edit.concept.uri"></i>
+            <i class="fa fa-check" ng-show="!mc.edit.concept.uri"></i>&nbsp;
+            <span translate="thesaurus.btn.save_concept" ng-show="mc.edit.concept.uri">Save the concept</span>
+            <span translate="thesaurus.btn.create_concept" ng-show="!mc.edit.concept.uri">Create the concept</span>
+        </button>
+    </div>
+</div>

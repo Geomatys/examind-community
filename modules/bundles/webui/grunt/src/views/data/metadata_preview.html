@@ -1,0 +1,82 @@
+<div ng-if="!existsMetadata">
+    <div class="row alert alert-warning" style="margin:0;">
+        <span translate="metadata.not.found">No metadata found.</span>
+    </div>
+</div>
+<div ng-if="existsMetadata">
+<div id="advancedViewMetadata" ng-init="initMetadataViewer()">
+    <h3 class="expand-all-btn"
+        ng-class="{'datasetTheme':theme.isDatasetDashboard,'sensorTheme':theme.isSensorDashboard}">
+        <span class="label" style="display:none;" translate="metadata.view.expandall">Expand all</span>
+        <span class="label" translate="metadata.view.collapseall">Collapse all</span>
+        <i class="pull-right fa fa-compress" style="margin-top: 6px;"></i>
+    </h3>
+    <script type="text/ng-template"  id="node_renderer.html">
+        <div ng-if="jsonObject.root">
+            <div ng-repeat="jsonObject in jsonObject.root.children"
+                 class="block-row"
+                 ng-include="'node_renderer.html'">
+            </div>
+        </div>
+        <div ng-if="jsonObject.superblock">
+            <div class="row-fluid">
+                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 small-block">
+                    <h3 class="heading-block clickable" ng-class="{'datasetTheme':theme.isDatasetDashboard,'sensorTheme':theme.isSensorDashboard}">
+                        {{jsonObject.superblock.name | translate}}
+                        <i class="data-icon fa fa-angle-up"></i>
+                    </h3>
+                    <p>{{jsonObject.superblock.help | translate}}</p>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+                    <div class="collapse-block">
+                        <div>
+                            <div>
+                                <div class="collapse-row-wrapper open"
+                                     ng-repeat="jsonObject in jsonObject.superblock.children"
+                                     ng-include="'node_renderer.html'">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="jsonObject.block">
+            <div class="collapse-row-heading">
+                <span class="data-icon fa fa-angle-up"></span>
+                <span class="text">{{jsonObject.block.name | translate}}</span>
+            </div>
+            <div class="collapse-row-inner">
+                <div class="table-mimic">
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="fieldset">
+                                <ul class="metadata-list"
+                                    ng-repeat="jsonObject in jsonObject.block.children"
+                                    ng-include="'node_renderer.html'">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <li ng-if="jsonObject.field">
+            <span class="label-data">{{jsonObject.field.name | translate}}</span>
+            <span ng-if="!isDateField(jsonObject.field.render) && !isCodelistField(jsonObject.field.render)"
+                  class="data"
+                  ng-style="jsonObject.field.render == 'web' ? {'max-width':'500px'}:{}"
+                  style="word-wrap: break-word;">{{jsonObject.field.value}}</span>
+            <span ng-if="isDateField(jsonObject.field.render)"
+                  class="data"
+                  style="word-wrap: break-word;">{{jsonObject.field.value | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+            <span ng-if="isCodelistField(jsonObject.field.render)"
+                  class="data"
+                  style="word-wrap: break-word;">{{jsonObject.field.value | translate}}</span>
+        </li>
+    </script>
+    <div ng-repeat="jsonObject in metadataValues" ng-include="'node_renderer.html'"></div>
+
+
+</div>
+</div>

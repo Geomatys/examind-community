@@ -1,0 +1,150 @@
+step5-wizard {
+  .step5 {
+    padding-top: 5px;
+
+    .data-layers-pagination {
+      padding: 5px;
+      overflow: hidden;
+
+      background-color: rgba(28, 28, 28, .9);
+      border-radius: 5px;
+
+      button {
+        background-color: #555;
+        border: solid 1px #666;
+        color: #ddd;
+        border-radius: 0;
+        padding: 7px 12px !important;
+        margin-bottom: 3px;
+
+        &:hover {
+          background-color: #ddd;
+          color: #2c2c2c;
+        }
+
+      }
+
+      .back {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+      }
+
+      .next {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+      }
+
+      span {
+        font-size: 15px;
+        background-color: #555;
+        padding: 9px 15px 10px 15px;
+        line-height: 3 !important;
+        border-radius: 1px;
+      }
+
+      .tgl-container {
+        padding-top: 3px;
+        table {
+          border-spacing: 3px;
+          border-collapse: separate;
+          margin: auto;
+        }
+
+        .tgl {
+          display: none;
+
+          // add default box-sizing for this scope
+          &,
+          &:after,
+          &:before,
+          & *,
+          & *:after,
+          & *:before,
+          & + .tgl-btn {
+            box-sizing: border-box;
+            &::selection {
+              background: none;
+            }
+          }
+
+          + .tgl-btn {
+            outline: 0;
+            display: inline-block;
+            width: 4em;
+            height: 2em;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            &:after,
+            &:before {
+              position: relative;
+              display: block;
+              content: "";
+              width: 50%;
+              height: 100%;
+            }
+
+            &:after {
+              left: 0;
+            }
+
+            &:before {
+              display: none;
+            }
+          }
+
+          &:checked + .tgl-btn:after {
+            left: 50%;
+          }
+        }
+
+        .tgl-ios {
+          + .tgl-btn {
+            background: #009688;
+            border-radius: 2em;
+            padding: 2px;
+            transition: all .4s ease;
+            border: 1px solid #e8eae9;
+            &:after {
+              border-radius: 2em;
+              background: #fbfbfb;
+              transition: left .3s cubic-bezier(
+                      0.175, 0.885, 0.320, 1.275
+              ),
+              padding .3s ease, margin .3s ease;
+              box-shadow: 0 0 0 1px rgba(0, 0, 0, .1),
+              0 4px 0 rgba(0, 0, 0, .08);
+            }
+
+            &:hover:after {
+              will-change: padding;
+            }
+
+            &:active {
+              box-shadow: inset 0 0 0 2em #e8eae9;
+              &:after {
+                padding-right: .8em;
+              }
+            }
+          }
+
+          &:checked + .tgl-btn {
+            background: #86d993;
+            &:active {
+              box-shadow: none;
+              &:after {
+                margin-left: -.8em;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .associate-style-data-layer {
+      padding: 10px 0;
+      overflow: hidden;
+    }
+
+  }
+}

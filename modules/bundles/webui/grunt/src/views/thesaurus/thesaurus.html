@@ -1,0 +1,184 @@
+<div id="thesaurusTitle" class="logo-wrapper row">
+    <div class="col-sm-9">
+        <h3 class="header-title" translate="thesaurus.title.main">Thesaurus Dashboard</h3>
+    </div>
+    <div class="col-sm-3">
+        <div class="pull-right">
+            <a id="addThesaurusBtn" class="btn btn-add btn-lg" ng-click="tdc.create();" style="margin-top:8px;padding:15px 19px;">
+                <span class="fa fa-plus" style="margin-right:5px;"></span>
+                <span translate="thesaurus.link.create">Create new thesaurus</span>
+            </a>
+        </div>
+    </div>
+</div>
+<div id="thesaurusDashboard">
+    <div class="frame dashboard">
+        <div class="navbar navbar-default" style="margin-bottom:0;">
+            <div class="navbar-header">
+                <a class="navbar-brand" translate="thesaurus.title.dashboard">Available Thesaurus</a>
+            </div>
+        </div>
+
+        <!-- Search criteria -->
+        <div class="navbar sort-navbar">
+            <div class="navbar-inner">
+                <ul class="nav nav-thesaurus">
+                    <li ng-click="tdc.sortBy('name')">
+                        <a>
+                            <span translate="label.title">Title</span>
+                            <i class="fa" ng-class="tdc.getOrderIcon('name')"></i>
+                        </a>
+                    </li>
+                    <li class="divider-vertical"></li>
+                    <li ng-click="tdc.sortBy('creationDate')">
+                        <a>
+                            <span translate="label.date">Date</span>
+                            <i class="fa" ng-class="tdc.getOrderIcon('creationDate')"></i>
+                        </a>
+                    </li>
+                    <li class="divider-vertical"></li>
+                </ul>
+                <button type="button" ng-click="tdc.resetCriteria()" title="{{'label.search.refresh' | translate }}" class="btn btn-xs btn-info btn-thesaurus">
+                    <i class="fa fa-times"></i>
+                </button>
+                <div class="pull-right">
+                    <div style="position:relative;">
+                        <input type="text" ng-model="tdc.query.text" ng-change="tdc.searchDebounce()" class="searchbox search-query form-control form-control-fix" placeholder="{{'label.search' | translate}}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="dash-inner row">
+
+            <!-- Listing -->
+            <div class="pull-left" style="width: 60%;margin-bottom:5px;" ng-init="small=false">
+                <div id="list" data-role="list">
+                    <div class="pagination-wrapper pagination-thesaurus">
+                        <strong class="col-lg-6 col-xs-8 col-md-6">
+                            <span class="nb-results pull-left">{{tdc.page.total || 0}}&nbsp;</span>
+                            <span class="nb-results" translate="thesaurus.text.instance_count">available Thesaurus</span>
+                        </strong>
+                        <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
+                            <button type="button" class="pull-right btn btn-xs btn-info btn-thesaurus"
+                                    ng-click="small=true" ng-class="{'btn-small-selected':small==true}"
+                                    style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
+                                <img src="img/btn-display-reduced.svg" alt=""/>
+                            </button>
+                            <button type="button" class="pull-right btn btn-xs btn-info btn-thesaurus"
+                                    ng-click="small=false" ng-class="{'btn-small-selected':small==false}"
+                                    style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
+                                <img src="img/btn-display-normal.svg" alt=""/>
+                            </button>
+                            <p class="pull-right" style="margin-top:12px;" translate="label.display">Display :</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-9" style="padding-left:15px; margin-top: 5px;"
+                                 page-switcher="{page:tdc.page.number,size:tdc.page.size,count:tdc.page.total}"
+                                 on-select-page="tdc.setPage(page)"></div>
+                            <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                    style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                    ng-model="tdc.query.size" ng-change="tdc.setPage(1)" ng-options="n as n for n in [5,10,20,50,100]">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="item-list">
+                        <div class="item thesaurus" ng-repeat="item in tdc.page.content" ng-click="tdc.select(item,'uri')"
+                             ng-class="{'selected':item.uri===tdc.selection.uri,'col-xs-6':small,'style-small':small}">
+                            <div class="top">
+                                <span class="item-title" title="{{item.name}}">{{item.name}}</span>
+                            </div>
+                            <div class="bottom">
+                                <div ng-class="{'hidden':!small}">
+                                    <div class="block tooltipicon" style="margin-top:0;text-shadow: none;">
+                                        <i class="fa fa-calendar" tooltip data-placement="top" title="{{item.creationDate | date:'yyyy-MM-dd'}}"></i>
+                                    </div>
+                                    <div class="block tooltipicon" style="margin-top:0;text-shadow: none;">
+                                        <i class="fa fa-language" tooltip data-placement="top" title="{{item.defaultLang}}"></i>
+                                    </div>
+                                </div>
+                                <div ng-class="{'hidden':small}">
+                                    <div class="block">
+                                        <i class="fa fa-calendar"></i>{{item.creationDate | date:'yyyy-MM-dd'}}
+                                    </div>
+                                    <div class="block">
+                                        <i class="fa fa-language"></i>{{item.defaultLang}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info & actions -->
+            <div class="pull-left" style="width: 40%;">
+                <div id="block-information-right">
+                    <div class="sous-block-information">
+                        <div class="alert alert-info alert-thesaurus" ng-if="!tdc.selection">
+                            <h4 translate="thesaurus.title.no_selection">No selected Thesaurus</h4>
+                            <p translate="thesaurus.text.no_selection" style="font-weight:normal;">Click on a Thesaurus to display more information.</p>
+                        </div>
+                        <div id="selected-item" class="selected-item" ng-if="tdc.selection" ng-init="collasped=false">
+                            <div class="block-header block-header-thesaurus" ng-click="collasped=!collasped">
+                                <strong class="item-title title-bloc" title="{{tdc.selection.name}}">{{tdc.selection.name}}</strong>
+                                <i class="fa pull-right" ng-class="{'fa-chevron-up':collasped,'fa-chevron-down':!collasped}"></i>
+                            </div>
+                            <div class="block-content" slide-toggle="collasped">
+                                <div class="row description-block">
+                                    <div class="col-sm-3 col-md-2"><img src="img/block-content-date.svg" alt="" /></div>
+                                    <div class="col-sm-9 col-md-10 description-text">
+                                        <span>{{tdc.selection.creationDate | date:'yyyy-MM-dd'}}</span>
+                                    </div>
+                                </div>
+                                <div class="row description-block">
+                                    <div class="col-sm-3 col-md-2"><img src="img/block-content-description.svg" alt="" /></div>
+                                    <div class="col-sm-9 col-md-10 description-text">
+                                        <span>{{tdc.selection.description || '---'}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="block-action block-action-thesaurus">
+                                <div class="row" style="padding-bottom: 5px">
+                                    <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                        <span class="tooltipicon">
+                                            <button id="editThesaurusBtn" type="button" ng-click="tdc.editSelected()" class="btn btn-thesaurus" title="{{'thesaurus.tooltip.concepts' | translate}}" tooltip data-placement="bottom">
+                                                <i class="fa fa-share-alt"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                        <span class="tooltipicon">
+                                            <a id="exportThesaurusBtn"
+                                               ng-href="{{'API/THW/' + tdc.selection.uri + '/export' | cstlContext:true}}"
+                                               class="btn btn-thesaurus"
+                                               title="{{'thesaurus.tooltip.export' | translate}}"
+                                               tooltip data-placement="bottom">
+                                                <i class="fa fa-download"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                    <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                        <span class="tooltipicon">
+                                            <button id="importThesaurusBtn" type="button" ng-click="tdc.import()" class="btn btn-thesaurus" title="{{'thesaurus.tooltip.import' | translate }}" tooltip data-placement="bottom">
+                                                <i class="fa fa-upload"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                        <span class="tooltipicon">
+                                            <button id="deleteThesaurusBtn" type="button" ng-click="tdc.deleteSelected()" class="btn btn-thesaurus" title="{{'layer.listing.selected.delete.button' | translate }}" tooltip data-placement="bottom">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

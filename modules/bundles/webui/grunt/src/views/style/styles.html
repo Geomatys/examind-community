@@ -1,0 +1,369 @@
+<div class="logo-wrapper row">
+    <div class="col-sm-9">
+        <h3 class="header-title" translate="page.header.title.style">Style Dashboard</h3>
+    </div>
+    <div class="col-sm-3">
+        <div class="dropdown pull-right">
+            <a data-toggle="dropdown"
+               class="btn btn-lg btn-add dropdown-toggle"
+               style="margin-top:8px;padding:15px 19px;">
+                <span class="fa fa-plus" style="margin-right:5px;"></span>
+                <span translate="label.add.style">Add new style</span>
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a ng-click="stlCtrl.showStyleCreate()"
+                       translate="label.create.button.new.style">Create new style</a>
+                </li>
+                <li>
+                    <a ng-click="stlCtrl.showStyleImport()"
+                       translate="label.create.button.upload.style">Import XML file</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="stylesDashboard" class="row" ng-init="stlCtrl.initStyleDashboard()">
+    <div class="col-sm-12">
+        <div class="frame dashboard">
+            <div class="navbar navbar-default" style="margin-bottom: 0px;">
+                <div class="navbar-header">
+                    <a class="navbar-brand" translate="style.information.title">Available styles</a>
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right ">
+                        <li ng-class="{active: !stlCtrl.query.filters}"
+                            ng-click="stlCtrl.query.filters = null;stlCtrl.setPage(1);">
+                            <a translate="label.all">All</a>
+                        </li>
+                        <li ng-class="{active: stlCtrl.getFilter('type')==='VECTOR'}"
+                            ng-click="stlCtrl.filterBy('type','VECTOR')">
+                            <a translate="label.vector">Vector</a>
+                        </li>
+                        <li ng-class="{active: stlCtrl.getFilter('type')==='COVERAGE'}"
+                            ng-click="stlCtrl.filterBy('type','COVERAGE')">
+                            <a translate="label.raster">Raster</a>
+                        </li>
+                        <li ng-class="{active: stlCtrl.getFilter('type')==='SENSOR'}"
+                            ng-click="stlCtrl.filterBy('type','SENSOR')">
+                            <a translate="label.sensor">Sensor</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="navbar sort-navbar">
+                <div class="navbar-inner">
+                    <ul class="nav nav-style">
+                        <li ng-click="stlCtrl.sortBy('name')">
+                            <a>
+                                <span translate="label.name">Name</span>
+                                <i class="fa" ng-class="stlCtrl.getOrderIcon('name')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="stlCtrl.sortBy('date')">
+                            <a>
+                                <span translate="label.date">Date</span>
+                                <i class="fa" ng-class="stlCtrl.getOrderIcon('date')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                        <li ng-click="stlCtrl.sortBy('owner')">
+                            <a>
+                                <span translate="label.owner">Owner</span>
+                                <i class="fa" ng-class="stlCtrl.getOrderIcon('owner')"></i>
+                            </a>
+                        </li>
+                        <li class="divider-vertical"></li>
+                    </ul>
+                    <button type="button"
+                            ng-click="stlCtrl.resetFilters();"
+                            title="{{'label.search.refresh' | translate }}"
+                            class="btn btn-xs btn-info btn-style">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <form class="pull-right quick-search" ng-submit="stlCtrl.setPage(1)">
+                        <div class="input-group">
+                            <input type="text"
+                                   class="form-control"
+                                   ng-model="stlCtrl.query.text"
+                                   placeholder="{{'label.search'|translate}}"/>
+                            <span class="input-group-btn">
+                                <button class="btn btn-style"
+                                        type="button"
+                                        ng-disabled="stlCtrl.searchStatus === -1"
+                                        ng-click="stlCtrl.setPage(1)">
+                                    <i class="fa fa-search"
+                                       ng-class="{'fa-search': stlCtrl.searchStatus > -1, 'fa-spinner': stlCtrl.searchStatus < 0, 'fa-spin': stlCtrl.searchStatus < 0}"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="dash-inner row">
+                <div class="pull-left"
+                     id="contentList"
+                     style="width: 60%;margin-bottom: 5px;"
+                     ng-init="stlCtrl.smallMode=false">
+                    <div id="list" data-role="list">
+                        <div class="pagination-wrapper pagination-style">
+                            <strong class="col-lg-6 col-xs-8 col-md-6">
+                                <span class="nb-results pull-left">{{stlCtrl.page.total || 0}}&nbsp;</span>
+                                <span class="nb-results" translate="label.count.style">available styles</span>
+                            </strong>
+                            <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
+                                <button type="button"
+                                        ng-click="stlCtrl.smallMode=true"
+                                        class="pull-right btn btn-xs btn-info btn-style"
+                                        ng-class="{'btn-small-selected':stlCtrl.smallMode}"
+                                        style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
+                                    <img src="img/btn-display-reduced.svg" alt="" />
+                                </button>
+                                <button type="button"
+                                        ng-click="stlCtrl.smallMode=false"
+                                        class="pull-right btn btn-xs btn-info btn-style"
+                                        ng-class="{'btn-small-selected':!stlCtrl.smallMode}"
+                                        style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
+                                    <img src="img/btn-display-normal.svg" alt="" />
+                                </button>
+                                <p class="pull-right" style="margin-top:12px;" translate="label.display">Display :</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-9" style="padding-left:15px; margin-top: 5px;"
+                                     page-switcher="{page:stlCtrl.page.number,size:stlCtrl.page.size,count:stlCtrl.page.total}"
+                                     on-select-page="stlCtrl.setPage(page)"></div>
+                                <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                        style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                        ng-model="stlCtrl.query.size"
+                                        ng-change="stlCtrl.setPage(1);">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="item-list">
+                            <div class="item style-{{item.type | lowercase}}"
+                                 ng-repeat="item in stlCtrl.page.content"
+                                 ng-class="{selected:item.id==stlCtrl.selected.id, 'col-xs-6':stlCtrl.smallMode, 'style-small': stlCtrl.smallMode}"
+                                 ng-click="stlCtrl.toggleItemSelection(item);stlCtrl.previewStyledData(null,false);">
+                                <div class="top">
+                                    <span class="item-title" title="{{item.name}}">{{item.name}}</span>
+                                    <span class="pull-right text-right item-list-style"> {{item.type}}</span>
+                                    <img ng-if="item.type=='VECTOR' && item.subtype=='point'"
+                                         src="img/vector-point.svg"
+                                         class="pull-right"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                    <img ng-if="item.type=='VECTOR' && item.subtype=='polygon'"
+                                         src="img/vector-poly.svg"
+                                         class="pull-right"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                    <img ng-if="item.type=='VECTOR' && item.subtype=='line'"
+                                         src="img/vector-line.svg"
+                                         class="pull-right"
+                                         style="margin-top:6px; margin-right:10px;" />
+                                </div>
+                                <div class="bottom">
+                                    <div ng-class="{'hidden':!stlCtrl.smallMode}">
+                                        <div class="block tooltipicon"
+                                             style="margin-top:0;text-shadow: none;">
+                                            <i class="fa fa-calendar"
+                                               tooltip data-placement="top"
+                                               title="{{item.date | date:'yyyy-MM-dd'}}"></i>
+                                        </div>
+                                        <div class="block tooltipicon"
+                                             style="margin-top:0;text-shadow: none;">
+                                            <i class="fa fa-user"
+                                               tooltip data-placement="top"
+                                               title="{{item.owner}}"></i>
+                                        </div>
+                                    </div>
+                                    <div ng-class="{'hidden':stlCtrl.smallMode}">
+                                        <div class="block">
+                                            <i class="fa fa-calendar"></i>{{item.date | date:'yyyy-MM-dd'}}
+                                        </div>
+                                        <div class="block">
+                                            <i class="fa fa-user"></i>{{item.owner}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pull-left" style="width: 40%;">
+                    <div id="block-information-right">
+                        <div class="sous-block-information">
+                            <preview-map class="style-preview"
+                                         layer="stlCtrl.preview.layer"
+                                         extent="stlCtrl.preview.extent"></preview-map>
+                            <div>
+                                <div class="alert alert-info alert-style"
+                                     ng-if="!stlCtrl.selected">
+                                    <h4 translate="label.no.selected.style">No selected style</h4>
+                                    <p translate="msg.no.selected.style">Click on a style to display more information</p>
+                                </div>
+                                <div id="selected-item"
+                                     class="selected-item"
+                                     ng-if="stlCtrl.selected">
+                                    <div class="block-header block-header-style"
+                                         ng-click="stlCtrl.toggleUpDownSelected()">
+                                        <strong class="item-title title-bloc"
+                                                title="{{stlCtrl.selected.name}}">{{stlCtrl.selected.name}}</strong>
+                                        <i class="fa fa-chevron-down pull-right"></i>
+                                    </div>
+                                    <div class="block-content"
+                                         style="display:none;"
+                                         ng-class="{'block-vector':stlCtrl.selected.type=='VECTOR','block-raster':stlCtrl.selected.type=='COVERAGE'}">
+                                        <div class="row description-block">
+                                            <div class="col-sm-3 col-md-2">
+                                                <img src="img/block-content-owner.svg" alt="" />
+                                            </div>
+                                            <div class="col-sm-9 col-md-10 description-text">
+                                                <span>{{stlCtrl.selected.owner}}</span>
+                                            </div>
+                                        </div>
+                                        <div class="row description-block">
+                                            <div class="col-sm-3 col-md-2">
+                                                <img src="img/block-content-date.svg" alt="" />
+                                            </div>
+                                            <div class="col-sm-9 col-md-10 description-text">
+                                                <span>{{stlCtrl.selected.date | date:'yyyy-MM-dd'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="block-action block-action-style">
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                <span class="tooltipicon">
+                                                    <button type="button"
+                                                            id="editStyleBtn"
+                                                            class="btn btn-style"
+                                                            ng-click="stlCtrl.editStyle()"
+                                                            data-placement="bottom"
+                                                            title="{{'style.listing.selected.edit.button' | translate }}" tooltip>
+                                                        <i class="glyphicon glyphicon-pencil"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                            <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                <span class="tooltipicon">
+                                                    <a class="btn btn-style"
+                                                       ng-href="{{stlCtrl.styleOpts.cstlUrl}}API/styles/export/{{stlCtrl.selected.id}}"
+                                                       data-placement="bottom"
+                                                       title="{{'style.listing.selected.export.button' | translate }}" tooltip>
+                                                        <i class="fa fa-download"></i>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                            <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                <span class="tooltipicon">
+                                                    <button type="button"
+                                                            id="deleteStyleBtn"
+                                                            class="btn btn-style"
+                                                            ng-click="stlCtrl.deleteStyle()"
+                                                            data-placement="bottom"
+                                                            title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
+                                                        <i class="fa fa-trash-o"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-if="stlCtrl.selected">
+                                <div class="row block-association"
+                                     ng-init="assocData=false;assocLayer=false;">
+                                    <div class="col-sm-12" style="float:left;">
+                                        <div class="block-associated block-associated-data"
+                                             ng-click="assocData=!assocData;assocLayer=false;">
+                                            <div class="block-associated-nb">{{stlCtrl.selected.dataList.length}}</div>
+                                            <div class="block-associated-title"
+                                                 translate="label.related.data">Associated Data</div>
+                                            <span class="fa icon-assoc-data"
+                                                  ng-class="{'selected':assocData,'fa-chevron-circle-up':assocData,'fa-chevron-circle-down':!assocData}"
+                                                  tooltip-placement="bottom"
+                                                  tooltip-html-unsafe="{{'label.show.data' | translate }}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-if="assocData"
+                                     class="col-sm-12 block-assoc"
+                                     style="float: left;">
+                                    <div id="linkedDataList" class="block-content" >
+                                        <span ng-show="stlCtrl.selected.dataList.length == 0"
+                                              translate="label.no.association">No association</span>
+                                        <div ng-show="stlCtrl.selected.dataList.length > 0"
+                                             class="style btn-assoc-item"
+                                             ng-repeat="data in stlCtrl.selected.dataList"
+                                             style="margin-bottom:5px;">
+                                            <button type="button"
+                                                    ng-click="stlCtrl.previewStyledData(data,false);"
+                                                    class="btn btn-small btn-block-assos btn-block-assos-data">
+                                                <i class="glyphicon"
+                                                   ng-class="{'glyphicon-eye-open':stlCtrl.selected.id==stlCtrl.styleOpts.currentStyleId && data.id==stlCtrl.styleOpts.currentDataId,'glyphicon-eye-close':stlCtrl.selected.id!=stlCtrl.styleOpts.currentStyleId || data.id!=stlCtrl.styleOpts.currentDataId}"></i>
+                                            </button>
+                                            <button type="button"
+                                                    ng-click="stlCtrl.editStyleWithLinkedData(data);"
+                                                    class="btn btn-small btn-block-assos btn-block-assos-data">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                            </button>
+                                            {{data.name}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row block-association"
+                                     ng-init="assocData=false;assocLayer=false;">
+                                    <div class="col-sm-12" style="float: left;">
+                                        <div class="block-associated block-associated-layers"
+                                             ng-click="assocData=false;assocLayer=!assocLayer;">
+                                            <div class="block-associated-nb">{{stlCtrl.selected.layersList.length}}</div>
+                                            <div class="block-associated-title"
+                                                 translate="label.related.layer">Associated Layers</div>
+                                            <span class="fa icon-assoc-layer"
+                                                  ng-class="{'selected':assocLayer,'fa-chevron-circle-up':assocLayer,'fa-chevron-circle-down':!assocLayer}"
+                                                  tooltip-placement="bottom"
+                                                  tooltip-html-unsafe="{{'label.show.layers' | translate }}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-if="assocLayer"
+                                     class="col-sm-12 block-assoc"
+                                     style="float: left;">
+                                    <div id="linkedLayersList" class="block-content" >
+                                        <span ng-show="stlCtrl.selected.layersList.length == 0"
+                                              translate="label.no.association">No association</span>
+                                        <div ng-show="stlCtrl.selected.layersList.length > 0"
+                                             class="style btn-assoc-item"
+                                             ng-repeat="layer in stlCtrl.selected.layersList"
+                                             style="margin-bottom:5px;">
+                                            <button type="button"
+                                                    ng-click="stlCtrl.previewStyledData(layer,true);"
+                                                    class="btn btn-small btn-block-assos btn-block-assos-layer">
+                                                <i class="glyphicon"
+                                                   ng-class="{'glyphicon-eye-open':stlCtrl.selected.id==stlCtrl.styleOpts.currentStyleId && layer.id==stlCtrl.styleOpts.currentLayerId,'glyphicon-eye-close':stlCtrl.selected.id!=stlCtrl.styleOpts.currentStyleId || layer.id!=stlCtrl.styleOpts.currentLayerId}"></i>
+                                            </button>
+                                            <button type="button"
+                                                    ng-click="stlCtrl.editStyleWithLinkedData(layer);"
+                                                    class="btn btn-small btn-block-assos btn-block-assos-data">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                            </button>
+                                            {{layer.name}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<scroll-top></scroll-top>

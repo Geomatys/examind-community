@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: examind-db
+  name: examind-db
+spec:
+  ports:
+  - name: "postgres"
+    port: 5432
+    targetPort: 5432
+  selector:
+    service: examind-db

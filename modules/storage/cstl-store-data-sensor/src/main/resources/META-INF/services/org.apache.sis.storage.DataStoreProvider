@@ -1,0 +1,2 @@
+org.constellation.data.sensor.FileSystemSensorStoreFactory
+org.constellation.data.sensor.InternalSensorStoreFactory

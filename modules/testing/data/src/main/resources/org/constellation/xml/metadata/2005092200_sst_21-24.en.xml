@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmd:MD_Metadata xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:cat="http://www.opengis.net/cat/csw" xmlns:csw2="http://www.opengis.net/cat/csw/2.0.2" xmlns:dc2="http://www.purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:dct2="http://www.purl.org/dc/terms/" xmlns:fra="http://www.cnig.gouv.fr/2005/fra" xmlns:gcol="http://www.isotc211.org/2005/gco" xmlns:gfc="http://www.isotc211.org/2005/gfc" xmlns:gmi="http://standards.iso.org/iso/19115/-2/gmi/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:icism="urn:us:gov:ic:ism:v2" xmlns:ins="http://www.inspire.org" xmlns:ns36="http://www.opengis.net/gml" xmlns:ns43="http://purl.org/dc/elements/1.1/" xmlns:ns48="http://www.opengis.net/ows/1.1" xmlns:ns52="http://www.opengis.net/gml/" xmlns:ogc="http://www.opengis.net/ogc" xmlns:ows="http://www.opengis.net/ows" xmlns:rim="urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0" xmlns:rim25="urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5" xmlns:sml1="http://www.opengis.net/sensorML/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:swe1="http://www.opengis.net/swe/1.0" xmlns:wrs="http://www.opengis.net/cat/wrs/1.0" xmlns:wrs09="http://www.opengis.net/cat/wrs" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <gmd:fileIdentifier>
+        <gcol:CharacterString>2005092200_sst_21-24.en</gcol:CharacterString>
+    </gmd:fileIdentifier>
+    <gmd:hierarchyLevel>
+        <gmd:MD_ScopeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">Dataset</gmd:MD_ScopeCode>
+    </gmd:hierarchyLevel>
+    <gmd:contact>
+        <gmd:CI_ResponsibleParty>
+            <gmd:individualName>
+                <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
+            </gmd:individualName>
+            <gmd:role>
+                <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">Point of contact</gmd:CI_RoleCode>
+            </gmd:role>
+        </gmd:CI_ResponsibleParty>
+    </gmd:contact>
+    <gmd:metadataStandardName>
+        <gcol:CharacterString>ISO 19115-2 Geographic Information - Metadata Part 2 Extensions for imagery and gridded data</gcol:CharacterString>
+    </gmd:metadataStandardName>
+    <gmd:metadataStandardVersion>
+        <gcol:CharacterString>ISO 19115-2:2009(E)</gcol:CharacterString>
+    </gmd:metadataStandardVersion>
+    <gmd:spatialRepresentationInfo>
+        <gmd:MD_GridSpatialRepresentation>
+            <gmd:numberOfDimensions>
+                <gcol:Integer>3</gcol:Integer>
+            </gmd:numberOfDimensions>
+            <gmd:axisDimensionProperties>
+                <gmd:MD_Dimension>
+                    <gmd:dimensionName>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="column">Column</gmd:MD_DimensionNameTypeCode>
+                    </gmd:dimensionName>
+                    <gmd:dimensionSize>
+                        <gcol:Integer>73</gcol:Integer>
+                    </gmd:dimensionSize>
+                </gmd:MD_Dimension>
+            </gmd:axisDimensionProperties>
+            <gmd:axisDimensionProperties>
+                <gmd:MD_Dimension>
+                    <gmd:dimensionName>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="row">Row</gmd:MD_DimensionNameTypeCode>
+                    </gmd:dimensionName>
+                    <gmd:dimensionSize>
+                        <gcol:Integer>73</gcol:Integer>
+                    </gmd:dimensionSize>
+                </gmd:MD_Dimension>
+            </gmd:axisDimensionProperties>
+            <gmd:axisDimensionProperties>
+                <gmd:MD_Dimension>
+                    <gmd:dimensionName>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="time">Time</gmd:MD_DimensionNameTypeCode>
+                    </gmd:dimensionName>
+                    <gmd:dimensionSize>
+                        <gcol:Integer>1</gcol:Integer>
+                    </gmd:dimensionSize>
+                </gmd:MD_Dimension>
+            </gmd:axisDimensionProperties>
+            <gmd:cellGeometry>
+                <gmd:MD_CellGeometryCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_CellGeometryCode" codeListValue="area">Area</gmd:MD_CellGeometryCode>
+            </gmd:cellGeometry>
+            <gmd:transformationParameterAvailability>
+                <gcol:Boolean>false</gcol:Boolean>
+            </gmd:transformationParameterAvailability>
+        </gmd:MD_GridSpatialRepresentation>
+    </gmd:spatialRepresentationInfo>
+    <gmd:identificationInfo>
+        <gmd:MD_DataIdentification>
+            <gmd:citation>
+                <gmd:CI_Citation>
+                    <gmd:title>
+                        <gcol:CharacterString>Sea Surface Temperature Analysis Model</gcol:CharacterString>
+                    </gmd:title>
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gcol:DateTime>2005-09-22T02:00:00+02:00</gcol:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">Creation</gmd:CI_DateTypeCode>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+                    <gmd:identifier>
+                        <gmd:MD_Identifier>
+                            <gmd:authority>
+                                <gmd:CI_Citation>
+                                    <gmd:title>
+                                        <gcol:CharacterString>edu.ucar.unidata</gcol:CharacterString>
+                                    </gmd:title>
+                                </gmd:CI_Citation>
+                            </gmd:authority>
+                            <gmd:code>
+                                <gcol:CharacterString>NCEP/SST/Global_5x2p5deg/SST_Global_5x2p5deg_20050922_0000.nc</gcol:CharacterString>
+                            </gmd:code>
+                        </gmd:MD_Identifier>
+                    </gmd:identifier>
+                    <gmd:citedResponsibleParty>
+                        <gmd:CI_ResponsibleParty>
+                            <gmd:individualName>
+                                <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
+                            </gmd:individualName>
+                            <gmd:role>
+                                <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">Originator</gmd:CI_RoleCode>
+                            </gmd:role>
+                        </gmd:CI_ResponsibleParty>
+                    </gmd:citedResponsibleParty>
+                </gmd:CI_Citation>
+            </gmd:citation>
+            <gmd:abstract>
+                <gcol:CharacterString>NCEP SST Global 5.0 x 2.5 degree model data</gcol:CharacterString>
+            </gmd:abstract>
+            <gmd:pointOfContact>
+                <gmd:CI_ResponsibleParty>
+                    <gmd:individualName>
+                        <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
+                    </gmd:individualName>
+                    <gmd:role>
+                        <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">Point of contact</gmd:CI_RoleCode>
+                    </gmd:role>
+                </gmd:CI_ResponsibleParty>
+            </gmd:pointOfContact>
+            <gmd:spatialRepresentationType>
+                <gmd:MD_SpatialRepresentationTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">Grid</gmd:MD_SpatialRepresentationTypeCode>
+            </gmd:spatialRepresentationType>
+            <gmd:descriptiveKeywords>
+                <gmd:MD_Keywords>
+                    <gmd:keyword>
+                        <gcol:CharacterString>EARTH SCIENCE &gt; Oceans &gt; Ocean Temperature &gt; Sea Surface Temperature</gcol:CharacterString>
+                    </gmd:keyword>
+                    <gmd:type>
+                        <gmd:MD_KeywordTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">Theme</gmd:MD_KeywordTypeCode>
+                    </gmd:type>
+                    <gmd:thesaurusName>
+                        <gmd:CI_Citation>
+                            <gmd:title>
+                                <gcol:CharacterString>GCMD Science Keywords</gcol:CharacterString>
+                            </gmd:title>
+                        </gmd:CI_Citation>
+                    </gmd:thesaurusName>
+                </gmd:MD_Keywords>
+            </gmd:descriptiveKeywords>
+            <gmd:resourceConstraints>
+                <gmd:MD_LegalConstraints>
+                    <gmd:useLimitation>
+                        <gcol:CharacterString>Freely available</gcol:CharacterString>
+                    </gmd:useLimitation>
+                </gmd:MD_LegalConstraints>
+            </gmd:resourceConstraints>
+            <gmd:extent>
+                <gmd:EX_Extent>
+                    <gmd:geographicElement>
+                        <gmd:EX_GeographicBoundingBox>
+                            <gmd:extentTypeCode>
+                                <gcol:Boolean>true</gcol:Boolean>
+                            </gmd:extentTypeCode>
+                            <gmd:westBoundLongitude>
+                                <gcol:Decimal>-180.0</gcol:Decimal>
+                            </gmd:westBoundLongitude>
+                            <gmd:eastBoundLongitude>
+                                <gcol:Decimal>180.0</gcol:Decimal>
+                            </gmd:eastBoundLongitude>
+                            <gmd:southBoundLatitude>
+                                <gcol:Decimal>-90.0</gcol:Decimal>
+                            </gmd:southBoundLatitude>
+                            <gmd:northBoundLatitude>
+                                <gcol:Decimal>90.0</gcol:Decimal>
+                            </gmd:northBoundLatitude>
+                        </gmd:EX_GeographicBoundingBox>
+                    </gmd:geographicElement>
+                    <gmd:temporalElement>
+                        <gmd:EX_TemporalExtent>
+                            <gmd:extent>
+                                <gml:TimeInstant>
+                                    <gml:timePosition>2005-09-22T02:00:00+02:00</gml:timePosition>
+                                </gml:TimeInstant>
+                            </gmd:extent>
+                        </gmd:EX_TemporalExtent>
+                    </gmd:temporalElement>
+                    <gmd:verticalElement>
+                        <gmd:EX_VerticalExtent>
+                            <gmd:minimumValue>
+                                <gcol:Real>0.0</gcol:Real>
+                            </gmd:minimumValue>
+                            <gmd:maximumValue>
+                                <gcol:Real>0.0</gcol:Real>
+                            </gmd:maximumValue>
+                            <gmd:verticalCRS>
+                                <gml:VerticalCRS gml:id="epsg-crs-5714">
+                                    <gml:identifier codeSpace="IOGP">urn:ogc:def:crs:EPSG:9.4:5714</gml:identifier>
+                                    <gml:name codeSpace="EPSG:9.4">MSL height</gml:name>
+                                    <gml:remarks>Not specific to any location or epoch.</gml:remarks>
+                                    <gml:domainOfValidity>
+                                        <gmd:EX_Extent>
+                                            <gmd:description>
+                                                <gcol:CharacterString>World.</gcol:CharacterString>
+                                            </gmd:description>
+                                            <gmd:geographicElement>
+                                                <gmd:EX_GeographicBoundingBox>
+                                                    <gmd:extentTypeCode>
+                                                        <gcol:Boolean>true</gcol:Boolean>
+                                                    </gmd:extentTypeCode>
+                                                    <gmd:westBoundLongitude>
+                                                        <gcol:Decimal>-180.0</gcol:Decimal>
+                                                    </gmd:westBoundLongitude>
+                                                    <gmd:eastBoundLongitude>
+                                                        <gcol:Decimal>180.0</gcol:Decimal>
+                                                    </gmd:eastBoundLongitude>
+                                                    <gmd:southBoundLatitude>
+                                                        <gcol:Decimal>-90.0</gcol:Decimal>
+                                                    </gmd:southBoundLatitude>
+                                                    <gmd:northBoundLatitude>
+                                                        <gcol:Decimal>90.0</gcol:Decimal>
+                                                    </gmd:northBoundLatitude>
+                                                </gmd:EX_GeographicBoundingBox>
+                                            </gmd:geographicElement>
+                                        </gmd:EX_Extent>
+                                    </gml:domainOfValidity>
+                                    <gml:scope>Hydrography.</gml:scope>
+                                    <gml:verticalCS>
+                                        <gml:VerticalCS gml:id="epsg-cs-6499">
+                                            <gml:identifier codeSpace="IOGP">urn:ogc:def:cs:EPSG:9.4:6499</gml:identifier>
+                                            <gml:name codeSpace="EPSG:9.4">Vertical CS. Axis: height (H). Orientation: up. UoM: m.</gml:name>
+                                            <gml:remarks>Used in vertical coordinate reference systems.</gml:remarks>
+                                            <gml:axis>
+                                                <gml:CoordinateSystemAxis gml:id="epsg-axis-114" uom="urn:ogc:def:uom:EPSG::9001">
+                                                    <gml:identifier codeSpace="IOGP">urn:ogc:def:axis:EPSG:9.4:114</gml:identifier>
+                                                    <gml:name codeSpace="EPSG:9.4">Gravity-related height</gml:name>
+                                                    <gml:remarks>Height influenced by the Earth's gravity field. In particular, orthometric height or normal height which are both approximations of the distance of a point above sea level. Positive upwards.
+Used in a 1D vertical coordinate system.</gml:remarks>
+                                                    <gml:axisAbbrev>H</gml:axisAbbrev>
+                                                    <gml:axisDirection codeSpace="EPSG">up</gml:axisDirection>
+                                                </gml:CoordinateSystemAxis>
+                                            </gml:axis>
+                                        </gml:VerticalCS>
+                                    </gml:verticalCS>
+                                    <gml:verticalDatum>
+                                        <gml:VerticalDatum gml:id="epsg-datum-5100">
+                                            <gml:identifier codeSpace="IOGP">urn:ogc:def:datum:EPSG:9.4:5100</gml:identifier>
+                                            <gml:name codeSpace="EPSG:9.4">Mean Sea Level</gml:name>
+                                            <gml:remarks>Approximates geoid. Users are advised to not use this generic vertical datum but to define explicit realizations of MSL by specifying location and epoch, for instance "MSL at xxx during yyyy-yyyy".</gml:remarks>
+                                            <gml:domainOfValidity>
+                                                <gmd:EX_Extent>
+                                                    <gmd:description>
+                                                        <gcol:CharacterString>World.</gcol:CharacterString>
+                                                    </gmd:description>
+                                                    <gmd:geographicElement>
+                                                        <gmd:EX_GeographicBoundingBox>
+                                                            <gmd:extentTypeCode>
+                                                                <gcol:Boolean>true</gcol:Boolean>
+                                                            </gmd:extentTypeCode>
+                                                            <gmd:westBoundLongitude>
+                                                                <gcol:Decimal>-180.0</gcol:Decimal>
+                                                            </gmd:westBoundLongitude>
+                                                            <gmd:eastBoundLongitude>
+                                                                <gcol:Decimal>180.0</gcol:Decimal>
+                                                            </gmd:eastBoundLongitude>
+                                                            <gmd:southBoundLatitude>
+                                                                <gcol:Decimal>-90.0</gcol:Decimal>
+                                                            </gmd:southBoundLatitude>
+                                                            <gmd:northBoundLatitude>
+                                                                <gcol:Decimal>90.0</gcol:Decimal>
+                                                            </gmd:northBoundLatitude>
+                                                        </gmd:EX_GeographicBoundingBox>
+                                                    </gmd:geographicElement>
+                                                </gmd:EX_Extent>
+                                            </gml:domainOfValidity>
+                                            <gml:scope>Hydrography.</gml:scope>
+                                            <gml:anchorDefinition>The average height of the surface of the sea at a tide station for all stages of the tide over a 19-year period, usually determined from hourly height readings measured from a fixed predetermined reference level.</gml:anchorDefinition>
+                                        </gml:VerticalDatum>
+                                    </gml:verticalDatum>
+                                </gml:VerticalCRS>
+                            </gmd:verticalCRS>
+                        </gmd:EX_VerticalExtent>
+                    </gmd:verticalElement>
+                </gmd:EX_Extent>
+            </gmd:extent>
+        </gmd:MD_DataIdentification>
+    </gmd:identificationInfo>
+    <gmd:contentInfo>
+        <gmd:MD_CoverageDescription>
+            <gmd:dimension>
+                <gmd:MD_Band>
+                    <gmd:sequenceIdentifier>
+                        <gcol:MemberName>
+                            <gcol:aName>
+                                <gcol:CharacterString>SST</gcol:CharacterString>
+                            </gcol:aName>
+                            <gcol:attributeType>
+                                <gcol:TypeName>
+                                    <gcol:aName>
+                                        <gcol:CharacterString>float[][][]</gcol:CharacterString>
+                                    </gcol:aName>
+                                </gcol:TypeName>
+                            </gcol:attributeType>
+                        </gcol:MemberName>
+                    </gmd:sequenceIdentifier>
+                    <gmd:descriptor>
+                        <gcol:CharacterString>Sea temperature</gcol:CharacterString>
+                    </gmd:descriptor>
+                </gmd:MD_Band>
+            </gmd:dimension>
+        </gmd:MD_CoverageDescription>
+    </gmd:contentInfo>
+    <gmd:dataQualityInfo>
+        <gmd:DQ_DataQuality>
+            <gmd:lineage>
+                <gmd:LI_Lineage>
+                    <gmd:statement>
+                        <gcol:CharacterString>2003-04-07 12:12:50 - created by gribtocdl              2005-09-26T21:50:00 - edavis - add attributes for dataset discovery</gcol:CharacterString>
+                    </gmd:statement>
+                </gmd:LI_Lineage>
+            </gmd:lineage>
+        </gmd:DQ_DataQuality>
+    </gmd:dataQualityInfo>
+</gmd:MD_Metadata>

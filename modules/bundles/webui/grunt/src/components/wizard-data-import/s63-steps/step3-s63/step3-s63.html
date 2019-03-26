@@ -1,0 +1,80 @@
+<div class="step">
+    <div class="row analysis-container" ng-if="ctrl.showAnalysisBlock()">
+        <div class="analysis-block">
+            <i class="fa fa-cog fa-spin fa-2x fa-fw"></i>
+            <span class="sr-only">Loading...</span>
+            <p class="analysis">{{'wiz.data.import.step1.msg.analysis.in.progress' |
+                translate}}<span>.</span><span>.</span><span>.</span></p>
+            <span class="tooltipicon pull-right">
+                <i type="button" class="glyphicon glyphicon-info-sign"
+                   data-placement="bottom"
+                   title="{{'wiz.data.import.step1.msg.tooltip.analyse' | translate }}"></i>
+            </span>
+        </div>
+    </div>
+    <div class="row failure-container" ng-if="ctrl.showFailureBlock()">
+        <div class="failure-block center">
+            <i class="fa fa-2x fa-exclamation-triangle" aria-hidden="true"></i>
+            <span class="sr-only">Error...</span>
+            <p>Server Error : {{ctrl.failureMsg.msg}}</p>
+        </div>
+    </div>
+    <div ng-if="!ctrl.showAnalysisBlock() && !ctrl.showFailureBlock()">
+        <div class="col-md-5 listing-media-exchange-block" ng-show="!ctrl.mediaExchange.isNotMedia">
+            <label>{{'service.edit.dashboard.data.title' | translate}}</label>
+            <ul class="list-group">
+                <li class="list-group-item" title="{{mediaExchangeSet.mediaSetNumber}}"
+                    ng-class="{'selected':ctrl.installingInProgress(mediaExchangeSet.mediaSetNumber)}"
+                    ng-repeat="mediaExchangeSet in ctrl.s63.mediaExchangeSetList">
+                    <span>{{mediaExchangeSet.mediaSetNumber}}</span>
+                    <span ng-if="mediaExchangeSet.isInstalled"
+                          class="pull-right">{{'label.installed' | translate}}</span>
+                    <span ng-if="ctrl.installingInProgress(mediaExchangeSet.mediaSetNumber)" class="pull-right">
+                    {{'wiz.data.import.s63.step3.installing' | translate}}
+                </span>
+                    <button ng-if="!mediaExchangeSet.isInstalled && !ctrl.installingInProgress(mediaExchangeSet.mediaSetNumber)"
+                            ng-click="ctrl.installMediaExchangeSet(mediaExchangeSet.mediaSetNumber)"
+                            class="btn btn-primary btn-xs pull-right">{{'label.install.data' | translate}}
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="config-form-block"
+             ng-show="ctrl.isCurrentView('media-set-config')"
+             ng-class="{'col-md-6 col-md-offset-3':!ctrl.mediaExchange.exchangeSetId,'col-md-7':!ctrl.mediaExchange.isNotMedia}">
+            <label>{{'data.modal.data' | translate}}</label>
+            <form id="exchangeConfigForm">
+                <div class="form-group">
+                    <label for="readMe">{{'label.read.me' | translate}}</label>
+                    <textarea class="form-control" ng-model="ctrl.mediaExchange.configuration.readme"
+                              rows="5" id="readMe" name="" placeholder="..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="rootFolder">{{'label.root.folder' | translate}}</label>
+                    <input type="text" ng-model="ctrl.mediaExchange.configuration.ROOT_FOLDER"
+                           class="form-control" id="rootFolder" placeholder="...">
+                </div>
+                <div class="form-group">
+                    <label for="ENC_ROOT">ENC_ROOT</label>
+                    <input type="text" ng-model="ctrl.mediaExchange.configuration.ENC_ROOT"
+                           class="form-control" id="ENC_ROOT" name="ENC_ROOT" placeholder="...">
+                </div>
+                <div class="form-group">
+                    <label for="serialEnc">SERIAL-ENC</label>
+                    <input type="text" ng-model="ctrl.mediaExchange.configuration.SERIAL_ENC"
+                           class="form-control" id="serialEnc" name="SERIAL_ENC" placeholder="...">
+                </div>
+                <div class="form-group">
+                    <label for="productTXT">PRODUCTS.TXT</label>
+                    <textarea class="form-control" ng-model="ctrl.mediaExchange.configuration.PRODUCTS_TXT"
+                              rows="5" id="productTXT" name="PRODUCTS_TXT" placeholder="..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="statusTXT">STATUS.TXT</label>
+                    <textarea class="form-control" ng-model="ctrl.mediaExchange.configuration.STATUS_TXT"
+                              rows="5" id="statusTXT" name="STATUS_TXT" placeholder="..."></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

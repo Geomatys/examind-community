@@ -1,0 +1,275 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{'global.menu.admin.system_state' | translate}}</h3>
+    </div>
+    <div class="panel-body" ng-init="ctrl.init()">
+        <div class="panel-body-content">
+            <p>
+                <button type="button" class="btn btn-add" ng-click="ctrl.init()">
+                    {{'metrics.refresh.button' | translate}}
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </button>
+                <button type="button" class="btn btn-add" ng-click="ctrl.rungc()">
+                    {{'metrics.jvm.rungc' | translate}}
+                    <span class="glyphicon glyphicon-refresh"></span>
+                </button>
+            </p>
+
+            <h4>{{'metrics.jvm.title' | translate}}</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <b>{{'metrics.jvm.memory.title' | translate}}</b>
+                    <p>{{'metrics.jvm.memory.total' | translate}} ({{ctrl.metrics.gauges['jvm.memory.total.used'].value /
+                        1000000 | number:0}}M / {{ctrl.metrics.gauges['jvm.memory.total.max'].value / 1000000 |
+                        number:0}}M)</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-success" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.memory.total.used'].value / 1000000 | number:0}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.memory.total.max'].value / 1000000 | number:0}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.memory.total.used'].value * 100 / ctrl.metrics.gauges['jvm.memory.total.max'].value  | number:0}}%">
+                            {{ctrl.metrics.gauges['jvm.memory.total.used'].value * 100 /
+                            ctrl.metrics.gauges['jvm.memory.total.max'].value | number:0}}%
+                        </div>
+                    </div>
+                    <p>{{'metrics.jvm.memory.heap' | translate}} ({{ctrl.metrics.gauges['jvm.memory.heap.used'].value /
+                        1000000 | number:0}}M / {{ctrl.metrics.gauges['jvm.memory.heap.max'].value / 1000000 |
+                        number:0}}M)</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-success" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.memory.heap.used'].value / 1000000 | number:0}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.memory.heap.max'].value / 1000000 | number:0}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.memory.heap.usage'].value * 100 | number:0}}%">
+                            {{(ctrl.metrics.gauges['jvm.memory.heap.usage'].value * 100 | number:0)}}%
+                        </div>
+                    </div>
+                    <p>{{'metrics.jvm.memory.nonheap' | translate}} ({{ctrl.metrics.gauges['jvm.memory.non-heap.used'].value
+                        / 1000000 | number:0}}M / {{ctrl.metrics.gauges['jvm.memory.non-heap.max'].value / 1000000 |
+                        number:0}}M)</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-success" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.memory.non-heap.used'].value / 1000000 | number:0}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.memory.non-heap.max'].value / 1000000 | number:0}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.memory.non-heap.usage'].value * 100 | number:0}}%">
+                            {{(ctrl.metrics.gauges['jvm.memory.non-heap.usage'].value * 100 | number:0)}}%
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <b>{{'metrics.jvm.threads.title' | translate}}</b> (Total:
+                    {{ctrl.metrics.gauges['jvm.threads.count'].value}})
+                    <p>{{'metrics.jvm.threads.runnable' | translate}}
+                        {{ctrl.metrics.gauges['jvm.threads.runnable.count'].value}}</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-success" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.threads.runnable.count'].value}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.threads.count'].value}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.threads.runnable.count'].value * 100 / ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%">
+                            {{ctrl.metrics.gauges['jvm.threads.runnable.count'].value * 100 /
+                            ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%
+                        </div>
+                    </div>
+                    <p>{{'metrics.jvm.threads.timewaiting' | translate}}
+                        ({{ctrl.metrics.gauges['jvm.threads.timed_waiting.count'].value}})</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-warning" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.threads.timed_waiting.count'].value}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.threads.count'].value}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.threads.timed_waiting.count'].value * 100 / ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%">
+                            {{ctrl.metrics.gauges['jvm.threads.timed_waiting.count'].value * 100 /
+                            ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%
+                        </div>
+                    </div>
+                    <p>{{'metrics.jvm.threads.waiting' | translate}}
+                        ({{ctrl.metrics.gauges['jvm.threads.waiting.count'].value}})</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-warning" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.threads.waiting.count'].value}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.threads.count'].value}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.threads.waiting.count'].value * 100 / ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%">
+                            {{ctrl.metrics.gauges['jvm.threads.waiting.count'].value * 100 /
+                            ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%
+                        </div>
+                    </div>
+                    <p>{{'metrics.jvm.threads.blocked' | translate}}
+                        ({{ctrl.metrics.gauges['jvm.threads.blocked.count'].value}})</p>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar progress-bar-danger" role="progressbar"
+                             aria-valuenow="{{ctrl.metrics.gauges['jvm.threads.blocked.count'].value}}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ctrl.metrics.gauges['jvm.threads.count'].value}}"
+                             style="width: {{ctrl.metrics.gauges['jvm.threads.blocked.count'].value * 100 / ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%">
+                            {{ctrl.metrics.gauges['jvm.threads.blocked.count'].value * 100 /
+                            ctrl.metrics.gauges['jvm.threads.count'].value | number:0}}%
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <b>{{'metrics.jvm.gc.title' | translate}}</b>
+                    <div class="row">
+                        <div class="col-md-9">{{'metrics.jvm.gc.marksweepcount' | translate}}</div>
+                        <div class="col-md-3">{{ctrl.metrics.gauges['jvm.garbage.PS-MarkSweep.count'].value}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">{{'metrics.jvm.gc.marksweeptime' | translate}}</div>
+                        <div class="col-md-3">{{ctrl.metrics.gauges['jvm.garbage.PS-MarkSweep.time'].value}}ms</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">{{'metrics.jvm.gc.scavengecount' | translate}}</div>
+                        <div class="col-md-3">{{ctrl.metrics.gauges['jvm.garbage.PS-Scavenge.count'].value}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">{{'metrics.jvm.gc.scavengetime' | translate}}</div>
+                        <div class="col-md-3">{{ctrl.metrics.gauges['jvm.garbage.PS-Scavenge.time'].value}}ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <h4>{{'metrics.jvm.http.title' | translate}}</h4>
+            <p>{{'metrics.jvm.http.active' | translate}} <b>{{ctrl.metrics.counters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.activeRequests'].count
+                | number:0}}</b> - {{'metrics.jvm.http.total' | translate}} <b>{{ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count
+                | number:0}}</b></p>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>{{'metrics.jvm.http.table.code' | translate}}</th>
+                        <th>{{'metrics.jvm.http.table.count' | translate}}</th>
+                        <th>{{'metrics.jvm.http.table.mean' | translate}}</th>
+                        <th>{{'metrics.jvm.http.table.average' | translate}} (1 min)</th>
+                        <th>{{'metrics.jvm.http.table.average' | translate}} (5 min)</th>
+                        <th>{{'metrics.jvm.http.table.average' | translate}} (15 min)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>{{'metrics.jvm.http.code.ok' | translate}}</td>
+                        <td>
+                            <div class="progress progress-striped">
+                                <div class="progress-bar progress-bar-success" role="progressbar"
+                                     aria-valuenow="{{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="{{ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     style="width: {{(ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count) | number:0}}%">
+                                    {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].count}}
+                                </div>
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].mean_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].m1_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].m5_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.ok'].m15_rate
+                            | number:2}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>{{'metrics.jvm.http.code.notfound' | translate}}</td>
+                        <td>
+                            <div class="progress progress-striped">
+                                <div class="progress-bar progress-bar-warning" role="progressbar"
+                                     aria-valuenow="{{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="{{ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     style="width:{{(ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count) | number:0}}%">
+                                    {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].count}}
+                                </div>
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].mean_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].m1_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].m5_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.notFound'].m15_rate
+                            | number:2}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>{{'metrics.jvm.http.code.servererror' | translate}}</td>
+                        <td>
+                            <div class="progress progress-striped">
+                                <div class="progress-bar progress-bar-danger" role="progressbar"
+                                     aria-valuenow="{{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="{{ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count}}"
+                                     style="width:{{(ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].count * 100 / ctrl.metrics.timers['com.codahale.metrics.servlet.AbstractInstrumentedFilter.requests'].count) | number:0}}%">
+                                    {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].count}}
+                                </div>
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].mean_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].m1_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].m5_rate
+                            | number:2}}
+                        </td>
+                        <td>
+                            {{ctrl.metrics.meters['com.codahale.metrics.servlet.AbstractInstrumentedFilter.responseCodes.serverError'].m15_rate
+                            | number:2}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>{{'metrics.servicesstats.title' | translate}}</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>{{'metrics.servicesstats.table.name' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.count' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.mean' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.min' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.p50' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.p75' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.p95' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.p99' | translate}}</th>
+                        <th>{{'metrics.servicesstats.table.max' | translate}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(clazz,timer) in ctrl.metrics.timers">
+                        <td>{{clazz | translate}}</td>
+                        <td>{{timer.count}}</td>
+                        <td>{{timer.mean * 1000 | number:0}}</td>
+                        <td>{{timer.min * 1000 | number:0}}</td>
+                        <td>{{timer.p50 * 1000 | number:0}}</td>
+                        <td>{{timer.p75 * 1000 | number:0}}</td>
+                        <td>{{timer.p95 * 1000 | number:0}}</td>
+                        <td>{{timer.p99 * 1000 | number:0}}</td>
+                        <td>{{timer.max * 1000 | number:0}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>

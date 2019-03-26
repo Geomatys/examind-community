@@ -1,0 +1,1 @@
+UPDATE "admin"."data" SET hidden=TRUE where id=1 OR id=2 OR id=3 OR id=4;

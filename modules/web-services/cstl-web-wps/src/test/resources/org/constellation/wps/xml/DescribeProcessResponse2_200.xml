@@ -1,0 +1,55 @@
+<?xml version='1.0'?>
+<wps:ProcessOfferings xmlns:xlink="http://www.w3.org/1999/xlink"
+                      xmlns:wps="http://www.opengis.net/wps/2.0"
+                      xmlns:ows="http://www.opengis.net/ows/2.0"
+                      xmlns:gml="http://www.opengis.net/gml/3.2"
+                      xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersects</ows:Title>
+            <ows:Abstract xml:lang="en-EN">Returns true if this geometry source (geom1) intersects the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="en-EN">Geom1</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Geometry JTS source</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom1</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="en-EN">Geom2</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Geometry JTS</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom2</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="en-EN">Result</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Intersects result</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects:output:result</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#boolean">Boolean</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+</wps:ProcessOfferings>

@@ -1,0 +1,80 @@
+/*
+ * Constellation - An open source and standard compliant SDI
+ *
+ *    http://www.constellation-sdi.org
+ *
+ *    Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.dashboard .advanced-search-dataset{
+  background-color: rgba(253, 246, 240, 0.3);
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  padding-top: 15px;
+}
+
+.dashboard {
+
+  .quick-search {
+    float: right;
+
+    > .input-group {
+      margin-top: 5px;
+      width: 200px;
+
+      > input.form-control {
+        border-right: none;
+        height: 30px;
+        margin: 0;
+      }
+
+      > .input-group-btn > .btn {
+        padding: 4px 12px;
+        margin: 0;
+      }
+    }
+  }
+
+  .item-list .item {
+
+    > .top {
+      padding-right: 125px;
+      position: relative;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+
+      > .item-list-style {
+        position: absolute;
+        top: 0;
+        right: 8px;
+      }
+
+      > .vector-symbol {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+    }
+
+    &.vector > .top > .item-list-style {
+      right: 42px;
+    }
+  }
+
+  preview-map.data-preview {
+    border-color: #c2dfea;
+  }
+}

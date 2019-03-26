@@ -1,0 +1,69 @@
+<div id="platformAdmin">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="menuLeft">
+                    <div class="panel panel-default">
+                        <div class="panel-heading well-header">
+                            <h3 class="panel-title">{{'global.menu.admin.system' | translate}}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_state'}"
+                                   href="" ng-click="ctrl.changeView('system_state')">
+                                    {{'global.menu.admin.system_state' | translate}}
+                                </a>
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_logs'}"
+                                   href="" ng-click="ctrl.changeView('system_logs')">
+                                    {{'global.menu.admin.logs' | translate}}
+                                </a>
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_contact'}"
+                                   href="" ng-click="ctrl.changeView('system_contact')">
+                                    {{'global.menu.admin.contact' | translate}}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading well-header">
+                            <h3 class="panel-title">{{'global.menu.admin.storage' | translate}}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_providers'}"
+                                   href="" ng-click="ctrl.changeView('system_providers')">
+                                    {{'global.menu.admin.providers' | translate}}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading well-header">
+                            <h3 class="panel-title">{{'global.menu.admin.security' | translate}}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="list-group">
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_users'}"
+                                   href="" ng-click="ctrl.changeView('system_users')">
+                                    {{'global.menu.admin.users' | translate}}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-9">
+                <div class="rightPanel">
+                    <div ng-switch="ctrl.currentView">
+                        <system-state ng-switch-when="system_state"></system-state>
+                        <system-logs ng-switch-when="system_logs"></system-logs>
+                        <system-contact ng-switch-when="system_contact"></system-contact>
+                        <system-providers ng-switch-when="system_providers"></system-providers>
+                        <system-users ng-switch-when="system_users"></system-users>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

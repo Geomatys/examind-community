@@ -1,0 +1,55 @@
+area-graph {
+  display: block;
+  position: relative;
+
+  svg {
+    font-size: 10px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+
+    // Axis
+    // ----------
+
+    g.axis {
+
+      path,
+      line {
+        shape-rendering: crispEdges;
+      }
+
+      path {
+        fill: none;
+      }
+    }
+
+    // Label
+    // ----------
+
+    text.label {
+      display: inherit;
+      font-size: 100%;
+      font-weight: normal;
+      line-height: 1;
+      vertical-align: middle;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    // Zoom
+    // ----------
+
+    rect.zoom {
+      cursor: move;
+      pointer-events: all;
+    }
+
+    // Brush
+    // ----------
+
+    g.brush > rect.extent {
+      stroke: #f5f5f5;
+      fill-opacity: .125;
+      shape-rendering: crispEdges;
+      stroke-dasharray: 4 4;
+    }
+  }
+}

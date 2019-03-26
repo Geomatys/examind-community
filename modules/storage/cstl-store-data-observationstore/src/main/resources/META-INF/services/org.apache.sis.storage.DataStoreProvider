@@ -1,0 +1,3 @@
+org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory
+org.constellation.data.om2.OM2FeatureStoreFactory
+org.constellation.sos.io.generic.SOSGenericObservationStoreFactory

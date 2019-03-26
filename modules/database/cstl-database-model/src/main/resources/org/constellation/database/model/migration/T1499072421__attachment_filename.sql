@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."attachment" ADD COLUMN "filename" character varying(500);

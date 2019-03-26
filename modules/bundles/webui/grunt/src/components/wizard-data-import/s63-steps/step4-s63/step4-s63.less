@@ -1,0 +1,71 @@
+step4-s63 {
+  .step {
+    margin-top: 5px;
+    background-color: rgba(102, 102, 102, .5);
+    padding: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+
+    .preview-block {
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+
+    .cells-listing {
+      overflow-y: auto;
+      height: 466px;
+      .panel {
+        border-color: #333;
+        background-color: rgba(102, 102, 102, .8) !important;
+        .panel-heading {
+          color: #ddd;
+          border-color: #333;
+          background-color: rgba(91, 192, 222, 0.1) !important;
+        }
+      }
+
+      table {
+        tbody {
+          tr {
+            td {
+              padding: 5px;
+            }
+          }
+        }
+      }
+
+    }
+  }
+  .s63_padding_left_15 {
+    padding-left: 15px;
+  }
+
+  .log-block {
+    margin: 5px 5px;
+    border-color: #333;
+    background-color: rgba(91, 192, 222, .1) !important;
+    padding: 5px;
+    i {
+      vertical-align: middle;
+      font-size: large;
+    }
+
+    &.info {
+      border-left: 5px solid #bee5eb;
+    }
+
+    &.warning {
+      border-left: 5px solid #ffeeba;
+    }
+
+    &.danger {
+      border-left: 5px solid #8b0000;
+    }
+
+    .popover-content {
+      word-wrap: break-word;
+    }
+  }
+
+}
+

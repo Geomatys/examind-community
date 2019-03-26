@@ -1,0 +1,10 @@
+<div class="thesaurus-autocomplete">
+    <input type="text"
+           class="form-control form-control-fix"
+           ng-model="mdAutoCompleteCtrl.fieldObj.field.value"
+           placeholder="{{mdAutoCompleteCtrl.fieldObj.field.name | translate}}"
+           typeahead="item for item in mdAutoCompleteCtrl.resolveThesaurusKeywords($viewValue) | filter:$viewValue | limitTo:6"
+           typeahead-loading="loadingThesaurus"/>
+    <i ng-show="loadingThesaurus"
+       class="glyphicon glyphicon-refresh"></i>
+</div>

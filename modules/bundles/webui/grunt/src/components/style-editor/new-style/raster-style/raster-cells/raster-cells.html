@@ -1,0 +1,329 @@
+<form class="form-horizontal raster-cells-form" role="form">
+    <div class="row">
+        <div class="col-xs-12 col-md-11 cell-config-block">
+            <div class="form-group">
+                <label class="col-xs-5 col-sm-5 col-md-5 col-lg-5 control-label">
+                    {{'style.editor.new.raster.label.cell.size' | translate}}
+                </label>
+                <div class="col-xs-7 col-md-7"
+                     ng-init="cellSymbol = rasterCellsCtrl.getCellSymbolizerCell(rasterCellsCtrl.selectedRule.symbolizers);">
+                    <input type="number"
+                           class="form-control form-control-fix"
+                           ng-model="cellSymbol.cellSize"
+                           debounce="200"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-5 col-sm-5 col-md-5 col-lg-5 control-label">
+                    {{'style.editor.new.raster.label.cell.type' | translate}}
+                </label>
+                <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
+                    <select class="form-control form-control-fix"
+                            ng-model="rasterCellsCtrl.rasterCells.cellType">
+                        <option value="point">{{'style.editor.new.raster.label.point' | translate}}</option>
+                        <option value="text">{{'style.editor.new.raster.label.text' | translate}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="hr1"/>
+    <div class="point-block" ng-show="rasterCellsCtrl.rasterCells.cellType === 'point'">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="col-xs-5 col-md-5 control-label">
+                    {{'style.editor.new.raster.label.icon' | translate}}
+                </label>
+                <div class="col-xs-7 col-md-7">
+                    <div class="btn-group select select-block">
+                        <button class="btn dropdown-toggle btn-default"
+                                data-toggle="dropdown"
+                                ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry">
+                            <span class="filter-option pull-left">
+                                <img class="img_icone"
+                                     ng-if="!rasterCellsCtrl.isTTFValue(rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry)"
+                                     ng-src="img/icone_{{rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry}}.png"/>
+                                <i ng-if="rasterCellsCtrl.isTTFValue(rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry)"
+                                   class="isTTFValue-info fa"
+                                   ng-class="rasterCellsCtrl.resolveClassForCode(rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry)"></i>
+                            </span>&nbsp;
+                            <span class="caret"></span>
+                        </button>
+                        <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+                        <ul class="dropdown-menu dropdown-inverse dropdown-images list-inline" role="menu">
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'circle'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_circle.png"/></a>
+                            </li>
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'triangle'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_triangle.png"/></a>
+                            </li>
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'square'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_square.png"/></a>
+                            </li>
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'star'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_star.png"/></a>
+                            </li>
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'x'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_x.png"/></a>
+                            </li>
+                            <li ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'cross'">
+                                <a class="symbolIconItem"><img class="img_icone" src="img/icone_cross.png"/></a>
+                            </li>
+                            <li ng-repeat="code in rasterCellsCtrl.getFontsCodes()"
+                                ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.geometry = 'ttf:FontAwesome?char='+code">
+                                <a class="symbolIconItem"><i class="fa" ng-class="rasterCellsCtrl.fontsMapping[code]"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-5 col-sm-5 col-md-5 col-lg-5 control-label">
+                    {{'style.editor.new.raster.label.fill' | translate}}
+                </label>
+                <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
+                    <input type='text' name="picker" class="picker"
+                           spectrum oncolorchanged="rasterCellsCtrl.affectAlpha(value, rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.fill)"
+                           ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.fill.color"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-5 col-sm-5 col-md-5 col-lg-5 control-label">
+                    {{'style.editor.new.raster.label.stroke' | translate}}
+                </label>
+                <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
+                    <input type='text' name="picker" class="picker"
+                           spectrum oncolorchanged="rasterCellsCtrl.affectAlpha(value, rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.stroke)"
+                           ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.mark.stroke.color"/>
+                </div>
+            </div>
+            <hr/>
+            <div class="form-group"
+                 ng-init="advSize=!rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size);">
+                <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label">
+                    {{'style.editor.new.raster.label.size' | translate}}
+                </label>
+                <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9 size-input-block">
+                    <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8"
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size) && !advSize">
+                        <input class="slider" type="range"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.size"
+                               max="100" min="0" step="1"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2"
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size) && !advSize">
+                        <input class="form-control form-control-fix"
+                               id="size-text"
+                               type="text"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.size"
+                               min="0"
+                               max="100"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 size-band"
+                         ng-show="advSize || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size)">
+                        <input class="form-control form-control-fix"
+                               type="text"
+                               placeholder="band_0_mean *50/max"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.size"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 x-btn">
+                        <button type="button"
+                                class="btn btn-default"
+                                ng-style="advSize?rasterCellsCtrl.styleBtnSelected:rasterCellsCtrl.styleBtnDefault"
+                                ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.size=10;advSize=!advSize;"
+                                title="{{'style.editor.new.raster.label.set.expression.value' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size) && !advSize,'glyphicon-remove':advSize || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.size)}"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group"
+                 ng-init="advRotation=!rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation);">
+                <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label">
+                    {{'style.editor.new.raster.label.rotation' | translate}}
+                </label>
+                <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+                    <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8"
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation) && !advRotation">
+                        <input class="slider"
+                               type="range"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation"
+                               max="360" min="0" step="1"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2"
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation) && !advRotation">
+                        <input class="form-control form-control-fix"
+                               style="padding: 6px 4px;"
+                               type="text"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation"
+                               min="0"
+                               max="360"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10"
+                         style="padding-left: 5px;padding-right: 5px;"
+                         ng-show="advRotation || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation)">
+                        <input class="form-control form-control-fix"
+                               type="text"
+                               placeholder="band_0_mean * 360/max"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                        <button type="button"
+                                class="btn btn-default"
+                                ng-style="advRotation?rasterCellsCtrl.styleBtnSelected:rasterCellsCtrl.styleBtnDefault"
+                                ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation=0;advRotation=!advRotation;"
+                                title="{{'sldeditor.edition.expression.raster.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation) && !advRotation,'glyphicon-remove':advRotation || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.rotation)}"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group"
+                 ng-init="advOpacity=!rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity);">
+                <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label">
+                    {{'style.editor.new.raster.label.opacity'}}
+                </label>
+                <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+                    <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 "
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity) && !advOpacity">
+                        <input class="slider"
+                               type="range"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity"
+                               max="1" min="0" step="0.1"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 "
+                         ng-show="rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity) && !advOpacity">
+                        <input class="form-control form-control-fix opacity-graphic"
+                               type="text"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity"
+                               min="0"
+                               max="1"
+                               step="0.1"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 opacity-graphic-band"
+                         ng-show="advOpacity || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity)">
+                        <input class="form-control form-control-fix"
+                               type="text"
+                               placeholder="band_0_mean / max"
+                               ng-model="rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity"
+                               debounce="200"/>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 opacity-graphic-btn">
+                        <button type="button"
+                                class="btn btn-default"
+                                ng-style="advOpacity?rasterCellsCtrl.styleBtnSelected:rasterCellsCtrl.styleBtnDefault"
+                                ng-click="rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity=1;advOpacity=!advOpacity;"
+                                title="{{'style.editor.new.raster.label.set.expression.value.attribute' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity) && !advOpacity,'glyphicon-remove':advOpacity || !rasterCellsCtrl.isExpressionNumber(rasterCellsCtrl.rasterCells.pointSymbol.graphic.opacity)}"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 div-btn-add">
+                <button type="button"
+                        class="btn-apercu btn btn-primary pull-right btn-apply"
+                        ng-click="rasterCellsCtrl.applyCellPointSymbolizer();">
+                    <span>{{'style.editor.new.raster.label.apply' | translate}}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div ng-show="rasterCellsCtrl.rasterCells.cellType === 'text'">
+        <form class="form-horizontal form-style" role="form">
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3 control-label">
+                    {{'style.editor.new.raster.label' | translate}}
+                </label>
+                <div class="col-sm-8 col-md-6">
+                    <input type="text" class="form-control form-control-fix"
+                           ng-model="rasterCellsCtrl.rasterCells.textSymbol.label"
+                           debounce="200"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3 control-label">
+                    {{'style.editor.new.raster.label.font' | translate}}}
+                </label>
+                <div class="col-sm-6">
+                    <select class="form-control form-control-fix"
+                            ng-init="rasterCellsCtrl.initFontFamilies(rasterCellsCtrl.rasterCells.textSymbol)"
+                            ng-model="rasterCellsCtrl.rasterCells.textSymbol.font.family[0]">
+                        <option value="Arial" class="arial">Arial</option>
+                        <option value="Calibri" class="calibri">Calibri</option>
+                        <option value="Courier" class="courier">Courier</option>
+                        <option value="Lucida" class="lucida">Lucida</option>
+                        <option value="Times" class="times">Times</option>
+                        <option value="Times New Roman" class="times-new-roman">Times New Roman</option>
+                        <option value="Trebuchet" class="trebuchet">Trebuchet</option>
+                        <option value="Verdana" class="verdana">Verdana</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3 control-label">
+                    {{'style.editor.new.raster.label.size' | translate}}
+                </label>
+                <div class="col-sm-4 col-md-3">
+                    <input type="number" class="form-control"
+                           ng-model="rasterCellsCtrl.rasterCells.textSymbol.font.size"
+                           min="1"
+                           debounce="200"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3 control-label">
+                    {{'style.editor.new.raster.label.style' | translate}}
+                </label>
+                <div class="col-sm-8 btn-group" data-toggle="buttons">
+                    <label class="btn btn-default"
+                           ng-class="{active2:rasterCellsCtrl.rasterCells.textSymbol.font.bold, inactive2:!rasterCellsCtrl.rasterCells.textSymbol.font.bold}"
+                           ng-click="rasterCellsCtrl.rasterCells.textSymbol.font.bold = !rasterCellsCtrl.rasterCells.textSymbol.font.bold">
+                        <input type="checkbox"
+                               class="btn btn-default"
+                               ng-checked="rasterCellsCtrl.rasterCells.textSymbol.font.bold"/>
+                        <b>B</b>
+                    </label>
+                    <label class="btn btn-default italic-btn"
+                           ng-class="{active2:rasterCellsCtrl.rasterCells.textSymbol.font.italic, inactive2:!rasterCellsCtrl.rasterCells.textSymbol.font.italic}"
+                           ng-click="rasterCellsCtrl.rasterCells.textSymbol.font.italic = !rasterCellsCtrl.rasterCells.textSymbol.font.italic">
+                        <input type="checkbox"
+                               class="btn btn-default"
+                               ng-checked="rasterCellsCtrl.rasterCells.textSymbol.font.italic"/>
+                        <i>I</i>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3 control-label">
+                    {{'style.editor.new.raster.label.color' | translate}}
+                </label>
+                <div class="col-sm-3">
+                    <input type='text'
+                           name="picker"
+                           class="picker"
+                           spectrum oncolorchanged="rasterCellsCtrl.affectAlpha(value, rasterCellsCtrl.rasterCells.textSymbol.fill)"
+                           ng-model="rasterCellsCtrl.rasterCells.textSymbol.fill.color"/>
+                </div>
+            </div>
+            <div class="col-xs-12 btn-apply">
+                <button type="button" class="btn-apercu btn btn-primary pull-right"
+                        ng-click="rasterCellsCtrl.applyCellTextSymbolizer();">
+                    <span>
+                        {{'style.editor.new.raster.label.apply' | translate}}
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</form>

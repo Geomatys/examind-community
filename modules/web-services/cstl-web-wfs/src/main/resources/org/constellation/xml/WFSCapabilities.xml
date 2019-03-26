@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<details xmlns="http://www.constellation.org/config">
+    <description>Features provided by constellation SDI server.</description>
+    <identifier>default</identifier>
+    <keywords>WFS</keywords>
+    <keywords>Constellation</keywords>
+    <keywords>Geomatys</keywords>
+    <name>Web Feature Service (Constellation)</name>
+    <serviceConstraints>
+        <accessConstraint>NONE</accessConstraint>
+        <fees>NONE</fees>
+    </serviceConstraints>
+    <serviceContact>
+        <address>24 rue Pierre Renaudel</address>
+        <city>Arles</city>
+        <country>France</country>
+        <email>vincent.heurteaux@geomatys.com</email>
+        <fax>04 67 54 87 00</fax>
+        <fullname>Vincent Heurteaux</fullname>
+        <organisation>Geomatys</organisation>
+        <phone>04 67 54 87 30</phone>
+        <position>PDG</position>
+        <state>Bouches du rhone</state>
+        <zipCode>13200</zipCode>
+        <url>http://constellation.codehaus.org</url>
+        <hoursOfService>9h - 19h</hoursOfService>
+        <contactInstructions>none</contactInstructions>
+    </serviceContact>
+    <versions>2.0.0</versions>
+    <versions>1.1.0</versions>
+</details>

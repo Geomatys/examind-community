@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/2.0"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xmlns:ows="http://www.opengis.net/ows/2.0"
+             xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             service="WPS" version="2.0.0" response="document" mode="sync">
+    <ows:Identifier>urn:exa:wps:geotoolkit::math:add</ows:Identifier>
+    <wps:Input id="urn:exa:wps:geotoolkit::math:add:input:first">
+        <wps:Data mimeType="text/xml">
+            <LineString srsName="EPSG:4326" xmlns="http://www.opengis.net/gml/3.2">
+                <coordinates>-0.631235,46.307557 -0.262215,46.577225 0.106805,46.477874 0.220349,46.293364 0.475824,46.406909 0.887424,46.350136 1.029354,46.563032 1.213864,46.648191 1.526112,46.421102 1.795780,46.066275 2.108028,46.037889 2.178993,46.250785 2.193186,46.492067 2.193186,46.492067 2.051255,46.704963 2.051255,46.704963 </coordinates>
+            </LineString>
+        </wps:Data>
+    </wps:Input>
+    <wps:Input id="urn:exa:wps:geotoolkit::math:add:input:second">
+        <wps:Data>200</wps:Data>
+    </wps:Input>
+    <wps:Output id="urn:exa:wps:geotoolkit::math:add:output:result" transmission="value"/>
+</wps:Execute>
+

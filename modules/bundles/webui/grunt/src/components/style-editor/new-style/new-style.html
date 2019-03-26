@@ -1,0 +1,37 @@
+<div ng-if="!newCtrl.selectedStyleType">
+    <div class="row">
+        <h5>{{'style.editor.new.select.type' | translate}}</h5>
+    </div>
+    <div class="row center logo-block">
+        <div class="col-xs-6 col-sm-6 col-md-offset-2 col-md-4 col-lg-offset-3 col-lg-3">
+            <a ng-click="newCtrl.initVectorType();" class="style-type-logo">
+                <img src="img/vector-multigeometry-selected.svg"/>
+                <h2>{{'style.editor.new.for.vector.data' | translate}}</h2>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3">
+            <a ng-click="newCtrl.initRasterType();" class="style-type-logo">
+                <img src="img/raster-icone.svg"/>
+                <h2>{{'style.editor.new.for.raster.data' | translate}}</h2>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="new_style" ng-if="newCtrl.selectedStyleType" ng-switch="newCtrl.selectedStyleType">
+    <raster-style ng-switch-when="coverage"
+                  display-new-style="newCtrl.displayNewStyle"
+                  new-style="newCtrl.newStyle"
+                  selected-data-ref="newCtrl.selectedDataRef"
+                  temporary-style="newCtrl.temporaryStyle"
+                  create-style="newCtrl.createStyle">
+    </raster-style>
+    <vector-style ng-switch-when="vector"
+                  display-new-style="newCtrl.displayNewStyle"
+                  new-style="newCtrl.newStyle"
+                  selected-data-ref="newCtrl.selectedDataRef"
+                  create-style="newCtrl.createStyle">
+    </vector-style>
+</div>
+
+

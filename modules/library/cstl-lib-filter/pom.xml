@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.examind.community</groupId>
+        <artifactId>library</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.examind.community</groupId>
+    <artifactId>cstl-lib-filter</artifactId>
+    <packaging>jar</packaging>
+    <name>Library : CSW Filter parsers</name>
+    <description>The library for Examind CSW FIlter parsers.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-lib-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-xml-csw</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-spatial-lucene</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-feature</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-test-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

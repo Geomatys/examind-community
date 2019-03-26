@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rdf:RDF xmlns="http://semantic-web.at/ontologies/csw.owl#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns4="http://purl.org/dc/terms" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ns6="http://www.w3.org/2000/01/rdf-schema#" xmlns:ns7="http://xmlns.com/foaf/0.1" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ns10="http://www.geomatys.com/count" xmlns:ns11="http://www.opengis.net/gml/3.2">
+  <rdf:Description rdf:about="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9">
+    <hierarchyRoot>true</hierarchyRoot>
+    <skos:prefLabel xml:lang="fr">ROOT</skos:prefLabel>
+    <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+    <skos:hasTopConcept rdf:resource="d9c90bc3-a7d8-4f0b-8a4f-0edc883a3d72"/>
+    <skos:hasTopConcept rdf:resource="f3f8197f-46cd-4611-8096-381f7e29f1ea"/>
+    <skos:hasTopConcept rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:hasTopConcept rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:hasTopConcept rdf:resource="f8ca806a-f35c-4aef-b777-301993f1f2ab"/>
+    <skos:hasTopConcept rdf:resource="0d4e1d35-9e1d-4682-85ef-c65e1113d00d"/>
+    <skos:hasTopConcept rdf:resource="fcfb6b0b-dc6c-40ff-b5fd-83cc3fe8632c"/>
+    <skos:hasTopConcept rdf:resource="7cdec1a6-b3a4-4022-92fe-ee23e4336407"/>
+    <skos:hasTopConcept rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:hasTopConcept rdf:resource="cf0d921f-476d-4515-a1f2-2516a17dee12"/>
+    <skos:hasTopConcept rdf:resource="bb7ba278-8725-46c8-a5e9-f790af82e703"/>
+    <skos:hasTopConcept rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:hasTopConcept rdf:resource="a5c9bd1e-4670-46ad-a78e-e63c3d1d796f"/>
+    <skos:hasTopConcept rdf:resource="faa81d97-f684-4432-adf9-cdfac0f2aa4e"/>
+    <skos:hasTopConcept rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:hasTopConcept rdf:resource="610edf8e-f71c-41b5-af4c-be28a161e8dd"/>
+    <skos:hasTopConcept rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:hasTopConcept rdf:resource="bbb2be38-5f30-452a-8b2a-33244088d944"/>
+    <skos:hasTopConcept rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:hasTopConcept rdf:resource="1814499f-0468-4930-bb2b-0cdc9467e4aa"/>
+    <skos:hasTopConcept rdf:resource="41283719-06d8-4484-b344-25a96f776adb"/>
+    <skos:hasTopConcept rdf:resource="20f7983f-67ce-4c76-8c87-710a23b0657d"/>
+    <skos:hasTopConcept rdf:resource="fbb861c9-c9c2-4828-8ce1-42182bd48743"/>
+    <skos:hasTopConcept rdf:resource="22aca68c-e436-462e-9bef-897b33c1d816"/>
+    <skos:hasTopConcept rdf:resource="3f386b3e-0ff5-43ef-a20e-47bd7a16b513"/>
+    <skos:hasTopConcept rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:hasTopConcept rdf:resource="131a968a-111e-424f-ba99-3cab86174eda"/>
+    <skos:inScheme rdf:resource="th_geo"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="99854cca-9071-44cd-8841-391cb56c66cc">
+    <skos:prefLabel xml:lang="fr">AUDE</skos:prefLabel>
+    <skos:broader rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7cdc170a-ceb0-4dd9-9c5f-076d6af4f22f">
+    <skos:prefLabel xml:lang="fr">HAUTES-ALPES</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="8ec5d7a8-735d-46f4-b940-f08d20daa359">
+    <skos:prefLabel xml:lang="fr">INDRE</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="d9c90bc3-a7d8-4f0b-8a4f-0edc883a3d72">
+    <skos:prefLabel xml:lang="fr">NORD-PAS-DE-CALAIS</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="c50faf75-d45e-4228-8586-c9bb140f7d82"/>
+    <skos:narrower rdf:resource="886f4513-1284-4916-b2df-bf7d048d1d5f"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="f3f8197f-46cd-4611-8096-381f7e29f1ea">
+    <skos:prefLabel xml:lang="fr">FRANCHE-COMTE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="df6fe9ca-97c7-4d83-bf5f-758744c0d8a1"/>
+    <skos:narrower rdf:resource="188ef797-aa58-48fc-bc15-4d55ae3f8063"/>
+    <skos:narrower rdf:resource="7e939258-4428-40e8-9fe6-02e6651dabb3"/>
+    <skos:narrower rdf:resource="e16fe508-2b44-4ea4-83c8-a0deff06ff6d"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="0f3bb024-9212-4615-b27c-5b1887f36e3a">
+    <skos:prefLabel xml:lang="fr">CHARENTE</skos:prefLabel>
+    <skos:broader rdf:resource="cf0d921f-476d-4515-a1f2-2516a17dee12"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="8cb46575-2dac-4e8c-97e3-25ed21a5a568">
+    <skos:prefLabel xml:lang="fr">CANTAL</skos:prefLabel>
+    <skos:broader rdf:resource="fbb861c9-c9c2-4828-8ce1-42182bd48743"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="4f81b49b-843a-4c30-ad23-9ee8524cbff8">
+    <skos:prefLabel xml:lang="fr">FINISTERE</skos:prefLabel>
+    <skos:broader rdf:resource="610edf8e-f71c-41b5-af4c-be28a161e8dd"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="70c019cb-abdb-409d-8438-7ec83cd74135">
+    <skos:prefLabel xml:lang="fr">HAUTE-GARONNE</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="5bcf792e-858a-4af7-a734-b7b856a3bcb0">
+    <skos:prefLabel xml:lang="fr">VOSGES</skos:prefLabel>
+    <skos:broader rdf:resource="41283719-06d8-4484-b344-25a96f776adb"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="839c80c8-a651-4b6b-b86f-61011e39bba9">
+    <skos:prefLabel xml:lang="fr">HAUTS-DE-SEINE</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="002affe2-6827-48ef-9826-e99f57866845">
+    <skos:prefLabel xml:lang="fr">MEURTHE-ET-MOSELLE</skos:prefLabel>
+    <skos:broader rdf:resource="41283719-06d8-4484-b344-25a96f776adb"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="f1de5478-e7d3-4b98-8cd3-a0488755ce1a">
+    <skos:prefLabel xml:lang="fr">LANDES</skos:prefLabel>
+    <skos:broader rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="f746cf4a-d916-4d66-818e-f5fc18a8f050">
+    <skos:prefLabel xml:lang="fr">ALLIER</skos:prefLabel>
+    <skos:broader rdf:resource="fbb861c9-c9c2-4828-8ce1-42182bd48743"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="3b795d6a-afc4-4224-9623-a92aa25ae567">
+    <skos:prefLabel xml:lang="fr">AVEYRON</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="618109f0-e88f-4305-94af-bccea6c378db">
+    <skos:prefLabel xml:lang="fr">OISE</skos:prefLabel>
+    <skos:broader rdf:resource="a5c9bd1e-4670-46ad-a78e-e63c3d1d796f"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7c4bd91d-2f44-4023-8973-b0d82566d780">
+    <skos:prefLabel xml:lang="fr">INDRE-ET-LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="9654afe3-5d1d-41b3-b484-e0fe30354979">
+    <skos:prefLabel xml:lang="fr">CORREZE</skos:prefLabel>
+    <skos:broader rdf:resource="bbb2be38-5f30-452a-8b2a-33244088d944"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="75363843-5e3b-46f4-8e56-332d363bf747">
+    <skos:prefLabel xml:lang="fr">CORSE-DU-SUD</skos:prefLabel>
+    <skos:broader rdf:resource="faa81d97-f684-4432-adf9-cdfac0f2aa4e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="c1ddc13e-f05a-4eba-814c-614ddfb48abe">
+    <skos:prefLabel xml:lang="fr">GIRONDE</skos:prefLabel>
+    <skos:broader rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="616975e3-1fa3-4010-9cff-56dedb8abfd9">
+    <skos:prefLabel xml:lang="fr">CREUSE</skos:prefLabel>
+    <skos:broader rdf:resource="bbb2be38-5f30-452a-8b2a-33244088d944"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="85cbf8cb-22c7-4586-bab9-ec852fc685d5">
+    <skos:prefLabel xml:lang="fr">PROVENCE-ALPES-COTE D'AZUR</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="65b838c3-5946-497a-beb5-983244daf7e7"/>
+    <skos:narrower rdf:resource="d3b40e66-e77d-4be6-8f4c-74b92da947d8"/>
+    <skos:narrower rdf:resource="61791df1-7fd0-4fd7-b1c9-c7406821fa20"/>
+    <skos:narrower rdf:resource="8fe6b5aa-8374-45ad-9797-b6e2ec293566"/>
+    <skos:narrower rdf:resource="7cdc170a-ceb0-4dd9-9c5f-076d6af4f22f"/>
+    <skos:narrower rdf:resource="5188cfd8-570a-4113-8799-16c736ed8edb"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="784af8e1-053f-43ef-afff-67682812b616">
+    <skos:prefLabel xml:lang="fr">RHONE-ALPES</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="30cc70ab-a07a-49c5-8924-d9aeee3aa564"/>
+    <skos:narrower rdf:resource="fe7d1700-4af0-4a7c-8df5-2a018925d2d3"/>
+    <skos:narrower rdf:resource="a819dfd1-cece-4e66-a946-6ff1100812d6"/>
+    <skos:narrower rdf:resource="fe51d0cb-e8cd-4b0d-b376-0e5377574c7a"/>
+    <skos:narrower rdf:resource="d09f5796-e471-42c4-a3e5-de6e79026577"/>
+    <skos:narrower rdf:resource="dedec9dc-c7cb-4c03-9442-750202967f78"/>
+    <skos:narrower rdf:resource="bb1dcedf-93f3-48ff-a526-d7d8f0d10ede"/>
+    <skos:narrower rdf:resource="1b99e018-fd0b-461c-b24d-dab323ad8fa6"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="771587d5-aaab-4a32-af1b-0ee24dd67ba1">
+    <skos:prefLabel xml:lang="fr">NIEVRE</skos:prefLabel>
+    <skos:broader rdf:resource="1814499f-0468-4930-bb2b-0cdc9467e4aa"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="5492ccbd-d459-49c9-a1d4-278febd76514">
+    <skos:prefLabel xml:lang="fr">EURE</skos:prefLabel>
+    <skos:broader rdf:resource="7cdec1a6-b3a4-4022-92fe-ee23e4336407"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e5bdbb83-40d6-4182-8c94-cfb97cd5ca02">
+    <skos:prefLabel xml:lang="fr">MORBIHAN</skos:prefLabel>
+    <skos:broader rdf:resource="610edf8e-f71c-41b5-af4c-be28a161e8dd"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="f8ca806a-f35c-4aef-b777-301993f1f2ab">
+    <skos:prefLabel xml:lang="fr">REUNION</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="e8224059-5bc1-484c-b6c1-8624224b8c90"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="c2dfa027-3252-4a50-89ac-fbcfdce3230a">
+    <skos:prefLabel xml:lang="fr">AUBE</skos:prefLabel>
+    <skos:broader rdf:resource="bb7ba278-8725-46c8-a5e9-f790af82e703"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="fe7d1700-4af0-4a7c-8df5-2a018925d2d3">
+    <skos:prefLabel xml:lang="fr">SAVOIE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="1b99e018-fd0b-461c-b24d-dab323ad8fa6">
+    <skos:prefLabel xml:lang="fr">HAUTE-SAVOIE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="519efd82-3f8a-48eb-bd02-aed0e05056b9">
+    <skos:prefLabel xml:lang="fr">ORNE</skos:prefLabel>
+    <skos:broader rdf:resource="22aca68c-e436-462e-9bef-897b33c1d816"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="45cc79b8-acfd-42fa-8bd5-8a6bf6686e28">
+    <skos:prefLabel xml:lang="fr">LOIR-ET-CHER</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="fe51d0cb-e8cd-4b0d-b376-0e5377574c7a">
+    <skos:prefLabel xml:lang="fr">AIN</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="56d59c80-a30c-4e8d-a34c-4f4dc525fcc2">
+    <skos:prefLabel xml:lang="fr">DEUX-SEVRES</skos:prefLabel>
+    <skos:broader rdf:resource="cf0d921f-476d-4515-a1f2-2516a17dee12"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="58bf3dc7-c19e-4680-a2f9-e5db7c928e9b">
+    <skos:prefLabel xml:lang="fr">VAL-D'OISE</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e71a2b75-4fe8-4735-98ef-00578fad8974">
+    <skos:prefLabel xml:lang="fr">PARIS</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="df6fe9ca-97c7-4d83-bf5f-758744c0d8a1">
+    <skos:prefLabel xml:lang="fr">JURA</skos:prefLabel>
+    <skos:broader rdf:resource="f3f8197f-46cd-4611-8096-381f7e29f1ea"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="de24513c-b802-4460-9183-25f6dd0e40a5">
+    <skos:prefLabel xml:lang="fr">SEINE-ET-MARNE</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="99145063-a23a-430a-a7ad-9d960c610bc0">
+    <skos:prefLabel xml:lang="fr">HAUT-RHIN</skos:prefLabel>
+    <skos:broader rdf:resource="3f386b3e-0ff5-43ef-a20e-47bd7a16b513"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="d6148f12-23f6-4fa3-8570-431dcc651499">
+    <skos:prefLabel xml:lang="fr">GERS</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="9e1283bc-e94f-4edb-9801-5f9ae52d350f">
+    <skos:prefLabel xml:lang="fr">VIENNE</skos:prefLabel>
+    <skos:broader rdf:resource="cf0d921f-476d-4515-a1f2-2516a17dee12"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="5188cfd8-570a-4113-8799-16c736ed8edb">
+    <skos:prefLabel xml:lang="fr">VAR</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="a819dfd1-cece-4e66-a946-6ff1100812d6">
+    <skos:prefLabel xml:lang="fr">DROME</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="30cc70ab-a07a-49c5-8924-d9aeee3aa564">
+    <skos:prefLabel xml:lang="fr">ISERE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="79230757-602a-4407-8684-d572b8f4221f">
+    <skos:prefLabel xml:lang="fr">SEINE-MARITIME</skos:prefLabel>
+    <skos:broader rdf:resource="7cdec1a6-b3a4-4022-92fe-ee23e4336407"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="0d4e1d35-9e1d-4682-85ef-c65e1113d00d">
+    <skos:prefLabel xml:lang="fr">MAYOTTE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="6d33fc9a-ca2a-4a55-9780-8da6309b6416"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="fcfb6b0b-dc6c-40ff-b5fd-83cc3fe8632c">
+    <skos:prefLabel xml:lang="fr">MARTINIQUE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="ac4ae258-54cb-440b-8304-b93948cffc79"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7cdec1a6-b3a4-4022-92fe-ee23e4336407">
+    <skos:prefLabel xml:lang="fr">HAUTE-NORMANDIE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="5492ccbd-d459-49c9-a1d4-278febd76514"/>
+    <skos:narrower rdf:resource="79230757-602a-4407-8684-d572b8f4221f"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="43d0420d-f45e-4cad-a364-683e51d7c186">
+    <skos:prefLabel xml:lang="fr">ILLE-ET-VILAINE</skos:prefLabel>
+    <skos:broader rdf:resource="610edf8e-f71c-41b5-af4c-be28a161e8dd"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="18c46fe9-8fd1-4757-9fba-9ab351b4cfd9">
+    <skos:prefLabel xml:lang="fr">GUYANE</skos:prefLabel>
+    <skos:broader rdf:resource="20f7983f-67ce-4c76-8c87-710a23b0657d"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="d09f5796-e471-42c4-a3e5-de6e79026577">
+    <skos:prefLabel xml:lang="fr">ARDECHE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="dedec9dc-c7cb-4c03-9442-750202967f78">
+    <skos:prefLabel xml:lang="fr">LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="4f7e5134-28ab-473d-ac3d-dc93f3286c88">
+    <skos:prefLabel xml:lang="fr">COTE-D'OR</skos:prefLabel>
+    <skos:broader rdf:resource="1814499f-0468-4930-bb2b-0cdc9467e4aa"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="07d78132-d773-47ab-8bff-75d955572929">
+    <skos:prefLabel xml:lang="fr">VENDEE</skos:prefLabel>
+    <skos:broader rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="1c74bf62-388b-4f13-bd3a-f52c71ecb285">
+    <skos:prefLabel xml:lang="fr">ARIEGE</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="ce5c9b0e-7ef5-468c-b264-bd85baf953c0">
+    <skos:prefLabel xml:lang="fr">AQUITAINE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="95f882d0-275e-4e26-9d80-1ed757141f35"/>
+    <skos:narrower rdf:resource="a3f0c75b-6c23-4f01-b7fb-b21c9441e612"/>
+    <skos:narrower rdf:resource="f1de5478-e7d3-4b98-8cd3-a0488755ce1a"/>
+    <skos:narrower rdf:resource="e7630963-9a68-45d3-b30d-77885a36fa68"/>
+    <skos:narrower rdf:resource="c1ddc13e-f05a-4eba-814c-614ddfb48abe"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="95f882d0-275e-4e26-9d80-1ed757141f35">
+    <skos:prefLabel xml:lang="fr">LOT-ET-GARONNE</skos:prefLabel>
+    <skos:broader rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="611ad24e-dd2c-42ec-b725-041f86160bdf">
+    <skos:prefLabel xml:lang="fr">VAL-DE-MARNE</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7e939258-4428-40e8-9fe6-02e6651dabb3">
+    <skos:prefLabel xml:lang="fr">DOUBS</skos:prefLabel>
+    <skos:broader rdf:resource="f3f8197f-46cd-4611-8096-381f7e29f1ea"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e7e298c2-2f6c-4422-ba42-1e865b4ae8de">
+    <skos:prefLabel xml:lang="fr">CALVADOS</skos:prefLabel>
+    <skos:broader rdf:resource="22aca68c-e436-462e-9bef-897b33c1d816"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e9db280f-011a-42d4-bb73-144996ed6bd7">
+    <skos:prefLabel xml:lang="fr">PUY-DE-DOME</skos:prefLabel>
+    <skos:broader rdf:resource="fbb861c9-c9c2-4828-8ce1-42182bd48743"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="86fa9ffb-6071-4089-b5e7-3c192e9deb40">
+    <skos:prefLabel xml:lang="fr">COTES-D'ARMOR</skos:prefLabel>
+    <skos:broader rdf:resource="610edf8e-f71c-41b5-af4c-be28a161e8dd"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="61791df1-7fd0-4fd7-b1c9-c7406821fa20">
+    <skos:prefLabel xml:lang="fr">VAUCLUSE</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="2510e14f-052e-4475-a3c5-bbfaf7504809">
+    <skos:prefLabel xml:lang="fr">CHARENTE-MARITIME</skos:prefLabel>
+    <skos:broader rdf:resource="cf0d921f-476d-4515-a1f2-2516a17dee12"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="acf16e1d-1c6b-40d3-8f8c-45889d955ff7">
+    <skos:prefLabel xml:lang="fr">EURE-ET-LOIR</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="cf0d921f-476d-4515-a1f2-2516a17dee12">
+    <skos:prefLabel xml:lang="fr">POITOU-CHARENTES</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="2510e14f-052e-4475-a3c5-bbfaf7504809"/>
+    <skos:narrower rdf:resource="0f3bb024-9212-4615-b27c-5b1887f36e3a"/>
+    <skos:narrower rdf:resource="56d59c80-a30c-4e8d-a34c-4f4dc525fcc2"/>
+    <skos:narrower rdf:resource="9e1283bc-e94f-4edb-9801-5f9ae52d350f"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7f1830ae-b168-43a7-b637-0daa2b7ae890">
+    <skos:prefLabel xml:lang="fr">HERAULT</skos:prefLabel>
+    <skos:broader rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="5d827933-af8d-4d3d-bec9-2cca9a14ab5e">
+    <skos:prefLabel xml:lang="fr">HAUTE-LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="fbb861c9-c9c2-4828-8ce1-42182bd48743"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="bb7ba278-8725-46c8-a5e9-f790af82e703">
+    <skos:prefLabel xml:lang="fr">CHAMPAGNE-ARDENNE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="7b915362-84d0-433d-932f-acd9d1ba3557"/>
+    <skos:narrower rdf:resource="416682fc-2cc2-474f-98bb-e2b2dc2cc439"/>
+    <skos:narrower rdf:resource="c2dfa027-3252-4a50-89ac-fbcfdce3230a"/>
+    <skos:narrower rdf:resource="b7fba6e8-c775-41a0-a16b-cb15f979f628"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="0500ab7b-39df-46fb-bdc7-c7a96b1d34d0">
+    <skos:prefLabel xml:lang="fr">SEINE-SAINT-DENIS</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="8ab10b3a-bb22-41fc-8d0b-e61bde51aebc">
+    <skos:prefLabel xml:lang="fr">SOMME</skos:prefLabel>
+    <skos:broader rdf:resource="a5c9bd1e-4670-46ad-a78e-e63c3d1d796f"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="a9bb0dcd-0385-4396-87d5-c62df4130335">
+    <skos:prefLabel xml:lang="fr">PAYS DE LA LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="71457802-22e6-4a3c-af5f-7d44385af0dc"/>
+    <skos:narrower rdf:resource="3c076a07-91b9-487a-b498-9d3ba99c1bfa"/>
+    <skos:narrower rdf:resource="63a1bcd7-ecd9-4ee5-b04f-33f93125f895"/>
+    <skos:narrower rdf:resource="07d78132-d773-47ab-8bff-75d955572929"/>
+    <skos:narrower rdf:resource="b7eab8f7-e0a4-4581-9f0e-fdfcf5f0d256"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="a5c9bd1e-4670-46ad-a78e-e63c3d1d796f">
+    <skos:prefLabel xml:lang="fr">PICARDIE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="8ab10b3a-bb22-41fc-8d0b-e61bde51aebc"/>
+    <skos:narrower rdf:resource="618109f0-e88f-4305-94af-bccea6c378db"/>
+    <skos:narrower rdf:resource="5a90ec42-0ed7-4c0b-b844-29e665eb4bcd"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="71457802-22e6-4a3c-af5f-7d44385af0dc">
+    <skos:prefLabel xml:lang="fr">SARTHE</skos:prefLabel>
+    <skos:broader rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="853e3384-8356-40b3-b8cf-e77e83c9dac5">
+    <skos:prefLabel xml:lang="fr">MEUSE</skos:prefLabel>
+    <skos:broader rdf:resource="41283719-06d8-4484-b344-25a96f776adb"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="5a90ec42-0ed7-4c0b-b844-29e665eb4bcd">
+    <skos:prefLabel xml:lang="fr">AISNE</skos:prefLabel>
+    <skos:broader rdf:resource="a5c9bd1e-4670-46ad-a78e-e63c3d1d796f"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="bb1dcedf-93f3-48ff-a526-d7d8f0d10ede">
+    <skos:prefLabel xml:lang="fr">RHONE</skos:prefLabel>
+    <skos:broader rdf:resource="784af8e1-053f-43ef-afff-67682812b616"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e8224059-5bc1-484c-b6c1-8624224b8c90">
+    <skos:prefLabel xml:lang="fr">REUNION</skos:prefLabel>
+    <skos:broader rdf:resource="f8ca806a-f35c-4aef-b777-301993f1f2ab"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="faa81d97-f684-4432-adf9-cdfac0f2aa4e">
+    <skos:prefLabel xml:lang="fr">CORSE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="6c16ccdb-d8d6-4ee0-a7de-07517525d07a"/>
+    <skos:narrower rdf:resource="75363843-5e3b-46f4-8e56-332d363bf747"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="92953ad8-fdea-4bcf-a30a-2fb3fa46579e">
+    <skos:prefLabel xml:lang="fr">LANGUEDOC-ROUSSILLON</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="0571be65-74c4-4c48-ac1b-55afef75aa79"/>
+    <skos:narrower rdf:resource="c94c21c1-4dfe-4e5a-aaf2-596c6e6ae922"/>
+    <skos:narrower rdf:resource="7f1830ae-b168-43a7-b637-0daa2b7ae890"/>
+    <skos:narrower rdf:resource="99854cca-9071-44cd-8841-391cb56c66cc"/>
+    <skos:narrower rdf:resource="bbab5c74-d90d-4354-b3ba-2ba2f6eef877"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="ac4ae258-54cb-440b-8304-b93948cffc79">
+    <skos:prefLabel xml:lang="fr">MARTINIQUE</skos:prefLabel>
+    <skos:broader rdf:resource="fcfb6b0b-dc6c-40ff-b5fd-83cc3fe8632c"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="610edf8e-f71c-41b5-af4c-be28a161e8dd">
+    <skos:prefLabel xml:lang="fr">BRETAGNE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="4f81b49b-843a-4c30-ad23-9ee8524cbff8"/>
+    <skos:narrower rdf:resource="86fa9ffb-6071-4089-b5e7-3c192e9deb40"/>
+    <skos:narrower rdf:resource="e5bdbb83-40d6-4182-8c94-cfb97cd5ca02"/>
+    <skos:narrower rdf:resource="43d0420d-f45e-4cad-a364-683e51d7c186"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="2342a517-739f-41c0-bbe9-f73f2feb862e">
+    <skos:prefLabel xml:lang="fr">TARN-ET-GARONNE</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="ef5263bc-d7d4-4d74-85ee-86954cbf3c42">
+    <skos:prefLabel xml:lang="fr">LOIRET</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="188ef797-aa58-48fc-bc15-4d55ae3f8063">
+    <skos:prefLabel xml:lang="fr">HAUTE-SAONE</skos:prefLabel>
+    <skos:broader rdf:resource="f3f8197f-46cd-4611-8096-381f7e29f1ea"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="a3f0c75b-6c23-4f01-b7fb-b21c9441e612">
+    <skos:prefLabel xml:lang="fr">DORDOGNE</skos:prefLabel>
+    <skos:broader rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="df334bae-b70d-4f6e-97ea-c31bd33b5041">
+    <skos:prefLabel xml:lang="fr">ILE-DE-FRANCE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="39eaf88b-7a97-41cf-9cec-e7d7a4673b7c"/>
+    <skos:narrower rdf:resource="cab2ca7b-0550-4ca5-977d-33d72b274f4a"/>
+    <skos:narrower rdf:resource="de24513c-b802-4460-9183-25f6dd0e40a5"/>
+    <skos:narrower rdf:resource="e71a2b75-4fe8-4735-98ef-00578fad8974"/>
+    <skos:narrower rdf:resource="58bf3dc7-c19e-4680-a2f9-e5db7c928e9b"/>
+    <skos:narrower rdf:resource="839c80c8-a651-4b6b-b86f-61011e39bba9"/>
+    <skos:narrower rdf:resource="0500ab7b-39df-46fb-bdc7-c7a96b1d34d0"/>
+    <skos:narrower rdf:resource="611ad24e-dd2c-42ec-b725-041f86160bdf"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="b7eab8f7-e0a4-4581-9f0e-fdfcf5f0d256">
+    <skos:prefLabel xml:lang="fr">MAYENNE</skos:prefLabel>
+    <skos:broader rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="bbb2be38-5f30-452a-8b2a-33244088d944">
+    <skos:prefLabel xml:lang="fr">LIMOUSIN</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="9654afe3-5d1d-41b3-b484-e0fe30354979"/>
+    <skos:narrower rdf:resource="616975e3-1fa3-4010-9cff-56dedb8abfd9"/>
+    <skos:narrower rdf:resource="fbefab33-877f-43ac-b1d1-6aa595ef5f3c"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7b915362-84d0-433d-932f-acd9d1ba3557">
+    <skos:prefLabel xml:lang="fr">ARDENNES</skos:prefLabel>
+    <skos:broader rdf:resource="bb7ba278-8725-46c8-a5e9-f790af82e703"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="8b00dadf-0069-43c4-b82b-ae7f3515a1fd">
+    <skos:prefLabel xml:lang="fr">SAONE-ET-LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="1814499f-0468-4930-bb2b-0cdc9467e4aa"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="1246be6e-9b45-430b-b2db-3145431a8c7a">
+    <skos:prefLabel xml:lang="fr">MIDI-PYRENEES</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="20cc6b1f-666e-4a3d-8282-d3abbd8dd0b1"/>
+    <skos:narrower rdf:resource="d6148f12-23f6-4fa3-8570-431dcc651499"/>
+    <skos:narrower rdf:resource="00627613-56c6-4439-bbf0-ba166064dcbe"/>
+    <skos:narrower rdf:resource="3b795d6a-afc4-4224-9623-a92aa25ae567"/>
+    <skos:narrower rdf:resource="2342a517-739f-41c0-bbe9-f73f2feb862e"/>
+    <skos:narrower rdf:resource="1c74bf62-388b-4f13-bd3a-f52c71ecb285"/>
+    <skos:narrower rdf:resource="aeeceffa-fb96-4634-ad27-55efde8d8065"/>
+    <skos:narrower rdf:resource="70c019cb-abdb-409d-8438-7ec83cd74135"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="6d33fc9a-ca2a-4a55-9780-8da6309b6416">
+    <skos:prefLabel xml:lang="fr">MAYOTTE</skos:prefLabel>
+    <skos:broader rdf:resource="0d4e1d35-9e1d-4682-85ef-c65e1113d00d"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="11b014fb-0cbf-4a4a-bc99-58955a520841">
+    <skos:prefLabel xml:lang="fr">GUADELOUPE</skos:prefLabel>
+    <skos:broader rdf:resource="131a968a-111e-424f-ba99-3cab86174eda"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="1814499f-0468-4930-bb2b-0cdc9467e4aa">
+    <skos:prefLabel xml:lang="fr">BOURGOGNE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="8b00dadf-0069-43c4-b82b-ae7f3515a1fd"/>
+    <skos:narrower rdf:resource="771587d5-aaab-4a32-af1b-0ee24dd67ba1"/>
+    <skos:narrower rdf:resource="11d91d28-fa3f-4070-a1ca-da73d48f410f"/>
+    <skos:narrower rdf:resource="4f7e5134-28ab-473d-ac3d-dc93f3286c88"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e16fe508-2b44-4ea4-83c8-a0deff06ff6d">
+    <skos:prefLabel xml:lang="fr">TERRITOIRE DE BELFORT</skos:prefLabel>
+    <skos:broader rdf:resource="f3f8197f-46cd-4611-8096-381f7e29f1ea"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="0571be65-74c4-4c48-ac1b-55afef75aa79">
+    <skos:prefLabel xml:lang="fr">GARD</skos:prefLabel>
+    <skos:broader rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="00627613-56c6-4439-bbf0-ba166064dcbe">
+    <skos:prefLabel xml:lang="fr">LOT</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="886f4513-1284-4916-b2df-bf7d048d1d5f">
+    <skos:prefLabel xml:lang="fr">PAS-DE-CALAIS</skos:prefLabel>
+    <skos:broader rdf:resource="d9c90bc3-a7d8-4f0b-8a4f-0edc883a3d72"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="6c16ccdb-d8d6-4ee0-a7de-07517525d07a">
+    <skos:prefLabel xml:lang="fr">HAUTE-CORSE</skos:prefLabel>
+    <skos:broader rdf:resource="faa81d97-f684-4432-adf9-cdfac0f2aa4e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="8fe6b5aa-8374-45ad-9797-b6e2ec293566">
+    <skos:prefLabel xml:lang="fr">ALPES-MARITIMES</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="d34e741c-bbbd-4897-ac6d-800ddcf8aa09">
+    <skos:prefLabel xml:lang="fr">CHER</skos:prefLabel>
+    <skos:broader rdf:resource="f05bbe4b-1164-4a42-82c9-7481bc27384b"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="cab2ca7b-0550-4ca5-977d-33d72b274f4a">
+    <skos:prefLabel xml:lang="fr">ESSONNE</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="416682fc-2cc2-474f-98bb-e2b2dc2cc439">
+    <skos:prefLabel xml:lang="fr">HAUTE-MARNE</skos:prefLabel>
+    <skos:broader rdf:resource="bb7ba278-8725-46c8-a5e9-f790af82e703"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="41283719-06d8-4484-b344-25a96f776adb">
+    <skos:prefLabel xml:lang="fr">LORRAINE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="5bcf792e-858a-4af7-a734-b7b856a3bcb0"/>
+    <skos:narrower rdf:resource="853e3384-8356-40b3-b8cf-e77e83c9dac5"/>
+    <skos:narrower rdf:resource="7bd36362-ad99-49b8-88bf-ebe4d9e7e094"/>
+    <skos:narrower rdf:resource="002affe2-6827-48ef-9826-e99f57866845"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="20f7983f-67ce-4c76-8c87-710a23b0657d">
+    <skos:prefLabel xml:lang="fr">GUYANE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="18c46fe9-8fd1-4757-9fba-9ab351b4cfd9"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="d3b40e66-e77d-4be6-8f4c-74b92da947d8">
+    <skos:prefLabel xml:lang="fr">BOUCHES-DU-RHONE</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="aeeceffa-fb96-4634-ad27-55efde8d8065">
+    <skos:prefLabel xml:lang="fr">TARN</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="fbb861c9-c9c2-4828-8ce1-42182bd48743">
+    <skos:prefLabel xml:lang="fr">AUVERGNE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="8cb46575-2dac-4e8c-97e3-25ed21a5a568"/>
+    <skos:narrower rdf:resource="e9db280f-011a-42d4-bb73-144996ed6bd7"/>
+    <skos:narrower rdf:resource="f746cf4a-d916-4d66-818e-f5fc18a8f050"/>
+    <skos:narrower rdf:resource="5d827933-af8d-4d3d-bec9-2cca9a14ab5e"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="3c076a07-91b9-487a-b498-9d3ba99c1bfa">
+    <skos:prefLabel xml:lang="fr">MAINE-ET-LOIRE</skos:prefLabel>
+    <skos:broader rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="fbefab33-877f-43ac-b1d1-6aa595ef5f3c">
+    <skos:prefLabel xml:lang="fr">HAUTE-VIENNE</skos:prefLabel>
+    <skos:broader rdf:resource="bbb2be38-5f30-452a-8b2a-33244088d944"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="22aca68c-e436-462e-9bef-897b33c1d816">
+    <skos:prefLabel xml:lang="fr">BASSE-NORMANDIE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="519efd82-3f8a-48eb-bd02-aed0e05056b9"/>
+    <skos:narrower rdf:resource="6652c153-d53f-4a34-ae11-20b7c5c2c11f"/>
+    <skos:narrower rdf:resource="e7e298c2-2f6c-4422-ba42-1e865b4ae8de"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="11d91d28-fa3f-4070-a1ca-da73d48f410f">
+    <skos:prefLabel xml:lang="fr">YONNE</skos:prefLabel>
+    <skos:broader rdf:resource="1814499f-0468-4930-bb2b-0cdc9467e4aa"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="e7630963-9a68-45d3-b30d-77885a36fa68">
+    <skos:prefLabel xml:lang="fr">PYRENEES-ATLANTIQUES</skos:prefLabel>
+    <skos:broader rdf:resource="ce5c9b0e-7ef5-468c-b264-bd85baf953c0"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="3f386b3e-0ff5-43ef-a20e-47bd7a16b513">
+    <skos:prefLabel xml:lang="fr">ALSACE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="28ae5a5b-6941-4f13-b0cd-15ee2d4e1774"/>
+    <skos:narrower rdf:resource="99145063-a23a-430a-a7ad-9d960c610bc0"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="39eaf88b-7a97-41cf-9cec-e7d7a4673b7c">
+    <skos:prefLabel xml:lang="fr">YVELINES</skos:prefLabel>
+    <skos:broader rdf:resource="df334bae-b70d-4f6e-97ea-c31bd33b5041"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="bbab5c74-d90d-4354-b3ba-2ba2f6eef877">
+    <skos:prefLabel xml:lang="fr">PYRENEES-ORIENTALES</skos:prefLabel>
+    <skos:broader rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="f05bbe4b-1164-4a42-82c9-7481bc27384b">
+    <skos:prefLabel xml:lang="fr">CENTRE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="d34e741c-bbbd-4897-ac6d-800ddcf8aa09"/>
+    <skos:narrower rdf:resource="45cc79b8-acfd-42fa-8bd5-8a6bf6686e28"/>
+    <skos:narrower rdf:resource="8ec5d7a8-735d-46f4-b940-f08d20daa359"/>
+    <skos:narrower rdf:resource="7c4bd91d-2f44-4023-8973-b0d82566d780"/>
+    <skos:narrower rdf:resource="acf16e1d-1c6b-40d3-8f8c-45889d955ff7"/>
+    <skos:narrower rdf:resource="ef5263bc-d7d4-4d74-85ee-86954cbf3c42"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="131a968a-111e-424f-ba99-3cab86174eda">
+    <skos:prefLabel xml:lang="fr">GUADELOUPE</skos:prefLabel>
+    <skos:broader rdf:resource="0c4c9af4-16fa-4e5a-b959-2c7a9a0d66f9"/>
+    <skos:narrower rdf:resource="11b014fb-0cbf-4a4a-bc99-58955a520841"/>
+    <skos:inScheme rdf:resource="region"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="7bd36362-ad99-49b8-88bf-ebe4d9e7e094">
+    <skos:prefLabel xml:lang="fr">MOSELLE</skos:prefLabel>
+    <skos:broader rdf:resource="41283719-06d8-4484-b344-25a96f776adb"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="63a1bcd7-ecd9-4ee5-b04f-33f93125f895">
+    <skos:prefLabel xml:lang="fr">LOIRE-ATLANTIQUE</skos:prefLabel>
+    <skos:broader rdf:resource="a9bb0dcd-0385-4396-87d5-c62df4130335"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="c94c21c1-4dfe-4e5a-aaf2-596c6e6ae922">
+    <skos:prefLabel xml:lang="fr">LOZERE</skos:prefLabel>
+    <skos:broader rdf:resource="92953ad8-fdea-4bcf-a30a-2fb3fa46579e"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="6652c153-d53f-4a34-ae11-20b7c5c2c11f">
+    <skos:prefLabel xml:lang="fr">MANCHE</skos:prefLabel>
+    <skos:broader rdf:resource="22aca68c-e436-462e-9bef-897b33c1d816"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="b7fba6e8-c775-41a0-a16b-cb15f979f628">
+    <skos:prefLabel xml:lang="fr">MARNE</skos:prefLabel>
+    <skos:broader rdf:resource="bb7ba278-8725-46c8-a5e9-f790af82e703"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="28ae5a5b-6941-4f13-b0cd-15ee2d4e1774">
+    <skos:prefLabel xml:lang="fr">BAS-RHIN</skos:prefLabel>
+    <skos:broader rdf:resource="3f386b3e-0ff5-43ef-a20e-47bd7a16b513"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="c50faf75-d45e-4228-8586-c9bb140f7d82">
+    <skos:prefLabel xml:lang="fr">NORD</skos:prefLabel>
+    <skos:broader rdf:resource="d9c90bc3-a7d8-4f0b-8a4f-0edc883a3d72"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="65b838c3-5946-497a-beb5-983244daf7e7">
+    <skos:prefLabel xml:lang="fr">ALPES-DE-HAUTE-PROVENCE</skos:prefLabel>
+    <skos:broader rdf:resource="85cbf8cb-22c7-4586-bab9-ec852fc685d5"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="20cc6b1f-666e-4a3d-8282-d3abbd8dd0b1">
+    <skos:prefLabel xml:lang="fr">HAUTES-PYRENEES</skos:prefLabel>
+    <skos:broader rdf:resource="1246be6e-9b45-430b-b2db-3145431a8c7a"/>
+    <skos:inScheme rdf:resource="departement"/>
+  </rdf:Description>
+</rdf:RDF>

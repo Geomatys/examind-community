@@ -1,0 +1,15 @@
+retrieved from community branch of constellation-ee
+===================================================
+commit 8ec957f0d4fb2eeb52107eb831ad4a565c150db7 (HEAD -> community, origin/community)
+Author: msidhoum <mehdi.sidhoum@geomatys.com>
+Date:   Mon Mar 25 11:52:32 2019 +0100
+
+    fix(*): fix sos tests and add readme note for docker usage (CSTL-2183).
+
+which was based on constellation-ee 
+===================================
+commit a78c641744843bed21b49437b1b1bd952e9dc375 (origin/master, origin/HEAD, master)
+Author: glegal <guilhem.legal@geomatys.com>
+Date:   Mon Mar 18 10:21:34 2019 +0100
+
+    refactor(core): minor information add in Exception

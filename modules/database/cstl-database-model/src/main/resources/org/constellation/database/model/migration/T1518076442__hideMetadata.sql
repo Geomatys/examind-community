@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."metadata" ADD COLUMN "is_hidden" boolean NOT NULL DEFAULT FALSE;

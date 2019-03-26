@@ -1,0 +1,237 @@
+<form class="form-horizontal form-style" role="form">
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="edition.style.label.name">Name</label>
+        <div class="col-sm-8">
+            <input type="text" class="form-control form-control-fix"
+                   ng-model="pointSymCtrl.symbolizer.name"
+                   debounce="200"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.icon">Icon</label>
+        <div class="col-sm-4 col-md-3">
+            <div class="btn-group select select-block">
+                <button class="btn dropdown-toggle btn-default"
+                        data-toggle="dropdown"
+                        ng-model="pointSymCtrl.symbolizer.graphic.mark.geometry">
+                            <span class="filter-option pull-left">
+                                <img class="img_icone"
+                                     ng-if="!pointSymCtrl.isTTFValue(pointSymCtrl.symbolizer.graphic.mark.geometry)"
+                                     ng-src="img/icone_{{pointSymCtrl.symbolizer.graphic.mark.geometry}}.png"/>
+                                <i ng-if="pointSymCtrl.isTTFValue(pointSymCtrl.symbolizer.graphic.mark.geometry)"
+                                   class="fa"
+                                   ng-class="pointSymCtrl.resolveClassForCode(pointSymCtrl.symbolizer.graphic.mark.geometry)"
+                                   style="font-size:18px;"></i>
+                            </span>&nbsp;
+                    <span class="caret"></span>
+                </button>
+                <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+                <ul class="dropdown-menu dropdown-inverse dropdown-images list-inline"
+                    role="menu" style="overflow-y: auto; min-width:60px; min-height: 108px;width:190px;">
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'circle'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_circle.png"/></a>
+                    </li>
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'triangle'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_triangle.png"/></a>
+                    </li>
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'square'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_square.png"/></a>
+                    </li>
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'star'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_star.png"/></a>
+                    </li>
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'x'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_x.png"/></a>
+                    </li>
+                    <li ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'cross'">
+                        <a class="symbolIconItem"><img class="img_icone" src="img/icone_cross.png"/></a>
+                    </li>
+                    <li ng-repeat="code in pointSymCtrl.fontsCodes"
+                        ng-click="pointSymCtrl.symbolizer.graphic.mark.geometry = 'ttf:FontAwesome?char='+code">
+                        <a class="symbolIconItem"><i class="fa" ng-class="pointSymCtrl.fontsMapping[code]"></i></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.stroke">Stroke</label>
+        <div class="col-sm-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="pointSymCtrl.affectAlpha(value, pointSymCtrl.symbolizer.graphic.mark.stroke)"
+                   ng-model="pointSymCtrl.symbolizer.graphic.mark.stroke.color"
+                   debounce="200"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.fill">Fill</label>
+        <div class="col-sm-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="pointSymCtrl.affectAlpha(value, pointSymCtrl.symbolizer.graphic.mark.fill)"
+                   ng-model="pointSymCtrl.symbolizer.graphic.mark.fill.color"
+                   debounce="200"/>
+        </div>
+    </div>
+    <hr/>
+    <div class="form-group" ng-init="advSize=!pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size);">
+        <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label"
+               translate="sldeditor.edition.size">Size</label>
+        <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+            <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size) && !advSize">
+                <input class="slider"
+                       type="range"
+                       ng-model="pointSymCtrl.symbolizer.graphic.size"
+                       max="100" min="0" step="1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size) && !advSize">
+                <input class="form-control form-control-fix"
+                       style="padding: 6px 4px;"
+                       type="text"
+                       ng-model="pointSymCtrl.symbolizer.graphic.size"
+                       min="0"
+                       max="100"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"
+                 style="padding: 0;"
+                 ng-show="advSize || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size)">
+                <select class="form-control form-control-fix"
+                        ng-model="selectAttr"
+                        ng-change="pointSymCtrl.setAttrToInputSize(selectAttr,pointSymCtrl.symbolizer.graphic)">
+                    <option ng-repeat="dp in pointSymCtrl.attributesTypeNumber" ng-value="dp.name">{{dp.name}}</option>
+                </select>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
+                 style="padding-left: 5px;padding-right: 5px;"
+                 ng-show="advSize || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size)">
+                <input class="form-control form-control-fix"
+                       type="text"
+                       placeholder="attr * 50 / max"
+                       ng-model="pointSymCtrl.symbolizer.graphic.size"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-style="advSize?styleEditorCtrl.styleBtnSelected:styleEditorCtrl.styleBtnDefault"
+                        ng-click="pointSymCtrl.symbolizer.graphic.size=10;advSize=!advSize;"
+                        title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench': pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size) && !advSize,'glyphicon-remove':advSize || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.size)}"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group" ng-init="advRotation=!pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation);">
+        <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label">Rotation</label>
+        <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+            <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation) && !advRotation">
+                <input class="slider"
+                       type="range"
+                       ng-model="pointSymCtrl.symbolizer.graphic.rotation"
+                       max="360" min="0" step="1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation) && !advRotation">
+                <input class="form-control form-control-fix"
+                       style="padding: 6px 4px;"
+                       type="text"
+                       ng-model="pointSymCtrl.symbolizer.graphic.rotation"
+                       min="0"
+                       max="360"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"
+                 style="padding: 0;"
+                 ng-show="advRotation || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation)">
+                <select class="form-control form-control-fix"
+                        ng-model="selectAttrRotation"
+                        ng-change="pointSymCtrl.setAttrToInputRotation(selectAttrRotation,pointSymCtrl.symbolizer.graphic)">
+                    <option ng-repeat="dp in pointSymCtrl.attributesTypeNumber" ng-value="dp.name">{{dp.name}}</option>
+                </select>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
+                 style="padding-left: 5px;padding-right: 5px;"
+                 ng-show="advRotation || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation)">
+                <input class="form-control form-control-fix"
+                       type="text"
+                       placeholder="attr * 360/max"
+                       ng-model="pointSymCtrl.symbolizer.graphic.rotation"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-style="advRotation?styleEditorCtrl.styleBtnSelected:styleEditorCtrl.styleBtnDefault"
+                        ng-click="pointSymCtrl.symbolizer.graphic.rotation=0;advRotation=!advRotation;"
+                        title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation) && !advRotation,'glyphicon-remove':advRotation || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.rotation)}"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="form-group" ng-init="advOpacity=!pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity);">
+        <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label"
+               translate="sldeditor.edition.opacity">Opacity</label>
+        <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+            <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity) && !advOpacity">
+                <input class="slider"
+                       type="range"
+                       ng-model="pointSymCtrl.symbolizer.graphic.opacity"
+                       max="1" min="0" step="0.1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 div-padding-left-0"
+                 ng-show="pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity) && !advOpacity">
+                <input class="form-control form-control-fix"
+                       style="padding: 6px 4px;"
+                       type="text"
+                       ng-model="pointSymCtrl.symbolizer.graphic.opacity"
+                       min="0"
+                       max="1"
+                       step="0.1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"
+                 style="padding: 0;"
+                 ng-show="advOpacity || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity)">
+                <select class="form-control form-control-fix"
+                        ng-model="selectAttrOpacity"
+                        ng-change="pointSymCtrl.setAttrToInputOpacity(selectAttrOpacity,pointSymCtrl.symbolizer.graphic)">
+                    <option ng-repeat="dp in pointSymCtrl.attributesTypeNumber" ng-value="dp.name">{{dp.name}}</option>
+                </select>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
+                 style="padding-left: 5px;padding-right: 5px;"
+                 ng-show="advOpacity || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity)">
+                <input class="form-control form-control-fix"
+                       type="text"
+                       placeholder="attr / max"
+                       ng-model="pointSymCtrl.symbolizer.graphic.opacity"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-style="advOpacity?styleEditorCtrl.styleBtnSelected:styleEditorCtrl.styleBtnDefault"
+                        ng-click="pointSymCtrl.symbolizer.graphic.opacity=1;advOpacity=!advOpacity;"
+                        title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity) && !advOpacity,'glyphicon-remove':advOpacity || !pointSymCtrl.isExpressionNumber(pointSymCtrl.symbolizer.graphic.opacity)}"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

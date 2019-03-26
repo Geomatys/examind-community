@@ -1,0 +1,378 @@
+<div class="modal-dialog modal-dialog-resp-height"
+     ng-class="{'modal-dialog-sld':mode.display==='general' || mode.display==='addChooseStyle' || mode.display==='chooseLayer'}">
+    <div class="modal-content modalContextEdit">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="dismiss()">×</button>
+            <h4 class="modal-title"
+                ng-if="mode.display!=='addChooseSource'&& mode.display!=='chooseLayer' && mode.display!=='addChooseStyle'"
+                translate="mapcontext.modal.title">Add/Edit map context</h4>
+            <h4 class="modal-title"
+                ng-if="mode.display==='addChooseSource'"
+                translate="mapcontext.modal.select.source">Select your layer source</h4>
+            <h4 class="modal-title"
+                ng-if="mode.display==='chooseLayer'"
+                translate="mapcontext.modal.select.layer">Select layer to add</h4>
+            <h4 class="modal-title"
+                ng-if="mode.display==='addChooseStyle'"
+                translate="mapcontext.modal.select.style">Select style to associate</h4>
+        </div>
+        <div class="modal-body modal-body-style" style="overflow-y: auto;">
+            <div ng-show="mode.display==='general' || mode.display==='addChooseStyle'">
+                <div class="col-sm-6">
+                    <div class="row" ng-show="mode.display==='general'">
+                        <ul class="nav nav-tabs">
+                            <li id="infoTab"
+                                ng-class="{active:mode.selTab==='tabInfo'}">
+                                <a ng-click="mode.selTab='tabInfo'"
+                                   data-toggle="tab"
+                                   style="padding-bottom: 5px; padding-top: 5px; margin-top: 6px;">
+                                    <span translate="mapcontext.modal.tab.info">Information</span>
+                                </a>
+                            </li>
+                            <li id="descriptionTab"
+                                ng-class="{active:mode.selTab==='tabLayers'}" >
+                                <a ng-click="mode.selTab='tabLayers'"
+                                   data-toggle="tab"
+                                   style="padding-bottom: 5px; padding-top: 5px; margin-top: 6px;">
+                                    <span translate="mapcontext.modal.tab.layers">Layers</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane"
+                                 ng-class="{active:mode.selTab==='tabInfo'}"
+                                 style="padding-top: 13px;height:460px;overflow-x:hidden;overflow-y:auto;">
+                                <form class="form-horizontal form-style" role="form">
+                                    <div class="form-group"
+                                         ng-class="{'has-error':mode.errorNoGivenName}">
+                                        <label class="col-sm-4 col-md-3 control-label"
+                                               translate="mapcontext.modal.label.name">Name</label>
+                                        <div class="col-sm-8">
+                                            <input type="text"
+                                                   class="form-control"
+                                                   ng-model="ctxt.name"
+                                                   ng-change="updateNamePresent()" required />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 col-md-3 control-label"
+                                               translate="mapcontext.modal.label.description">Description</label>
+                                        <div class="col-sm-8">
+                                            <textarea rows="5"
+                                                      class="form-control"
+                                                      ng-model="ctxt.description"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 col-md-3 control-label"
+                                               translate="mapcontext.modal.label.crs">CRS</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" ng-model="ctxt.crs"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 col-md-3 control-label"
+                                               translate="mapcontext.modal.label.envelope">Envelope</label>
+                                        <div class="col-sm-8">
+                                            <div class="row" style="margin-bottom: 5px;">
+                                                <div class="col-sm-offset-3 col-sm-6">
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           ng-model="ctxt.north"
+                                                           placeholder="{{'label.north.first.letter' | translate}}"/>
+                                                </div>
+                                                <div class="col-sm-offset-1 col-sm-2 btn-emprise">
+                                                    <button class="btn btn-add"
+                                                            type="button"
+                                                            ng-click="applyExtent()"
+                                                            title="{{'mapcontext.modal.apply.extent' | translate}}">
+                                                        <i class="glyphicon glyphicon-arrow-left"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="row" style="margin-bottom: 5px;">
+                                                <div class="col-sm-6">
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           ng-model="ctxt.west"
+                                                           placeholder="{{'label.west.first.letter' | translate}}"/>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           ng-model="ctxt.east"
+                                                           placeholder="{{'label.east.first.letter' | translate}}"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-offset-3 col-sm-6">
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           ng-model="ctxt.south"
+                                                           placeholder="{{'label.south.first.letter' | translate}}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 col-md-3 control-label new-service-form-label"
+                                               translate="mapcontext.modal.label.keywords">Keywords</label>
+                                        <div class="col-sm-8">
+                                            <div class="tag-input-ctn">
+                                                <div data-ng-repeat="(key, tag) in tag.keywords track by $index"
+                                                     class="input-tag">
+                                                    {{ tag }}
+                                                    <div class="delete-tag"
+                                                         data-ng-click="deleteTag(key)">&times;</div>
+                                                </div>
+                                                <input type="text"
+                                                       data-tag-input=""
+                                                       data-ng-model="tag.text"
+                                                       data-new-tag="addTag()"
+                                                       data-delete-tag="deleteTag()"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="tab-pane"
+                                 ng-class="{active:mode.selTab==='tabLayers'}"
+                                 style="padding-top: 7px;">
+                                <div class="row dash-inner"
+                                     ng-class="{'border-bottom':layers.toAdd.length > 0}">
+                                    <div class="col-xs-6 col-sm-4 col-md-6"
+                                         style="margin-top: 8px;">
+                                        <p style="font-weight: bold; font-size: 13px;"
+                                           translate="layer.listing.title">Layers list</p>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-8 col-md-6"
+                                         style="margin-bottom: 7px;">
+                                        <button type="button"
+                                                class="btn btn-add btn-add-layer form-control"
+                                                ng-click="goToAddLayerToContext()">
+                                            <span class="fa fa-plus"
+                                                  style="margin-right:5px;"></span>
+                                            <span translate="mapcontext.modal.add.layer">Add layer</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div ng-if="layers.toAdd && layers.toAdd.length > 0">
+                                    <div class="dash-inner row dashboard">
+                                        <div data-role="list">
+                                            <div class="item-list mapcontext-layer-list">
+                                                <div class="row no-padding" ng-repeat="layerToAdd in layers.toAdd">
+                                                    <div class="row">
+                                                        <div class="col-xs-2 col15 " style="padding-top:12px;">
+                                                            <button ng-click="changeVisibility(layerToAdd)"
+                                                                    class="btn btn-sm btn-visibility"
+                                                                    ng-class="{'btn-visibility-layer-true':layerToAdd.visible, 'btn-visibility-layer-false':!layerToAdd.visible}">
+                                                                <span class="fa"
+                                                                      ng-class="{'fa-eye':layerToAdd.visible,'fa-eye-slash':!layerToAdd.visible}"></span>
+                                                            </button>
+                                                            <button ng-click="zoomToLayerExtent(layerToAdd)"
+                                                                    class="btn btn-sm btn-visibility-layer-true"
+                                                                    style="margin-left: 15px; margin-top: 5px;">
+                                                                <span class="fa fa-search"></span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-xs-8 col-sm-7 col-md-8 no-padding"
+                                                             ng-click="selectItem(layerToAdd)">
+                                                            <div class="item layer compo style-small"
+                                                                 ng-class="{'selected':layerToAdd===selection.item,'mapcontext':layerToAdd.layer.externalLayer,'coverage':layerToAdd.layer.type.toLowerCase()==='coverage','vector':layerToAdd.layer.type.toLowerCase()==='observation-store' || layerToAdd.layer.type.toLowerCase()==='vector'|| layerToAdd.layer.type.toLowerCase()==='sensor'}">
+                                                                <div class="top edit-mapcontext-modale">
+                                                                    <span class="item-title"
+                                                                          title="{{(layerToAdd.layer.name) ? layerToAdd.layer.name : layerToAdd.layer.externalLayer}}">{{(layerToAdd.layer.name) ? truncate(layerToAdd.layer.name,30) : truncate(layerToAdd.layer.externalLayer,30)}}</span>
+                                                                </div>
+                                                                <div class="bottom">
+                                                                    <span class="pull-right text-right item-list-style"
+                                                                          style="margin-right: 7px;">{{layerToAdd.layer.type ? layerToAdd.layer.type : ''}} {{layerToAdd.isWms ? 'WMS':''}}</span>
+                                                                            <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='Point' || layerToAdd.layer.subtype=='MultiPoint')"
+                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-multipoint-mapcontext.svg':'img/vector-multipoint-mapcontext-selected.svg'}}"
+                                                                                 class="pull-right vector-symbol"
+                                                                                 style="margin-top:4px; margin-right:10px;" />
+                                                                            <img ng-if="layerToAdd.layer.subtype=='Geometry'"
+                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-multigeometry-mapcontext.svg':'img/vector-multigeometry-mapcontext-selected.svg'}}"
+                                                                                 class="pull-right vector-symbol"
+                                                                                 style="margin-top:4px; margin-right:10px; width:22px" />
+                                                                            <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='Polygon' || layerToAdd.layer.subtype=='MultiPolygon')"
+                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-poly-mapcontext.svg':'img/vector-poly-mapcontext-selected.svg'}}"
+                                                                                 class="pull-right vector-symbol"
+                                                                                 style="margin-top:4px; margin-right:10px;" />
+                                                                            <img ng-if="layerToAdd.layer.type=='VECTOR'  && (layerToAdd.layer.subtype=='LineString' || layerToAdd.layer.subtype=='MultiLineString')"
+                                                                                 ng-src="{{layerToAdd!=selection.item ? 'img/vector-polyline-mapcontext.svg':'img/vector-polyline-mapcontext-selected.svg'}}"
+                                                                                 class="pull-right vector-symbol"
+                                                                                 style="margin-top:4px; margin-right:10px;" />
+                                                                            <img ng-if="layerToAdd.layer.externalLayer"
+                                                                                 ng-src="{{layerToAdd!==selection.item ? 'img/layer-external.svg':'img/layer-external-selected.svg'}}"
+                                                                                 class="pull-right vector-symbol"
+                                                                                 style="margin-top:4px; margin-right:10px;" />
+                                                                    <div class="hidden-xs hidden-md hidden-lg">
+                                                                        <div class="block tooltipicon"
+                                                                             ng-hide="layerToAdd.layer.externalLayer"
+                                                                             style="margin-top:0;">
+                                                                            <i class="fa fa-calendar"
+                                                                               tooltip data-placement="bottom"
+                                                                               title="{{layerToAdd.layer.date | date:'yyyy-MM-dd'}}"></i>
+                                                                        </div>
+                                                                        <div class="block tooltipicon"
+                                                                             ng-hide="layerToAdd.layer.externalLayer"
+                                                                             style="margin-top:0;">
+                                                                            <i class="fa fa-user"
+                                                                               tooltip data-placement="bottom"
+                                                                               title="{{layerToAdd.layer.owner}}"></i>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="hidden-sm">
+                                                                        <div class="block"
+                                                                             ng-hide="layerToAdd.layer.externalLayer">
+                                                                            <i class="fa fa-calendar"></i>{{layerToAdd.layer.date | date:'yyyy-MM-dd'}}
+                                                                        </div>
+                                                                        <div class="block"
+                                                                             ng-hide="layerToAdd.layer.externalLayer">
+                                                                            <i class="fa fa-user"></i>{{layerToAdd.layer.owner}}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xs-1 no-padding col05" style="padding-top:10px;">
+                                                            <div class="btn btn-sm"
+                                                                 ng-click="deleteMapItem(layerToAdd)">
+                                                                <span class="glyphicon glyphicon-trash"></span>
+                                                            </div>
+                                                            <div class="btn btn-sm"
+                                                                 ng-click="goToStyleMapItem(layerToAdd)">
+                                                                <span class="fa fa-paint-brush"></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xs-1 no-padding col05"
+                                                             style="padding-top:12px;">
+                                                            <a class="btn btn-sm"
+                                                               ng-click="orderUp($index)"
+                                                               style="padding:5px;margin-bottom:3px;">
+                                                                <span class="glyphicon glyphicon-chevron-up"></span>
+                                                            </a>
+                                                            <a class="btn btn-sm"
+                                                               ng-click="orderDown($index)"
+                                                               style="padding:5px;">
+                                                                <span class="glyphicon glyphicon-chevron-down"></span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <div ng-if="selection.item === layerToAdd"
+                                                         class="row col-xs-10 child mapcontext-layer-opacity">
+                                                        <div class="col-xs-3 no-padding">
+                                                            <span translate="sldeditor.edition.opacity">Opacity</span>
+                                                        </div>
+                                                        <div class="col-xs-6 no-padding">
+                                                            <input class="slider-mapcontext-layer"
+                                                                   type="range"
+                                                                   ng-model="layerToAdd.opacity"
+                                                                   ng-change="updateOpacity(layerToAdd)"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="mode.display==='addChooseStyle'" style="height: 470px;margin-top: 27px;overflow-x: hidden;overflow-y: auto;">
+                        <div ng-if="styles.existing.length>0">
+                            <div class="dash-inner row dashboard">
+                                <div data-role="list">
+                                    <div class="item-list">
+                                        <div ng-repeat="styleItem in styles.existing"
+                                             class="row">
+                                            <div class="item col-xs-12 style-small"
+                                                 ng-class="{'selected': (styles.selected && styles.selected.name===styleItem.name),'style-coverage': (styleItem.type && styleItem.type.toLowerCase() === 'coverage'),'style-vector': styleItem.type && styleItem.type.toLowerCase() === 'vector','style-compo-layer':!styleItem.type}"
+                                                 ng-click="selectStyle(styleItem);showMapWithStyle(styleItem);">
+                                                <div class="top">
+                                                    <span class="item-title"
+                                                          title="{{styleItem.name}}">{{truncate(styleItem.name,30)}}</span>
+                                                    <span class="pull-right text-right item-list-style">{{(styleItem.type) ? styleItem.type : 'WMS'}}</span>
+                                                </div>
+                                                <div class="bottom"
+                                                     ng-show="styleItem.date">
+                                                    <div class="block">
+                                                        <i class="fa fa-calendar"></i>{{styleItem.date | date:'yyyy-MM-dd'}}
+                                                    </div>
+                                                    <div class="block">
+                                                        <i class="fa fa-user"></i>{{styleItem.owner}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-if="styles.existing.length==0">
+                            <p style="margin-top:10px; margin-bottom:0; color:#ddd;"
+                               translate="mapcontext.modal.select.style.empty">No associated style</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div id="mapContextMap"
+                         style="height: 460px; width:100%;margin-top: 20px;border: 1px solid #DDD;"></div>
+                </div>
+            </div>
+            <div ng-if="mode.display==='addChooseSource'">
+                <div style="margin-left:0; margin-right:0; height: 150px; padding-top: 22px;">
+                    <div class="col-sm-4 col-sm-offset-2"
+                         style="text-align:center;">
+                        <label class="radio data-type-choose"
+                               ng-click="goToInternalSource()">
+                            <div class="col-sm-12"
+                                 style="margin-top: 5px; padding-left:5px;">
+                                <img src="img/wmts-internaldata.svg"/>
+                            </div>
+                            <div translate="mapcontext.modal.label.internal"
+                                 style="margin-top:10px;">Internal</div>
+                        </label>
+                    </div>
+                    <div class="col-sm-4"
+                         style="text-align:center;">
+                        <label class="radio data-type-choose"
+                               ng-click="mode.source='externe';mode.display='chooseLayer'">
+                            <div class="col-sm-12" style="margin-top: 5px;">
+                                <img src="img/icon/external.svg" />
+                            </div>
+                            <div style="margin-top:10px;">WMS</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="mode.display==='chooseLayer'">
+                <div ng-if="mode.source==='interne'">
+                    <div ng-include="'views/mapcontext/internal_source.html'"></div>
+                </div>
+                <div ng-if="mode.source==='externe'">
+                    <div ng-include="'views/mapcontext/wms_source.html'"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button"
+                    id="cancelButton"
+                    class="btn btn-default"
+                    ng-click="cancel()"
+                    translate="mapcontext.modal.cancel">Cancel</button>
+            <button ng-if="mode.display=='general' || (mode.display == 'addChooseStyle' && styles.existing.length>0 && styles.selected) || (mode.display=='chooseLayer' && selection.layer) || (mode.display=='chooseLayer' && selection.extLayer) || (mode.display=='chooseLayer' && selection.internalData.length>0)"
+                    type="button"
+                    id="submitButton"
+                    class="btn btn-add"
+                    ng-click="validate()" >
+                <span ng-if="mode.display!=='chooseLayer' && mode.display!=='addChooseStyle'"
+                      translate="mapcontext.modal.validate">Validate</span>
+                <span ng-if="mode.display==='chooseLayer'"
+                      translate="label.add">Add</span>
+                <span ng-if="mode.display==='addChooseStyle'"
+                      translate="mapcontext.modal.associate">Associate the style</span>
+            </button>
+        </div>
+    </div>
+</div>

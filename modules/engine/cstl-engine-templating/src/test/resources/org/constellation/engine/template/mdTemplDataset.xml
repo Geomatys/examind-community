@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmd:MD_Metadata xmlns:gco="http://www.isotc211.org/2005/gco"
+                 xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+                 xmlns:gml="http://www.opengis.net/gml/3.2">
+    <gmd:fileIdentifier>
+        <gco:CharacterString>${param.fileId}</gco:CharacterString>
+    </gmd:fileIdentifier>
+    <gmd:language>
+        <gco:CharacterString>eng</gco:CharacterString>
+    </gmd:language>
+    <gmd:characterSet>
+        <gmd:MD_CharacterSetCode codeListValue="utf8" codeList="codelist">utf8</gmd:MD_CharacterSetCode>
+    </gmd:characterSet>
+    <% if (param.parentId!= null){%>
+    <gmd:parentIdentifier>
+        <gco:CharacterString>${param.parentId}</gco:CharacterString>
+    </gmd:parentIdentifier>
+    <%}%>
+    <gmd:contact>
+        <gmd:CI_ResponsibleParty>
+             <% if (param.contactName != null){%>
+            <gmd:individualName>
+                <gco:CharacterString>${param.contactName}</gco:CharacterString>
+            </gmd:individualName>
+            <%}%>
+            <gmd:organisationName>
+                <gco:CharacterString>${param.organisationName}</gco:CharacterString>
+            </gmd:organisationName>
+            <gmd:positionName>
+                <gco:CharacterString>${param.position}</gco:CharacterString>
+            </gmd:positionName>
+            <gmd:contactInfo>
+                <gmd:CI_Contact>
+                    <% if (param.phone != null || param.fax != null){%>
+                    <gmd:phone>
+                        <gmd:CI_Telephone>
+                            <% if (param.phone != null){%>
+                            <gmd:voice>
+                                <gco:CharacterString>${param.phone}</gco:CharacterString>
+                            </gmd:voice>
+                            <%}%>
+                            <% if (param.fax != null){%>
+                            <gmd:facsimile>
+                                <gco:CharacterString>${param.fax}</gco:CharacterString>
+                            </gmd:facsimile>
+                             <%}%>
+                        </gmd:CI_Telephone>
+                    </gmd:phone>
+                    <%}%>
+                    <gmd:address>
+                        <gmd:CI_Address>
+                            <% if (param.address != null){%>
+                            <gmd:deliveryPoint>
+                                <gco:CharacterString>${param.address}</gco:CharacterString>
+                            </gmd:deliveryPoint>
+                            <%}%>
+                            <% if (param.city != null){%>
+                            <gmd:city>
+                                <gco:CharacterString>${param.city}</gco:CharacterString>
+                            </gmd:city>
+                            <%}%>
+                            <% if (param.postalCode != null){%>
+                            <gmd:postalCode>
+                                <gco:CharacterString>${param.postalCode}</gco:CharacterString>
+                            </gmd:postalCode>
+                            <%}%>
+                            <% if (param.country != null){%>
+                            <gmd:country>
+                                <gco:CharacterString>${param.country}</gco:CharacterString>
+                            </gmd:country>
+                            <%}%>
+                        </gmd:CI_Address>
+                    </gmd:address>
+                </gmd:CI_Contact>
+            </gmd:contactInfo>
+            <gmd:role>
+                <gmd:CI_RoleCode codeList="roleList" codeListValue="${param.role}">${param.role}</gmd:CI_RoleCode>
+            </gmd:role>
+        </gmd:CI_ResponsibleParty>
+    </gmd:contact>
+    <gmd:dateStamp>
+        <gco:DateTime>${param.isoCreationDate}</gco:DateTime>
+    </gmd:dateStamp>
+    <gmd:metadataStandardName>
+        <gco:CharacterString>ISO19115</gco:CharacterString>
+    </gmd:metadataStandardName>
+    <gmd:metadataStandardVersion>
+        <gco:CharacterString>2003/Cor.1:2006</gco:CharacterString>
+    </gmd:metadataStandardVersion>
+
+    <% if (param.srs!= null){%>
+    <gmd:referenceSystemInfo>
+        <gmd:MD_ReferenceSystem>
+            <gmd:referenceSystemIdentifier>
+                <gmd:RS_Identifier>
+                     <gmd:code>
+                        <gco:CharacterString>${param.srs}</gco:CharacterString>
+                    </gmd:code>
+                </gmd:RS_Identifier>
+             </gmd:referenceSystemIdentifier>
+        </gmd:MD_ReferenceSystem>
+    </gmd:referenceSystemInfo>
+    <%} else {%>
+    <gmd:referenceSystemInfo gco:nilReason="unknown" />
+    <%}%>
+    
+    <gmd:identificationInfo>
+        <gmd:MD_DataIdentification>
+            <gmd:citation>
+                <gmd:CI_Citation>
+                    <gmd:title>                    
+                        <gco:CharacterString>${param.dataName}</gco:CharacterString>
+                    </gmd:title>
+                    <gmd:alternateTitle>
+                        <gco:CharacterString>${param.dataTitle}</gco:CharacterString>
+                    </gmd:alternateTitle>
+
+                    <% if (param.publicationDate!= null){%>
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gco:DateTime>${param.publicationDate}</gco:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeListValue="publication" codeList="DateType">publication</gmd:CI_DateTypeCode>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+                    <%}%>
+                    <% if (param.creationDate!= null){%>
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gco:DateTime>${param.creationDate}</gco:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeListValue="creation" codeList="DateType">creation</gmd:CI_DateTypeCode>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+                    <%}%>
+                    <% if (param.revisionDate!= null){%>
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gco:DateTime>${param.revisionDate}</gco:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeListValue="revision" codeList="DateType">revision</gmd:CI_DateTypeCode>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+                    <%}%>
+                </gmd:CI_Citation>
+            </gmd:citation>
+            <gmd:abstract>
+                <gco:CharacterString>${param.dataAbstract}</gco:CharacterString>
+            </gmd:abstract>
+            <gmd:descriptiveKeywords >
+                <gmd:MD_Keywords>
+                    <% for (String kw : param.keywords){%>
+                    <gmd:keyword>
+                        <gco:CharacterString>${kw}</gco:CharacterString>
+                    </gmd:keyword>
+                    <%}%>
+              </gmd:MD_Keywords>
+            </gmd:descriptiveKeywords>
+             <% if (param.groundResolution!= null){%>
+            <gmd:spatialResolution>
+                <gmd:MD_Resolution>
+                    <gmd:equivalentScale>
+                        <gmd:MD_RepresentativeFraction>
+                            <gmd:denominator>
+                                <gco:Integer>${param.groundResolution}</gco:Integer>
+                            </gmd:denominator>
+                        </gmd:MD_RepresentativeFraction>
+                    </gmd:equivalentScale>
+                </gmd:MD_Resolution>
+            </gmd:spatialResolution>
+            <%}%>
+            <gmd:language>
+                <gco:CharacterString>eng</gco:CharacterString>
+            </gmd:language>
+            <% if (param.topicCategory!= null){%>
+            <gmd:topicCategory>
+                <gmd:MD_TopicCategoryCode>${param.topicCategory}</gmd:MD_TopicCategoryCode>
+            </gmd:topicCategory>
+            <%}%>
+            <gmd:extent>
+                <gmd:EX_Extent>
+                    <% if (param.longitudeMin!= null){%>
+                    <gmd:geographicElement>
+                        <gmd:EX_GeographicBoundingBox>
+                            <gmd:westBoundLongitude>
+                                <gco:Decimal>${param.longitudeMin}</gco:Decimal>
+                            </gmd:westBoundLongitude>
+                            <gmd:eastBoundLongitude>
+                                <gco:Decimal>${param.longitudeMax}</gco:Decimal>
+                            </gmd:eastBoundLongitude>
+                            <gmd:southBoundLatitude>
+                                <gco:Decimal>${param.latitudeMin}</gco:Decimal>
+                            </gmd:southBoundLatitude>
+                            <gmd:northBoundLatitude>
+                                <gco:Decimal>${param.latitudeMax}</gco:Decimal>
+                            </gmd:northBoundLatitude>
+                        </gmd:EX_GeographicBoundingBox>
+                    </gmd:geographicElement>
+                    <%} else {%>
+                    <gmd:geographicElement gco:nilReason="unknown" />
+                    <%}%>
+                    <% if (param.temporalBegin!= null){%>
+                    <gmd:temporalElement>
+                        <gmd:EX_TemporalExtent>
+                            <gmd:extent>                                     
+                                <gml:TimePeriod>
+                                    <gml:beginPosition>${param.temporalBegin}</gml:beginPosition>
+                                    <% if (param.temporalEnd!= null){%>
+                                    <gml:endPosition>${param.temporalEnd}</gml:endPosition>
+                                    <%}%>    
+                                </gml:TimePeriod>
+                            </gmd:extent>
+                        </gmd:EX_TemporalExtent>
+                    </gmd:temporalElement>
+                    <%} else {%>
+                    <gmd:temporalElement gco:nilReason="unknown" />
+                    <%}%>
+                 </gmd:EX_Extent>
+            </gmd:extent>
+        </gmd:MD_DataIdentification>
+    </gmd:identificationInfo>
+    <gmd:distributionInfo>
+        <gmd:MD_Distribution>
+            <gmd:distributionFormat>
+                <gmd:MD_Format>
+                    <gmd:name>
+                        <gco:CharacterString>${param.distributionFormat}</gco:CharacterString>
+                    </gmd:name>
+                    <gmd:version></gmd:version>
+                </gmd:MD_Format>
+            </gmd:distributionFormat>
+            <gmd:distributor>
+                <gmd:MD_Distributor>
+                    <gmd:distributorContact>
+                        <gmd:CI_ResponsibleParty>
+                            <% if (param.contactName != null){%>
+                            <gmd:individualName>
+                                <gco:CharacterString>${param.contactName}</gco:CharacterString>
+                            </gmd:individualName>
+                            <%}%>
+                            <gmd:organisationName>
+                                <gco:CharacterString>${param.organisationName}</gco:CharacterString>
+                            </gmd:organisationName>
+                            <gmd:positionName>
+                                <gco:CharacterString>${param.position}</gco:CharacterString>
+                            </gmd:positionName>
+                            <gmd:contactInfo>
+                                <gmd:CI_Contact>
+                                   <% if (param.phone != null || param.fax != null){%>
+                                    <gmd:phone>
+                                        <gmd:CI_Telephone>
+                                            <% if (param.phone != null){%>
+                                            <gmd:voice>
+                                                <gco:CharacterString>${param.phone}</gco:CharacterString>
+                                            </gmd:voice>
+                                            <%}%>
+                                            <% if (param.fax != null){%>
+                                            <gmd:facsimile>
+                                                <gco:CharacterString>${param.fax}</gco:CharacterString>
+                                            </gmd:facsimile>
+                                             <%}%>
+                                        </gmd:CI_Telephone>
+                                    </gmd:phone>
+                                    <%}%>
+                                    <gmd:address>
+                                         <gmd:CI_Address>
+                                            <% if (param.address != null){%>
+                                            <gmd:deliveryPoint>
+                                                <gco:CharacterString>${param.address}</gco:CharacterString>
+                                            </gmd:deliveryPoint>
+                                            <%}%>
+                                            <% if (param.city != null){%>
+                                            <gmd:city>
+                                                <gco:CharacterString>${param.city}</gco:CharacterString>
+                                            </gmd:city>
+                                            <%}%>
+                                            <% if (param.postalCode != null){%>
+                                            <gmd:postalCode>
+                                                <gco:CharacterString>${param.postalCode}</gco:CharacterString>
+                                            </gmd:postalCode>
+                                            <%}%>
+                                            <% if (param.country != null){%>
+                                            <gmd:country>
+                                                <gco:CharacterString>${param.country}</gco:CharacterString>
+                                            </gmd:country>
+                                            <%}%>
+                                        </gmd:CI_Address>
+                                    </gmd:address>
+                                </gmd:CI_Contact>
+                            </gmd:contactInfo>
+                            <gmd:role>
+                                <gmd:CI_RoleCode codeList="roleList" codeListValue=">${param.role}">>${param.role}</gmd:CI_RoleCode>
+                            </gmd:role>
+                        </gmd:CI_ResponsibleParty>
+                    </gmd:distributorContact>
+                </gmd:MD_Distributor>
+            </gmd:distributor>
+        </gmd:MD_Distribution>
+    </gmd:distributionInfo>
+
+    <gmd:dataQualityInfo>
+        <gmd:DQ_DataQuality>
+            <gmd:scope>
+                <gmd:DQ_Scope>
+                    <gmd:level>
+                        <gmd:MD_ScopeCode codeList="../ISO19139/resources/codeList.xml?MD_ScopeCode" codeListValue="dataset">dataset</gmd:MD_ScopeCode>
+                    </gmd:level>
+                </gmd:DQ_Scope>
+            </gmd:scope>
+	    <% if (param.acquisitionQualityValue != null){%>
+            <gmd:report>
+                <gmd:DQ_CompletenessCommission>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>Quality percent value</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>Overall quality of the data </gco:CharacterString>
+                    </gmd:measureDescription>
+                    <gmd:result>
+                        <gmd:DQ_QuantitativeResult>
+                            <gmd:valueUnit gco:nilReason="unknown" />
+                            <gmd:value>
+                                <gco:Record>${param.acquisitionQualityValue}%</gco:Record>
+                            </gmd:value>
+                        </gmd:DQ_QuantitativeResult>
+                    </gmd:result>
+                </gmd:DQ_CompletenessCommission>
+	    </gmd:report>
+            <%}%>
+            <% if (param.percentCloudCover != null){%>
+            <gmd:report>
+                <gmd:DQ_CompletenessCommission>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>${param.measureName}</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>Percent of Missing Data (Cloud Coverage)</gco:CharacterString>
+                    </gmd:measureDescription>
+                    <gmd:result>
+                        <gmd:DQ_QuantitativeResult>
+                            <gmd:valueUnit gco:nilReason="unknown" />
+                            <gmd:value>
+                                <gco:Record>${param.percentCloudCover}%</gco:Record>
+                            </gmd:value>
+                        </gmd:DQ_QuantitativeResult>
+                    </gmd:result>
+                </gmd:DQ_CompletenessCommission>
+            </gmd:report>
+	    <%}%>
+        </gmd:DQ_DataQuality>
+    </gmd:dataQualityInfo>
+</gmd:MD_Metadata>

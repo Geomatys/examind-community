@@ -1,0 +1,88 @@
+<div>
+    <file-drag-n-drop>
+        <div id="dropZone" class="center">
+            <i class="fa fa-upload"></i>
+            <p>{{'file.uploader.label.drag.n.drop.files' | translate}}</p>
+            <div class="file-uploader-btn">
+                <label for="files" class="btn btn-primary">
+                    {{'file.uploader.label.select.files.to.upload' | translate}}
+                </label>
+                <input id="files" type="file"
+                       onchange="angular.element(this).scope().selectFiles(this)"
+                       multiple/>
+            </div>
+        </div>
+    </file-drag-n-drop>
+    <div class="files-manager-block">
+        <div ng-click="fileUplCtrl.collapsed=!fileUplCtrl.collapsed" title="file upload" class="files-manager-header">
+            <i class="fa" ng-class="{'fa-chevron-right':fileUplCtrl.collapsed,'fa-chevron-down':!fileUplCtrl.collapsed}"></i>
+            <span>{{'file.uploader.label.files.transfer' | translate}}</span>
+            <i ng-if="fileUplCtrl.selectedFiles.length !== 0" class="fa fa-cog fa-spin fa-fw"
+               style="font-size: 15px;"></i>
+            <p class="pull-right">
+                {{fileUplCtrl.selectedFiles.length}}&nbsp;{{'file.uploader.label.number.files.transfer' | translate}}
+            </p>
+        </div>
+        <div slide-toggle="fileUplCtrl.collapsed" class="files-manager-content"
+             ng-class="{'collapsed':fileUplCtrl.collapsed}" >
+            <table class="table files-info-table" ng-show="!fileUplCtrl.collapsed">
+                <thead>
+                <tr>
+                    <th width="50%">{{'file.uploader.label.name' | translate}}</th>
+                    <th class="hidden-xs">
+                        {{'file.uploader.label.size' | translate}}
+                    </th>
+                    <th class="hidden-xs center">
+                        {{'file.uploader.label.progress' | translate}}
+                    </th>
+                    <th class="center">{{'file.uploader.label.status' | translate}}</th>
+                    <th class="center">{{'file.uploader.label.actions' | translate}}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in fileUplCtrl.selectedFiles">
+                    <td>
+                        <strong>{{item.file.name}}</strong>
+                    </td>
+                    <td class="hidden-xs">
+                        {{item.file.size | bytes}}
+                    </td>
+                    <td class="hidden-xs center" style="vertical-align: middle;">
+                        <div class="progress progress-striped active" style="margin-bottom: 0;">
+                            <div class="progress-bar" role="progressbar"
+                                 ng-style="{ 'width': 100 + '%' }"></div>
+                        </div>
+                    </td>
+                    <td class="text-center status-flags center" style="vertical-align: middle">
+                        <span ng-show="item.isError">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </span>
+                        <span ng-show="item.isCanceled">
+                            <i class="glyphicon glyphicon-ban-circle"></i>
+                        </span>
+                    </td>
+                    <td class="center">
+                        <button type="button" class="btn btn-success btn-xs"
+                                title="{{'file.uploader.label.reupload.file' | translate}}"
+                                ng-click="fileUplCtrl.reUploadFile(item)"
+                                ng-disabled="!item.isError || item.isUploaded">
+                            <span class="fa fa-upload"></span>
+                        </button>
+                        <button type="button" class="btn btn-warning btn-xs"
+                                title="{{'file.uploader.label.cancel.file' | translate}}"
+                                ng-click="fileUplCtrl.AbortRequest(item)"
+                                ng-disabled="item.isCanceled || item.isUploaded">
+                            <span class="fa fa-ban"></span>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-xs"
+                                title="{{'file.uploader.label.remove.file' | translate}}"
+                                ng-click="fileUplCtrl.removeRequest(item)">
+                            <span class="fa fa-times"></span>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="row">
+    <div class="col-xs-2 icons-container" ng-if="iconsCtrl.checkListingState('listing')"
+         ng-repeat="file in iconsCtrl.fileListRef.fileList | orderBy:iconsCtrl.fileExplorerState.sort.sortType:iconsCtrl.fileExplorerState.sort.sortReverse">
+        <a href="" class="file-item thumbnail text-center"
+           ng-click="iconsCtrl.toggleFileSelection(file)"
+           ng-dblclick="iconsCtrl.openDir(file)"
+           title="{{file.name}}" ng-class="{selected: iconsCtrl.isSelectedFile(file),'disabled-row':iconsCtrl.isDisabledFile(file)}">
+            <div>
+                <i class="fa fa-folder-open fa-2x" ng-if="file.folder"></i>
+                <i class="fa fa-file fa-2x" ng-if="!file.folder"></i>
+            </div>
+            <span>{{file.name}}</span>
+        </a>
+    </div>
+
+    <div class="center requesting" ng-show="iconsCtrl.checkListingState('requesting')">
+        <i class="fa fa-refresh fa-spin fa-3x fa-fw"></i>
+        <span>{{'file.explorer.msg.please.wait' | translate}}</span>
+        <span class="sr-only">Loading...</span>
+    </div>
+
+    <div ng-show="iconsCtrl.checkListingState('no_files')">
+        <div class="center no_files">
+            {{"file.explorer.msg.no.files.in.folder" | translate}}...
+        </div>
+    </div>
+
+    <div ng-show="iconsCtrl.checkListingState('server_error')">
+        <div class="center server_error">
+            <i class="fa fa-exclamation-triangle"></i>
+            {{ 'file.explorer.error.failed.load.data' | translate }}
+        </div>
+    </div>
+
+</div>

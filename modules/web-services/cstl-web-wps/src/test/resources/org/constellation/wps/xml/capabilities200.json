@@ -1,0 +1,230 @@
+{
+    "wps2.WPSCapabilities": {
+        "@service": "WPS",
+        "@version": "2.0.0",
+        "@updateSequence": "1478258054704",
+        "ows2.ServiceIdentification": {
+            "ows2.Title": "WPS server",
+            "ows2.Abstract": "WPS",
+            "ows2.Keywords": {
+                "ows2.Keyword": ["WPS", "Constellation", "Geomatys", "geoprocessing"]
+            },
+            "ows2.ServiceType": "WPS",
+            "ows2.ServiceTypeVersion": ["1.0.0", "2.0.0"],
+            "ows2.Fees": "NONE",
+            "ows2.AccessConstraints": ["1.0.0", "2.0.0"]
+        },
+        "ows2.ServiceProvider": {
+            "ows2.ProviderName": "Geomatys",
+            "ows2.ServiceContact": {
+                "ows2.IndividualName": "Vincent Heurteaux",
+                "ows2.PositionName": "dev",
+                "ows2.ContactInfo": {
+                    "ows2.Phone": {
+                        "ows2.Voice": "04 67 54 87 30",
+                        "ows2.Facsimile": "04 67 54 87 00"
+                    },
+                    "ows2.Address": {
+                        "ows2.DeliveryPoint": "24 rue Pierre Renaudel",
+                        "ows2.City": "Arles",
+                        "ows2.AdministrativeArea": "PACA",
+                        "ows2.PostalCode": 13200,
+                        "ows2.Country": "France",
+                        "ows2.ElectronicMailAddress": "vincent.heurteaux@geomatys.com"
+                    }
+                }
+            }
+        },
+        "ows2.OperationsMetadata": {
+            "ows2.Operation": [{
+                    "@name": "GetCapabilities",
+                    "ows2.DCP": {
+                        "ows2.HTTP": {
+                            "ows2.Get": {
+                                "@xlink.href": "http:\/\/localhost:9090\/wps\/default?"
+                            },
+                            "ows2.Post": {
+                                "@xlink.href": "http:\/\/localhost:9090\/wps\/default?"
+                            }
+                        }
+                    },
+                    "ows2.Parameter": [{
+                            "@name": "service",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "WPS"
+                            }
+                        }, {
+                            "@name": "Acceptversions",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "1.0.0"
+                            }
+                        }, {
+                            "@name": "AcceptFormats",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "text\/xml"
+                            }
+                        }]
+                }, {
+                    "@name": "DescribeProcess",
+                    "ows2.DCP": {
+                        "ows2.HTTP": {
+                            "ows2.Get": {
+                                "@xlink.href": "http:\/\/localhost:9090\/wps\/default?"
+                            },
+                            "ows2.Post": {
+                                "@xlink.href": "http:\/\/localhost:9090\/wps\/default?"
+                            }
+                        }
+                    },
+                    "ows2.Parameter": [{
+                            "@name": "service",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "WPS"
+                            }
+                        }, {
+                            "@name": "version",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "1.0.0"
+                            }
+                        }]
+                }, {
+                    "@name": "Execute",
+                    "ows2.DCP": {
+                        "ows2.HTTP": {
+                            "ows2.Post": {
+                                "@xlink.href": "http:\/\/localhost:9090\/wps\/default?"
+                            }
+                        }
+                    },
+                    "ows2.Parameter": [{
+                            "@name": "service",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "WPS"
+                            }
+                        }, {
+                            "@name": "version",
+                            "ows2.AllowedValues": {
+                                "ows2.Value": "1.0.0"
+                            }
+                        }]
+                }],
+            "ows2.Constraint": {
+                "@name": "PostEncoding",
+                "ows2.AllowedValues": {
+                    "ows2.Value": "XML"
+                }
+            }
+        },
+        "ows2.Languages": {
+            "ows2.Language": "en-EN"
+        },
+        "wps2.Contents": {
+            "wps2.ProcessSummary": [{
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Intersection",
+                    "ows2.Abstract": "Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:intersection"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : ConvexHull",
+                    "ows2.Abstract": "Return the convex hull geometry of the specified geometry.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:convexHull"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Touches",
+                    "ows2.Abstract": "Returns true if this geometry(geom1) touches the specified geometry(geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:touches"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Envelope",
+                    "ows2.Abstract": "Returns this Geometry bounding box.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:envelope"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Crosses",
+                    "ows2.Abstract": " Returns true if this geometry source (geom1) crosses the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:crosses"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Boundary",
+                    "ows2.Abstract": "Return boundarty geometry of an input JTS geometry",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:boundary"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Centroid",
+                    "ows2.Abstract": "Return the centroid point of an input JTS geometry",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:centroid"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Buffer",
+                    "ows2.Abstract": "Apply JTS buffer to a geometry.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:buffer"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Difference",
+                    "ows2.Abstract": "Computes a difference Geometry between the source geometry (geom1) and the other (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:difference"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Overlaps",
+                    "ows2.Abstract": "Returns true if this geometry (geom1) overlaps the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:overlaps"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : IsEmpty",
+                    "ows2.Abstract": "Returns true if this geometry source is an empty geometry.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:isEmpty"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Area",
+                    "ows2.Abstract": "Return the area of a JTS geometry",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:area"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Equals2d",
+                    "ows2.Abstract": "Return true if source geometry (geom1) is equals to the other geometry (geom2) .",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:equals2d"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Covers",
+                    "ows2.Abstract": "Returns true if this geometry source (geom1) covers the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:covers"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Union",
+                    "ows2.Abstract": "Computes a union Geometry between the source geometry (geom1) and the other (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:union"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Intersects",
+                    "ows2.Abstract": "Returns true if this geometry source (geom1) intersects the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:intersects"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Contain",
+                    "ows2.Abstract": "Return true if source geometry (geom1) contains the specified geometry(geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:contain"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : CoveredBy",
+                    "ows2.Abstract": "Returns true if this geometry source (geom1) is covered by the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:coveredBy"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Within",
+                    "ows2.Abstract": "Returns true if this geometry source (geom1) is within the specified geometry (geom2).",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:within"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : IntersectionSurface",
+                    "ows2.Abstract": "Computes an intersection Geometry between the source geometry (geom1) and the other (geom2), and calculates the intersection surface.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:intersectionSurface"
+                }, {
+                    "@processVersion": "1.0.0",
+                    "ows2.Title": "Jts : Lenght",
+                    "ows2.Abstract": "Returns the length of this Geometry.",
+                    "ows2.Identifier": "urn:ogc:cstl:wps:jts:lenght"
+                }]
+        }
+    }
+}

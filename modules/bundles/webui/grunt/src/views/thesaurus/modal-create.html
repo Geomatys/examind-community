@@ -1,0 +1,33 @@
+<div id="thesaurusCreation" class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$close()">×</button>
+            <h4 class="modal-title" translate="thesaurus.title.create_instance">Create a thesaurus</h4>
+        </div>
+        <div class="modal-body" ng-form="thForm">
+            <div class="form-group" ng-class="{'has-error': thForm.name.$invalid && !thForm.name.$pristine}">
+                <label for="inputName" class="control-label" translate="thesaurus.label.name">Name : *</label>
+                <input id="inputName" name="name" type="text" ng-model="mc.thesaurus.name" required class="form-control"/>
+                <div class="control-error"><i class="fa fa-caret-up"></i><span translate="thesaurus.text.mandatory_field">This filed is mandatory</span></div>
+            </div>
+            <div class="form-group">
+                <label for="inputDesc" class="control-label" translate="thesaurus.label.description">Description :</label>
+                <textarea id="inputDesc" name="desc" ng-model="mc.thesaurus.description" class="form-control" rows="5"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="selectDefLang" class="control-label" translate="thesaurus.label.language">Langage par défaut :</label>
+                <select id="selectDefLang" name="defLang" ng-model="mc.thesaurus.defaultLang" class="form-control" ng-options="l.code as l.label for l in mc.thesaurusLanguages"></select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <p class="help-block" ng-show="thForm.$invalid">
+                <i class="fa fa-lock"></i>&nbsp;<span translate="thesaurus.text.invalid_form"></span>
+            </p>
+            <button type="button" id="cancelButton" class="btn btn-default" ng-click="$close()" translate="thesaurus.btn.cancel">Cancel</button>
+            <button type="button" id="submitButton" class="btn btn-thesaurus" ng-disabled="thForm.$invalid" ng-click="mc.submit()">
+                <i class="fa fa-check"></i>&nbsp;
+                <span translate="thesaurus.btn.create">Create</span>
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/2.0"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xmlns:ows="http://www.opengis.net/ows/2.0"
+             xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             service="WPS" version="2.0.0" response="raw" mode="sync">
+    <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection</ows:Identifier>
+    <wps:Input id="urn:exa:wps:geotoolkit::jts:intersection:input:geom1">
+        <!--wps:Data>
+            <wps:ComplexData>
+                <wps:Format mimeType="text/xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
+                <Polygon srsName="EPSG:4326"  xmlns="http://www.opengis.net/gml/3.2">
+                    <exterior>
+                        <LinearRing>
+                            <posList>3.0 3.0 3.0 4.0 6.0 4.0 6.0 3.0 3.0 3.0</posList>
+                        </LinearRing>
+                    </exterior>
+                </Polygon>
+            </wps:ComplexData>
+        </wps:Data-->
+        <wps:Data mimeType="text/xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd">
+            <Polygon srsName="EPSG:4326"  xmlns="http://www.opengis.net/gml/3.2">
+                    <exterior>
+                        <LinearRing>
+                            <posList>3.0 3.0 3.0 4.0 6.0 4.0 6.0 3.0 3.0 3.0</posList>
+                        </LinearRing>
+                    </exterior>
+                </Polygon>
+        </wps:Data>
+    </wps:Input>
+    <wps:Input id="urn:exa:wps:geotoolkit::jts:intersection:input:geom2">
+        <!--wps:Data>
+            <wps:ComplexData>
+                <wps:Format mimeType="text/xml"/>
+                <gml:Polygon srsName="EPSG:4326" xmlns:gml="http://www.opengis.net/gml/3.2">
+                    <gml:exterior>
+                        <gml:LinearRing>
+                            <gml:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</gml:posList>
+                        </gml:LinearRing>
+                    </gml:exterior>
+                </gml:Polygon>
+            </wps:ComplexData>
+        </wps:Data-->
+        <wps:Data mimeType="text/xml">
+            <gml:Polygon srsName="EPSG:4326" xmlns:gml="http://www.opengis.net/gml/3.2">
+                    <gml:exterior>
+                        <gml:LinearRing>
+                            <gml:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</gml:posList>
+                        </gml:LinearRing>
+                    </gml:exterior>
+                </gml:Polygon>
+        </wps:Data>
+    </wps:Input>
+    <wps:Output id="urn:exa:wps:geotoolkit::jts:intersection:output:result_geom" transmission="value"/>
+</wps:Execute>

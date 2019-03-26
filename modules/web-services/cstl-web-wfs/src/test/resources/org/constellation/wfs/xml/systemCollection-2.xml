@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wfs:FeatureCollection gml:id="id" numberOfFeatures="3" timeStamp="" xmlns:gml="http://www.opengis.net/gml" xmlns:wfs="http://www.opengis.net/wfs" xmlns:sml="http://www.opengis.net/sml/1.0">
+    <gml:boundedBy>
+        <gml:Envelope srsName="urn:ogc:def:crs:epsg:EPSG_VERSION:4326">
+            <gml:lowerCorner>42.387988622819975 -4.244083878356522</gml:lowerCorner>
+            <gml:upperCorner>43.467882424383944 -4.14498462789604</gml:upperCorner>
+        </gml:Envelope>
+    </gml:boundedBy>
+    <gml:featureMember>
+        <sml:System gml:id="12">
+            <gml:name>Piezometer Test</gml:name>
+            <sml:keywords>
+                <sml:KeywordList>
+                    <sml:keyword>piezometer</sml:keyword>
+                    <sml:keyword>geosciences</sml:keyword>
+                    <sml:keyword>point d'eau</sml:keyword>
+                </sml:KeywordList>
+            </sml:keywords>
+            <sml:location>
+                <gml:Point srsName="urn:ogc:def:crs:epsg:EPSG_VERSION:4326">
+                    <gml:pos>42.387988622819975 -4.14498462789604</gml:pos>
+                </gml:Point>
+            </sml:location>
+            <sml:phenomenons>time</sml:phenomenons>
+            <sml:phenomenons>depth</sml:phenomenons>
+            <sml:phenomenons>validity</sml:phenomenons>
+        </sml:System>
+    </gml:featureMember>
+    <gml:featureMember>
+        <sml:System gml:id="14">
+            <gml:name>Well Test</gml:name>
+            <sml:keywords>
+                <sml:KeywordList>
+                    <sml:keyword>well</sml:keyword>
+                    <sml:keyword>geosciences</sml:keyword>
+                    <sml:keyword>point d'eau</sml:keyword>
+                </sml:KeywordList>
+            </sml:keywords>
+            <sml:location>
+                <gml:Point srsName="urn:ogc:def:crs:epsg:EPSG_VERSION:4326">
+                    <gml:pos>43.467882424383944 -4.244083878356522</gml:pos>
+                </gml:Point>
+            </sml:location>
+            <sml:phenomenons>time</sml:phenomenons>
+            <sml:phenomenons>depth</sml:phenomenons>
+            <sml:phenomenons>validity</sml:phenomenons>
+        </sml:System>
+    </gml:featureMember>
+    <gml:featureMember>
+        <sml:System gml:id="16">
+            <gml:name>Plot Test</gml:name>
+            <sml:keywords>
+                <sml:KeywordList>
+                    <sml:keyword>flotting plot</sml:keyword>
+                    <sml:keyword>geosciences</sml:keyword>
+                    <sml:keyword>sea</sml:keyword>
+                </sml:KeywordList>
+            </sml:keywords>
+            <sml:location>
+                <gml:Point srsName="urn:ogc:def:crs:epsg:EPSG_VERSION:4326">
+                    <gml:pos>42.47639603324944 -4.156073981277588</gml:pos>
+                </gml:Point>
+            </sml:location>
+            <sml:phenomenons>time</sml:phenomenons>
+            <sml:phenomenons>depth</sml:phenomenons>
+            <sml:phenomenons>validity</sml:phenomenons>
+        </sml:System>
+    </gml:featureMember>
+</wfs:FeatureCollection>

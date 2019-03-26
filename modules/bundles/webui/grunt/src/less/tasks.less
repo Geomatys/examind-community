@@ -1,0 +1,148 @@
+/*
+ * Constellation - An open source and standard compliant SDI
+ *
+ *    http://www.constellation-sdi.org
+ *
+ *    Copyright 2014 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.task-history {
+  tbody > tr > td {
+    padding: 5px;
+  }
+
+  thead > tr > th {
+    border-bottom: 2px solid #ddd;
+    border-top: 1px solid #ddd !important;
+    border-left: 1px solid #ddd;
+  }
+
+  thead > tr> th:first-child {
+    border-left: none;
+  }
+}
+
+.group-occurence {
+  padding-top: 15px;
+  border-top: 1px @gray-lighter solid;
+
+  &:first-child {
+    border: none;
+  }
+}
+
+.form-group label .mandatory {
+  color: #ff0000;
+}
+
+.parameter-group label .mandatory {
+  color: #ff0000;
+}
+
+.modal-dialog-edit-task {
+  max-height: 720px;
+  min-width: 750px;
+}
+
+
+// Task Status style
+// ----------
+.task-status-body {
+  padding-top: 15px;
+  overflow: auto;
+}
+
+.code-pre {
+  max-height: 300px;
+  overflow: auto;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+.code-label {
+  font-weight: bold;
+}
+
+.message-block, .output-block {
+  margin-top: 15px;
+}
+
+
+// Group parameters
+// ----------
+
+.parameter-group {
+  margin-top: 10px;
+
+  > .group-header {
+    position: relative;
+    padding-right: 50px; // more than "+" button width
+    min-height: 34px;    // equals to "+" button height
+    margin-bottom: 8px;
+
+    > label {
+      display: block;
+      margin: 0;
+      padding: 9px 0;
+    }
+
+    > button {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
+
+  > .group-body > .group-occurrence {
+    background-color: rgba(230, 230, 230, .5);
+    border-left: 4px solid #60a84d;
+    padding: 15px;
+    margin-bottom: 10px;
+    position: relative;
+
+    > .remove {
+      display: block;
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      background-color: #60a84d;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      text-align: center;
+      color: #ffffff;
+      text-shadow: 0 1px 0 #000000;
+    }
+
+    > div:last-child > .parameter-simple:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+
+// Simple parameters
+// ----------
+
+.parameter-simple .simple-occurrence {
+  margin-bottom: 15px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}

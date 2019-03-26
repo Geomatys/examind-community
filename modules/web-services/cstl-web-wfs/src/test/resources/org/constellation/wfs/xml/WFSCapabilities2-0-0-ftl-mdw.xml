@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns8:WFS_Capabilities version="2.0.0" xmlns:fes="http://www.opengis.net/fes/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wfs="http://www.opengis.net/wfs" xmlns:ins="http://www.inspire.org" xmlns:ows="http://www.opengis.net/ows" xmlns:ns9="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:ns8="http://www.opengis.net/wfs/2.0">
+    <ns8:FeatureTypeList>
+        <ns8:FeatureType>
+            <ns8:Name>gml:BasicPolygons</ns8:Name>
+            <ns8:Title>BasicPolygons</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:OGC:1.3:CRS84</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-1.0 -2.0</ns9:LowerCorner>
+                <ns9:UpperCorner>6.0 2.0</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Bridges</ns8:Name>
+            <ns8:Title>Bridges</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>7.0E-4 2.0E-4</ns9:LowerCorner>
+                <ns9:UpperCorner>7.0E-4 2.0E-4</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:BuildingCenters</ns8:Name>
+            <ns8:Title>BuildingCenters</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>6.0E-4 0.001</ns9:LowerCorner>
+                <ns9:UpperCorner>9.0E-4 0.0022</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Buildings</ns8:Name>
+            <ns8:Title>Buildings</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>5.0E-4 8.0E-4</ns9:LowerCorner>
+                <ns9:UpperCorner>0.001 0.0024</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sml="http://www.opengis.net/sml/1.0">sml:Component</ns8:Name>
+            <ns8:Title>Component</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-180.0 -90.0</ns9:LowerCorner>
+                <ns9:UpperCorner>180.0 90.0</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sml="http://www.opengis.net/sml/1.0">sml:DataSourceType</ns8:Name>
+            <ns8:Title>DataSourceType</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-180.0 -90.0</ns9:LowerCorner>
+                <ns9:UpperCorner>180.0 90.0</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:DividedRoutes</ns8:Name>
+            <ns8:Title>DividedRoutes</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0024 -0.0032</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0024 -0.0026</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Forests</ns8:Name>
+            <ns8:Title>Forests</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0024 -0.0014</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0018 0.0042</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Lakes</ns8:Name>
+            <ns8:Title>Lakes</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:OGC:1.3:CRS84</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>6.0E-4 -0.0018</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0031 -1.0E-4</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:MapNeatline</ns8:Name>
+            <ns8:Title>MapNeatline</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0024 -0.0042</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0024 0.0042</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:NamedPlaces</ns8:Name>
+            <ns8:Title>NamedPlaces</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0011 0.0014</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0024 0.0042</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Ponds</ns8:Name>
+            <ns8:Title>Ponds</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>0.0016 -0.002</ns9:LowerCorner>
+                <ns9:UpperCorner>0.002 -0.0014</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sml="http://www.opengis.net/sml/1.0">sml:ProcessChain</ns8:Name>
+            <ns8:Title>ProcessChain</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-180.0 -90.0</ns9:LowerCorner>
+                <ns9:UpperCorner>180.0 90.0</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sml="http://www.opengis.net/sml/1.0">sml:ProcessModel</ns8:Name>
+            <ns8:Title>ProcessModel</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-180.0 -90.0</ns9:LowerCorner>
+                <ns9:UpperCorner>180.0 90.0</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:RoadSegments</ns8:Name>
+            <ns8:Title>RoadSegments</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0024 -0.0042</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0024 0.0042</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sampling="http://www.opengis.net/sampling/1.0">sampling:SamplingPoint</ns8:Name>
+            <ns8:Title>SamplingPoint</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-6.005569537102804 27.138853294791637</ns9:LowerCorner>
+                <ns9:UpperCorner>-2.7284896314336695 49.88198714415787</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:Streams</ns8:Name>
+            <ns8:Title>Streams</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-0.0024 -4.0E-4</ns9:LowerCorner>
+                <ns9:UpperCorner>0.0024 0.0036</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name xmlns:sml="http://www.opengis.net/sml/1.0">sml:System</ns8:Name>
+            <ns8:Title>System</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ns9:LowerCorner>-4.267780806810321 42.38479618090486</ns9:LowerCorner>
+                <ns9:UpperCorner>-4.121179134071048 43.46478200379223</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+    </ns8:FeatureTypeList>
+    <fes:Filter_Capabilities>
+        <fes:Conformance>
+            <fes:Constraint name="ImplementsQuery">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsAdHocQuery">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsFunctions">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>FALSE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsMinStandardFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsStandardFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsMinSpatialFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsSpatialFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsMinTemporalFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsTemporalFilter">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsVersionNav">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>FALSE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsSorting">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsExtendedOperators">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>FALSE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsResourceId">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+            <fes:Constraint name="ImplementsMinimumXPath">
+                <ns9:NoValues/>
+                <ns9:DefaultValue>TRUE</ns9:DefaultValue>
+            </fes:Constraint>
+        </fes:Conformance>
+        <fes:Id_Capabilities>
+            <fes:ResourceIdentifier name="fes:ResourceId"/>
+        </fes:Id_Capabilities>
+        <fes:Scalar_Capabilities>
+            <fes:LogicalOperators/>
+            <fes:ComparisonOperators>
+                <fes:ComparisonOperator name="PropertyIsBetween"/>
+                <fes:ComparisonOperator name="PropertyIsEqualTo"/>
+                <fes:ComparisonOperator name="PropertyIsGreaterThan"/>
+                <fes:ComparisonOperator name="PropertyIsGreaterThanOrEqualTo"/>
+                <fes:ComparisonOperator name="PropertyIsLessThan"/>
+                <fes:ComparisonOperator name="PropertyIsLessThanOrEqualTo"/>
+                <fes:ComparisonOperator name="PropertyIsLike"/>
+                <fes:ComparisonOperator name="PropertyIsNotEqualTo"/>
+                <fes:ComparisonOperator name="PropertyIsNull"/>
+            </fes:ComparisonOperators>
+        </fes:Scalar_Capabilities>
+        <fes:Spatial_Capabilities>
+            <fes:GeometryOperands>
+                <fes:GeometryOperand name="gml:Envelope"/>
+                <fes:GeometryOperand name="gml:Point"/>
+                <fes:GeometryOperand name="gml:LineString"/>
+                <fes:GeometryOperand name="gml:Polygon"/>
+            </fes:GeometryOperands>
+            <fes:SpatialOperators>
+                <fes:SpatialOperator name="Disjoint"/>
+                <fes:SpatialOperator name="Equals"/>
+                <fes:SpatialOperator name="DWithin"/>
+                <fes:SpatialOperator name="Beyond"/>
+                <fes:SpatialOperator name="Intersects"/>
+                <fes:SpatialOperator name="Touches"/>
+                <fes:SpatialOperator name="Crosses"/>
+                <fes:SpatialOperator name="Contains"/>
+                <fes:SpatialOperator name="Overlaps"/>
+                <fes:SpatialOperator name="BBOX"/>
+            </fes:SpatialOperators>
+        </fes:Spatial_Capabilities>
+    </fes:Filter_Capabilities>
+</ns8:WFS_Capabilities>

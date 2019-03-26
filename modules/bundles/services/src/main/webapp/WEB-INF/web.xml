@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" metadata-complete="true"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
+    <display-name>constellation</display-name>
+
+    <listener>
+        <listener-class>org.constellation.GeotkInstaller</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>org.constellation.setup.CstlInstaller</listener-class>
+    </listener>
+
+    <!--<listener>
+        <listener-class>org.constellation.scheduler.CstlSchedulerSetup</listener-class>
+    </listener>-->
+
+    <listener>
+        <listener-class>org.constellation.admin.SessionListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>WEB-INF/applicationContext.xml</param-value>
+    </context-param>
+    <context-param>
+        <param-name>spring.profiles.active</param-name>
+        <param-value>standard</param-value>
+    </context-param>
+
+    <!-- Filter to allow AJAX cross-origin requests -->
+    <filter>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>org.constellation.filter.CorsFilter</filter-class>
+        <async-supported>true</async-supported>
+        <init-param>
+            <param-name>exclude</param-name>
+            <param-value>/spring/ws/.*</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+
+    <!-- Spring filter handling security access -->
+    <filter>
+        <filter-name>securityFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <async-supported>true</async-supported>
+        <init-param>
+            <param-name>targetFilterLifecycle</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>securityFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <description>Filter that exposes ogcServiceType and ogcServiceName to logging appender.</description>
+        <display-name>MDC Log4j filter</display-name>
+        <filter-name>MDCFilter</filter-name>
+        <filter-class>org.constellation.services.logger.MDCFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>MDCFilter</filter-name>
+        <url-pattern>/WS/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <async-supported>true</async-supported>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/spring/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/API/*</url-pattern>
+    </filter-mapping>
+
+    <!-- metrics filter -->
+    <filter>
+        <filter-name>webappMetricsFilter</filter-name>
+        <filter-class>com.codahale.metrics.servlet.InstrumentedFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+    <filter-mapping>
+        <filter-name>webappMetricsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ASYNC</dispatcher>
+    </filter-mapping>
+
+    <!-- REST Servlet for constellation web service -->
+    <servlet>
+        <servlet-name>ogcws</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ogcws</servlet-name>
+        <url-pattern>/WS/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>spring</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>spring</servlet-name>
+        <url-pattern>/spring/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>examindapi</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>examindapi</servlet-name>
+        <url-pattern>/API/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- SOAP SERVLET -->
+    <servlet>
+        <servlet-name>jaxws-servlet</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSSpringServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>jaxws-servlet</servlet-name>
+        <url-pattern>/WS-SOAP/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- webdav server servlet -->
+    <servlet>
+        <servlet-name>milton</servlet-name>
+        <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
+        <load-on-startup>99</load-on-startup>
+        <init-param>
+            <param-name>resource.factory.class</param-name>
+            <param-value>org.constellation.webdav.ws.WebdavService</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>milton</servlet-name>
+        <url-pattern>/webdav/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- metrics servlet -->
+    <servlet>
+        <servlet-name>metricsAdminServlet</servlet-name>
+        <servlet-class>com.codahale.metrics.servlets.AdminServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>metricsAdminServlet</servlet-name>
+        <url-pattern>/metrics/*</url-pattern>
+    </servlet-mapping>
+
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <!--tracking-mode>URL</tracking-mode-->
+    </session-config>
+
+    <resource-env-ref>
+        <description>Connection to the database needed by Apache SIS.</description>
+        <resource-env-ref-name>jdbc/SpatialMetadata</resource-env-ref-name>
+        <resource-env-ref-type>javax.sql.DataSource</resource-env-ref-type>
+    </resource-env-ref>
+
+    <error-page>
+        <!-- Missing login -->
+        <error-code>401</error-code>
+        <location>/login.html</location>
+    </error-page>
+
+</web-app>

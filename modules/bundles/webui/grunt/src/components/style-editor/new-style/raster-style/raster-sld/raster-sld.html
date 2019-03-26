@@ -1,0 +1,298 @@
+<form class="form-horizontal form-style" role="form">
+	<div class="tab-content">
+		<div class="tab-pane colormodel"
+             ng-class="{active:rasterSldCtrl.rasterPalette.symbolPills === 'color'}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-12 col-md-4 col-lg-4 control-label control-label-leftsm"
+                       for="colormodel">{{'style.editor.new.raster.label.color.model' | translate}}</label>
+				<div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+					<select id="colormodel"
+                            class="form-control form-control-fix"
+                            ng-model="rasterSldCtrl.rasterPalette.colorModel">
+                        <option value="palette">{{'style.editor.new.raster.label.palette.mode' | translate}}</option>
+                        <option value="rgb">{{'style.editor.new.raster.label.rgb.composition.mode' | translate}}</option>
+                        <option value="grayscale">{{'style.editor.new.raster.label.gray.scale.mode' | translate}}</option>
+					</select>
+				</div>
+			</div>
+			<accordion close-others="true"
+                       ng-show="rasterSldCtrl.rasterPalette.colorModel === 'palette'"
+                       ng-init="status.open=true">
+				<accordion-group heading="Edition" is-open="status.open">
+						<accordion-heading>
+                             <div>
+                                 <i class="pull-left glyphicon"
+                                    ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
+                                 <span>{{'style.editor.new.raster.label.edition' | translate}}</span>
+                             </div>
+                         </accordion-heading>
+						<div id="palette">
+							<form name="paletteForm"
+                                  class="form_classification form-horizontal form-style"
+                                  role="form" novalidate>
+								<div class="form-group">
+									<label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                                        {{'style.editor.new.raster.label.band' | translate}}
+                                    </label>
+									<div class="col-xs-7 col-sm-7 col-md-8">
+                                        <select class="form-control form-control-fix"
+                                                ng-if="rasterSldCtrl.selectedDataProperties.dataProperties.bands.length>0"
+                                                ng-model="rasterSldCtrl.rasterPalette.band.selected"
+                                                ng-options="dp.indice for dp in rasterSldCtrl.selectedDataProperties.dataProperties.bands"
+                                                ng-change="rasterSldCtrl.fixRZSlider();"></select>
+                                        <input type="text"
+                                               ng-if="!rasterSldCtrl.selectedDataProperties.dataProperties || rasterSldCtrl.selectedDataProperties.dataProperties.bands.length == 0"
+                                               class="form-control form-control-fix"
+                                               ng-model="rasterSldCtrl.rasterPalette.band.selected.indice"/>
+									</div>
+								</div>
+								<div class="form-group"
+                                     ng-show="rasterSldCtrl.rasterPalette.band.selected.minValue !== undefined">
+                                    <label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                                        {{'style.editor.new.raster.label.distribution' | translate}}
+                                    </label>
+                                    <div class="col-xs-7 col-sm-7 col-md-8">
+                                        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 min-max-block">
+                                            <input type="text" id="minValue"
+                                                   class="form-control form-control-fix"
+                                                   ng-model="rasterSldCtrl.rasterPalette.palette.rasterMinValue" required/>
+                                        </div>
+                                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 styleRZSlider">
+                                            <rzslider rz-slider-floor="rasterSldCtrl.rasterPalette.band.selected.minValue"
+                                                      rz-slider-ceil="rasterSldCtrl.rasterPalette.band.selected.maxValue"
+                                                      rz-slider-model="rasterSldCtrl.rasterPalette.palette.rasterMinValue"
+                                                      rz-slider-high="rasterSldCtrl.rasterPalette.palette.rasterMaxValue"
+                                                      rz-slider-step="1">
+                                            </rzslider>
+                                        </div>
+                                        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 min-max-block">
+                                            <input type="text"
+                                                   class="form-control form-control-fix"
+                                                   min="{{rasterSldCtrl.selectedDataProperties.dataBands[0].minValue}}"
+                                                   max="{{rasterSldCtrl.selectedDataProperties.dataBands[0].maxValue}}"
+                                                   ng-model="rasterSldCtrl.rasterPalette.palette.rasterMaxValue"
+                                                   required/>
+                                        </div>
+                                    </div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                                        {{'style.editor.new.raster.label.palette' | translate}}
+                                    </label>
+									<div class="col-xs-7 col-sm-7 col-md-8">
+										<div class="pull-right btn-group select select-block">
+											<button class="btn dropdown-toggle btn-default"
+                                                    data-toggle="dropdown">
+												<span class="filter-option pull-left">
+                                                    <img class="img_palette img_palette_ajust"
+                                                         ng-src="{{rasterSldCtrl.rasterPalette.palette.img_palette}}"/>
+                                                </span>&nbsp;
+												<span class="caret"></span>
+											</button>
+											<span class="dropdown-arrow dropdown-arrow-inverse"></span>
+											<ul class="dropdown-menu dropdown-inverse dropdown-images" role="menu">
+												<li ng-click="rasterSldCtrl.choosePalette(1)">
+                                                    <a><img class="img_palette img_palette_ajust" src="img/palette1.png"/></a>
+                                                </li>
+												<li ng-click="rasterSldCtrl.choosePalette(2)">
+                                                    <a><img class="img_palette img_palette_ajust" src="img/palette2.png"/></a>
+                                                </li>
+												<li ng-click="rasterSldCtrl.choosePalette(3)">
+                                                    <a><img class="img_palette img_palette_ajust" src="img/palette3.png"/></a>
+                                                </li>
+												<li ng-click="rasterSldCtrl.choosePalette(4)">
+                                                    <a><img class="img_palette img_palette_ajust" src="img/palette4.png"/></a>
+                                                </li>
+												<li ng-click="rasterSldCtrl.choosePalette(5)">
+                                                    <a><img class="img_palette img_palette_ajust" src="img/palette5.png"/></a>
+                                                </li>
+											</ul>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-xs-8 col-sm-9 col-md-9 col-lg-8 pull-right">
+										<label class="radio-inline">
+											<input id="categorize"
+                                                   type="radio"
+                                                   name="categorize"
+                                                   ng-model="rasterSldCtrl.rasterPalette.palette.method"
+                                                   value="categorize"/>
+											<span>{{'style.editor.new.raster.label.solid.color' | translate}}</span>
+										</label>
+										<label class="radio-inline">
+											<input id="interpolation"
+                                                   type="radio"
+                                                   name="interpolation"
+                                                   ng-model="rasterSldCtrl.rasterPalette.palette.method"
+                                                   value="interpolate"/>
+											<span>{{'style.editor.new.raster.label.interpolate.palette' | translate}}</span>
+										</label>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                                        {{'style.editor.new.raster.label.divisions' | translate}}
+                                    </label>
+									<div class="col-xs-7 col-sm-7 col-md-4">
+										<input type="number"
+                                               class="form-control form-control-fix"
+                                               ng-model="rasterSldCtrl.rasterPalette.palette.intervalsCount"/>
+									</div>
+								</div>
+								<div class="form-group">
+                                    <div class="col-xs-8 col-sm-9 col-md-9 col-lg-8 pull-right reverse-color-block">
+                                        <div class="checkbox checkbox-inline">
+                                            <label>
+                                                <input type="checkbox"
+                                                       ng-model="rasterSldCtrl.rasterPalette.palette.inverse">
+                                                    <span>{{'style.editor.new.raster.label.reverse.colors' | translate}}</span>
+                                            </label>
+                                        </div>
+                                        <div class="checkbox checkbox-inline sld-chexkbox-nan">
+                                            <label>
+                                                <input type="checkbox"
+                                                       ng-model="rasterSldCtrl.rasterPalette.palette.nan.selected">
+                                                    <span>{{'style.editor.new.raster.label.NaN' | translate}}</span>
+                                            </label>
+                                        </div>
+                                        <div class="pull-right"
+                                             ng-if="rasterSldCtrl.rasterPalette.palette.nan.selected">
+                                            <input type='text' name="picker" class="picker" spectrum
+                                                ng-model="rasterSldCtrl.rasterPalette.palette.nan.color">
+                                        </div>
+                                    </div>
+								</div>
+								<div class="form-group">
+									<button type="button"
+                                            ng-click="rasterSldCtrl.generateRasterPalette();"
+                                            class="btn btn-generer btn-primary pull-right">
+                                        <span>{{'style.editor.new.raster.label.generate.palette' | translate}}</span>
+                                    </button>
+								</div>
+							</form>
+						</div>
+				</accordion-group>
+				<accordion-group heading="Palette" is-open="rasterSldCtrl.rasterPalette.palette.open">
+					<accordion-heading>
+                        <div>
+                            <i class="pull-left glyphicon"
+                               ng-class="{'glyphicon-chevron-down': rasterSldCtrl.rasterPalette.palette.open, 'glyphicon-chevron-right': !rasterSldCtrl.rasterPalette.palette.open}"></i>
+                            <span>{{'style.editor.new.raster.label.palette' | translate}}</span>
+                        </div>
+                    </accordion-heading>
+					<div class="style_bloc"
+                         ng-show="rasterSldCtrl.rasterPalette.repartition !== undefined">
+                        <div class="palette-array">
+                            <table class="sldTable table">
+                                <tbody>
+                                    <tr ng-repeat="point in rasterSldCtrl.rasterPalette.repartition">
+                                        <td>
+                                            <input type='text' name="picker" class="picker" spectrum ng-model="point.color"/>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   class="form-control form-control-fix"
+                                                   ng-model="point.data"
+                                                   ng-change="rasterSldCtrl.drawThresholds();"
+                                                   ng-if="point.data !== null"/>
+                                            <span ng-if="point.data === null">NaN</span>
+                                            <span ng-if="!$last && rasterSldCtrl.rasterPalette.palette.method =='categorize'"> -&gt; {{rasterSldCtrl.rasterPalette.repartition[$index+1].data}}</span>
+                                        </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-danger btn-xs btn-remove"
+                                                    ng-click="rasterSldCtrl.removeRepartitionEntry(point);">
+                                                <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-xs-12 div-btn-add">
+                            <button type="button"
+                                    class="btn-apercu btn btn-primary pull-right"
+                                    ng-click="rasterSldCtrl.addColorMapEntry();">
+                                <span>{{'style.editor.new.raster.label.add.new.value' | translate}}</span>
+                            </button>
+                        </div>
+                    </div>
+				</accordion-group>
+			</accordion>
+			<div ng-show="rasterSldCtrl.rasterPalette.colorModel === 'rgb'">
+				<form class="form_classification form-horizontal form-style" role="form">
+					<div class="form-group bande_rouge">
+						<label class="col-sm-3 control-label">
+                            {{'style.editor.new.raster.label.red.channel' | translate}}
+                        </label>
+						<div class="col-sm-9">
+							<select class="form-control form-control-fix"
+                                    ng-model="rasterSldCtrl.rasterPalette.rgbChannels[0].name">
+                                <option value=""></option>
+                                <option ng-repeat="dp in rasterSldCtrl.selectedDataProperties.dataProperties.bands"
+                                        ng-value="dp.indice">{{dp.indice}}</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group bande_verte">
+						<label class="col-sm-3 control-label">
+                            {{'style.editor.new.raster.label.green.channel' | translate}}
+                        </label>
+						<div class="col-sm-9">
+							<select class="form-control form-control-fix"
+                                    ng-model="rasterSldCtrl.rasterPalette.rgbChannels[1].name">
+                                <option value=""></option>
+                                <option ng-repeat="dp in rasterSldCtrl.selectedDataProperties.dataProperties.bands"
+                                        ng-value="dp.indice">{{dp.indice}}</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group bande_bleue">
+						<label class="col-sm-3 control-label">
+                            {{'style.editor.new.raster.label.blue.channel' | translate}}
+                        </label>
+						<div class="col-sm-9">
+							<select class="form-control form-control-fix"
+                                    ng-model="rasterSldCtrl.rasterPalette.rgbChannels[2].name">
+                                <option value=""></option>
+                                <option ng-repeat="dp in rasterSldCtrl.selectedDataProperties.dataProperties.bands"
+                                        ng-value="dp.indice">{{dp.indice}}</option>
+							</select>
+						</div>
+					</div>
+                    <div class="col-xs-12 div-btn-add">
+                        <button type="button"
+                                class="btn-apercu btn btn-primary pull-right"
+                                ng-click="rasterSldCtrl.applyRGBComposition();">
+                            <span>{{'style.editor.new.raster.label.apply' | translate}}</span>
+                        </button>
+                    </div>
+				</form>
+			</div>
+            <div ng-show="rasterSldCtrl.rasterPalette.colorModel === 'grayscale'">
+                <form class="form_classification form-horizontal form-style" role="form">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">
+                            {{'style.editor.new.raster.label.gray.scale' | translate}}
+                        </label>
+                        <div class="col-sm-8">
+                            <select class="form-control form-control-fix"
+                                    ng-model="rasterSldCtrl.rasterPalette.greyChannel.name">
+                                <option value=""></option>
+                                <option ng-repeat="dp in rasterSldCtrl.selectedDataProperties.dataProperties.bands" ng-value="dp.indice">{{dp.indice}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 div-btn-add">
+                        <button type="button"
+                                class="btn-apercu btn btn-primary pull-right"
+                                ng-click="rasterSldCtrl.applyGrayscaleComposition();">
+                            <span>{{'style.editor.new.raster.label.apply' | translate}}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+		</div>
+	</div>
+</form>

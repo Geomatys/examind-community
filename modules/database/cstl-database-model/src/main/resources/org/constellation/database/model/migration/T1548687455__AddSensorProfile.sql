@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."sensor" ADD COLUMN profile character varying(255);

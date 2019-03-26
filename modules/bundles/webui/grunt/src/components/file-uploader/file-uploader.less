@@ -1,0 +1,82 @@
+file-uploader {
+
+  #dropZone {
+    margin-bottom: 10px;
+    padding: 10px 0 10px 0;
+    border: dashed 2px gray;
+    border-radius: 8px;
+    background-color: #383838;
+
+    i {
+      font-size: 35px;
+    }
+
+    p {
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .file-uploader-btn {
+      label {
+        padding: 10px 20px;
+        transition: all .4s;
+        border-radius: 20px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+    }
+  }
+
+  .files-manager-block {
+    background-color: rgba(102, 102, 102, .8);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+
+    .files-manager-header {
+      background-color: rgba(91, 192, 222, .1);
+      border: 1px solid #424242;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      > i {
+        margin-right: 5px;
+      }
+
+      span {
+        display: inline-block;
+        font-weight: 700;
+      }
+
+    }
+
+    .files-manager-content {
+      padding: 10px;
+
+      .files-info-table {
+        tbody > tr {
+          border-bottom: solid 1px;
+          td {
+            padding: 8px;
+          }
+        }
+      }
+
+      .glyphicon-ban-circle {
+        color: #f0ad4e;
+      }
+
+      .fa-exclamation-triangle {
+        color: #d9534f;
+      }
+
+    }
+  }
+
+  .progress {
+    border-radius:20px;
+  }
+
+}

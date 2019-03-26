@@ -1,0 +1,30 @@
+<div class="new-dataset-content">
+    <div class="new-dataset-header">
+        <label>{{'dataset.editor.new.create.dataset' | translate}}</label>
+    </div>
+    <div class="new-dataset-body">
+        <form class="form-horizontal" ng-class="{'has-name-error':ctrl.errors.nameErr}">
+            <div class="form-group">
+                <label class="col-xs-2 col-sm-4 col-md-4 col-lg-2 control-label" for="datasetName">
+                    {{'dataset.editor.new.dataset.name' | translate}} &nbsp;(*)
+                </label>
+                <div class="col-xs-10 col-sm-6 col-md-4">
+                    <input class="form-control" type="text"
+                           debounce="500"
+                           required
+                           ng-change="ctrl.checkDatasetName()"
+                           ng-model="ctrl.datasetName" id="datasetName" placeholder="name"/>
+                    <span id="nameHelpBlock" ng-show="ctrl.errors.nameErr" class="help-block">
+                        {{'dataset.editor.new.dataset.name.error' | translate}}
+                    </span>
+                </div>
+            </div>
+        </form>
+        <div class="info-block">
+            <i class="fa fa-info-circle" aria-hidden="true"></i>
+            <span>{{'dataset.editor.new.msg.fill.dataset.metadata' | translate}}&nbsp;(*)&nbsp;:&nbsp;</span>
+        </div>
+        <scroll-bottom></scroll-bottom>
+        <metadata-editor metadata-values="ctrl.metadataValues"></metadata-editor>
+    </div>
+</div>

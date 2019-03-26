@@ -1,0 +1,86 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{'global.menu.admin.providers' | translate}}</h3>
+    </div>
+    <div class="panel-body" ng-init="init()">
+        <div>
+            <div class="pagination-wrapper pagination-data">
+                <strong translate="providers.nbproviders" translate-values="{total: '{{ wrap.countdata }}'}">
+                    There are {{ wrap.countdata }} data providers.
+                </strong>
+                <div class="row search-block">
+                    <div class="col-sm-6 col-md-5 col-lg-4">
+                        <input type="text"
+                               ng-model="wrap.filtertext"
+                               class="form-control form-control-fix"
+                               placeholder="{{'label.search' | translate}}" />
+                    </div>
+                </div>
+                <div class="row pagination-block">
+                    <div class="col-sm-9"
+                         style="padding-left:15px; margin-top: 5px;"
+                         page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                         on-select-page="displayPage(page)"></div>
+                    <select class="nb-per-page input-small form-control pull-right col-xs-2"
+                            ng-change="displayPage(1)"
+                            ng-model="wrap.nbbypage">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <table class="table table-condensed table-striped table-bordered table-responsive user-table">
+                <thead>
+                    <tr>
+                        <td ng-click="wrap.ordertype='id';wrap.orderreverse=!wrap.orderreverse">
+                            <a>
+                                <span>ID</span>
+                                <i class="fa fa-caret-up"
+                                   ng-if="wrap.ordertype === 'id' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down"
+                                   ng-if="wrap.ordertype === 'id' && !wrap.orderreverse"></i>
+                            </a>
+                        </td>
+                        <td ng-click="wrap.ordertype='identifier';wrap.orderreverse=!wrap.orderreverse">
+                            <a>
+                                <span>{{'label.identifier' | translate}}</span>
+                                <i class="fa fa-caret-up"
+                                   ng-if="wrap.ordertype === 'identifier' && wrap.orderreverse"></i>
+                                <i class="fa fa-caret-down"
+                                   ng-if="wrap.ordertype === 'identifier' && !wrap.orderreverse"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <a>
+                                <span>{{'label.reindexation' | translate}}</span>
+                            </a>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="p in wrap.dataList | filter:filter | orderBy:predicate:reverse">
+                        <td>{{p.id}}</td>
+                        <td>{{p.identifier}}</td>
+                        <td class="buttonsCol">
+                            <div>
+                                <button ng-click="showConfig(p)"
+                                        title="{{'providers.showConfig' | translate}}"
+                                        class="btn btn-default btn-xs">{{'providers.showConfig' | translate}}</button>
+                                <button ng-click="reloadProvider(p)"
+                                        title="{{'providers.reindexProvider' | translate}}"
+                                        class="btn btn-info btn-xs">
+                                    <span class="float-left">{{'service.description.reload.button' | translate}}</span>
+                                    <i class="i-reloading" ng-show="p.reloading"
+                                       class="pull-right fa fa-spinner fa-spin"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

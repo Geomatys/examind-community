@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns14:StatusInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+                 xmlns:ns14="http://www.opengis.net/wps/2.0">
+  <ns14:JobID>ecbc4579-5175-423a-9bce-a7572ec75363</ns14:JobID>
+  <ns14:Status>Accepted</ns14:Status>
+</ns14:StatusInfo>

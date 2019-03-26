@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sml:System gml:id="12" xmlns:gml="http://www.opengis.net/gml" xmlns:sml="http://www.opengis.net/sml/1.0">
+    <gml:description>information about the piezometer</gml:description>
+    <gml:name>Piezometer Test</gml:name>
+    <sml:keywords>piezometer</sml:keywords>
+    <sml:keywords>geosciences</sml:keywords>
+    <sml:keywords>point d'eau</sml:keywords>
+    <sml:location>
+        <gml:Point srsName="urn:ogc:def:crs:epsg:7.6:27582">
+            <gml:pos>65400.0 1731368.0</gml:pos>
+        </gml:Point>
+    </sml:location>
+    <sml:phenomenons>time</sml:phenomenons>
+    <sml:phenomenons>depth</sml:phenomenons>
+    <sml:phenomenons>validity</sml:phenomenons>
+    <sml:smltype>System</sml:smltype>
+    <sml:smlref>http://ades.eaufrance.fr/FichePtEau.aspx?code=10972X0137/PONT</sml:smlref>
+    <sml:inputs name="level">urn:ogc:def:phenomenon:OGC:level</sml:inputs>
+    <sml:outputs name="time">urn:ogc:def:phenomenon:observationTime</sml:outputs>
+    <sml:outputs name="validity">urn:ogc:def:phenomenon:BRGM:validity</sml:outputs>
+    <sml:outputs name="depth">urn:ogc:def:phenomenon:OGC:depth</sml:outputs>
+    <sml:producer name="BRGM">BLAISE Marion (BRGM)</sml:producer>
+</sml:System>

@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."provider_x_csw" ADD CONSTRAINT provider_csw_cross_id_pk PRIMARY KEY (csw_id,provider_id);

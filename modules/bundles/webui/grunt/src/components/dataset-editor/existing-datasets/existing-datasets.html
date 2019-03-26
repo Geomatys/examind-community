@@ -1,0 +1,130 @@
+<div class="datasets-listing-dashboard">
+    <div class="navbar navbar-default">
+        <div class="navbar-header">
+            <a class="navbar-brand">
+                {{'dataset.editor.existing.available.datasets' | translate}}
+            </a>
+        </div>
+        <!--<div class="collapse navbar-collapse">-->
+            <!--<ul class="nav navbar-nav navbar-right">-->
+                <!--<li ng-class="{'active': ctrl.isSelectedDatasetType('ALL')}"-->
+                    <!--ng-click="ctrl.setTypeFilter('ALL')">-->
+                    <!--<a>{{'dataset.editor.existing.all' | translate}}</a>-->
+                <!--</li>-->
+                <!--<li ng-class="{'active': ctrl.isSelectedDatasetType('STANDARD')}"-->
+                    <!--ng-click="ctrl.setTypeFilter('STANDARD')">-->
+                    <!--<a>{{'dataset.editor.existing.standard' | translate}}</a>-->
+                <!--</li>-->
+                <!--<li ng-class="{'active': ctrl.isSelectedDatasetType('MULTIDIMENSIONAL')}"-->
+                    <!--ng-click="ctrl.setTypeFilter('MULTIDIMENSIONAL')">-->
+                    <!--<a>{{'dataset.editor.existing.multidimensional' | translate}}</a>-->
+                <!--</li>-->
+            <!--</ul>-->
+        <!--</div>-->
+    </div>
+    <div class="navbar sort-navbar">
+        <div class="navbar-inner">
+            <ul class="nav nav-style">
+                <li ng-click="ctrl.pagedSearchService.sortBy('name')">
+                    <a>
+                        <span translate="label.title">Title</span>
+                        <i class="fa" ng-class="ctrl.pagedSearchService.getSortOrderIcon('name')"></i>
+                    </a>
+                </li>
+                <li class="divider-vertical"></li>
+                <li ng-click="ctrl.pagedSearchService.sortBy('date')">
+                    <a>
+                        <span translate="label.date">Date</span>
+                        <i class="fa" ng-class="ctrl.pagedSearchService.getSortOrderIcon('date')"></i>
+                    </a>
+                </li>
+                <li class="divider-vertical"></li>
+                <li ng-click="ctrl.pagedSearchService.sortBy('owner')">
+                    <a>
+                        <span translate="label.owner">Owner</span>
+                        <i class="fa" ng-class="ctrl.pagedSearchService.getSortOrderIcon('owner')"></i>
+                    </a>
+                </li>
+                <li class="divider-vertical"></li>
+            </ul>
+            <button type="button" class="btn btn-xs btn-primary" title="{{'label.search.refresh' | translate }}"
+                    ng-click="ctrl.pagedSearchService.reset()">
+                <i class="fa fa-times"></i>
+            </button>
+            <form class="pull-right quick-search" ng-submit="ctrl.pagedSearchService.setPage(1)">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="{{'label.search'|translate}}"
+                           ng-model="ctrl.pagedSearchService.query.text"/>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-primary"
+                                ng-disabled="ctrl.searchStatus === -1"
+                                ng-click="ctrl.pagedSearchService.setPage(1)">
+                            <i class="fa fa-search"
+                               ng-class="{'fa-search': ctrl.searchStatus > -1, 'fa-spinner': ctrl.searchStatus < 0, 'fa-spin': ctrl.searchStatus < 0}"></i>
+                        </button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="dash-inner col-xs-12">
+        <div class="dash-pagination row">
+            <strong class="col-xs-6 col-sm-3">
+                <label class="pull-left">{{ctrl.page.total}}&nbsp;</label>
+                <label>{{'dataset.editor.existing.available.datasets' | translate}}</label>
+            </strong>
+
+            <div class="col-xs-6 col-sm-6 center">
+                <div page-switcher="{page: ctrl.page.number, size: ctrl.page.size, count: ctrl.page.total}"
+                     on-select-page="ctrl.pagedSearchService.setPage(page)">
+                </div>
+            </div>
+
+            <div class="col-xs-2 col-sm-3">
+                <select class="input-small form-control pull-right"
+                        ng-model="ctrl.pagedSearchService.query.size"
+                        ng-change="ctrl.pagedSearchService.setPage(1)"
+                        ng-options="s as s for s in [5,10,20,50,100]">
+                </select>
+            </div>
+        </div>
+        <div class="dash-list row">
+            <div ng-repeat="dataset in ctrl.page.content"
+                 class="col-xs-12 col-md-6"
+                 ng-click="ctrl.toggleSelectDataset(dataset)">
+                <div class="item" ng-class="{'selected': ctrl.isSelectedDataset(dataset)}">
+                    <div class="top">
+                        <div class="item-title" title="{{dataset.name}}" ng-bind="dataset.name"></div>
+                        <span class="text-right item-list-style">{{'dataset.editor.existing.dataset' | translate}}</span>
+                    </div>
+                    <div class="bottom">
+                        <div class="visible-xs">
+                            <div class="block block-tooltipicon">
+                                <i class="fa fa-calendar" title="{{dataset.date | date:'yyyy-MM-dd'}}"
+                                   tooltip data-placement="top"></i>
+                            </div>
+                            <div class="block block-tooltipicon">
+                                <i class="fa fa-user" title="{{dataset.owner || ('unknown'|translate)}}"
+                                   tooltip data-placement="top"></i>
+                            </div>
+                        </div>
+                        <div class="hidden-xs">
+                            <div class="block">
+                                <i class="fa fa-calendar"></i>{{dataset.date | date:'yyyy-MM-dd'}}
+                            </div>
+                            <div class="block">
+                                <i class="fa fa-user"></i>{{dataset.owner || ('unknown'|translate)}}
+                            </div>
+                        </div>
+                        <div class="block pull-right">
+                            <i class="fa fa-paperclip"></i>
+                            <span ng-show="dataset.dataCount === 0">{{'dataset.editor.existing.no.data' | translate}}</span>
+                            <span ng-show="dataset.dataCount > 0" ng-bind="dataset.dataCount"></span>
+                            <span>{{'dataset.editor.existing.associated.data' | translate}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

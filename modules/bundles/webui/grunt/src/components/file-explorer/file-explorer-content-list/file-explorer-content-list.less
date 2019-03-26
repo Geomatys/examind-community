@@ -1,0 +1,60 @@
+file-explorer-list {
+
+  color: #428bca;
+
+  .list-table {
+    margin-top: 10px;
+    border-color: grey;
+
+    > tbody > tr > td {
+      padding: 10px;
+      border-bottom: 1px solid grey;
+    }
+
+    thead > tr > th {
+      vertical-align: bottom;
+      border-bottom: 2px solid grey;
+    }
+  }
+
+  .selected {
+    background-color: #428bca;
+    color: #fff;
+
+    a {
+      color: #fff;
+    }
+  }
+
+  .requesting {
+    padding: 100px;
+    margin-top: 10px;
+  }
+
+  .no_files {
+    padding: 100px;
+    text-shadow: 1px 1px white;
+    color: darkgray;
+    font-style: italic;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+
+  .server_error {
+    padding: 100px;
+    font-style: italic;
+    text-shadow: 1px 1px white;
+    margin-top: 10px;
+    color: #b94a48;
+    font-size: 16px;
+  }
+
+  .disabled-row {
+    background-color: #ccc;
+    text-shadow: 1px 1px #fff;
+    a, span {
+      color: gray;
+    }
+  }
+
+}

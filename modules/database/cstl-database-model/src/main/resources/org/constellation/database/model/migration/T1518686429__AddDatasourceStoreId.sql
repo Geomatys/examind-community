@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource" ADD COLUMN "store_id" character varying(100);

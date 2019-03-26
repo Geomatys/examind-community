@@ -1,0 +1,86 @@
+<div id="importDataModal">
+    <div class="modal-dialog"
+         ng-class="{'modal-dialog-responsive': import.currentStep === 'step1DataServer', 'modal-dialog-resp-height' : import.currentStep === 'step1DataServer'}">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" ng-click="close()">×</button>
+                <h4 ng-if="import.currentStep === 'step1DataLocal'"
+                    class="modal-title"
+                    translate="data.modal.local.title">Local file</h4>
+                <h4 ng-if="import.currentStep === 'step1DataServer'"
+                    class="modal-title"
+                    translate="data.modal.server.title">Server File</h4>
+                <h4 ng-if="import.currentStep === 'step1Database'"
+                    class="modal-title"
+                    translate="label.file.db">Database</h4>
+                <h4 ng-if="import.currentStep === 'step1Custom'"
+                    class="modal-title"
+                    translate="data.modal.custom.title">Other data type</h4>
+                <h4 ng-if="import.currentStep === 'step2Metadata'"
+                    class="modal-title"
+                    translate="data.modal.metadata">Metadata</h4>
+                <h4 ng-if="import.currentStep === 'step3Type'"
+                    class="modal-title"
+                    translate="data.modal.choose.type">Choose type</h4>
+                <h4 ng-if="import.currentStep === 'step4Sensor'"
+                    class="modal-title"
+                    translate="data.modal.choose.sensor">Associate sensor</h4>
+            </div>
+            <div class="modal-body" ng-class="{'modal-body-list-data':import.currentStep === 'step3Type'}">
+                <div ng-if="import.currentStep === 'step1DataLocal'">
+                    <div ng-include="'views/data/import/step1_data_local.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step1DataServer'">
+                    <div ng-include="'views/data/import/step1_data_server.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step1Database'">
+                    <div ng-include="'views/data/import/step1_database.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step1Custom'">
+                    <div ng-include="'views/data/import/step1_custom.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step2Metadata'">
+                    <div ng-include="'views/data/import/step2_metadata.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step3Type'">
+                    <div ng-include="'views/data/import/step3_type.html'"></div>
+                </div>
+                <div ng-if="import.currentStep === 'step4Sensor'">
+                    <div ng-include="'views/data/import/step4_sensor.html'"></div>
+                </div>
+            </div>
+            <div class="modal-footer" ng-class="{'modal-footer-list-data':import.currentStep === 'step3Type'}">
+                <button id="cancelButton"
+                        type="button"
+                        class="btn btn-default"
+                        ng-click="close()"
+                        translate="data.modal.cancel">Cancel</button>
+                <button id="nextButton"
+                        type="button"
+                        class="btn btn-add"
+                        ng-disabled="loader.upload"
+                        ng-show="import.allowNext"
+                        ng-click="import.next();"
+                        translate="data.modal.next">Next</button>
+                <button id="sensorChoose"
+                        type="button"
+                        class="btn btn-add"
+                        ng-show="import.allowSensorChoose"
+                        ng-click="uploaded()"
+                        translate="data.modal.next">Next</button>
+                <button id="submitButton"
+                        type="button"
+                        class="btn btn-add"
+                        ng-show="import.allowSubmit"
+                        ng-click="import.finish()"
+                        translate="data.modal.end">Finish</button>
+                <button id="submitButtonProj"
+                        type="button"
+                        class="btn btn-add"
+                        ng-show="import.epsgSelected!=null"
+                        ng-click="addProjection();"
+                        translate="data.modal.end">Finish with projection</button>
+            </div>
+        </div>
+    </div>
+</div>

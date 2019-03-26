@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource" ADD COLUMN "permanent" boolean NOT NULL DEFAULT FALSE;

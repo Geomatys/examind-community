@@ -1,0 +1,67 @@
+<div class="container-fluid file-explorer-nav-bar">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="navbar-collapse">
+                <div class="navbar-form">
+                    <button class="btn btn-sm pull-left return"
+                            ng-click="explorerHeaderCtrl.upDir()" title="{{'file.explorer.label.up.dir' | translate}}"
+                            ng-disabled="explorerHeaderCtrl.disableUpDir()">
+                        <i class="glyphicon glyphicon-chevron-left"></i>
+                    </button>
+                    <div class="input-group col-xs-6" ng-if="explorerHeaderCtrl.config.showSearchText">
+                        <input type="text" class="form-control input-sm"
+                               ng-model="explorerHeaderCtrl.searchText" placeholder="Search for...">
+                        <span class="input-group-btn">
+                             <button class="btn btn-sm" type="button">
+                                 <i class="glyphicon glyphicon-search mr2"></i>
+                             </button>
+                          </span>
+                    </div>
+
+                    <button type="button" class="btn btn-sm dropdown-toggle"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span>{{'file.explorer.label.sort' | translate}}&nbsp;:</span>
+                        <span>{{explorerHeaderCtrl.getSortTypeBundle() | translate}}</span>
+                        <i class="fa" ng-class="explorerHeaderCtrl.getSortIcon()"></i>
+                    </button>
+                    <ul class="dropdown-menu sort-dropdown">
+                        <li ng-click="explorerHeaderCtrl.sortBy('name')">
+                            <a ng-class="{'sort-selected' : explorerHeaderCtrl.isSortedBy('name')}">
+                                {{'file.explorer.label.name' | translate}}
+                            </a>
+                        </li>
+                        <li ng-click="explorerHeaderCtrl.sortBy('size')">
+                            <a ng-class="{'sort-selected' : explorerHeaderCtrl.isSortedBy('size')}">
+                                {{'file.explorer.label.size' | translate}}
+                            </a>
+                        </li>
+                        <li ng-click="explorerHeaderCtrl.sortBy('type')">
+                            <a ng-class="{'sort-selected' : explorerHeaderCtrl.isSortedBy('type')}">
+                                {{'file.explorer.label.type' | translate}}
+                            </a>
+                        </li>
+                    </ul>
+
+
+                    <button class="btn btn-sm btn-danger pull-right" ng-if="explorerHeaderCtrl.clear"
+                            ng-click="explorerHeaderCtrl.clear()"
+                            ng-disabled="explorerHeaderCtrl.disableResetBtn"
+                            ng-show="!explorerHeaderCtrl.config.hideResetBtn" title="{{'file.explorer.label.clear' | translate}}">
+                        <i class="glyphicon glyphicon-trash"></i>
+                    </button>
+                    <div class="btn-group pull-right" role="group" aria-label="...">
+                        <button class="btn btn-sm" ng-click="explorerHeaderCtrl.setViewTemplate('list')"
+                                ng-class="{'selected':explorerHeaderCtrl.isSelectedViewTemplate('list')}" title="{{'file.explorer.label.list' | translate}}">
+                            <i class="glyphicon glyphicon-th-list"></i>
+                        </button>
+                        <button class="btn btn-sm" ng-click="explorerHeaderCtrl.setViewTemplate('icons')"
+                                ng-class="{'selected':explorerHeaderCtrl.isSelectedViewTemplate('icons')}" title="{{'file.explorer.label.icons' | translate}}">
+                            <i class="glyphicon glyphicon-th-large"></i>
+                        </button>
+                    </div>
+                    <span class="pull-right display hidden-xs">{{'file.explorer.label.display' | translate}} &nbsp;:&nbsp;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

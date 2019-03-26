@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource_selected_path" ADD COLUMN "status" character varying(50) DEFAULT 'PENDING'::character varying NOT NULL;

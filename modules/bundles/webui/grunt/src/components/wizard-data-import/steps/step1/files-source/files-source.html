@@ -1,0 +1,28 @@
+<file-uploader upload-files-promise="filesCtrl.uploadFilesPromise"
+               upload-files-promise-success="filesCtrl.uploadFilesPromiseSuccess"
+               upload-files-promise-error="filesCtrl.uploadFilesPromiseError"
+               last-upload-files-promise-success="filesCtrl.lastUploadFilesPromiseSuccess">
+</file-uploader>
+<div class="center loading-upload-file" ng-if="!filesCtrl.getDataSourceId()">
+    <i class="fa fa-spinner fa-spin fa-5x fa-fw"></i>
+    <span class="sr-only">Loading...</span>
+</div>
+<div ng-if="filesCtrl.getDataSourceId() && filesCtrl.fileListRef.fileList.length !== 0">
+    <files-formats stores="filesCtrl.stores"
+                   file-list-ref="filesCtrl.fileListRef"
+                   file-explorer-state="filesCtrl.fileExplorerState"
+                   adv-config="filesCtrl.advConfig"
+                   form-schema="filesCtrl.formSchema"
+                   select-store="filesCtrl.selectStore"
+                   get-file-list="filesCtrl.getFileList"
+                   up-dir="filesCtrl.upDir"
+                   open-dir="filesCtrl.openDir"
+                   remove-files-from-data-source="filesCtrl.removeFilesFromDataSource"
+                   disable-up-dir="filesCtrl.disableUpDir"
+                   is-disabled-file="filesCtrl.isDisabledFile"
+                   can-show-provider-config-properties="filesCtrl.canShowProviderConfigProperties"
+                   select-all="filesCtrl.selectAll"
+                   show-advanced-config-block="filesCtrl.showAdvancedConfigBlock"
+                   hide-field="filesCtrl.hideField">
+    </files-formats>
+</div>

@@ -1,0 +1,415 @@
+
+@thesaurus-color-1: #b6d05a;
+@thesaurus-color-2: #d9e392;
+
+.thesaurus-modal() {
+
+  .modal-content {
+
+    label, h4 {
+      color: #dddddd;
+    }
+
+    .help-block {
+      color: #bbbbbb;
+    }
+  }
+}
+
+// Global
+// ----------
+
+.btn-thesaurus {
+  color: #ffffff;
+  background-color: @thesaurus-color-1;
+  border-color: darken(@thesaurus-color-1, 10%);
+  text-shadow: 0 0 1px rgba(0, 0, 0, .15);
+
+  &:focus,
+  &:active,
+  &:hover {
+    color: #ffffff;
+    background-color: darken(@thesaurus-color-1, 5%);
+  }
+}
+
+.alert-thesaurus {
+  background-color: @thesaurus-color-2;
+  border: solid 1px darken(@thesaurus-color-1, 10%);
+  color: darken(@thesaurus-color-1, 20%);
+}
+
+// Main title
+// ----------
+
+#thesaurusTitle {
+
+  .btn-add {
+    background-color: @thesaurus-color-1;
+    border-color: darken(@thesaurus-color-1, 10%);
+
+    &:focus,
+    &:active,
+    &:hover {
+      background-color: darken(@thesaurus-color-1, 5%);
+    }
+  }
+}
+
+
+// Dashboard
+// ----------
+
+#thesaurusDashboard {
+
+  // Item
+  // ----------
+
+  .item.thesaurus {
+    background: transparent url('../img/thesaurus.svg') -208px 0;
+
+    &.style-small {
+      background: transparent url('../img/thesaurus.svg') -370px 0;
+    }
+
+    &.selected {
+      background: transparent url('../img/thesaurus.svg') -208px 211px;
+
+      &.style-small {
+        background: transparent url('../img/thesaurus.svg') -370px 211px;
+      }
+    }
+
+    > .top {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // Theme
+  // ----------
+
+  .frame {
+    background-color: rgba(182, 208, 90, .3);
+  }
+
+  .nav-thesaurus > li > a {
+    color: #929292;
+
+    &:hover {
+      color: #3c3c3c;
+    }
+  }
+
+  .pagination-thesaurus .pagination > li > a,
+  .pagination-thesaurus .pagination > li > span {
+    color: darken(@thesaurus-color-1, 10%);
+  }
+
+  .pagination-thesaurus .pagination > .active > a {
+    background-color: @thesaurus-color-1;
+    color: #ffffff;
+  }
+
+  .dashboard .selected-item .block-header {
+    background-color: @thesaurus-color-1;
+    border: solid 1px darken(@thesaurus-color-1, 10%);
+  }
+
+  #addThesaurusBtn,
+  .dashboard .selected-item .block-action .btn {
+    background-color: @thesaurus-color-1;
+    border-color: darken(@thesaurus-color-1, 10%);
+
+    &:hover {
+      background-color: darken(@thesaurus-color-1, 5%);
+    }
+  }
+}
+
+
+// Creation
+// ----------
+
+#thesaurusCreation {
+  .thesaurus-modal();
+
+  .form-group {
+
+    textarea {
+      resize: vertical;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    > .control-error,
+    > .control-warning {
+      text-align: right;
+      margin-top: 5px;
+      display: none;
+
+      > .fa {
+        margin-right: 6px;
+      }
+    }
+
+    > .control-error {
+      color: #a94442;
+    }
+
+    > .control-warning {
+      color: #8a6d3b;
+    }
+
+    &.has-error,
+    &.has-warning {
+      margin-bottom: 5px;
+    }
+
+    &.has-error > .control-error,
+    &.has-warning > .control-warning {
+      display: block;
+      width: 100%;
+    }
+  }
+}
+
+
+// Import
+// ----------
+
+#thesaurusImport {
+  .thesaurus-modal();
+
+  .form-group {
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .alert-thesaurus {
+    margin-bottom: 0;
+  }
+}
+
+
+// Concepts
+// ----------
+
+#thesaurusConcepts {
+  .thesaurus-modal();
+
+  .modal-body {
+    position: relative;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  // Search
+  // ----------
+
+  .concept-search {
+    margin-bottom: 10px;
+
+    > .search-input {
+      float: left;
+      margin-right: 5px;
+      width: 250px;
+    }
+  }
+
+  // Lang
+  // ----------
+
+  .lang {
+    text-align: right;
+
+    label {
+      margin-right: 6px;
+    }
+
+    select {
+      width: auto;
+      display: inline-block;
+    }
+  }
+
+  // Forms
+  // ----------
+
+  .form-group {
+
+    > .input-group {
+      margin-bottom: 10px;
+    }
+
+    .concept-list {
+      max-height: 150px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      border: 1px solid #cccccc;
+      border-radius: 4px;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+      margin-bottom: 8px;
+      background-color: #ffffff;
+
+      > .empty {
+        text-align: center;
+        color: #737373;
+        padding: 5px 10px;
+      }
+
+      > .concept {
+        position: relative;
+        padding: 5px 100px 5px 10px;
+
+        &:hover {
+          background-color: #eeeeee;
+        }
+
+        > a {
+          position: absolute;
+          top: 5px;
+          right: 10px;
+          text-decoration: none;
+          cursor: pointer;
+          color: #333333;
+
+          &:hover {
+            color: #000000;
+          }
+        }
+      }
+    }
+  }
+
+  // Concept tree
+  // ----------
+
+  .tree-h {
+    overflow: hidden;
+    position: relative;
+    height: 300px;
+    border: 1px solid #dedede;
+    font-size: 13px;
+    margin-bottom: 15px;
+    background-color: #ffffff;
+
+    > div.tree-h-prev,
+    > div.tree-h-next {
+      z-index: 11;
+      position: absolute;
+      background-color: rgba(255, 255, 255, .8);
+      height: 100%;
+      width: 75px;
+      top: 0;
+      cursor: pointer;
+
+      > .fa {
+        position: absolute;
+        top: 50%;
+        width: 30px;
+        height: 30px;
+        margin-top: -15px;
+        font-size: 30px;
+        text-align: center;
+      }
+    }
+    > .tree-h-prev {
+      left: 0;
+      border-right: 1px solid #dedede;
+
+      > .fa {
+        left: 50%;
+        margin-left: -15px;
+      }
+    }
+    > .tree-h-next {
+      right: 0;
+      border-left: 1px solid #dedede;
+
+      > .fa {
+        right: 50%;
+        margin-right: -15px;
+      }
+    }
+
+    > div.tree-h-inner {
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      padding: 0 75px;
+
+      > div.tree-h-body {
+        position: relative;
+        overflow: visible;
+        width: 100%;
+        height: 100%;
+
+        > ul.tree-h-column {
+          z-index: 3;
+          position: absolute;
+          top: 0;
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          transition: left .2s ease, margin .2s ease;
+          overflow-y: scroll;
+          overflow-x: hidden;
+          height: 100%;
+
+          &.ng-enter {
+            z-index: 2;
+            margin-left: -100% / 3;
+
+            &.ng-enter-active {
+              margin-left: 0;
+            }
+          }
+
+          &.ng-leave {
+            z-index: 1;
+
+            &.ng-leave-active {
+              left: 0 !important;
+            }
+          }
+
+          > li.tree-h-node {
+            position: relative;
+            cursor: pointer;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 4px 50px 4px 8px;
+
+            &:hover {
+              background-color: #f5f5f5;
+            }
+
+            &.active {
+              color: #ffffff;
+              background-color: #666666;
+              text-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+            }
+
+            > .node-count {
+              position: absolute;
+              top: 3px;
+              right: 8px;
+              background-color: @thesaurus-color-1;
+              box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+              text-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+              padding: 0 5px;
+              color: #ffffff;
+            }
+          }
+        }
+      }
+    }
+  }
+}

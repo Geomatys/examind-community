@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."metadata" ADD COLUMN "type" character varying(20) DEFAULT 'DOC'::character varying NOT NULL;

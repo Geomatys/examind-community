@@ -1,0 +1,69 @@
+<div class="col-sm-12">
+    <div class="row">
+        <div class="style-editor-header">
+            <label class="style-title pull-left">{{'style.editor.styles' | translate}}</label>
+            <i class="fa fa-paint-brush" aria-hidden="true"></i>
+            <button class="btn btn-primary pull-right"
+                    ng-if="styleEdCtrl.styleEditorConfig.showImportModeBtn"
+                    ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('import')}"
+                    ng-click="styleEdCtrl.changeAddStyleMode('import')">
+                        <span>
+                            {{'style.editor.import.style' | translate}}
+                        </span>
+            </button>
+            <button class="btn btn-primary pull-right"
+                    ng-if="styleEdCtrl.styleEditorConfig.showNewModeBtn"
+                    ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('new')}"
+                    ng-click="styleEdCtrl.createNewStyle()">
+                        <span>
+                            {{'style.editor.new.style' | translate}}
+                        </span>
+            </button>
+            <button class="btn btn-primary pull-right"
+                    ng-if="styleEdCtrl.styleEditorConfig.showExistingModeBtn"
+                    ng-class="{'btn-success': styleEdCtrl.isSelectedAddStyleMode('existing')}"
+                    ng-click="styleEdCtrl.changeAddStyleMode('existing')">
+                        <span>
+                            {{'style.editor.existing.style' | translate}}
+                        </span>
+            </button>
+        </div>
+    </div>
+    <div class="row style-dashboard">
+        <div id="styleEditor">
+            <div ng-switch="styleEdCtrl.addStyleMode">
+                <existing-style ng-switch-when="existing"
+                                style-values="styleEdCtrl.styleValues"
+                                edit-style="styleEdCtrl.editStyle"
+                                duplicate-style="styleEdCtrl.duplicateStyle"
+                                selected-data-ref="styleEdCtrl.selectedDataRef"
+                                style-editor-output="styleEdCtrl.styleEditorOutput"
+                                associate-style-to-data-layer="styleEdCtrl.associateStyleToDataLayer"
+                                disable-associate-btn="styleEdCtrl.disableAssociateBtn">
+                </existing-style>
+                <new-style ng-switch-when="new"
+                           selected-data-ref="styleEdCtrl.selectedDataRef"
+                           style-to-edit="styleEdCtrl.styleToEdit"
+                           after-create-style="styleEdCtrl.returnToExistingStyles">
+                </new-style>
+                <new-style ng-switch-when="edit"
+                           selected-data-ref="styleEdCtrl.selectedDataRef"
+                           style-to-edit="styleEdCtrl.styleToEdit">
+                </new-style>
+                <new-style ng-switch-when="duplicate"
+                           selected-data-ref="styleEdCtrl.selectedDataRef"
+                           style-to-edit="styleEdCtrl.styleToEdit">
+                </new-style>
+                <import-style ng-switch-when="import"
+                              after-import="styleEdCtrl.returnToExistingStyles">
+                </import-style>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+

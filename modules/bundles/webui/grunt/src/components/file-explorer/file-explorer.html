@@ -1,0 +1,46 @@
+<file-explorer-header ng-if="explorerCtrl.config.showHeader"
+                      set-view-template="explorerCtrl.setViewTemplate"
+                      is-selected-view-template="explorerCtrl.isSelectedViewTemplate"
+                      up-dir="explorerCtrl.upDir"
+                      clear="explorerCtrl.clear"
+                      config="explorerCtrl.config"
+                      disable-up-dir="explorerCtrl.disableUpDir"
+                      file-explorer-state="explorerCtrl.fileExplorerState"
+                      sort-by="explorerCtrl.sortBy"
+                      get-sort-icon="explorerCtrl.getSortIcon"
+                      is-sorted-by="explorerCtrl.isSortedBy">
+</file-explorer-header>
+
+<div class="container file-explorer-container">
+    <file-explorer-icons ng-if="explorerCtrl.fileExplorerState.viewTemplate === 'icons'"
+                         file-list-ref="explorerCtrl.fileListRef"
+                         toggle-file-selection="explorerCtrl.toggleFileSelection"
+                         open-dir="explorerCtrl.openDir"
+                         is-selected-file="explorerCtrl.isSelectedFile"
+                         check-listing-state="explorerCtrl.checkListingState"
+                         is-disabled-file="explorerCtrl.isDisabledFile"
+                         file-explorer-state="explorerCtrl.fileExplorerState">
+    </file-explorer-icons>
+
+    <file-explorer-list ng-if="explorerCtrl.fileExplorerState.viewTemplate === 'list'"
+                        file-list-ref="explorerCtrl.fileListRef"
+                        toggle-file-selection="explorerCtrl.toggleFileSelection"
+                        is-selected-file="explorerCtrl.isSelectedFile"
+                        open-dir="explorerCtrl.openDir"
+                        config="explorerCtrl.config"
+                        check-listing-state="explorerCtrl.checkListingState"
+                        is-disabled-file="explorerCtrl.isDisabledFile"
+                        file-explorer-state="explorerCtrl.fileExplorerState">
+    </file-explorer-list>
+</div>
+
+
+
+
+
+
+
+
+
+
+

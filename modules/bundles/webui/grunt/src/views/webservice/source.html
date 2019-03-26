@@ -1,0 +1,385 @@
+<div class="logo-wrapper row">
+    <div class="col-sm-12">
+        <h3 class="header-title"
+            translate="page.header.title.create.service.source">Source</h3>
+    </div>
+</div>
+<div class="col-sm-12">
+    <div class="frame dashboard serviceSource" ng-if="wsChooseCtrl.type === 'csw'">
+        <div id="description" class="row bg-white">
+            <div class="frame dashboard">
+                <div class="navbar navbar-default" style="margin-bottom: 0px;">
+                    <div class="navbar-header">
+                        <a class="navbar-brand"
+                           translate="service.config.source.choose">Choose source</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="col-sm-offset-3 col-sm-9">
+                <div class="form-group col-sm-5">
+                    <label class="control-label new-service-form-label col-sm-2"
+                           translate="service.config.source">Source</label>
+                    <select id="sourceType"
+                            class="form-control col-sm-5"
+                            style="margin-bottom:20px;"
+                            ng-model="wsChooseCtrl.guiConfig.cswMode">
+                        <option value="internal"
+                                translate="service.config.source.internal">Internal
+                        </option>
+                        <option value="filesystem"
+                                translate="service.config.source.file">File system
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="form-separator"></div>
+        </div>
+        <div ng-if="! wsChooseCtrl.guiConfig.cswMode">
+            <div class="row bg-white">
+                <div class="col-sm-12">
+                    <div class="well">
+                        <div class="row" style="padding-bottom: 20px;">
+                            <div class="col-sm-12">
+                                <h4 translate="service.config.source.csw.title">Catalogs service (CSW)</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3 col-sm-offset-1">
+                                <b><p translate="service.config.source.internal">Internal></p></b>
+                                <p translate="service.config.source.internal.description">Constellation metadata
+                                    database</p>
+                            </div>
+                            <div class="col-sm-3 col-sm-offset-1">
+                                <b><p translate="service.config.source.file">File system</p></b>
+                                <p translate="service.config.source.file.description">Sets of metadata records in file
+                                    system</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="wsChooseCtrl.guiConfig.cswMode">
+            <form id="cswSourceForm" name="cswSourceForm">
+                <div class="row bg-white" ng-if="wsChooseCtrl.guiConfig.cswMode == 'internal'">
+                    <div class="col-sm-3">
+                        <div class="well">
+                            <p><b translate="service.config.source.internal.title">Internal (SGBDR)</b></p>
+                            <p translate="service.config.source.internal.description">Constellation metadata
+                                database</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <fieldset>
+                            <div class="form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               ng-model="wsChooseCtrl.guiConfig.cswPartial"
+                                               style="margin-top: 1px;">
+                                            <span style="font-weight: bold;"
+                                                  translate="service.config.source.partial">Partial data</span>
+                                        </input>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"
+                                               ng-model="wsChooseCtrl.guiConfig.cswOnlyPublished"
+                                               style="margin-top: 1px;">
+                                            <span style="font-weight: bold;"
+                                                  translate="service.config.source.onlyPublished">Only published</span>
+                                        </input>
+                                    </label>
+                                </div>
+                            </div>
+                            <p><i class="glyphicon glyphicon-warning-sign"></i>
+                                {{'service.config.source.defaultBehaviourInternal' | translate}}</p>
+                            <div class="form-group">
+                                <div class="checkbox inline">
+                                    <input type="checkbox"
+                                           ng-model="wsChooseCtrl.guiConfig.transactional"/>
+                                    <span translate="service.config.source.transactional">Transactional</span>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="row bg-white" ng-if="wsChooseCtrl.guiConfig.cswMode == 'filesystem'">
+                    <div class="col-sm-3">
+                        <div class="well">
+                            <p><b translate="service.config.source.file.title">File system</b></p>
+                            <p translate="service.config.source.file.description">Sets of metadata records in file
+                                system</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+
+                        <fieldset>
+                            <div class="form-group">
+                                <label class="control-label"
+                                       translate="service.config.source.file.path">Folder path</label>
+                                <input type="text" class="form-control" required
+                                       ng-model="wsChooseCtrl.guiConfig.cswDataDirectory"/>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox inline">
+                                    <input type="checkbox"
+                                           ng-model="wsChooseCtrl.guiConfig.transactional"/>
+                                    <span translate="service.config.source.transactional">Transactional</span>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                    </div>
+                </div>
+                <div class="row bg-white">
+                    <div class="form-separator"></div>
+                </div>
+                <div class="row bg-white">
+                    <div class="col-sm-3">
+                        <div class="well">
+                            <p><b translate="service.config.source.index">Index Type</b></p>
+                            <p translate="service.config.source.index.description">Type of the index for metadata</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <fieldset>
+                            <div class="form-group">
+                                <label class="radio-inline">
+                                    <input type="radio"
+                                           ng-model="wsChooseCtrl.guiConfig.cswIndexType"
+                                           value="lucene-node"
+                                           style="margin-top: 1px;"
+                                           checked/>
+                                    <span style="font-weight: bold;"
+                                          translate="service.config.source.index.lucene">Apache Lucene</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="radio-inline">
+                                    <input type="radio"
+                                           ng-model="wsChooseCtrl.guiConfig.cswIndexType"
+                                           value="es-node"
+                                           style="margin-top: 1px;"/>
+                                    <span style="font-weight: bold;"
+                                          translate="service.config.source.index.elasticSearch">ElasticSearch</span>
+                                    <input type="text" required
+                                           ng-if="wsChooseCtrl.guiConfig.cswIndexType == 'es-node'"
+                                           ng-model="wsChooseCtrl.guiConfig.cswEsURL"
+                                           class="form-control"
+                                           style="width: 350px;"
+                                           placeholder="{{'service.config.source.index.elasticSearchHost' | translate}}"/>
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="row bg-white">
+                    <div class="form-separator"></div>
+                </div>
+            </form>
+            <div class="row bg-white">
+                <div class="pull-right" style="margin: 20px 30px;">
+                    <button class="btn btn-add"
+                            type="button"
+                            ng-disabled="cswSourceForm.$invalid"
+                            ng-click="wsChooseCtrl.saveServiceSource()"
+                            translate="label.save">Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="frame dashboard serviceSource" ng-if="wsChooseCtrl.type === 'sos'">
+        <div class="row bg-white">
+            <div class="frame dashboard">
+                <div class="navbar navbar-default" style="margin-bottom: 0;">
+                    <div class="navbar-header">
+                        <a class="navbar-brand"
+                           translate="service.config.source.choose">Choose source</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="col-sm-3">
+                <div class="well">
+                    <p><b translate="service.config.source.database.title">Database (SGBDR)</b></p>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <form id="dbSourceSOSForm" name="dbSourceSOSForm">
+                    <fieldset>
+                        <p><i class="glyphicon glyphicon-warning-sign"></i> {{'service.config.source.postgisInfo' |
+                            translate}}</p>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.type">Database type</label>
+                            <div class="col-sm-11">
+                                <select class="form-control col-sm-5"
+                                        style="margin-bottom:10px;"
+                                        ng-model="wsChooseCtrl.guiConfig.className">
+                                    <option value="org.postgresql.Driver">PostgreSQL</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.url">Database URL</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbHost" required
+                                       ng-model="wsChooseCtrl.guiConfig.url"/>
+                            </div>
+                            <div class="btn-lg tooltipicon">
+                                <span class="glyphicon glyphicon-info-sign"
+                                      tooltip data-placement="bottom"
+                                      title="{{'tooltip.service.source.url' | translate }}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.port">Database port</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbPort" required
+                                       ng-model="wsChooseCtrl.guiConfig.port"/>
+                            </div>
+                            <div class="btn-lg tooltipicon">
+                                <span class="glyphicon glyphicon-info-sign"
+                                      tooltip data-placement="bottom"
+                                      title="{{'tooltip.service.create.port' | translate }}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.name">Database name</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbName" required
+                                       ng-model="wsChooseCtrl.guiConfig.name"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.username">User name</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbUserName" required
+                                       ng-model="wsChooseCtrl.guiConfig.user"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.password">Password</label>
+                            <div class="col-sm-11">
+                                <input type="password" class="form-control"
+                                       name="dbUserPassword" required
+                                       ng-model="wsChooseCtrl.guiConfig.password"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.schema">Schema prefix</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbSchema" required
+                                       ng-model="wsChooseCtrl.guiConfig.schema"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox inline">
+                                <input type="checkbox"
+                                       ng-model="wsChooseCtrl.guiConfig.transactional"/>
+                                <span translate="service.config.source.transactional">Transactional</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-11">
+                                <div class="checkbox inline" style="margin-top:0;">
+                                    <input type="checkbox"
+                                           ng-model="wsChooseCtrl.guiConfig.enableDirectory"/>
+                                    <span>{{'service.config.source.database.enableDirectory' | translate}}</span>
+                                </div>
+                            </div>
+                            <div class="btn-lg tooltipicon">
+                                <span class="glyphicon glyphicon-info-sign"
+                                      tooltip data-placement="bottom"
+                                      title="{{'tooltip.service.source.sosFolderHelp' | translate }}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row" ng-if="wsChooseCtrl.guiConfig.enableDirectory">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.file.sml">SensorML folder</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="sosDirectory" required
+                                       ng-model="wsChooseCtrl.guiConfig.dataDirectory"/>
+                            </div>
+                            <div class="btn-lg tooltipicon">
+                                <span class="glyphicon glyphicon-info-sign"
+                                      tooltip data-placement="bottom"
+                                      title="{{'tooltip.service.source.sensormlfolder' | translate }}"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="pull-right" style="margin: 20px 30px;">
+                <button class="btn btn-add" type="button"
+                        ng-click="wsChooseCtrl.saveServiceSource()"
+                        ng-disabled="dbSourceSOSForm.$invalid"
+                        translate="label.save">Save
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="frame dashboard serviceSource" ng-if="wsChooseCtrl.type === 'wfs'">
+        <div class="row bg-white">
+            <div class="frame dashboard">
+                <div class="navbar navbar-default" style="margin-bottom:0;">
+                    <div class="navbar-header">
+                        <a class="navbar-brand">Configuration</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="col-sm-3">
+                <div class="well">
+                    <p><b>WFS-T Option {{"service.config.source.transactional" | translate}}</b></p>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <form id="sourceWFSForm" name="sourceWFSForm">
+                    <fieldset>
+                        <div class="form-group">
+                            <div class="checkbox inline">
+                                <input type="checkbox"
+                                       ng-model="wsChooseCtrl.guiConfig.transactional"/>
+                                <span>{{"service.config.source.transactionalLabel" | translate}}</span>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+        <div class="row bg-white">
+            <div class="pull-right" style="margin: 20px 30px;">
+                <button class="btn btn-add" type="button"
+                        ng-click="wsChooseCtrl.saveServiceSource()"
+                        translate="label.save">Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

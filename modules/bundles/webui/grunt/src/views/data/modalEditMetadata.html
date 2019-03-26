@@ -1,0 +1,28 @@
+<div class="modal-dialog modal-dialog-responsive modal-dialog-resp-height">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="dismiss()">×</button>
+            <h4 class="modal-title" translate="data.information.page.title.edition">Metadata edition</h4>
+        </div>
+        <div class="modal-body" style="height: 575px;overflow-y: auto;">
+            <div ng-if="metadataValues.length>0">
+                <div ng-include="'views/data/metadata_fragment.html'"></div>
+            </div>
+            <div ng-if="contentError" class="row alert alert-danger" style="margin:0;">
+                <span translate="metadata.edition.content.error">Loading content error.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button"
+                    class="btn btn-default"
+                    ng-click="dismiss()"
+                    translate="data.modal.cancel">Cancel</button>
+            <button type="button"
+                    ng-if="metadataValues.length>0"
+                    class="btn {{theme=='data'?'btn-info':theme=='csw'?'btn-csw':theme=='sensor'?'btn-sos':'btn-info'}}"
+                    ng-click="save2()" id="saveMetadataModification">
+                <span translate="metadata.edition.heading.save">Save modifications</span>
+            </button>
+        </div>
+    </div>
+</div>

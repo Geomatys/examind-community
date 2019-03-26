@@ -1,0 +1,88 @@
+<div class="center" ng-show="mdCtrl.load.processing">
+    <div class="alert alert-primary">
+        <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
+        <div class="msg-loading">
+            <span>{{"metadata.editor.loading.wait" | translate}}</span>
+        </div>
+    </div>
+</div>
+
+<div ng-show="!mdCtrl.load.processing" class="tab-pane active">
+        <form id="metadataform" class="form-horizontal" name="metadataform" role="form">
+            <div class="row alert alert-{{mdCtrl.values.theme}}">
+                <div class="col-xs-12 col-sm-8 info-title">
+                    <h4>
+                        <span translate="metadata.edition.heading.title">Metadata title :</span>
+                        <span>{{ mdCtrl.getMetadataTitle() }}</span>
+                    </h4>
+                    <h5>
+                        <span translate="metadata.edition.heading.type">Metadata type :</span>
+                        <span>{{mdCtrl.metadataProfile | translate}}</span>
+                    </h5>
+                    <span class="mandatory-title">{{"metadata.edition.heading.requiredFields" | translate}}</span>
+                </div>
+                <div class="col-xs-12 col-sm-4 info-btn">
+                    <button type="button" ng-if="mdCtrl.save"
+                            class="btn btn-lg btn-info pull-right"
+                            ng-class="{'btn-csw':mdCtrl.values.theme=='success' || mdCtrl.values.theme=='success2'}"
+                            ng-click="mdCtrl.save()">
+                        <i class="fa fa-save"></i>
+                        <span>{{"metadata.edition.heading.save" | translate}}</span>
+                    </button>
+                    <button type="button"
+                            class="btn btn-default pull-right"
+                            ng-click="mdCtrl.checkValidation(metadataform)">
+                        <i class="fa fa-check-square-o"></i>
+                        <span translate="metadata.edition.heading.check.validation">Check validation</span>
+                    </button>
+                </div>
+            </div>
+            <div class="row md-form-content">
+                <div id="editorMetadata" ng-init="mdCtrl.initMetadataEditorEvents()">
+                    <div ng-repeat="rootObj in mdCtrl.values.metadataValues"
+                         ng-include="'views/metadataEditor/metadata_templating.html'">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+<!--Validation modal template-->
+<script type="text/ng-template"  id="validation_popup.html">
+    <div class="modal-dialog" style="width: 400px;margin-top: 90pt;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button"
+                        class="close"
+                        ng-click="$dismiss()"
+                        aria-hidden="true">×</button>
+                <h4 id="modalValidTitle"
+                    class="modal-title">{{"metadata.edition.heading.check.validation" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <div ng-if="metadataform.$valid" class="row" style="margin:0;">
+                    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2"
+                         style="color: #13ac13;font-size: 30pt;">
+                        <i class="fa fa-check-circle"></i>
+                    </div>
+                    <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10" style="margin-top: 8pt;">
+                        <span style="margin: 13pt 5pt;color: #ddd;">{{"metadata.edition.heading.check.validation.passed" | translate}}</span>
+                    </div>
+                </div>
+                <div ng-if="metadataform.$invalid" class="row" style="margin:0;">
+                    <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2"
+                         style="color:#d9534f;font-size: 30pt;">
+                        <i class="fa fa-times-circle"></i>
+                    </div>
+                    <span class="col-xs-9 col-sm-9 col-md-9 col-lg-9"
+                          style="margin: 13pt 5pt;color: #ddd;">{{"metadata.edition.heading.check.validation.notpassed" | translate}}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-click="$dismiss()">Ok</button>
+            </div>
+        </div>
+    </div>
+</script>

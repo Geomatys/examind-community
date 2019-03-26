@@ -1,0 +1,37 @@
+<div class="container">
+    <form class="form-horizontal">
+        <p><label>Description:</label>&nbsp;{{jsonFromsBuildCtrl.formSchema.schema.description}}</p>
+        <div class="form-group-builder col-xs-12 col-sm-6 col-md-6 col-lg-4"
+             ng-repeat="property in jsonFromsBuildCtrl.formSchema.schema.property.properties"
+             ng-if="!jsonFromsBuildCtrl.hideField(property)">
+            <div ng-if="!property.properties || property.properties.length == 0">
+                <label>{{property.id}} {{property.optional ? '' : '(*)'}}</label>
+                <input type="text"
+                       ng-if="property.type == 'CoordinateReferenceSystem'"
+                       typeahead="epsgCode.code as epsgCode.desc for epsgCode in options.epsgCodes | filter:$viewValue | limitTo:8"
+                       class="form-control form-control-fix"
+                       placeholder="{{'layer.listing.data.upload.typeEPSG' | translate}}"
+                       ng-model="property.value"
+                       ng-required="!property.optional"/>
+                <input type="text"
+                       ng-if="property.type != 'CoordinateReferenceSystem'"
+                       class="form-control form-control-fix"
+                       ng-model="property.value"
+                       ng-required="!property.optional"/>
+            </div>
+            <div ng-if="property.properties && property.properties.length > 0">
+                <div class="alert alert-info"><h4>{{property.id}}</h4>
+                    <div class="form-group row" ng-repeat="innerprop in property.properties">
+                        <label class="col-xs-4">{{innerprop.id}} {{innerprop.optional ? '' : '(*)'}}</label>
+                        <div class="col-xs-8">
+                            <input type="text"
+                                   class="form-control form-control-fix"
+                                   ng-model="innerprop.value"
+                                   ng-required="!innerprop.optional"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

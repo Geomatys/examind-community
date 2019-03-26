@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.examind.community</groupId>
+        <artifactId>modules</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.examind.community</groupId>
+    <artifactId>testing</artifactId>
+    <packaging>pom</packaging>
+    <name>Tests</name>
+    <description>
+        Regroup some standard tests on the Examind's OGC webservices.
+    </description>
+
+    <profiles>
+        <profile>
+            <id>all</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>data</module>
+                <module>embedded</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>wfs</id>
+            <modules>
+                <module>data</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <modules/>
+
+</project>

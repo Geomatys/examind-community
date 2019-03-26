@@ -1,0 +1,45 @@
+<!-- Group parameters -->
+<div ng-if="parameter.type === 'group'" class="parameter-group">
+    <label>{{simplifyStr(parameter.name)}} <span ng-show="parameter.mandatory" class="mandatory">(*)</span></label>
+    <p ng-show="parameter.documentation" class="help-block">{{parameter.documentation}}</p>
+    <div style="padding-left:15px;">
+        <div ng-repeat="group in parameter.inputs track by $index" ng-init="occurIdx = $index;" class="group-occurence">
+            <div class="row">
+                
+                <div class="col-sm-11">
+                    <div ng-repeat="parameter in group track by $index"
+                         ng-include="'views/tasks/param_renderer.html'"></div>
+                </div>
+                <div class="col-sm-1">
+                    <button type="button"
+                            ng-if="occurIdx === 0 && parameter.maxOccurs > parameter.inputs.length"
+                            class="pull-right btn btn-default"
+                            ng-click="addGroupOccurrence(parameter);"
+                            title="{{'metadata.edition.occurrence.block.add' | translate}}">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <button type="button"
+                            ng-if="occurIdx !== 0"
+                            ng-click="removeGroupOccurrence(parameter, occurIdx);"
+                            class="pull-right btn btn-default"
+                            title="{{'metadata.edition.occurrence.block.remove' | translate}}">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simple parameters -->
+<div ng-if="parameter.type === 'simple'" class="parameter_simple">
+    <div class="form-group">
+        <label for="{{replaceStr(parameter.id)}}" class="col-sm-3 control-label" style="text-align:left;">
+            {{simplifyStr(parameter.name)}} <span ng-show="parameter.mandatory" class="mandatory">(*)</span>
+        </label>
+        <div ng-show="parameter.maxOccurs==1" process-param-editor="parameter" class="col-sm-9"></div>
+        <div class="clearfix"></div>
+        <p ng-show="parameter.documentation" class="help-block col-sm-12">{{parameter.documentation}}</p>
+    </div>
+</div>
+

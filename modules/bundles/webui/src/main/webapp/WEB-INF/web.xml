@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" metadata-complete="true"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         version="3.0">
+
+    <!-- Remove classpath scanning (from servlet 3.0) in order to speed jetty
+        startup : metadata-complete="true" above + empty absolute ordering below -->
+    <absolute-ordering>
+        <!-- Empty absolute ordering is necessary to completely desactivate classpath
+            scanning -->
+    </absolute-ordering>
+
+    <display-name>examind-webui</display-name>
+
+    <!-- All the Servlets and Filters are configured by this ServletContextListener: -->
+    <listener>
+        <listener-class>org.constellation.admin.conf.WebConfigurer</listener-class>
+    </listener>
+
+    <context-param>
+        <description>Constellation flag to enable import for custom dataset</description>
+        <param-name>cstl.import.custom</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <filter>
+        <filter-name>cors</filter-name>
+        <filter-class>org.constellation.admin.CorsFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>cors</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/500.html</location>
+    </error-page>
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/404.html</location>
+    </error-page>
+
+    <resource-env-ref>
+        <description>Connection to the database needed by Apache SIS.</description>
+        <resource-env-ref-name>jdbc/SpatialMetadata</resource-env-ref-name>
+        <resource-env-ref-type>javax.sql.DataSource</resource-env-ref-type>
+    </resource-env-ref>
+</web-app>

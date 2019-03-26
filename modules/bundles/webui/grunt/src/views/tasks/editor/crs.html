@@ -1,0 +1,14 @@
+<div ng-if="!parameter.isArray">
+    <input id="{{replaceStr(parameter.id)}}"
+           type="text"
+           ng-required="parameter.mandatory"
+           class="form-control"
+           value="{{parameter.default}}"
+           name="{{parameter.name}}"
+           ng-model="parameter.save[$index]"
+           typeahead="crs.code as crs.desc for crs in ec.epsgCodes | filter:{desc:$viewValue} | limitTo:8"
+           placeholder="{{'layer.listing.data.upload.typeEPSG' | translate}}"/>
+</div>
+<picklist ng-if="parameter.isArray" label-field="desc"
+          left-label="'tasks.edit.picklist.selected'|translate" left-model="parameter.save[$index]"
+          right-label="'tasks.edit.picklist.available'|translate" right-model="ec.epsgCodes"></picklist>

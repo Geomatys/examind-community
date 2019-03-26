@@ -1,0 +1,329 @@
+remote-source {
+  .protocol-content {
+    .connection-form-block {
+      background-color: rgba(102, 102, 102, .8);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px -15px;
+    }
+
+    .format-handler {
+      margin: 0 -15px;
+    }
+
+    .dynamic-protocol-block {
+      margin-top: 10px;
+      background-color: rgba(102, 102, 102, .8);
+      padding: 10px;
+      border-radius: 8px;
+      button {
+        margin-right: 15px;
+      }
+      .adv-conf {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 15px;
+
+        label {
+          margin: 0 5px 0 0;
+        }
+
+        i {
+          font-size: 18px;
+          margin-right: 5px;
+        }
+
+        .tgl-adv-config {
+          width: fit-content;
+          display: inline;
+          margin-left: 10px;
+
+          .tgl {
+            display: none;
+
+            // add default box-sizing for this scope
+            &,
+            &:after,
+            &:before,
+            & *,
+            & *:after,
+            & *:before,
+            & + .tgl-btn {
+              box-sizing: border-box;
+              &::selection {
+                background: none;
+              }
+            }
+
+            + .tgl-btn {
+              outline: 0;
+              display: inline-block;
+              width: 4em;
+              height: 2em;
+              position: relative;
+              cursor: pointer;
+              user-select: none;
+              &:after,
+              &:before {
+                position: relative;
+                display: block;
+                content: "";
+                width: 50%;
+                height: 100%;
+              }
+
+              &:after {
+                left: 0;
+              }
+
+              &:before {
+                display: none;
+              }
+            }
+
+            &:checked + .tgl-btn:after {
+              left: 50%;
+            }
+          }
+
+          .tgl-ios {
+            + .tgl-btn {
+              border-radius: 2em;
+              padding: 2px;
+              transition: all .4s ease;
+              border: 1px solid #e8eae9;
+              &:after {
+                border-radius: 2em;
+                background: #fbfbfb;
+                transition: left .3s cubic-bezier(
+                        0.175, 0.885, 0.320, 1.275
+                ),
+                padding .3s ease, margin .3s ease;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, .1),
+                0 4px 0 rgba(0, 0, 0, .08);
+              }
+
+              &:hover:after {
+                will-change: padding;
+              }
+
+              &:active {
+                box-shadow: inset 0 0 0 2em #e8eae9;
+                &:after {
+                  padding-right: .8em;
+                }
+              }
+
+              &.disabled {
+                background-color: #ccc !important;
+                text-shadow: 1px 1px #fff !important;
+                border: 1px solid gray !important;
+              }
+
+            }
+
+            &:checked + .tgl-btn {
+              background: #86d993;
+              &:active {
+                box-shadow: none;
+                &:after {
+                  margin-left: -.8em;
+                }
+              }
+            }
+          }
+        }
+
+        .popover {
+          background-color: rgba(102, 102, 102, .9);
+
+          .arrow {
+            &:after {
+              border-bottom-color: rgba(102, 102, 102, .9) !important;
+              border-top-color: rgba(102, 102, 102, .9) !important;
+            }
+          }
+
+          .popover-title {
+            background-color: rgba(102, 102, 102, .1);
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, .3);
+          }
+
+          .popover-content {
+            background-color: rgba(102, 102, 102, .3);
+            font-size: 13px;
+            text-align: center;
+          }
+
+        }
+      }
+    }
+
+    .json-form-builder-block {
+      background-color: rgba(102, 102, 102, .5);
+      padding: 5px;
+      overflow: hidden;
+      border-radius: 8px;
+      margin-top: 5px;
+
+      .form-block {
+        margin: 0;
+        padding-left: 15px;
+        padding-top: 15px;
+        background-color: rgba(91, 192, 222, .1);
+        border: 1px solid #424242;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+    }
+
+  }
+
+  .remote-flag {
+    display: inline-flex;
+    align-items: center;
+
+    label {
+      margin: 0 5px 0 0;
+    }
+
+    i {
+      font-size: 18px;
+      margin-right: 5px;
+    }
+
+    .tgl-read-remote {
+      width: fit-content;
+      display: inline;
+      margin-left: 10px;
+
+      .tgl {
+        display: none;
+
+        // add default box-sizing for this scope
+        &,
+        &:after,
+        &:before,
+        & *,
+        & *:after,
+        & *:before,
+        & + .tgl-btn {
+          box-sizing: border-box;
+          &::selection {
+            background: none;
+          }
+        }
+
+        + .tgl-btn {
+          outline: 0;
+          display: inline-block;
+          width: 4em;
+          height: 2em;
+          position: relative;
+          cursor: pointer;
+          user-select: none;
+          &:after,
+          &:before {
+            position: relative;
+            display: block;
+            content: "";
+            width: 50%;
+            height: 100%;
+          }
+
+          &:after {
+            left: 0;
+          }
+
+          &:before {
+            display: none;
+          }
+        }
+
+        &:checked + .tgl-btn:after {
+          left: 50%;
+        }
+      }
+
+      .tgl-ios {
+        + .tgl-btn {
+          border-radius: 2em;
+          padding: 2px;
+          transition: all .4s ease;
+          border: 1px solid #e8eae9;
+          &:after {
+            border-radius: 2em;
+            background: #fbfbfb;
+            transition: left .3s cubic-bezier(
+                    0.175, 0.885, 0.320, 1.275
+            ),
+            padding .3s ease, margin .3s ease;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, .1),
+            0 4px 0 rgba(0, 0, 0, .08);
+          }
+
+          &:hover:after {
+            will-change: padding;
+          }
+
+          &:active {
+            box-shadow: inset 0 0 0 2em #e8eae9;
+            &:after {
+              padding-right: .8em;
+            }
+          }
+
+          &.disabled {
+            background-color: #ccc !important;
+            text-shadow: 1px 1px #fff !important;
+            border: 1px solid gray !important;
+          }
+
+        }
+
+        &:checked + .tgl-btn {
+          background: #86d993;
+          &:active {
+            box-shadow: none;
+            &:after {
+              margin-left: -.8em;
+            }
+          }
+        }
+      }
+    }
+
+    .popover {
+      background-color: rgba(102, 102, 102, .9);
+      left: 20.406px !important;
+      top: 23px !important;
+
+      .arrow {
+        margin-left: -40px;
+        &:after {
+          border-bottom-color: rgba(102, 102, 102, .9) !important;
+          border-top-color: rgba(102, 102, 102, .9) !important;
+        }
+      }
+
+      .popover-title {
+        background-color: rgba(102, 102, 102, .1);
+        font-weight: bold;
+        text-align: center;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(0, 0, 0, .3);
+      }
+
+      .popover-content {
+        background-color: rgba(102, 102, 102, .3);
+        font-size: 13px;
+        text-align: center;
+      }
+
+    }
+  }
+
+}

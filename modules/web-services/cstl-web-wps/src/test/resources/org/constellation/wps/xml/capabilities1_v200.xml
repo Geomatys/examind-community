@@ -1,0 +1,520 @@
+<?xml version='1.0'?>
+<wps:Capabilities xmlns:ns14="http://www.opengis.net/wps/1.0.0" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:ns12="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:wps="http://www.opengis.net/wps/2.0" xmlns:ns9="http://www.opengis.net/ows/1.1" xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gco="http://www.isotc211.org/2005/gco" service="WPS" version="2.0.0" updateSequence="1530632141690" xml:lang="en-EN">
+    <ows:ServiceIdentification>
+        <ows:Title>WPS server</ows:Title>
+        <ows:Abstract>WPS server developed by Geomatys for Constellation SDI.</ows:Abstract>
+        <ows:Keywords>
+            <ows:Keyword>WPS</ows:Keyword>
+            <ows:Keyword>Constellation</ows:Keyword>
+            <ows:Keyword>Geomatys</ows:Keyword>
+            <ows:Keyword>geoprocessing</ows:Keyword>
+        </ows:Keywords>
+        <ows:ServiceType>WPS</ows:ServiceType>
+        <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+        <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+        <ows:Fees>NONE</ows:Fees>
+        <ows:AccessConstraints>NONE</ows:AccessConstraints>
+    </ows:ServiceIdentification>
+    <ows:ServiceProvider>
+        <ows:ProviderName>Geomatys</ows:ProviderName>
+        <ows:ServiceContact>
+            <ows:IndividualName>Vincent Heurteaux</ows:IndividualName>
+            <ows:PositionName>dev</ows:PositionName>
+            <ows:ContactInfo>
+                <ows:Phone>
+                    <ows:Voice>04 67 54 87 30</ows:Voice>
+                    <ows:Facsimile>04 67 54 87 00</ows:Facsimile>
+                </ows:Phone>
+                <ows:Address>
+                    <ows:DeliveryPoint>24 rue Pierre Renaudel</ows:DeliveryPoint>
+                    <ows:City>Arles</ows:City>
+                    <ows:AdministrativeArea>PACA</ows:AdministrativeArea>
+                    <ows:PostalCode>13200</ows:PostalCode>
+                    <ows:Country>France</ows:Country>
+                    <ows:ElectronicMailAddress>vincent.heurteaux@geomatys.com</ows:ElectronicMailAddress>
+                </ows:Address>
+            </ows:ContactInfo>
+        </ows:ServiceContact>
+    </ows:ServiceProvider>
+    <ows:OperationsMetadata>
+        <ows:Operation name="GetCapabilities">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://localhost:9090/WS/wps/default?"/>
+                    <ows:Post xlink:href="http://localhost:9090/WS/wps/default?"/>
+                </ows:HTTP>
+            </ows:DCP>
+            <ows:Parameter name="service">
+                <ows:AllowedValues>
+                    <ows:Value>WPS</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+            <ows:Parameter name="Acceptversions">
+                <ows:AllowedValues>
+                    <ows:Value>2.0.0</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+            <ows:Parameter name="AcceptFormats">
+                <ows:AllowedValues>
+                    <ows:Value>text/xml</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+        </ows:Operation>
+        <ows:Operation name="DescribeProcess">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://localhost:9090/WS/wps/default?"/>
+                    <ows:Post xlink:href="http://localhost:9090/WS/wps/default?"/>
+                </ows:HTTP>
+            </ows:DCP>
+            <ows:Parameter name="service">
+                <ows:AllowedValues>
+                    <ows:Value>WPS</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+            <ows:Parameter name="version">
+                <ows:AllowedValues>
+                    <ows:Value>2.0.0</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+        </ows:Operation>
+        <ows:Operation name="Execute">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Post xlink:href="http://localhost:9090/WS/wps/default?"/>
+                </ows:HTTP>
+            </ows:DCP>
+            <ows:Parameter name="service">
+                <ows:AllowedValues>
+                    <ows:Value>WPS</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+            <ows:Parameter name="version">
+                <ows:AllowedValues>
+                    <ows:Value>2.0.0</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+        </ows:Operation>
+        <ows:Operation name="Dismiss">
+            <ows:DCP>
+                <ows:HTTP>
+                    <ows:Get xlink:href="http://localhost:9090/WS/wps/default?"/>
+                    <ows:Post xlink:href="http://localhost:9090/WS/wps/default?"/>
+                </ows:HTTP>
+            </ows:DCP>
+            <ows:Parameter name="service">
+                <ows:AllowedValues>
+                    <ows:Value>WPS</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+            <ows:Parameter name="version">
+                <ows:AllowedValues>
+                    <ows:Value>2.0.0</ows:Value>
+                </ows:AllowedValues>
+            </ows:Parameter>
+        </ows:Operation>
+        <ows:Constraint name="PostEncoding">
+            <ows:AllowedValues>
+                <ows:Value>XML</ows:Value>
+            </ows:AllowedValues>
+        </ows:Constraint>
+    </ows:OperationsMetadata>
+    <ows:Languages>
+        <ows:Language>en-EN</ows:Language>
+        <ows:Language>fr-FR</ows:Language>
+        <ows:Language>en</ows:Language>
+        <ows:Language>fr</ows:Language>
+    </ows:Languages>
+    <wps:Contents>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:min</ows:Title>
+            <ows:Abstract>Return the min double from an array of double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:min</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:computeVolume</ows:Title>
+            <ows:Abstract>Create a pyramid / mosaic from the givencoverage. Created tiles are stored in the given Coverage store.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Groovy:condition</ows:Title>
+            <ows:Abstract>Evaluate expression given in parameter w</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:power</ows:Title>
+            <ows:Abstract>Return first double raised to the power of the second (first^second).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:power</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:touches</ows:Title>
+            <ows:Abstract>Returns true if this geometry(geom1) touches the specified geometry(geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:touches</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:union</ows:Title>
+            <ows:Abstract>Computes a union Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:union</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:max</ows:Title>
+            <ows:Abstract>Return the max double from an array of double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:max</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersectionSurface</ows:Title>
+            <ows:Abstract>Computes an intersection Geometry between the source geometry (geom1) and the other (geom2), and calculates the intersection surface.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersectionSurface</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:maxlimit</ows:Title>
+            <ows:Abstract>Limit a FeatureCollection returns to a maximum</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:maxlimit</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Image:reformat</ows:Title>
+            <ows:Abstract>Change the sample type of a image.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::image:reformat</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:startoffset</ows:Title>
+            <ows:Abstract>Start FeatureCollection iteration at given offset</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:startoffset</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:median</ows:Title>
+            <ows:Abstract>Return the median of an array of double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:median</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : String:concat</ows:Title>
+            <ows:Abstract>Concatenate a string with a sufix and/or a prefix.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::string:concat</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:difference</ows:Title>
+            <ows:Abstract>Return the result FeatureCollection of Difference process</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:difference</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:acos</ows:Title>
+            <ows:Abstract>Return arc cosinus of a double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:acos</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clipGeometry</ows:Title>
+            <ows:Abstract>Clip a FeatureCollection with a geometry and return a resulting FeatureCollection</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:clipGeometry</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:covers</ows:Title>
+            <ows:Abstract>Returns true if this geometry source (geom1) covers the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:covers</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:equals2d</ows:Title>
+            <ows:Abstract>Return true if source geometry (geom1) is equals to the other geometry (geom2) .</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:equals2d</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:log</ows:Title>
+            <ows:Abstract>Return the natural logarithm of a double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:log</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:difference</ows:Title>
+            <ows:Abstract>Computes a difference Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:difference</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Io:delete</ows:Title>
+            <ows:Abstract>Delete the inputed file or folder.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::io:delete</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:sum</ows:Title>
+            <ows:Abstract>Return the sum of an array of double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:sum</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Io:createTempFolder</ows:Title>
+            <ows:Abstract>Create a temporary folder.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::io:createTempFolder</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:crosses</ows:Title>
+            <ows:Abstract> Returns true if this geometry source (geom1) crosses the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:crosses</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:convexhull</ows:Title>
+            <ows:Abstract>Return the convex hull based on FeatureCollection geometries</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:convexhull</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:atan</ows:Title>
+            <ows:Abstract>Return arc tangent of a double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:atan</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:nearest</ows:Title>
+            <ows:Abstract>Return the nearest Feature(s) in a FeatureCollection with the inputGeometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:nearest</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:envelope</ows:Title>
+            <ows:Abstract>Returns this Geometry bounding box.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:envelope</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Image:bandselect</ows:Title>
+            <ows:Abstract>Select bands in a image.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::image:bandselect</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:sortby</ows:Title>
+            <ows:Abstract>Sort a FeatureCollection</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:sortby</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:centroid</ows:Title>
+            <ows:Abstract>Return the centroid point of an input JTS geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:centroid</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:isEmpty</ows:Title>
+            <ows:Abstract>Returns true if this geometry source is an empty geometry.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:isEmpty</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:within</ows:Title>
+            <ows:Abstract>Returns true if this geometry source (geom1) is within the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:within</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:divide</ows:Title>
+            <ows:Abstract>Divide two double (first/second).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:divide</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:convexHull</ows:Title>
+            <ows:Abstract>Return the convex hull geometry of the specified geometry.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:convexHull</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:multiply</ows:Title>
+            <ows:Abstract>Multiply two double .</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:multiply</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:reproject</ows:Title>
+            <ows:Abstract>Return a FeatureCollection re-project into the target CRS</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:reproject</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:lenght</ows:Title>
+            <ows:Abstract>Returns the length of this Geometry.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:lenght</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:centroid</ows:Title>
+            <ows:Abstract>Return Feature centroid of all Feature in FeatureCollection</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:centroid</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>
+            <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:buffer</ows:Title>
+            <ows:Abstract>Apply buffer function to a FeatureCollection geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:boundary</ows:Title>
+            <ows:Abstract>Return boundarty geometry of an input JTS geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:sin</ows:Title>
+            <ows:Abstract>Returns the trigonometric sine of an angle in double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:sin</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:avg</ows:Title>
+            <ows:Abstract>Return the average value of an array of double</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:avg</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:union</ows:Title>
+            <ows:Abstract>Return the result FeatureCollection of Union process</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:union</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:asin</ows:Title>
+            <ows:Abstract>Return arc sinus of a double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:asin</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:floor</ows:Title>
+            <ows:Abstract>Returns the nearest lower or equals integer (in double) to the argument double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:floor</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:merge</ows:Title>
+            <ows:Abstract>Merge many FeatureCollection in one. The fist FeatureCollection found in the input Collection have his FeatureType preserved. The others will be adapted to this one.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:merge</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:retype</ows:Title>
+            <ows:Abstract>Limit a FeatureCollection returns to a maximum</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:retype</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:coveredBy</ows:Title>
+            <ows:Abstract>Returns true if this geometry source (geom1) is covered by the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:coveredBy</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:isoline</ows:Title>
+            <ows:Abstract>Create an isoline FeatureCollection from a GridCoverage and an array of intervals.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:regroup</ows:Title>
+            <ows:Abstract>Return a Featrue Collection generated by the Regroup processEach different value of the given attribute name return a Feature.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:regroup</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:douglasPeucker</ows:Title>
+            <ows:Abstract>Simplify a FeatureCollection geometry with Douglas Pucker algorithm</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersects</ows:Title>
+            <ows:Abstract>Returns true if this geometry source (geom1) intersects the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Io:createTempFile</ows:Title>
+            <ows:Abstract>Create a temporary file.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::io:createTempFile</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:ceil</ows:Title>
+            <ows:Abstract>Returns the nearest upper or equals integer (in double) to the argument double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:ceil</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:round</ows:Title>
+            <ows:Abstract>Returns the closest long to the argument. The result is rounded to an integer by adding 1/2, taking the floor of the result, and casting the result to type long.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:round</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:contain</ows:Title>
+            <ows:Abstract>Return true if source geometry (geom1) contains the specified geometry(geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:contain</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:substract</ows:Title>
+            <ows:Abstract>Substract two double (first - second).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:substract</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:spatialjoin</ows:Title>
+            <ows:Abstract>Return the target FeatureCollection with source FeatureCollection attributes.The link between target and source depend of method used (Intersect or Nearest)</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:spatialjoin</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clip</ows:Title>
+            <ows:Abstract>Return the result FeatureCollection of clipping</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:clip</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersection</ows:Title>
+            <ows:Abstract>Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:absolute</ows:Title>
+            <ows:Abstract>Return the absolute value of a double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:absolute</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:overlaps</ows:Title>
+            <ows:Abstract>Returns true if this geometry (geom1) overlaps the specified geometry (geom2).</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:overlaps</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:intersect</ows:Title>
+            <ows:Abstract>Return all Feature witch intersect the input geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:intersect</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:add</ows:Title>
+            <ows:Abstract>Adds two double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:add</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:tan</ows:Title>
+            <ows:Abstract>Returns the trigonometric tangent of an angle in double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:tan</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:toRadian</ows:Title>
+            <ows:Abstract>Converts an angle measured in degrees to an approximately equivalent angle measured in radians.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:toRadian</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:area</ows:Title>
+            <ows:Abstract>Return the area of a JTS geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:area</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:filter</ows:Title>
+            <ows:Abstract>Apply a filter to a FeatureCollection</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:filter</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:CoverageToVector</ows:Title>
+            <ows:Abstract>Transform a coverage in features by agregating pixels as geometries when they are in the same range.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:CoverageToVector</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Jts:buffer</ows:Title>
+            <ows:Abstract>Apply JTS buffer to a geometry.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::jts:buffer</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:atan2</ows:Title>
+            <ows:Abstract>Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta). This method computes the phase theta by computing an arc tangent of y/x in the range of -pi to pi..</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:atan2</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:toDegree</ows:Title>
+            <ows:Abstract>Converts an angle measured in radians to an approximately equivalent angle measured in degrees.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:toDegree</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Math:cos</ows:Title>
+            <ows:Abstract>Returns the trigonometric cosinus of an angle in double.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:cos</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Referencing:createdb</ows:Title>
+            <ows:Abstract>Create an epsg database.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::referencing:createdb</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:intersection</ows:Title>
+            <ows:Abstract>Return a new FeatureCollection where each Feature is create from an intersection Geometry</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:intersection</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:affinetransform</ows:Title>
+            <ows:Abstract>Apply an affine transformation in Features geometries</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:affinetransform</ows:Identifier>
+        </wps:ProcessSummary>
+    </wps:Contents>
+</wps:Capabilities>

@@ -1,0 +1,12 @@
+
+<div style="position: relative;" class="thesaurus-autocomplete">
+    <input type="text"
+           class="form-control form-control-fix"
+           ng-model="fieldObj.field.value"
+           placeholder="{{fieldObj.field.name | translate}}"
+           typeahead="item for item in resolveThesaurusKeywords($viewValue) | filter:$viewValue | limitTo:6"
+           typeahead-loading="loadingThesaurus"/>
+    <i ng-show="loadingThesaurus"
+       style="position: absolute;top: 10px;right: 4px;"
+       class="glyphicon glyphicon-refresh"></i>
+</div>

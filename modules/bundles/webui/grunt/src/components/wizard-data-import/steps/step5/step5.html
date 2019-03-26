@@ -1,0 +1,43 @@
+<div class="step5 col-sm-12">
+    <div class="data-layers-pagination" ng-if="step5WizCtrl.dataLayersPagination.show">
+        <button class="btn btn-primary back"
+                ng-if="!step5WizCtrl.batchMode"
+                ng-disabled="!step5WizCtrl.canGoToPreviousDataLayer()"
+                ng-click="step5WizCtrl.goToPreviousDataLayer()">
+            <i class="fa fa-caret-left"></i>
+        </button>
+        <span class="label label-primary" ng-if="!step5WizCtrl.batchMode">
+           {{'wiz.data.import.step5.label.layer' | translate}}&nbsp;{{step5WizCtrl.dataLayersPagination.current}}/{{step5WizCtrl.dataLayersPagination.total}}&nbsp;:&nbsp;{{step5WizCtrl.selectedDataRef.dataLayer.name}}
+        </span>
+        <button class="btn btn-primary next"
+                ng-if="!step5WizCtrl.batchMode"
+                ng-disabled="!step5WizCtrl.canGoToNextDataLayer()"
+                ng-click="step5WizCtrl.goToNextDataLayer()">
+            <i class="fa fa-caret-right"></i>
+        </button>
+        <div class="pull-right tgl-container">
+            <table>
+                <tr>
+                    <td><label>{{'wiz.data.import.step5.label.one.by.one' | translate}}</label></td>
+                    <td>
+                        <input class="tgl tgl-ios" id="styleBatchMode" ng-model="step5WizCtrl.batchMode" type="checkbox"/>
+                        <label class="tgl-btn" for="styleBatchMode"></label>
+                    </td>
+                    <td><label>{{'wiz.data.import.step5.label.batch' | translate}}</label></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <style-editor selected-data-ref="step5WizCtrl.selectedDataRef"
+                  style-editor-output="step5WizCtrl.returnStyleEditor"
+                  associate-style-to-data-layer="step5WizCtrl.associateStyleToDataLayer"
+                  disable-associate-btn="step5WizCtrl.disableAssociateBtn">
+    </style-editor>
+</div>
+
+
+
+
+
+

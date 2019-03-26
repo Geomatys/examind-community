@@ -1,0 +1,87 @@
+<div>
+    <div class="map-block">
+        <div class="ol-container"></div>
+        <div class="backdrop" ng-show="$ctrl.error === null && $ctrl.isLoading">
+            <img src="img/Spinner-1s-100px.gif"/>
+        </div>
+        <div class="backdrop error" ng-show="$ctrl.error !== null">
+            <span>{{ $ctrl.error.msg | translate }}</span>
+        </div>
+    </div>
+    <div class="filters">
+        <div class="dimensions {{name}}" ng-repeat="(name,range) in $ctrl.stats">
+            <span class="label">{{ name }}</span>
+            <rzslider rz-slider-model="range.filters.min" rz-slider-high="range.filters.max" rz-slider-options="{
+                    floor: range.min,
+                    ceil: range.max,
+                    translate: $ctrl.translate[range.type],
+                    onChange: $ctrl.filterChange
+                }"></rzslider>
+        </div>
+    </div>
+    <div class="item {{data.type | lowercase}}" ng-repeat="data in $ctrl.filtered"
+             ng-click="$ctrl.select(data)"
+             ng-mouseenter="$ctrl.hover = data"
+             ng-mouseleave="$ctrl.hover = null"
+             ng-class="{'selected': $ctrl.selected === data, 'hover' : $ctrl.hover === data}">
+        <div class="top">
+            <span class="item-title" title="{{data.name}}" ng-bind="data.name"></span>
+            <span class="text-right item-list-style" ng-bind="data.type"></span>
+            <span class="coverage-type-nd item-list-style"
+                  ng-if="data.type === 'COVERAGE' && data.subtype=='multiDimensions'"
+                  style="color:#30718c;">nD </span>
+            <img class="pull-right vector-symbol"
+                 ng-if="data.type === 'VECTOR' && (data.subtype=='Point' || data.subtype=='MultiPoint')"
+                 style="margin-top:6px; margin-right:10px;"
+                 ng-src="{{$ctrl.selected === data ? 'img/vector-multipoint-selected.svg' : 'img/vector-multipoint.svg'}}"/>
+            <img class="pull-right vector-symbol" ng-if="data.type === 'VECTOR' && data.subtype=='Geometry'"
+                 style="margin-top:6px; margin-right:10px; width:22px;"
+                 ng-src="{{$ctrl.selected === data ? 'img/vector-multigeometry-selected.svg' : 'img/vector-multigeometry.svg'}}"/>
+            <img class="pull-right vector-symbol"
+                 ng-if="data.type === 'VECTOR' && (data.subtype=='Polygon' || data.subtype=='MultiPolygon')"
+                 style="margin-top:6px; margin-right:10px;"
+                 ng-src="{{$ctrl.selected === data ? 'img/vector-poly-selected.svg' : 'img/vector-poly.svg'}}"/>
+            <img class="pull-right vector-symbol"
+                 ng-if="data.type === 'VECTOR' && (data.subtype=='LineString' || data.subtype=='MultiLineString')"
+                 style="margin-top:6px; margin-right:10px;"
+                 ng-src="{{$ctrl.selected === data ? 'img/vector-polyline-selected.svg' : 'img/vector-polyline.svg'}}"/>
+        </div>
+        <div class="bottom">
+            <!--<div ng-class="{'hidden': !smallDisplay}">-->
+                <!--<div class="block tooltipicon" style="margin-top:0;text-shadow: none;">-->
+                    <!--<i class="fa fa-calendar" title="{{data.date | date:'yyyy-MM-dd'}}" tooltip-->
+                       <!--data-placement="top"></i>-->
+                <!--</div>-->
+                <!--<div class="block tooltipicon" style="margin-top:0;text-shadow: none;">-->
+                    <!--<i class="fa fa-user" title="{{data.owner || ('unknown'|translate)}}" tooltip-->
+                       <!--data-placement="top"></i>-->
+                <!--</div>-->
+            <!--</div>-->
+            <div>
+                <div class="block">
+                    <i class="fa fa-calendar"></i>{{data.date | date:'yyyy-MM-dd'}}
+                </div>
+                <div class="block">
+                    <i class="fa fa-user"></i>{{data.owner || ('unknown'|translate)}}
+                </div>
+            </div>
+            <img class="pull-right" src="img/icon-sensor-non-active.svg" style="margin-top:6px; margin-right:10px;"
+                 ng-if="data.sensorable && data.targetSensor.length === 0"/>
+            <div class="pull-right" style="text-shadow:none;" ng-if="data.targetSensor.length > 0">
+                <a href="#/sensors" tooltip-html-unsafe="{{'data.listing.selected.goto.sensor' | translate}}"
+                   tooltip-placement="top">
+                    <img src="img/icon-sensor-active.svg" style="margin-top:0; margin-right:10px;"/>
+                </a>
+                <span ng-class="{'blanc': $ctrl.selected === data, 'hide': smallDisplay}"
+                      class="text-right item-list-style" style="margin-right:10px; font-weight:bold;"
+                      translate="sensor.observation">Sensor observation</span>
+            </div>
+            <div ng-if="data.pyramidConformProviderId" class="pull-right"
+                 style="margin-top:6px; margin-right:10px;text-shadow:none;">
+                <img src="img/icon-pyramid.svg" class="pull-right"
+                     tooltip-html-unsafe="{{'data.listing.selected.raster.pyramid' | translate}}"
+                     tooltip-placement="top"/>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+<div class="step1">
+    <div class="row step1-block">
+        <div class="col-xs-12 col-md-3 sources-menu-block">
+            <div class="data-sources-list">
+                <a class="list-group-item"
+                   ng-class="{'active':step1WizCtrl.isSelectedSource(source.name)}"
+                   ng-repeat="source in step1WizCtrl.dataSources"
+                   ng-click="step1WizCtrl.selectSource(source.name)">
+                    <i ng-show="source.name === 'url'" class="fa fa-cloud"></i>
+                    <i ng-show="source.name === 'files'" class="fa fa-files-o"></i>
+                    <i ng-show="source.name === 'database'" class="fa fa-database"></i>
+                    <span>{{source.translateKey | translate}}</span>
+                    <i class="fa fa-chevron-right pull-right" ng-if="step1WizCtrl.isSelectedSource(source.name)"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-9 sources-menu-block">
+            <div ng-if="!step1WizCtrl.wizardValues.step1.dataSourceType" class="step1-source-content intro-msg-block">
+                <div class="center intro-msg">
+                    <div>
+                        <p class="step_desc">
+                            <span class="glyphicon glyphicon-info-sign"></span>
+                            {{'wiz.data.import.step1.msg.about1' |translate}}
+                            {{'wiz.data.import.step1.msg.about2' |translate}}
+                            {{'wiz.data.import.step1.msg.about3' |translate}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="step1WizCtrl.isSelectedSource('files')" ng-init="step1WizCtrl.initLocalFiles()" class="step1-source-content">
+                <files-source processing="step1WizCtrl.processing"
+                              stores="step1WizCtrl.stores"
+                              form-schema="step1WizCtrl.formSchema"
+                              adv-config="step1WizCtrl.advConfig"
+                              file-list-ref="step1WizCtrl.fileListRef"
+                              file-explorer-state="step1WizCtrl.fileExplorerState"
+                              get-data-source-id="step1WizCtrl.getDataSourceId"
+                              set-data-source="step1WizCtrl.setDataSource"
+                              set-data-source-id="step1WizCtrl.setDataSourceId"
+                              get-file-list="step1WizCtrl.getFileList"
+                              get-stores="step1WizCtrl.getStores"
+                              select-store="step1WizCtrl.selectStore"
+                              select-all="step1WizCtrl.selectAllFilesBelongsFormat"
+                              can-show-provider-config-properties="step1WizCtrl.canShowProviderConfigProperties"
+                              show-advanced-config-block="step1WizCtrl.showAdvancedConfigBlock"
+                              hide-field="step1WizCtrl.hideField"
+                              up-dir="step1WizCtrl.upDir"
+                              remove-files-from-data-source="step1WizCtrl.removeFilesFromDataSource"
+                              open-dir="step1WizCtrl.openDir"
+                              disable-up-dir="step1WizCtrl.disableUpDir"
+                              is-disabled-file="step1WizCtrl.isDisabledFile">
+                </files-source>
+            </div>
+            <div ng-if="step1WizCtrl.isSelectedSource('database')" ng-init="step1WizCtrl.initDBForm()" class="step1-source-content">
+                <db-source db="step1WizCtrl.db"
+                           form-schema="step1WizCtrl.formSchema"
+                           adv-config="step1WizCtrl.advConfig"
+                           create-data-source="step1WizCtrl.createDataSource"
+                           auto-fill-fields="step1WizCtrl.autoFillFields"
+                           can-show-provider-config-properties="step1WizCtrl.canShowProviderConfigProperties"
+                           show-advanced-config-block="step1WizCtrl.showAdvancedConfigBlock"
+                           hide-field="step1WizCtrl.hideField">
+                </db-source>
+            </div>
+            <div ng-if="step1WizCtrl.isSelectedSource('url')" ng-init="step1WizCtrl.initRemote()" class="step1-source-content">
+                <remote-source remote="step1WizCtrl.remote"
+                               processing="step1WizCtrl.processing"
+                               stores="step1WizCtrl.stores"
+                               form-schema="step1WizCtrl.formSchema"
+                               adv-config="step1WizCtrl.advConfig"
+                               file-list-ref="step1WizCtrl.fileListRef"
+                               file-explorer-state="step1WizCtrl.fileExplorerState"
+                               create-data-source="step1WizCtrl.createDataSource"
+                               get-data-source-id="step1WizCtrl.getDataSourceId"
+                               get-file-list="step1WizCtrl.getFileList"
+                               set-data-source-id="step1WizCtrl.setDataSourceId"
+                               set-data-source="step1WizCtrl.setDataSource"
+                               select-store="step1WizCtrl.selectStore"
+                               can-show-provider-config-properties="step1WizCtrl.canShowProviderConfigProperties"
+                               show-advanced-config-block="step1WizCtrl.showAdvancedConfigBlock"
+                               select-all="step1WizCtrl.selectAllFilesBelongsFormat"
+                               hide-field="step1WizCtrl.hideField"
+                               up-dir="step1WizCtrl.upDir"
+                               open-dir="step1WizCtrl.openDir"
+                               disable-up-dir="step1WizCtrl.disableUpDir"
+                               is-disabled-file="step1WizCtrl.isDisabledFile"
+                               get-data-source="step1WizCtrl.getDataSource"
+                               delete-data-source="step1WizCtrl.deleteDataSource"
+                               get-stores="step1WizCtrl.getStores">
+                </remote-source>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+

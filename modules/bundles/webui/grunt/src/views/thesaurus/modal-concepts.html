@@ -1,0 +1,47 @@
+<div id="thesaurusConcepts" class="modal-dialog modal-dialog-responsive">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="$close()">×</button>
+            <h4 class="modal-title" translate="thesaurus.title.thesaurus_concepts">Thesaurus concepts</h4>
+        </div>
+        <div class="modal-body">
+
+            <!-- Breadcrumb & Lang -->
+            <div class="row">
+                <div class="col-xs-9">
+                    <ol class="breadcrumb">
+                        <li ng-class="{active:mc.viewName==='navigation'}">
+                            <a ng-show="mc.viewName!=='navigation'" type="button" ng-click="mc.edit.cancel()" translate="thesaurus.link.concept_nav"></a>
+                            <span ng-show="mc.viewName==='navigation'" translate="thesaurus.link.concept_nav">Navigation</span>
+                        </li>
+                        <li ng-class="{active:mc.viewName==='edition'}" ng-show="mc.viewName!=='navigation'">
+                            <a ng-show="mc.viewName!=='edition'" type="button" ng-click="mc.select.cancel()" translate="thesaurus.link.concept_edit"></a>
+                            <span ng-show="mc.viewName==='edition'" translate="thesaurus.link.concept_edit"></span>
+                        </li>
+                        <li ng-class="{active:mc.viewName==='selection'}" ng-show="mc.viewName==='selection'">
+                            <span translate="thesaurus.link.concept_select"></span>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-xs-3">
+                    <div class="lang">
+                        <label for="lang" translate="thesaurus.label.lang"></label>
+                        <select id="lang" class="form-control" ng-model="mc.lang" ng-options="l as l for l in mc.langs"></select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div id="conceptNavigation" ng-show="mc.viewName==='navigation'" ng-include="'views/thesaurus/modal-concepts-nav.html'"></div>
+
+            <!-- Edition -->
+            <div id="conceptEdition" ng-if="mc.viewName==='edition'" ng-include="'views/thesaurus/modal-concepts-edit.html'"></div>
+
+            <!-- Selection -->
+            <div id="conceptSelection" ng-if="mc.viewName==='selection'" ng-include="'views/thesaurus/modal-concepts-select.html'"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="closeButton" class="btn btn-default" ng-click="$close()" translate="thesaurus.btn.close">Close</button>
+        </div>
+    </div>
+</div>

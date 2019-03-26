@@ -1,0 +1,127 @@
+<?xml version='1.0'?>
+<wps:ProcessDescriptions xmlns:mml="http://www.w3.org/1998/Math/MathML"
+                         xmlns:ns12="http://www.opengis.net/gml"
+                         xmlns:xlink="http://www.w3.org/1999/xlink"
+                         xmlns:ns10="http://www.opengis.net/ows/1.1"
+                         xmlns:wps="http://www.opengis.net/wps/1.0.0"
+                         xmlns:ows="http://www.opengis.net/ows/1.1"
+                         xmlns:gml="http://www.opengis.net/gml/3.2"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"
+                         xmlns:gco="http://www.isotc211.org/2005/gco" service="WPS" version="1.0.0" xml:lang="en-EN">
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns10:Identifier>urn:exa:wps:geotoolkit::jts:intersects</ns10:Identifier>
+        <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersects</ows:Title>
+        <ows:Abstract xml:lang="en-EN">Returns true if this geometry source (geom1) intersects the specified geometry (geom2).</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns10:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom1</ns10:Identifier>
+                <ows:Title xml:lang="en-EN">Geom1</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Geometry JTS source</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns10:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom2</ns10:Identifier>
+                <ows:Title xml:lang="en-EN">Geom2</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Geometry JTS</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns10:Identifier>urn:exa:wps:geotoolkit::jts:intersects:output:result</ns10:Identifier>
+                <ows:Title xml:lang="en-EN">Result</ows:Title>
+                <ows:Abstract xml:lang="en-EN">Intersects result</ows:Abstract>
+                <LiteralOutput>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#boolean">Boolean</ows:DataType>
+                </LiteralOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+</wps:ProcessDescriptions>

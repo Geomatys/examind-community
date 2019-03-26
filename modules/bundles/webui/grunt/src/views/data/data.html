@@ -1,0 +1,381 @@
+<div class="logo-wrapper row" style="margin-bottom: 5px;">
+    <div class="col-md-9">
+        <h3 class="header-title" translate="page.header.title.data">Data Dashboard</h3>
+    </div>
+    <div class="col-md-3">
+        <div class="pull-right">
+            <button class="btn btn-add btn-lg"
+                    ng-click="dc.openAddDataWizard()"
+                    style="margin:8px 0;padding:15px 19px;">
+                <span class="fa fa-plus" style="margin-right:5px;"></span>
+                <span>{{'label.add.data' | translate}}</span>
+            </button>
+        </div>
+
+        <div class="dropdown pull-right" ng-if="dc.showOldImportDataBtn">
+            <a data-toggle="dropdown" class="btn btn-add btn-lg dropdown-toggle" style="margin-top:8px;padding:15px 19px;" id="addDataButton">
+                <span class="fa fa-plus" style="margin-right:5px;"></span>
+                <span translate="label.add.data">Add data</span>
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li ng-repeat="way in dc.addDataWays">
+                    <a id="{{way.idHTML}}" ng-click="way.bindFunction();" translate="{{way.translateKey}}">{{way.defaultTranslateValue}}</a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+<div id="dataDashboard" class="row" ng-controller="DatasetListingController as lc" ng-init="dc.updatePreview()">
+            <div class="col-sm-12">
+                <div class="frame dashboard">
+                    <div class="navbar navbar-default" style="margin-bottom: 0px;">
+                        <div class="navbar-header">
+                            <a class="navbar-brand" translate="dataset.header.information.title">Available dataset</a>
+                        </div>
+                        <div class="collapse navbar-collapse">
+                            <ul class="nav navbar-nav navbar-right">
+                                <li ng-class="{active: !lc.checkFilter('hasVectorData', 'true') && !lc.checkFilter('hasCoverageData', 'true')}" ng-click="lc.setTypeFilter('ALL'); lc.setPage(1);">
+                                    <a translate="label.all">All</a>
+                                </li>
+                                <li ng-class="{active: lc.checkFilter('hasVectorData', 'true')}" ng-click="lc.setTypeFilter('VECTOR'); lc.setPage(1);">
+                                    <a translate="label.vector">Vector</a>
+                                </li>
+                                <li ng-class="{active: lc.checkFilter('hasCoverageData', 'true')}" ng-click="lc.setTypeFilter('COVERAGE'); lc.setPage(1);">
+                                    <a translate="label.raster">Raster</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="navbar sort-navbar" ng-class="{'advanced-open':dataCtrl.advancedDataSearch==true}">
+                        <div class="navbar-inner navbar-inner-serach">
+                            <ul class="nav nav-style">
+                                <li ng-click="lc.sortBy('name'); lc.setPage(1);">
+                                    <a>
+                                        <span translate="label.title">Title</span>
+                                        <i class="fa" ng-class="lc.getOrderIcon('name')"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="lc.sortBy('creation_date'); lc.setPage(1);">
+                                    <a>
+                                        <span translate="label.date">Date</span>
+                                        <i class="fa" ng-class="lc.getOrderIcon('creation_date')"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li ng-click="lc.sortBy('owner_login'); lc.setPage(1);">
+                                    <a>
+                                        <span translate="label.owner">Owner</span>
+                                        <i class="fa" ng-class="lc.getOrderIcon('owner_login')"></i>
+                                    </a>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet" translate="label.published">Published</span>
+                                            <b class="caret"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active': !lc.existFilter('hasLayerData')}" ng-click="lc.removeFilter(lc.query, 'hasLayerData'); lc.setPage(1);" translate="label.all"></a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active': lc.checkFilter('hasLayerData', 'true')}" ng-click="lc.setFilter('hasLayerData', 'true'); lc.setPage(1);" translate="label.yes"></a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active': lc.checkFilter('hasLayerData', 'false')}" ng-click="lc.setFilter('hasLayerData', 'false'); lc.setPage(1);" translate="label.no"></a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                                <li class="dropdown pointer">
+                                    <a class="dropdown-toggle" data-toggle="dropdown">
+                                        <span>
+                                            <span class="hidden-tablet" translate="label.observation">Observation</span>
+                                            <b class="caret"></b>
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a ng-class="{'filter_active': !lc.existFilter('hasSensorData')}" ng-click="lc.removeFilter(lc.query, 'hasSensorData'); lc.setPage(1);" translate="label.all"></a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active': lc.checkFilter('hasSensorData', 'true')}" ng-click="lc.setFilter('hasSensorData', true); lc.setPage(1);" translate="label.yes"></a>
+                                        </li>
+                                        <li>
+                                            <a ng-class="{'filter_active': lc.checkFilter('hasSensorData', 'false')}" ng-click="lc.setFilter('hasSensorData', false); lc.setPage(1);" translate="label.no"></a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="divider-vertical"></li>
+                            </ul>
+                            <button type="button" class="btn btn-xs btn-info btn-data" title="{{'label.search.refresh' | translate }}" ng-click="lc.resetCriteria()">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <form class="pull-right quick-search" ng-submit="lc.setPage(1)">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="{{'label.search'|translate}}" ng-model="lc.query.text"/>
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-info btn-data" ng-disabled="lc.searchStatus === -1" ng-click="lc.setPage(1)">
+                                            <i class="fa fa-search" ng-class="{'fa-search': lc.searchStatus > -1, 'fa-spinner': lc.searchStatus < 0, 'fa-spin': lc.searchStatus < 0}"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="dash-inner row" style="padding-bottom: 10pt;">
+                        <div id="contentList" class="pull-left" style="width: 60%;margin-bottom: 5px;" ng-init="smallDisplay=false">
+                            <div id="list" data-role="list">
+                                <div class="pagination-wrapper pagination-data">
+                                    <strong class="col-md-6">
+                                        <span class="nb-results pull-left">{{lc.page.total}}&nbsp;</span>
+                                        <span class="nb-results" translate="label.count.dataset">available dataset</span>
+                                    </strong>
+                                    <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
+                                        <button type="button" class="pull-right btn btn-xs btn-info btn-data" style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;"
+                                                ng-click="smallDisplay=true" ng-class="{'btn-small-selected':smallDisplay}">
+                                            <img src="img/btn-display-reduced.svg" alt=""/>
+                                        </button>
+                                        <button type="button" class="pull-right btn btn-xs btn-info btn-data" style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;"
+                                                ng-click="smallDisplay=false" ng-class="{'btn-small-selected':!smallDisplay}">
+                                            <img src="img/btn-display-normal.svg" alt=""/>
+                                        </button>
+                                        <p class="pull-right" style="margin-top:12px;" translate="label.display">Display :</p>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-9" style="padding-left:15px; margin-top: 5px;" page-switcher="{page: lc.page.number, size: lc.page.size, count: lc.page.total}" on-select-page="lc.setPage(page)"></div>
+                                        <select class="nb-per-page input-small form-control pull-right col-xs-2" style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                                ng-model="lc.query.size" ng-change="lc.setPage(1)" ng-options="s as s for s in [5,10,20,50,100]"></select>
+                                    </div>
+                                </div>
+                                <div class="item-list" ng-init="selectall=false">
+                                    <div ng-repeat="dataset in lc.page.content" ng-class="{'col-xs-6': smallDisplay}" style="padding-left:0;">
+
+                                        <div class="item dataset-data" ng-if="dc.shouldDisplayDataset(dataset)" ng-click="dc.toggleSelect(dataset)"
+                                             ng-class="{'style-small': smallDisplay, 'selected': dc.isSelected(dataset)}">
+                                            <div class="top">
+                                                <span class="item-title" title="{{dataset.name}}" ng-bind="dataset.name"></span>
+                                                <span class="text-right item-list-style" translate="dataset.label"></span>
+                                            </div>
+                                            <div class="bottom">
+                                                <div ng-class="{'hidden': !smallDisplay}">
+                                                    <div class="block tooltipicon" style="margin-top:0;text-shadow: none;">
+                                                        <i class="fa fa-calendar" title="{{dataset.date | date:'yyyy-MM-dd'}}" tooltip data-placement="top"></i>
+                                                    </div>
+                                                    <div class="block tooltipicon" style="margin-top:0;text-shadow: none;">
+                                                        <i class="fa fa-user" title="{{dataset.owner || ('unknown'|translate)}}" tooltip data-placement="top"></i>
+                                                    </div>
+                                                </div>
+                                                <div ng-class="{'hidden': smallDisplay}">
+                                                    <div class="block">
+                                                        <i class="fa fa-calendar"></i>{{dataset.date | date:'yyyy-MM-dd'}}
+                                                    </div>
+                                                    <div class="block">
+                                                        <i class="fa fa-user"></i>{{dataset.owner || ('unknown'|translate)}}
+                                                    </div>
+                                                </div>
+                                                <div class="block pull-right">
+                                                    <i class="fa fa-paperclip"></i>
+                                                    <span ng-show="dataset.dataCount === 0" translate="md.listing.no.data">No</span>
+                                                    <span ng-show="dataset.dataCount > 0" ng-bind="dataset.dataCount"></span>
+                                                    <span ng-class="{'hide': smallDisplay}" translate="md.listing.data.associated">associated data</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!--TODO change this by map selector directive-->
+                                        <dataset-explorer ng-if="dc.isSelected(dataset)" dataset="dataset" selected="dc.selection.data" on-select="dc.toggleSelect.bind(dc,dataset)"></dataset-explorer>
+                                        <!--<div class="item {{data.type | lowercase}}" ng-repeat="data in dc.getDataToDisplay(dataset)" ng-click="dc.toggleSelect(dataset, data)"-->
+                                             <!--ng-class="{'style-small': smallDisplay, 'selected': dc.isSelected(data), 'child': dc.shouldDisplayDataset(dataset)}">-->
+                                            <!--<div class="top">-->
+                                                <!--<span class="item-title" title="{{data.name}}" ng-bind="data.name"></span>-->
+                                                <!--<span class="text-right item-list-style" ng-bind="data.type"></span>-->
+                                                <!--<span class="coverage-type-nd item-list-style" ng-if="data.type === 'COVERAGE' && data.subtype=='multiDimentions'" style="color:#30718c;">nD </span>-->
+                                                <!--<img class="pull-right vector-symbol" ng-if="data.type === 'VECTOR' && (data.subtype=='Point' || data.subtype=='MultiPoint')" style="margin-top:6px; margin-right:10px;"-->
+                                                     <!--ng-src="{{dc.isSelected(data) ? 'img/vector-multipoint-selected.svg' : 'img/vector-multipoint.svg'}}"/>-->
+                                                <!--<img class="pull-right vector-symbol" ng-if="data.type === 'VECTOR' && data.subtype=='Geometry'" style="margin-top:6px; margin-right:10px; width:22px;"-->
+                                                     <!--ng-src="{{dc.isSelected(data) ? 'img/vector-multigeometry-selected.svg' : 'img/vector-multigeometry.svg'}}"/>-->
+                                                <!--<img class="pull-right vector-symbol" ng-if="data.type === 'VECTOR' && (data.subtype=='Polygon' || data.subtype=='MultiPolygon')" style="margin-top:6px; margin-right:10px;"-->
+                                                     <!--ng-src="{{dc.isSelected(data) ? 'img/vector-poly-selected.svg' : 'img/vector-poly.svg'}}"/>-->
+                                                <!--<img class="pull-right vector-symbol" ng-if="data.type === 'VECTOR' && (data.subtype=='LineString' || data.subtype=='MultiLineString')" style="margin-top:6px; margin-right:10px;"-->
+                                                     <!--ng-src="{{dc.isSelected(data) ? 'img/vector-polyline-selected.svg' : 'img/vector-polyline.svg'}}"/>-->
+                                            <!--</div>-->
+                                            <!--<div class="bottom">-->
+                                                <!--<div ng-class="{'hidden': !smallDisplay}">-->
+                                                    <!--<div class="block tooltipicon" style="margin-top:0;text-shadow: none;">-->
+                                                        <!--<i class="fa fa-calendar" title="{{data.date | date:'yyyy-MM-dd'}}" tooltip data-placement="top"></i>-->
+                                                    <!--</div>-->
+                                                    <!--<div class="block tooltipicon" style="margin-top:0;text-shadow: none;">-->
+                                                        <!--<i class="fa fa-user" title="{{data.owner || ('unknown'|translate)}}" tooltip data-placement="top"></i>-->
+                                                    <!--</div>-->
+                                                <!--</div>-->
+                                                <!--<div ng-class="{'hidden': smallDisplay}">-->
+                                                    <!--<div class="block">-->
+                                                        <!--<i class="fa fa-calendar"></i>{{data.date | date:'yyyy-MM-dd'}}-->
+                                                    <!--</div>-->
+                                                    <!--<div class="block">-->
+                                                        <!--<i class="fa fa-user"></i>{{data.owner || ('unknown'|translate)}}-->
+                                                    <!--</div>-->
+                                                <!--</div>-->
+                                                <!--<img class="pull-right" src="img/icon-sensor-non-active.svg" style="margin-top:6px; margin-right:10px;" ng-if="data.sensorable && data.targetSensor.length === 0"/>-->
+                                                <!--<div class="pull-right" style="text-shadow:none;" ng-if="data.targetSensor.length > 0">-->
+                                                    <!--<a href="#/sensors" tooltip-html-unsafe="{{'data.listing.selected.goto.sensor' | translate}}" tooltip-placement="top">-->
+                                                        <!--<img src="img/icon-sensor-active.svg" style="margin-top:0; margin-right:10px;" />-->
+                                                    <!--</a>-->
+                                                    <!--<span ng-class="{'blanc': dc.isSelected(data), 'hide': smallDisplay}" class="text-right item-list-style" style="margin-right:10px; font-weight:bold;" translate="sensor.observation">Sensor observation</span>-->
+                                                <!--</div>-->
+                                                <!--<div ng-if="data.pyramidProviderIdentifier" class="pull-right" style="margin-top:6px; margin-right:10px;text-shadow:none;">-->
+                                                    <!--<img src="img/icon-pyramid.svg" class="pull-right" tooltip-html-unsafe="{{'data.listing.selected.raster.pyramid' | translate}}" tooltip-placement="top"/>-->
+                                                <!--</div>-->
+                                            <!--</div>-->
+                                        <!--</div>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pull-left" style="width: 40%;">
+                            <div id="block-information-right">
+                                <div class="sous-block-information">
+                                    <preview-map class="data-preview" layer="dc.preview.layer" extent="dc.preview.extent"></preview-map>
+                                    <div>
+                                        <div class="alert alert-info alert-data" ng-if="!dc.selection.dataset">
+                                            <h4 translate="label.no.selected.data">No selected data</h4>
+                                            <p translate="msg.no.selected.data" style="font-weight:normal;">Click on a data to display more information</p>
+                                        </div>
+                                        <div id="selected-item" class="selected-item" ng-if="dc.selection.dataset" ng-init="collapsed=true">
+                                            <div class="block-header" ng-click="collapsed=!collapsed" style="position:relative;">
+                                                <div class="item-title title-bloc"
+                                                     title="{{dc.selection.dataset.name}}"
+                                                     style="text-overflow:ellipsis;overflow: hidden;font-weight:bold;"
+                                                     ng-bind="dc.selection.dataset.name"></div>
+                                                <i class="fa pull-right"
+                                                   style="position:absolute;right: 10px;top: 1px;"
+                                                   ng-class="{'fa-chevron-up':collapsed,'fa-chevron-down':!collapsed}"></i>
+                                            </div>
+                                            <div slide-toggle="collapsed" style="display:none">
+                                                <div class="block-content">
+                                                    <div class="row description-block">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <img src="img/block-content-owner.svg" alt="" />
+                                                        </div>
+                                                        <div class="col-sm-9 col-md-10 description-text">
+                                                            <span ng-bind="dc.selection.dataset.owner"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="block-action" ng-include="'views/data/dataset_actions.html'"></div>
+                                                <div class="block-content" ng-if="dc.selection.data"
+                                                     ng-class="{'block-vector': dc.selection.data.type === 'VECTOR', 'block-raster': dc.selection.data.type === 'COVERAGE'}">
+                                                    <h6 translate="label.title">Title</h6>
+                                                    <span style="word-wrap: break-word;" >{{dc.selection.data.name}}</span>
+                                                    <div class="row description-block">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <img src="img/block-content-date.svg" alt="" />
+                                                        </div>
+                                                        <div class="col-sm-9 col-md-10 description-text">
+                                                            <span>{{dc.selection.data.date | date:'yyyy-MM-dd'}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div ng-if="dc.selection.data">
+                                                <div class="block-action" ng-include="'views/data/data_actions.html'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="dc.selection.data">
+                                        <div class="row block-association" ng-init="assocStyle=false; assocService=false; assocSensor=false">
+                                            <div class="col-sm-12" style="float: left;">
+                                                <div class="block-associated block-associated-style"
+                                                     ng-click="assocStyle=!assocStyle; assocService=false; assocSensor=false">
+                                                    <div class="block-associated-nb" ng-bind="dc.selection.data.targetStyle.length">0</div>
+                                                    <div class="block-associated-title" translate="label.related.style">Associated Styles</div>
+                                                    <span class="fa icon-assoc-style" tooltip-placement="bottom" tooltip-html-unsafe="{{'label.show.style' | translate }}"
+                                                          ng-class="{'selected': assocStyle, 'fa-chevron-circle-up': assocStyle, 'fa-chevron-circle-down': !assocStyle}"></span>
+                                                </div>
+                                                <span class="fa icon-assoc-style fa-plus" tooltip-placement="bottom" tooltip-html-unsafe="{{'label.new.style' | translate }}" style="right: 70px;"
+                                                      ng-click="dc.associateStyle()"></span>
+                                            </div>
+                                        </div>
+                                        <div ng-if="assocStyle" class="col-sm-12 block-assoc" style="float: left;">
+                                            <div id="linkedList" class="block-content">
+                                                <span ng-show="dc.selection.data.targetStyle.length === 0" translate="label.no.association">No association</span>
+                                                <div class="style btn-assoc-item"
+                                                     ng-repeat="style in dc.selection.data.targetStyle" style="margin-bottom:5px;">
+                                                    <button type="button" class="btn btn-small btn-block-assos btn-block-assos-style"
+                                                            ng-click="dc.selectStyle(style)">
+                                                        <i class="glyphicon" ng-class="{'glyphicon-eye-open': dc.selection.style === style, 'glyphicon-eye-close': dc.selection.style !== style}"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-small btn-block-assos btn-block-assos-style"
+                                                            ng-click="dc.editStyle(style)">
+                                                        <i class="glyphicon glyphicon-pencil"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-small btn-block-assos btn-block-assos-style"
+                                                            ng-click="dc.dissociateStyle(style)">
+                                                        <i class="glyphicon glyphicon-trash"></i>
+                                                    </button>
+                                                    <b ng-if="dc.selection.style === style">{{style.name}}</b>
+                                                    <span ng-if="dc.selection.style !== style">{{style.name}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row block-association" ng-init="assocStyle=false; assocService=false; assocSensor=false">
+                                            <div class="col-sm-12" style="float: left;">
+                                                <div class="block-associated block-associated-services"
+                                                     ng-click="assocStyle=false; assocService=!assocService; assocSensor=false">
+                                                    <div class="block-associated-nb" ng-bind="dc.selection.data.targetService.length">0</div>
+                                                    <div class="block-associated-title" translate="label.related.service">Associated Styles</div>
+                                                    <span class="fa icon-assoc-service" tooltip-placement="bottom" tooltip-html-unsafe="{{'label.show.services' | translate }}"
+                                                          ng-class="{'selected': assocService, 'fa-chevron-circle-up': assocService, 'fa-chevron-circle-down': !assocService}"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div ng-if="assocService" class="col-sm-12 block-assoc" style="float: left;">
+                                            <div id="linkedServiceList" class="block-content" >
+                                                <span ng-show="dc.selection.data.targetService.length === 0" translate="label.no.association">No association</span>
+                                                <div class="style btn-assoc-item" ng-repeat="service in dc.selection.data.targetService" style="line-height:30px;">
+                                                    ({{service.type | uppercase}}) {{service.identifier}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row block-association" ng-init="assocStyle=false; assocService=false; assocSensor=false">
+                                            <div class="col-sm-12" style="float: left;">
+                                                <div class="block-associated block-associated-sensor"
+                                                     ng-click="assocStyle=false; assocService=false; assocSensor=!assocSensor">
+                                                    <div class="block-associated-nb" ng-bind="dc.selection.data.targetSensor.length">0</div>
+                                                    <div class="block-associated-title" translate="label.related.sensors">Associated Styles</div>
+                                                    <span class="fa icon-assoc-sensor" tooltip-placement="bottom" tooltip-html-unsafe="{{'label.show.sensor' | translate }}"
+                                                          ng-class="{'selected': assocSensor, 'fa-chevron-circle-up': assocSensor, 'fa-chevron-circle-down': !assocSensor}"></span>
+                                                </div>
+                                                <span class="fa icon-assoc-sensor fa-plus" tooltip-placement="bottom" tooltip-html-unsafe="{{'label.new.sensor' | translate }}" style="right:70px;"
+                                                      ng-click="dc.associateSensor()" ng-show="dc.selection.data.targetSensor.length === 0"></span>
+                                            </div>
+                                        </div>
+                                        <div ng-if="assocSensor" class="col-sm-12 block-assoc" style="float: left;">
+                                            <div id="linkedSensorList" class="block-content" >
+                                                <span ng-show="dc.selection.data.targetSensor.length === 0" translate="label.no.association">No association</span>
+                                                <div class="style btn-assoc-item" ng-repeat="sensor in dc.selection.data.targetSensor" style="margin-bottom:5px;">
+                                                    <button type="button" ng-click="dc.dissociateSensor(sensor)" class="btn btn-small btn-block-assos btn-block-assos-sensor">
+                                                        <i class="glyphicon glyphicon-trash"></i>
+                                                    </button>
+                                                    {{sensor.identifier}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<scroll-top></scroll-top>

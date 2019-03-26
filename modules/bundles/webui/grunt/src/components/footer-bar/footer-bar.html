@@ -1,0 +1,31 @@
+<div id="footer">
+    <div>
+        <ul class="nav navbar-left nav-pills" >
+            <li>
+                <a class="logo-cstl" href="http://www.constellation-sdi.org" target="_blank">
+                    <img class="logo-cstl" src="img/logo-cstl-footer.svg" alt="Constellation-sdi"/>
+                </a>
+            </li>
+            <li><p class="copy">{{footerBarCtrl.buildInfo['cstl.version']}} {{footerBarCtrl.projectName}}</p></li>
+            <li class="invisible"><p class="copy">java version : {{footerBarCtrl.buildInfo['java.version']}}</p></li>
+            <li class="invisible"><p class="copy">commit id : {{footerBarCtrl.buildInfo['git.commit.id']}}</p></li>
+            <li class="invisible"><p class="copy">tags : {{footerBarCtrl.buildInfo['git.tags']}}</p></li>
+            <li class="invisible"><p class="copy">build time : {{footerBarCtrl.buildInfo['git.build.time']}}</p></li>
+            <li class="invisible"><p class="copy">branch : {{footerBarCtrl.buildInfo['git.branch']}}</p></li>
+        </ul>
+    </div>
+    <div>
+        <ul class="nav navbar-right nav-pills" >
+            <li><a href="#/disclaimer" translate="label.disclaimer">About Examind</a></li>
+            <li><p class="pipe">|</p></li>
+            <li><a href="#/help" translate="label.help">Getting started</a></li>
+            <li><p class="pipe">|</p></li>
+            <li><p class="copy">&copy;{{footerBarCtrl.year}}</p></li>
+            <li>
+                <a class="logo-geomatys-a" href="http://www.geomatys.com" target="_blank">
+                    <img class="logo-geomatys" src="img/logo-geomatys-footer.svg" alt="Geomatys"/>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="true" path="/examind">
+    <Resource name = "jdbc/SpatialMetadata"
+              type = "javax.sql.DataSource"
+              auth = "Container"
+              singleton = "true"
+              factory = "org.constellation.database.configuration.EPSGDatabaseIniter$Factory"/>
+</Context>

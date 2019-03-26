@@ -1,0 +1,101 @@
+dataset-explorer {
+  .map-block {
+    position: relative;
+
+    .backdrop {
+      position: absolute;
+      z-index: 2;
+      background-color: rgba(0,0,0,0.8);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+
+      &.error {
+        color: red;
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+    }
+  }
+
+  .item {
+    &.hover {
+
+    }
+  }
+
+  .filters {
+    background-color: rgba(188, 202, 208, 1);
+    border-radius: 4px;
+
+    .dimensions {
+      padding: 5px;
+      box-sizing: border-box;
+
+      .label {
+        display: inline-block;
+        width: 17%;
+        font-size: 1.2em;
+        color: #333333;
+      }
+
+      .rzslider {
+        display: inline-block;
+        width: 83%;
+
+        .rz-bar {
+          background: #ffe4d1;
+          height: 2px;
+        }
+
+        .rz-selection {
+          background: orange;
+        }
+
+        .rz-pointer {
+          width: 8px;
+          height: 16px;
+          top: auto; /* to remove the default positioning */
+          bottom: 0;
+          background-color: #333;
+          border-top-left-radius: 3px;
+          border-top-right-radius: 3px;
+        }
+
+        .rz-pointer:after {
+          display: none;
+        }
+
+        .rz-bubble {
+          bottom: 14px;
+          color: #333333;
+          font-weight: bold;
+        }
+
+        .rz-limit {
+          color: #494949;
+        }
+
+        .rz-tick {
+          width: 1px;
+          height: 10px;
+          margin-left: 4px;
+          border-radius: 0;
+          background: #ffe4d1;
+          top: -1px;
+        }
+
+        .rz-tick.rz-selected {
+          background: orange;
+        }
+      }
+    }
+  }
+}

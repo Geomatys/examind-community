@@ -1,0 +1,70 @@
+<form class="form-horizontal form-style" role="form">
+    <div class="dynamic-range-block">
+        <accordion close-others="false" id="accordion">
+            <accordion-group ng-init="channelOpen=false"
+                             ng-repeat="channel in dynamicRangeCtrl.rasterDynamic.channels"
+                             heading="{{channel.colorSpaceComponent}}"
+                             is-open="channelOpen">
+                    <accordion-heading>
+                         <div>
+                             <i class="pull-left glyphicon"
+                                ng-class="{'glyphicon-chevron-down': channelOpen, 'glyphicon-chevron-right': !channelOpen}"></i>
+                             <span>{{channel.colorSpaceComponent}}</span>
+                         </div>
+                     </accordion-heading>
+                    <div id="{{ channel.colorSpaceComponent }}">
+                        <form name="paletteForm"
+                              class="form_classification form-horizontal form-style"
+                              role="form" novalidate>
+                            <div class="form-group">
+                                <label class="col-xs-5 col-sm-5 col-md-4 control-label">
+                                    {{'style.editor.new.raster.label.band' | translate}}
+                                </label>
+                                <div class="col-xs-7 col-sm-7 col-md-8">
+                                    <select class="form-control form-control-fix"
+                                            ng-if="dynamicRangeCtrl.selectedDataProperties.dataProperties.bands.length>0"
+                                            ng-model="channel.band"
+                                            ng-options="dp.indice as dp.indice for dp in dynamicRangeCtrl.selectedDataProperties.dataProperties.bands">
+                                        <option value=""></option>
+                                    </select>
+                                    <input type="text"
+                                           ng-if="dynamicRangeCtrl.selectedDataProperties.dataProperties.bands.length==0"
+                                           class="form-control form-control-fix"
+                                           ng-model="channel.band"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-xs-12">
+                                    <label class="expression-label">{{'style.editor.new.raster.label.expression' | translate}}</label>
+                                    <i popover-placement="top"
+                                       popover-trigger="mouseenter"
+                                       popover="{{'style.editor.new.raster.msg.expression.help' | translate}}"
+                                       popover-title="{{'style.editor.new.raster.msg.expression.help.title' | translate}}">
+                                             <span class="glyphicon glyphicon-question-sign popover-span"></span>
+                                    </i>
+                                </div>
+                                <div class="col-xs-5 col-sm-5 col-md-4"></div>
+                                <div class="col-xs-7 col-sm-7 col-md-8">
+                                    <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 min-max-block">min
+                                        <input type="text" id="minValue" class="form-control form-control-fix"
+                                               ng-model="channel.lower.value" required/>
+                                    </div>
+                                    <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 col-xs-offset-2 col-sm-offset-2 col-md-offset-2 col-lg-offset-2 min-max-block">max
+                                        <input type="text" id="maxValue"  class="form-control form-control-fix"
+                                               ng-model="channel.upper.value" required/>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+            </accordion-group>
+        </accordion>
+        <div class="form-group">
+            <button type="button"
+                    ng-click="dynamicRangeCtrl.generateDynamicRange();"
+                    class="btn btn-generer btn-primary pull-right">
+                <span>{{'style.editor.new.raster.label.apply' | translate}}</span>
+            </button>
+        </div>
+    </div>
+</form>

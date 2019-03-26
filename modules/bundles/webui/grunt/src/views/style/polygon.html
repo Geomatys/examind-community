@@ -1,0 +1,195 @@
+
+<form class="form-horizontal form-style" role="form">
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="edition.style.label.name">Name</label>
+        <div class="col-sm-8 col-md-9">
+            <input type="text" class="form-control form-control-fix"
+                   ng-model="symbolizer.name"
+                   debounce="200"/>
+        </div>
+    </div>
+    <hr/>
+    <div class="form-group" style="margin-top: 13px;">
+        <label class="col-sm-4 col-md-3 control-label" translate="edition.style.label.fill">Fill color</label>
+        <div class="col-sm-3 col-md-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="affectAlpha(value, symbolizer.fill)"
+                   ng-model="symbolizer.fill.color"/>
+        </div>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-xs-10">
+            <strong style="font-size: 13px;" translate="edition.style.label.stroke">Stroke line</strong>
+        </div>
+    </div>
+    <div class="form-group" style="margin-top: 13px;">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.color">Color</label>
+        <div class="col-sm-3">
+            <input type='text'
+                   name="picker"
+                   class="picker"
+                   spectrum oncolorchanged="affectAlpha(value, symbolizer.stroke)"
+                   ng-model="symbolizer.stroke.color"/>
+        </div>
+    </div>
+    <div class="form-group" ng-init="advPSize=!isExpressionNumber(symbolizer.stroke.width);">
+        <label class="col-xs-4 col-sm-4 col-md-3 col-lg-3 control-label"
+               translate="sldeditor.edition.size">Size</label>
+        <div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+            <div class="col-xs-7 col-sm-7 col-md-8 col-lg-8 div-padding-left-0"
+                 ng-show="isExpressionNumber(symbolizer.stroke.width) && !advPSize">
+                <input class="slider"
+                       type="range"
+                       ng-model="symbolizer.stroke.width"
+                       max="5" min="0" step="0.1"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 div-padding-left-0"
+                 ng-show="isExpressionNumber(symbolizer.stroke.width) && !advPSize">
+                <input class="form-control form-control-fix"
+                       style="padding: 6px 4px;"
+                       type="text"
+                       ng-model="symbolizer.stroke.width"
+                       min="0"
+                       max="5"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"
+                 style="padding: 0;"
+                 ng-show="advPSize || !isExpressionNumber(symbolizer.stroke.width)">
+                <select class="form-control form-control-fix"
+                        ng-model="selectAttrPSize"
+                        ng-change="setAttrToInputWidth(selectAttrPSize,symbolizer.stroke)">
+                    <option ng-repeat="dp in attributesTypeNumber" ng-value="dp.name">{{dp.name}}</option>
+                </select>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
+                 style="padding-left: 5px;padding-right: 5px;"
+                 ng-show="advPSize || !isExpressionNumber(symbolizer.stroke.width)">
+                <input class="form-control form-control-fix"
+                       type="text"
+                       placeholder="attr * 10 / max"
+                       ng-model="symbolizer.stroke.width"
+                       debounce="200"/>
+            </div>
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding: 0;">
+                <button type="button"
+                        class="btn btn-default"
+                        ng-style="advPSize?styleBtnSelected:styleBtnDefault"
+                        ng-click="symbolizer.stroke.width=1;advPSize=!advPSize;"
+                        title="{{'sldeditor.edition.expression.btn.help' | translate }}">
+                    <span class="glyphicon"
+                          ng-class="{'glyphicon-wrench':isExpressionNumber(symbolizer.stroke.width) && !advPSize,'glyphicon-remove':advPSize || !isExpressionNumber(symbolizer.stroke.width)}"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label  class="col-sm-4 col-md-3 control-label">Type</label>
+        <div class="col-sm-8 col-md-9" ng-init="traitType = (symbolizer.stroke && symbolizer.stroke.dashed ? 'pointille' : '');">
+            <select ng-model="traitType"
+                    class="form-control form-control-fix"
+                    ng-change="$parent.addStrokeDashArray(symbolizer,traitType)">
+                <option value="" translate="sldeditor.edition.full">Full</option>
+                <option value="pointille" translate="sldeditor.edition.stipple">Dashed</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="traitType=='pointille'">
+        <div class="pointille">
+            <div>
+                <div class="col-sm-4 col-md-3 col-xs-4">
+                    <label class="pull-right control-label" translate="sldeditor.edition.line">line</label>
+                </div>
+                <div class="col-sm-8 col-md-3 col-xs-8">
+                    <input type="number"
+                           class="form-control form-control-fix"
+                           ng-model="symbolizer.stroke.dashArray[0]"
+                           debounce="200"/>
+                </div>
+                <div class="col-sm-4 col-md-3 col-xs-4">
+                    <label class="pull-right control-label" translate="sldeditor.edition.space">Space</label>
+                </div>
+                <div class="col-sm-8 col-md-3 col-xs-8">
+                    <input type="number"
+                           class="form-control form-control-fix"
+                           ng-model="symbolizer.stroke.dashArray[1]"
+                           debounce="200"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label  class="col-xs-4 col-md-3 control-label" translate="sldeditor.edition.join">Join</label>
+        <div class="btn-group dropup select select-bloc col-xs-8">
+            <button class="btn dropdown-toggle btn-default"
+                    data-toggle="dropdown"
+                    ng-model="symbolizer.stroke.lineJoin">
+                <span class="filter-option pull-left">
+                    <img class="img_icone"
+                         ng-src="img/icone_lineJoin_{{symbolizer.stroke.lineJoin}}.png"/>
+                </span>&nbsp;
+                <span class="caret"></span>
+            </button>
+            <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+            <ul class="dropdown-menu dropdown-inverse dropdown-images"
+                role="menu"
+                style="margin-left: 14px; overflow-y: auto; min-width:60px;">
+                <li ng-click="symbolizer.stroke.lineJoin = 'miter'">
+                    <a><img class="img_icone" src="img/icone_lineJoin_miter.png"/></a>
+                </li>
+                <li ng-click="symbolizer.stroke.lineJoin = 'round'">
+                    <a><img class="img_icone" src="img/icone_lineJoin_round.png"/></a>
+                </li>
+                <li ng-click="symbolizer.stroke.lineJoin = 'bevel'">
+                    <a><img class="img_icone" src="img/icone_lineJoin_bevel.png"/></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="form-group">
+        <label  class="col-xs-4 col-md-3 control-label" translate="sldeditor.edition.cap">Cap</label>
+        <div class="btn-group dropup select select-block col-xs-8">
+            <button class="btn dropdown-toggle btn-default"
+                    data-toggle="dropdown"
+                    ng-model="symbolizer.stroke.lineCap">
+                <span class="filter-option pull-left">
+                    <img class="img_icone"
+                         ng-src="img/icone_lineCap_{{symbolizer.stroke.lineCap}}.png"/>
+                </span>&nbsp;
+                <span class="caret"></span>
+            </button>
+            <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+            <ul class="dropdown-menu dropdown-inverse dropdown-images"
+                role="menu"
+                style="margin-left: 14px; overflow-y: auto; min-width:60px;">
+                <li ng-click="symbolizer.stroke.lineCap = 'square'">
+                    <a><img class="img_icone" src="img/icone_lineCap_square.png"/></a>
+                </li>
+                <li ng-click="symbolizer.stroke.lineCap = 'round'">
+                    <a><img class="img_icone" src="img/icone_lineCap_round.png"/></a>
+                </li>
+                <li ng-click="symbolizer.stroke.lineCap = 'butt'">
+                    <a><img class="img_icone" src="img/icone_lineCap_butt.png"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 col-md-3 control-label" translate="sldeditor.edition.offset">Offset</label>
+        <div class="col-sm-6 col-md-4">
+            <input type="number"
+                   class="form-control form-control-fix"
+                   ng-model="symbolizer.perpendicularOffset"
+                   max="0"
+                   debounce="200"/>
+        </div>
+        <div style="padding-top: 8px;">pixel</div>
+    </div>
+</form>

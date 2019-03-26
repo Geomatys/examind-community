@@ -1,0 +1,102 @@
+<div class="db-title-block center">
+    <label>
+        <span class="glyphicon glyphicon-info-sign"></span>
+        {{'wiz.data.import.step1.msg.database.connection' | translate}}
+    </label>
+</div>
+<form class="form form-db" name="urlForm">
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label" for="dbTypes">
+            {{'wiz.data.import.step1.label.database.type' | translate}}&nbsp;(*)
+        </label>
+        <select id="dbTypes" class="form-control"
+                ng-model="dbCtrl.db.type"
+                ng-change="dbCtrl.selectDbStore()"
+                ng-options="option.value as option.name for option in dbCtrl.databaseTypes track by option.id">
+        </select>
+    </div>
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label">
+            {{'wiz.data.import.step1.label.database.host' | translate}}&nbsp;(*)
+        </label>
+        <span class="tooltipicon pull-right">
+            <span type="button" class="glyphicon glyphicon-info-sign"
+                  tooltip data-placement="bottom"
+                  title="{{'wiz.data.import.step1.label.tooltip.database.url' | translate }}">
+            </span>
+        </span>
+        <input type="text" class="form-control"
+               ng-disabled="dbCtrl.disableDBFields()"
+               ng-model="dbCtrl.db.host"/>
+    </div>
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label">
+            {{'wiz.data.import.step1.label.database.port' | translate}}&nbsp;(*)
+        </label>
+        <span class="tooltipicon pull-right">
+            <span type="button" class="glyphicon glyphicon-info-sign"
+                  tooltip data-placement="bottom"
+                  title="{{'wiz.data.import.step1.label.tooltip.database.port' | translate }}">
+            </span>
+        </span>
+        <input type="number" class="form-control"
+               ng-disabled="dbCtrl.disableDBFields()"
+               ng-model="dbCtrl.db.port"/>
+    </div>
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label">
+            {{'wiz.data.import.step1.label.database.name' | translate}}&nbsp;(*)
+        </label>
+        <input type="text" class="form-control"
+               ng-disabled="dbCtrl.disableDBFields()"
+               ng-model="dbCtrl.db.name"/>
+    </div>
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label">
+            {{'wiz.data.import.step1.label.database.username' | translate}}&nbsp;(*)
+        </label>
+        <input type="text" class="form-control"
+               ng-disabled="dbCtrl.disableDBFields()"
+               ng-model="dbCtrl.db.user"/>
+    </div>
+    <div class="form-group col-xs-12 col-md-6">
+        <label class="control-label">
+            {{'wiz.data.import.step1.label.database.password' | translate}}&nbsp;(*)
+        </label>
+        <input type="password" class="form-control"
+               ng-disabled="dbCtrl.disableDBFields()"
+               ng-model="dbCtrl.db.password"/>
+    </div>
+    <div class="col-xs-12">
+        <button type="button" class="btn btn-success pull-right"
+                ng-disabled="dbCtrl.notFilledFields()"
+                ng-click="dbCtrl.dbConnection();">
+            {{'wiz.data.import.step1.label.connection' | translate}}
+        </button>
+    </div>
+    <div class="adv-conf">
+        <i class="fa fa-cogs" aria-hidden="true"></i>
+        <label>{{'wiz.data.import.step1.label.advanced' | translate}}</label>
+        <i popover-placement="bottom"
+           popover-trigger="mouseenter"
+           popover-title="{{'wiz.data.import.step1.label.advanced.config' | translate}}"
+           popover="{{'wiz.data.import.step1.msg.advanced.config' | translate}}">
+            <span id="questionSign" class="fa fa-question-circle"></span>
+        </i>
+        <pan>&nbsp;:&nbsp;</pan>
+        <div class="tgl-adv-config">
+            <input class="tgl tgl-ios" id="showAdvanced"
+                   ng-model="dbCtrl.advConfig.showAdvConfig"
+                   ng-disabled="!dbCtrl.canShowProviderConfigProperties() || dbCtrl.notFilledFields()"
+                   type="checkbox"/>
+            <label class="tgl-btn" ng-class="{'disabled':!dbCtrl.canShowProviderConfigProperties() || dbCtrl.notFilledFields()}" for="showAdvanced"></label>
+        </div>
+    </div>
+</form>
+<div class="json-form-builder-block" ng-if="dbCtrl.showAdvancedConfigBlock()">
+    <div class="row form-block" ng-if="dbCtrl.formSchema.schema">
+        <json-forms-builder form-schema="dbCtrl.formSchema"
+                            hide-field="dbCtrl.hideField">
+        </json-forms-builder>
+    </div>
+</div>

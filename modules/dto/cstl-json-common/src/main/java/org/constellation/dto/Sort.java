@@ -1,0 +1,57 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2015-2016 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.constellation.dto;
+
+import java.io.Serializable;
+import javax.validation.constraints.NotNull;
+
+/**
+ * @author Fabien Bernard (Geomatys).
+ * @author Mehdi Sidhoum (Geomatys).
+ */
+public class Sort implements Serializable {
+
+    private static final long serialVersionUID = -719011313529595115L;
+
+    public static enum Order { ASC, DESC }
+
+
+    @NotNull
+    private String field;
+
+    @NotNull
+    private Order order;
+
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+}

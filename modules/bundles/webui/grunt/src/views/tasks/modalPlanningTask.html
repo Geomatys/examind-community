@@ -1,0 +1,87 @@
+<div class="modal-dialog modal-dialog-resp-height">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="close()">×</button>
+            <h4 class="modal-title" translate="tasks.information.planning">Plan execution</h4>
+        </div>
+        <div class="modal-body modal-body-style" style="padding-top: 15px; overflow-y: auto;">
+            <!-- WRITE CONTENT HERE -->
+            <form id="formModalPlanTask" role="form">
+                <div class="text-right">
+                    <button type="button" id="razButton" class="btn btn-default" ng-click="reset()"
+                            translate="label.reinitialize"
+                            ng-disabled="plan.triggerType === null">Reset</button>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1">
+                        <input type="radio" name="trigger" ng-model="plan.triggerType" value="{{cronTrigger}}" style="margin-top: 30px"/>
+                    </div>
+                    <div class="col-sm-11">
+                        <div class="row">
+                            <div class="form-group col-sm-5" ng-class="{'has-error':!isValid('inputPlanDate')}">
+                                <label for="inputPlanDate" translate="tasks.plan.label.date">Date</label>
+                                <div class="input-group date"
+                                     datepicker="{language:getCurrentLang(),format:'dd-mm-yyyy'}"
+                                     ng-disabled="triggerType !== 'date'">
+
+                                    <input type="text" id="inputPlanDate" class="form-control" ng-model="plan.date" ng-disabled="plan.triggerType !== cronTrigger"/>
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-sm-3" ng-class="{'has-error':!isValid('inputPlanHour')}">
+                                <label for="inputPlanHour" translate="tasks.plan.label.hour">Hour</label>
+                                <input type="time" id="inputPlanHour" class="form-control" ng-model="plan.time" ng-disabled="plan.triggerType !== cronTrigger"/>
+                            </div>
+
+                            <div class="form-group col-sm-4" ng-class="{'has-error':!isValid('inputPlanMinute')}">
+                                <label for="inputPlanRepeat" translate="tasks.plan.label.repeat">Repeat</label>
+                                <select id="inputPlanRepeat" ng-model="plan.repeat" class="form-control"
+                                        ng-options="(repeat | translate) for repeat in repeatValues" ng-disabled="plan.triggerType !== cronTrigger">
+                                </select>
+                            </div>
+
+                            <div class="form-group col-sm-5" ng-class="{'has-error':!isValid('inputPlanDate')}" ng-show="plan.repeat !== repeatValues[0]">
+                                <label for="inputPlanDateEnd" translate="tasks.plan.label.dateEnd">Date end</label>
+                                <div class="input-group date"
+                                     datepicker="{language:getCurrentLang(),format:'dd-mm-yyyy'}"
+                                     ng-disabled="triggerType !== 'date'">
+
+                                    <input type="text" id="inputPlanDateEnd" class="form-control" ng-model="plan.dateEnd" ng-disabled="plan.triggerType !== cronTrigger"/>
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-sm-3" ng-class="{'has-error':!isValid('inputPlanHour')}"  ng-show="plan.repeat !== repeatValues[0]">
+                                <label for="inputPlanHourEnd" translate="tasks.plan.label.hour">Hour</label>
+                                <input type="time" id="inputPlanHourEnd" class="form-control" ng-model="plan.timeEnd" ng-disabled="plan.triggerType !== cronTrigger"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- disabled until feature is ready
+                <hr>
+                <div class="row">
+                    <div class="col-sm-1">
+                        <input type="radio" name="trigger" ng-model="plan.triggerType" value="{{folderTrigger}}" style="margin-top: 30px"/>
+                    </div>
+                    <div class="col-sm-11">
+                        <div class="form-group" ng-class="{'has-error':!isValid('inputPlanHour')}">
+                            <label for="inputPlanFolder" translate="tasks.plan.label.folder">Folder to watch</label>
+                            <input type="text" id="inputPlanFolder" class="form-control" ng-model="plan.folder" ng-disabled="plan.triggerType !== folderTrigger"/>
+                        </div>
+                    </div>
+                </div>
+                -->
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="cancelButton" class="btn btn-default" ng-click="cancel()" translate="mapcontext.modal.cancel">Cancel</button>
+            <button type="submit" id="submitButton" class="btn btn-primary"  ng-click="validate()" translate="mapcontext.modal.validate">Validate</button>
+        </div>
+    </div>
+</div>

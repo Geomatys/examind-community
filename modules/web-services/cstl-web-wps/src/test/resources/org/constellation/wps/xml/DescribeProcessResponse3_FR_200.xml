@@ -1,0 +1,57 @@
+<?xml version='1.0'?>
+<wps:ProcessOfferings
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:wps="http://www.opengis.net/wps/2.0"
+    xmlns:ows="http://www.opengis.net/ows/2.0"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:isoline</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Créer une FeatureCollection d'isoligne à partir d'un GridCoverage et d'un tableau d'intervales.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title>InCoverage</ows:Title>
+                <ows:Abstract>Grid coverage en entrée.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inCoverage</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title>InIntervals</ows:Title>
+                <ows:Abstract>Tabeau d'intervalles</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inIntervals</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title>OutFeatureCollection</ows:Title>
+                <ows:Abstract>FeatureCollection d'isoligne en sortie.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:output:outFeatureCollection</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+</wps:ProcessOfferings>

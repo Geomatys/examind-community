@@ -1,0 +1,101 @@
+<div class="modal-dialog modal-dialog-edit-task modal-dialog-resp-height">
+    <div class="modal-content modalTaskEdit">
+        <div class="modal-header">
+            <button type="button" class="close" ng-click="close()">×</button>
+            <h4 class="modal-title" ng-if="step.display==='chooseSource'">{{"tasks.modal.step.chooseSourceLabel" | translate}}</h4>
+            <h4 class="modal-title" ng-if="step.display==='selectWPS'">{{"tasks.modal.step.selectWPSLabel" | translate}}</h4>
+            <h4 class="modal-title" ng-if="step.display==='configParameters'">{{"tasks.modal.step.configParametersLabel" | translate}}</h4>
+        </div>
+        <div class="modal-body modal-body-style" style="padding:15pt;overflow-y:auto;">
+            <div ng-if="step.display==='chooseSource'">
+                <div style="margin-left:0;margin-right:0;height:150px;padding-top:22px;">
+                    <div class="col-sm-4 col-sm-offset-2"
+                         style="text-align:center;">
+                        <label class="radio data-type-choose" ng-click="step.display='configParameters';getDescribeProcess()">
+                            <div class="col-sm-12" style="margin-top:5px;padding-left:5px;">
+                                <img src="img/icon/internal.svg"/>
+                            </div>
+                            <div style="margin-top:10px;">{{"tasks.modal.choose.internalProcess" | translate}}</div>
+                        </label>
+                    </div>
+                    <div class="col-sm-4" style="text-align:center;">
+                        <label class="radio data-type-choose" ng-click="step.display='selectWPS';">
+                            <div class="col-sm-12" style="margin-top: 5px;">
+                                <img src="img/icon/external.svg" />
+                            </div>
+                            <div style="margin-top:10px;">WPS</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="step.display==='selectWPS'">
+                <div ng-include="'views/tasks/wps_source.html'"></div>
+            </div>
+            <div ng-if="step.display==='configParameters'">
+                <form id="formModalAddTask" role="form" name="$root.formModalAddTask">
+                    <div class="form-group" ng-class="{'has-error':!isValid('inputTaskName')}">
+                        <label for="inputTaskName" translate="tasks.modal.name">Task name *</label>
+                        <input type="text" required="required" id="inputTaskName" class="form-control" ng-model="task.name" />
+                    </div>
+                    <div class="row" ng-if="selectionWPS.wps">
+                        <div class="col-xs-12">
+                            <div class="form-group">
+                                <label>{{'tasks.modal.processSelection' | translate}}</label>
+                                <select class="form-control form-control-fix"
+                                        ng-model="option.selectedProcess"
+                                        ng-change="onSelectProcess()"
+                                        ng-options="p.id as p.id for p in selectionWPS.wps.processList"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" ng-if="!selectionWPS.wps">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label ng-if="!task.processAuthority || task.processAuthority.indexOf('http')==-1">{{"tasks.modal.authority" | translate}}</label>
+                                <label ng-if="task.processAuthority && task.processAuthority.indexOf('http')==0">{{"tasks.modal.wpsUrl" | translate}}</label>
+                                <p class="form-control-static" ng-if="task.id != null">{{task.processAuthority}}</p>
+                                <select id="selectProcessAuthority" ng-if="task.id == null"
+                                        ng-model="option.authIndex" class="form-control"
+                                        ng-change="processAuthorityChanged()">
+                                    <option ng-repeat="auth in processes track by $index"
+                                            ng-selected="$index==option.authIndex"
+                                            value="{{$index}}">{{auth.auth}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="selectProcessCode" translate="tasks.modal.process">Process</label>
+                                <p class="form-control-static" ng-if="task.id != null">{{task.processCode}}</p>
+                                <select id="selectProcessCode" ng-if="task.id == null"
+                                        ng-model="option.processIndex" class="form-control"
+                                        ng-change="processCodeChanged()">
+                                    <option ng-repeat="process in processes[option.authIndex].processes track by $index"
+                                            ng-selected="$index==option.processIndex" value="{{$index}}">{{process}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="form-separator"/>
+                    <div class="form-horizontal">
+                        <div class="" ng-class="{'has-error':!isValid(parameter.id)}"
+                             ng-repeat="parameter in parameters track by $index"
+                             ng-include="'views/tasks/' + parameter.type + '_renderer.html'"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="cancelButton" class="btn btn-default"
+                    ng-click="cancel()" translate="mapcontext.modal.cancel">Cancel</button>
+            <button type="button" class="btn btn-primary"
+                    ng-if="step.display==='selectWPS'"
+                    ng-disabled="!selectionWPS.wps"
+                    ng-click="nextStep()" translate="label.next">Next</button>
+            <button type="submit" id="submitButton"
+                    ng-if="step.display==='configParameters'"
+                    class="btn btn-primary" ng-class="{disabled:!canManage}"
+                    ng-click="save($root.formModalAddTask)">{{"mapcontext.modal.validate" | translate}}</button>
+        </div>
+    </div>
+</div>

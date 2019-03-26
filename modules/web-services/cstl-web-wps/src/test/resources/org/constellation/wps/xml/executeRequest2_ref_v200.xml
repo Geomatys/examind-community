@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/2.0"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xmlns:ows="http://www.opengis.net/ows/2.0"
+             xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             service="WPS" version="2.0.0" response="document" mode="sync">
+    <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection</ows:Identifier>
+    <wps:Input id="urn:exa:wps:geotoolkit::jts:intersection:input:geom1">
+        <wps:Reference xlink:href="http://localhost:9090/hosted/inputGeom1.xml"/>
+    </wps:Input>
+    <wps:Input id="urn:exa:wps:geotoolkit::jts:intersection:input:geom2">
+        <wps:Reference xlink:href="http://localhost:9090/hosted/inputGeom2.xml"/>
+    </wps:Input>
+    <wps:Output id="urn:exa:wps:geotoolkit::jts:intersection:output:result_geom" transmission="value"/>
+</wps:Execute>
+

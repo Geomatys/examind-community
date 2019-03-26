@@ -1,0 +1,34 @@
+<div class="dataset-editor-header" ng-if="ctrl.config.showHeader">
+    <label>{{'dataset.editor.label.select.dataset' | translate}} </label>
+    <i class="fa fa-cubes" aria-hidden="true"></i>
+    <button class="col-xs-12 col-sm-4 col-md-2 btn btn-primary pull-right"
+            ng-if="ctrl.config.showHeaderBtn"
+            ng-class="{'btn-success': ctrl.isDatasetSelectionMode('existing_dataset')}"
+            ng-click="ctrl.changeDatasetSelectionMode('existing_dataset')">
+        <span>{{'dataset.editor.label.existing.dataset' | translate}}</span>
+    </button>
+    <button class="col-xs-12 col-sm-4 col-md-2 btn btn-primary pull-right"
+            ng-if="ctrl.config.showHeaderBtn"
+            ng-class="{'btn-success': ctrl.isDatasetSelectionMode('new_dataset')}"
+            ng-click="ctrl.changeDatasetSelectionMode('new_dataset')">
+        <span>{{'dataset.editor.label.new.dataset' | translate}}</span>
+    </button>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="container">
+            <div ng-if="ctrl.isDatasetSelectionMode('existing_dataset')" class="row dataset-modes">
+                <existing-datasets selection="ctrl.selection"
+                                   search-filter="ctrl.searchFilter"
+                                   paged-search="ctrl.pagedSearch"
+                                   search-params="ctrl.searchParams">
+                </existing-datasets>
+            </div>
+            <div ng-if="ctrl.isDatasetSelectionMode('new_dataset')" class="row dataset-modes">
+                <new-dataset dataset-return-object="ctrl.datasetReturnObject"
+                             selection="ctrl.selection">
+                </new-dataset>
+            </div>
+        </div>
+    </div>
+</div>

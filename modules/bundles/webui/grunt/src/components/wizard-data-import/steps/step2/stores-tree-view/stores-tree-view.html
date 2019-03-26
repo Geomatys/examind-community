@@ -1,0 +1,93 @@
+<div class="store-tree">
+    <div class="checkbox" style="margin-left: 15px;"
+         ng-if="treeCtrl.storesRef.storeList.length >1">
+        <label>
+            <input type="checkbox" ng-model="treeCtrl.allStoresSelection"
+            ng-change="treeCtrl.toggleAllStoreSelection()"/>
+            <span>{{'label.select.all' | translate}}</span>
+        </label>
+    </div>
+    <div class="row" ng-repeat="store in treeCtrl.storesRef.storeList">
+        <div class="store-block" ng-init="treeCtrl.initStore(store)">
+            <div class="store">
+                <!-- The case of divisible data-->
+                <div class="store-header" ng-show="!store.indivisible"
+                     ng-click="store.collapsed=!store.collapsed"
+                     title="{{treeCtrl.getFileName(store.mainPath)}}">
+                    <i class="fa" ng-class="{'fa-chevron-right':store.collapsed,'fa-chevron-down':!store.collapsed}"></i>
+                    <label ng-show="treeCtrl.storesRef.sourceType !== 'database' && treeCtrl.storesRef.sourceType !== 'dynamic_url'">
+                        {{'stores.tree.view.label.file.name' | translate}}&nbsp;:&nbsp;
+                    </label>
+                    <label ng-show="treeCtrl.storesRef.sourceType === 'database' || treeCtrl.storesRef.sourceType === 'dynamic_url'">
+                        {{store.storeId.toUpperCase()}}
+                    </label>
+                    <span class="store-name" ng-bind="treeCtrl.getFileName(store.mainPath)"></span>
+                    <i class="pull-right help"
+                       popover-placement="bottom"
+                       popover-trigger="mouseenter"
+                       popover-title="{{'wiz.data.import.step2.stores.tree.label.informations' | translate}}"
+                       popover="{{'wiz.data.import.step2.stores.tree.msg.divisible.store' | translate}}">
+                        <span class="fa fa-question-circle"></span>
+                    </i>
+                    <i class="fa fa-expand pull-right" aria-hidden="true"></i>
+                </div>
+                <div ng-show="!store.indivisible" ng-repeat="resource in store.resources"
+                     slide-toggle="store.collapsed"
+                     class="collapsed store-content"
+                     ng-click="treeCtrl.toggleResourceSelection(resource)"
+                     ng-class="{'selected':treeCtrl.isSelected(resource)}"
+                     title="{{resource.name}}">
+                    <div class="pull-left height-20">
+                        <label>{{'stores.tree.view.label.resource.name' | translate}}&nbsp;:&nbsp;</label>
+                        <span class="resource-name">{{resource.name}}</span><br>
+                    </div>
+                    <div class="pull-right">
+                        <label>{{'stores.tree.view.label.type' | translate}}&nbsp;:&nbsp;</label>
+                        <span>{{resource.type}}</span>
+                        <img ng-show="resource.type.toLowerCase() === 'vector'" src="img/icon/vector.svg">
+                        <img ng-show="resource.type.toLowerCase() !== 'vector'" src="img/icon/raster.svg">
+                    </div>
+                </div>
+                <!--The case of indivisible data-->
+                <div class="store-header" ng-show="store.indivisible"
+                     ng-click="treeCtrl.toggleStoreSelection(store);"
+                     ng-class="{'selected':treeCtrl.isSelected(store)}"
+                     title="{{treeCtrl.getFileName(store.mainPath)}}">
+                    <i class="fa" ng-class="{'fa-chevron-right':store.collapsed,'fa-chevron-down':!store.collapsed}"></i>
+                    <label ng-show="treeCtrl.storesRef.sourceType !== 'database' && treeCtrl.storesRef.sourceType !== 'dynamic_url'">
+                        {{'stores.tree.view.label.file.name' | translate}}&nbsp;:&nbsp;
+                    </label>
+                    <label ng-show="treeCtrl.storesRef.sourceType === 'database' || treeCtrl.storesRef.sourceType === 'dynamic_url'">
+                        {{store.storeId.toUpperCase()}}
+                    </label>
+                    <span class="store-name" ng-bind="treeCtrl.getFileName(store.mainPath)"></span>
+                    <i class="pull-right help"
+                       popover-placement="bottom"
+                       popover-trigger="mouseenter"
+                       popover-title="{{'wiz.data.import.step2.stores.tree.label.informations' | translate}}"
+                       popover="{{'wiz.data.import.step2.stores.tree.msg.indivisible.store' | translate}}">
+                        <span class="fa fa-question-circle"></span>
+                    </i>
+                    <i class="fa fa-compress pull-right" aria-hidden="true"></i>
+                </div>
+                <div ng-show="store.indivisible" ng-repeat="resource in store.resources"
+                     slide-toggle="store.collapsed"
+                     class="collapsed store-content"
+                     ng-class="{'displayed-layer':treeCtrl.isDisplayedLayer(resource)}"
+                     ng-click="treeCtrl.toggleDisplayLayer(resource)"
+                     title="{{resource.name}}">
+                    <div class="pull-left height-20">
+                        <label>{{'stores.tree.view.label.resource.name' | translate}}&nbsp;:&nbsp;</label>
+                        <span class="resource-name">{{resource.name}}</span><br>
+                    </div>
+                    <div class="pull-right">
+                        <label>{{'stores.tree.view.label.type' | translate}}&nbsp;:&nbsp;</label>
+                        <span>{{resource.type}}</span>
+                        <img ng-show="resource.type.toLowerCase() === 'vector'" src="img/icon/vector.svg">
+                        <img ng-show="resource.type.toLowerCase() !== 'vector'" src="img/icon/raster.svg">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

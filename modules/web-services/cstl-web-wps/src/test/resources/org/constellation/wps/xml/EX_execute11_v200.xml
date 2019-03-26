@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0.0" xsi:schemaLocation="http://www.opengis.net/ows/2.0 http://schemas.opengis.net/ows/2.0/owsExceptionReport.xsd">
+    <ows:Exception exceptionCode="InvalidParameterValue" locator="urn:exa:wps:geotoolkit::jts:intersection:input:geom1">
+        <ows:ExceptionText>Error during conversion of complex input urn:exa:wps:geotoolkit::jts:intersection:input:geom1 : Unsupported mime-type for org.geotoolkit.wps.converters.inputs.complex.ComplexToGeometryConverter : null</ows:ExceptionText>
+    </ows:Exception>
+</ows:ExceptionReport>

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: examind-examind
+  name: examind-examind
+spec:
+  ports:
+  - name: "tomcat"
+    port: 8080
+    targetPort: 8080
+  selector:
+    service: examind-examind

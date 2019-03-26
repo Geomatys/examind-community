@@ -1,0 +1,38 @@
+<div ng-init="mc.select.node=null">
+    <h4 translate="thesaurus.title.concept_selection">Concept selection</h4>
+
+    <!-- Search -->
+    <div class="concept-search clearfix">
+        <div class="search-input">
+            <div class="input-group">
+                <div class="input-group-addon"><i class="fa fa-search"></i></div>
+                <input type="text" class="form-control" ng-model="mc.select.tree.search" ng-change="mc.select.search()"/>
+            </div>
+        </div>
+        <button type="button" class="btn btn-default" ng-show="mc.select.tree.search" ng-click="mc.select.clearSearch()"><i class="fa fa-times"></i></button>
+    </div>
+
+    <!-- Tree -->
+    <concept-tree lang="mc.lang" tops="mc.select.tree.tops" narrowers="mc.getNarrowers(node)" onselect="mc.select.node=node"></concept-tree>
+
+    <!-- Actions -->
+    <div class="text-right">
+        <p ng-show="mc.select.node && mc.select.node.uri === mc.edit.concept.uri">
+            <i class="fa fa-lock"></i>&nbsp;
+            <span translate="thesaurus.text.concept_is_itself"></span>
+        </p>
+        <p ng-show="mc.select.node && mc.select.isPresent()">
+            <i class="fa fa-lock"></i>&nbsp;
+            <span translate="thesaurus.text.concept_already_added"></span>
+        </p>
+        <button type="button" class="btn btn-default" ng-click="mc.select.cancel()">
+            <i class="fa fa-chevron-left"></i>&nbsp;
+            <span translate="thesaurus.btn.back_to_concept_edition">Back to concept edition</span>
+        </button>
+        <button type="button" class="btn btn-thesaurus" ng-show="mc.select.node" ng-disabled="mc.select.node && (mc.select.isPresent() || mc.select.node.uri === mc.edit.concept.uri)" ng-click="mc.select.validate()">
+            <i class="fa fa-plus"></i>&nbsp;
+            <span translate="thesaurus.btn.add_concept">Add the concept</span>
+            <b>"{{mc.select.node.prefLabel[mc.lang] || mc.select.node.altLabels[mc.lang][0] || mc.select.node.uri}}"</b>
+        </button>
+    </div>
+</div>

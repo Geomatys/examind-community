@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."datasource" ADD COLUMN "read_from_remote" boolean NOT NULL DEFAULT FALSE;

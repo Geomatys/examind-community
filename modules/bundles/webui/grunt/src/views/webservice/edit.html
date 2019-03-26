@@ -1,0 +1,1134 @@
+<div class="logo-wrapper row">
+    <div class="col-sm-12">
+        <h3 class="header-title"
+            translate="page.header.title.edit.service">Edit Service</h3>
+        <div class="{{'serviceType'+service.type.toUpperCase()+'Header'}}"></div>
+    </div>
+</div>
+<div id="serviceDashboard" class="row frame dashboard">
+    <div class="navbar  navbar-default">
+        <div class="navbar-inner" style="box-shadow:none; webkit-box-shadow:none; border-bottom:none;">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <p style="cursor:default; padding:7px 20px 7px 0; font-weight: normal;  margin-left:0;"
+                       class="brand">{{service.identifier}} : {{service.name}}</p>
+                </div>
+                <form class="navbar-form" ng-init="showURL=false">
+                    <div class="btn-group service-item pull-right"
+                         style="margin-top: 2px; margin-bottom: 8px;">
+                        <button ng-click="showURL=!showURL"
+                                title="{{label.service.url}}"
+                                class="btn btn-sm btn-default"
+                                ng-class="{active:showURL}">URL</button>
+                        <button type="button"
+                                class="btn btn-default btn-sm"
+                                ng-click="showCapa(service)"
+                                ng-disabled="service.status!=='STARTED'">GetCapabilities</button>
+                        <button type="button"
+                                class="btn btn-default btn-sm"
+                                ng-click="showLogs(service)">Logs</button>
+                        <button type="button"
+                                class="btn btn-default btn-sm btn-add"
+                                ng-click="reload(service)"
+                                translate="service.description.reload.button">Reload</button>
+                        <button type="button"
+                                class="btn btn-default btn-sm"
+                                ng-class="{'started':service.status=='STARTED','stopped':service.status!='STARTED'}"
+                                ng-click="startOrStop(service)">
+                            <i class="fa"
+                               ng-class="{'fa-play':service.status!='STARTED','fa-stop':service.status=='STARTED'}"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="navbar-left col-xs-12 col-sm-7 col-md-12"
+                     ng-show="showURL"
+                     style="margin-bottom:6px;margin-left: 0;padding-left: 0;">
+                    <input type="text"
+                           class="form-control service-link"
+                           style="float:right;cursor:text;"
+                           size="{{urlBoxSize}}"
+                           value="{{url}}"
+                           readonly="readonly"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="padding-bottom:30px;">
+        <div class="col-sm-12">
+            <ul class="nav nav-tabs">
+                <li id="dataTab" class="active">
+                    <a ng-click="selectTab('tabdata')"
+                       data-toggle="tab">
+                        <span translate="service.edit.dashboard.tabs.data">Data</span>
+                    </a>
+                </li>
+                <li id="descriptionTab">
+                    <a ng-click="selectTab('tabdesc')"
+                       data-toggle="tab">
+                        <span translate="service.edit.dashboard.tabs.description">Service Description</span>
+                    </a>
+                </li>
+                <li id="metadataTab">
+                    <a ng-click="selectTab('tabmetadata')"
+                       data-toggle="tab">
+                        <span translate="service.edit.dashboard.tabs.metadata">Service Metadata</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane" ng-class="{active:tabdata}" ng-show="tabdata">
+                    <div ng-if="type == 'wps'"
+                         ng-include="'views/webservice/wps/dashboard.html'">
+                    </div>
+                    <div ng-if="type !== 'wps'">
+                      <div class="row" ng-init="initScope()">
+                        <div class="col-sm-8" id="contentList">
+                            <div class="frame dashboard frame-data" ng-class="{'frame-metadata':type === 'csw', 'frame-sensor':type === 'sos' }">
+                                <div class="navbar title">
+                                    <div class="navbar-inner">
+                                        <div ng-if="type !== 'csw' && type !== 'sos' && type !== 'thw'"
+                                             class="brand"
+                                             translate="service.edit.dashboard.layer.title">Layers list</div>
+                                        <div ng-if="type === 'csw'"
+                                             class="brand"
+                                             translate="service.edit.dashboard.metadata.title">Metadata list</div>
+                                        <div ng-if="type === 'sos'"
+                                             class="brand"
+                                             translate="service.edit.dashboard.sensors.list">Sensors list</div>
+                                        <div ng-if="type === 'thw'"
+                                             class="brand"
+                                             translate="service.edit.dashboard.thesaurus.list">Thesaurus list</div>
+                                    </div>
+                                </div>
+                                <div class="navbar sort-navbar">
+                                    <div class="navbar-inner">
+                                        <ul class="nav nav-style">
+                                            <li ng-click="wrap.ordertype=(service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name';wrap.orderreverse=!wrap.orderreverse">
+                                                <a>
+                                                    <span translate="service.edit.dashboard.header.title">Title</span>
+                                                    <i class="fa fa-caret-up"
+                                                       ng-if="wrap.ordertype ===((service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && wrap.orderreverse"></i>
+                                                    <i class="fa fa-caret-down"
+                                                       ng-if="wrap.ordertype ===((service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && !wrap.orderreverse"></i>
+                                                </a>
+                                            </li>
+                                            <li class="divider-vertical"></li>
+                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date';wrap.orderreverse=!wrap.orderreverse">
+                                                <a>
+                                                    <span translate="service.edit.dashboard.header.date">Date</span>
+                                                    <i class="fa fa-caret-up"
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date') && wrap.orderreverse"></i>
+                                                    <i class="fa fa-caret-down"
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date') && !wrap.orderreverse"></i>
+                                                </a>
+                                            </li>
+                                            <li class="divider-vertical"></li>
+                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner';wrap.orderreverse=!wrap.orderreverse">
+                                                <a>
+                                                    <span translate="service.edit.dashboard.header.owner">Owner</span>
+                                                    <i class="fa fa-caret-up"
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner') && wrap.orderreverse"></i>
+                                                    <i class="fa fa-caret-down"
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner') && !wrap.orderreverse"></i>
+                                                </a>
+                                            </li>
+                                            <li class="divider-vertical"></li>
+                                            <li ng-click="wrap.ordertype='type';wrap.orderreverse=!wrap.orderreverse">
+                                                <a>
+                                                    <span translate="service.edit.dashboard.header.type">Type</span>
+                                                    <i class="fa fa-caret-up"
+                                                       ng-if="wrap.ordertype==='type' && wrap.orderreverse"></i>
+                                                    <i class="fa fa-caret-down"
+                                                       ng-if="wrap.ordertype==='type' && !wrap.orderreverse"></i>
+                                                </a>
+                                            </li>
+                                            <li class="divider-vertical"></li>
+                                        </ul>
+                                        <button type="button"
+                                                ng-click="resetFilters();"
+                                                ng-class="{'btn-csw':type==='csw','btn-sos':type==='sos'}"
+                                                title="{{'label.search.refresh' | translate }}"
+                                                class="btn  btn-data btn-xs btn-info">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                        <div class="pull-right">
+                                            <div style="position:relative;">
+                                                <div class="ajax-loader" style="right:0;position:absolute;"></div>
+                                                <input type="text"
+                                                       ng-model="wrap.filtertext"
+                                                       class="searchbox search-query form-control form-control-fix"
+                                                       placeholder="..." />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dash-inner row dashboard" ng-init="small=false">
+                                    <div id="list" data-role="list">
+                                        <div class="pagination-wrapper pagination-data"
+                                             ng-class="{'pagination-csw':type==='csw','pagination-sos':type==='sos'}">
+                                            <strong class="col-lg-6 col-xs-8 col-md-6">
+                                                <span class="nb-results pull-left">{{wrap.countdata}}&nbsp;</span>
+                                                <span class="nb-results" translate="label.count.data">available data</span>
+                                            </strong>
+                                            <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
+                                                <button type="button" ng-click="small=true"
+                                                        class="pull-right btn btn-xs btn-info btn-data"
+                                                        ng-class="{'btn-small-selected':small==true, 'btn-csw':type==='csw',  'btn-sos':type==='sos'}"
+                                                        style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
+                                                    <img src="img/btn-display-reduced.svg" alt="" />
+                                                </button>
+                                                <button type="button" ng-click="small=false"
+                                                        class="pull-right btn btn-xs btn-info btn-data"
+                                                        ng-class="{'btn-small-selected':small==false, 'btn-csw':type==='csw',  'btn-sos':type==='sos'}"
+                                                        style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
+                                                    <img src="img/btn-display-normal.svg" alt="" />
+                                                </button>
+                                                <p class="pull-right"
+                                                   style="margin-top:12px;"
+                                                   translate="label.display">Display :</p>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-9" style="padding-left:15px; margin-top: 5px;"
+                                                     page-switcher="{page:wrap.currentpage,size:wrap.nbbypage,count:wrap.countdata}"
+                                                     on-select-page="displayPage(page)"></div>
+                                                <select class="nb-per-page input-small form-control pull-right col-xs-2 "
+                                                        style="padding-left: 5px;padding-right: 5px; margin-right: 15px; margin-top: 5px;"
+                                                        ng-model="wrap.nbbypage">
+                                                    <option value="5">5</option>
+                                                    <option value="10">10</option>
+                                                    <option value="20">20</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="item-list">
+                                            <div ng-if="type !== 'csw' && type!== 'sos' && type!== 'thw'">
+                                                <div class="item {{layer.type | lowercase}}"
+                                                     ng-repeat="layer in wrap.dataList"
+                                                     ng-class="{selected:layer.id==selected.id,coverage:layer.type.toLowerCase()==='coverage',vector:layer.type.toLowerCase()==='observation-store' || layer.type.toLowerCase()==='vector', 'col-xs-6':small, 'style-small':small}"
+                                                     ng-click="select(layer);showLayerDashboardMap();">
+                                                    <div class="top">
+                                                        <span class="item-title"
+                                                              title="{{layer.namespace ? layer.namespace : ''}}{{layer.namespace ? ':' : ''}}{{layer.name}}">{{layer.title ? truncate(small,layer.title) : truncate(small,layer.name)}}</span>
+                                                        <span class="pull-right text-right item-list-style">{{layer.type==='coverage'?'raster':layer.type==='feature-store'?'vector':layer.type==='observation-store'?'vector':layer.type}}</span>
+                                                        <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='Point' || layer.subtype=='MultiPoint')"
+                                                             ng-src="{{layer.id!=selected.id?'img/vector-multipoint.svg':'img/vector-multipoint-selected.svg'}}"
+                                                             class="pull-right vector-symbol"
+                                                             style="margin-top:6px; margin-right:10px;" />
+                                                        <img ng-if="layer.subtype=='Geometry' && layer.type!='SENSOR'"
+                                                             ng-src="{{layer.id!=selected.id?'img/vector-multigeometry.svg':'img/vector-multigeometry-selected.svg'}}"
+                                                             class="pull-right vector-symbol"
+                                                             style="margin-top:6px; margin-right:10px; width:22px" />
+                                                        <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='Polygon' || layer.subtype=='MultiPolygon')"
+                                                             ng-src="{{layer.id!=selected.id?'img/vector-poly.svg':'img/vector-poly-selected.svg'}}"
+                                                             class="pull-right vector-symbol"
+                                                             style="margin-top:6px; margin-right:10px;" />
+                                                        <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='LineString' || layer.subtype=='MultiLineString')"
+                                                             ng-src="{{layer.id!=selected.id?'img/vector-polyline.svg':'img/vector-polyline-selected.svg'}}"
+                                                             class="pull-right vector-symbol"
+                                                             style="margin-top:6px; margin-right:10px;" />
+                                                    </div>
+                                                    <div class="bottom">
+                                                        <div ng-class="{'hidden':!small}">
+                                                            <div class="block tooltipicon"
+                                                                 style="margin-top:0;text-shadow: none;">
+                                                                <i class="fa fa-calendar"
+                                                                   tooltip data-placement="bottom"
+                                                                   title="{{layer.date | date:'yyyy-MM-dd'}}"></i>
+                                                            </div>
+                                                            <div class="block tooltipicon"
+                                                                 style="margin-top:0;text-shadow: none;">
+                                                                <i class="fa fa-user"
+                                                                   tooltip data-placement="bottom"
+                                                                   title="{{layer.owner}}"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div ng-class="{'hidden':small}">
+                                                            <div class="block">
+                                                                <i class="fa fa-calendar"></i>{{layer.date | date:'yyyy-MM-dd'}}
+                                                            </div>
+                                                            <div class="block">
+                                                                <i class="fa fa-user"></i>{{layer.owner}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div ng-if="type === 'csw'">
+                                                <div ng-repeat="cswdata in wrap.dataList"
+                                                     ng-class="{'col-xs-6':small==true}"
+                                                     style="padding-left:0;">
+                                                    <div class="item"
+                                                         ng-class="{'selected':cswdata==selected, 'metadata-service':cswdata.identifier.split('_')[0]==='serv','metadata':cswdata.identifier.split('_')[0]!=='serv', 'style-small':small}"
+                                                         ng-click="select(cswdata);selectMetadataChild(null)">
+                                                        <div class="top">
+                                                            <span class="item-title csw-title"
+                                                                  title="{{cswdata.title ? cswdata.title : cswdata.identifier}}">{{cswdata.title ? truncate(small,cswdata.title) : truncate(small,cswdata.identifier)}}</span>
+                                                            <span class="pull-right text-right item-list-style">METADATA</span>
+                                                        </div>
+                                                        <div class="bottom">
+                                                            <div ng-class="{'hidden':!small}">
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-calendar"
+                                                                       tooltip data-placement="top"
+                                                                       title="{{cswdata.createDate | date:'yyyy-MM-dd'}}"></i>
+                                                                </div>
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-user"
+                                                                       tooltip data-placement="top"
+                                                                       title="{{cswdata.creator}}"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div ng-class="{'hidden':small}">
+                                                                <div class="block">
+                                                                    <i class="fa fa-calendar"></i>{{cswdata.createDate | date:'yyyy-MM-dd'}}
+                                                                </div>
+                                                                <div class="block block-owner"
+                                                                     tooltip-html-unsafe="{{cswdata.creator}}"
+                                                                     tooltip-placement="top">
+                                                                    <i class="fa fa-user"></i>{{cswdata.creator}}
+                                                                </div>
+                                                            </div>
+                                                            <div class="block pull-right">
+                                                                <i class="fa fa-paperclip"></i>
+                                                                <span ng-if="relatedDatas[cswdata.identifier] == null || relatedDatas[cswdata.identifier].length == 0"
+                                                                      translate="md.listing.no.data">No</span>
+                                                                <span ng-if="relatedDatas[cswdata.identifier].length > 0">{{relatedDatas[cswdata.identifier].length}}</span>
+                                                                <span ng-class="{hide:small==true}"
+                                                                      translate="md.listing.data.associated">associated data</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="item"
+                                                         style="margin-top:0;"
+                                                         ng-if="cswdata==selected"
+                                                         ng-repeat="relatedData in relatedDatas[cswdata.identifier]"
+                                                         ng-click="selectMetadataChild(relatedData)"
+                                                         ng-class="{selected:relatedData==selectedMetadataChild,'metadata-product-vector':relatedData.type.toLowerCase()=='vector','metadata-product-coverage':relatedData.type.toLowerCase()=='coverage','metadata-product-sensor':relatedData.type.toLowerCase()=='sensor', 'child':small==false, 'col-xs-11':small==true, 'col-sm-offset-1':small==true, 'style-small':small}">
+                                                        <div class="top">
+                                                            <span class="item-title csw-title"
+                                                                  title="{{relatedData.name}}">{{truncate(small,relatedData.name)}}</span>
+                                                            <span class="pull-right text-right item-list-style"
+                                                                  style="font-size:14px;">{{relatedData.type}}</span>
+                                                        </div>
+                                                        <div class="bottom">
+                                                            <div ng-class="{'hidden':!small}">
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-calendar"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{relatedData.date | date:'yyyy-MM-dd'}}"></i>
+                                                                </div>
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-user"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{relatedData.owner}}"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div ng-class="{'hidden':small}">
+                                                                <div class="block">
+                                                                    <i class="fa fa-calendar"></i>{{relatedData.date | date:'yyyy-MM-dd'}}
+                                                                </div>
+                                                                <div class="block">
+                                                                    <i class="fa fa-user"></i>{{relatedData.owner}}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div ng-if="type === 'sos'">
+                                                <div ng-repeat="sosdata in wrap.dataList"
+                                                     ng-class="{'col-xs-6':small==true}"
+                                                     style="padding-left:0;">
+                                                    <div class="item"
+                                                         ng-class="{'sensor-sos-service':sosdata.type!=='System','sensor-system-service':sosdata.type==='System','selected':sosdata==selected, 'style-small':small}"
+                                                         ng-click="select(sosdata);selectSensorsChild(null);">
+                                                        <div class="top">
+                                                            <span class="item-title"
+                                                                  title="{{sosdata.identifier}}">{{truncate(small,sosdata.identifier)}}</span>
+                                                            <span ng-if="sosdata.type==='System'"
+                                                                  class="pull-right text-right item-list-style"
+                                                                  translate="label.sensor.system">sensor system</span>
+                                                            <span ng-if="sosdata.type!=='System'"
+                                                                  class="pull-right text-right item-list-style"
+                                                                  translate="label.sensor">sensor</span>
+                                                        </div>
+                                                        <div class="bottom">
+                                                            <div ng-class="{'hidden':!small}">
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-calendar"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{sosdata.createDate | date:'yyyy-MM-dd'}}"></i>
+                                                                </div>
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-user"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{sosdata.creator}}"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div ng-class="{'hidden':small}">
+                                                                <div class="block">
+                                                                    <i class="fa fa-calendar"></i>{{sosdata.createDate | date:'yyyy-MM-dd'}}
+                                                                </div>
+                                                                <div class="block">
+                                                                    <i class="fa fa-user"></i>{{sosdata.creator}}
+                                                                </div>
+                                                            </div>
+                                                            <div class="block pull-right">
+                                                                <i class="fa fa-paperclip"></i>
+                                                                <span ng-if="sosdata.children == null || sosdata.children.length == 0"
+                                                                      translate="md.listing.no.data">No</span>
+                                                                <span ng-if="sosdata.children.length > 0">{{sosdata.children.length}}</span>
+                                                                <span translate="service.edit.dashboard.sensors.list.associated">associated sensors</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="item sensor-sos-service"
+                                                         style="margin-top:0;"
+                                                         ng-if="sosdata==selected"
+                                                         ng-repeat="soschild in sosdata.children"
+                                                         ng-class="{'selected':soschild===selectedSensorsChild, 'child':small==false, 'col-xs-11':small==true, 'col-sm-offset-1':small==true, 'style-small':small}"
+                                                         ng-click="selectSensorsChild(soschild)">
+                                                        <div class="top">
+                                                            <span class="item-title"
+                                                                  title="{{soschild.identifier}}">{{truncate(small,soschild.identifier)}}</span>
+                                                            <span class="pull-right text-right item-list-style"
+                                                                  style="font-size:14px;"
+                                                                  translate="label.sensor">sensor</span>
+                                                        </div>
+                                                        <div class="bottom">
+                                                            <div ng-class="{'hidden':!small}">
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-calendar"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{soschild.createDate | date:'yyyy-MM-dd'}}"></i>
+                                                                </div>
+                                                                <div class="block tooltipicon"
+                                                                     style="margin-top:0;text-shadow: none;">
+                                                                    <i class="fa fa-user"
+                                                                       tooltip data-placement="bottom"
+                                                                       title="{{soschild.creator}}"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div ng-class="{'hidden':small}">
+                                                                <div class="block">
+                                                                    <i class="fa fa-calendar"></i>{{soschild.createDate | date:'yyyy-MM-dd'}}
+                                                                </div>
+                                                                <div class="block">
+                                                                    <i class="fa fa-user"></i>{{soschild.creator}}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            <div id="block-information-right" class="col-sm-4">
+                                <div ng-if="service.type !== 'csw' && service.type !== 'wmts' && service.type !== 'tms'">
+                                    <a data-toggle="modal"
+                                       class="btn btn-add btn-lg btn-block"
+                                       ng-click="showDataToAdd()" id="showDataToAdd">
+                                        <span class="fa fa-plus"
+                                              style="margin-right:5px;"></span>
+                                        <span translate="service.edit.dashboard.action.add.button">Add</span>
+                                    </a>
+                                </div>
+                                <div ng-if="service.type.toLowerCase() === 'wmts'">
+                                    <a id="showDataToAddWMTS"
+                                       data-toggle="modal"
+                                       class="btn btn-add btn-lg btn-block"
+                                       ng-click="showDataToAddWMTS()">
+                                        <span class="fa fa-plus"
+                                              style="margin-right:5px;"></span>
+                                        <span translate="service.edit.dashboard.wmts.action.addnewlayer.button">Add new layer</span>
+                                    </a>
+                                </div>
+                                <div class="sous-block-information sous-block-information-service">
+                                    <preview-map class="layer-preview" layer="preview.layer" extent="preview.extent"></preview-map>
+                                    <div>
+                                        <div class="alert alert-info alert-data"
+                                             ng-class="{'alert-csw':type==='csw','alert-sos':type==='sos'}"
+                                             ng-show="!selected">
+                                            <h4 translate="label.no.selected.data">No selected data</h4>
+                                            <p translate="msg.no.selected.data"
+                                               style="font-weight:normal;">Click on a data to display more information</p>
+                                        </div>
+                                        <div class="selected-item"
+                                             id="selected-item"
+                                             ng-show="selected">
+                                            <div ng-if="service.type.toLowerCase() !== 'csw' && service.type.toLowerCase() !== 'sos'">
+                                                <div class="block-header"
+                                                     ng-click="toggleUpDownSelected()">
+                                                    <strong class="item-title title-bloc-service"
+                                                            title="{{selected.name}}">{{selected.title ? truncateTitleBlock(selected.title) : truncateTitleBlock(selected.name)}}</strong>
+                                                    <i class="fa fa-chevron-down pull-right"></i>
+                                                </div>
+                                                <div class="block-content"
+                                                     style="display: none;"
+                                                     ng-class="{'block-vector':selected.type=='VECTOR','block-raster':selected.type=='COVERAGE'}">
+                                                    <div class="row description-block">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <img src="img/block-content-owner.svg" alt="" />
+                                                        </div>
+                                                        <div class="col-sm-9 col-md-10 description-text">
+                                                            <span>{{selected.owner}}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row description-block">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <img src="img/block-content-date.svg" alt="" />
+                                                        </div>
+                                                        <div class="col-sm-9 col-md-10 description-text">
+                                                            <span>{{selected.date | date:'yyyy-MM-dd'}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="block-action">
+                                                    <div class="row">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        ng-click="editLayerInfo()"
+                                                                        class="btn btn-info"
+                                                                        data-placement="bottom"
+                                                                        title="{{'layer.listing.selected.edit.layer.info' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-pencil"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        id="deleteLayer"
+                                                                        class="btn btn-danger"
+                                                                        ng-click="deleteLayer();"
+                                                                        data-placement="bottom"
+                                                                        title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-trash"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div ng-if="service.type.toLowerCase() === 'csw'">
+                                                <div class="block-header block-header-md"
+                                                     ng-click="toggleUpDownSelected()">
+                                                    <strong class="item-title title-bloc-service"
+                                                            title="{{selected.title ? selected.title : selected.identifier}}">{{selected.title ? truncateTitleBlock(selected.title) : truncateTitleBlock(selected.identifier)}}</strong>
+                                                    <i class="fa fa-chevron-up pull-right"></i>
+                                                </div>
+                                                <div style="display: none;">
+                                                    <div class="block-content">
+                                                        <div class="row description-block"
+                                                             ng-if="selected.creator">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-owner.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selected.creator}}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row description-block"
+                                                             ng-if="selected.createDate">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-date.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selected.createDate | date:'yyyy-MM-dd'}}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="block-content"
+                                                         ng-class="{'block-vector':selectedMetadataChild.type=='VECTOR','block-raster':selectedMetadataChild.type=='COVERAGE'}"
+                                                         ng-if="selectedMetadataChild">
+                                                        <h6 translate="label.title">Title</h6>
+                                                        <span>{{truncateTitleBlock(selectedMetadataChild.name)}}</span>
+                                                        <div class="row description-block"
+                                                             ng-if="selectedMetadataChild.owner">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-owner.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selectedMetadataChild.owner}}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row description-block"
+                                                             ng-if="selectedMetadataChild.date">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-date.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selectedMetadataChild.date | date:'yyyy-MM-dd'}}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="block-action">
+                                                    <div class="row">
+                                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        id="seeMetadata"
+                                                                        class="btn btn-csw"
+                                                                        ng-click="displayMetadataFromCSW()"
+                                                                        data-placement="bottom"
+                                                                        title="{{'dataset.metadata.listing.selected.view.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-file"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        class="btn btn-csw"
+                                                                        ng-click="displayMetadataEditor();"
+                                                                        data-placement="bottom"
+                                                                        title="{{'dataset.metadata.listing.selected.edit.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-pencil"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                            <span class="tooltipicon">
+                                                                <a id="exportMD"
+                                                                   class="btn btn-info btn-csw"
+                                                                   ng-href="{{cstlUrl}}API/CSW/{{service.identifier}}/record/download/{{selected.identifier}}?token={{authToken}}"
+                                                                   data-placement="bottom"
+                                                                   title="{{'layer.listing.selected.export.button' | translate }}" tooltip>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-2 tooltip-left-menu">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        id="deleteMetadata"
+                                                                        class="btn btn-danger btn-csw"
+                                                                        ng-click="deleteMetadata();"
+                                                                        data-placement="bottom"
+                                                                        title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-trash"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div ng-if="service.type.toLowerCase() === 'sos'">
+                                                <div class="block-header block-header-sos"
+                                                     ng-click="toggleUpDownSelected()">
+                                                    <strong>{{truncateTitleBlock(selected.identifier)}}</strong>
+                                                    <i class="fa fa-chevron-up pull-right"></i>
+                                                </div>
+                                                <div style="display: none;">
+                                                    <div class="block-content">
+                                                        <div class="row description-block">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-owner.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selected.creator}}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row description-block">
+                                                            <div class="col-sm-3 col-md-2">
+                                                                <img src="img/block-content-date.svg" alt="" />
+                                                            </div>
+                                                            <div class="col-sm-9 col-md-10 description-text">
+                                                                <span>{{selected.createDate | date:'yyyy-MM-dd'}}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="block-content"
+                                                         ng-if="selectedSensorsChild != null">
+                                                        <h6 translate="label.title">Title</h6>
+                                                        <span>{{selectedSensorsChild.identifier}}</span>
+                                                        <div class="separator"></div>
+                                                        <h6 translate="label.type">Type</h6>
+                                                        <span translate="label.sensor">sensor</span>
+                                                    </div>
+                                                </div>
+                                                <div class="block-action">
+                                                    <div class="row">
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <span class="tooltipicon">
+                                                                <button class="btn btn-sos"
+                                                                        type="button"
+                                                                        ng-click="showSensor()"
+                                                                        ng-show="service.status=='STARTED'"
+                                                                        data-placement="bottom"
+                                                                        title="{{'layer.listing.selected.data.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-map-marker"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-2">
+                                                            <span class="tooltipicon">
+                                                                <button type="button"
+                                                                        class="btn btn-sos"
+                                                                        ng-click="deleteLayer();"
+                                                                        data-placement="bottom"
+                                                                        title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
+                                                                    <i class="glyphicon glyphicon-trash"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ng-if="selected && service.type === 'wms'">
+                                        <div class="row block-association"
+                                             ng-init="assocStyle=false;">
+                                            <div class="col-sm-12" style="float: left;">
+                                                <div class="block-associated block-associated-style block-associated-style-service"
+                                                     ng-click="assocStyle=!assocStyle;">
+                                                    <div class="block-associated-nb">{{selected.targetStyle.length}}</div>
+                                                    <div class="block-associated-title"
+                                                         translate="label.related.style">Associated Styles</div>
+                                                    <span class="fa icon-assoc-style "
+                                                          ng-class="{'selected':assocStyle, 'fa-chevron-circle-up':assocStyle, 'fa-chevron-circle-down':!assocStyle}"
+                                                          tooltip-placement="bottom"
+                                                          tooltip-html-unsafe="{{'label.show.style' | translate }}"></span>
+                                                </div>
+                                                <span class="fa icon-assoc-style fa-plus "
+                                                      style="right:70px;"
+                                                      tooltip-placement="bottom"
+                                                      tooltip-html-unsafe="{{'label.new.style' | translate }}"
+                                                      ng-click="showStyleList();"></span>
+                                            </div>
+                                        </div>
+                                        <div ng-if="assocStyle"
+                                             class="col-sm-12 block-assoc"
+                                             style="float: left;">
+                                            <div id="linkedList" class="block-content" >
+                                                <span ng-show="selected.targetStyle.length == 0"
+                                                      translate="label.no.association">No association</span>
+                                                <div ng-show="selected.targetStyle.length > 0"
+                                                     class="style btn-assoc-item"
+                                                     ng-repeat="style in selected.targetStyle"
+                                                     style="margin-bottom:5px;">
+                                                    <button type="button"
+                                                            ng-click="unlinkStyle(style,selected);"
+                                                            class="btn btn-small btn-block-assos btn-block-assos-style">
+                                                        <i class="glyphicon glyphicon-trash"></i>
+                                                    </button>
+                                                    <span title="{{style.name}}">{{style.name}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="tab-pane"
+                     style="padding-top: 20px;"
+                     ng-class="{active:tabdesc}"
+                     ng-show="tabdesc">
+                    <div class="col-sm-12">
+                        <fieldset style="padding-left:20px;">
+                            <legend>
+                                <span translate="service.description.tab.description.title">Service description</span>
+                            </legend>
+                            <form role="form-horizontal" role="form">
+                                <div class="form-group row">
+                                    <label class="control-label col-sm-2 new-service-form-label"
+                                           translate="service.description.tab.description.name">Name</label>
+                                    <div class="col-sm-8 col-md-6">
+                                        <input type="text"
+                                               id="name"
+                                               class="form-control"
+                                               ng-model="metadata.name"
+                                               value=""/>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-sm-2 new-service-form-label"
+                                           translate="service.description.tab.description.identifier">Identifier</label>
+                                    <div class="col-sm-8 col-md-6">
+                                        <input type="text"
+                                               readonly=""
+                                               id="identifier"
+                                               class="form-control"
+                                               ng-model="metadata.identifier"
+                                               value=""/>
+                                    </div>
+                                    <div class="btn-lg tooltipicon">
+                                        <span type="button"
+                                              class="glyphicon glyphicon-info-sign"
+                                              tooltip data-placement="right"
+                                              title="{{'tooltip.service.create.name' | translate }}" ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-sm-2 new-service-form-label"
+                                           translate="service.description.tab.description.tags">Tags</label>
+                                    <div class="col-sm-8 col-md-6">
+                                        <div class="tag-input-ctn">
+                                            <div data-ng-repeat="(key, tag) in metadata.keywords track by $index"
+                                                 class="input-tag">{{ tag }}
+                                                <div class="delete-tag"
+                                                     data-ng-click="deleteTag(key)">&times;</div>
+                                            </div>
+                                            <input type="text"
+                                                   data-tag-input=""
+                                                   data-ng-model="tagText"
+                                                   data-new-tag="addTag()"
+                                                   data-delete-tag="deleteTag()"/>
+                                        </div>
+                                    </div>
+                                    <div class="btn-lg tooltipicon">
+                                        <span type="button"
+                                              class="glyphicon glyphicon-info-sign"
+                                              tooltip data-placement="right"
+                                              title="{{'tooltip.service.create.tag' | translate }}" ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-sm-2 new-service-form-label"
+                                           translate="service.description.tab.description.description">Description</label>
+                                    <div class="col-sm-8 col-md-6">
+                                        <textarea id="inputDescription"
+                                                  class="input-xxlarge form-control"
+                                                  rows="5"
+                                                  ng-model="metadata.description"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="control-label col-sm-2 new-service-form-label"
+                                           translate="service.description.tab.description.version" >Version</label>
+                                    <div class="col-sm-8 col-md-6">
+                                        <div id="versionsCheck">
+                                            <div ng-repeat="version in versions"
+                                                 class="inline">
+                                                <div class="checkbox inline">
+                                                <div class="col-sm-8 col-md-6">
+                                                    <input type="checkbox"
+                                                           id="{{version.id}}"
+                                                           ng-model="version.checked"
+                                                           ng-change="selectedVersion()"/> {{version.id}}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="btn-lg tooltipicon">
+                                        <span type="button"
+                                              class="glyphicon glyphicon-info-sign"
+                                              tooltip data-placement="right"
+                                              title="{{'tooltip.service.create.version' | translate }}" ></span>
+                                    </div>
+                                </div>
+                            </form>
+                        </fieldset>
+                    </div>
+                    <div class="pull-right" style="margin: 20px;">
+                        <button class="btn btn-add"
+                                style="margin-left:20px;"
+                                type="button"
+                                ng-click="saveServiceMetadata()"
+                                translate="label.save">Save</button>
+                    </div>
+                </div>
+                <div class="tab-pane form_service_md"
+                     style="padding-top: 20px;"
+                     ng-class="{active:tabmetadata}"
+                     ng-show="tabmetadata">
+                    <div class="row">
+                        <div class="col-sm-6"
+                             style="padding-left: 50px;">
+                            <fieldset>
+                                <legend translate="create.contact.legend">Contact information</legend>
+                                <form class="form" role="form">
+                                    <div class="form-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactFirstName"
+                                               translate="create.contact.firstname.label">First name</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactFirstName"
+                                               ng-model="metadata.serviceContact.firstname"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactLastName"
+                                               translate="create.contact.lastname.label">Last name</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactLastName"
+                                               ng-model="metadata.serviceContact.lastname"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactOrganisation"
+                                               translate="create.contact.organisation.label">Organisation</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactOrganisation"
+                                               ng-model="metadata.serviceContact.organisation"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactPosition"
+                                               translate="create.contact.position.label">Position</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactPosition"
+                                               ng-model="metadata.serviceContact.position"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactPhone"
+                                               translate="create.contact.phone.label"
+                                               style="padding:0;">Phone</label>
+                                        <div class="col-xs-6"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="tel"
+                                                   class="form-control"
+                                                   id="contactPhone"
+                                                   ng-model="metadata.serviceContact.phone"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactFax"
+                                               translate="create.contact.fax.label"
+                                               style="padding:0;">Fax</label>
+                                        <div class="col-xs-6"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="tel"
+                                                   class="form-control"
+                                                   id="contactFax"
+                                                   ng-model="metadata.serviceContact.fax"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactemail"
+                                               translate="create.contact.email.label"
+                                               style="padding:0;">Email</label>
+                                        <input type="email"
+                                               class="form-control"
+                                               id="contactEmail"
+                                               ng-model="metadata.serviceContact.email"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactUrl"
+                                               translate="create.contact.url.label"
+                                               style="padding:0;">Url</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactUrl"
+                                               ng-model="metadata.serviceContact.url"/>
+                                    </div>
+                                </form>
+                            </fieldset>
+                        </div>
+                        <div class="col-sm-6" style="padding-right: 50px;">
+                            <fieldset>
+                                <legend translate="create.contact.address.legend">Contact address</legend>
+                                <form class="form" role="form">
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactAddress"
+                                               translate="create.contact.address.label">Address</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactAddress"
+                                               ng-model="metadata.serviceContact.address"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactCity"
+                                               translate="create.contact.address.city.label">City</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactCity"
+                                               ng-model="metadata.serviceContact.city"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label new-service-form-label"
+                                               for="contactState"
+                                               translate="create.contact.address.state.label">State</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactState"
+                                               ng-model="metadata.serviceContact.state"/>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactPostcode"
+                                               translate="create.contact.address.postcode.label"
+                                               style="padding:0;">Zip code</label>
+                                        <div class="col-xs-4"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="contactPostcode"
+                                                   ng-model="metadata.serviceContact.zipCode"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="contactCountry"
+                                               translate="create.contact.address.country.label"
+                                               style="padding:0;">Country</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="contactCountry"
+                                               ng-model="metadata.serviceContact.country"/>
+                                    </div>
+                                </form>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 20px;">
+                        <div class="col-sm-6" style="padding-left: 50px;">
+                            <fieldset>
+                                <legend translate="create.accessconstraint.legend">Access constraints</legend>
+                                <form class="form" role="form">
+                                    <div class="control-group row">
+                                        <label class="control-label new-service-form-label col-xs-12"
+                                               for="fees"
+                                               translate="create.accessconstraint.fees.label"
+                                               style="padding:0;  padding-left:15px;">Fees</label>
+                                        <div class="col-xs-11"
+                                             style=" padding:0 15px; margin-bottom:7px;">
+                                            <input id="fees"
+                                                   class="form-control"
+                                                   type="text"
+                                                   ng-model="metadata.serviceConstraints.fees"/>
+                                        </div>
+                                        <div class="btn-lg tooltipicon">
+                                            <span type="button"
+                                                  class="glyphicon glyphicon-info-sign"
+                                                  tooltip data-placement="right"
+                                                  title="{{'tooltip.service.create.fees' | translate }}" ></span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group row">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="accessConstraints"
+                                               translate="create.accessconstraint.label"
+                                               style="padding:0; padding-left:15px;">Access constraints</label>
+                                        <div class="col-xs-11" style="margin-bottom:7px; padding:0 15px;">
+                                            <textarea rows="5"
+                                                      id="accessConstraints"
+                                                      class="form-control"
+                                                      ng-model="metadata.serviceConstraints.accessConstraint"></textarea>
+                                        </div>
+                                        <div class="btn-lg tooltipicon">
+                                            <span type="button"
+                                                  class="glyphicon glyphicon-info-sign"
+                                                  tooltip data-placement="right"
+                                                  title="{{'tooltip.service.create.contraints' | translate }}" ></span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group"
+                                         data-toggle="tooltip"
+                                         title="{{'create.accessconstraint.layerlimit.tooltip' | translate }}"
+                                         id="layerlimitGroup"
+                                         style="height:59px;">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="layerLimit"
+                                               translate="create.accessconstraint.layerlimit.label"
+                                               style="padding:0;">Layer limit</label>
+                                        <div class="col-xs-4"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="number"
+                                                   id="layerLimit"
+                                                   class="form-control"
+                                                   ng-model="metadata.serviceConstraints.layerLimit"/>
+                                        </div>
+                                        <div class="btn-lg tooltipicon">
+                                            <span type="button"
+                                                  style="margin-left:15px;"
+                                                  class="glyphicon glyphicon-info-sign"
+                                                  tooltip data-placement="right"
+                                                  title="{{'tooltip.service.create.layer' | translate }}" ></span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group"
+                                         data-toggle="tooltip"
+                                         title="{{'create.accessconstraint.maxwidth.tooltip' | translate }}"
+                                         id="maxWidthGroup"
+                                         style="height:59px;">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="maxWidth"
+                                               translate="create.accessconstraint.maxwidth.label"
+                                               style="padding:0;">Max width</label>
+                                        <div class="col-xs-4"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="number"
+                                                   id="maxWidth"
+                                                   class="form-control"
+                                                   ng-model="metadata.serviceConstraints.maxWidth"/>
+                                        </div>
+                                        <div class="btn-lg tooltipicon">
+                                            <span type="button"
+                                                  style="margin-left:15px;"
+                                                  class="glyphicon glyphicon-info-sign"
+                                                  tooltip data-placement="right"
+                                                  title="{{'tooltip.service.create.maxwidth' | translate }}" ></span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group"
+                                         data-toggle="tooltip"
+                                         title="{{'create.accessconstraint.maxheight.tooltip' | translate }}"
+                                         id="maxHeightGroup"
+                                         style="height:59px;">
+                                        <label class="col-xs-12 control-label new-service-form-label"
+                                               for="maxHeight"
+                                               translate="create.accessconstraint.maxheight.label"
+                                               style="padding:0;">Max height</label>
+                                        <div class="col-xs-4"
+                                             style="padding:0; margin-bottom:7px;">
+                                            <input type="number"
+                                                   id="maxHeight"
+                                                   class="form-control"
+                                                   ng-model="metadata.serviceConstraints.maxHeight"/>
+                                        </div>
+                                        <div class="btn-lg tooltipicon">
+                                            <span type="button"
+                                                  style="margin-left:15px;"
+                                                  class="glyphicon glyphicon-info-sign"
+                                                  tooltip data-placement="right"
+                                                  title="{{'tooltip.service.create.maxheight' | translate }}" ></span>
+                                        </div>
+                                    </div>
+                                </form>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 20px;">
+                        <div class="pull-right">
+                            <button class="btn btn-add"
+                                    style="margin-right:30px;"
+                                    type="button"
+                                    ng-click="saveServiceMetadata()"
+                                    translate="label.save">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<scroll-top></scroll-top>

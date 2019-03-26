@@ -1,0 +1,5 @@
+{
+  "dataset.explorer.error.nodata" : "There is no valid data in this dataset",
+  "dataset.explorer.error.getdata" : "An error occur when trying to get dataset's data",
+  "dataset.explorer.error.invalid" : "The given dataset is not a correct dataset"
+}

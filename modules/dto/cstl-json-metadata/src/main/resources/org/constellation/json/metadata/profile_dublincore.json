@@ -1,0 +1,144 @@
+{
+    "root": {
+        "name": "Record",
+        "multiplicity": 1,
+        "children": [{
+                "superblock": {
+                    "name": "metadata.block.dataIdentification",
+                    "multiplicity": 1,
+                    "help": "metadata.block.dataIdentification_help",
+                    "path": null,
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "metadata.block.basic",
+                                "multiplicity": 1,
+                                "help": "metadata.block.basic_help",
+                                "path": null,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.identifier",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.identifier_help",
+                                            "path": "metadata.identifier.content",
+                                            "render": "readonly",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.type",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.type_help",
+                                            "path": "metadata.type.content",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.title",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.title_help",
+                                            "path": "metadata.title.content",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.subject",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.subject_help",
+                                            "path": "metadata.subject.content",
+                                            "render": "textarea",
+                                            "obligation": "O",
+                                            "completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.language",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.language_help",
+                                            "path": "metadata.language.content",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.abstract",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.abstract_help",
+                                            "path": "metadata.abstract.content",
+                                            "render": "textarea",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.boundingBox..crs",
+                                            "multiplicity": 1,
+                                            "help": "metadata.field.boundingBox.crs_help",
+                                            "path": "metadata.boundingBox.value.crs",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "completion" : "ELEMENTARY",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.boundingBox.lowerCorner",
+                                            "multiplicity": 32,
+                                            "help": "metadata.field.boundingBox.lowerCorner_help",
+                                            "path": "metadata.boundingBox.value.lowerCorner",
+                                            "render": "decimal",
+                                            "obligation": "O",
+                                            "completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "metadata.field.boundingBox.upperCorner",
+                                            "multiplicity": 32,
+                                            "help": "metadata.field.boundingBox.upperCorner_help",
+                                            "path": "metadata.boundingBox.value.upperCorner",
+                                            "render": "decimal",
+                                            "obligation": "O",
+                                            "completion" : "EXTENDED",
+                                            "defaultValue": null,
+                                            "value": null
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

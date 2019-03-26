@@ -1,0 +1,142 @@
+{
+    "root": {
+        "multiplicity": 0,
+        "children": [{
+                "superblock": {
+                    "name": "ISO19110.feature_catalogue.main",
+                    "multiplicity": 1,
+                    "help": "ISO19110.feature_catalogue.main_help",
+                    "children": [{
+                            "type": "block",
+                            "block": {
+                                "name": "ISO19110.feature_catalogue.main.basic",
+                                "multiplicity": 1,
+                                "help": "ISO19110.feature_catalogue.main.basic_help",
+                                "strict": false,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.id",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.id_help",
+                                            "path": "metadata.id",
+                                            "render": "readonly",
+                                            "obligation": "M",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.name",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.name_help",
+                                            "path": "metadata.featureType.typeName",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY",
+                                            "tag": "title"
+                                        }
+                                    }]
+                            }
+                        }, {
+                            "type": "block",
+                            "block": {
+                                "name": "ISO19110.feature_catalogue.main.carrierOfCharacteristics",
+                                "multiplicity": 62,
+                                "help": "ISO19110.feature_catalogue.main.carrierOfCharacteristics_help",
+                                "path": "metadata.featureType.carrierOfCharacteristics",
+                                "type": "org.opengis.feature.catalog.FeatureAttribute",
+                                "strict": false,
+                                "children": [{
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.coc.name",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.coc.name_help",
+                                            "path": "metadata.featureType.carrierOfCharacteristics.memberName",
+                                            "render": "text",
+                                            "obligation": "M",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.coc.def",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.coc.def_help",
+                                            "path": "metadata.featureType.carrierOfCharacteristics.definition",
+                                            "render": "textarea",
+                                            "obligation": "O",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "EXTENDED"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.coc.valtype",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.coc.valtype_help",
+                                            "path": "metadata.featureType.carrierOfCharacteristics.valueType",
+                                            "render": "predefinedValues.select",
+                                            "obligation": "M",
+                                            "predefinedValues": [
+                                                "Boolean", 
+                                                "Date", 
+                                                "Double", 
+                                                "Integer", 
+                                                "CharacterString", 
+                                                "Long",
+                                                "Geometry", 
+                                                "Point", 
+                                                "Line", 
+                                                "Polygon", 
+                                                "MultiPolygon",
+                                                "MultiLineString",
+                                                "MultiPoint",
+                                                "GeometryCollection"],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.coc.lower",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.coc.lower_help",
+                                            "path": "metadata.featureType.carrierOfCharacteristics.cardinality.range.lower",
+                                            "render": "decimal",
+                                            "defaultValue": "0",
+                                            "obligation": "M",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "ELEMENTARY"
+                                        }
+                                    }, {
+                                        "type": "field",
+                                        "field": {
+                                            "name": "ISO19110.feature_catalogue.main.coc.upper",
+                                            "multiplicity": 1,
+                                            "help": "ISO19110.feature_catalogue.main.coc.upper_help",
+                                            "path": "metadata.featureType.carrierOfCharacteristics.cardinality.range.upper",
+                                            "render": "decimal",
+                                            "obligation": "O",
+                                            "defaultValue": "1",
+                                            "predefinedValues": [],
+                                            "strict": false,
+                                            "completion": "EXTENDED"
+                                        }
+                                    }]
+                            }
+                        }]
+                }
+            }]
+    },
+    "nodeTypes": []
+}

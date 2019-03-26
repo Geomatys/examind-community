@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns14:Result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
+             xmlns:ns14="http://www.opengis.net/wps/2.0">
+  <ns14:JobID>b4585692-11f3-49c7-aa00-dc7d5e1763df</ns14:JobID>
+  <ns14:Output id="urn:exa:wps:geotoolkit::jts:intersection:output:result_geom">
+    <ns14:Reference xlink:href="http://localhost:9090/webdav/wps-default/0be9372e-1d93-42f0-98ab-117f59defbf8"/>
+  </ns14:Output>
+</ns14:Result>

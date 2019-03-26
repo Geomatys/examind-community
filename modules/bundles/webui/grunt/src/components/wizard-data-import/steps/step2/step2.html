@@ -1,0 +1,44 @@
+<div class="step2">
+    <div class="row store-tree-container" ng-if="step2WizCtrl.showStoresTree()">
+        <div class="col-xs-12 col-md-6">
+            <div class="row store-tree-block">
+                <stores-tree-view stores-ref="step2WizCtrl.wizardValues.step2.storesRef"
+                                  display-data-layer="step2WizCtrl.displayDataLayer">
+                </stores-tree-view>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-6">
+            <div class="preview-map-block">
+                <preview-map layer="step2WizCtrl.preview.layer"
+                             extent="step2WizCtrl.preview.extent">
+                </preview-map>
+            </div>
+        </div>
+    </div>
+    <div class="row analysis-container" ng-if="step2WizCtrl.showAnalysisBlock()">
+        <div class="analysis-block">
+            <i class="fa fa-cog fa-spin fa-2x fa-fw"></i>
+            <span class="sr-only">Loading...</span>
+            <p class="analysis">{{'wiz.data.import.step1.msg.analysis.in.progress' |
+                translate}}<span>.</span><span>.</span><span>.</span></p>
+            <span class="tooltipicon pull-right">
+                <i type="button" class="glyphicon glyphicon-info-sign"
+                   data-placement="bottom"
+                   title="{{'wiz.data.import.step1.msg.tooltip.analyse' | translate }}"></i>
+            </span>
+        </div>
+    </div>
+    <div class="row failure-container" ng-if="step2WizCtrl.showFailureBlock()">
+        <div class="failure-block center">
+            <i class="fa fa-2x fa-exclamation-triangle" aria-hidden="true"></i>
+            <span class="sr-only">Error...</span>
+            <p>{{'wiz.data.import.step2.msg.failure.block' | translate}}</p>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+

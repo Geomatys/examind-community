@@ -1,0 +1,138 @@
+<form name="remoteCtrl.urlForm">
+    <div class="input-group">
+        <div class="input-group-btn">
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                <span ng-show="!remoteCtrl.remote.protocol">{{'wiz.data.import.step1.label.protocol' | translate}}</span>
+                <span ng-show="remoteCtrl.remote.protocol">
+                    {{remoteCtrl.remote.protocol.i18n? (remoteCtrl.remote.protocol.i18n | translate) : remoteCtrl.remote.protocol.name}}
+                </span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu glass-class">
+                <li ng-repeat="protocol in remoteCtrl.urlProtocols">
+                    <a ng-click="remoteCtrl.selectProtocol(protocol)"
+                       ng-class="{'selected-protocol-dropdown' : remoteCtrl.isSelectedProtocol(protocol.id)}">
+                        {{protocol.i18n? (protocol.i18n | translate) : protocol.name}}
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <input type="text" class="form-control"
+               placeholder="URL..."
+               ng-model="remoteCtrl.remote.url"/>
+    </div>
+</form>
+<div class="protocol-content">
+    <div class="container" ng-if="remoteCtrl.isDefaultProtocol()">
+        <div class="row connection-form-block">
+            <form class="form-horizontal col-sm-8">
+                <div ng-if="remoteCtrl.remote.protocol.connection">
+                    <div class="form-group">
+                        <label for="login" class="col-sm-3 control-label">
+                            <span ng-show="remoteCtrl.remote.protocol.id !== 's3'">{{'wiz.data.import.step1.label.login' | translate}}</span>
+                            <span ng-show="remoteCtrl.remote.protocol.id === 's3'">{{'wiz.data.import.step1.label.access.key' | translate}}</span>
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="login" type="text" class="form-control"
+                                   ng-model="remoteCtrl.remote.protocol.connection.login"
+                                   placeholder="{{'wiz.data.import.step1.label.login' | translate}}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="col-sm-3 control-label">
+                            <span ng-show="remoteCtrl.remote.protocol.id !== 's3'">{{'wiz.data.import.step1.label.password' | translate}}</span>
+                            <span ng-show="remoteCtrl.remote.protocol.id === 's3'">{{'wiz.data.import.step1.label.secret.key' | translate}}</span>
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="password" type="password" class="form-control"
+                                   ng-model="remoteCtrl.remote.protocol.connection.password"
+                                   placeholder="{{'wiz.data.import.step1.label.password' | translate}}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-9" ng-class="{'col-sm-offset-3':remoteCtrl.remote.protocol.connection}">
+                        <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()">
+                            <span>{{remoteCtrl.getBtnLabelFor(remoteCtrl.remote.protocol.id) | translate}}</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div ng-if="remoteCtrl.showReadFromRemoteOption()" class="col-sm-4 remote-flag">
+                <label>{{'wiz.data.import.step1.label.remote.reading' | translate}}</label>
+                <i popover-placement="bottom"
+                   popover-trigger="mouseenter"
+                   popover-title="{{'wiz.data.import.step1.label.remote.reading' | translate}}"
+                   popover="{{'wiz.data.import.step1.label.remote.reading.help' | translate}}">
+                    <span class="fa fa-question-circle"></span>
+                </i>
+                <pan>&nbsp;:&nbsp;</pan>
+                <div class="tgl-read-remote">
+                    <input class="tgl tgl-ios" id="cbReadRemote"
+                           ng-model="remoteCtrl.remote.protocol.readFromRemote"
+                           ng-change="remoteCtrl.changeReadFromRemoteFlag()"
+                           type="checkbox"/>
+                    <label class="tgl-btn" for="cbReadRemote"></label>
+                </div>
+            </div>
+        </div>
+        <div ng-if="remoteCtrl.getDataSourceId()" class="format-handler">
+            <files-formats stores="remoteCtrl.stores"
+                           file-list-ref="remoteCtrl.fileListRef"
+                           file-explorer-state="remoteCtrl.fileExplorerState"
+                           adv-config="remoteCtrl.advConfig"
+                           form-schema="remoteCtrl.formSchema"
+                           select-store="remoteCtrl.selectStore"
+                           get-file-list="remoteCtrl.getFileList"
+                           up-dir="remoteCtrl.upDir"
+                           open-dir="remoteCtrl.openDir"
+                           disable-up-dir="remoteCtrl.disableUpDir"
+                           is-disabled-file="remoteCtrl.isDisabledFile"
+                           can-show-provider-config-properties="remoteCtrl.canShowProviderConfigProperties"
+                           select-all="remoteCtrl.selectAll"
+                           show-advanced-config-block="remoteCtrl.showAdvancedConfigBlock"
+                           hide-field="remoteCtrl.hideField">
+            </files-formats>
+        </div>
+    </div>
+    <div class="dynamic-protocol-block" ng-if="remoteCtrl.remote.protocol && !remoteCtrl.isDefaultProtocol()">
+        <div class="row">
+            <div class="adv-conf pull-left">
+                <i class="fa fa-cogs" aria-hidden="true"></i>
+                <label>{{'wiz.data.import.step1.label.advanced' | translate}}</label>
+                <i popover-placement="bottom"
+                   popover-trigger="mouseenter"
+                   popover-title="{{'wiz.data.import.step1.label.advanced.config' | translate}}"
+                   popover="{{'wiz.data.import.step1.msg.advanced.config' | translate}}">
+                    <span class="fa fa-question-circle"></span>
+                </i>
+                <pan>&nbsp;:&nbsp;</pan>
+                <div class="tgl-adv-config">
+                    <input class="tgl tgl-ios" id="showAdvanced"
+                           ng-model="remoteCtrl.advConfig.showAdvConfig"
+                           ng-disabled="!remoteCtrl.canShowProviderConfigProperties()"
+                           type="checkbox"/>
+                    <label class="tgl-btn" ng-class="{'disabled':!remoteCtrl.canShowProviderConfigProperties()}" for="showAdvanced"></label>
+                </div>
+            </div>
+            <div class="pull-right">
+                <button class="btn btn-success" ng-click="remoteCtrl.urlConnection()">
+                    <span>{{'wiz.data.import.step1.label.connection' | translate}}</span>
+                </button>
+            </div>
+        </div>
+        <div class="json-form-builder-block" ng-if="remoteCtrl.showAdvancedConfigBlock()">
+            <div class="row form-block" ng-if="remoteCtrl.formSchema.schema">
+                <json-forms-builder form-schema="remoteCtrl.formSchema"
+                                    hide-field="remoteCtrl.hideField">
+                </json-forms-builder>
+            </div>
+        </div>
+    </div>
+    <div class="well url-bloc-info" ng-show="!remoteCtrl.remote.protocol">
+        <p class="step_desc">
+            {{'wiz.data.import.step1.msg.aboutcloud' |translate}}
+        </p>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ows="http://www.opengis.net/ows/1.1" service="WPS" version="1.0.0" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd">
+    <ows:Identifier>urn:exa:wps:geotoolkit::math:add</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>urn:exa:wps:geotoolkit::math:add:input:first</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>400</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>urn:exa:wps:geotoolkit::math:add:input:second</ows:Identifier>
+	  <wps:Data>
+              <wps:LiteralData>200</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:ResponseDocument>
+            <wps:Output asReference="false">
+                <ows:Identifier>urn:exa:wps:geotoolkit::math:add:output:result</ows:Identifier>
+            </wps:Output>
+        </wps:ResponseDocument>
+    </wps:ResponseForm>
+</wps:Execute>
+

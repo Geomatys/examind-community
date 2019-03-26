@@ -1,0 +1,38 @@
+<h1 class="loginTitle" translate="login.title">Authentication</h1>
+<div id="msg-error"
+     style="display:none;border-color:#D89A9A; background-color:#FFC0CB;padding: 8px;"
+     class="alert msg_auth_error"
+     translate="login.error">Login or password incorrect.</div>
+<div id="msg-error2"
+     style="display:none;border-color:#D89A9A; background-color:#FFC0CB;padding: 8px;"
+     class="alert msg_auth_error"
+     translate="login.disabled">This account is disabled, thank you to contact an administrator to reactivate it.</div>
+<form id="loginForm" class="form" role="form" ng-submit="login()" form-autofill-fix>
+    <div class="form-group">
+        <label for="username"
+               translate="login.form.username">Login</label>
+        <input id="username"
+               type="text"
+               class="form-control"
+               name="username"
+               placeholder="login"
+               autofocus
+               ng-model="formInputs.username"/>
+    </div>
+    <div class="form-group">
+        <label for="password"
+               translate="login.form.password">Password</label>
+        <input id="password"
+               type="password"
+               class="form-control"
+               name="password"
+               placeholder="password"
+               ng-model="formInputs.password"/>
+    </div>
+    <button id="submitLogin"
+            type="submit"
+            class="btn btn-primary">Login</button>
+    <a ng-click="forgotPassword()"
+       class="btn pull-right"
+       translate="login.form.forgot.password">Forgot password ?</a>
+</form>

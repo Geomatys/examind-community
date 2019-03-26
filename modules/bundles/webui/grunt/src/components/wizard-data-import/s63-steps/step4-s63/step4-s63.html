@@ -1,0 +1,70 @@
+<div class="step">
+    <div class="col-xs-12 preview-block">
+        <preview-map layer="ctrl.preview.layer" extent="ctrl.preview.extent"></preview-map>
+    </div>
+    <div class="cells-listing">
+        <div class="col-md-6" ng-repeat="cell in ctrl.mediaExchange.cells">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <label>{{cell.name}}</label>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <label class="col-sm-4 pull-left">{{'mapcontext.modal.label.envelope' | translate}}</label>
+                        <div class=" col-sm-8 pull-right">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td><b><span>{{'label.north' | translate}} : </span></b></td>
+                                        <td><span>{{cell.bbox[3]}}</span></td>
+                                        <td><b><span>{{'label.east' | translate}} : </span></b></td>
+                                        <td><span> {{cell.bbox[2]}}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><b><span>{{'label.south' | translate}} : </span></b></td>
+                                        <td><span>{{cell.bbox[1]}}</span></td>
+                                        <td><b><span>{{'label.west' | translate}} : </span></b></td>
+                                        <td><span> {{cell.bbox[0]}}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row s63_padding_left_15">
+                        <label>{{'create.description.version.title' | translate}} &nbsp;:&nbsp; </label><span> {{cell.edition}}</span>
+                    </div>
+                    <div class="row s63_padding_left_15">
+                        <label>Update num &nbsp;:&nbsp; </label><span> {{cell.update}}</span>
+                    </div>
+                    <div class="row s63_padding_left_15">
+                        <label>Update date &nbsp;:&nbsp; </label><span> {{cell.issueDate}}</span>
+                    </div>
+                    <div class="row log-block" ng-repeat="log in cell.logs"
+                         ng-class="{'info':log.level === 'INFO','warning':log.level === 'WARNING','danger':log.level === 'SEVERE'}">
+                        <table>
+                            <tr>
+                                <td>
+                                    <i ng-show="log.level === 'INFO'" class="fa fa-info-circle" aria-hidden="true"></i>
+                                    <i ng-show="log.level === 'WARNING'" class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                                    <i ng-show="log.level === 'SEVERE'" class="fa fa-times-circle" aria-hidden="true"></i>
+                                </td>
+                                <td>
+                                    <span>{{log.message}}</span>
+                                </td>
+                            </tr>
+                        </table>
+
+
+                        <!--<i popover-placement="bottom"-->
+                        <!--ng-show="log.stacktrace"-->
+                        <!--popover-trigger="mouseenter"-->
+                        <!--popover-title="{{'Stacktrace' | translate}}"-->
+                        <!--popover="{{log.stacktrace}}">-->
+                        <!--<span id="questionSign" class="fa fa-question-circle"></span>-->
+                        <!--</i>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

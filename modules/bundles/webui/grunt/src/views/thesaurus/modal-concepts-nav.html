@@ -1,0 +1,39 @@
+<div>
+    <h4 translate="thesaurus.title.concept_tree">Concept tree</h4>
+
+    <!-- Search -->
+    <div class="concept-search clearfix">
+        <div class="search-input">
+            <div class="input-group">
+                <div class="input-group-addon"><i class="fa fa-search"></i></div>
+                <input type="text" class="form-control" ng-model="mc.nav.tree.search" ng-change="mc.nav.search()"/>
+            </div>
+        </div>
+        <button type="button" class="btn btn-default" ng-show="mc.nav.tree.search" ng-click="mc.nav.clearSearch()"><i class="fa fa-times"></i></button>
+    </div>
+
+    <!-- Tree -->
+    <concept-tree lang="mc.lang" tops="mc.nav.tree.tops" narrowers="mc.getNarrowers(node)" onselect="mc.nav.select(node)"></concept-tree>
+
+    <!-- Actions -->
+    <div>
+        <button type="button" class="btn btn-default" ng-click="mc.edit.setup()">
+            <i class="fa fa-plus"></i>&nbsp;
+            <span translate="thesaurus.btn.create_new_concept">Create a "top" concept</span>
+        </button>
+        <div class="pull-right">
+            <button type="button" class="btn btn-default" ng-disabled="!mc.nav.concept" ng-click="mc.edit.setup(null,mc.nav.concept)">
+                <i class="fa fa-plus"></i>&nbsp;
+                <span translate="thesaurus.btn.create_new_narrower">Create a child</span>
+            </button>
+            <button type="button" class="btn btn-default" ng-disabled="!mc.nav.concept" ng-click="mc.nav.delete()">
+                <i class="fa fa-trash"></i>&nbsp;
+                <span translate="thesaurus.btn.delete_concept">Delete the concept</span>
+            </button>
+            <button type="button" class="btn btn-thesaurus" ng-disabled="!mc.nav.concept" ng-click="mc.edit.setup(mc.nav.concept)">
+                <i class="fa fa-pencil"></i>&nbsp;
+                <span translate="thesaurus.btn.edit_concept">Edit the concept</span>
+            </button>
+        </div>
+    </div>
+</div>

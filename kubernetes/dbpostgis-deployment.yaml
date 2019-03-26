@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: examind-dbpostgis
+  name: examind-dbpostgis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: examind-dbpostgis
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-geomatys-private
+      containers:
+        - name: postgis
+          image: docker.geomatys.com/geomatys-ubu-postgis:latest
+          restartPolicy: Always
+          ports:
+            - containerPort: 5432
+          env:
+            - name: PGDATA
+              value: /var/lib/postgis/data
+          volumeMounts:
+            - mountPath: /var/lib/postgis/data
+              name: examind-dbpostgis
+      volumes:
+      - name: examind-dbpostgis
+        persistentVolumeClaim:
+          claimName: examind-dbpostgis
