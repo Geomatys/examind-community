@@ -111,6 +111,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import org.constellation.business.IProcessBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.process.Registry;
 import org.constellation.dto.process.RegistryList;
 import org.constellation.exception.ConstellationException;
@@ -167,6 +169,7 @@ import org.geotoolkit.wps.xml.v200.Undeploy;
 import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 
 
@@ -692,11 +695,13 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     public Object execute(final Execute request, String quotationId) throws CstlServiceException {
         if (isTransactionSecurized()) {
-            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
-                throw new UnauthorizedException("You must be authentified to perform an execute request.");
-            }
-            if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
-               throw new UnauthorizedException("You are not allowed to perform an execute request.");
+            if (Application.getBooleanProperty(AppProperty.EXA_WPS_EXECUTE_SECURE, false)) {
+                if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                    throw new UnauthorizedException("You must be authentified to perform an execute request.");
+                }
+                if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
+                   throw new UnauthorizedException("You are not allowed to perform an execute request.");
+                }
             }
         }
         verifyBaseRequest(request, true, false);

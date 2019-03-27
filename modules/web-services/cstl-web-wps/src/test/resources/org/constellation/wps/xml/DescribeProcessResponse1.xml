@@ -7339,10 +7339,22 @@
                 <ns9:Identifier>urn:exa:wps:geotoolkit::vector:affinetransform:input:transform_in</ns9:Identifier>
                 <ows:Title xml:lang="fr-FR">Transform_in</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">The affine transformation to apply on Features geometries</ows:Abstract>
-                <LiteralData>
-                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    <ows:AnyValue/>
-                </LiteralData>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd</Schema>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexData>
             </Input>
         </DataInputs>
         <ProcessOutputs>

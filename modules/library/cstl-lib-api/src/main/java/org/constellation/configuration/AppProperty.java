@@ -129,7 +129,9 @@ public enum AppProperty {
 
     EXA_QUOTATION_EXPIRE("examind.quotation.expire"),
 
-    EXA_CWL_SHARED_DIR("examind.cwl.shared.dir");
+    EXA_CWL_SHARED_DIR("examind.cwl.shared.dir"),
+
+    EXA_WPS_EXECUTE_SECURE("examind.wmp.execute.secure");
 
     private final String key;
 
