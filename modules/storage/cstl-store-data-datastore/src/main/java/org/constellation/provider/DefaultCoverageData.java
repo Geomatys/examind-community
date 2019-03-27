@@ -164,9 +164,10 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             } else {
                 gd = gridGeom.derive().subgrid(envelope);
             }
+            gd = gd.sliceByRatio(0.5, 0, 1);
             final GridCoverage cov      =  ref.read(gd.build());
             final GridCoverage2D cov2d  = CoverageUtilities.toGeotk(cov);
-            return new ResampleProcess(cov2d, crs2D, gridGeom, null, null).executeNow();
+            return new ResampleProcess(cov2d, crs2D, null, null, null).executeNow();
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
