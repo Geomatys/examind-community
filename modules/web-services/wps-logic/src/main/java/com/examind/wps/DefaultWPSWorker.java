@@ -28,6 +28,7 @@ import com.examind.wps.component.GeotkProcess;
 import com.examind.wps.util.SimpleJobExecutor;
 import com.examind.wps.util.WPSUtils;
 import com.examind.wps.util.WPSConfigurationUtils;
+import static com.examind.wps.util.WPSConstants.*;
 
 import org.geotoolkit.atom.xml.Link;
 import java.io.IOException;

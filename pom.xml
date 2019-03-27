@@ -34,7 +34,6 @@
         <sis.build.helper.version>0.8</sis.build.helper.version>    <!-- Modified by JDK9 profile. -->
         <sis.epsg.version>1.0-M1</sis.epsg.version>
         <geotoolkit.version>5.0-SNAPSHOT</geotoolkit.version>
-        <exa.sdk.version>3.2.16</exa.sdk.version>
         <derby.version>10.14.2.0</derby.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jaxws.version>2.2.8</jaxws.version>
