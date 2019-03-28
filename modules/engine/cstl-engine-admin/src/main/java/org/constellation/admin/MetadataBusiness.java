@@ -76,6 +76,7 @@ import javax.measure.format.ParserException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.Locales;
 import org.apache.sis.util.iso.Types;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
@@ -137,7 +138,6 @@ import static org.constellation.util.NodeUtilities.getMetadataFromNode;
 import static org.constellation.util.NodeUtilities.getNodeFromObject;
 import org.constellation.util.Util;
 import org.constellation.ws.IWSEngine;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
@@ -1746,7 +1746,7 @@ public class MetadataBusiness implements IMetadataBusiness {
      public Integer getDefaultInternalProviderID() throws ConfigurationException {
         Integer providerId = providerBusiness.getIDFromIdentifier("default-internal-metadata");
         if (providerId == null) {
-            final DataStoreFactory factory = DataStores.getFactoryById("InternalCstlmetadata");
+            final DataStoreProvider factory = DataStores.getProviderById("InternalCstlmetadata");
             if (factory != null) {
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
                 providerId = providerBusiness.create("default-internal-metadata", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);

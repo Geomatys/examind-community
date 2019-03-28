@@ -361,10 +361,10 @@ public class MapContextRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.INFO, ex.getMessage(), ex);
         }
 
-        if (ctxt.getWest() != null && ctxt.getNorth() != null && ctxt.getEast() != null && ctxt.getSouth() != null && ctxt.getCrs() != null) {
+        if (ctxt.hasEnvelope()) {
             final DirectPositionType lowerCorner = new DirectPositionType(ctxt.getWest(), ctxt.getSouth());
             final DirectPositionType upperCorner = new DirectPositionType(ctxt.getEast(), ctxt.getNorth());
-            final EnvelopeType envelope = new EnvelopeType(null, lowerCorner, upperCorner, ctxt.getCrs());
+            final EnvelopeType envelope = new EnvelopeType(lowerCorner, upperCorner, ctxt.getCrs());
             envelope.setSrsDimension(2);
             final WhereType where = new WhereType(envelope);
             feed.addWhere(where);

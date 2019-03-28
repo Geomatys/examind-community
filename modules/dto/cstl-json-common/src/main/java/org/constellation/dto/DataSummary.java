@@ -20,6 +20,22 @@ public class DataSummary implements Serializable{
     private String pyramidConformProviderId;
     private List<Dimension> dimensions;
 
+    public DataSummary() {
+
+    }
+
+    public DataSummary(Data data) {
+        if (data != null) {
+            this.id         = data.getId();
+            this.name       = data.getName();
+            this.date       = data.getDate();
+            this.datasetId  = data.getDatasetId();
+            this.type       = data.getType();
+            this.subtype    = data.getSubtype();
+            this.sensorable = data.getSensorable();
+        }
+    }
+
     public List<Dimension> getDimensions() {
         return dimensions;
     }

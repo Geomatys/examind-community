@@ -54,6 +54,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -69,7 +70,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
@@ -385,7 +385,7 @@ public class SensorBusiness implements ISensorBusiness {
         Integer provider = providerBusiness.getIDFromIdentifier("default-internal-sensor");
         if (provider == null) {
             // TODO fill missing parameters
-            final DataStoreFactory factory = DataStores.getFactoryById("cstlsensor");
+            final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
             if (factory != null) {
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
                 provider = providerBusiness.create("default-internal-sensor", SPI_NAMES.SENSOR_SPI_NAME, params);

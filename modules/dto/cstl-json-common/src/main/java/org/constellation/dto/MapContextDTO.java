@@ -212,4 +212,8 @@ public class MapContextDTO implements Serializable{
     public void setKeywords(String keywords) {
         this.keywords = keywords;
     }
+
+    public boolean hasEnvelope() {
+        return west != null &&  north != null && east != null && south != null && crs != null;
+    }
 }

@@ -66,6 +66,14 @@ public final class DataBrief extends Data implements Serializable {
     @XmlTransient
     private DataDescription dataDescription;
 
+    public DataBrief() {
+
+    }
+
+    public DataBrief(Data data) {
+        super(data);
+    }
+
     public String getProvider() {
         return provider;
     }

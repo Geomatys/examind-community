@@ -84,6 +84,27 @@ public class Data implements Serializable {
         this.hidden = hidden;
     }
 
+    public Data(Data data) {
+        if (data != null) {
+            this.id = data.id;
+            this.name = data.name;
+            this.namespace = data.namespace;
+            this.providerId = data.providerId;
+            this.type = data.type;
+            this.subtype = data.subtype;
+            this.included = data.included;
+            this.sensorable = data.sensorable;
+            this.date = data.date;
+            this.ownerId = data.ownerId;
+            this.metadata = data.metadata;
+            this.datasetId = data.datasetId;
+            this.statsResult = data.statsResult;
+            this.rendered = data.rendered;
+            this.statsState = data.statsState;
+            this.hidden = data.hidden;
+        }
+    }
+
     /**
      * @return the id
      */
