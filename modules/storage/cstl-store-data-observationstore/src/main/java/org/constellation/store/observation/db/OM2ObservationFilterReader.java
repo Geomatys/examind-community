@@ -170,7 +170,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<='").append(end).append("')");
             sqlRequest.append("OR");
             // the single observations included in the period
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\">='").append(end).append("' AND \"time_end\" IS NULL)");
+            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
             sqlRequest.append("OR");
             // the multiple observations which overlaps the first bound
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<='").append(end).append("' AND \"time_end\">='").append(begin).append("')");

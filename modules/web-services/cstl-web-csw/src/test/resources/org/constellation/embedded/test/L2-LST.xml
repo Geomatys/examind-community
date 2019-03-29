@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DIF xmlns="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:dif="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/ https://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/dif_v10.2.xsd">
+    <Entry_ID>
+        <Short_Name>L2-LST</Short_Name>
+        <Version>LatestVersion</Version>
+    </Entry_ID>
+    <Entry_Title>GCOM-C/SGLI L2 Land surface temperature</Entry_Title>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>LAND SURFACE</Topic>
+        <Term>SURFACE THERMAL PROPERTIES</Term>
+        <Variable_Level_1>LAND SURFACE TEMPERATURE</Variable_Level_1>
+    </Science_Keywords>
+    <ISO_Topic_Category>Imagery/Base Maps/Earth Cover</ISO_Topic_Category>
+    <ISO_Topic_Category>Environment</ISO_Topic_Category>
+    <ISO_Topic_Category>Climatology/Meteorology/Atmosphere</ISO_Topic_Category>
+    <Ancillary_Keyword>SNOW</Ancillary_Keyword>
+    <Ancillary_Keyword>LAND SURFACE TEMPERATURE</Ancillary_Keyword>
+    <Ancillary_Keyword>LAND</Ancillary_Keyword>
+    <Ancillary_Keyword>JAXA</Ancillary_Keyword>
+    <Ancillary_Keyword>Level-2</Ancillary_Keyword>
+    <Platform>
+        <Type>Earth Observation Satellites</Type>
+        <Short_Name>GCOM-C</Short_Name>
+        <Long_Name>Global Change Observation Mission &amp;amp;amp;
+            8211; Climate</Long_Name>
+        <Instrument>
+            <Short_Name>SGLI</Short_Name>
+            <Long_Name>Second Generation Global Imager</Long_Name>
+        </Instrument>
+    </Platform>
+    <Temporal_Coverage>
+        <Range_DateTime>
+            <Beginning_Date_Time>2018-01-01T00:00:00.000Z</Beginning_Date_Time>
+        </Range_DateTime>
+    </Temporal_Coverage>
+    <Dataset_Progress>IN WORK</Dataset_Progress>
+    <Spatial_Coverage>
+        <Granule_Spatial_Representation>CARTESIAN</Granule_Spatial_Representation>
+        <Geometry>
+            <Coordinate_System>CARTESIAN</Coordinate_System>
+            <Bounding_Rectangle>
+                <Southernmost_Latitude>-90</Southernmost_Latitude>
+                <Northernmost_Latitude>90</Northernmost_Latitude>
+                <Westernmost_Longitude>-180</Westernmost_Longitude>
+                <Easternmost_Longitude>180</Easternmost_Longitude>
+            </Bounding_Rectangle>
+        </Geometry>
+    </Spatial_Coverage>
+    <Project>
+        <Short_Name>GCOM-C</Short_Name>
+        <Long_Name>Global Change Observation Mission-Climate</Long_Name>
+    </Project>
+    <Organization>
+        <Organization_Type>ARCHIVER</Organization_Type>
+        <Organization_Name>
+            <Short_Name>JP/JAXA/SAOC</Short_Name>
+            <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+        </Organization_Name>
+        <Organization_URL>http://www.jaxa.jp</Organization_URL>
+        <Personnel>
+            <Role>DATA CENTER CONTACT</Role>
+            <Contact_Person>
+                <Last_Name>JAXA G-PORTAL</Last_Name>
+                <Address>
+                    <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                    <Street_Address>2-1-1, Sengen</Street_Address>
+                    <City>Tsukuba-city</City>
+                    <State_Province>Ibaraki</State_Province>
+                    <Postal_Code>305-8505</Postal_Code>
+                    <Country>JAPAN</Country>
+                </Address>
+                <Email>z-gportal-support@ml.jaxa.jp</Email>
+            </Contact_Person>
+        </Personnel>
+    </Organization>
+    <Summary>
+        <Abstract>GCOM-C conducts long-term and continuous global observation and data collection to elucidate the mechanism behind fluctuations in radiation budget and carbon cycle needed to make accurate projections regarding future temperature rise. At the same time, cooperating with research institutions having a climate numerical model, it contributes to reduction of errors in temperature rise prediction derived from the climate numerical model and improvement of accuracy of prediction of various environmental changes.SGLI mounted on GCOM-C is the succession sensor of the Global Imager (GLI) mounted on ADEOS-II (MIDORI II) and is the Imaging Radiometer which measures the radiation from near-ultraviolet to thermal infrared region (380 nm-12 um) in 19 channels Global observation of once for approximately every two days is possible at mid-latitude near Japan by observation width at ground greater than 1,000 km. In addition, SGLI realizes high resolution than the similar global sensor and has a polarized observation function and a multi-angle observation function.
+            This product is the Temperature of terrestrial land surface.
+            Process level: Level-2
+            resolution: 250m
+            Spatial coverage: Tile
+            Temporal coverage: 1-Day
+            Product Unit : Kelvin</Abstract>
+    </Summary>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>GET DATA</Type>
+        </URL_Content_Type>
+        <URL>https://gportal.jaxa.jp/</URL>
+        <Description>G-Portal is a portal system allowing users to search, and download products acquired by JAXA Earth observation satellite.</Description>
+    </Related_URL>
+    <Originating_Metadata_Node>GCMD</Originating_Metadata_Node>
+    <Metadata_Name>CEOS IDN DIF</Metadata_Name>
+    <Metadata_Version>VERSION 10.2</Metadata_Version>
+    <Metadata_Dates>
+        <Metadata_Creation>2018-11-18</Metadata_Creation>
+        <Metadata_Last_Revision>2018-11-18</Metadata_Last_Revision>
+        <Data_Creation>2018-01-01</Data_Creation>
+        <Data_Last_Revision>unknown</Data_Last_Revision>
+    </Metadata_Dates>
+</DIF>

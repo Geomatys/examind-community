@@ -568,6 +568,16 @@ public class ServiceBusiness implements IServiceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void ensureExistingInstance(final Integer id) throws ConfigurationException {
+        if (!serviceRepository.exist(id)) {
+            throw new TargetNotFoundException(id + " service instance not found.");
+        }
+    }
+
     private static String getStringFromObject(final Object obj, final MarshallerPool pool) {
         String config = null;
         if (obj != null) {

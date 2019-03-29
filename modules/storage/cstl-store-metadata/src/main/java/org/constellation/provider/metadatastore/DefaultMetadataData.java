@@ -25,7 +25,6 @@ import org.constellation.provider.AbstractData;
 import org.constellation.provider.MetadataData;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.metadata.MetadataStore;
-import org.geotoolkit.metadata.MetadataType;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 import org.w3c.dom.Node;

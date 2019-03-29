@@ -117,6 +117,11 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     }
 
     @Override
+    public List<Integer> findIdByServiceId(int serviceId) {
+        return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchInto(Integer.class);
+    }
+
+    @Override
     public List<QName> findNameByServiceId(int serviceId) {
         List<Map<String, Object>> test = dsl.select(LAYER.NAME, LAYER.NAMESPACE).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).fetchMaps();
         List<QName> result = new ArrayList<>();
@@ -150,6 +155,19 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.isNull())
                     .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
         }
+    }
+
+    @Override
+    public Layer findByServiceIdAndAlias(int serviceId, String alias) {
+        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias))
+                    .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    }
+
+    @Override
+    public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
+        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
+                .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+
     }
 
     @Override

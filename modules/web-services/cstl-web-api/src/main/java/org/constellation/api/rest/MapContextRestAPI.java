@@ -460,7 +460,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             opGetMap.setMethod(MethodCodeType.GET);
             offering.addOperation(opGetMap);
 
-            newEntry.addOffering(offering);
+            addOffering(newEntry, offering);
             feed.addEntry(newEntry);
         }
 
@@ -469,6 +469,13 @@ public class MapContextRestAPI extends AbstractRestAPI {
         header.setContentType(MediaType.APPLICATION_XML);
         header.set("Content-Disposition", "attachment; filename=\"context-" + ctxt.getName() + ".xml\"");
         return new ResponseEntity(feed, header, OK);
+    }
+
+    private static void addOffering(EntryType entry, OfferingType offering) {
+        if (offering != null) {
+            final org.geotoolkit.owc.xml.v10.ObjectFactory OBJ_OWC_FACT = new org.geotoolkit.owc.xml.v10.ObjectFactory();
+            entry.getAuthorOrCategoryOrContent().add(OBJ_OWC_FACT.createOffering(offering));
+        }
     }
 
     @Transactional

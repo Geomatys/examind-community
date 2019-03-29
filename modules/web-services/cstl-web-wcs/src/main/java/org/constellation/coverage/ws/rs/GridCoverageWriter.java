@@ -94,7 +94,12 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
         final ImageWriter iowriter = ImageIO.getImageWritersByFormatName("geotiff").next();
 
         // TIFF writer do no support writing in output stream currently, we have to write in a file before
-        final File f = File.createTempFile(coverage.getName().toString(), ".tiff");
+        String name = coverage.getName().toString();
+        if (name.length() < 3) {
+            //causes a java.lang.IllegalArgumentException: Prefix string too short if name is empty
+            name += "data";
+        }
+        final File f = File.createTempFile(name, ".tiff");
         iowriter.setOutput(f);
         TiffImageWriteParam param = new TiffImageWriteParam(iowriter);
         if (entry.compression != null && !entry.compression.equals("NONE")) {

@@ -29,7 +29,7 @@ import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.ResultType;
-import org.geotoolkit.csw.xml.TypeNames;
+import org.geotoolkit.metadata.TypeNames;
 import org.geotoolkit.csw.xml.v202.Capabilities;
 import org.geotoolkit.csw.xml.v202.DescribeRecordResponseType;
 import org.geotoolkit.csw.xml.v202.DistributedSearchType;
@@ -455,7 +455,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         URLConnection conec = getCapsUrl.openConnection();
 
         QueryConstraintType constraint = new QueryConstraintType("identifier='urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f'", "1.1.0");
-        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         GetRecordsType request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 10, query, null);
 
         postRequestObject(conec, request);
@@ -472,7 +472,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, null);
 
         postRequestObject(conec, request);
@@ -501,7 +501,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         URLConnection conec = getCapsUrl.openConnection();
 
         QueryConstraintType constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        QueryType query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         DistributedSearchType dist = new DistributedSearchType(1);
         GetRecordsType request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, dist);
 
@@ -519,7 +519,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, null);
 
         postRequestObject(conec, request);
@@ -535,7 +535,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         conec = getCapsUrl.openConnection();
 
         constraint = new QueryConstraintType("identifier like '%%'", "1.1.0");
-        query = new QueryType(Arrays.asList(TypeNames.RECORD_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
+        query = new QueryType(Arrays.asList(TypeNames.RECORD_202_QNAME), new ElementSetNameType(ElementSetType.FULL), null, constraint);
         dist = new DistributedSearchType(0);
         request = new GetRecordsType("CSW", "2.0.2", ResultType.RESULTS, null, null, null, 1, 20, query, dist);
 

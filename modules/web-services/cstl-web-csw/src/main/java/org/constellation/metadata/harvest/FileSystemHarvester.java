@@ -18,7 +18,6 @@
  */
 package org.constellation.metadata.harvest;
 
-import org.constellation.metadata.core.DistributedResults;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
@@ -35,6 +34,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
+import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -46,7 +46,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
  */
 public class FileSystemHarvester extends CatalogueHarvester {
 
-    
+
     /**
      * Build a new catalogue harvester able to harvest a fileSystem.
      *
@@ -57,7 +57,7 @@ public class FileSystemHarvester extends CatalogueHarvester {
      */
     public FileSystemHarvester(MetadataStore store) throws MetadataIoException {
         super(store);
-        
+
     }
 
     @Override
@@ -117,7 +117,7 @@ public class FileSystemHarvester extends CatalogueHarvester {
     }
 
     @Override
-    public DistributedResults transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers, int startPosition, int maxRecords) {
+    public List<FederatedSearchResultBase> transferGetRecordsRequest(GetRecordsRequest request, List<String> distributedServers, int startPosition, int maxRecords) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

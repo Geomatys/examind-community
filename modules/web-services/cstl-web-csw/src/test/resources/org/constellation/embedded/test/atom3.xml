@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:feed xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:georss="http://www.georss.org/georss"
+        xmlns:a="http://www.w3.org/2005/Atom"
+        xmlns:os="http://a9.com/-/spec/opensearch/1.1/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <a:id>http://localhost:9090/WS/csw/default?</a:id>
+    <a:title>Examind Opensearch service</a:title>
+    <a:author/>
+    <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
+    <a:entry>
+        <a:id>L2-LST</a:id>
+        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=L2-LST&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=L2-LST&amp;outputschema=http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" rel="alternate" type="application/xml" title="Native format"/>
+        <a:title>GCOM-C/SGLI L2 Land surface temperature</a:title>
+        <a:author>
+            <a:name>JP/JAXA/SAOC</a:name>
+        </a:author>
+        <a:category term="Imagery/Base Maps/Earth Cover"/>
+        <a:category term="Environment"/>
+        <a:category term="Climatology/Meteorology/Atmosphere"/>
+        <a:category term="SNOW"/>
+        <a:category term="LAND SURFACE TEMPERATURE"/>
+        <a:category term="LAND"/>
+        <a:category term="JAXA"/>
+        <a:category term="Level-2"/>
+        <a:summary>GCOM-C conducts long-term and continuous global observation and data collection to elucidate the mechanism behind fluctuations in radiation budget and carbon cycle needed to make accurate projections regarding future temperature rise. At the same time, cooperating with research institutions having a climate numerical model, it contributes to reduction of errors in temperature rise prediction derived from the climate numerical model and improvement of accuracy of prediction of various environmental changes.SGLI mounted on GCOM-C is the succession sensor of the Global Imager (GLI) mounted on ADEOS-II (MIDORI II) and is the Imaging Radiometer which measures the radiation from near-ultraviolet to thermal infrared region (380 nm-12 um) in 19 channels Global observation of once for approximately every two days is possible at mid-latitude near Japan by observation width at ground greater than 1,000 km. In addition, SGLI realizes high resolution than the similar global sensor and has a polarized observation function and a multi-angle observation function.
+            This product is the Temperature of terrestrial land surface.
+            Process level: Level-2
+            resolution: 250m
+            Spatial coverage: Tile
+            Temporal coverage: 1-Day
+            Product Unit : Kelvin</a:summary>
+        <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
+        <georss:box>-90.0 -180.0 90.0 180.0</georss:box>
+    </a:entry>
+    <a:entry>
+        <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
+        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+        <a:title>Lorem ipsum</a:title>
+        <a:category term="Tourism--Greece"/>
+        <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>
+    </a:entry>
+    <a:entry>
+        <a:id>urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd</a:id>
+        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+        <a:summary>Proin sit amet justo. In justo. Aenean adipiscing nulla id tellus.</a:summary>
+        <georss:box>13.754 60.042 17.92 68.41</georss:box>
+    </a:entry>
+    <a:entry>
+        <a:id>urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493</a:id>
+        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+        <a:title>Maecenas enim</a:title>
+        <a:category term="Marine sediments"/>
+        <a:summary>Pellentesque tempus magna non sapien fringilla blandit.</a:summary>
+    </a:entry>
+    <a:entry>
+        <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
+        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+        <a:title>Ut facilisis justo ut lacus</a:title>
+        <a:category term="Vegetation"/>
+    </a:entry>
+    <os:totalResults>13</os:totalResults>
+    <os:startIndex>1</os:startIndex>
+    <os:itemsPerPage>5</os:itemsPerPage>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=1" rel="first" type="application/atom+xml"/>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc" rel="self" type="application/atom+xml"/>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=6" rel="next" type="application/atom+xml"/>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=11" rel="last" type="application/atom+xml"/>
+</a:feed>

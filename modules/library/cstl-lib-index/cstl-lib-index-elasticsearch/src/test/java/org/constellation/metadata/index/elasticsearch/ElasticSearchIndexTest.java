@@ -82,7 +82,7 @@ public class ElasticSearchIndexTest {
     private static final File configDirectory  = new File("GenericNodeIndexTest");
 
     private static String GEOM_PROP= "geoextent";
-    
+
     private static boolean ES_SERVER_PRESENT = true;
 
     @BeforeClass
@@ -101,7 +101,7 @@ public class ElasticSearchIndexTest {
             ES_SERVER_PRESENT = false;
             return;
         }
-        
+
         Map<String, Object> infos = ElasticSearchClient.getServerInfo("http://localhost:9200");
         String clusterName = (String) infos.get("cluster_name");
 
@@ -262,7 +262,7 @@ public class ElasticSearchIndexTest {
         expectedResult.add("40510_145_19930221211500");
 
         assertEquals(expectedResult, result);
-        
+
          /**
          * Test 7 simple search: TopicCategory = oceans
          */
@@ -287,7 +287,7 @@ public class ElasticSearchIndexTest {
         expectedResult.add("meta_NaN_id");
 
         assertEquals(expectedResult, result);
-        
+
         /**
          * Test 8 simple search: TopicCategory = environment
          */
@@ -305,13 +305,13 @@ public class ElasticSearchIndexTest {
         expectedResult.add("MDWeb_FR_SY_couche_vecteur_258");
 
         assertEquals(expectedResult, result);
-        
+
          /**
          * Test 9 simple search: TopicCategory = environment OR identifier = 40510_145_19930221211500
          */
          XContentBuilder filter = XContentFactory.jsonBuilder()
                 .startObject()
-                    
+
                         .startArray("or")
                             .startObject()
                                 .startObject("term")
@@ -324,7 +324,7 @@ public class ElasticSearchIndexTest {
                                 .endObject()
                             .endObject()
                         .endArray()
-                    
+
                 .endObject();
          System.out.println(filter.string());
         spatialQuery = new SpatialQuery(filter);
@@ -988,7 +988,7 @@ public class ElasticSearchIndexTest {
         if (!ES_SERVER_PRESENT) return;
 
         String resultReport = "";
-        
+
         /**
          * Test 1 spatial search: BBOX filter
          */
@@ -1014,7 +1014,7 @@ public class ElasticSearchIndexTest {
          * Test 1 spatial search: NOT BBOX filter
          */
         resultReport = "";
-        
+
         Not f = FF.not(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "CRS:84"));
         sf = SpatialFilterBuilder.build(f);
         spatialQuery = new SpatialQuery(null, sf);
@@ -1123,20 +1123,20 @@ public class ElasticSearchIndexTest {
     @Order(order = 9)
     public void extractValuesTest() throws Exception {
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta7.xml");
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate").paths);
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate"));
         assertEquals(Arrays.asList("20060101000000"), result);
 
         n = getOriginalMetadata("org/constellation/xml/metadata/meta3.xml");
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("CreationDate"));
         assertEquals(Collections.emptyList(), result);
 
         n = getOriginalMetadata("org/constellation/xml/metadata/meta1.xml");
 
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_begin").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_begin"));
         assertEquals(Arrays.asList("19900605000000"), result);
 
 
-        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_end").paths);
+        result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TempExtent_end"));
         assertEquals(Arrays.asList("19900702000000"), result);
 
     }
@@ -1146,7 +1146,7 @@ public class ElasticSearchIndexTest {
     public void extractValuesTest2() throws Exception {
 
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta8.xml");
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.DUBLIN_CORE_QUERYABLE.get("WestBoundLongitude").paths);
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.DUBLIN_CORE_QUERYABLE.get("WestBoundLongitude"));
         assertEquals(Arrays.asList(60.042), result);
 
 
@@ -1166,15 +1166,15 @@ public class ElasticSearchIndexTest {
         List<Object> result = GenericIndexer.extractValues(meta4, Arrays.asList("ISO 19115:MD_Metadata:identificationInfo:extent:temporalElement:extent#id=[0-9]+-all:beginPosition"));
         assertEquals(Arrays.asList("20081101000000"), result);*/
     }
-    
+
     @Test
     @Order(order = 11)
     public void extractValuesTest3() throws Exception {
         Node n = getOriginalMetadata("org/constellation/xml/metadata/meta7.xml");
-        
-        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TopicCategory").paths);
+
+        List<Object> result = NodeUtilities.extractValues(n, CSWQueryable.ISO_QUERYABLE.get("TopicCategory"));
         assertEquals(Arrays.asList("environment"), result);
-        
+
     }
 
     public static List<Node> fillTestData() throws Exception {
@@ -1206,7 +1206,7 @@ public class ElasticSearchIndexTest {
 
         obj = getOriginalMetadata("org/constellation/xml/metadata/imageMetadata.xml");
         result.add(obj);
-        
+
         obj = getOriginalMetadata("org/constellation/xml/metadata/metaNan.xml");
         result.add(obj);
 

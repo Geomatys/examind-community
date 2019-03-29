@@ -18,9 +18,7 @@
  */
 package org.constellation.store.metadata.internal;
 
-import java.net.URI;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -32,9 +30,7 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
-import org.geotoolkit.metadata.ElementSetType;
 import org.geotoolkit.metadata.MetadataIoException;
-import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.MetadataWriter;
 import org.constellation.store.metadata.CSWMetadataReader;
 import static org.constellation.store.metadata.internal.InternalMetadataStoreFactory.CONFIG_PARAMS;
@@ -98,16 +94,6 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public List<MetadataType> getSupportedDataTypes() {
-        return reader.getSupportedDataTypes();
-    }
-
-    @Override
-    public Map<String, URI> getConceptMap() {
-        return reader.getConceptMap();
-    }
-
-    @Override
     public List<QName> getAdditionalQueryableQName() {
         return reader.getAdditionalQueryableQName();
     }
@@ -115,16 +101,6 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     @Override
     public String[] executeEbrimSQLQuery(String sqlQuery) throws MetadataIoException {
         return reader.executeEbrimSQLQuery(sqlQuery);
-    }
-
-    @Override
-    public Node getMetadata(String identifier, MetadataType mode) throws MetadataIoException {
-        return reader.getMetadata(identifier, mode);
-    }
-
-    @Override
-    public Node getMetadata(String identifier, MetadataType mode, ElementSetType type, List<QName> elementName) throws MetadataIoException {
-        return reader.getMetadata(identifier, mode, type, elementName);
     }
 
     @Override
@@ -168,11 +144,6 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public boolean existMetadata(String identifier) throws MetadataIoException {
-        return reader.existMetadata(identifier);
-    }
-
-    @Override
     public void close() {
         if (reader != null) reader.destroy();
         if (writer != null) writer.destroy();
@@ -186,25 +157,5 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     @Override
     public boolean deleteSupported() {
         return true;
-    }
-
-    @Override
-    public List<? extends Object> getAllEntries() throws MetadataIoException {
-        return reader.getAllEntries();
-    }
-
-    @Override
-    public List<String> getAllIdentifiers() throws MetadataIoException {
-        return reader.getAllIdentifiers();
-    }
-
-    @Override
-    public int getEntryCount() throws MetadataIoException {
-        return reader.getEntryCount();
-    }
-
-    @Override
-    public Iterator<String> getIdentifierIterator() throws MetadataIoException {
-        return reader.getIdentifierIterator();
     }
 }

@@ -282,7 +282,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                         coverage + "\".", LAYER_NOT_QUERYABLE, KEY_COVERAGE.toLowerCase());
             }
 
-            final Layer configLayer = getConfigurationLayer(layerRef.getName(), userLogin);
+            final Layer configLayer = getConfigurationLayer(tmpName, userLogin);
             final GenericName fullCoverageName = coverageRef.getName();
             final String coverageName;
             if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {

@@ -42,6 +42,8 @@ public interface ServiceRepository {
 
     Integer findIdByIdentifierAndType(String id, String type);
 
+    boolean exist(Integer id);
+
     void delete(Integer id);
 
     List<String> findIdentifiersByType(String type);

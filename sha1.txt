@@ -1,15 +1,16 @@
 retrieved from community branch of constellation-ee
 ===================================================
-commit 8ec957f0d4fb2eeb52107eb831ad4a565c150db7 (HEAD -> community, origin/community)
+commit c6d22f79551ab0b267238f4899c3f3471269cd47 (HEAD -> community, origin/community)
 Author: msidhoum <mehdi.sidhoum@geomatys.com>
-Date:   Mon Mar 25 11:52:32 2019 +0100
+Date:   Thu Mar 28 16:02:40 2019 +0100
 
-    fix(*): fix sos tests and add readme note for docker usage (CSTL-2183).
+    feat(*): move war modules webui, services and bundle to appropriate new modules exa-*
 
 which was based on constellation-ee 
 ===================================
-commit a78c641744843bed21b49437b1b1bd952e9dc375 (origin/master, origin/HEAD, master)
+commit 7d8920954312602d5e63f518084af8159c0f6eb1 (origin/master, origin/HEAD)
 Author: glegal <guilhem.legal@geomatys.com>
-Date:   Mon Mar 18 10:21:34 2019 +0100
+Date:   Fri Mar 29 15:40:58 2019 +0100
 
-    refactor(core): minor information add in Exception
+    fix(service): add sortby parameter to opensearch request (for test purpose).
+

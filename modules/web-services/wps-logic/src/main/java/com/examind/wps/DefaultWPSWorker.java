@@ -20,6 +20,7 @@ package com.examind.wps;
 
 import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.UnknowJobException;
+import com.examind.wps.api.UnknowQuotationException;
 import com.examind.wps.api.WPSException;
 import com.examind.wps.api.WPSProcess;
 import com.examind.wps.api.WPSWorker;
@@ -27,8 +28,10 @@ import com.examind.wps.component.GeotkProcess;
 import com.examind.wps.util.SimpleJobExecutor;
 import static com.examind.wps.util.WPSConstants.*;
 import com.examind.wps.util.WPSUtils;
+import com.examind.wps.util.WPSConfigurationUtils;
+import org.geotoolkit.atom.xml.Link;
+
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -51,7 +54,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -61,7 +63,6 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import org.constellation.api.ServiceDef;
-import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wps.Process;
@@ -73,14 +74,12 @@ import org.constellation.provider.DataProviders;
 import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
-import org.geotoolkit.client.CapabilitiesException;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STORAGE_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.geotoolkit.ows.xml.RequestBase;
@@ -96,8 +95,6 @@ import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.util.Exceptions;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.wps.client.WPSVersion;
-import org.geotoolkit.wps.client.WebProcessingClient;
-import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.Capabilities;
@@ -109,6 +106,44 @@ import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.GetCapabilities;
 import org.geotoolkit.wps.xml.v200.GetResult;
 import org.geotoolkit.wps.xml.v200.GetStatus;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.Arrays;
+import org.constellation.business.IProcessBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
+import org.constellation.dto.process.Registry;
+import org.constellation.dto.process.RegistryList;
+import org.constellation.exception.ConstellationException;
+import org.constellation.process.ChainProcessRetriever;
+import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
+import org.constellation.process.dynamic.cwl.RunCWLDescriptor;
+import org.constellation.security.SecurityManagerHolder;
+import org.constellation.ws.UnauthorizedException;
+import org.geotoolkit.client.CapabilitiesException;
+import org.geotoolkit.gml.xml.Envelope;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.geotoolkit.ows.xml.v200.AdditionalParameter;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
+import org.geotoolkit.processing.chain.model.Chain;
+import org.geotoolkit.processing.chain.model.Constant;
+import static org.geotoolkit.processing.chain.model.Element.BEGIN;
+import static org.geotoolkit.processing.chain.model.Element.END;
+import org.geotoolkit.processing.chain.model.ElementProcess;
+import org.geotoolkit.processing.chain.model.Parameter;
+import org.geotoolkit.processing.chain.model.ParameterFormat;
+import org.geotoolkit.wps.client.WebProcessingClient;
+import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
+import org.geotoolkit.wps.xml.v200.Bill;
+import org.geotoolkit.wps.xml.v200.BillList;
+import org.geotoolkit.wps.xml.v200.BoundingBoxData;
+import org.geotoolkit.wps.xml.v200.ComplexData;
+import org.geotoolkit.wps.xml.v200.DataDescription;
+import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
+import org.geotoolkit.wps.xml.v200.Deploy;
+import org.geotoolkit.wps.xml.v200.DeployResult;
+import org.geotoolkit.wps.xml.v200.Format;
+import org.geotoolkit.wps.xml.v200.InputDescription;
 import org.geotoolkit.wps.xml.v200.JobControlOptions;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
 import org.geotoolkit.wps.xml.v200.ProcessOffering;
@@ -123,6 +158,14 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.CodeList;
 import org.opengis.util.NoSuchIdentifierException;
+import org.geotoolkit.wps.xml.v200.LiteralData;
+import org.geotoolkit.wps.xml.v200.OutputDescription;
+import org.geotoolkit.wps.xml.v200.ProcessDescription;
+import org.geotoolkit.wps.xml.v200.ProcessDescriptionChoiceType;
+import org.geotoolkit.wps.xml.v200.Quotation;
+import org.geotoolkit.wps.xml.v200.QuotationList;
+import org.geotoolkit.wps.xml.v200.Undeploy;
+import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -183,6 +226,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     private final Map<CodeType, WPSProcess> processList = new LinkedHashMap<>();
 
     private final ExecutionInfo execInfo = new ExecutionInfo();
+
+    private final QuotationInfo quoteInfo = new QuotationInfo();
 
     @Inject SimpleJobExecutor jobExecutor;
 
@@ -580,7 +625,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         try {
             return execInfo.getStatus(request.getJobID());
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         }
     }
 
@@ -592,9 +637,16 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
     public Object getResult(GetResult request) throws CstlServiceException {
         verifyBaseRequest(request, true, false);
         try {
-            return execInfo.getResult(request.getJobID());
+            Object result = execInfo.getResult(request.getJobID());
+            Bill bill = quoteInfo.getBillForJob(request.getJobID(), true);
+            if ((result instanceof Result) && bill != null) {
+                Result r = (Result) result;
+                String serviceUrl = getServiceUrl();
+                r.setLinks(Arrays.asList(new Link(serviceUrl.substring(0, serviceUrl.length() - 1) + "/bills/" + bill.getId(), "bill", "application/json", "Associated bill")));
+            }
+            return result;
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         }
     }
 
@@ -604,12 +656,20 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
     @Override
     public StatusInfo dismiss(Dismiss request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform an dismiss request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
+               throw new UnauthorizedException("You are not allowed to perform an dismiss request.");
+            }
+        }
         verifyBaseRequest(request, true, false);
         try {
             execInfo.dismissJob(request.getJobID());
 
         } catch (UnknowJobException ex) {
-            throw new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, "jobId");
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobId", 404);
         } catch (WPSException ex) {
             throw new CstlServiceException(ex.getMessage());
         }
@@ -628,6 +688,20 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
      */
     @Override
     public Object execute(final Execute request) throws CstlServiceException {
+        return execute(request, null);
+    }
+
+    public Object execute(final Execute request, String quotationId) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (Application.getBooleanProperty(AppProperty.EXA_WPS_EXECUTE_SECURE, false)) {
+                if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                    throw new UnauthorizedException("You must be authentified to perform an execute request.");
+                }
+                if (!SecurityManagerHolder.getInstance().isAllowed("execute")) {
+                   throw new UnauthorizedException("You are not allowed to perform an execute request.");
+                }
+            }
+        }
         verifyBaseRequest(request, true, false);
 
         final String version = request.getVersion().toString();
@@ -731,7 +805,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
             final Callable process;
             try {
-                process = processDesc.createRawProcess(isAsync, version, tempFiles, execInfo, request, jobId);
+                process = processDesc.createRawProcess(isAsync, version, tempFiles, execInfo, quoteInfo, request, jobId, quotationId);
             } catch (IOParameterException ex) {
                 throw new CstlServiceException(ex.getMessage(), getCodeFromIOParameterException(ex), ex.getParamId());
             }
@@ -821,7 +895,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
             final Callable process;
             try {
-                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, parameters);
+                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quotationId, parameters);
             } catch (IOParameterException ex) {
                 throw new CstlServiceException(ex.getMessage(), getCodeFromIOParameterException(ex), ex.getParamId());
             }
@@ -963,8 +1037,8 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         // verify if the descriptor is linked to the WPS instance
         if (!processList.containsKey(id)) {
-            throw new CstlServiceException("The process " + IDENTIFIER_PARAMETER.toLowerCase() + " : " + identifier + " does not exist.",
-                INVALID_PARAMETER_VALUE, IDENTIFIER_PARAMETER.toLowerCase());
+            throw new CstlServiceException("The process " + IDENTIFIER_PARAMETER.toLowerCase() + " : " + identifier + " does not exist.", null,
+                INVALID_PARAMETER_VALUE, IDENTIFIER_PARAMETER.toLowerCase(), 404);
         }
         return processList.get(id);
     }
@@ -1074,6 +1148,345 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             return OPERATION_NOT_SUPPORTED;
         }
         return INVALID_PARAMETER_VALUE;
+    }
+
+    @Override
+    public DeployResult deploy(Deploy request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform a deploy request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
+               throw new UnauthorizedException("You are not allowed to perform a deploy request.");
+            }
+        }
+        if (request.getProcessDescription()== null) {
+            throw new CstlServiceException("Process description must be specified", MISSING_PARAMETER_VALUE);
+        }
+        if (request.getProcessDescription().getProcess() == null) {
+            throw new CstlServiceException("Process description is not complete (Process part missing. reference not supported for now)", INVALID_PARAMETER_VALUE);
+        }
+        if (request.getProcessDescription().getProcess().getOwsContext() == null || request.getProcessDescription().getProcess().getOwsContext().getOffering() == null) {
+            throw new CstlServiceException("Process part is not complete (OWS context part missing/incomplete)", INVALID_PARAMETER_VALUE);
+        }
+        if (request.getExecutionUnit() == null || request.getExecutionUnit().isEmpty()) {
+            throw new CstlServiceException("Execution unit must be specified", MISSING_PARAMETER_VALUE);
+        }
+
+        ProcessDescriptionChoiceType off = request.getProcessDescription();
+        final ProcessDescription processDescription = off.getProcess();
+
+        if (processDescription.getIdentifier() != null) {
+            int id  = 1;
+            String processId      = processDescription.getIdentifier().getValue();
+            String title          = processDescription.getFirstTitle();
+            String description    = processDescription.getFirstAbstract();
+            List<String> controls = new ArrayList<>();
+            for (JobControlOptions control : off.getJobControlOptions()) {
+                controls.add(control.name());
+            }
+            List<String> outTransmission = new ArrayList<>();
+            for (DataTransmissionMode trans : off.getOutputTransmission()) {
+                outTransmission.add(trans.name());
+            }
+
+            if (processBusiness.getChainProcess(ExamindDynamicProcessFactory.NAME, processId) != null) {
+                throw new CstlServiceException("Process " + processId + " is already deployed", INVALID_PARAMETER_VALUE);
+            }
+
+            final Chain chain = new Chain(processId);
+            chain.setTitle(title);
+            chain.setAbstract(description);
+
+            if (request.getExecutionUnit().get(0) == null || request.getExecutionUnit().get(0).getReference() == null || request.getExecutionUnit().get(0).getReference().getHref() == null) {
+                throw new CstlServiceException("Process offering content must be specified", MISSING_PARAMETER_VALUE);
+            }
+
+            /*
+             What to do with the execution unit
+             String cwlFile = request.getExecutionUnit().get(0).getReference().getHref();
+            */
+            String offeringCode = processDescription.getOwsContext().getOffering().getCode();
+            String offeringCnt  = processDescription.getOwsContext().getOffering().getContentRef(); // cwl File
+
+            Map<String, Object> chainUserMap = new HashMap();
+            chainUserMap.put("offering.code", offeringCode);
+            chainUserMap.put("offering.content", offeringCnt);
+            if (request.getDeploymentProfileName() != null) {
+                chainUserMap.put("profile", request.getDeploymentProfileName());
+            }
+
+            String runDocName = RunCWLDescriptor.NAME + '-' + UUID.randomUUID().toString();
+
+            //input/out/constants parameters
+
+            final Constant c = chain.addConstant(id++, String.class, offeringCnt);
+
+            final List<Parameter> inputs = new ArrayList<>();
+            final List<Parameter> outputs = new ArrayList<>();
+
+            chain.setTitle(processDescription.getFirstTitle());
+            chain.setAbstract(processDescription.getFirstAbstract());
+            for (InputDescription in : processDescription.getInputs()) {
+                // TODO type
+                Class type;
+                if (in.getDataDescription() instanceof LiteralData) {
+                    type = String.class;
+                } else if (in.getDataDescription() instanceof ComplexData) {
+                    type = URI.class;
+                } else if (in.getDataDescription() instanceof BoundingBoxData) {
+                    type = Envelope.class;
+                } else {
+                    type = String.class;
+                }
+                final Parameter param = new Parameter(in.getIdentifier().getValue(), type, in.getFirstTitle(), in.getFirstAbstract(), in.getMinOccurs(), in.getMaxOccurs());
+                if (in.getAdditionalParameters() != null) {
+                    final Map<String, Object> userMap = new HashMap<>();
+                    for (AdditionalParametersType addParams : in.getAdditionalParameters()) {
+                        // WARNING role work for only one
+                        if (addParams.getRole() != null) {
+                            userMap.put("role", addParams.getRole());
+                        }
+                        for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
+                            Object values = addParam.getValue();
+                            if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                                values = addParam.getValue().get(0);
+                            }
+                            userMap.put(addParam.getName().getValue(), values);
+                        }
+                    }
+                    param.setUserMap(userMap);
+                }
+                // extracting format
+                if (in.getDataDescription() != null) {
+                    DataDescription desc  = in.getDataDescription();
+                    if (!desc.getFormat().isEmpty()) {
+                        List<ParameterFormat> formats = new ArrayList<>();
+                        for (Format format : desc.getFormat()) {
+                            ParameterFormat m = new ParameterFormat();
+                            if (format.getEncoding() != null)         m.setEncoding(format.getEncoding());
+                            if (format.getMimeType() != null)         m.setMimeType(format.getMimeType());
+                            if (format.getSchema() != null)           m.setSchema(format.getSchema());
+                            formats.add(m);
+                        }
+                        param.setFormats(formats);
+                    }
+                }
+                inputs.add(param);
+            }
+
+            chain.setInputs(inputs);
+
+            for (OutputDescription out : processDescription.getOutputs()) {
+                Class type;
+                if (out.getDataDescription() instanceof LiteralData) {
+                    type = String.class;
+                } else if (out.getDataDescription() instanceof ComplexData) {
+                    type = File.class;
+                } else if (out.getDataDescription() instanceof BoundingBoxData) {
+                    type = Envelope.class;
+                } else {
+                    type = String.class;
+                }
+                final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), out.getFirstAbstract(), 0, Integer.MAX_VALUE);
+                if (out.getAdditionalParameters() != null) {
+                    final Map<String, Object> userMap = new HashMap<>();
+                    for (AdditionalParametersType addParams : out.getAdditionalParameters()) {
+                        // WARNING role work for only one
+                        if (addParams.getRole() != null) {
+                            userMap.put("role", addParams.getRole());
+                        }
+                        for (AdditionalParameter addParam : addParams.getAdditionalParameter()) {
+                            Object values = addParam.getValue();
+                            if (addParam.getValue() != null && addParam.getValue().size() == 1) {
+                                values = addParam.getValue().get(0);
+                            }
+                            userMap.put(addParam.getName().getValue(), values);
+                        }
+                    }
+                    param.setUserMap(userMap);
+                }
+                // extracting format
+                if (out.getDataDescription() != null) {
+                    DataDescription desc  = out.getDataDescription();
+                    if (!desc.getFormat().isEmpty()) {
+                        List<ParameterFormat> formats = new ArrayList<>();
+                        for (Format format : desc.getFormat()) {
+                            ParameterFormat m = new ParameterFormat();
+                            if (format.getEncoding() != null)         m.setEncoding(format.getEncoding());
+                            if (format.getMimeType() != null)         m.setMimeType(format.getMimeType());
+                            if (format.getSchema() != null)           m.setSchema(format.getSchema());
+                            formats.add(m);
+                        }
+                        param.setFormats(formats);
+                    }
+                }
+                outputs.add(param);
+            }
+            chain.setOutputs(outputs);
+
+
+            //chain blocks
+            final ElementProcess dock = chain.addProcessElement(id++, ExamindDynamicProcessFactory.NAME, runDocName);
+
+            chain.addFlowLink(BEGIN.getId(), dock.getId());
+            chain.addFlowLink(dock.getId(), END.getId());
+
+
+            //data flow links
+            chain.addDataLink(c.getId(), "", dock.getId(), RunCWLDescriptor.CWL_FILE_NAME);
+
+            for (Parameter in : inputs) {
+                chain.addDataLink(BEGIN.getId(), in.getCode(),  dock.getId(), in.getCode());
+            }
+
+            for (Parameter out : outputs) {
+                chain.addDataLink(dock.getId(), out.getCode(),  END.getId(), out.getCode());
+            }
+
+            try {
+
+                processBusiness.createChainProcess(ChainProcessRetriever.convertToDto(chain));
+                LOGGER.log(Level.INFO, "=== Deploying process " + processId + " ===");
+
+                Registry registry = new Registry(ExamindDynamicProcessFactory.NAME);
+                registry.setProcesses(Arrays.asList(new org.constellation.dto.process.Process(processId, title, description, false, controls, outTransmission, chainUserMap)));
+
+                ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", "default");
+                context = WPSConfigurationUtils.addProcessToContext(context, new RegistryList(registry));
+
+                // save modified context
+                serviceBusiness.configure("WPS", "default", null, context);
+
+                //reload process list
+                fillProcessList(context);
+                clearCapabilitiesCache();
+
+            } catch (ConstellationException ex) {
+                throw new CstlServiceException(ex);
+            }
+
+        } else {
+            throw new CstlServiceException("Process identifier is missing.", MISSING_PARAMETER_VALUE);
+        }
+
+        ProcessSummary sum = new ProcessSummary(off.getProcess(), off.getProcessVersion(), off.getJobControlOptions(), off.getOutputTransmission());
+        return new DeployResult(sum);
+    }
+
+    @Override
+    public UndeployResult undeploy(Undeploy request) throws CstlServiceException {
+        if (isTransactionSecurized()) {
+            if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
+                throw new UnauthorizedException("You must be authentified to perform an undeploy request.");
+            }
+            if (!SecurityManagerHolder.getInstance().isAllowed("deploy")) {
+               throw new UnauthorizedException("You are not allowed to perform an undeploy request.");
+            }
+        }
+        try {
+            if (request.getIdentifier() == null) {
+                throw new CstlServiceException("Process identifier must be specified", MISSING_PARAMETER_VALUE);
+            }
+            String processId = request.getIdentifier().getValue();
+            if (processBusiness.getChainProcess(ExamindDynamicProcessFactory.NAME, processId) == null) {
+                throw new CstlServiceException("Process " + processId + " is not deployed on the server", null, INVALID_PARAMETER_VALUE, "processId", 404);
+            }
+
+            // remove process link
+            ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", "default");
+            context = WPSConfigurationUtils.removeProcessFromContext(context, ExamindDynamicProcessFactory.NAME, processId);
+
+            // save modified context
+            serviceBusiness.configure("WPS", "default", null, context);
+
+            // remove chain
+            processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, processId);
+
+            //reload process list
+            fillProcessList(context);
+            clearCapabilitiesCache();
+
+            return new UndeployResult(processId, "OK");
+
+        } catch (ConstellationException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    @Override
+    public QuotationList getQuotationList(String processId) throws CstlServiceException {
+        // Verify if the descriptor exist and is linked to the WPS instance
+        getWPSProcess(processId);
+        return new QuotationList(quoteInfo.getQuotations(processId));
+    }
+
+    @Override
+    public QuotationList getQuotationList() throws CstlServiceException {
+        return new QuotationList(quoteInfo.getAllQuotationIds());
+    }
+
+    @Override
+    public Quotation getQuotation(String quotationId) throws CstlServiceException {
+        try {
+            return quoteInfo.getQuotation(quotationId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "quotationId", 404);
+        }
+    }
+
+    @Override
+    public Quotation quote(Execute request) throws CstlServiceException {
+        // Find the process and verify if the descriptor is linked to the WPS instance
+        final WPSProcess process = getWPSProcess(request.getIdentifier().getValue());
+
+        //check requested INPUT/OUTPUT. Throw a CstlException otherwise.
+        try {
+            process.checkValidInputOuputRequest(request);
+        } catch (IOParameterException ex) {
+            throw new CstlServiceException(ex, getCodeFromIOParameterException(ex), ex.getParamId());
+        }
+        try {
+            Quotation quote = process.quote(request);
+            quoteInfo.addQuotation(quote);
+            return quote;
+        } catch (WPSException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    @Override
+    public Object executeQuotation(String quotationId) throws CstlServiceException {
+        try {
+            Quotation quote = quoteInfo.getQuotation(quotationId);
+            Execute request = quote.getProcessParameters();
+            return execute(request, quotationId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "quotationId", 404);
+        }
+    }
+
+    @Override
+    public BillList getBillList() throws CstlServiceException {
+        return new BillList(quoteInfo.getAllBillIds());
+    }
+
+    @Override
+    public Bill getBill(String billId) throws CstlServiceException {
+        try {
+            return quoteInfo.getBill(billId);
+        } catch (UnknowQuotationException ex) {
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "billId", 404);
+        }
+    }
+
+    @Override
+    public Bill getBillForJob(String jobID) throws CstlServiceException {
+        try {
+            return quoteInfo.getBillForJob(jobID, false);
+        } catch (UnknowJobException ex) {
+            throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "jobID", 404);
+        }
     }
 }
 

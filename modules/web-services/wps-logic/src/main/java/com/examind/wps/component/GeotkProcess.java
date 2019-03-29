@@ -20,6 +20,7 @@ package com.examind.wps.component;
 
 import com.examind.wps.api.WPSProcess;
 import com.examind.wps.ExecutionInfo;
+import com.examind.wps.QuotationInfo;
 import com.examind.wps.WPSProcessListener;
 import com.examind.wps.WPSProcessRawListener;
 import com.examind.wps.api.IOParameterException;
@@ -27,13 +28,20 @@ import com.examind.wps.api.WPSException;
 import static com.examind.wps.util.WPSConstants.GML_VERSION;
 import static com.examind.wps.util.WPSConstants.WMS_SUPPORTED;
 import static com.examind.wps.util.WPSConstants.WPS_SUPPORTED_CRS;
+import com.examind.wps.util.WPSURLUtils;
 import com.examind.wps.util.WPSUtils;
 import org.locationtech.jts.geom.Geometry;
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.NumberFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,12 +68,14 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.dto.service.config.wps.Process;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
 import org.geotoolkit.ows.xml.v200.AllowedValues;
 import org.geotoolkit.ows.xml.v200.AnyValue;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.DomainMetadataType;
 import org.geotoolkit.ows.xml.v200.LanguageStringType;
+import org.geotoolkit.ows.xml.v200.OwsContextDescriptionType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
@@ -87,6 +98,7 @@ import org.geotoolkit.wps.xml.v200.OutputDescription;
 import org.geotoolkit.wps.xml.v200.ProcessDescription;
 import org.geotoolkit.wps.xml.v200.ProcessOffering;
 import org.geotoolkit.wps.xml.v200.ProcessSummary;
+import org.geotoolkit.wps.xml.v200.Quotation;
 import org.geotoolkit.wps.xml.v200.Reference;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.Feature;
@@ -112,6 +124,14 @@ public class GeotkProcess implements WPSProcess {
     private final String schemaURL;
     private final List<JobControlOptions> controlOptions;
     private final List<DataTransmissionMode> outTransmissions;
+    private final Map<String, Object> userMap;
+
+    private static final NumberFormat NUMFORM = NumberFormat.getNumberInstance(Locale.ENGLISH);
+    static {
+        NUMFORM.setMinimumFractionDigits(2);
+        NUMFORM.setMaximumFractionDigits(2);
+
+    }
 
     /**
      * A hint telling if process identifier will be prefixed with urn:.. If true, we add the prefix. if false, we don't.
@@ -150,6 +170,11 @@ public class GeotkProcess implements WPSProcess {
             withPrefix = addPrefix;
         } else {
             withPrefix = configuration.getUsePrefix();
+        }
+        if (configuration == null || configuration.getUserMap() == null) {
+            userMap = new HashMap<>();
+        } else {
+            userMap = configuration.getUserMap();
         }
     }
 
@@ -219,13 +244,14 @@ public class GeotkProcess implements WPSProcess {
         for (final GeneralParameterDescriptor param : input.descriptors()) {
 
             /*
-                 * Whatever the parameter type is, we prepare the name, title, abstract and multiplicity parts.
+             * Whatever the parameter type is, we prepare the name, title, abstract and multiplicity parts.
              */
             final CodeType inId = new CodeType(withPrefix?
                     WPSUtils.buildProcessIOIdentifiers(descriptor, param, WPSIO.IOType.INPUT) :
                     param.getName().getCode());
             final LanguageStringType inTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType inAbstract = WPSUtils.buildProcessIODescription(param, lang);
+            final List<AdditionalParametersType> inAddParams = WPSUtils.buildAdditionalParams(param);
 
             //set occurs
             String maxOccurs = Integer.toString(param.getMaximumOccurs());
@@ -240,9 +266,20 @@ public class GeotkProcess implements WPSProcess {
                 // Input class
                 final Class clazz = paramDesc.getValueClass();
 
+                // extra parameter description
+                Map<String, Object> userData = null;
+                if (paramDesc instanceof ExtendedParameterDescriptor) {
+                    userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
+                }
+
                 // BoundingBox type
                 if (WPSIO.isSupportedBBoxInputClass(clazz)) {
                     dataDescription = WPS_SUPPORTED_CRS;
+
+                //Complex type (XML, ...)
+                } else if (WPSIO.isSupportedComplexInputClass(clazz)) {
+
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
 
                 //Literal type
                 } else if (WPSIO.isSupportedLiteralInputClass(clazz)) {
@@ -266,25 +303,17 @@ public class GeotkProcess implements WPSProcess {
                     }
 
                     DomainMetadataType dataType = WPSConvertersUtils.createDataType(clazz);
-                    // for literal data add default format text/plain
-                    Format plain = new Format(WPSMimeType.TEXT_PLAIN.val(), true);
-                    dataDescription = new LiteralData(Arrays.asList(plain), allowedValues, anyvalue, null, dataType, (DomainMetadataType) uom, defaultValue, null);
 
-                //Complex type (XML, ...)
-                } else if (WPSIO.isSupportedComplexInputClass(clazz)) {
-                    Map<String, Object> userData = null;
-                    if (paramDesc instanceof ExtendedParameterDescriptor) {
-                        userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
+                    // for literal data add default format text/plain if no custom format is supplied
+                    List<Format> formats = WPSUtils.getWPSCustomIOFormats(userData, WPSIO.IOType.INPUT);
+                    if (formats == null) {
+                       formats =  Arrays.asList(new Format(WPSMimeType.TEXT_PLAIN.val(), true));
                     }
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
-
+                    dataDescription = new LiteralData(formats, allowedValues, anyvalue, null, dataType, (DomainMetadataType) uom, defaultValue, null);
 
                 //Reference type (XML, ...)
                 } else if (WPSIO.isSupportedReferenceInputClass(clazz)) {
-                    Map<String, Object> userData = null;
-                    if (paramDesc instanceof ExtendedParameterDescriptor) {
-                        userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
-                    }
+
                     dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.REFERENCE, userData);
 
                     //Simple object (Integer, double, ...) and Object which need a conversion from String like affineTransform or WKT Geometry
@@ -318,7 +347,7 @@ public class GeotkProcess implements WPSProcess {
             } else {
                 throw new WPSException("Process input parameter " + inId + " invalid.");
             }
-            dataInputs.add(new InputDescription(inId, inTitle, inAbstract, null, minOccurs, maxOccurs, dataDescription));
+            dataInputs.add(new InputDescription(inId, inTitle, inAbstract, null, inAddParams, minOccurs, maxOccurs, dataDescription));
         }
 
         ///////////////////////////////
@@ -333,6 +362,7 @@ public class GeotkProcess implements WPSProcess {
                     param.getName().getCode());
             final LanguageStringType outTitle = WPSUtils.buildProcessIOTitle(param, lang);
             final LanguageStringType outAbstract = WPSUtils.buildProcessIODescription(param, lang);
+            final List<AdditionalParametersType> outAddParams = WPSUtils.buildAdditionalParams(param);
 
             DataDescription dataDescription;
             //simple parameter
@@ -406,12 +436,17 @@ public class GeotkProcess implements WPSProcess {
             } else {
                 throw new WPSException("Process output parameter " + outId + " invalid");
             }
-            dataOutputs.add(new OutputDescription(outId, outTitle, outAbstract, null, dataDescription));
+            dataOutputs.add(new OutputDescription(outId, outTitle, outAbstract, null, outAddParams, dataDescription));
+        }
+
+        OwsContextDescriptionType owsContext = null;
+        if (userMap.containsKey("offering.code") || userMap.containsKey("offering.content")) {
+            owsContext = new OwsContextDescriptionType((String)userMap.get("offering.code"), (String)userMap.get("offering.content"));
         }
 
         // que faire de processVersion / supportStorage / statusSupported V1 ???
         String processVersion = "1.0.0";
-        ProcessOffering offering = new ProcessOffering(new ProcessDescription(identifier, title, _abstract, null, dataInputs, dataOutputs, processVersion));
+        ProcessOffering offering = new ProcessOffering(new ProcessDescription(identifier, title, _abstract, null, dataInputs, dataOutputs, processVersion, owsContext));
         offering.getJobControlOptions().addAll(controlOptions);
         offering.getOutputTransmission().addAll(outTransmissions);
         return offering;
@@ -444,7 +479,7 @@ public class GeotkProcess implements WPSProcess {
     }
 
     @Override
-    public Callable createRawProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, Execute request, String jobId) throws IOParameterException {
+    public Callable createRawProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo, Execute request, String jobId, String quoteId) throws IOParameterException {
         final ParameterValueGroup in = descriptor.getInputDescriptor().createValue();
 
         List<DataInput> requestInputData = request.getInput();
@@ -474,7 +509,7 @@ public class GeotkProcess implements WPSProcess {
         }
 
         if (async) {
-            process.addListener(new WPSProcessRawListener(version, execInfo, request, jobId, this));
+            process.addListener(new WPSProcessRawListener(version, execInfo, quoteInfo, request, jobId, quoteId, this));
         }
         return process;
     }
@@ -537,7 +572,10 @@ public class GeotkProcess implements WPSProcess {
     }
 
     @Override
-    public Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, Execute request, String serviceInstance, ProcessSummary procSum, List<DataInput> inputsResponse, List<OutputDefinition> outputsResponse, String jobId, Map<String, Object> parameters) throws IOParameterException {
+    public Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo,
+            Execute request, String serviceInstance, ProcessSummary procSum, List<DataInput> inputsResponse, List<OutputDefinition> outputsResponse,
+            String jobId, String quoteId, Map<String, Object> parameters) throws IOParameterException {
+
         final ParameterValueGroup in = descriptor.getInputDescriptor().createValue();
 
         List<DataInput> requestInputData = request.getInput();
@@ -567,7 +605,7 @@ public class GeotkProcess implements WPSProcess {
         }
 
         if (async) {
-            process.addListener(new WPSProcessListener(version, execInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, parameters, this));
+            process.addListener(new WPSProcessListener(version, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quoteId, parameters, this));
         }
         return process;
     }
@@ -800,8 +838,7 @@ public class GeotkProcess implements WPSProcess {
             try {
                 if(inputDescriptor instanceof ParameterDescriptor) {
                     if (alreadySet.contains(inputIdCode)) {
-                        ParameterDescriptor p = in.parameter(inputIdCode).getDescriptor();
-                        ParameterValue newOccurence = p.createValue();
+                        ParameterValue newOccurence = ((ParameterDescriptor)inputDescriptor).createValue();
                         newOccurence.setValue(dataValue);
                         in.values().add(newOccurence);
                     } else {
@@ -1015,5 +1052,244 @@ public class GeotkProcess implements WPSProcess {
     @Override
     public List<JobControlOptions> getJobControlOptions() {
         return controlOptions;
+    }
+
+    @Override
+    public Quotation quote(Execute request) throws WPSException {
+        final Quotation result = new Quotation();
+
+        final List<DataInput> requestInputData = request.getInput();
+        final List<GeneralParameterDescriptor> processInputDesc = descriptor.getInputDescriptor().descriptors();
+
+        long estimatedTime = 60000; // initialized at 1 minute.
+        double price = 10.0;
+        double megaBytesPrice = 0.001;
+        double megaBytesTime = 10; // 10 ms by mo
+
+        StringBuilder details = new StringBuilder("Basic price 10 euros.");
+        for (final DataInput inputRequest : requestInputData) {
+
+            if (inputRequest.getId() == null || inputRequest.getId().isEmpty()) {
+                throw new IOParameterException("Empty input Identifier.", null);
+            }
+
+            final String inputId = inputRequest.getId();
+            String inputIdCode = WPSUtils.extractProcessIOCode(descriptor, inputId);
+
+            //Check if it's a valid input identifier and hold it if found.
+            GeneralParameterDescriptor inputDescriptor = null;
+            for (final GeneralParameterDescriptor processInput : processInputDesc) {
+                if (processInput.getName().getCode().equals(inputIdCode) ||
+                    processInput.getName().getCode().equals(inputId)) {
+                    inputDescriptor = processInput;
+                    break;
+                }
+            }
+            if (inputDescriptor == null) {
+                throw new IOParameterException("Invalid or unknown input identifier " + inputId + ".", inputId);
+            }
+
+            boolean isReference = false;
+            boolean isBBox = false;
+            boolean isComplex = false;
+            boolean isLiteral = false;
+
+            if (inputRequest.getReference() != null) {
+                isReference = true;
+            } else {
+                if (inputRequest.getData() != null) {
+
+                    final Data dataType = inputRequest.getData();
+                    if (dataType.getBoundingBoxData() != null) {
+                        isBBox = true;
+
+                    // issue here : we don't need to have a literal value. the value can be directly in content
+                    // TODO see dirty patch added below
+                    } else if (dataType.getLiteralData() != null) {
+                        isLiteral = true;
+                    } else {
+                        isComplex = true;
+                    }
+                } else {
+                    throw new IOParameterException("Input doesn't have data or reference.", inputId);
+                }
+            }
+
+            /*
+             * Get expected input Class from the process input
+             */
+            Class expectedClass;
+            if(inputDescriptor instanceof ParameterDescriptor) {
+                expectedClass = ((ParameterDescriptor)inputDescriptor).getValueClass();
+            } else {
+                expectedClass = Feature.class;
+            }
+
+            // quick dirty patch for literal values without LiteralData
+            if (WPSIO.isSupportedLiteralInputClass(expectedClass) && inputRequest.getData().getContent().size() == 1 &&
+                inputRequest.getData().getContent().get(0) instanceof String) {
+                isLiteral = true;
+                isComplex = false;
+            }
+
+            Object dataValue = null;
+
+            /**
+             * Handle referenced input data.
+             */
+            if (isReference) {
+
+                //Check if the expected class is supported for reference using
+                if (!WPSIO.isSupportedReferenceInputClass(expectedClass)) {
+                    throw new IOParameterException("The input" + inputId + " can't handle reference.", inputId);
+                }
+                final Reference requestedRef = inputRequest.getReference();
+                if (requestedRef.getHref() == null) {
+                    throw new IOParameterException("Invalid reference input : href can't be null.", inputId);
+                }
+                try {
+                    dataValue = WPSConvertersUtils.convertFromReference(requestedRef, expectedClass);
+                } catch (UnconvertibleObjectException ex) {
+                    throw new IOParameterException("Error during conversion of reference input : "  + inputId + " : " + ex.getMessage(), ex, inputId);
+                }
+
+                if (dataValue instanceof File) {
+                    System.out.println(((File) dataValue).toPath()); // TODO ?
+                }
+
+                if (dataValue instanceof Path) {
+                    System.out.println((Path) dataValue);  // TODO ?
+                }
+            }
+
+            /**
+             * Handle Bbox input data.
+             */
+            if (isBBox) {
+                throw new IOParameterException("Quoting for BBOX input is not yet imlplemented.", true, false, inputId);
+            }
+
+            /**
+             * Handle Complex input data.
+             */
+            if (isComplex) {
+                //Check if the expected class is supported for complex using
+                if (!WPSIO.isSupportedComplexInputClass(expectedClass)) {
+                    throw new IOParameterException("Complex value expected", inputId);
+                }
+
+                if (inputRequest.getData().getContent() == null || inputRequest.getData().getContent().size() <= 0) {
+                    throw new IOParameterException("Missing data input value.", inputId);
+
+                } else {
+
+                    try {
+                        dataValue = WPSConvertersUtils.convertFromComplex("2.0", inputRequest.getData(), expectedClass);
+                    } catch (IllegalArgumentException ex) {
+                        throw new IOParameterException("Error during conversion of complex input " + inputId + " : " + ex.getMessage(), ex, inputId);
+                    }
+                }
+            }
+
+            /**
+             * Handle Literal input data.
+             */
+            if (isLiteral) {
+               //Check if the expected class is supported for literal using
+                if (!WPSIO.isSupportedLiteralInputClass(expectedClass)) {
+                    throw new IOParameterException("Literal value expected", inputId);
+                }
+
+                if(!(inputDescriptor instanceof ParameterDescriptor)) {
+                    throw new IOParameterException("Invalid parameter type.", inputId);
+                }
+
+                final LiteralValue literal = inputRequest.getData().getLiteralData();
+                if (literal != null) {
+                    final String data = literal.getValue();
+
+                    final Unit paramUnit = ((ParameterDescriptor)inputDescriptor).getUnit();
+                    if (paramUnit != null) {
+                        final Unit requestedUnit = Units.valueOf(literal.getUom());
+                        final UnitConverter converter = requestedUnit.getConverterTo(paramUnit);
+                        dataValue = converter.convert(Double.valueOf(data));
+
+                    } else {
+                        try {
+                            dataValue = WPSConvertersUtils.convertFromString(data, expectedClass);
+                        } catch (UnconvertibleObjectException ex) {
+                            throw new IOParameterException("Error during conversion of literal input : " +  inputId + " : " + ex.getMessage(), ex, inputId);
+                        }
+                    }
+
+                // dirty patch, la suite
+                } else {
+                    try {
+                        final String data = (String) inputRequest.getData().getContent().get(0);
+                        dataValue = WPSConvertersUtils.convertFromString(data, expectedClass);
+                    } catch (UnconvertibleObjectException ex) {
+                        throw new IOParameterException("Error during conversion of literal input : " + inputId + " : " + ex.getMessage(), ex, inputId);
+                    }
+                }
+            }
+
+            try {
+                long size;
+                if (dataValue instanceof File) {
+                    size = ((File) dataValue).length();
+                } else if (dataValue instanceof Path) {
+                    size = Files.size((Path) dataValue);
+                } else if (dataValue instanceof URI) {
+                    size = getFileSize(((URI) dataValue).toURL());
+                } else {
+                    size = -1;
+                }
+
+                if (size != -1) {
+                    Integer megabytes = Math.round((size / 1024) / 1024);
+                    double inputPrice = (megaBytesPrice * megabytes);
+                    price = price + inputPrice;
+                    details.append(" - input file ").append(megabytes).append("mo : ").append(NUMFORM.format(inputPrice)).append("euros.");
+
+                    estimatedTime = estimatedTime + (long)(megaBytesTime * megabytes);
+                }
+
+            } catch(IOException ex) {
+                LOGGER.log(Level.WARNING, "Error while estimating input size", ex);
+            }
+
+        }
+
+        details.append(" Total: ").append(NUMFORM.format(price)).append(" euros.");
+
+        result.setId(UUID.randomUUID().toString());
+        result.setTitle(descriptor.getDisplayName().toString());
+        result.setDescription(descriptor.getProcedureDescription().toString());
+        result.setEstimatedTime(Duration.ofMillis(estimatedTime).toString());
+        result.setPrice(Double.valueOf(NUMFORM.format(price)));
+        result.setCurrency("EUR");
+        result.setDetails(details.toString());
+        result.setProcessId(request.getIdentifier().getValue());
+        result.setProcessParameters(request);
+        return result;
+    }
+
+    public long getFileSize(URL url) {
+        try {
+            WPSURLUtils.authenticate(url.toURI());
+        } catch (URISyntaxException ex) {}
+
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("HEAD");
+            return conn.getContentLengthLong();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
     }
 }

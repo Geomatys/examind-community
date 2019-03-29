@@ -47,7 +47,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.constellation.api.PathType;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
+import org.constellation.metadata.index.SpecificQueryablePart;
 import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.metadata.RecordInfo;
 
 /**
  * A Lucene Index Handler for a generic Database.
@@ -158,10 +163,14 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
     @Override
     protected Object getEntry(final String identifier) throws IndexingException {
         try {
-            return store.getMetadata(identifier, MetadataType.ISO_19115);
+            RecordInfo record = store.getMetadata(identifier, MetadataType.ISO_19115);
+            if (record != null) {
+                return record.node;
+            }
         } catch (MetadataIoException ex) {
             throw new IndexingException("Metadata_IOException while reading entry for:" + identifier, ex);
         }
+        return null;
     }
 
     /**
@@ -188,40 +197,23 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isISO19139(final Object meta) {
-        return meta instanceof Metadata;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDublinCore(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v202.RecordType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim25(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim30(final Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v300.IdentifiableType", meta.getClass());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isFeatureCatalogue(Object meta) {
-        return ReflectionUtilities.instanceOf("org.geotoolkit.feature.catalog.FeatureCatalogueImpl", meta.getClass());
+    protected SpecificQueryablePart getSpecificQueryableByType(Object meta) {
+        if (meta instanceof Metadata) {
+            return new SpecificQueryablePart(ISO_QUERYABLE, "MD_Metadata", true);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v202.RecordType", meta.getClass()) ||
+                   ReflectionUtilities.instanceOf("org.geotoolkit.csw.xml.v300.RecordType", meta.getClass())) {
+            return new SpecificQueryablePart(null, "Record", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", meta.getClass()) ||
+                   ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v300.IdentifiableType", meta.getClass())) {
+            return new SpecificQueryablePart(null, "Ebrim", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.feature.catalog.FeatureCatalogueImpl", meta.getClass())) {
+            return new SpecificQueryablePart(ISO_FC_QUERYABLE, "FC_FeatureCatalogue", false);
+        } else if (ReflectionUtilities.instanceOf("org.geotoolkit.dif.xml.v102.DIF", meta.getClass())) {
+            return new SpecificQueryablePart(DIF_QUERYABLE, "DIF", true);
+        } else {
+            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(meta));
+            return new SpecificQueryablePart(null, "Unknow", false);
+        }
     }
 
     /**
@@ -297,18 +289,9 @@ public class GenericIndexer extends AbstractCSWIndexer<Object> {
      */
     @Override
     @Deprecated
-    protected String getValues(final Object metadata, final List<String> paths) {
-        final List<String> mdpaths = XpathUtils.xpathToMDPath(paths);
-        final List<Object> values =  Utils.extractValues(metadata, mdpaths);
-        final StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            sb.append(value).append(',');
-        }
-        if (!sb.toString().isEmpty()) {
-            // we remove the last ','
-            sb.delete(sb.length() - 1, sb.length());
-        }
-        return sb.toString();
+    protected List<Object> getValues(final Object metadata, final PathType pathType) {
+        final List<String> mdpaths = XpathUtils.xpathToMDPath(pathType.paths);
+        return  Utils.extractValues(metadata, mdpaths);
     }
 
     @Override

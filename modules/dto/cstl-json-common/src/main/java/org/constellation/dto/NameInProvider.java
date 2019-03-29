@@ -41,6 +41,7 @@ public class NameInProvider {
         this.name = name;
         this.providerID = providerID;
         this.dataVersion= dataVersion;
+        this.alias = alias;
     }
 
     @Override

@@ -20,19 +20,10 @@
 package org.constellation.filter;
 
 import org.apache.lucene.search.Filter;
-import org.geotoolkit.index.LogicalFilterType;
-import org.geotoolkit.lucene.filter.SerialChainFilter;
-import org.geotoolkit.ogc.xml.v110.BinaryLogicOpType;
-import org.geotoolkit.ogc.xml.v110.ComparisonOpsType;
-import org.geotoolkit.ogc.xml.v110.FilterType;
-import org.geotoolkit.ogc.xml.v110.LogicOpsType;
-import org.geotoolkit.ogc.xml.v110.SpatialOpsType;
-import org.geotoolkit.ogc.xml.v110.UnaryLogicOpType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.PropertyIsLike;
 import org.opengis.filter.expression.PropertyName;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -44,6 +35,14 @@ import java.util.Map;
 import java.util.TimeZone;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.index.LogicalFilterType;
+import org.geotoolkit.ogc.xml.BinaryLogicOperator;
+import org.geotoolkit.ogc.xml.ComparisonOperator;
+import org.geotoolkit.ogc.xml.ID;
+import org.geotoolkit.ogc.xml.LogicOperator;
+import org.geotoolkit.ogc.xml.SpatialOperator;
+import org.geotoolkit.ogc.xml.TemporalOperator;
+import org.geotoolkit.ogc.xml.UnaryLogicOperator;
+import org.geotoolkit.ogc.xml.XMLFilter;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 
@@ -55,23 +54,23 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 
 /**
  * A parser for filter 1.1.0 and CQL 2.0
- * 
+ *
  * @author Guilhem Legal
  */
 public class SQLFilterParser extends AbstractFilterParser {
-    
+
     /**
      * A map of variables (used in ebrim syntax).
      */
     private Map<String, QName> variables;
-    
+
     /**
      * A map of prefix and their correspounding namespace(used in ebrim syntax).
      */
     private Map<String, String> prefixs;
-    
+
     private int nbField;
-    
+
     private boolean executeSelect;
 
     private static final DateFormat DATE_FORMATTER;
@@ -88,39 +87,41 @@ public class SQLFilterParser extends AbstractFilterParser {
         // TODO use typeNames
         return new SQLQuery("Select \"identifier\" from \"Storage\".\"Records\" where \"recordSet\" != 'MDATA");
     }
-    
+
      /**
      * Build a lucene request from the specified Filter.
-     * 
+     *
      * @param filter a Filter object build directly from the XML or from a CQL request
      */
     @Override
-    protected SQLQuery getQuery(final FilterType filter, Map<String, QName> variables, Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
+    protected SQLQuery getQuery(final XMLFilter filter, Map<String, QName> variables, Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
         this.variables    = variables;
         this.prefixs      = prefixs;
         executeSelect     = true;
         SQLQuery response = null;
-        if (filter != null) { 
-            // we treat logical Operators like AND, OR, ...
-            if (filter.getLogicOps() != null) {
-                response = treatLogicalOperator(filter.getLogicOps());
-            
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...    
-            } else if (filter.getComparisonOps() != null) {
-                nbField                          = 1;
-                response = new SQLQuery(treatComparisonOperator(filter.getComparisonOps().getValue()));
-                
-            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...    
-            } else if (filter.getSpatialOps() != null) {
-                response = new SQLQuery(treatSpatialOperator(filter.getSpatialOps()));
-                
-            // we treat time operator: TimeAfter, TimeBefore, TimeDuring, ...
-            } else if (filter.getTemporalOps()!= null) {
-                response = new SQLQuery(treatTemporalOperator(filter.getTemporalOps().getValue()));
+        if (filter != null) {
+            Object main = filter.getFilterObject();
 
-            } else if (filter.getId() != null) {
-                response = new SQLQuery(treatIDOperator(filter.getId()));
-            }  
+            // we treat logical Operators like AND, OR, ...
+            if (main instanceof LogicOperator) {
+                response = treatLogicalOperator((LogicOperator)main);
+
+            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            } else if (main instanceof ComparisonOperator) {
+                nbField                          = 1;
+                response = new SQLQuery(treatComparisonOperator((ComparisonOperator)main));
+
+            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
+            } else if (main instanceof SpatialOperator) {
+                response = new SQLQuery(treatSpatialOperator((SpatialOperator)main));
+
+            // we treat time operator: TimeAfter, TimeBefore, TimeDuring, ...
+            } else if (main instanceof TemporalOperator) {
+                response = new SQLQuery(treatTemporalOperator((TemporalOperator)main));
+
+            } else if (main instanceof ID) {
+                response = new SQLQuery(treatIDOperator((ID)main));
+            }
         }
         if (response != null) {
             response.nbField = nbField - 1;
@@ -130,7 +131,7 @@ public class SQLFilterParser extends AbstractFilterParser {
         // TODO use typeNames
         return response;
     }
-    
+
     /**
      * Build a piece of query with the specified logical filter.
      *
@@ -138,122 +139,123 @@ public class SQLFilterParser extends AbstractFilterParser {
      * @return
      * @throws FilterParserException
      */
-    protected SQLQuery treatLogicalOperator(final JAXBElement<? extends LogicOpsType> jbLogicOps) throws FilterParserException {
+    protected SQLQuery treatLogicalOperator(final LogicOperator logicOps) throws FilterParserException {
         final List<SQLQuery> subQueries  = new ArrayList<>();
         final StringBuilder queryBuilder = new StringBuilder();
-        final LogicOpsType logicOps      = jbLogicOps.getValue();
-        final String operator            = jbLogicOps.getName().getLocalPart();
+        final String operator            = logicOps.getOperator();
         final List<Filter> filters       = new ArrayList<>();
         nbField                          = 1;
-        
-        if (logicOps instanceof BinaryLogicOpType) {
-            final BinaryLogicOpType binary = (BinaryLogicOpType) logicOps;
-            
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...   
-            for (JAXBElement<? extends ComparisonOpsType> jb: binary.getComparisonOps()) {
-            
-                final SQLQuery query = new SQLQuery(treatComparisonOperator(jb.getValue()));
-                if (operator.equalsIgnoreCase("OR")) {
-                    query.nbField = nbField -1;
-                    query.createSelect();
-                    queryBuilder.append('(').append(query.getQuery());
-                    queryBuilder.append(") UNION ");
-                     executeSelect = false;
-                } else {
-                    
-                    queryBuilder.append(query.getQuery());
-                    queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
-                }
-            }
-            
-            // we treat logical Operators like AND, OR, ...
-            for (JAXBElement<? extends LogicOpsType> jb: binary.getLogicOps()) {
-            
-                boolean writeOperator = true;
-                
-                final SQLQuery query   = treatLogicalOperator((JAXBElement<? extends LogicOpsType>)jb);
-                final String subQuery  = query.getQuery();
-                final Filter subFilter = query.getSpatialFilter();
-                    
-                //if the sub spatial query contains both term search and spatial search we create a subQuery 
-                if ((subFilter != null && !subQuery.isEmpty()) || !query.getSubQueries().isEmpty()) {
-                        
-                    subQueries.add(query);
-                    writeOperator = false;
-                } else {
-                        
-                    if (subQuery.isEmpty()) {
-                        writeOperator = false;
-                    } else  {
-                        if (operator.equalsIgnoreCase("OR")) {
-                            query.nbField = nbField -1;
-                            query.createSelect();
-                            queryBuilder.append('(').append(query.getQuery());
-                            queryBuilder.append(") UNION ");
-                            executeSelect = false;
-                        } else {
-                            queryBuilder.append(subQuery);
-                        }
+
+        if (logicOps instanceof BinaryLogicOperator) {
+            final BinaryLogicOperator binary = (BinaryLogicOperator) logicOps;
+
+            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            for (Object child : binary.getFilters()) {
+
+                if (child instanceof ComparisonOperator) {
+                    final SQLQuery query = new SQLQuery(treatComparisonOperator((ComparisonOperator) child));
+                    if (operator.equalsIgnoreCase("OR")) {
+                        query.nbField = nbField -1;
+                        query.createSelect();
+                        queryBuilder.append('(').append(query.getQuery());
+                        queryBuilder.append(") UNION ");
+                         executeSelect = false;
+                    } else {
+
+                        queryBuilder.append(query.getQuery());
+                        queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
                     }
-                    if (subFilter != null)
-                        filters.add(subFilter);
                 }
-               
-                if (writeOperator) {
-                    queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
-                } else {
-                    writeOperator = true;
+
+                // we treat logical Operators like AND, OR, ...
+                if (child instanceof LogicOperator) {
+
+                    boolean writeOperator = true;
+
+                    final SQLQuery query   = treatLogicalOperator((LogicOperator)child);
+                    final String subQuery  = query.getQuery();
+                    final Filter subFilter = query.getSpatialFilter();
+
+                    //if the sub spatial query contains both term search and spatial search we create a subQuery
+                    if ((subFilter != null && !subQuery.isEmpty()) || !query.getSubQueries().isEmpty()) {
+
+                        subQueries.add(query);
+                        writeOperator = false;
+                    } else {
+
+                        if (subQuery.isEmpty()) {
+                            writeOperator = false;
+                        } else  {
+                            if (operator.equalsIgnoreCase("OR")) {
+                                query.nbField = nbField -1;
+                                query.createSelect();
+                                queryBuilder.append('(').append(query.getQuery());
+                                queryBuilder.append(") UNION ");
+                                executeSelect = false;
+                            } else {
+                                queryBuilder.append(subQuery);
+                            }
+                        }
+                        if (subFilter != null)
+                            filters.add(subFilter);
+                    }
+
+                    if (writeOperator) {
+                        queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
+                    } else {
+                        writeOperator = true;
+                    }
+                }
+
+                // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
+                if (child  instanceof SpatialOperator) {
+
+                    boolean writeOperator = true;
+                    //for the spatial filter we don't need to write into the lucene query
+                    filters.add(treatSpatialOperator((SpatialOperator) child));
+                    writeOperator = false;
+
+                    if (writeOperator) {
+                        queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
+                    } else {
+                        writeOperator = true;
+                    }
                 }
             }
-            
-            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...   
-            for (JAXBElement<? extends SpatialOpsType> jb: binary.getSpatialOps()) {
-                
-                boolean writeOperator = true;
-                //for the spatial filter we don't need to write into the lucene query 
-                filters.add(treatSpatialOperator((JAXBElement<? extends SpatialOpsType>)jb));
-                writeOperator = false;
-                
-                if (writeOperator) {
-                    queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
-                } else {
-                    writeOperator = true;
-                }
-            }
-                
-          // we remove the last Operator and add a ') '
-          int pos;
-          if (operator.equalsIgnoreCase("OR"))  
-              pos = queryBuilder.length()- 10;
-          else
-              pos = queryBuilder.length()- (operator.length() + 2);
-          
-          if (pos > 0)
-            queryBuilder.delete(pos, queryBuilder.length());
-          
-                
-        } else if (logicOps instanceof UnaryLogicOpType) {
-            final UnaryLogicOpType unary = (UnaryLogicOpType) logicOps;
-                        
-            // we treat comparison operator: PropertyIsLike, IsNull, IsBetween, ...    
-            if (unary.getComparisonOps() != null) {
-                queryBuilder.append(treatComparisonOperator(reverseComparisonOperator(unary.getComparisonOps().getValue())));
-                
-            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...        
-            } else if (unary.getSpatialOps() != null) {
-                
-                filters.add(treatSpatialOperator(unary.getSpatialOps()));
-                
+
+            // we remove the last Operator and add a ') '
+            int pos;
+            if (operator.equalsIgnoreCase("OR"))
+                pos = queryBuilder.length()- 10;
+            else
+                pos = queryBuilder.length()- (operator.length() + 2);
+
+            if (pos > 0)
+              queryBuilder.delete(pos, queryBuilder.length());
+
+
+        } else if (logicOps instanceof UnaryLogicOperator) {
+            final UnaryLogicOperator unary = (UnaryLogicOperator) logicOps;
+
+            // we treat comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+            if (unary.getChild() instanceof ComparisonOperator) {
+                queryBuilder.append(treatComparisonOperator(reverseComparisonOperator((ComparisonOperator) unary.getChild())));
+
+            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
+            } else if (unary.getChild() instanceof SpatialOperator) {
+
+                filters.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
+
              // we treat logical Operators like AND, OR, ...
-            } else if (unary.getLogicOps() != null) {
-                final SQLQuery sq  = treatLogicalOperator(unary.getLogicOps());
+            } else if (unary.getChild() instanceof LogicOperator) {
+                final SQLQuery sq  = treatLogicalOperator((LogicOperator) unary.getChild());
                 final String subQuery  = sq.getQuery();
                 final Filter subFilter = sq.getSpatialFilter();
-                    
+
                /* if ((sq.getLogicalOperator() == LogicalFilterType.OR && subFilter != null && !subQuery.isEmpty()) ||
                     (sq.getLogicalOperator() == LogicalFilterType.NOT)) {
                     subQueries.add(sq);
-                   
+
                   } else {*/
 
                 if (!subQuery.isEmpty()) {
@@ -264,7 +266,7 @@ public class SQLFilterParser extends AbstractFilterParser {
                 }
             }
         }
-        
+
         String query = queryBuilder.toString();
         if ("()".equals(query)) {
             query = "";
@@ -330,7 +332,7 @@ public class SQLFilterParser extends AbstractFilterParser {
     protected String translateSpecialChar(final PropertyIsLike pil) {
         return FilterParserUtils.translateSpecialChar(pil, "%", "%", "\\");
     }
-    
+
     /**
      * Format the propertyName from ebrim syntax to mdweb syntax.
      */
@@ -352,7 +354,7 @@ public class SQLFilterParser extends AbstractFilterParser {
 
     /**
      * Return a MDweb standard name representation from a namespace URI.
-     * 
+     *
      * @param namespace
      * @return
      */
@@ -365,7 +367,7 @@ public class SQLFilterParser extends AbstractFilterParser {
             return "Ebrim v2.5";
         else if ("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0".equals(namespace))
             return "Ebrim v3.0";
-        else 
+        else
             throw new IllegalArgumentException("unexpected namespace: " + namespace);
     }
 
@@ -382,7 +384,7 @@ public class SQLFilterParser extends AbstractFilterParser {
             } else {
                 return getStandardFromNamespace(namespace);
             }
-        } 
+        }
         return null;
     }
 }

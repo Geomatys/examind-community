@@ -18,9 +18,9 @@
 
     <modules>
         <module>spring-boot</module>
-        <module>webui</module>
-        <module>services</module>
-        <module>community</module>
+        <module>exa-webui</module>
+        <module>exa-services</module>
+        <module>exa-bundle</module>
     </modules>
 
 </project>

@@ -14,7 +14,7 @@
     <artifactId>examind</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Examind Community</name>
+    <name>Examind</name>
     <url>https://www.geomatys.com/fr/nos-produits/examind-server</url>
 
     <organization>
@@ -33,7 +33,8 @@
         <sis.version>dev-1.0-M0036</sis.version>
         <sis.build.helper.version>0.8</sis.build.helper.version>    <!-- Modified by JDK9 profile. -->
         <sis.epsg.version>1.0-M1</sis.epsg.version>
-        <geotoolkit.version>5.0.0-MC0057</geotoolkit.version>
+        <geotoolkit.version>5.0.0-MC0059</geotoolkit.version>
+        <exa.sdk.version>3.2.17</exa.sdk.version>
         <derby.version>10.14.2.0</derby.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jaxws.version>2.2.8</jaxws.version>
@@ -842,6 +843,11 @@
             <dependency>
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-xml-providers</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-xml-opensearch</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>

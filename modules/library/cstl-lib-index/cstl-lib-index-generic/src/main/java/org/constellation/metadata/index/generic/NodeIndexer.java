@@ -35,17 +35,17 @@ import org.w3c.dom.Node;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.constellation.store.metadata.AbstractCstlMetadataStore;
+import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
+import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
+import org.constellation.metadata.index.SpecificQueryablePart;
 import org.geotoolkit.metadata.MetadataStore;
-
-// Apache Lucene dependencies
-// constellation dependencies
-// geotoolkit dependencies
-// GeoAPI dependencies
+import org.geotoolkit.metadata.RecordInfo;
 
 
 /**
@@ -152,10 +152,14 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
     @Override
     protected Node getEntry(final String identifier) throws IndexingException {
         try {
-            return (Node) store.getMetadata(identifier, MetadataType.NATIVE);
+            RecordInfo record = store.getMetadata(identifier, MetadataType.NATIVE);
+            if (record != null) {
+                return record.node;
+            }
         } catch (MetadataIoException ex) {
             throw new IndexingException("Metadata_IOException while reading entry for:" + identifier, ex);
         }
+        return null;
     }
 
     /**
@@ -182,43 +186,30 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isISO19139(final Node meta) {
-        return "MD_Metadata".equals(meta.getLocalName()) ||
-               "MI_Metadata".equals(meta.getLocalName());
-    }
+    protected SpecificQueryablePart getSpecificQueryableByType(Node meta) {
+        if ("MD_Metadata".equals(meta.getLocalName()) ||
+            "MI_Metadata".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(ISO_QUERYABLE, "MD_Metadata", true);
+        } else if ("Record".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(null, "Record", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isDublinCore(final Node meta) {
-        return "Record".equals(meta.getLocalName());
-    }
+        // TODO list all root elements
+        } else if ("RegistryObject".equals(meta.getLocalName()) ||
+                   "Identifiable".equals(meta.getLocalName())   ||
+                   "RegistryPackage".equals(meta.getLocalName()) ||
+                   "ExtrinsicObject".equals(meta.getLocalName())) {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim25(final Node meta) {
-        // TODO list rootElement
-        return "RegistryObject".equals(meta.getLocalName());
-    }
+            return new SpecificQueryablePart(null, "Ebrim", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isEbrim30(final Node meta) {
-        // TODO list rootElement
-        return "Identifiable".equals(meta.getLocalName());
-    }
+        } else if ("FC_FeatureCatalogue".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(ISO_FC_QUERYABLE, "FC_FeatureCatalogue", false);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean isFeatureCatalogue(Node meta) {
-        return "FC_FeatureCatalogue".equals(meta.getLocalName());
+        } else if ("DIF".equals(meta.getLocalName())) {
+            return new SpecificQueryablePart(DIF_QUERYABLE, "DIF", true);
+        } else {
+            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(meta));
+            return new SpecificQueryablePart(null, "Unknow", false);
+        }
     }
 
     /**
@@ -227,9 +218,13 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
     @Override
     protected void indexQueryableSet(final Document doc, final Node metadata, final  Map<String, PathType> queryableSet, final StringBuilder anyText) throws IndexingException {
         for (final String term : queryableSet.keySet()) {
-            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, queryableSet.get(term).paths));
-
-            final NodeIndexer.TermValue values = formatStringValue(tm);
+            final TermValue tm = new TermValue(term, NodeUtilities.extractValues(metadata, queryableSet.get(term)));
+            final NodeIndexer.TermValue values;
+            if (queryableSet.get(term).type.equals(Date.class)) {
+                values = formatDateValue(tm);
+            } else {
+                values = tm;
+            }
             indexFields(values.value, values.term, anyText, doc);
         }
     }
@@ -239,29 +234,30 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * @param values
      * @return
      */
-    private TermValue formatStringValue(final TermValue values) {
-         if ("date".equals(values.term)) {
-             final List<Object> newValues = new ArrayList<>();
-             for (Object value : values.value) {
-                 if (value instanceof String) {
-                     String stringValue = (String) value;
-                     if (stringValue.endsWith("z") || stringValue.endsWith("Z")) {
-                         stringValue = stringValue.substring(0, stringValue.length() - 1);
-                     }
-                     if (stringValue != null) {
-                        stringValue = stringValue.replace("-", "");
-                        //add time if there is no
-                        if (stringValue.length() == 8) {
-                            stringValue = stringValue + "000000";
-                        }
-                        value = stringValue;
-                     }
-                 }
-                newValues.add(value);
-             }
-             values.value = newValues;
-         }
-         return values;
+    private TermValue formatDateValue(final TermValue values) {
+
+        final List<Object> newValues = new ArrayList<>();
+        for (Object value : values.value) {
+            if (value instanceof String) {
+                String stringValue = (String) value;
+                if (stringValue.endsWith("z") || stringValue.endsWith("Z")) {
+                    stringValue = stringValue.substring(0, stringValue.length() - 1);
+                }
+                if (stringValue != null) {
+                   stringValue = stringValue.replace("-", "");
+                   stringValue = stringValue.replace(":", "");
+                   stringValue = stringValue.replace("T", "");
+                   //add time if there is no
+                   if (stringValue.length() == 8) {
+                       stringValue = stringValue + "000000";
+                   }
+                   value = stringValue;
+                }
+            }
+           newValues.add(value);
+        }
+        values.value = newValues;
+        return values;
     }
 
     /**
@@ -276,24 +272,25 @@ public class NodeIndexer extends AbstractCSWIndexer<Node> {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    protected String getValues(final Node metadata, final List<String> paths) {
-        final List<Object> values =  NodeUtilities.extractValues(metadata, paths);
-        final StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            sb.append(value).append(',');
-        }
-        if (!sb.toString().isEmpty()) {
-            // we remove the last ','
-            sb.delete(sb.length() - 1, sb.length());
-        }
-        return sb.toString();
+    protected List<Object> getValues(final Node metadata, final PathType paths) {
+        return NodeUtilities.extractValues(metadata, paths);
     }
 
     @Override
     protected Iterator<Node> getEntryIterator() throws IndexingException {
         try {
-            return (Iterator<Node>) ((AbstractCstlMetadataStore)store).getEntryIterator();
+            final Iterator<RecordInfo> it = store.getEntryIterator();
+            return new Iterator<Node>() {
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Node next() {
+                    return it.next().node;
+                }
+            };
         } catch (MetadataIoException ex) {
             throw new IndexingException("Error while getting entry iterator", ex);
         }

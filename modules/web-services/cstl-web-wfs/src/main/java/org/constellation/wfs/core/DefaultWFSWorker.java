@@ -176,6 +176,7 @@ import org.apache.sis.util.iso.Names;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.business.IDataBusiness;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.NameInProvider;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -309,7 +310,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
            }
        }
        if (!foundID) {
-           final List<QName> typeNames = getConfigurationLayerNames(null);
+           final List<QName> typeNames = getConfigurationTypeNames(null);
            Collections.sort(typeNames, new QNameComparator());
            final QueryType query = new QueryType(IDENTIFIER_FILTER, typeNames, "2.0.0");
            final QueryExpressionTextType queryEx = new QueryExpressionTextType("urn:ogc:def:queryLanguage:OGC-WFS::WFS_QueryExpression", null, typeNames);
@@ -571,8 +572,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final Map<FeatureType,Schema> declaredSchema = new HashMap<>();
         if (names.isEmpty()) {
             //search all types
-            for (final QName name : getConfigurationLayerNames(userLogin)) {
-                final Data layer = getLayerReference(userLogin, name);
+            for (final NameInProvider name : getConfigurationLayerNames(userLogin)) {
+                final Data layer = getLayerReference(userLogin, name.name);
                 if (!(layer instanceof FeatureData)) {continue;}
 
                 try {
@@ -583,14 +584,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (store instanceof XSDFeatureStore) {
                         final Map params = (Map)((XSDFeatureStore)store).getSchema(layer.getName());
                         if(params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema){
-                            final FeatureType ft = NameOverride.wrap(getFeatureTypeFromLayer(fLayer), NamesExt.create(name));
+                            final FeatureType ft = NameOverride.wrap(getFeatureTypeFromLayer(fLayer), name.name);
                             declaredSchema.put(ft, (Schema) params.get(params.keySet().iterator().next()));
                             types.add(ft);
                         }else{
                             locations.putAll(params);
                         }
                     } else {
-                        types.add(NameOverride.wrap(getFeatureTypeFromLayer(fLayer), NamesExt.create(name)));
+                        types.add(NameOverride.wrap(getFeatureTypeFromLayer(fLayer), name.name));
                     }
                 } catch (DataStoreException ex) {
                     LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
@@ -758,12 +759,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final String suffix;
         if (request.featureType == null) {
             //search all types
-            for (final QName name : getConfigurationLayerNames(userLogin)) {
-                final Data layer = getLayerReference(userLogin, name);
+            for (final NameInProvider name : getConfigurationLayerNames(userLogin)) {
+                final Data layer = getLayerReference(userLogin, name.name);
                 if (!(layer instanceof FeatureData)) {continue;}
 
                 try {
-                    types.add(NameOverride.wrap(getFeatureTypeFromLayer((FeatureData)layer), NamesExt.create(name)));
+                    types.add(NameOverride.wrap(getFeatureTypeFromLayer((FeatureData)layer), name.name));
                 } catch (DataStoreException ex) {
                     LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
@@ -771,7 +772,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             suffix = "";
         } else {
             final GenericName n = Utils.getNameFromQname(request.featureType);
-            if (layersContainsKey(userLogin, n) == null) {
+            if (getFullLayerName(userLogin, n) == null) {
                 throw new CstlServiceException(UNKNOW_TYPENAME + request.featureType, INVALID_PARAMETER_VALUE, "typenames");
             }
             final Data layer = getLayerReference(userLogin, n);
@@ -1212,7 +1213,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final List<QName> typeNames;
             final Map<String, QName> aliases = new HashMap<>();
             if (query.getTypeNames().isEmpty()) {
-                typeNames = getConfigurationLayerNames(userLogin);
+                typeNames = getConfigurationTypeNames(userLogin);
             } else {
                 typeNames = query.getTypeNames();
                 if (!query.getAliases().isEmpty()) {
@@ -1248,7 +1249,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             for (QName typeName : typeNames) {
 
                 final GenericName fullTypeName = Utils.getNameFromQname(typeName);
-                if (layersContainsKey(userLogin, fullTypeName) == null) {
+                if (getFullLayerName(userLogin, fullTypeName) == null) {
                     throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typenames");
                 }
                 final Data layerD = getLayerReference(userLogin, fullTypeName);
@@ -1446,7 +1447,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     }
                     GenericName typeName = ft.getName();
 
-                    if (layersContainsKey(userLogin, typeName) == null) {
+                    if (getFullLayerName(userLogin, typeName) == null) {
                         throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
                     }
                     final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
@@ -1487,7 +1488,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final Filter filter = extractJAXBFilter(deleteRequest.getFilter(), Filter.EXCLUDE, namespaceMapping, currentVersion);
 
                 final GenericName typeName = Utils.getNameFromQname(deleteRequest.getTypeName());
-                if (layersContainsKey(userLogin, typeName) == null) {
+                if (getFullLayerName(userLogin, typeName) == null) {
                     throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typename");
                 }
                 final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
@@ -1532,7 +1533,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final CoordinateReferenceSystem crs = extractCRS(updateRequest.getSrsName());
 
                 final GenericName typeName = Utils.getNameFromQname(updateRequest.getTypeName());
-                if (layersContainsKey(userLogin, typeName) == null) {
+                if (getFullLayerName(userLogin, typeName) == null) {
                     throw new CstlServiceException(UNKNOW_TYPENAME + typeName, INVALID_PARAMETER_VALUE, "typename");
                 }
                 final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
@@ -1699,7 +1700,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     throw new CstlServiceException("Unexpected replacement object:" + featureType);
                 }
 
-                if (layersContainsKey(userLogin, typeName) == null) {
+                if (getFullLayerName(userLogin, typeName) == null) {
                     throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
                 }
 
@@ -2108,8 +2109,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final List<FeatureType> types = new ArrayList<>();
 
         //search all types
-        for (final QName name : getConfigurationLayerNames(userLogin)) {
-            final Data layer = getLayerReference(userLogin, name);
+        for (final NameInProvider name : getConfigurationLayerNames(userLogin)) {
+            final Data layer = getLayerReference(userLogin, name.name);
             if (!(layer instanceof FeatureData)) {continue;}
             try {
                 //fix feature type to define the exposed crs : true EPSG axis order
@@ -2233,6 +2234,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             if (description.getId().equals(queryId)) {
                 results.addAll(description.getParameter());
             }
+        }
+        return results;
+    }
+
+    private List<QName> getConfigurationTypeNames(String login) {
+        List<QName> results = new ArrayList<>();
+        for (NameInProvider nop : getConfigurationLayerNames(login)) {
+            results.add(Utils.getQnameFromName(nop.name));
         }
         return results;
     }

@@ -116,6 +116,17 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
+    public List<Integer> findIdByServiceId(int serviceId) {
+        List<Integer> results = new ArrayList<>();
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                results.add(l.getId());
+            }
+        }
+        return results;
+    }
+
+    @Override
     public List<QName> findNameByServiceId(int serviceId) {
         if (byServiceName.containsKey(serviceId)) {
             return byServiceName.get(serviceId);
@@ -146,6 +157,11 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
 
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Layer findByServiceIdAndAlias(int serviceId, String alias) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -290,6 +306,11 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             }
         }
         return i;
+    }
+
+    @Override
+    public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

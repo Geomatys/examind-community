@@ -32,6 +32,8 @@ public interface LayerRepository {
 
     List<Layer> findByServiceId(int serviceId);
 
+    List<Integer> findIdByServiceId(int serviceId);
+
     List<QName> findNameByServiceId(int serviceId);
 
     List<Integer> findByDataId(int dataId);
@@ -58,6 +60,10 @@ public interface LayerRepository {
     Integer findIdByServiceIdAndLayerName(int serviceId, String layerName);
 
     Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace);
+
+    Layer findByServiceIdAndAlias(int serviceId, String alias);
+
+    Layer findByServiceIdAndDataId(int serviceId, int dataId);
 
     Data findDatasFromLayerAlias(String layerAlias, String dataProviderIdentifier);
 

@@ -1,3 +1,4 @@
 org.constellation.process.dynamic.docker.DeployDockerDescriptor
+org.constellation.process.dynamic.cwl.DeployCWLDescriptor
 org.constellation.process.dynamic.proactive.DeployProactiveDescriptor
 org.constellation.process.dynamic.ClearDynamicFactoryDescriptor

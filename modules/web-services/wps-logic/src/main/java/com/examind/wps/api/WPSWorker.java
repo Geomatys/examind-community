@@ -21,7 +21,11 @@ package com.examind.wps.api;
 import java.util.Set;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
+import org.geotoolkit.wps.xml.v200.Bill;
+import org.geotoolkit.wps.xml.v200.BillList;
 import org.geotoolkit.wps.xml.v200.Capabilities;
+import org.geotoolkit.wps.xml.v200.Deploy;
+import org.geotoolkit.wps.xml.v200.DeployResult;
 import org.geotoolkit.wps.xml.v200.DescribeProcess;
 import org.geotoolkit.wps.xml.v200.Dismiss;
 import org.geotoolkit.wps.xml.v200.Execute;
@@ -29,7 +33,11 @@ import org.geotoolkit.wps.xml.v200.GetCapabilities;
 import org.geotoolkit.wps.xml.v200.GetResult;
 import org.geotoolkit.wps.xml.v200.GetStatus;
 import org.geotoolkit.wps.xml.v200.ProcessOfferings;
+import org.geotoolkit.wps.xml.v200.Quotation;
+import org.geotoolkit.wps.xml.v200.QuotationList;
 import org.geotoolkit.wps.xml.v200.StatusInfo;
+import org.geotoolkit.wps.xml.v200.Undeploy;
+import org.geotoolkit.wps.xml.v200.UndeployResult;
 
 /**
  *
@@ -50,4 +58,25 @@ public interface WPSWorker extends Worker {
     StatusInfo dismiss(Dismiss request) throws CstlServiceException;
 
     Object execute(final Execute request) throws CstlServiceException;
+
+    DeployResult deploy(final Deploy request) throws CstlServiceException;
+
+    UndeployResult undeploy(final Undeploy request) throws CstlServiceException;
+
+    QuotationList getQuotationList() throws CstlServiceException;
+
+    QuotationList getQuotationList(final String processId) throws CstlServiceException;
+
+    Quotation quote(final Execute request) throws CstlServiceException;
+
+    Quotation getQuotation(String quotationId) throws CstlServiceException;
+
+    Object executeQuotation(String quotationId) throws CstlServiceException;
+
+    BillList getBillList() throws CstlServiceException;
+
+    Bill getBill(String billId) throws CstlServiceException;
+
+    Bill getBillForJob(String jobID) throws CstlServiceException;
+
 }

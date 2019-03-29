@@ -52,6 +52,8 @@ import javax.xml.stream.XMLInputFactory;
 import org.constellation.admin.SpringHelper;
 
 import static java.nio.file.StandardOpenOption.*;
+import org.constellation.metadata.CSWQueryable;
+import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
 
 import static org.constellation.util.NodeUtilities.updateObjects;
 import static org.constellation.util.NodeUtilities.extractNodes;
@@ -142,7 +144,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             } else {
                 session.updateRecord(identifier, f.toAbsolutePath().toString());
             }
-            
+
         } catch (SQLException| IOException | TransformerException ex) {
             throw new MetadataIoException("Unable to write the file.", ex, NO_APPLICABLE_CODE);
         }
@@ -211,7 +213,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
     public boolean isAlreadyUsedIdentifier(String metadataID) throws MetadataIoException {
         return getFileFromIdentifier(metadataID) != null;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -220,7 +222,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
         final Document metadataDoc = getDocumentFromFile(metadataID);
         for (Entry<String, Object> property : properties.entrySet()) {
             String xpath = property.getKey();
-            
+
             if (xpath.indexOf('/', 1) != -1) {
 
                 Node parent = metadataDoc.getDocumentElement();
@@ -234,18 +236,24 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
                 // we update the metadata
                 final Node value = (Node) property.getValue();
 
-                //remove namespace on propertyName
-                String propertyName = nao.propertyName;
-                final int separatorIndex = propertyName.indexOf(':');
+                String propertyName;
+                String propertyNmsp;
+                final int separatorIndex = nao.propertyName.indexOf(':');
                 if (separatorIndex != -1) {
-                    propertyName = propertyName.substring(separatorIndex + 1);
+                    String prefix = nao.propertyName.substring(0, separatorIndex);
+                    propertyNmsp = ALL_PREFIX_MAPPING.get(prefix); // TODO the mapping should be provided by the parameters.
+                    propertyName = nao.propertyName.substring(separatorIndex + 1);
+                } else {
+                    propertyNmsp = null;
+                    propertyName = nao.propertyName;
                 }
+
                 List<Node> nodes = new ArrayList<>();
                 for (Node n : nao.nodes) {
                     nodes.add(n.getParentNode());
                 }
 
-                updateObjects(nodes, propertyName, value);
+                updateObjects(nodes, propertyName, propertyNmsp, value);
 
                 // we finish by updating the metadata.
                 deleteMetadata(metadataID);
@@ -272,12 +280,16 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
     private Path getFileFromIdentifier(final String identifier) throws MetadataIoException {
         try (Session session = source.createSession()) {
             final String path = session.getPathForRecord(identifier);
-            return Paths.get(path);
+            if (path != null) {
+                return Paths.get(path);
+            } else {
+                throw new MetadataIoException("Null path value for identifier:" + identifier, NO_APPLICABLE_CODE);
+            }
         } catch (SQLException ex) {
             throw new MetadataIoException("SQL Exception while reading path for record", ex, NO_APPLICABLE_CODE);
         }
     }
-    
+
     /**
      * Destoy all the resource and close connection.
      */

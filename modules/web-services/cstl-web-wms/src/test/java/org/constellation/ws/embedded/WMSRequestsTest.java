@@ -169,10 +169,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                                                     + "ReQuEsT=GetFeatureInfo&InFo_fOrMaT=text/plain&BbOx=-2,2,2,6"
                                                     + "&HeIgHt=100&J=50&VeRsIoN=1.3.0&FoRmAt=image/gif";
 
-    private static final String WMS_GETFEATUREINFO4 ="QuErY_LaYeRs=cite:Lakes&BbOx=0,-0.0020,0.0040,0&"
+    private static final String WMS_GETFEATUREINFO4 ="QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
                                                     + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
                                                     + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.gml&"
-                                                    + "X=60&StYlEs=&LaYeRs=cite:Lakes&"
+                                                    + "X=60&StYlEs=&LaYeRs=Lakes&"
                                                     + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&" +
@@ -203,7 +203,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     "TrAnSpArEnT=False&HeIgHt=100&LaYeRs=unknownlayer&FoRmAt=image/gif&ReQuEsT=GetMap&StYlEs=&srS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.1.1&WiDtH=100&EXCEPTIONS=application/vnd.ogc.se_inimage";
 
     private static final String WMS_GETMAP_GIF_TRANSPARENT =
-    "TrAnSpArEnT=TRUE&CrS=CRS:84&FoRmAt=image%2Fgif&VeRsIoN=1.3.0&HeIgHt=100&WiDtH=200&StYlEs=&LaYeRs=cite%3ALakes&ReQuEsT=GetMap&BbOx=0,-0.0020,0.0040,0";
+    "TrAnSpArEnT=TRUE&CrS=CRS:84&FoRmAt=image%2Fgif&VeRsIoN=1.3.0&HeIgHt=100&WiDtH=200&StYlEs=&LaYeRs=Lakes&ReQuEsT=GetMap&BbOx=0,-0.0020,0.0040,0";
 
     private static final String WMS_GETMAP_111_PROJ ="request=GetMap&service=WMS&version=1.1.1&" +
                                       "format=image/png&width=1024&height=512&" +
@@ -527,6 +527,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=4)
     public void testWMSGetMapLakeGifransparent() throws Exception {
+        initLayerList();
 
         // Creates a valid GetMap url.
         final URL getMapUrl;

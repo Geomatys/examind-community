@@ -20,6 +20,7 @@ package org.constellation.dto.service.config.wps;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -41,6 +42,8 @@ public class Process {
 
     private Boolean usePrefix;
 
+    private Map<String, Object> userMap;
+
     public Process() {
 
     }
@@ -54,11 +57,13 @@ public class Process {
         this.usePrefix = usePrefix;
     }
 
-    public Process(final String id, Boolean usePrefix, List<String> jobControlOptions, List<String> outputTransmission) {
+    public Process(final String id, Boolean usePrefix, List<String> jobControlOptions,
+            List<String> outputTransmission, Map<String, Object> userMap) {
         this.id = id;
         this.usePrefix = usePrefix;
         this.jobControlOptions = jobControlOptions;
         this.outputTransmission = outputTransmission;
+        this.userMap = userMap;
     }
 
     /**
@@ -118,6 +123,20 @@ public class Process {
      */
     public void setOutputTransmission(List<String> outputTransmission) {
         this.outputTransmission = outputTransmission;
+    }
+
+    /**
+     * @return the userMap
+     */
+    public Map<String, Object> getUserMap() {
+        return userMap;
+    }
+
+    /**
+     * @param userMap the userMap to set
+     */
+    public void setUserMap(Map<String, Object> userMap) {
+        this.userMap = userMap;
     }
 
 }

@@ -19,8 +19,6 @@
 
 package org.constellation.metadata.index;
 
-// J2SE dependencies
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DoubleField;
@@ -50,20 +48,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
-import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
-import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
 import org.geotoolkit.index.tree.StoreIndexException;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.LuceneUtils;
-import org.geotoolkit.nio.IOUtilities;
 
 /**
  *
@@ -164,33 +158,16 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
         final StringBuilder anyText     = new StringBuilder();
         boolean alreadySpatiallyIndexed = false;
 
-        // For an ISO 19139 object
-        if (isISO19139(metadata)) {
-            final Map<String, PathType> isoQueryable = removeOverridenField(ISO_QUERYABLE);
-            indexQueryableSet(doc, metadata, isoQueryable, anyText);
-
-            //we add the geometry parts
-            alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, isoQueryable, CommonCRS.WGS84.normalizedGeographic());
-
-            doc.add(new Field("objectType", "MD_Metadata", SEARCH_TYPE));
-
-        } else if (isEbrim30(metadata)) {
-           // TODO
-            doc.add(new Field("objectType", "Ebrim", SEARCH_TYPE));
-        } else if (isEbrim25(metadata)) {
-            // TODO
-            doc.add(new Field("objectType", "Ebrim", SEARCH_TYPE));
-        } else if (isFeatureCatalogue(metadata)) {
-            final Map<String, PathType> fcQueryable = removeOverridenField(ISO_FC_QUERYABLE);
-            indexQueryableSet(doc, metadata, fcQueryable, anyText);
-
-            doc.add(new Field("objectType", "FC_FeatureCatalogue", SEARCH_TYPE));
-        } else if (isDublinCore(metadata)) {
-
-            doc.add(new Field("objectType", "Record", SEARCH_TYPE));
-        } else {
-            LOGGER.log(Level.WARNING, "unknow Object classe unable to index: {0}", getType(metadata));
+        SpecificQueryablePart spe = getSpecificQueryableByType(metadata);
+        if (spe.queryable != null) {
+            final Map<String, PathType> speQueryable = removeOverridenField(spe.queryable);
+            indexQueryableSet(doc, metadata, speQueryable, anyText);
+            if (spe.spatial) {
+                //we add the geometry parts
+                alreadySpatiallyIndexed = indexSpatialPart(doc, metadata, speQueryable, CommonCRS.WGS84.normalizedGeographic());
+            }
         }
+        doc.add(new Field("objectType", spe.type, SEARCH_TYPE));
 
         // All metadata types must be compatible with dublinCore.
         final Map<String, PathType> dcQueryable = removeOverridenField(DUBLIN_CORE_QUERYABLE);
@@ -408,10 +385,10 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      */
     private boolean indexSpatialPart(Document doc, A form, Map<String, PathType> queryableSet, CoordinateReferenceSystem crs) throws IndexingException {
 
-        final List<Double> minxs = extractPositions(form, queryableSet.get("WestBoundLongitude").paths);
-        final List<Double> maxxs = extractPositions(form, queryableSet.get("EastBoundLongitude").paths);
-        final List<Double> maxys = extractPositions(form, queryableSet.get("NorthBoundLatitude").paths);
-        final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude").paths);
+        final List<Double> minxs = extractPositions(form, queryableSet.get("WestBoundLongitude"));
+        final List<Double> maxxs = extractPositions(form, queryableSet.get("EastBoundLongitude"));
+        final List<Double> maxys = extractPositions(form, queryableSet.get("NorthBoundLatitude"));
+        final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude"));
         try {
             if (minxs.size() == minys.size() && minys.size() == maxxs.size() && maxxs.size() == maxys.size()) {
                 addBoundingBox(doc, minxs, maxxs, minys, maxys, crs);
@@ -434,13 +411,18 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
       *
       * @throws IndexingException
       */
-    private List<Double> extractPositions(A metadata, List<String> paths) throws IndexingException {
-        final String coord            = getValues(metadata, paths);
-        final StringTokenizer tokens  = new StringTokenizer(coord, ",;");
-        final List<Double> coordinate = new ArrayList<>(tokens.countTokens());
+    private List<Double> extractPositions(A metadata, PathType paths) throws IndexingException {
+        final List<Object> coord = getValues(metadata, paths);
+        final List<Double> coordinate = new ArrayList<>();
         try {
-            while (tokens.hasMoreTokens()) {
-                coordinate.add(Double.parseDouble(tokens.nextToken()));
+            for (Object obj : coord) {
+                if (obj instanceof Double) {
+                    coordinate.add((Double)obj);
+                } else if (obj instanceof Integer) {
+                    coordinate.add(((Integer)obj).doubleValue());
+                } else {
+                    coordinate.add(Double.parseDouble(String.valueOf(obj)));
+                }
             }
         } catch (NumberFormatException e) {
             if (!coord.equals(NULL_VALUE)) {
@@ -465,52 +447,20 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
      * Extract some values from a metadata object using  the list of paths.
      *
      * @param meta The object to index.
-     * @param paths A list of paths where to find the information within the metadata.
+     * @param paths A list of paths where to find the information within the metadata, along with the expected type.
      *
-     * @return A String containing one or more informations (comma separated) find in the metadata.
+     * @return A List of extracted values found in the metadata.
      * @throws IndexingException
      */
-    @Deprecated
-    protected abstract String getValues(final A meta, final List<String> paths) throws IndexingException;
+    protected abstract List<Object> getValues(final A meta, final PathType paths) throws IndexingException;
+
 
     /**
-     * Return true if the metadata object is a ISO19139 object.
+     * Return a specific set of queryable dependeing on the metadata type.
+     * Return also the metadata type;
      *
-     * @param meta The object to index
-     * @return true if the metadata object is a ISO19139 object.
+     * @param meta The object to index.
      */
-    protected abstract boolean isISO19139(A meta);
-
-    /**
-     * Return true if the metadata object is a DublinCore object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a DublinCore object.
-     */
-    protected abstract boolean isDublinCore(A meta);
-
-    /**
-     * Return true if the metadata object is a Ebrim version 2.5 object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a Ebrim version 2.5 object.
-     */
-    protected abstract boolean isEbrim25(A meta);
-
-    /**
-     * Return true if the metadata object is a Ebrim version 3.0 object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a Ebrim version 3.0 object.
-     */
-    protected abstract boolean isEbrim30(A meta);
-
-    /**
-     * Return true if the metadata object is a FeatureCatalogue object.
-     *
-     * @param meta The object to index
-     * @return true if the metadata object is a FeatureCatalogue object.
-     */
-    protected abstract boolean isFeatureCatalogue(A meta);
+    protected abstract SpecificQueryablePart getSpecificQueryableByType(A meta);
 
 }

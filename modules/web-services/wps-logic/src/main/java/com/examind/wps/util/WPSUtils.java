@@ -26,6 +26,7 @@ import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
+import org.geotoolkit.wps.io.WPSIO.FormatSupport;
 import org.geotoolkit.wps.io.WPSIO;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.DomainMetadataType;
@@ -81,6 +82,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,6 +93,9 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProviders;
+import org.geotoolkit.ows.xml.v200.AdditionalParameter;
+import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
+import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.citation.Citation;
@@ -364,7 +369,17 @@ public class WPSUtils {
      */
     public static LanguageStringType buildProcessIOTitle(final GeneralParameterDescriptor param, Locale lang) {
         ArgumentChecks.ensureNonNull("param", param);
-        final String title = WPSUtils.capitalizeFirstLetterStr(param.getName().getCode());
+        String title = null;
+        if (param instanceof ExtendedParameterDescriptor) {
+            ExtendedParameterDescriptor extParam = (ExtendedParameterDescriptor) param;
+            Map userMap = extParam.getUserObject();
+            if (userMap != null && userMap.containsKey("Title")) {
+                title = (String) userMap.get("Title");
+            }
+        }
+        if (title == null) {
+            title = WPSUtils.capitalizeFirstLetterStr(param.getName().getCode());
+        }
         return new LanguageStringType(title, lang.toLanguageTag());
     }
 
@@ -386,6 +401,34 @@ public class WPSUtils {
         }
 
         return new LanguageStringType(_abstract, lang.toLanguageTag());
+    }
+
+    public static List<AdditionalParametersType> buildAdditionalParams(final GeneralParameterDescriptor param) {
+        ArgumentChecks.ensureNonNull("param", param);
+
+        String role = null;
+        List<AdditionalParameter> additionalParams = null;
+        if (param instanceof ExtendedParameterDescriptor) {
+            ExtendedParameterDescriptor extParam = (ExtendedParameterDescriptor) param;
+            Map<String, Object> userMap = extParam.getUserObject();
+            if (userMap != null) {
+                additionalParams = new ArrayList<>();
+                for (Entry<String, Object> e : userMap.entrySet()) {
+                    if (e.getValue() instanceof String) {
+                        if ("role".equals(e.getKey())) {
+                            role = (String) e.getValue();
+                        } else if (!"Title".equals(e.getKey())) {
+                            additionalParams.add(new AdditionalParameter(new CodeType(e.getKey()), Arrays.asList(e.getValue())));
+                        }
+                    }
+                }
+            }
+        }
+        if ((additionalParams != null && !additionalParams.isEmpty()) || role != null) {
+            AdditionalParametersType additionalParamers = new AdditionalParametersType(role, additionalParams);
+            return Arrays.asList(additionalParamers);
+        }
+        return null;
     }
 
 
@@ -502,18 +545,6 @@ public class WPSUtils {
      * @param attributeClass The java class to get complex type from.
      * @param ioType The type of parameter to describe (input or output).
      * @param type The complex type (complex, reference, etc.).
-     * @return SupportedComplexDataInputType
-     */
-    public static ComplexData describeComplex(final Class attributeClass, final WPSIO.IOType ioType, final WPSIO.FormChoice type) {
-        return describeComplex(attributeClass, ioType, type, null);
-    }
-
-    /**
-     * Return the SupportedComplexDataInputType for the given class.
-     *
-     * @param attributeClass The java class to get complex type from.
-     * @param ioType The type of parameter to describe (input or output).
-     * @param type The complex type (complex, reference, etc.).
      * @param userData A map containing user's options for type support.
      * @return SupportedComplexDataInputType
      */
@@ -526,16 +557,12 @@ public class WPSUtils {
         }
 
         final List<Format> formats = new ArrayList<>();
-        List<WPSIO.FormatSupport> infos = null;
+        List<FormatSupport> infos = null;
         String schema = null;
 
         if (userData != null) {
-            try {
-                infos = (List<WPSIO.FormatSupport>) userData.get(WPSIO.SUPPORTED_FORMATS_KEY);
-                schema = (String) userData.get(WPSIO.SCHEMA_KEY);
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "A parameter type definition can't be read.", e);
-            }
+            schema = (String) userData.get(WPSIO.SCHEMA_KEY);
+            infos = getCustomIOFormats(userData, ioType);
         }
 
         if (infos == null) {
@@ -543,7 +570,7 @@ public class WPSUtils {
         }
 
         if (infos != null) {
-            for (WPSIO.FormatSupport inputClass : infos) {
+            for (FormatSupport inputClass : infos) {
 
                 String encoding = inputClass.getEncoding();
                 String mimetype = inputClass.getMimeType();
@@ -564,7 +591,62 @@ public class WPSUtils {
         return new ComplexData(formats, maximumMegabytes);
     }
 
-    static class FormatComparator implements Comparator<Format> {
+    public static List<FormatSupport> getCustomIOFormats(final Map<String, Object> userData, final WPSIO.IOType ioType) {
+        if (userData != null) {
+            try {
+                // try first way of defining custom format (not marshallable)
+                List<FormatSupport> infos = (List<FormatSupport>) userData.get(WPSIO.SUPPORTED_FORMATS_KEY);
+
+                // try second way of defining custom format (used by dynamic chain for example)
+                if (infos == null) {
+                    List<Map> userFormats = (List<Map>) userData.get("formats");
+                    if (userFormats != null) {
+                        infos = new ArrayList<>();
+                        for (Map userFormat : userFormats) {
+                            FormatSupport format = new FormatSupport(null,
+                                    ioType,
+                                    (String) userFormat.get("mimetype"),
+                                    (String) userFormat.get("encoding"),
+                                    (String) userFormat.get("schema"),
+                                    true);
+                            infos.add(format);
+                        }
+                    }
+                }
+                return infos;
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "A parameter custom format definition can't be read.", e);
+            }
+        }
+        return null;
+    }
+
+    public static List<Format> getWPSCustomIOFormats(final Map<String, Object> userData, final WPSIO.IOType ioType) {
+        List<FormatSupport> infos = getCustomIOFormats(userData, ioType);
+        if (infos != null) {
+            final List<Format> formats = new ArrayList<>();
+            for (FormatSupport inputClass : infos) {
+
+                String encoding = inputClass.getEncoding();
+                String mimetype = inputClass.getMimeType();
+                String schemaf  = inputClass.getSchema(); //URL to xsd schema
+
+                Format format = new Format(encoding, mimetype, schemaf, null);
+                formats.add(format);
+            }
+            // set for XML test purpose
+            Collections.sort(formats, new FormatComparator());
+
+            // set default for the first format => TODO find a real default
+            if (!formats.isEmpty()) {
+                formats.get(0).setDefault(Boolean.TRUE);
+            }
+            return formats;
+        }
+        return null;
+    }
+
+   static class FormatComparator implements Comparator<Format> {
 
         @Override
         public int compare(Format o1, Format o2) {

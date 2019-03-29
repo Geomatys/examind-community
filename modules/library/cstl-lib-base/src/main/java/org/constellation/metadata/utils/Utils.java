@@ -101,7 +101,8 @@ public final class Utils {
         paths.add("Ebrim v2.5:*:name:localizedString:value");
         paths.add("Ebrim v2.5:*:id");
         paths.add("SensorML:SensorML:member:process:id");
-
+        paths.add("SensorML:SensorML:member:process:id");
+        paths.add("NASA Directory Interchange Format:DIF:entryTitle");
         for (String path : paths) {
             Object value = ReflectionUtilities.getValuesFromPath(path, obj);
             if (value instanceof String && !((String)value).isEmpty()) {
@@ -186,6 +187,8 @@ public final class Utils {
         paths.add("Ebrim v2.5:*:id");
         paths.add("ISO 19110:FC_FeatureCatalogue:id");
         paths.add("SensorML:SensorML:member:process:id");
+        paths.add("SensorML:SensorML:member:process:id");
+        paths.add("NASA Directory Interchange Format:DIF:entryID:shortName");
 
         return findIdentifier(obj, paths);
     }
@@ -255,6 +258,7 @@ public final class Utils {
         paths.add("Ebrim v2.5:*:id");
         paths.add("ISO 19110:FC_FeatureCatalogue:id");
         paths.add("SensorML:SensorML:member:process:id");
+        paths.add("NASA Directory Interchange Format:DIF:entryID:shortName");
 
         for (String pathID : paths) {
 
@@ -383,6 +387,7 @@ public final class Utils {
         paths.add("Ebrim v3.0:*:name:localizedString:value");
         paths.add("Ebrim v2.5:*:name:localizedString:value");
         paths.add("SensorML:SensorML:member:process:id");
+        paths.add("NASA Directory Interchange Format:DIF:entryTitle");
 
         for (String pathID : paths) {
 
@@ -508,6 +513,7 @@ public final class Utils {
         paths.add("SensorML/member/System/@gml:id");
         paths.add("SensorML/member/Component/@gml:id");
         paths.add("*/@id");
+        paths.add("DIF/Entry_ID/Short_Name");
         return findIdentifierNode(node, paths);
     }
 

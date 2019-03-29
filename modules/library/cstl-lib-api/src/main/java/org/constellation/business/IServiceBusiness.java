@@ -119,6 +119,15 @@ public interface IServiceBusiness {
     void ensureExistingInstance(String spec, String identifier) throws ConfigurationException;
 
     /**
+     * Ensure that a service instance really exists.
+     *
+     * @param id The service identifier
+     *
+     * @throws ConfigurationException If the service with specified identifier does not exist
+     */
+    void ensureExistingInstance(Integer id) throws ConfigurationException;
+
+    /**
      * Returns the configuration object of a service instance.
      *
      * @param serviceType The service type (WMS, WFS, ...)

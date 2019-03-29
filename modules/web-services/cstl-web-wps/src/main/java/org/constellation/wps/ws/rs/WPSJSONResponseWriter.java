@@ -19,9 +19,12 @@
 
 package org.constellation.wps.ws.rs;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.sis.util.logging.Logging;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,7 +43,8 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    
+    private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -55,7 +59,7 @@ public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONRespon
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.APPLICATION_JSON);
     }
-    
+
     @Override
     public WPSJSONResponse read(Class<? extends WPSJSONResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("WPSJSONResponse message converter do not support reading.");
@@ -64,6 +68,9 @@ public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONRespon
     @Override
     public void write(WPSJSONResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         final ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setDateFormat(DATE_FORM);
         mapper.writeValue(outputMessage.getBody(), t);
     }
 }

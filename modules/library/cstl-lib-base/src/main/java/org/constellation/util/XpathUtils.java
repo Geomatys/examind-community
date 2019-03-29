@@ -20,12 +20,16 @@
 package org.constellation.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Contains some old MDWeb methods that should not be used anymore.
+ * But more important the method getNamespaceFromPrefix() should be replaced with a dynamic method.
  *
  * @author Guilhem Legal (Geomatys)
  */
+@Deprecated
 public class XpathUtils {
 
     public static List<String> xpathToMDPath(final List<String> xpaths) {
@@ -60,7 +64,7 @@ public class XpathUtils {
             xpath = xpath.substring(index + 1);
 
             //ebrim path do not remove typeNode
-            final boolean content = prefix.equals("csw");
+            final boolean content = prefix.startsWith("csw");
             final boolean rmTypeNode = prefix.startsWith("eb") || content;
 
             xpath = rootPath + toMDPath(xpath, content, rmTypeNode);
@@ -81,7 +85,7 @@ public class XpathUtils {
     private static String toMDPath(String xpath, final boolean content, final boolean rmTypeNode) {
         final StringBuilder result = new StringBuilder();
         final String[] parts = xpath.split("/");
-        
+
         for (int i = 0; i < parts.length; i++) {
             int separator = parts[i].indexOf(':');
             final String propName = parts[i].substring(separator + 1);
@@ -113,29 +117,33 @@ public class XpathUtils {
 
     private static String getStandardFromPrefix(final String prefix) {
         switch (prefix) {
-            case "gfc": return "ISO 19110";
-            case "gmd": return "ISO 19115";
-            case "gmi": return "ISO 19115-2";
-            case "csw": return "Catalog Web Service";
-            case "eb3": return "Ebrim v3.0";
-            case "eb2": return "Ebrim v2.5";
-            case "wrs": return "Web Registry Service v1.0";
-            case "wr" : return "Web Registry Service v0.9";
+            case "gfc":  return "ISO 19110";
+            case "gmd":  return "ISO 19115";
+            case "gmi":  return "ISO 19115-2";
+            case "csw2":
+            case "csw3": return "Catalog Web Service";
+            case "eb3":  return "Ebrim v3.0";
+            case "eb2":  return "Ebrim v2.5";
+            case "wrs":  return "Web Registry Service v1.0";
+            case "wr" :  return "Web Registry Service v0.9";
+            case "dif" : return "NASA Directory Interchange Format";
             default: throw new IllegalArgumentException("Unexpected prefix: " + prefix);
 
         }
     }
 
-    public static String getNamespaceFromPrefix(final String prefix) {
+    public static List<String> getNamespaceFromPrefix(final String prefix) {
         switch (prefix) {
-            case "gfc": return "http://www.isotc211.org/2005/gfc";
-            case "gmd": return "http://www.isotc211.org/2005/gmd";
-            case "gmi": return "http://www.isotc211.org/2005/gmi";
-            case "csw": return "http://www.opengis.net/cat/csw/2.0.2";
-            case "eb3": return "urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0";
-            case "eb2": return "urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5";
-            case "wrs": return "http://www.opengis.net/cat/wrs/1.0";
-            case "wr" : return "http://www.opengis.net/cat/wrs";
+            case "gfc":  return Arrays.asList("http://www.isotc211.org/2005/gfc");
+            case "gmd":  return Arrays.asList("http://www.isotc211.org/2005/gmd");
+            case "gmi":  return Arrays.asList("http://www.isotc211.org/2005/gmi");
+            case "csw2": return Arrays.asList("http://www.opengis.net/cat/csw/2.0.2");
+            case "csw3": return Arrays.asList("http://www.opengis.net/cat/csw/3.0");
+            case "eb3":  return Arrays.asList("urn:oasis:names:tc:ebxml-regrep:xsd:rim:3.0");
+            case "eb2":  return Arrays.asList("urn:oasis:names:tc:ebxml-regrep:rim:xsd:2.5");
+            case "wrs":  return Arrays.asList("http://www.opengis.net/cat/wrs/1.0");
+            case "wr" :  return Arrays.asList("http://www.opengis.net/cat/wrs");
+            case "dif":  return Arrays.asList("http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/");
             default: throw new IllegalArgumentException("Unexpected prefix: " + prefix);
 
         }

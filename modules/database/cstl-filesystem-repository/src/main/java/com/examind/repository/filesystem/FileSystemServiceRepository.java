@@ -202,6 +202,11 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
         return null;
     }
 
+    @Override
+    public boolean exist(Integer id) {
+        return loadedService.containsKey(id);
+    }
+
 
     ////--------------------------------------------------------------------///
     ////------------------------    TRANSACTIONAL  -------------------------///

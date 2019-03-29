@@ -21,7 +21,6 @@ package org.constellation.metadata.harvest;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.internal.xml.LegacyNamespaces;
-import org.constellation.metadata.core.DistributedResults;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
@@ -39,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.metadata.utils.CSWUtils;
+import org.geotoolkit.csw.xml.FederatedSearchResultBase;
 import org.geotoolkit.metadata.MetadataStore;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -89,7 +89,7 @@ public abstract class CatalogueHarvester {
      *
      * @return
      */
-    public abstract DistributedResults transferGetRecordsRequest(final GetRecordsRequest request, final List<String> distributedServers,
+    public abstract List<FederatedSearchResultBase> transferGetRecordsRequest(final GetRecordsRequest request, final List<String> distributedServers,
             final int startPosition, final int maxRecords);
 
     /**

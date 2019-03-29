@@ -19,7 +19,6 @@
 package org.constellation.business;
 
 import java.util.List;
-import javax.xml.namespace.QName;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
@@ -57,13 +56,17 @@ public interface ILayerBusiness {
 
     List<Layer> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
 
-    List<QName> getLayerNames(String serviceType, String serviceName, String userLogin) throws ConfigurationException;
+    List<NameInProvider> getLayerNames(String serviceType, String serviceName, String userLogin) throws ConfigurationException;
+
+    List<Integer> getLayerIds(Integer layerId, String userLogin) throws ConfigurationException;
 
     Layer getLayer(String spec, String identifier, String name, String namespace, String login) throws ConfigurationException;
 
     FilterAndDimension getLayerFilterDimension(String spec, String identifier, String name, String namespace, String login) throws ConfigurationException;
 
-    NameInProvider getFullLayerName(String spec, String identifier, String name, String namespace, String login) throws ConfigurationException;
+    NameInProvider getFullLayerName(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException;
+
+    NameInProvider getFullLayerName(Integer serviceId, Integer layerId, String login) throws ConfigurationException;
 
     void remove(String spec, String serviceId, String layerId, String namespace) throws ConfigurationException;
 

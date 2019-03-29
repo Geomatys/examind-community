@@ -196,31 +196,15 @@ public abstract class LayerWorker extends AbstractWorker {
     }
 
     protected Layer getConfigurationLayer(final QName layerName, final String login) {
-
         try {
             return layerBusiness.getLayer(this.specification.name(), getId(), layerName.getLocalPart(), layerName.getNamespaceURI(), login);
         } catch (ConfigurationException e) {
             LOGGER.log(Level.FINE, "No layer is exactly named as queried. Search using alias will start now", e);
         }
-
-        if (layerName != null) {
-            final List<Layer> layers = getConfigurationLayers(login);
-            for (Layer layer : layers) {
-                if (layer.getName().equals(layerName) || (layer.getAlias() != null && layer.getAlias().equals(layerName.getLocalPart()))) {
-                    return layer;
-                }
-            }
-            // we do a second round with missing namespace search
-            for (Layer layer : layers) {
-                if (layer.getName().getLocalPart().equals(layerName.getLocalPart())) {
-                    return layer;
-                }
-            }
-        }
         return null;
     }
 
-    protected List<QName> getConfigurationLayerNames(final String login) {
+    protected List<NameInProvider> getConfigurationLayerNames(final String login) {
         try {
             return layerBusiness.getLayerNames(this.specification.name().toLowerCase(), getId(), login);
         } catch (ConfigurationException ex) {
@@ -287,7 +271,7 @@ public abstract class LayerWorker extends AbstractWorker {
     protected Data getLayerReference(final String login, final GenericName layerName) throws CstlServiceException {
         LOGGER.log(Level.FINE, "Login = {0} ; layerName = {1}", new Object[]{login, layerName});
         final Data layerRef;
-        final NameInProvider fullName = layersContainsKey(login, layerName);
+        final NameInProvider fullName = getFullLayerName(login, layerName);
         if (fullName != null) {
             layerRef = getData(fullName);
             if (layerRef == null) {
@@ -299,61 +283,27 @@ public abstract class LayerWorker extends AbstractWorker {
         return layerRef;
     }
 
-    private NameInProvider getFullLayerName(final GenericName layerName, final String login) {
-        try {
-            return layerBusiness.getFullLayerName(this.specification.name().toLowerCase(), getId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.INFO, "Error while getting layer name:{0}", ex.getMessage());
-        }
-        return null;
-    }
-
-    private NameInProvider getFullLayerName(final QName layerName, final String login) {
-        try {
-            return layerBusiness.getFullLayerName(this.specification.name().toLowerCase(), getId(), layerName.getLocalPart(), layerName.getNamespaceURI(), login);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.INFO, "Error while getting layer name:{0}", ex.getMessage());
-        }
-        return null;
-    }
     /**
-     * We can't use directly layers.containsKey because it may miss the namespace or the alias.
-     * @param login
-     * @param name
+     * Look for a authorized layer matching the specified name :
+     *  - by the layer alias
+     *  - by the name and namespace
+     *  - by the name only
+     *
+     * @param login user requesting the layer informations
+     * @param name Generic name of the layer or alias.
+     *
+     * @return a complete Name indentifier of the layer or {@code null}
      */
-    protected NameInProvider layersContainsKey(final String login, final GenericName name) {
+    protected NameInProvider getFullLayerName(final String login, final GenericName name) {
         if (name == null) {
             return null;
         }
-        NameInProvider directLayer = getFullLayerName(name, login);
-        if (directLayer == null) {
-
-            final List<QName> layerNames = getConfigurationLayerNames(login);
-            if (layerNames == null) {
-                return null;
-            }
-
-            //search with only localpart
-            for (QName layerName : layerNames) {
-                if (layerName.getLocalPart().equals(name.tip().toString())) {
-                    return getFullLayerName(layerName, login);
-                }
-            }
-
-            //search in alias if any
-            for (QName l : layerNames) {
-                final NameInProvider layer = getFullLayerName(l, login);
-                if (layer.alias != null && !layer.alias.isEmpty()) {
-                    final String alias = layer.alias;
-                    if (alias.equals(name.tip().toString())) {
-                        return layer;
-                    }
-                }
-            }
-
-            return null;
+        try {
+            return layerBusiness.getFullLayerName(getServiceId(), name.tip().toString(), NamesExt.getNamespace(name), login);
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.INFO, "Error while getting layer name:{0}", ex.getMessage());
         }
-        return directLayer;
+        return null;
     }
 
     protected MutableStyle getStyle(final DataReference styleReference) throws CstlServiceException {

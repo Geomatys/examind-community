@@ -57,6 +57,7 @@ public enum ServiceDef {
     // CSW service definition
     CSW_2_0_0(Specification.CSW, Organization.OGC, "2.0.0", Profile.CSW_ISO, "1.2.0", true, false),
     CSW_2_0_2(Specification.CSW, Organization.OGC, "2.0.2", Profile.CSW_ISO, "1.2.0", true, true),
+    CSW_3_0_0(Specification.CSW, Organization.OGC, "3.0.0", Profile.CSW_ISO, "2.0.0", true, true),
     // Configuration service definition (custom service of Geomatys)
     CONFIG(Specification.NONE, Organization.NONE, null, Profile.NONE, "1.0", false, true),
     // SOS service definition
@@ -182,7 +183,7 @@ public enum ServiceDef {
         }
         return null;
     }
-    
+
     public static List<ServiceDef> getAllSupportedVersionForSpecification(final Specification spec) {
         final List<ServiceDef> results = new ArrayList<>();
         for (ServiceDef service : values()) {

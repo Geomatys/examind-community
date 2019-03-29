@@ -52,11 +52,13 @@ public class WPSProcessRawListener implements ProcessListener{
 
     private final Execute request;
     private final String jobId;
+    private final String quoteId;
     private final ServiceDef def;
     private long nextTimestamp;
     private final String wpsVersion;
 
     private final ExecutionInfo execInfo;
+    private final QuotationInfo quoteInfo;
 
     private final WPSProcess process;
     /**
@@ -67,11 +69,13 @@ public class WPSProcessRawListener implements ProcessListener{
      * @param jobId name of the file to update
      * @param process
      */
-    public WPSProcessRawListener(final String wpsVersion, final ExecutionInfo execInfo, final Execute request,
-            final String jobId, final WPSProcess process) {
+    public WPSProcessRawListener(final String wpsVersion, final ExecutionInfo execInfo, final QuotationInfo quoteInfo, final Execute request,
+            final String jobId, final String quoteId, final WPSProcess process) {
         this.execInfo = execInfo;
+        this.quoteInfo = quoteInfo;
         this.request = request;
         this.jobId = jobId;
+        this.quoteId = quoteId;
         this.def = ServiceDef.getServiceDefinition(ServiceDef.Specification.WPS, wpsVersion);
         this.nextTimestamp = System.currentTimeMillis() + TIMEOUT;
         this.wpsVersion = wpsVersion;
@@ -126,6 +130,7 @@ public class WPSProcessRawListener implements ProcessListener{
 
             final Object rawOut = process.createRawOutput(wpsVersion, outputIdentifier, event.getOutput());
             execInfo.setResult(jobId, rawOut);
+            quoteInfo.addBill(quoteId, jobId);
 
         } catch (IOParameterException ex) {
             writeException(new CstlServiceException(ex.getMessage(), INVALID_PARAMETER_VALUE, ex.getParamId()));

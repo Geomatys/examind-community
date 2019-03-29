@@ -19,6 +19,7 @@
 package com.examind.wps.api;
 
 import com.examind.wps.ExecutionInfo;
+import com.examind.wps.QuotationInfo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.geotoolkit.wps.xml.v200.JobControlOptions;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
 import org.geotoolkit.wps.xml.v200.ProcessOffering;
 import org.geotoolkit.wps.xml.v200.ProcessSummary;
+import org.geotoolkit.wps.xml.v200.Quotation;
 
 /**
  *
@@ -58,15 +60,16 @@ public interface WPSProcess {
 
     List<OutputDefinition> getOutputDefinitions();
 
-    Callable createRawProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, Execute request, String jobId) throws IOParameterException;
+    Callable createRawProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo, Execute request, String jobId, String quoteId) throws IOParameterException;
 
     Object createRawOutput(final String version, final String outputId, final Object result) throws WPSException;
 
-    Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, Execute request, String serviceInstance, ProcessSummary procSum,
-            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse, final String jobId, final Map<String, Object> parameters) throws IOParameterException;
+    Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo, Execute request, String serviceInstance, ProcessSummary procSum,
+            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse, final String jobId, final String quoteId, final Map<String, Object> parameters) throws IOParameterException;
 
     List<DataOutput> createDocOutput(final String version, final List<? extends OutputDefinition> wantedOutputs,  final Object result, final Map<String, Object> parameters,
             final boolean progressing) throws WPSException;
 
+    Quotation quote(Execute request) throws WPSException;
 
 }

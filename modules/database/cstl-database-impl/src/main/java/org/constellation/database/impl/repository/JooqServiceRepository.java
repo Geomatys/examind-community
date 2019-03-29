@@ -29,15 +29,12 @@ import org.constellation.dto.ServiceReference;
 import org.constellation.repository.ServiceRepository;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record2;
-import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.DATA_X_DATA;
@@ -98,6 +95,13 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     public Integer findIdByIdentifierAndType(String identifier, String type) {
         return dsl.select(SERVICE.ID).from(SERVICE)
                 .where(SERVICE.IDENTIFIER.eq(identifier).and(SERVICE.TYPE.equalIgnoreCase(type))).fetchOneInto(Integer.class);
+
+    }
+
+    @Override
+    public boolean exist(Integer id) {
+        return dsl.selectCount().from(SERVICE)
+                .where(SERVICE.ID.eq(id)).fetchOneInto(Integer.class) > 0;
 
     }
 

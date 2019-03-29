@@ -69,7 +69,8 @@ public class SpringSecurityManager implements SecurityManager {
 
     @Override
     public boolean isAllowed(final String action) {
-        throw new RuntimeException("Not implemented yet");
+        // not yet implemented
+        return isAuthenticated();
     }
 
     @Override

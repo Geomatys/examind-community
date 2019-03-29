@@ -169,7 +169,7 @@ public class LayerBusiness implements ILayerBusiness {
             }
 
             boolean update = true;
-            Layer layer = layerRepository.findByServiceIdAndLayerName(service.getId(), data.getName(), namespace);
+            Layer layer = layerRepository.findByServiceIdAndDataId(service.getId(), data.getId());
             if (layer == null) {
                 update = false;
                 layer = new Layer();
@@ -339,8 +339,8 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     @Override
-    public List<QName> getLayerNames(final String serviceType, final String serviceName, final String login) throws ConfigurationException {
-        final List<QName> response = new ArrayList<>();
+    public List<NameInProvider> getLayerNames(final String serviceType, final String serviceName, final String login) throws ConfigurationException {
+        final List<NameInProvider> response = new ArrayList<>();
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(serviceType.toLowerCase(), serviceName);
 
         if (service != null) {
@@ -348,13 +348,35 @@ public class LayerBusiness implements ILayerBusiness {
 
             final List<Layer> layers   = layerRepository.findByServiceId(service);
             for (Layer layer : layers) {
-                final QName name         = new QName(layer.getNamespace(), layer.getName());
+                final GenericName name = NamesExt.create(layer.getNamespace(), layer.getName());
+                final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+                 Date version = null;
+                /* TODO how to get version?
+                  if (layer.getVersion() != null) {
+                    version = new Date(layer.getVersion());
+                }*/
                 if (securityFilter.allowed(login, layer.getId())) {
-                    response.add(name);
+                    response.add(new NameInProvider(name, provider.getIdentifier(), version, layer.getAlias()));
                 }
             }
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceName);
+        }
+        return response;
+    }
+
+    @Override
+    public List<Integer> getLayerIds(final Integer serviceId, final String login) throws ConfigurationException {
+        final List<Integer> response = new ArrayList<>();
+        serviceBusiness.ensureExistingInstance(serviceId);
+
+        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+
+        final List<Integer> layers   = layerRepository.findIdByServiceId(serviceId);
+        for (Integer layer : layers) {
+            if (securityFilter.allowed(login, layer)) {
+                response.add(layer);
+            }
         }
         return response;
     }
@@ -371,15 +393,26 @@ public class LayerBusiness implements ILayerBusiness {
      * @throws ConfigurationException
      */
     @Override
-    public org.constellation.dto.service.config.wxs.Layer getLayer(final String spec, final String identifier, final String name,
+    public org.constellation.dto.service.config.wxs.Layer getLayer(final String spec, final String identifier, final String nameOrAlias,
                                                           final String namespace, final String login) throws ConfigurationException {
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec.toLowerCase(), identifier);
 
         if (service != null) {
             final LayerSecurityFilter securityFilter = getSecurityFilter(service);
-            Layer layer = (namespace != null && !namespace.isEmpty())?
-                    layerRepository.findByServiceIdAndLayerName(service, name, namespace) :
-                    layerRepository.findByServiceIdAndLayerName(service, name);
+            Layer layer;
+            if (namespace != null && !namespace.isEmpty()) {
+                //1. search by name and namespace
+                layer = layerRepository.findByServiceIdAndLayerName(service, nameOrAlias, namespace);
+            } else {
+                //2. search by alias
+                layer = layerRepository.findByServiceIdAndAlias(service, nameOrAlias);
+
+                //3. search by single name
+                if  (layer == null) {
+                    layer = layerRepository.findByServiceIdAndLayerName(service, nameOrAlias);
+                }
+            }
+
             if (layer != null) {
                 if (securityFilter.allowed(login, layer.getId())) {
                     return toLayerConfig(layer);
@@ -387,7 +420,7 @@ public class LayerBusiness implements ILayerBusiness {
                     throw new ConfigurationException("Not allowed to see this layer.");
                 }
             } else {
-                throw new TargetNotFoundException("Unable to find a layer:" + name);
+                throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
             }
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + identifier);
@@ -395,36 +428,70 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     @Override
-    public NameInProvider getFullLayerName(final String spec, final String identifier, final String name,
+    public NameInProvider getFullLayerName(final Integer serviceId, final String nameOrAlias,
                                                           final String namespace, final String login) throws ConfigurationException {
-        final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec.toLowerCase(), identifier);
+        serviceBusiness.ensureExistingInstance(serviceId);
 
-        if (service != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(service);
+        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
 
-            Layer layer = (namespace != null && !namespace.isEmpty())?
-                    layerRepository.findByServiceIdAndLayerName(service, name, namespace) :
-                    layerRepository.findByServiceIdAndLayerName(service, name);
+        Layer layer;
+        if (namespace != null && !namespace.isEmpty()) {
+            //1. search by name and namespace
+            layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
+        } else {
+            //2. search by alias
+            layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
 
-            final GenericName layerName = NamesExt.create(namespace, name);
-            if (layer != null) {
-                if (securityFilter.allowed(login, layer.getId())) {
-                    final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
-                    Date version = null;
-                    /* TODO how to get version?
-                      if (layer.getVersion() != null) {
-                        version = new Date(layer.getVersion());
-                    }*/
-                    return new NameInProvider(layerName, provider.getIdentifier(), version, layer.getAlias());
-                } else {
-                    throw new ConfigurationException("Not allowed to see this layer.");
-                }
+            //3. search by single name
+            if  (layer == null) {
+                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias);
+            }
+        }
+
+        if (layer != null) {
+            final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
+            if (securityFilter.allowed(login, layer.getId())) {
+                final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+                Date version = null;
+                /* TODO how to get version?
+                  if (layer.getVersion() != null) {
+                    version = new Date(layer.getVersion());
+                }*/
+                return new NameInProvider(layerName, provider.getIdentifier(), version, layer.getAlias());
             } else {
-                throw new TargetNotFoundException("Unable to find a layer:" + name);
+                throw new ConfigurationException("Not allowed to see this layer.");
             }
         } else {
-            throw new TargetNotFoundException("Unable to find a service:" + identifier);
+            throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
         }
+
+    }
+
+    @Override
+    public NameInProvider getFullLayerName(final Integer serviceId, final Integer layerId, final String login) throws ConfigurationException {
+        serviceBusiness.ensureExistingInstance(serviceId);
+
+        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+
+        Layer layer = layerRepository.findById(layerId);
+
+        if (layer != null) {
+            final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
+            if (securityFilter.allowed(login, layer.getId())) {
+                final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
+                Date version = null;
+                /* TODO how to get version?
+                  if (layer.getVersion() != null) {
+                    version = new Date(layer.getVersion());
+                }*/
+                return new NameInProvider(layerName, provider.getIdentifier(), version, layer.getAlias());
+            } else {
+                throw new ConfigurationException("Not allowed to see this layer.");
+            }
+        } else {
+            throw new TargetNotFoundException("Unable to find a layer:" + layerId);
+        }
+
     }
 
     @Override

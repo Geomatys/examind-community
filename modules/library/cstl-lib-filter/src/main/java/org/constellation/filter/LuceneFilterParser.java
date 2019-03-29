@@ -18,29 +18,12 @@
  */
 package org.constellation.filter;
 
-// J2SE dependencies
-
 import org.apache.lucene.search.Filter;
-import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
-import org.geotoolkit.ogc.xml.v110.AndType;
-import org.geotoolkit.ogc.xml.v110.BinaryLogicOpType;
-import org.geotoolkit.ogc.xml.v110.ComparisonOpsType;
-import org.geotoolkit.ogc.xml.v110.FilterType;
-import org.geotoolkit.ogc.xml.v110.LiteralType;
-import org.geotoolkit.ogc.xml.v110.LogicOpsType;
-import org.geotoolkit.ogc.xml.v110.OrType;
-import org.geotoolkit.ogc.xml.v110.PropertyIsEqualToType;
-import org.geotoolkit.ogc.xml.v110.PropertyNameType;
-import org.geotoolkit.ogc.xml.v110.SpatialOpsType;
-import org.geotoolkit.ogc.xml.v110.TemporalOpsType;
-import org.geotoolkit.ogc.xml.v110.UnaryLogicOpType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.expression.PropertyName;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -55,12 +38,18 @@ import org.geotoolkit.index.LogicalFilterType;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
-
-
-// JAXB dependencies
-// Lucene dependencies
-// GeoAPI dependencies
-// geotoolkit dependencies
+import org.geotoolkit.ogc.xml.BinaryLogicOperator;
+import org.geotoolkit.ogc.xml.ComparisonOperator;
+import org.geotoolkit.ogc.xml.FilterXmlFactory;
+import org.geotoolkit.ogc.xml.ID;
+import org.geotoolkit.ogc.xml.LogicOperator;
+import org.geotoolkit.ogc.xml.SpatialOperator;
+import org.geotoolkit.ogc.xml.TemporalOperator;
+import org.geotoolkit.ogc.xml.UnaryLogicOperator;
+import org.geotoolkit.ogc.xml.XMLFilter;
+import org.opengis.filter.expression.Literal;
+import org.opengis.filter.expression.PropertyName;
+import org.opengis.temporal.Instant;
 
 
 
@@ -91,7 +80,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
             return new SpatialQuery(query, nullFilter, LogicalFilterType.AND);
         }
     }
-    
+
     private String getTypeQuery(final List<QName> typeNames) {
         if (typeNames != null && !typeNames.isEmpty()) {
             StringBuilder query = new StringBuilder();
@@ -104,18 +93,20 @@ public class LuceneFilterParser extends AbstractFilterParser {
         }
         return "";
     }
-    
-    private Object getTypeFilter(final List<QName> typeNames) {
+
+    private Object getTypeFilter(final String filterVersion, final List<QName> typeNames) {
         if (typeNames != null && !typeNames.isEmpty()) {
             if (typeNames.size() == 1) {
                 final QName typeName = typeNames.get(0);
-                return new PropertyIsEqualToType(new LiteralType(typeName.getLocalPart()), new PropertyNameType("objectType"), Boolean.FALSE);
+                final Literal lit = FilterXmlFactory.buildLiteral(filterVersion, typeName.getLocalPart());
+                return FilterXmlFactory.buildPropertyIsEquals(filterVersion, "objectType", lit, false);
             } else {
-                final List<Object> operators = new ArrayList<Object>();
+                final List<Object> operators = new ArrayList<>();
                 for (QName typeName : typeNames) {
-                    operators.add(new PropertyIsEqualToType(new LiteralType(typeName.getLocalPart()), new PropertyNameType("objectType"), Boolean.FALSE));
+                    final Literal lit = FilterXmlFactory.buildLiteral(filterVersion, typeName.getLocalPart());
+                    operators.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "objectType", lit, false));
                 }
-                return new OrType(operators.toArray());
+                return FilterXmlFactory.buildOr(filterVersion, operators.toArray());
             }
         }
         return null;
@@ -125,35 +116,38 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * {@inheritDoc}
      */
     @Override
-    protected SpatialQuery getQuery(final FilterType queryFilter, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
+    protected SpatialQuery getQuery(final XMLFilter queryFilter, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
+        final String filterVersion = queryFilter != null ? queryFilter.getVersion() : "1.1.0";
 
-        final Object typeFilter =  getTypeFilter(typeNames);
-        final FilterType filter;
+        final Object typeFilter =  getTypeFilter(filterVersion, typeNames);
+        final XMLFilter filter;
         if (typeFilter != null) {
-            filter = new FilterType(new AndType(queryFilter, typeFilter));
+            filter = FilterXmlFactory.buildFilter(filterVersion, FilterXmlFactory.buildAnd(filterVersion, queryFilter, typeFilter));
         } else {
             filter = queryFilter;
         }
         SpatialQuery response = null;
         if (filter != null) {
+            Object main = filter.getFilterObject();
+
             // we treat logical Operators like AND, OR, ...
-            if (filter.getLogicOps() != null) {
-                response = treatLogicalOperator(filter.getLogicOps());
+            if (main instanceof LogicOperator) {
+                response = treatLogicalOperator((LogicOperator)main);
 
             // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
-            } else if (filter.getComparisonOps() != null) {
-                response = new SpatialQuery(treatComparisonOperator(filter.getComparisonOps().getValue()), null, LogicalFilterType.AND);
+            } else if (main instanceof ComparisonOperator) {
+                response = new SpatialQuery(treatComparisonOperator((ComparisonOperator)main), null, LogicalFilterType.AND);
 
             // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
-            } else if (filter.getSpatialOps() != null) {
-                response = new SpatialQuery("", treatSpatialOperator(filter.getSpatialOps()), LogicalFilterType.AND);
+            } else if (main instanceof SpatialOperator) {
+                response = new SpatialQuery("", treatSpatialOperator((SpatialOperator)main), LogicalFilterType.AND);
 
             // we treat time operator: TimeAfter, TimeBefore, TimeDuring, ...
-            } else if (filter.getTemporalOps()!= null) {
-                response = new SpatialQuery(treatTemporalOperator(filter.getTemporalOps().getValue()), null, LogicalFilterType.AND);
+            } else if (main instanceof TemporalOperator) {
+                response = new SpatialQuery(treatTemporalOperator((TemporalOperator)main), null, LogicalFilterType.AND);
 
-            } else if (filter.getId() != null && !filter.getId().isEmpty()) {
-                response = new SpatialQuery(treatIDOperator(filter.getId()), null, LogicalFilterType.AND);
+            } else if (main instanceof ID) {
+                response = new SpatialQuery(treatIDOperator((ID)main), null, LogicalFilterType.AND);
             } else {
                 throw new FilterParserException("The filter is Empty");
             }
@@ -168,70 +162,72 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * @return
      * @throws FilterParserException
      */
-    protected SpatialQuery treatLogicalOperator(final JAXBElement<? extends LogicOpsType> jbLogicOps) throws FilterParserException {
+    protected SpatialQuery treatLogicalOperator(LogicOperator logicOps) throws FilterParserException {
         final List<SpatialQuery> subQueries = new ArrayList<>();
         final StringBuilder queryBuilder    = new StringBuilder();
-        final LogicOpsType logicOps         = jbLogicOps.getValue();
-        final String operator               = jbLogicOps.getName().getLocalPart();
+        final String operator               = logicOps.getOperator();
         final List<Filter> filters          = new ArrayList<>();
 
-        if (logicOps instanceof BinaryLogicOpType) {
-            final BinaryLogicOpType binary = (BinaryLogicOpType) logicOps;
+        if (logicOps instanceof BinaryLogicOperator) {
+            final BinaryLogicOperator binary = (BinaryLogicOperator) logicOps;
             queryBuilder.append('(');
 
-            // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
-            for (JAXBElement<? extends ComparisonOpsType> jb: binary.getComparisonOps()) {
 
-                queryBuilder.append(treatComparisonOperator(jb.getValue()));
-                queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
-            }
-            
-            // we treat temporal constraint : TAfter, TBefore, ...
-            for (JAXBElement<? extends TemporalOpsType> jb: binary.getTemporalOps()) {
+            for (Object child : binary.getFilters()) {
 
-                queryBuilder.append(treatTemporalOperator(jb.getValue()));
-                queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
-            }
-
-            // we treat logical Operators like AND, OR, ...
-            for (JAXBElement<? extends LogicOpsType> jb: binary.getLogicOps()) {
-
-                boolean writeOperator = true;
-
-                final SpatialQuery sq  = treatLogicalOperator((JAXBElement<? extends LogicOpsType>)jb);
-                final String subQuery  = sq.getQuery();
-                final Filter subFilter = sq.getSpatialFilter();
-
-                //if the sub spatial query contains both term search and spatial search we create a subQuery
-                if ((subFilter != null && !subQuery.equals(DEFAULT_FIELD))
-                    || !sq.getSubQueries().isEmpty()
-                    || (sq.getLogicalOperator() == LogicalFilterType.NOT && sq.getSpatialFilter() == null)) {
-                    subQueries.add(sq);
-                    writeOperator = false;
-                } else {
-
-                    if (subQuery.isEmpty()) {
-                        writeOperator = false;
-                    } else  {
-                        queryBuilder.append(subQuery);
-                    }
-                    if (subFilter != null) {
-                        filters.add(subFilter);
-                    }
-                }
-
-                if (writeOperator) {
+                // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
+                if (child instanceof ComparisonOperator) {
+                    queryBuilder.append(treatComparisonOperator((ComparisonOperator)child));
                     queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
                 }
-            }
 
-            // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
-            for (JAXBElement<? extends SpatialOpsType> jb: binary.getSpatialOps()) {
 
-                //for the spatial filter we don't need to write into the lucene query
-                filters.add(treatSpatialOperator((JAXBElement<? extends SpatialOpsType>)jb));
-            }
-            
+                // we treat temporal constraint : TAfter, TBefore, ...
+                if (child instanceof TemporalOperator) {
+
+                    queryBuilder.append(treatTemporalOperator((TemporalOperator)child));
+                    queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
+                }
+
+                // we treat logical Operators like AND, OR, ...
+                if (child instanceof LogicOperator) {
+
+                    boolean writeOperator = true;
+
+                    final SpatialQuery sq  = treatLogicalOperator((LogicOperator)child);
+                    final String subQuery  = sq.getQuery();
+                    final Filter subFilter = sq.getSpatialFilter();
+
+                    //if the sub spatial query contains both term search and spatial search we create a subQuery
+                    if ((subFilter != null && !subQuery.equals(DEFAULT_FIELD))
+                        || !sq.getSubQueries().isEmpty()
+                        || (sq.getLogicalOperator() == LogicalFilterType.NOT && sq.getSpatialFilter() == null)) {
+                        subQueries.add(sq);
+                        writeOperator = false;
+                    } else {
+
+                        if (subQuery.isEmpty()) {
+                            writeOperator = false;
+                        } else  {
+                            queryBuilder.append(subQuery);
+                        }
+                        if (subFilter != null) {
+                            filters.add(subFilter);
+                        }
+                    }
+
+                    if (writeOperator) {
+                        queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
+                    }
+                }
+
+                // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
+                if (child instanceof SpatialOperator)
+
+                    //for the spatial filter we don't need to write into the lucene query
+                    filters.add(treatSpatialOperator((SpatialOperator)child));
+                }
+
             // we remove the last Operator and add a ') '
             final int pos = queryBuilder.length()- (operator.length() + 2);
             if (pos > 0) {
@@ -240,22 +236,22 @@ public class LuceneFilterParser extends AbstractFilterParser {
 
             queryBuilder.append(')');
 
-        } else if (logicOps instanceof UnaryLogicOpType) {
-            final UnaryLogicOpType unary = (UnaryLogicOpType) logicOps;
+        } else if (logicOps instanceof UnaryLogicOperator) {
+            final UnaryLogicOperator unary = (UnaryLogicOperator) logicOps;
 
             // we treat comparison operator: PropertyIsLike, IsNull, IsBetween, ...
-            if (unary.getComparisonOps() != null) {
-                queryBuilder.append(treatComparisonOperator(unary.getComparisonOps().getValue()));
+            if (unary.getChild() instanceof ComparisonOperator) {
+                queryBuilder.append(treatComparisonOperator((ComparisonOperator) unary.getChild()));
 
             // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
-            } else if (unary.getSpatialOps() != null) {
+            } else if (unary.getChild() instanceof SpatialOperator) {
 
-                filters.add(treatSpatialOperator(unary.getSpatialOps()));
+                filters.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
 
 
              // we treat logical Operators like AND, OR, ...
-            } else if (unary.getLogicOps() != null) {
-                final SpatialQuery sq  = treatLogicalOperator(unary.getLogicOps());
+            } else if (unary.getChild() instanceof LogicOperator) {
+                final SpatialQuery sq  = treatLogicalOperator((LogicOperator) unary.getChild());
                 final String subQuery  = sq.getQuery();
                 final Filter subFilter = sq.getSpatialFilter();
 
@@ -378,22 +374,27 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * @throws FilterParserException if the specified string can not be parsed.
      */
     protected String extractDateValue(final Object literal) throws FilterParserException {
-        try {
-            synchronized(LUCENE_DATE_FORMAT) {
-                if (literal instanceof Date) {
-                    return LUCENE_DATE_FORMAT.format((Date)literal);
-                } else {
-                    Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
-                    c.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    return LUCENE_DATE_FORMAT.format(c.getTime());
+        if (literal != null) {
+            try {
+                synchronized(LUCENE_DATE_FORMAT) {
+                    if (literal instanceof Instant) {
+                        return LUCENE_DATE_FORMAT.format(((Instant)literal).getDate());
+                    } else if (literal instanceof Date) {
+                        return LUCENE_DATE_FORMAT.format((Date)literal);
+                    } else {
+                        Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
+                        c.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        return LUCENE_DATE_FORMAT.format(c.getTime());
+                    }
                 }
+            } catch (ParseException ex) {
+                throw new FilterParserException("The service was unable to parse the Date: " + literal,
+                        INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-        } catch (ParseException ex) {
-            throw new FilterParserException("The service was unable to parse the Date: " + literal,
-                    INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
         }
+        return null;
     }
-    
+
     /**
      * {@inheritDoc}
      */

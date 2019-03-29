@@ -3601,13 +3601,9 @@
                 <ows:Title xml:lang="fr-FR">Transform_in</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">The affine transformation to apply on Features geometries</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::vector:affinetransform:input:transform_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
+                <wps:ComplexData>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd" maximumMegabytes="100" default="true"/>
+                </wps:ComplexData>
             </wps:Input>
             <wps:Output>
                 <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>

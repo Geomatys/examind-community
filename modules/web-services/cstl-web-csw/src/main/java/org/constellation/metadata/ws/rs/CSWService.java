@@ -47,15 +47,10 @@ import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.csw.xml.ResultType;
 import org.geotoolkit.csw.xml.Transaction;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
-import org.geotoolkit.ogc.xml.v110.FilterType;
-import org.geotoolkit.ogc.xml.v110.SortByType;
-import org.geotoolkit.ogc.xml.v110.SortOrderType;
-import org.geotoolkit.ogc.xml.v110.SortPropertyType;
 import org.geotoolkit.ows.xml.AcceptFormats;
 import org.geotoolkit.ows.xml.AcceptVersions;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.ows.xml.v100.ExceptionReport;
 import org.geotoolkit.ows.xml.v100.SectionsType;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -69,6 +64,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
 import static org.constellation.api.QueryConstants.ACCEPT_VERSIONS_PARAMETER;
@@ -76,16 +73,48 @@ import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
+import org.constellation.metadata.core.CSWConstants;
+import static org.constellation.metadata.core.CSWConstants.CONSTRAINT;
+import static org.constellation.metadata.core.CSWConstants.CONSTRAINT_LANGUAGE;
+import static org.constellation.metadata.core.CSWConstants.CONSTRAINT_LANGUAGE_VERSION;
 import static org.constellation.metadata.core.CSWConstants.MALFORMED;
+import static org.constellation.metadata.core.CSWConstants.MAX_RECORDS;
 import static org.constellation.metadata.core.CSWConstants.NAMESPACE;
 import static org.constellation.metadata.core.CSWConstants.NOT_EXIST;
+import static org.constellation.metadata.core.CSWConstants.OUTPUT_FORMAT;
+import static org.constellation.metadata.core.CSWConstants.OUTPUT_SCHEMA;
+import static org.constellation.metadata.core.CSWConstants.REQUEST_ID;
+import static org.constellation.metadata.core.CSWConstants.RESULT_TYPE;
+import static org.constellation.metadata.core.CSWConstants.START_POSITION;
+import static org.constellation.metadata.core.CSWConstants.TYPENAMES;
 import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.gml.JTStoGeometry;
+import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.gml.xml.Point;
+import org.geotoolkit.ogc.xml.FilterXmlFactory;
+import org.geotoolkit.ogc.xml.SortBy;
+import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.opengis.filter.Filter;
+import org.opengis.filter.expression.Literal;
+import org.opengis.filter.sort.SortOrder;
+import org.opengis.geometry.DirectPosition;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import org.w3._2005.atom.FeedType;
 
 
 /**
@@ -211,9 +240,9 @@ public class CSWService extends OGCWebService<CSWworker> {
         if (serviceDef == null) {
             serviceDef = w.getBestVersion(null);
         }
-        final String version         = serviceDef.exceptionVersion.toString();
-        final String code            = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
-        final ExceptionReport report = new ExceptionReport(ex.getMessage(), code, ex.getLocator(), version);
+        final String version           = serviceDef.exceptionVersion.toString();
+        final String code              = getOWSExceptionCodeRepresentation(ex.getExceptionCode());
+        final ExceptionResponse report = CswXmlFactory.buildExceptionReport(serviceDef.version.toString(), ex.getMessage(), code, ex.getLocator(), version);
         return new ResponseObject(report, MediaType.TEXT_XML);
     }
 
@@ -250,21 +279,28 @@ public class CSWService extends OGCWebService<CSWworker> {
         final String service = getParameter(SERVICE_PARAMETER, true);
 
         String acceptVersion = getParameter(ACCEPT_VERSIONS_PARAMETER, false);
+        String currentVersion = getParameter(VERSION_PARAMETER, false);
+        if (currentVersion == null) {
+            currentVersion = w.getBestVersion(null).version.toString();
+        }
+        w.checkVersionSupported(currentVersion, true);
+
         final AcceptVersions versions;
-        final String version;
         if (acceptVersion != null) {
             if (acceptVersion.indexOf(',') != -1) {
                 acceptVersion = acceptVersion.substring(0, acceptVersion.indexOf(','));
             }
-            version = acceptVersion;
-            w.checkVersionSupported(version, true);
-            versions = CswXmlFactory.buildAcceptVersion(version, Arrays.asList(acceptVersion));
+            currentVersion = acceptVersion;
+            List<String> v = new ArrayList<>();
+            v.add(acceptVersion);
+            versions = CswXmlFactory.buildAcceptVersion(currentVersion, v);
         } else {
-            version = "2.0.2";
-            versions = CswXmlFactory.buildAcceptVersion(version, Arrays.asList("2.0.2"));
+            List<String> v = new ArrayList<>();
+            v.add(currentVersion);
+            versions = CswXmlFactory.buildAcceptVersion(currentVersion, v);
         }
 
-        final AcceptFormats formats = CswXmlFactory.buildAcceptFormat(version, Arrays.asList(getParameter(ACCEPT_FORMATS_PARAMETER, false)));
+        final AcceptFormats formats = CswXmlFactory.buildAcceptFormat(currentVersion, Arrays.asList(getParameter(ACCEPT_FORMATS_PARAMETER, false)));
         final String updateSequence = getParameter(UPDATESEQUENCE_PARAMETER, false);
 
         //We transform the String of sections in a list.
@@ -286,8 +322,8 @@ public class CSWService extends OGCWebService<CSWworker> {
             //if there is no requested Sections we add all the sections
             requestedSections = SectionsType.getExistingSections();
         }
-        final Sections sections = CswXmlFactory.buildSections(version, requestedSections);
-        return CswXmlFactory.createGetCapabilities(version, versions, sections, formats, updateSequence, service);
+        final Sections sections = CswXmlFactory.buildSections(currentVersion, requestedSections);
+        return CswXmlFactory.createGetCapabilities(currentVersion, versions, sections, formats, updateSequence, service);
     }
 
 
@@ -300,7 +336,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         final String service    = getParameter(SERVICE_PARAMETER, true);
 
         //we get the value of result type, if not set we put default value "HITS"
-        final String resultTypeName = getParameter("RESULTTYPE", false);
+        final String resultTypeName = getParameter(RESULT_TYPE, false);
         ResultType resultType = ResultType.HITS;
         if (resultTypeName != null) {
             try {
@@ -311,20 +347,20 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
         }
 
-        final String requestID    = getParameter("REQUESTID", false);
+        final String requestID    = getParameter(REQUEST_ID, false);
 
-        String outputFormat = getParameter("OUTPUTFORMAT", false);
+        String outputFormat = getParameter(OUTPUT_FORMAT, false);
         if (outputFormat == null) {
             outputFormat = MimeType.APPLICATION_XML;
         }
 
-        String outputSchema = getParameter("OUTPUTSCHEMA", false);
+        String outputSchema = getParameter(OUTPUT_SCHEMA, false);
         if (outputSchema == null) {
             outputSchema = LegacyNamespaces.CSW;
         }
 
         //we get the value of start position, if not set we put default value "1"
-        final String startPos = getParameter("STARTPOSITION", false);
+        final String startPos = getParameter(START_POSITION, false);
         Integer startPosition = Integer.valueOf("1");
         if (startPos != null) {
             try {
@@ -336,7 +372,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         }
 
         //we get the value of max record, if not set we put default value "10"
-        final String maxRec = getParameter("MAXRECORDS", false);
+        final String maxRec = getParameter(MAX_RECORDS, false);
         Integer maxRecords= Integer.valueOf("10");
         if (maxRec != null) {
             try {
@@ -361,7 +397,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             namespaces.put("gmd", LegacyNamespaces.GMD);
         }
 
-        final String names          = getParameter("TYPENAMES", true);
+        final String names          = getParameter(TYPENAMES, true);
         final List<QName> typeNames = new ArrayList<>();
         StringTokenizer tokens = new StringTokenizer(names, ",;");
         while (tokens.hasMoreTokens()) {
@@ -391,55 +427,30 @@ public class CSWService extends OGCWebService<CSWworker> {
         final ElementSetName setName = CswXmlFactory.createElementSetName(version, elementSet);
 
         //we get the list of sort by object
-        final String sort                  = getParameter("SORTBY", false);
-        final List<SortPropertyType> sorts = new ArrayList<>();
-        SortByType sortBy = null;
-        if (sort != null) {
-            tokens = new StringTokenizer(sort, ",;");
-            while (tokens.hasMoreTokens()) {
-                final String token = tokens.nextToken().trim();
-
-                if (token.indexOf(':') != -1) {
-                    final String propName    = token.substring(0, token.indexOf(':'));
-                    final String order       = token.substring(token.indexOf(':') + 1);
-                    SortOrderType orderType;
-                    try {
-                        orderType = SortOrderType.fromValue(order);
-                    } catch (IllegalArgumentException e){
-                        throw new CstlServiceException("The SortOrder Name " + order + NOT_EXIST,
-                                                      INVALID_PARAMETER_VALUE, "SortBy");
-                    }
-                    sorts.add(new SortPropertyType(propName, orderType));
-                } else {
-                     throw new CstlServiceException("The expression " + token + MALFORMED,
-                                                      INVALID_PARAMETER_VALUE, "SortBy");
-                }
-            }
-            sortBy = new SortByType(sorts);
-        }
+        SortBy sortBy = getSortFromKvp(version);
 
         /*
          * here we build the constraint object
          */
-        final String constLanguage = getParameter("CONSTRAINTLANGUAGE", false);
+        final String constLanguage = getParameter(CONSTRAINT_LANGUAGE, false);
         QueryConstraint constraint = null;
         if (constLanguage != null) {
-            final String languageVersion  = getParameter("CONSTRAINT_LANGUAGE_VERSION", true);
+            final String languageVersion  = getParameter(CONSTRAINT_LANGUAGE_VERSION, true);
 
             if (constLanguage.equalsIgnoreCase("CQL_TEXT")) {
 
-                String constraintObject = getParameter("CONSTRAINT", false);
+                String constraintObject = getParameter(CONSTRAINT, false);
                 if (constraintObject == null) {
                     constraintObject = "AnyText LIKE '%%'";
                 }
                 constraint = CswXmlFactory.createQueryConstraint(version, constraintObject, languageVersion);
 
             } else if (constLanguage.equalsIgnoreCase("FILTER")) {
-                final Object constraintObject = getComplexParameter("CONSTRAINT", false);
+                final Object constraintObject = getComplexParameter(CONSTRAINT, false);
                 if (constraintObject == null) {
                     // do nothing
-                } else if (constraintObject instanceof FilterType){
-                    constraint = CswXmlFactory.createQueryConstraint(version, (FilterType)constraintObject, languageVersion);
+                } else if (constraintObject instanceof Filter){
+                    constraint = CswXmlFactory.createQueryConstraint(version, (Filter)constraintObject, languageVersion);
                 } else {
                     throw new CstlServiceException("The filter type is not supported:" + constraintObject.getClass().getName(),
                                                  INVALID_PARAMETER_VALUE, "Constraint");
@@ -449,7 +460,11 @@ public class CSWService extends OGCWebService<CSWworker> {
                 throw new CstlServiceException("The constraint language " + constLanguage + " is not supported",
                                                  INVALID_PARAMETER_VALUE, "ConstraintLanguage");
             }
+        } else {
+            // kvp opensearch like query
+            constraint = getConstraintFromKvp(version);
         }
+
 
         final Query query = CswXmlFactory.createQuery(version, typeNames, setName, sortBy, constraint);
 
@@ -477,6 +492,244 @@ public class CSWService extends OGCWebService<CSWworker> {
 
         return CswXmlFactory.createGetRecord(version, service, resultType, requestID, outputFormat, outputSchema, startPosition, maxRecords, query, distribSearch);
     }
+
+    private SortBy getSortFromKvp(String version) throws CstlServiceException {
+        final String filterVersion = CswXmlFactory.getFilterVersion(version);
+        final String sort          = getParameter("SORTBY", false);
+
+        if (sort != null) {
+            final List<org.opengis.filter.sort.SortBy> sorts = new ArrayList<>();
+            StringTokenizer tokens = new StringTokenizer(sort, ",;");
+            while (tokens.hasMoreTokens()) {
+                final String token = tokens.nextToken().trim();
+
+                if (token.indexOf(':') != -1) {
+                    final String propName    = token.substring(0, token.indexOf(':'));
+                    final String order       = token.substring(token.indexOf(':') + 1);
+                    SortOrder orderType;
+                    try {
+                        orderType = SortOrder.valueOf(order);
+                    } catch (IllegalArgumentException e){
+                        throw new CstlServiceException("The SortOrder Name " + order + NOT_EXIST,
+                                                      INVALID_PARAMETER_VALUE, "SortBy");
+                    }
+                    sorts.add(FilterXmlFactory.buildSortProperty(filterVersion, propName, orderType));
+                } else {
+                     throw new CstlServiceException("The expression " + token + MALFORMED,
+                                                      INVALID_PARAMETER_VALUE, "SortBy");
+                }
+            }
+            return FilterXmlFactory.buildSortBy(filterVersion, sorts);
+        }
+        return null;
+    }
+
+    private GetRecordsRequest createNewOpenSearchGetRecordsRequest() throws CstlServiceException {
+
+        final String version    = getParameter(VERSION_PARAMETER, true);
+        final String service    = getParameter(SERVICE_PARAMETER, true);
+
+        String outputFormat = getParameter(OUTPUT_FORMAT, false);
+        if (outputFormat == null) {
+            outputFormat = MimeType.APPLICATION_XML;
+        }
+
+        String outputSchema = getParameter(OUTPUT_SCHEMA, false);
+        if (outputSchema == null) {
+            outputSchema = LegacyNamespaces.CSW;
+        }
+
+        //we get the value of start position, if not set we put default value "1"
+        final String startPos = getParameter(START_POSITION, false);
+        Integer startPosition = Integer.valueOf("1");
+        if (startPos != null) {
+            try {
+                startPosition = Integer.valueOf(startPos);
+            } catch (NumberFormatException e){
+               throw new CstlServiceException("The positif integer " + startPos + MALFORMED,
+                                             INVALID_PARAMETER_VALUE, "startPosition");
+            }
+        }
+
+        //we get the value of max record, if not set we put default value "10"
+        final String maxRec = getParameter(MAX_RECORDS, false);
+        Integer maxRecords= Integer.valueOf("10");
+        if (maxRec != null) {
+            try {
+                maxRecords = Integer.valueOf(maxRec);
+            } catch (NumberFormatException e){
+               throw new CstlServiceException("The positif integer " + maxRec + MALFORMED,
+                                             INVALID_PARAMETER_VALUE, "maxRecords");
+            }
+        }
+
+        /**
+         * add sort parameter even if its not on the spec, for test purpose
+         */
+        SortBy sortBy = getSortFromKvp(version);
+
+        /*
+         * here we build the "Query" object
+         */
+        final List<QName> typeNames = Arrays.asList(new QName(LegacyNamespaces.CSW, "Record"));
+        final ElementSetName setName = CswXmlFactory.createElementSetName(version, ElementSetType.FULL);
+
+        /*
+         * here we build the constraint object FROM kvp opensearch like query
+         */
+        final QueryConstraint constraint = getConstraintFromKvp(version);
+        final Query query = CswXmlFactory.createQuery(version, typeNames, setName, sortBy, constraint);
+        return CswXmlFactory.createGetRecord(version, service, ResultType.RESULTS, null, outputFormat, outputSchema, startPosition, maxRecords, query, null);
+    }
+
+    private QueryConstraint getConstraintFromKvp(String version) throws CstlServiceException {
+        final String filterVersion = CswXmlFactory.getFilterVersion(version);
+        final String gmlVersion    = CswXmlFactory.getGmlVersion(version);
+        final List<Filter> filters = new ArrayList<>();
+
+        final String searchTerms = getParameter("q", false);
+        final String bbox        = getParameter("bbox", false);
+
+        final String ids         = getParameter("recordIds", false);
+
+        final String geometry    = getParameter("geometry", false);
+        final String geometryCRS = getParameter("geometry_crs", false);
+        String spRelation        = getParameter("relation", false);
+        final String distance    = getParameter("distance", false);
+        String distanceUOM       = getParameter("distance_uom", false);
+        final String geoName     = getParameter("name", false);
+
+        final String lat         = getParameter("lat", false);
+        final String lon         = getParameter("lon", false);
+        final String radius      = getParameter("radius", false);
+
+        final String time        = getParameter("time", false);
+        String trelation         = getParameter("trelation", false);
+
+        if (searchTerms != null && !searchTerms.isEmpty()) {
+            filters.add(CSWUtils.BuildSearchTermsFilter(filterVersion, searchTerms));
+        }
+
+        if (ids != null && !ids.isEmpty()) {
+            String[] identifiers = ids.split(",");
+            final List<Filter> idFilters = new ArrayList<>();
+            for (String identifier : identifiers) {
+                Literal lit = FilterXmlFactory.buildLiteral(filterVersion, identifier);
+                idFilters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "dc:identifier", lit, true));
+            }
+            if (idFilters.size() == 1) {
+                filters.add(idFilters.get(0));
+            } else {
+                filters.add(FilterXmlFactory.buildOr(filterVersion, idFilters.toArray(new Object[idFilters.size()])));
+            }
+        }
+
+        if (geoName != null) {
+            Literal lit = FilterXmlFactory.buildLiteral(filterVersion, geoName);
+            filters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "GeographicDescriptionCode", lit, true));
+        }
+
+        if (bbox != null) {
+            String[] parts = bbox.split(",");
+            if (parts.length == 5) {
+                try {
+                    double minx = Double.parseDouble(parts[0]);
+                    double miny = Double.parseDouble(parts[1]);
+                    double maxx = Double.parseDouble(parts[2]);
+                    double maxy = Double.parseDouble(parts[3]);
+                    String crs =  parts[4];
+                    filters.add(FilterXmlFactory.buildBBOX(filterVersion, "ows:BoundingBox",minx, miny, maxx, maxy, crs));
+                } catch (NumberFormatException ex) {
+                    throw new CstlServiceException("Bbox parameter must be of the form minx<Number>,miny<Number>,maxx<Number>,maxy<Number>,crs<String>:" + ex.getMessage(), INVALID_PARAMETER_VALUE, "bbox");
+                }
+            } else {
+                throw new CstlServiceException("Bbox parameter must be of the form minx,miny,maxx,maxy,crs.", INVALID_PARAMETER_VALUE, "bbox");
+            }
+        }
+        if (geometry != null) {
+            if (spRelation == null) {
+                spRelation = "Intersects";
+            }
+            WKTReader reader = new WKTReader();
+            try {
+                Geometry jtsGeom = reader.read(geometry);
+                CoordinateReferenceSystem crs;
+                if (geometryCRS != null) {
+                    crs = CRS.forCode(geometryCRS);
+                } else {
+                    crs = CommonCRS.WGS84.geographic();
+                }
+                AbstractGeometry geom = JTStoGeometry.toGML(gmlVersion, jtsGeom, crs);
+                if (distance == null) {
+                    filters.add(FilterXmlFactory.buildBinarySpatial(filterVersion, spRelation, "ows:BoundingBox", geom));
+                } else {
+                    double dist = Double.parseDouble(distance);
+                    if (distanceUOM == null) {
+                        distanceUOM = "m";
+                    }
+                    filters.add(FilterXmlFactory.buildDistanceSpatialFilter(filterVersion, spRelation, "ows:BoundingBox", geom, dist, distanceUOM));
+                }
+
+            } catch (ParseException | FactoryException ex) {
+                throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE, "geometry");
+            }
+        }
+
+        if (lat != null && lon != null && radius != null) {
+            try {
+                String relation = "DWithin";
+                double latD     = Double.parseDouble(lat);
+                double lonD     = Double.parseDouble(lon);
+                double radiusD  = Double.parseDouble(radius);
+                DirectPosition pos = GMLXmlFactory.buildDirectPosition(gmlVersion, "urn:x-ogc:def:crs:EPSG:6.11:4326", 2, Arrays.asList(latD,lonD));
+                Point pt = GMLXmlFactory.buildPoint(gmlVersion, "pt-1",  "urn:x-ogc:def:crs:EPSG:6.11:4326", pos);
+                filters.add(FilterXmlFactory.buildDistanceSpatialFilter(filterVersion, relation, "ows:BoundingBox", pt, radiusD, "meters"));
+            } catch (NumberFormatException ex) {
+                throw new CstlServiceException("Proximity parameters must be Numbers (lat,lon,radius):" + ex.getMessage(), INVALID_PARAMETER_VALUE, "bbox");
+            }
+
+        } else if (lat != null || lon != null || radius != null) {
+            throw new CstlServiceException("The 3 parameters must be definied lat, lon, radius for a distance filter.", INVALID_PARAMETER_VALUE);
+        }
+
+        if (time != null) {
+            int separator = time.indexOf("/");
+            if (separator != -1) {
+                if (trelation == null) {
+                    trelation = "AnyInteracts";
+                }
+                String start = time.substring(0, separator - 1);
+                String end   = time.substring(separator + 1);
+                //timeObj = GMLXmlFactory.createTimePeriod(gmlVersion, "p-1", start, end);
+
+                Literal timeStart = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "start-1", start));
+                Literal timeEnd   = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "end-1", end));
+
+                filters.add(CSWUtils.BuildTemporalFilter(filterVersion, trelation, timeStart, timeEnd));
+
+            } else {
+                if (trelation == null) {
+                    trelation = "TEquals";
+                }
+                Literal timeStart = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "start-1", time));
+                Literal timeEnd   = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "end-1", time));
+
+                filters.add(CSWUtils.BuildTemporalFilter(filterVersion, trelation, timeStart, timeEnd));
+            }
+        }
+
+        if (!filters.isEmpty()) {
+            Filter constraintObject;
+            if (filters.size() == 1) {
+                constraintObject = (Filter) FilterXmlFactory.buildFilter(filterVersion, filters.get(0));
+            } else {
+                constraintObject = (Filter) FilterXmlFactory.buildAnd(filterVersion, filters.toArray(new Object[filters.size()]));
+            }
+            return CswXmlFactory.createQueryConstraint(version, constraintObject, "1.1.0");
+        }
+        return null;
+    }
+
 
     /**
      * Build a new GetRecordById request object with the url parameters
@@ -616,5 +869,43 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
         }
         return CswXmlFactory.createHarvest(version, service, source, resourceType, resourceFormat, handler, harvestInterval);
+    }
+
+    @RequestMapping(path = "/descriptionDocument.xml", method = GET)
+    public ResponseEntity getOpenSearchDescriptionDocument(@PathVariable("serviceId") String serviceId) {
+        OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
+        String cswUrl = getServiceURL() + "/csw/" + serviceId;
+        CSWUtils.updateCswURL(description, cswUrl);
+        return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
+    }
+
+    @RequestMapping(path = "/opensearch", method = GET)
+    public ResponseEntity openSearchRequest(@PathVariable("serviceId") String serviceId) {
+
+        CSWworker worker = getWorker(serviceId);
+        if (worker != null) {
+            ServiceDef serviceDef = null;
+            try {
+                GetRecordsRequest request = createNewOpenSearchGetRecordsRequest();
+                serviceDef = worker.getVersionFromNumber(request.getVersion());
+
+                Object response = worker.getRecords(request);
+                final String outputFormat  = CSWUtils.getOutputFormat(request);
+
+                if (response instanceof FeedType) {
+                    FeedType feed = (FeedType) response;
+                    String selfRequest = getLogParameters();
+                    CSWUtils.addNavigationRequest(request, feed, selfRequest);
+                    // TODO add next / previous
+                }
+
+                return new ResponseObject(response, outputFormat).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, serviceDef, worker).getResponseEntity();
+            }
+        } else {
+            LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+            return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+        }
     }
 }

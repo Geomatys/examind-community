@@ -182,7 +182,7 @@ public class SOService extends OGCWebService<SOSworker> {
                  }
                 return new ResponseObject(marshalled, outputFormat);
              }
-             
+
              if (request instanceof GetObservationById) {
                 final GetObservationById go = (GetObservationById)request;
                 String outputFormat = go.getResponseFormat();
@@ -228,24 +228,24 @@ public class SOService extends OGCWebService<SOSworker> {
                 final InsertSensor rs = (InsertSensor)request;
                 return new ResponseObject(worker.registerSensor(rs), MediaType.TEXT_XML);
              }
-             
+
              if (request instanceof DeleteSensor) {
                 final DeleteSensor rs = (DeleteSensor)request;
                 return new ResponseObject(worker.deleteSensor(rs), MediaType.TEXT_XML);
              }
-             
+
              if (request instanceof InsertResult) {
                 final InsertResult rs = (InsertResult)request;
                 final String outputFormat = rs.getResponseFormat();
                 return new ResponseObject(worker.insertResult(rs), outputFormat);
              }
-             
+
              if (request instanceof InsertResultTemplate) {
                 final InsertResultTemplate rs = (InsertResultTemplate)request;
                 final String outputFormat = rs.getResponseFormat();
                 return new ResponseObject(worker.insertResultTemplate(rs), outputFormat);
              }
-             
+
              if (request instanceof GetResultTemplate) {
                 final GetResultTemplate rs = (GetResultTemplate)request;
                 final String outputFormat = rs.getResponseFormat();
@@ -356,7 +356,7 @@ public class SOService extends OGCWebService<SOSworker> {
 
         String version        = getParameter(ACCEPT_VERSIONS_PARAMETER, false);
         String currentVersion = getParameter(VERSION_PARAMETER, false);
-        
+
         if (currentVersion == null) {
             currentVersion = worker.getBestVersion(null).version.toString();
         }
@@ -370,7 +370,7 @@ public class SOService extends OGCWebService<SOSworker> {
             versions.add(currentVersion);
         }
         final AcceptVersions acceptVersions = buildAcceptVersion(currentVersion, versions);
-        
+
         final String format = getParameter(ACCEPT_FORMATS_PARAMETER, false);
         final AcceptFormats formats;
         if (format != null) {
@@ -409,7 +409,7 @@ public class SOService extends OGCWebService<SOSworker> {
                                    getParameter(SERVICE_PARAMETER, true));
 
     }
-    
+
     private String getCapabilitiesOutputFormat(final GetCapabilities request) {
         final AcceptFormats formats = request.getAcceptFormats();
         if (formats != null && formats.getOutputFormat().size() > 0 ) {
@@ -447,7 +447,7 @@ public class SOService extends OGCWebService<SOSworker> {
         } else {
             varName = PROCEDURE_DESCRIPTION_FORMAT;
         }
-        final String outputFormat = getParameter(varName, true); 
+        final String outputFormat = getParameter(varName, true);
         if (outputFormat.isEmpty()) {
             throw new CstlServiceException("The parameter " + varName + " must be specified", MISSING_PARAMETER_VALUE, varName);
         }
@@ -510,7 +510,7 @@ public class SOService extends OGCWebService<SOSworker> {
             return buildGetFeatureOfInterest(currentVersion, service, foids, observedProperties, procedures, spatialFilter, extensions);
         }
     }
-    
+
     private GetFeatureOfInterestTime createGetFeatureOfInterestTime(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -530,7 +530,7 @@ public class SOService extends OGCWebService<SOSworker> {
                                                   OPERATION_NOT_SUPPORTED, "GetFeatureOfInterestTime");
         }
     }
-    
+
     private DeleteSensor createDeleteSensor(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -551,7 +551,7 @@ public class SOService extends OGCWebService<SOSworker> {
                                  service,
                                  procedure);
     }
-    
+
     private GetResult createGetResult(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -603,7 +603,7 @@ public class SOService extends OGCWebService<SOSworker> {
             return null;
         }
     }
-    
+
     private GetResultTemplate createGetResultTemplate(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -631,7 +631,7 @@ public class SOService extends OGCWebService<SOSworker> {
         }
         return buildGetResultTemplate(currentVersion, service, offering, observedProperty, extensions);
     }
-    
+
     private GetObservationById createGetObservationById(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -691,7 +691,7 @@ public class SOService extends OGCWebService<SOSworker> {
         }
         return buildGetObservationById(currentVersion, service, observations, resultModel, responseMode, srsName, responseFormat, extensions);
     }
-    
+
     private GetObservation createGetObservation(final Worker worker) throws CstlServiceException {
         final String service = getParameter(SERVICE_PARAMETER, true);
         if (service.isEmpty()) {
@@ -704,7 +704,7 @@ public class SOService extends OGCWebService<SOSworker> {
             throw new CstlServiceException("The parameter version must be specified", MISSING_PARAMETER_VALUE, "version");
         }
         worker.checkVersionSupported(currentVersion, false);
-        
+
         if (currentVersion.equals("2.0.0")) {
             final String offList = getParameter(OFFERING, false);
             final List<String> offering;
@@ -753,7 +753,7 @@ public class SOService extends OGCWebService<SOSworker> {
                                                   OPERATION_NOT_SUPPORTED, "GetObservation");
         }
     }
-    
+
     private BBOX parseBBoxFilter(final String bboxStr) {
         final String[] part = bboxStr.split(",");
         final String valueReference = part[0];
@@ -771,7 +771,7 @@ public class SOService extends OGCWebService<SOSworker> {
         }
         return buildBBOX("2.0.0", valueReference, coord[0], coord[1], coord[2], coord[3], srsName);
     }
-    
+
     private Filter parseTemporalFilter(final String tempStr) {
         final String[] part = tempStr.split(",");
         final String valueReference = part[0];

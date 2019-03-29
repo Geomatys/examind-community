@@ -767,6 +767,7 @@ public final class ReflectionUtilities {
                (pathID.startsWith("Catalog Web Service:Record")    && "RecordType".equals(metadata.getClass().getSimpleName())) ||
                (pathID.startsWith("ISO 19110:FC_FeatureCatalogue") && "FeatureCatalogueImpl".equals(metadata.getClass().getSimpleName())) ||
                (pathID.startsWith("SensorML:SensorML")             && "SensorML".equals(metadata.getClass().getSimpleName())) ||
+               (pathID.startsWith("NASA Directory Interchange Format:DIF") && "DIF".equals(metadata.getClass().getSimpleName())) ||
                (pathID.startsWith("Ebrim v2.5:*")                  && metadata.getClass().getName().startsWith("org.geotoolkit.ebrim.xml.v250")||
                (pathID.startsWith("Ebrim v3.0:*")                  && metadata.getClass().getName().startsWith("org.geotoolkit.ebrim.xml.v300")));
     }

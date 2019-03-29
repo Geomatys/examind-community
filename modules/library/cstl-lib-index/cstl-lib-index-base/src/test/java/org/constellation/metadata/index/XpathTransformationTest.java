@@ -48,7 +48,7 @@ public class XpathTransformationTest {
         List<String> result = XpathUtils.xpathToMDPath(ISO_FC_QUERYABLE.get("attributeName").paths);
         assertEquals(expResult, result);
     }
-    
+
     @Test
     public void isoQueryableTest() throws Exception {
         /*
@@ -396,6 +396,7 @@ public class XpathTransformationTest {
         expResult.add("Catalog Web Service:Record:title:content");
         expResult.add("Ebrim v3.0:*:Name:LocalizedString:value");
         expResult.add("Ebrim v2.5:*:Name:LocalizedString:value");
+        expResult.add("NASA Directory Interchange Format:DIF:Entry_Title");
         List<String> result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("title").paths);
         assertEquals(expResult, result);
 
@@ -405,6 +406,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:pointOfContact#role=originator:organisationName:value");
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:pointOfContact#role=originator:organisationName");
         expResult.add("Catalog Web Service:Record:creator:content");
+        expResult.add("NASA Directory Interchange Format:DIF:Organization:Short_Name");
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("creator").paths);
         assertEquals(expResult, result);
 
@@ -419,6 +421,8 @@ public class XpathTransformationTest {
         //TODO @name = “http://purl.org/dc/elements/1.1/subject”
         expResult.add("Ebrim v3.0:*:slot:valueList:Value");
         expResult.add("Ebrim v2.5:*:slot:valueList:Value");
+        expResult.add("NASA Directory Interchange Format:DIF:ISO_Topic_Category");
+        expResult.add("NASA Directory Interchange Format:DIF:Ancillary_Keyword");
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("description").paths);
         assertEquals(expResult, result);
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("subject").paths);
@@ -432,6 +436,7 @@ public class XpathTransformationTest {
         expResult.add("Catalog Web Service:Record:abstract:content");
         expResult.add("Ebrim v3.0:*:Description:LocalizedString:value");
         expResult.add("Ebrim v2.5:*:Description:LocalizedString:value");
+        expResult.add("NASA Directory Interchange Format:DIF:Summary"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("abstract").paths);
         assertEquals(expResult, result);
 
@@ -457,6 +462,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:dateStamp");
         expResult.add("ISO 19115-2:MI_Metadata:dateStamp");
         expResult.add("Catalog Web Service:Record:date:content");
+        expResult.add("NASA Directory Interchange Format:DIF:Metadata_Dates"); // erroned todo correct (but not used anymore) 
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("date").paths);
         assertEquals(expResult, result);
 
@@ -489,6 +495,7 @@ public class XpathTransformationTest {
         expResult.add("Web Registry Service v1.0:ExtrinsicObject:id");
         expResult.add("Ebrim v2.5:*:id");
         expResult.add("Web Registry Service v0.9:*:id");
+        expResult.add("NASA Directory Interchange Format:DIF:Entry_ID"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("identifier").paths);
         assertEquals(expResult, result);
 
@@ -527,6 +534,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:identificationInfo:extent:geographicElement2:westBoundLongitude");
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:extent:geographicElement2:westBoundLongitude");
         expResult.add("Catalog Web Service:Record:BoundingBox:LowerCorner[0]");
+        expResult.add("NASA Directory Interchange Format:DIF:Spatial_Coverage:Bounding_Rectangle"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("WestBoundLongitude").paths);
         assertEquals(expResult, result);
 
@@ -534,6 +542,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:identificationInfo:extent:geographicElement2:eastBoundLongitude");
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:extent:geographicElement2:eastBoundLongitude");
         expResult.add("Catalog Web Service:Record:BoundingBox:UpperCorner[0]");
+        expResult.add("NASA Directory Interchange Format:DIF:Spatial_Coverage:Bounding_Rectangle"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("EastBoundLongitude").paths);
         assertEquals(expResult, result);
 
@@ -541,6 +550,7 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:identificationInfo:extent:geographicElement2:northBoundLatitude");
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:extent:geographicElement2:northBoundLatitude");
         expResult.add("Catalog Web Service:Record:BoundingBox:UpperCorner[1]");
+        expResult.add("NASA Directory Interchange Format:DIF:Spatial_Coverage:Bounding_Rectangle"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("NorthBoundLatitude").paths);
         assertEquals(expResult, result);
 
@@ -548,11 +558,13 @@ public class XpathTransformationTest {
         expResult.add("ISO 19115:MD_Metadata:identificationInfo:extent:geographicElement2:southBoundLatitude");
         expResult.add("ISO 19115-2:MI_Metadata:identificationInfo:extent:geographicElement2:southBoundLatitude");
         expResult.add("Catalog Web Service:Record:BoundingBox:LowerCorner[1]");
+        expResult.add("NASA Directory Interchange Format:DIF:Spatial_Coverage:Bounding_Rectangle"); // erroned todo correct (but not used anymore)
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("SouthBoundLatitude").paths);
         assertEquals(expResult, result);
 
         expResult = new ArrayList<>();
         expResult.add("Catalog Web Service:Record:BoundingBox:crs");
+        expResult.add("NASA Directory Interchange Format:DIF:Spatial_Coverage:Coordinate_System");
         result = XpathUtils.xpathToMDPath(DUBLIN_CORE_QUERYABLE.get("CRS").paths);
         assertEquals(expResult, result);
     }
@@ -567,7 +579,7 @@ public class XpathTransformationTest {
         expResult.add("Ebrim v3.0:RegistryPackage:Name:LocalizedString:value");
         List<String> result = XpathUtils.xpathToMDPath(EBRIM_QUERYABLE.get("name").paths);
         assertEquals(expResult, result);
-        
+
         //TODO verify codelist=originator
         expResult = new ArrayList<>();
         result = XpathUtils.xpathToMDPath(EBRIM_QUERYABLE.get("creator").paths);

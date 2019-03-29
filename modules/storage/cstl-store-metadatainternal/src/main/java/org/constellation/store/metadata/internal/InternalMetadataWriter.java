@@ -34,6 +34,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
+import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
 import org.geotoolkit.metadata.AbstractMetadataWriter;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.metadata.utils.Utils;
@@ -56,17 +57,17 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
 
     @Autowired
     protected IInternalMetadataBusiness internalMetadataBusiness;
-    
+
     protected final DocumentBuilderFactory dbf;
 
     protected final XMLInputFactory xif = XMLInputFactory.newFactory();
-    
+
     public InternalMetadataWriter(final Map configuration) throws MetadataIoException {
         SpringHelper.injectDependencies(this);
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
     }
-    
+
     @Override
     public boolean storeMetadata(Node original) throws MetadataIoException {
         final String identifier = Utils.findIdentifier(original);
@@ -93,7 +94,7 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
             StringWriter sw = new StringWriter();
             StreamResult sr = new StreamResult(sw);
             transformer.transform(new DOMSource(original),sr);
-            
+
             String newIdentifier = Utils.findIdentifierNode(original);
             internalMetadataBusiness.updateMetadata(metadataID, newIdentifier, sw.toString());
             return true;
@@ -121,41 +122,47 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
     public boolean updateMetadata(String metadataID, Map<String, Object> properties) throws MetadataIoException {
         String xml = internalMetadataBusiness.getMetadata(metadataID);
         if (xml != null) {
-            
+
             final Document metadataDoc;
             try {
                 metadataDoc = getDocumentFromString(xml);
             } catch (ParserConfigurationException | SAXException | IOException ex) {
                 throw new MetadataIoException(ex);
             }
-            
+
             for (Map.Entry<String, Object> property : properties.entrySet()) {
                 String xpath = property.getKey();
-                
+
                 if (xpath.indexOf('/', 1) != -1) {
                     Node parent = metadataDoc.getDocumentElement();
                     NodeUtilities.NodeAndOrdinal nao = extractNodes(parent, xpath, true);
-                
+
                     // we verify that the metadata to update has the same type that the Xpath type
                     if (nao == null) {
                         throw new MetadataIoException("The metadata :" + metadataID + " is not of the same type that the one describe in Xpath expression", INVALID_PARAMETER_VALUE);
                     }
-                    
+
                     // we update the metadata
                     final Node value = (Node) property.getValue();
 
-                    //remove namespace on propertyName
-                    String propertyName = nao.propertyName;
-                    final int separatorIndex = propertyName.indexOf(':');
+                    String propertyName;
+                    String propertyNmsp;
+                    final int separatorIndex = nao.propertyName.indexOf(':');
                     if (separatorIndex != -1) {
-                        propertyName = propertyName.substring(separatorIndex + 1);
+                        String prefix = nao.propertyName.substring(0, separatorIndex);
+                        propertyNmsp = ALL_PREFIX_MAPPING.get(prefix); // TODO the mapping should be provided by the parameters.
+                        propertyName = nao.propertyName.substring(separatorIndex + 1);
+                    } else {
+                        propertyNmsp = null;
+                        propertyName = nao.propertyName;
                     }
+
                     List<Node> nodes = new ArrayList<>();
                     for (Node n : nao.nodes) {
                         nodes.add(n.getParentNode());
                     }
 
-                    updateObjects(nodes, propertyName, value);
+                    updateObjects(nodes, propertyName, propertyNmsp, value);
 
                     // we finish by updating the metadata.
                     deleteMetadata(metadataID);

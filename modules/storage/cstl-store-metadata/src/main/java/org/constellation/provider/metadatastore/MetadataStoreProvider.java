@@ -45,6 +45,7 @@ import org.constellation.provider.MetadataProvider;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.MetadataType;
+import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.util.collection.CloseableIterator;
 import org.w3c.dom.Node;
@@ -121,8 +122,8 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
 
         final MetadataStore store = getMainStore();
         try {
-            final Node metadata = store.getMetadata(key.toString(), MetadataType.NATIVE);
-            return new DefaultMetadataData(key, store, metadata);
+            final RecordInfo metadata = store.getMetadata(key.toString(), MetadataType.NATIVE);
+            return new DefaultMetadataData(key, store, metadata.node);
 
         } catch (MetadataIoException ex) {
             getLogger().log(Level.WARNING, ex.getMessage(), ex);

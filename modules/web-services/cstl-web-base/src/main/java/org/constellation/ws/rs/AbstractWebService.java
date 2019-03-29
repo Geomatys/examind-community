@@ -553,13 +553,21 @@ public abstract class AbstractWebService implements WebService{
         return results;
     }
 
+    protected String getLogParameters() {
+        String log = null;
+        if (httpServletRequest != null && httpServletRequest.getRequestURL() != null) {
+            log = httpServletRequest.getRequestURL().append('?').append(httpServletRequest.getQueryString()).toString();
+        }
+        return log;
+    }
     /**
      * Extract all The parameters from the query and write it in the console.
      * It is a debug method.
      */
     protected void logParameters() {
-        if (httpServletRequest != null && httpServletRequest.getRequestURL() != null) {
-            LOGGER.info(httpServletRequest.getRequestURL().append('?').append(httpServletRequest.getQueryString()).toString());
+        String log = getLogParameters();
+        if (log != null) {
+            LOGGER.info(log);
         }
     }
 
