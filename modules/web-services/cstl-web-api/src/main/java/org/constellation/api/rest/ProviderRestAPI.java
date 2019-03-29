@@ -19,9 +19,6 @@
 
 package org.constellation.api.rest;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,8 +28,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.DataStores;
 import org.constellation.business.IDatasetBusiness;
@@ -46,13 +41,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.apache.sis.storage.DataStore;
-import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.data.memory.ExtendedFeatureStore;
-import org.geotoolkit.io.wkt.PrjFiles;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,7 +54,6 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.FeatureData;
@@ -231,17 +220,8 @@ public class ProviderRestAPI extends AbstractRestAPI {
         }
 
         try {
-            final DataStore datastore = provider.getMainStore();
-            if (datastore instanceof ResourceOnFileSystem){
-                proceedToCreatePrj(provider,(ResourceOnFileSystem)datastore,epsgCode);
+            if (DataProviders.proceedToCreatePrj(provider, epsgCode)) {
                 return new ResponseEntity(OK);
-            }else if(datastore instanceof ExtendedFeatureStore) {
-                final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
-                final FeatureStore fstore = efs.getWrapped();
-                if (fstore instanceof ResourceOnFileSystem) {
-                    proceedToCreatePrj(provider,(ResourceOnFileSystem)fstore,epsgCode);
-                    return new ResponseEntity(OK);
-                }
             }
             return new ErrorMessage().message("Cannot creates the prj file for the data. the operation is not implemented yet for this format.").build();
 
@@ -249,34 +229,6 @@ public class ProviderRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-    }
-
-    private void proceedToCreatePrj(final DataProvider provider,
-                                    final ResourceOnFileSystem dataFileStore,
-                                    final Map<String,String> epsgCode) throws DataStoreException,FactoryException,IOException {
-        java.nio.file.Path[] dataFiles = dataFileStore.getComponentFiles();
-        if(dataFiles == null) return;
-        if (dataFiles.length == 1 && Files.isDirectory(dataFiles[0])) {
-            List<java.nio.file.Path> dirPaths = new ArrayList<>();
-            try (DirectoryStream<java.nio.file.Path> stream = Files.newDirectoryStream(dataFiles[0])) {
-                for (java.nio.file.Path candidate : stream) {
-                    dirPaths.add(candidate);
-                }
-            }
-            dataFiles = dirPaths.toArray(new java.nio.file.Path[dirPaths.size()]);
-        }
-        if(dataFiles.length==0) return;
-        final String firstFileName = dataFiles[0].getFileName().toString();
-        final String fileNameWithoutExtention;
-        if(firstFileName.indexOf('.')!=-1){
-            fileNameWithoutExtention = firstFileName.substring(0, firstFileName.indexOf('.'));
-        }else {
-            fileNameWithoutExtention = firstFileName;
-        }
-        final java.nio.file.Path parentPath = dataFiles[0].getParent();
-        final CoordinateReferenceSystem coordinateReferenceSystem = CRS.forCode(epsgCode.get("codeEpsg"));
-        PrjFiles.write(coordinateReferenceSystem, parentPath.resolve(fileNameWithoutExtention+".prj"));
-        provider.reload();
     }
 
     /**

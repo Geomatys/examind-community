@@ -83,6 +83,9 @@ import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.ProviderRepository;
+import org.geotoolkit.data.FeatureStore;
+import org.geotoolkit.data.memory.ExtendedFeatureStore;
+import org.geotoolkit.io.wkt.PrjFiles;
 
 
 /**
@@ -816,5 +819,53 @@ public final class DataProviders extends Static{
         }
         System.out.println("Time to providers search: " + (System.currentTimeMillis() - start) + "ms");
         return results;
+    }
+
+    public static boolean proceedToCreatePrj(final DataProvider provider, final Map<String,String> epsgCode) throws DataStoreException,FactoryException,IOException {
+
+        final ResourceOnFileSystem dataFileStore;
+        final DataStore datastore = provider.getMainStore();
+        if (datastore instanceof ResourceOnFileSystem) {
+            dataFileStore = (ResourceOnFileSystem) datastore;
+
+        } else if(datastore instanceof ExtendedFeatureStore) {
+
+            final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
+            final FeatureStore fstore = efs.getWrapped();
+            if (fstore instanceof ResourceOnFileSystem) {
+                dataFileStore = (ResourceOnFileSystem)fstore;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        Path[] dataFiles = dataFileStore.getComponentFiles();
+        if (dataFiles == null) return false;
+        if (dataFiles.length == 1 && Files.isDirectory(dataFiles[0])) {
+            List<Path> dirPaths = new ArrayList<>();
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataFiles[0])) {
+                for (Path candidate : stream) {
+                    dirPaths.add(candidate);
+                }
+            }
+            dataFiles = dirPaths.toArray(new Path[dirPaths.size()]);
+        }
+        if (dataFiles.length == 0) {
+            return false;
+        }
+        final String firstFileName = dataFiles[0].getFileName().toString();
+        final String fileNameWithoutExtention;
+        if (firstFileName.indexOf('.') != -1) {
+            fileNameWithoutExtention = firstFileName.substring(0, firstFileName.indexOf('.'));
+        } else {
+            fileNameWithoutExtention = firstFileName;
+        }
+        final Path parentPath = dataFiles[0].getParent();
+        final CoordinateReferenceSystem coordinateReferenceSystem = CRS.forCode(epsgCode.get("codeEpsg"));
+        PrjFiles.write(coordinateReferenceSystem, parentPath.resolve(fileNameWithoutExtention + ".prj"));
+        provider.reload();
+        return true;
     }
 }
