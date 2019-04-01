@@ -2,7 +2,7 @@
 <os:OpenSearchDescription xmlns:os="http://a9.com/-/spec/opensearch/1.1/" xmlns:param="http://a9.com/-/spec/opensearch/extensions/parameters/1.0/">
     <os:ShortName>Examind OpenSearch</os:ShortName>
     <os:Description>Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.</os:Description>
-    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputSchema=http://www.opengis.net/cat/csw/3.0&amp;outputFormat=application/xml" type="application/xml">
+    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputSchema=http://www.opengis.net/cat/csw/3.0&amp;outputFormat=application/xml" type="application/xml">
         <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
         <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
         <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
@@ -43,7 +43,7 @@
             <param:Option value="AnyInteracts"/>
         </param:Parameter>
     </os:Url>
-    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputFormat=application/atom+xml" rel="collection" type="application/atom+xml">
+    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputFormat=application/atom+xml" rel="collection" type="application/atom+xml">
         <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
         <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
         <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
