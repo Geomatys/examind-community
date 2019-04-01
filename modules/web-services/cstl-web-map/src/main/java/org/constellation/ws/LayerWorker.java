@@ -44,7 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
-import org.constellation.admin.ProviderMessageConsumer;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.MessageException;
@@ -58,6 +57,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.opengis.util.GenericName;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * A super class for all the web service worker dealing with layers (WMS, WCS, WMTS, WFS, ...)
@@ -148,8 +148,8 @@ public abstract class LayerWorker extends AbstractWorker {
             @Override
             protected boolean filter(ClusterMessage message) {
                 return message.getMemberUID().equals(clusterBusiness.getMemberUID())
-                    && ProviderMessageConsumer.MESSAGE_TYPE_ID.equals(message.getTypeId())
-                    && ProviderMessageConsumer.VALUE_ACTION_UPDATED.equals(message.get(ProviderMessageConsumer.KEY_ACTION));
+                    && PRV_MESSAGE_TYPE_ID.equals(message.getTypeId())
+                    && PRV_VALUE_ACTION_UPDATED.equals(message.get(KEY_ACTION));
                 // TODO : also check that impacted provider is the parent of a layer in this service.
             }
 

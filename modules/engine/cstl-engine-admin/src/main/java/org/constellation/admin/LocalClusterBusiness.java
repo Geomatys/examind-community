@@ -38,10 +38,11 @@ import org.constellation.dto.cluster.ClusterMember;
 import org.constellation.dto.service.ServiceComplete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * Single instanceof messaging business.
- * 
+ *
  * @author Johann Sorel (Geomatys)
  */
 public class LocalClusterBusiness implements IClusterBusiness{
@@ -56,7 +57,7 @@ public class LocalClusterBusiness implements IClusterBusiness{
     private final WeakValueHashMap<String,Lock> locks = new WeakValueHashMap<>(String.class);
 
     public LocalClusterBusiness(){}
-    
+
     @Override
     public String getMemberUID() {
         return memberUID;
@@ -108,12 +109,12 @@ public class LocalClusterBusiness implements IClusterBusiness{
         }
         response.release();
     }
-    
+
     @Override
     public Cluster clusterStatus() {
 
-        final ClusterMessage request = createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,true);
-        request.put(ServiceMessageConsumer.KEY_ACTION,ServiceMessageConsumer.VALUE_ACTION_STATUS);
+        final ClusterMessage request = createRequest(SRV_MESSAGE_TYPE_ID,true);
+        request.put(KEY_ACTION, SRV_VALUE_ACTION_STATUS);
 
         final Cluster cluster = new Cluster();
 

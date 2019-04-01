@@ -34,6 +34,7 @@ import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Refreshable;
 import org.constellation.ws.Worker;
 import org.springframework.stereotype.Component;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * Listen to constellation messages related to service operations.
@@ -42,18 +43,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ServiceMessageConsumer extends MessageListener{
-
-    public static final String MESSAGE_TYPE_ID = "service";
-
-    public static final String KEY_ACTION = "action";
-    public static final String KEY_TYPE = "type";
-    public static final String KEY_IDENTIFIER = "identifier";
-
-    public static final String VALUE_ACTION_START = "start";
-    public static final String VALUE_ACTION_STOP = "stop";
-    public static final String VALUE_ACTION_REFRESH = "refresh";
-    public static final String VALUE_ACTION_STATUS = "status";
-    public static final String VALUE_ACTION_CLEAR_CACHE = "clearCache";
 
     private String uid;
 
@@ -81,7 +70,7 @@ public class ServiceMessageConsumer extends MessageListener{
 
     @Override
     protected boolean filter(ClusterMessage message) {
-        return MESSAGE_TYPE_ID.equals(message.getTypeId())
+        return SRV_MESSAGE_TYPE_ID.equals(message.getTypeId())
                && message.isRequest();
     }
 
@@ -90,17 +79,17 @@ public class ServiceMessageConsumer extends MessageListener{
         final String action = message.getString(KEY_ACTION,false);
 
         switch(action){
-            case VALUE_ACTION_START : return start(message);
-            case VALUE_ACTION_STOP : return stop(message);
-            case VALUE_ACTION_REFRESH : return refresh(message);
-            case VALUE_ACTION_STATUS : return status(message);
-            case VALUE_ACTION_CLEAR_CACHE : return clearCache(message);
+            case SRV_VALUE_ACTION_START : return start(message);
+            case SRV_VALUE_ACTION_STOP : return stop(message);
+            case SRV_VALUE_ACTION_REFRESH : return refresh(message);
+            case SRV_VALUE_ACTION_STATUS : return status(message);
+            case SRV_VALUE_ACTION_CLEAR_CACHE : return clearCache(message);
             default: throw new MessageException("Unknown request action : "+action);
         }
     }
 
     private ClusterMessage start(ClusterMessage message) throws ConfigurationException, MessageException {
-        final String serviceType = message.getString(KEY_TYPE,false);
+        final String serviceType = message.getString(SRV_KEY_TYPE,false);
         final String serviceId = message.getString(KEY_IDENTIFIER,false);
 
         if(!wsengine.serviceInstanceExist(serviceType, serviceId)){
@@ -124,7 +113,7 @@ public class ServiceMessageConsumer extends MessageListener{
     }
 
     private ClusterMessage stop(ClusterMessage message) throws ConfigurationException, MessageException {
-        final String serviceType = message.getString(KEY_TYPE,false);
+        final String serviceType = message.getString(SRV_KEY_TYPE,false);
         final String serviceId = message.getString(KEY_IDENTIFIER,false);
 
         if (serviceId == null || serviceId.isEmpty()) {
@@ -138,7 +127,7 @@ public class ServiceMessageConsumer extends MessageListener{
     }
 
     private ClusterMessage refresh(ClusterMessage message) throws ConfigurationException, CstlServiceException, MessageException {
-        final String serviceType = message.getString(KEY_TYPE,false);
+        final String serviceType = message.getString(SRV_KEY_TYPE,false);
         final String serviceId = message.getString(KEY_IDENTIFIER,false);
 
         if (serviceId == null || serviceId.isEmpty()) {
@@ -185,7 +174,7 @@ public class ServiceMessageConsumer extends MessageListener{
     }
 
     private ClusterMessage clearCache(ClusterMessage message) throws ConfigurationException, CstlServiceException, MessageException {
-        final String serviceType = message.getString(KEY_TYPE,false);
+        final String serviceType = message.getString(SRV_KEY_TYPE,false);
         final String serviceId = message.getString(KEY_IDENTIFIER,false);
 
         if (serviceId == null || serviceId.isEmpty()) {

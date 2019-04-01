@@ -29,6 +29,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * Listen to constellation messages related to provider operations.
@@ -37,19 +38,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ProviderMessageConsumer extends MessageListener {
-
-    public static final String MESSAGE_TYPE_ID = "provider";
-
-    public static final String KEY_ACTION = "action";
-    public static final String KEY_IDENTIFIER = "identifier";
-
-    public static final String VALUE_ACTION_RELOAD = "reload";
-    public static final String VALUE_ACTION_DELETE = "delete";
-    /**
-     * Send by DataProviders when a provider is reloaded,changed,deleted...
-     * Any structure or content event.
-     */
-    public static final String VALUE_ACTION_UPDATED = "updated";
 
     private String uid;
 
@@ -74,7 +62,7 @@ public class ProviderMessageConsumer extends MessageListener {
 
     @Override
     protected boolean filter(ClusterMessage message) {
-        return MESSAGE_TYPE_ID.equals(message.getTypeId())
+        return PRV_MESSAGE_TYPE_ID.equals(message.getTypeId())
                && message.isRequest();
     }
 
@@ -84,9 +72,9 @@ public class ProviderMessageConsumer extends MessageListener {
         final int providerId = message.getInteger(KEY_IDENTIFIER,false);
 
         switch(action){
-            case VALUE_ACTION_RELOAD :
-            case VALUE_ACTION_DELETE : clearCache(providerId); break;
-            case VALUE_ACTION_UPDATED : /*just an info, nothing to do*/ break;
+            case PRV_VALUE_ACTION_RELOAD :
+            case PRV_VALUE_ACTION_DELETE : clearCache(providerId); break;
+            case PRV_VALUE_ACTION_UPDATED : /*just an info, nothing to do*/ break;
             default: throw new MessageException("Unknown request action : "+action);
         }
 
@@ -97,9 +85,9 @@ public class ProviderMessageConsumer extends MessageListener {
         DataProviders.dispose(providerId);
 
         //send event, used for services indexes,caches,capabilities,...
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_UPDATED);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, providerId);
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_UPDATED);
+        message.put(KEY_IDENTIFIER, providerId);
         clusterBusiness.publish(message);
     }
 

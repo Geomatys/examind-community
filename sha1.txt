@@ -1,6 +1,6 @@
 retrieved from community branch of constellation-ee
 ===================================================
-commit c6d22f79551ab0b267238f4899c3f3471269cd47 (HEAD -> community, origin/community)
+commit c57db3fb3d661fab7d738b4d3114115ecc3e9e82 (HEAD -> community, origin/community)
 Author: msidhoum <mehdi.sidhoum@geomatys.com>
 Date:   Thu Mar 28 16:02:40 2019 +0100
 
@@ -8,9 +8,9 @@ Date:   Thu Mar 28 16:02:40 2019 +0100
 
 which was based on constellation-ee 
 ===================================
-commit 7d8920954312602d5e63f518084af8159c0f6eb1 (origin/master, origin/HEAD)
+commit c228589ed6bb2bd00090a61576f537fb4fe8ca42 (origin/master, origin/HEAD)
 Author: glegal <guilhem.legal@geomatys.com>
-Date:   Fri Mar 29 15:40:58 2019 +0100
+Date:   Fri Mar 29 16:50:33 2019 +0100
 
-    fix(service): add sortby parameter to opensearch request (for test purpose).
+    refactor(core): move cluster message constant to api module
 

@@ -72,7 +72,7 @@ import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  *
@@ -200,10 +200,10 @@ public class LayerBusiness implements ILayerBusiness {
             }
 
             //clear cache event
-            final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-            request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_CLEAR_CACHE);
-            request.put(ServiceMessageConsumer.KEY_TYPE, service.getType());
-            request.put(ServiceMessageConsumer.KEY_IDENTIFIER, service.getIdentifier());
+            final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+            request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
+            request.put(SRV_KEY_TYPE, service.getType());
+            request.put(KEY_IDENTIFIER, service.getIdentifier());
             clusterBusiness.publish(request);
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
@@ -266,10 +266,10 @@ public class LayerBusiness implements ILayerBusiness {
         layerRepository.delete(layerId);
 
         //clear cache event
-        final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-        request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_CLEAR_CACHE);
-        request.put(ServiceMessageConsumer.KEY_TYPE, serviceType);
-        request.put(ServiceMessageConsumer.KEY_IDENTIFIER, serviceId);
+        final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+        request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
+        request.put(SRV_KEY_TYPE, serviceType);
+        request.put(KEY_IDENTIFIER, serviceId);
         clusterBusiness.publish(request);
     }
 

@@ -141,6 +141,7 @@ import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * Business facade for metadata.
@@ -1013,10 +1014,10 @@ public class MetadataBusiness implements IMetadataBusiness {
                     configurer.addToIndex(service.getIdentifier(), identifierToUpdate);
 
                     //send refresh message to services
-                    final ClusterMessage message = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-                    message.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_REFRESH);
-                    message.put(ServiceMessageConsumer.KEY_TYPE, "CSW");
-                    message.put(ServiceMessageConsumer.KEY_IDENTIFIER, service.getIdentifier());
+                    final ClusterMessage message = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+                    message.put(KEY_ACTION, SRV_VALUE_ACTION_REFRESH);
+                    message.put(SRV_KEY_TYPE, "CSW");
+                    message.put(KEY_IDENTIFIER, service.getIdentifier());
                     clusterBusiness.publish(message);
                 }
             }

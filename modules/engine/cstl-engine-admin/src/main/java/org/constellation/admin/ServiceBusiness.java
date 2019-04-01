@@ -73,6 +73,7 @@ import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 @Component
 @Primary
@@ -188,10 +189,10 @@ public class ServiceBusiness implements IServiceBusiness {
             service.setStatus(ServiceStatus.STARTED.toString());
             serviceRepository.update(service);
 
-            final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-            request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_START);
-            request.put(ServiceMessageConsumer.KEY_TYPE, serviceType);
-            request.put(ServiceMessageConsumer.KEY_IDENTIFIER, identifier);
+            final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+            request.put(KEY_ACTION, SRV_VALUE_ACTION_START);
+            request.put(SRV_KEY_TYPE, serviceType);
+            request.put(KEY_IDENTIFIER, identifier);
             clusterBusiness.publish(request);
         } else {
             throw new TargetNotFoundException(serviceType + " service instance with identifier \"" + identifier
@@ -214,10 +215,10 @@ public class ServiceBusiness implements IServiceBusiness {
             service.setStatus(ServiceStatus.STOPPED.toString());
             serviceRepository.update(service);
 
-            final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-            request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_STOP);
-            request.put(ServiceMessageConsumer.KEY_TYPE, serviceType);
-            request.put(ServiceMessageConsumer.KEY_IDENTIFIER, identifier);
+            final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+            request.put(KEY_ACTION, SRV_VALUE_ACTION_STOP);
+            request.put(SRV_KEY_TYPE, serviceType);
+            request.put(KEY_IDENTIFIER, identifier);
             clusterBusiness.publish(request);
         } else {
             throw new TargetNotFoundException(serviceType + " service instance with identifier \"" + identifier

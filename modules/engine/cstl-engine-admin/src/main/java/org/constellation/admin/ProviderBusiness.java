@@ -113,7 +113,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Node;
-
+import static org.constellation.business.ClusterMessageConstant.*;
 
 @Component("providerBusiness")
 @Primary
@@ -190,9 +190,9 @@ public class ProviderBusiness implements IProviderBusiness {
         }
 
         //send message to nodes
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_RELOAD);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, providerId);
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
+        message.put(KEY_IDENTIFIER, providerId);
         clusterBusiness.publish(message);
     }
 
@@ -210,9 +210,9 @@ public class ProviderBusiness implements IProviderBusiness {
         }
 
         //send message to nodes
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_RELOAD);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, provider);
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
+        message.put(KEY_IDENTIFIER, provider);
         clusterBusiness.publish(message);
     }
 
@@ -243,9 +243,9 @@ public class ProviderBusiness implements IProviderBusiness {
         providerRepository.delete(identifier);
 
         //send message to nodes
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_DELETE);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, provider.getId());
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_DELETE);
+        message.put(KEY_IDENTIFIER, provider.getId());
         clusterBusiness.publish(message);
 
         //delete provider folder
@@ -464,9 +464,9 @@ public class ProviderBusiness implements IProviderBusiness {
         providerRepository.update(provider);
 
         //send message
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_RELOAD);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, provider.getId());
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
+        message.put(KEY_IDENTIFIER, provider.getId());
         clusterBusiness.publish(message);
     }
 
@@ -483,9 +483,9 @@ public class ProviderBusiness implements IProviderBusiness {
         providerRepository.update(provider);
 
         //send message
-        final ClusterMessage message = clusterBusiness.createRequest(ProviderMessageConsumer.MESSAGE_TYPE_ID,false);
-        message.put(ProviderMessageConsumer.KEY_ACTION, ProviderMessageConsumer.VALUE_ACTION_RELOAD);
-        message.put(ProviderMessageConsumer.KEY_IDENTIFIER, provider.getId());
+        final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
+        message.put(KEY_ACTION, PRV_VALUE_ACTION_RELOAD);
+        message.put(KEY_IDENTIFIER, provider.getId());
         clusterBusiness.publish(message);
     }
 

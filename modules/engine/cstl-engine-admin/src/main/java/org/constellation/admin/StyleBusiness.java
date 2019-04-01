@@ -78,6 +78,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.dto.process.StyleProcessReference;
+import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
  * @author Bernard Fabien (Geomatys)
@@ -527,10 +528,10 @@ public class StyleBusiness implements IStyleBusiness {
         styleRepository.unlinkStyleToLayer(style.getId(), layer);
 
         //clear cache event
-        final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-        request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_CLEAR_CACHE);
-        request.put(ServiceMessageConsumer.KEY_TYPE, serviceType);
-        request.put(ServiceMessageConsumer.KEY_IDENTIFIER, serviceIdentifier);
+        final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+        request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
+        request.put(SRV_KEY_TYPE, serviceType);
+        request.put(KEY_IDENTIFIER, serviceIdentifier);
         clusterBusiness.publish(request);
     }
 
@@ -544,10 +545,10 @@ public class StyleBusiness implements IStyleBusiness {
         styleRepository.linkStyleToLayer(style.getId(), layer);
 
         //clear cache event
-        final ClusterMessage request = clusterBusiness.createRequest(ServiceMessageConsumer.MESSAGE_TYPE_ID,false);
-        request.put(ServiceMessageConsumer.KEY_ACTION, ServiceMessageConsumer.VALUE_ACTION_CLEAR_CACHE);
-        request.put(ServiceMessageConsumer.KEY_TYPE, serviceType);
-        request.put(ServiceMessageConsumer.KEY_IDENTIFIER, serviceIdentifier);
+        final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+        request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
+        request.put(SRV_KEY_TYPE, serviceType);
+        request.put(KEY_IDENTIFIER, serviceIdentifier);
         clusterBusiness.publish(request);
     }
 
