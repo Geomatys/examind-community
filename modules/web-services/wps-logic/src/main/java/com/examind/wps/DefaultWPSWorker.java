@@ -168,6 +168,7 @@ import org.geotoolkit.wps.xml.v200.Undeploy;
 import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 
 

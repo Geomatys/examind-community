@@ -520,7 +520,7 @@ public abstract class CSWConstants {
         OS_DESCRIPTION = new OpenSearchDescription("Examind OpenSearch", "Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.");
         // Search by bbox returning csw:Record (i.e. GetRecordsResponse)
         String type     = "application/xml";
-        String template = "{cswUrl}/opensearch?service=CSW&version=3.0&"
+        String template = "{cswUrl}/opensearch?service=CSW&version=3.0.0&"
                         + "q={searchTerms?}&"
                         + "maxRecords={count?}&"
                         + "startPosition={startIndex?}&"
@@ -618,7 +618,7 @@ public abstract class CSWConstants {
 
         // Search by bbox returning ATOM
         type     = "application/atom+xml";
-        template = "{cswUrl}/opensearch?service=CSW&version=3.0&"
+        template = "{cswUrl}/opensearch?service=CSW&version=3.0.0&"
                  + "q={searchTerms?}&"
                  + "maxRecords={count?}&"
                  + "startPosition={startIndex?}"
