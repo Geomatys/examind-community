@@ -1,9 +1,9 @@
-# EXAMIND
+# EXAMIND Community
 
-Examind makes it possible to easily create a complete Spatial Data Infrastructure, from cataloging geographic
+Examind Community makes it possible to easily create a complete Spatial Data Infrastructure, from cataloging geographic
 resources to operate a platform of sensors that feeds back information in real time.
 
-[http://www.constellation-sdi.org/](http://www.constellation-sdi.org/)
+[https://www.examind.com](https://www.examind.com)
 
 #### Available [OGC web services](http://www.opengeospatial.org/standards)
 * **WMS** : 1.1.1 and 1.3.0 (INSPIRE-compliant)
@@ -30,7 +30,24 @@ resources to operate a platform of sensors that feeds back information in real t
   * Grib
   * Images with .tfw and .prj files for projection and transformation informations
 
-## Get started
+## Get started using docker
+Go to docker folder
+```
+cd docker
+```
+then type the command
+```
+./run.sh
+
+or
+
+docker-compose up -d
+```
+
+the web application will be available at http://localhost:8080/examind
+you can authenticate with user = admin and password = admin.
+
+## Get started manually
 
 ### Prerequires
 To run Examind, you'll need :
@@ -43,15 +60,13 @@ or
 For building :
 * **Maven 3.3.x** found [here](https://maven.apache.org/download.cgi)
 
-### Download latest version
-You can download the latest version WAR [here](http://constellation-sdi.org/en/downloads.html).
-
 ### Build from sources
 ```sh
-git clone https://github.com/Geomatys/constellation.git
+git clone https://github.com/Geomatys/examind-community.git
+cd examind-community
 mvn install -DskipTests
 ```
-Note 1 : for smaller download without git history: `git clone --depth 1 https://github.com/Geomatys/constellation.git`
+Note 1 : for smaller download without git history: `git clone --depth 1 https://github.com/Geomatys/examind-community.git`
 
 Note 2 : if you want to build with tests, you'll need a test database named `cstl-test` owned by role:password `cstl:admin`.
 
