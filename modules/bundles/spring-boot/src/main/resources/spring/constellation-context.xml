@@ -14,6 +14,8 @@
 
   <bean id="clusterBusiness" class="org.constellation.admin.LocalClusterBusiness" />
 
+  <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
+
   <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.scheduler" />
 
   <import resource="classpath:cstl/spring/database-context.xml" />

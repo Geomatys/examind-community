@@ -32,6 +32,7 @@ import static org.springframework.http.HttpStatus.*;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
+import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -62,6 +63,9 @@ public final class StyleRestAPI extends AbstractRestAPI {
 
     @Inject
     private IStyleBusiness styleBusiness;
+
+    @Inject
+    private IStyleConverterBusiness styleConverterBusiness;
 
     private static final String[] STYLE_DEFAULT_FIELDS = new String[]{
             "id",
@@ -158,7 +162,7 @@ public final class StyleRestAPI extends AbstractRestAPI {
         try {
             Object style = styleBusiness.getStyle(id);
             if (asJson) {
-                style = new Style((MutableStyle) style);
+                style = styleConverterBusiness.getJsonStyle((org.opengis.style.Style) style);
                 ((Style)style).setId(id);
                 if(!fields.isEmpty()){
                     style = new JsonView(style, fields.split(","));

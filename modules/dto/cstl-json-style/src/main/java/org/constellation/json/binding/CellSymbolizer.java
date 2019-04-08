@@ -43,15 +43,6 @@ public class CellSymbolizer implements Symbolizer {
 
     public CellSymbolizer(){}
 
-    public CellSymbolizer(final org.geotoolkit.display2d.ext.cellular.CellSymbolizer symbolizer){
-        ensureNonNull("symbolizer", symbolizer);
-
-        name = symbolizer.getName();
-        cellSize = symbolizer.getCellSize();
-        final MutableRule mutableRule = (MutableRule)symbolizer.getRule();
-        rule = new Rule(mutableRule);
-    }
-
     public String getName() {
         return name;
     }

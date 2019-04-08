@@ -12,6 +12,8 @@
 
   <bean id="clusterBusiness" class="org.constellation.admin.LocalClusterBusiness" />
 
+  <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
+
   <bean class="org.constellation.admin.ConfigurationServiceInit" init-method="init" autowire="byType" />
 
   <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.api.rest org.constellation.scheduler" />

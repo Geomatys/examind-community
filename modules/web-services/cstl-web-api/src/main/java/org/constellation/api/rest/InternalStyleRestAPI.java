@@ -67,6 +67,7 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.constellation.admin.util.DataCoverageUtilities;
+import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.dto.StyleBrief;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.util.StoreUtilities;
@@ -130,6 +131,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
     @Inject
     private IStyleBusiness styleBusiness;
+
+    @Inject
+    private IStyleConverterBusiness styleConverterBusiness;
 
     @Inject
     private IDataBusiness dataBusiness;
@@ -358,7 +362,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
             //create the style in server
             styleBusiness.createStyle(type, mutableStyle);
-            return new ResponseEntity(new Style(mutableStyle),OK);
+            Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
+            return new ResponseEntity(json,OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -566,7 +571,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
             //create the style in server
             styleBusiness.createStyle(type, mutableStyle);
-            return new ResponseEntity(new Style(mutableStyle),OK);
+            Style json = styleConverterBusiness.getJsonStyle(mutableStyle);
+            return new ResponseEntity(json,OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

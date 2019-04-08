@@ -28,8 +28,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @version 0.9
  * @since 0.9
  */
+//@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@symbol")
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@symbol")
-@JsonSubTypes({
+/*@JsonSubTypes({
     @Type(value=PointSymbolizer.class,          name="point"),
     @Type(value=LineSymbolizer.class,           name="line"),
     @Type(value=PolygonSymbolizer.class,        name="polygon"),
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value=CellSymbolizer.class,           name="cell"),
     @Type(value=PieSymbolizer.class,            name="pie"),
     @Type(value=DynamicRangeSymbolizer.class,   name="dynamicrange")
-})
+    //@Type(value=S52Symbolizer.class,            name="s52")
+})*/
 public interface Symbolizer extends StyleElement<org.opengis.style.Symbolizer> {
 }

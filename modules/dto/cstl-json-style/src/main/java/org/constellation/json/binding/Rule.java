@@ -24,7 +24,9 @@ import org.geotoolkit.style.MutableRule;
 import org.opengis.filter.PropertyIsLike;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
@@ -43,52 +45,10 @@ public final class Rule implements StyleElement<MutableRule> {
     private String description           = "";
     private double minScale              = 0.0;
     private double maxScale              = Double.MAX_VALUE;
-    private List<Symbolizer> symbolizers = new ArrayList<Symbolizer>(0);
+    private List<Symbolizer> symbolizers = new ArrayList<>(0);
     private String filter                = null;
 
     public Rule() {
-    }
-
-    public Rule(final MutableRule rule) {
-        ensureNonNull("rule", rule);
-        this.name = rule.getName();
-        if (rule.getDescription() != null) {
-            if (rule.getDescription().getTitle() != null) {
-                this.title = rule.getDescription().getTitle().toString();
-            }
-            if (rule.getDescription().getAbstract() != null) {
-                this.description = rule.getDescription().getAbstract().toString();
-            }
-        }
-        this.minScale = rule.getMinScaleDenominator();
-        this.maxScale = rule.getMaxScaleDenominator();
-        for (final org.opengis.style.Symbolizer symbolizer : rule.symbolizers()) {
-            if (symbolizer instanceof org.opengis.style.PointSymbolizer) {
-                symbolizers.add(new PointSymbolizer((org.opengis.style.PointSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.opengis.style.LineSymbolizer) {
-                symbolizers.add(new LineSymbolizer((org.opengis.style.LineSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.opengis.style.PolygonSymbolizer) {
-                symbolizers.add(new PolygonSymbolizer((org.opengis.style.PolygonSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.opengis.style.TextSymbolizer) {
-                symbolizers.add(new TextSymbolizer((org.opengis.style.TextSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.opengis.style.RasterSymbolizer) {
-                symbolizers.add(new RasterSymbolizer((org.opengis.style.RasterSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.geotoolkit.display2d.ext.cellular.CellSymbolizer) {
-                symbolizers.add(new CellSymbolizer((org.geotoolkit.display2d.ext.cellular.CellSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.geotoolkit.display2d.ext.pie.PieSymbolizer) {
-                symbolizers.add(new PieSymbolizer((org.geotoolkit.display2d.ext.pie.PieSymbolizer) symbolizer));
-            } else if (symbolizer instanceof org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer) {
-                symbolizers.add(new DynamicRangeSymbolizer((org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer) symbolizer));
-            }
-        }
-        if (rule.getFilter() != null) {
-            filter = StyleUtilities.toCQL(rule.getFilter());
-
-            //for generated rules auto unique values we need to escape quotes.
-            if(filter.contains("''") && !filter.endsWith("''") && rule.getFilter() instanceof PropertyIsLike){
-                filter = filter.replaceAll("''","\\\\'");
-            }
-        }
     }
 
     public String getName() {
@@ -157,5 +117,55 @@ public final class Rule implements StyleElement<MutableRule> {
             maxScale,
             listType(symbolizers),
             filter(filter));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Rule) {
+            Rule that = (Rule) obj;
+            return  Objects.equals(this.description, that.description) &&
+                    Objects.equals(this.filter, that.filter) &&
+                    Objects.equals(this.maxScale, that.maxScale) &&
+                    Objects.equals(this.minScale, that.minScale) &&
+                    Objects.equals(this.name, that.name) &&
+                    Objects.equals(this.symbolizers, that.symbolizers) &&
+                    Objects.equals(this.title, that.title);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + Objects.hashCode(this.name);
+        hash = 71 * hash + Objects.hashCode(this.title);
+        hash = 71 * hash + Objects.hashCode(this.description);
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.minScale) ^ (Double.doubleToLongBits(this.minScale) >>> 32));
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.maxScale) ^ (Double.doubleToLongBits(this.maxScale) >>> 32));
+        hash = 71 * hash + Objects.hashCode(this.symbolizers);
+        hash = 71 * hash + Objects.hashCode(this.filter);
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Rule]\n");
+        sb.append("name=").append(name).append('\n');
+        if (symbolizers != null) {
+            sb.append("symbolizers=\n");
+            for (Symbolizer ht : symbolizers) {
+                sb.append(ht).append('\n');
+            }
+        }
+        sb.append("description=").append(description).append('\n');
+        sb.append("filter=").append(filter).append('\n');
+        sb.append("maxScale=").append(maxScale).append('\n');
+        sb.append("minScale=").append(minScale).append('\n');
+        sb.append("title=").append(title).append('\n');
+        return sb.toString();
     }
 }

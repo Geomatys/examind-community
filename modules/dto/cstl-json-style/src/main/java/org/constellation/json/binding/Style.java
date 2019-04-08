@@ -19,13 +19,12 @@
 
 package org.constellation.json.binding;
 
-import org.geotoolkit.style.MutableRule;
 import org.geotoolkit.style.MutableStyle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.listType;
 
@@ -41,19 +40,6 @@ public final class Style implements StyleElement<MutableStyle> {
     private List<Rule> rules = new ArrayList<>();
 
     public Style() {
-    }
-
-    public Style(final MutableStyle style) {
-        ensureNonNull("style", style);
-        final List<MutableRule> mutableRules = new ArrayList<>(0);
-        if (!style.featureTypeStyles().isEmpty()) {
-            mutableRules.addAll(style.featureTypeStyles().get(0).rules());
-        }
-
-        name = style.getName();
-        for (final MutableRule mutableRule : mutableRules) {
-            rules.add(new Rule(mutableRule));
-        }
     }
 
     public Integer getId() {
@@ -87,5 +73,45 @@ public final class Style implements StyleElement<MutableStyle> {
         style.featureTypeStyles().add(SF.featureTypeStyle());
         style.featureTypeStyles().get(0).rules().addAll(listType(rules));
         return style;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Style) {
+            Style that = (Style) obj;
+            return  Objects.equals(this.id, that.id) &&
+                    Objects.equals(this.name, that.name) &&
+                    Objects.equals(this.rules, that.rules);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 11 * hash + Objects.hashCode(this.id);
+        hash = 11 * hash + Objects.hashCode(this.name);
+        hash = 11 * hash + Objects.hashCode(this.rules);
+        return hash;
+    }
+
+
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Style]\n");
+        sb.append("id=").append(id).append('\n');
+        sb.append("name=").append(name).append('\n');
+        if (rules != null) {
+            sb.append("rules=\n");
+            for (Rule ht : rules) {
+                sb.append(ht).append('\n');
+            }
+        }
+        return sb.toString();
     }
 }

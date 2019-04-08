@@ -16,7 +16,7 @@
 		http://www.ryantenney.com/schema/metrics http://www.ryantenney.com/schema/metrics/metrics-3.0.xsd">
 
   <security:global-method-security secured-annotations="enabled" jsr250-annotations="enabled" pre-post-annotations="enabled" />
- 
+
   <metrics:annotation-driven proxy-target-class="true" />
 
   <tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
@@ -36,6 +36,7 @@
     <mvc:message-converters>
         <bean class="org.constellation.api.rest.converter.MapContextMessageConverter" />
         <bean class="org.constellation.api.rest.converter.StyleMessageConverter" />
+        <bean class="org.constellation.api.rest.converter.JsonStyleMessageConverter" />
         <bean class="org.constellation.api.rest.converter.PortrayalMessageConverter" />
         <bean class="org.constellation.api.rest.converter.WMTSCapabilitiesMessageConverter" />
         <!--fallback on generic xml marshaller-->
@@ -47,6 +48,6 @@
   </mvc:annotation-driven>
 
   <context:component-scan base-package="org.constellation.api.rest" scoped-proxy="interfaces" />
-  
-  
+
+
 </beans>
