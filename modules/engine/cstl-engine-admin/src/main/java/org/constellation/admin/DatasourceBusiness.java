@@ -371,6 +371,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (Files.isDirectory(file) && Files.isHidden(file)) return FileVisitResult.SKIP_SUBTREE;
+
             if ("SERIAL.ENC".equals(file.getFileName().toString())) {
                 serialPresent = true;
                 return FileVisitResult.TERMINATE;
@@ -498,12 +500,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             List<Path> children = new ArrayList<>();
             // do not keep opened the stream for too long
             // because it can induce problem withe pooled client FileSystem (like ftp for example).
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-                for (Path child : stream) {
-                    children.add(child);
+            if (Files.isDirectory(path)) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(path,(Path entry) -> !Files.isHidden(entry))) {
+                    for (Path child : stream) {
+                        children.add(child);
+                    }
+                } catch (IOException e) {
+                    throw new ConstellationException("Error occurs during directory browsing", e);
                 }
-            } catch (IOException e) {
-                throw new ConstellationException("Error occurs during directory browsing", e);
             }
             for (Path child : children) {
                 String fileName = child.getFileName().toString();
@@ -730,16 +734,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             }
         }
 
-        if (Files.isDirectory(path) || root) {
+        if (root) {
             List<Path> children = new ArrayList<>();
             // do not keep opened the stream while calling recursively the method
             // because it can induce problem withe pooled client FileSystem (like ftp for example).
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-                for (Path child : stream) {
-                    children.add(child);
+            if (Files.isDirectory(path)) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, (Path entry) -> !Files.isHidden(entry))) {
+                    for (Path child : stream) {
+                        children.add(child);
+                    }
+                } catch (IOException e) {
+                    throw new ConstellationException("Error occurs during directory browsing", e);
                 }
-            } catch (IOException e) {
-                throw new ConstellationException("Error occurs during directory browsing", e);
             }
             for (Path child : children) {
                 String childFileName = child.getFileName().toString();
