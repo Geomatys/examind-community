@@ -34,9 +34,16 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.geotoolkit.coverage.grid.GeneralGridGeometry;
+import org.geotoolkit.coverage.grid.GridCoverage2D;
+import org.geotoolkit.coverage.grid.GridGeometry2D;
+import org.geotoolkit.coverage.io.GridCoverageReadParam;
+import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessEvent;
 import org.geotoolkit.storage.coverage.GridCoverageResource;
+import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Async;
@@ -120,8 +127,46 @@ public class DataCoverageJob implements IDataCoverageJob {
                     }
                     final Resource res = StoreUtilities.findResource(store, name.toString());
 
+                    if (res instanceof MultiResolutionResource) {
+                        //pyramid, too large to compute statistics
+                        data.setStatsState(STATE_PARTIAL);
+                        updateData(data);
+                        return;
+                    }
+
                     if (res instanceof CoverageResource) {
                         final CoverageResource covRef = (CoverageResource) res;
+                        final org.geotoolkit.process.Process process = new Statistics((GridCoverageResource)covRef, false);
+                        process.addListener(new DataStatisticsListener(dataId));
+                        process.call();
+                    }
+                    if (res instanceof CoverageResource) {
+                        final CoverageResource covRef = (CoverageResource) res;
+
+                        final GridCoverageReader reader = (GridCoverageReader) covRef.acquireReader();
+                        try {
+                            final GeneralGridGeometry gg = reader.getGridGeometry(covRef.getImageIndex());
+
+                            if (gg instanceof GridGeometry2D) {
+                                final GridGeometry2D gg2d = (GridGeometry2D) gg;
+                                final Envelope envelope = gg2d.getEnvelope2D();
+
+                                final GridCoverageReadParam param = new GridCoverageReadParam();
+                                param.setEnvelope(envelope);
+                                param.setResolution(new double[]{envelope.getSpan(0)/1000.0, envelope.getSpan(1)/1000.0});
+
+                                final GridCoverage2D cov = (GridCoverage2D) reader.read(covRef.getImageIndex(), param);
+                                final org.geotoolkit.process.Process process = new Statistics(cov, false);
+                                process.addListener(new DataStatisticsListener(dataId));
+                                process.call();
+                            }
+
+                        } catch(Throwable ex) {
+                            //we tryed
+                        } finally {
+                            covRef.recycle(reader);
+                        }
+
                         final org.geotoolkit.process.Process process = new Statistics((GridCoverageResource)covRef, false);
                         process.addListener(new DataStatisticsListener(dataId));
                         process.call();
