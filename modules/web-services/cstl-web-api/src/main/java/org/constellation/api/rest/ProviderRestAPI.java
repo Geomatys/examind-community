@@ -33,7 +33,8 @@ import javax.inject.Inject;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.DataStores;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataBrief;
@@ -100,6 +101,20 @@ public class ProviderRestAPI extends AbstractRestAPI {
     public ResponseEntity getProviders() {
         final List<ProviderBrief> providers = providerBusiness.getProviders();
         return new ResponseEntity(providers,OK);
+    }
+
+    /**
+     * List all providers services.
+     *
+     * @return list of providers services
+     */
+    @RequestMapping(value="/services",method=GET,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity getServices() {
+        final List<String> lst = new ArrayList<>();
+        for (DataStoreProvider dp : DataStores.providers()) {
+            lst.add(dp.getClass().getName() + " ("+dp.getShortName()+")");
+        }
+        return new ResponseEntity(lst,OK);
     }
 
     /**
