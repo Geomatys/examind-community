@@ -159,6 +159,11 @@ public class DataStoreProvider extends AbstractDataProvider{
                     if (!index.contains(name)) {
                         index.add(name);
                     }
+                } else if (!(rs instanceof Aggregate)) {
+                    GenericName name = NamesExt.valueOf(DataProviders.getResourceIdentifier(rs));
+                    if (!index.contains(name)) {
+                        index.add(name);
+                    }
                 }
             }
 
