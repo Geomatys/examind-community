@@ -465,7 +465,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         if (foi.getGeometry() != null) {
                             try {
                                 WKBWriter writer = new WKBWriter();
-                                final Geometry geom = GeometrytoJTS.toJTS((AbstractGeometry) foi.getGeometry());
+                                final Geometry geom = GeometrytoJTS.toJTS((AbstractGeometry) foi.getGeometry(), false);
                                 final int SRID = geom.getSRID();
                                 stmtInsert.setBytes(5, writer.write(geom));
                                 stmtInsert.setInt(6, SRID);
