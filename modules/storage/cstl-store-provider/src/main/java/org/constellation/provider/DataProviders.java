@@ -705,7 +705,10 @@ public final class DataProviders extends Static{
     }
 
     public static String getResourceIdentifier(Resource r) throws DataStoreException {
-        return r.getIdentifier().tip().toString();
+        if (r.getIdentifier() != null) {
+            return r.getIdentifier().tip().toString();
+        }
+        return null;
     }
 
     private static String getType(Resource r) throws DataStoreException {

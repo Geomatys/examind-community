@@ -154,15 +154,16 @@ public class DataStoreProvider extends AbstractDataProvider{
         try {
 
             for (final Resource rs : DataStores.flatten(store, true)) {
-                if (rs instanceof FeatureSet) {
-                    GenericName name = NamesExt.valueOf(DataProviders.getResourceIdentifier(rs));
-                    if (!index.contains(name)) {
-                        index.add(name);
-                    }
-                } else if (!(rs instanceof Aggregate)) {
-                    GenericName name = NamesExt.valueOf(DataProviders.getResourceIdentifier(rs));
-                    if (!index.contains(name)) {
-                        index.add(name);
+                GenericName rsName = rs.getIdentifier();
+                if (rsName != null) {
+                    if (rs instanceof FeatureSet) {
+                        if (!index.contains(rsName)) {
+                            index.add(rsName);
+                        }
+                    } else if (!(rs instanceof Aggregate)) {
+                        if (!index.contains(rsName)) {
+                            index.add(rsName);
+                        }
                     }
                 }
             }
