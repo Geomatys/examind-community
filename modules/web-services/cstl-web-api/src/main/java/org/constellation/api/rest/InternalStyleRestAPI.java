@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.internal.system.DefaultFactories;
 
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.util.iso.DefaultInternationalString;
@@ -55,8 +56,6 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.display2d.GO2Utilities;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.MutableLayer;
@@ -117,6 +116,8 @@ import static org.geotoolkit.style.StyleConstants.*;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.PropertyType;
+import org.opengis.filter.FilterFactory;
+import org.opengis.style.StyleFactory;
 import org.opengis.util.GenericName;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -254,10 +255,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 double minimum = Double.POSITIVE_INFINITY;
                 double maximum = Double.NEGATIVE_INFINITY;
 
-                final MutableStyleFactory SF = (MutableStyleFactory) FactoryFinder.getStyleFactory(
-                        new Hints(Hints.STYLE_FACTORY, MutableStyleFactory.class));
-                final FilterFactory2 FF = (FilterFactory2) FactoryFinder.getFilterFactory(
-                        new Hints(Hints.FILTER_FACTORY, FilterFactory2.class));
+                final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
 
                 final PropertyName property = FF.property(attribute);
 
@@ -492,10 +491,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 /*
                 * II - Extract all different values.
                 */
-                final MutableStyleFactory SF = (MutableStyleFactory) FactoryFinder.getStyleFactory(
-                        new Hints(Hints.STYLE_FACTORY, MutableStyleFactory.class));
-                final FilterFactory2 FF = (FilterFactory2) FactoryFinder.getFilterFactory(
-                        new Hints(Hints.FILTER_FACTORY, FilterFactory2.class));
+                final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
                 final PropertyName property = FF.property(attribute);
                 final List<Object> differentValues = new ArrayList<>();
 
@@ -612,8 +609,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 FeatureSet fs = (FeatureSet) rs;
 
                 final Map<Object,Long> mapping = new LinkedHashMap<>();
-                final FilterFactory2 FF = (FilterFactory2) FactoryFinder.getFilterFactory(
-                        new Hints(Hints.FILTER_FACTORY, FilterFactory2.class));
+                final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
                 final PropertyName property = FF.property(attribute);
 
                 final QueryBuilder queryBuilder = new QueryBuilder();

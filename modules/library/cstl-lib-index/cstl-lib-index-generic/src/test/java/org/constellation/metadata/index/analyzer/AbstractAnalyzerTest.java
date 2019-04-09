@@ -28,8 +28,6 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
@@ -46,10 +44,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.test.utils.SpringTestRunner;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
+import org.opengis.filter.FilterFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -62,7 +62,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringTestRunner.class)
 public abstract class AbstractAnalyzerTest {
 
-    protected static final FilterFactory2 FF = (FilterFactory2) FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+    protected static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
 
     protected static final Logger logger = Logging.getLogger("org.constellation.metadata.index.generic");
 

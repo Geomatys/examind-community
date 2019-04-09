@@ -19,13 +19,14 @@
 
 package org.constellation.json.util;
 
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.util.Static;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.sld.DefaultSLDFactory;
 import org.geotoolkit.sld.MutableSLDFactory;
 import org.geotoolkit.style.MutableStyleFactory;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.style.StyleFactory;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -42,12 +43,10 @@ public final class StyleFactories extends Static {
     /**
      * Style elements factory.
      */
-    public static final MutableStyleFactory SF = (MutableStyleFactory) FactoryFinder.getStyleFactory(
-            new Hints(Hints.STYLE_FACTORY, MutableStyleFactory.class));
+    public static final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
 
     /**
      * Filters factory.
      */
-    public static final FilterFactory2 FF = (FilterFactory2) FactoryFinder.getFilterFactory(
-            new Hints(Hints.FILTER_FACTORY, FilterFactory2.class));
+    public static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
 }

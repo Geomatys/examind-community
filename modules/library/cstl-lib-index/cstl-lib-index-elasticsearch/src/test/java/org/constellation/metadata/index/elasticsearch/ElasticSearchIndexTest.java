@@ -27,8 +27,6 @@ import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.nio.IOUtilities;
 
 import org.junit.After;
@@ -53,11 +51,13 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Not;
 
 
@@ -69,8 +69,7 @@ import org.opengis.filter.Not;
 @RunWith(TestRunner.class)
 public class ElasticSearchIndexTest {
 
-    protected static final FilterFactory2 FF = (FilterFactory2)
-            FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+    protected static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
 
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");

@@ -22,10 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.factory.FactoryFinder;
 import org.geotoolkit.geometry.isoonjts.JTSUtils;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.GMLUtilities;
@@ -85,7 +85,7 @@ import org.opengis.util.FactoryException;
  */
 public class OGCFilterToDTOTransformer {
 
-    private static final FilterFactory FF = FactoryFinder.getFilterFactory(null);
+    private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
     public OGCFilterToDTOTransformer() {
     }

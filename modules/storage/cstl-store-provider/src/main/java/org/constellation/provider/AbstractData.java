@@ -23,8 +23,8 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef.Query;
 import org.geotoolkit.cql.CQL;
 import org.geotoolkit.cql.CQLException;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
+import org.apache.sis.internal.system.DefaultFactories;
+import org.opengis.filter.FilterFactory;
 import org.geotoolkit.util.DateRange;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
@@ -132,7 +132,7 @@ public abstract class AbstractData implements Data{
     }
 
     protected Filter buildCQLFilter(final String cql, final Filter filter) {
-        final FilterFactory2 factory = (FilterFactory2) FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
         try {
             final Filter cqlfilter = CQL.parseFilter(cql);
             if (filter != null) {
@@ -147,7 +147,7 @@ public abstract class AbstractData implements Data{
     }
 
     protected Filter buildDimFilter(final String dimName, final String dimValue, final Filter filter) {
-        final FilterFactory2 factory = (FilterFactory2) FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
         Object value = dimValue;
         try {
             value = Double.parseDouble(dimValue);

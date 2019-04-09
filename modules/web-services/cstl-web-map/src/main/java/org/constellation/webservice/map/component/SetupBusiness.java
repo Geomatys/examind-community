@@ -32,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.parameter.Parameters;
 
 import org.apache.sis.util.logging.Logging;
@@ -50,7 +51,6 @@ import org.constellation.process.ExamindProcessFactory;
 import org.constellation.process.provider.CreateProviderDescriptor;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
-import org.geotoolkit.factory.FactoryFinder;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -65,7 +65,6 @@ import org.geotoolkit.style.MutableStyleFactory;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.style.GraphicalSymbol;
 import org.opengis.util.NoSuchIdentifierException;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -73,6 +72,7 @@ import static org.geotoolkit.style.StyleConstants.DEFAULT_LINE_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POINT_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POLYGON_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_RASTER_SYMBOLIZER;
+import org.opengis.style.StyleFactory;
 
 /**
  * Specific setup for map service
@@ -211,7 +211,7 @@ public class SetupBusiness {
             }
 
             // Fill default SLD provider.
-            final MutableStyleFactory SF = (MutableStyleFactory) FactoryFinder.getStyleFactory(null);
+            final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
 
 
             try {

@@ -23,8 +23,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.apache.lucene.search.Filter;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.QueryConstraint;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.filter.SpatialFilterType;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.geometry.jts.SRIDGenerator.Version;
@@ -71,6 +69,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.apache.sis.internal.system.DefaultFactories;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.index.LogicalFilterType;
 
@@ -88,6 +87,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.opengis.filter.PropertyIsBetween;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
+import org.opengis.filter.FilterFactory;
 
 
 /**
@@ -97,8 +97,7 @@ import org.opengis.temporal.Period;
  */
 public abstract class AbstractFilterParser implements FilterParser {
 
-    protected static final FilterFactory2 FF = (FilterFactory2)
-            FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+    protected static final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
 
     /**
      * use for debugging purpose

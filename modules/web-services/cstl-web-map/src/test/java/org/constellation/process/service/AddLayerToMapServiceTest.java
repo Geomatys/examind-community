@@ -30,7 +30,6 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.util.DataReference;
-import org.geotoolkit.factory.FactoryFinder;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -41,9 +40,7 @@ import org.opengis.filter.FilterFactory;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.NoSuchIdentifierException;
-
 import javax.xml.namespace.QName;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -53,8 +50,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.geotoolkit.util.NamesExt;
-
 import org.constellation.exception.ConstellationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -71,7 +68,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private static final String PROCESS_NAME = "service.add_layer";
     private static final DataReference COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, "shapeProvider", "Countries");
     private static final DataReference STYLE_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_STYLE_TYPE, "styleProvider", "redBlue");
-    private static final FilterFactory FF = FactoryFinder.getFilterFactory(null);
+    private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
     @Before
     public void createProvider() throws ConfigurationException, IOException, URISyntaxException {

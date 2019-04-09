@@ -27,7 +27,7 @@ import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.query.Query;
 import org.geotoolkit.data.query.QueryBuilder;
-import org.geotoolkit.factory.FactoryFinder;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
@@ -201,7 +201,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         this.store = store;
         this.versionDate = versionDate;
 
-        final FilterFactory ff = FactoryFinder.getFilterFactory(null);
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
 
         if(dateStart != null)       this.dateStartField = ff.property(dateStart);
         else                        this.dateStartField = null;

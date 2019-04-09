@@ -8,8 +8,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.metadata.index.AbstractCSWIndexer;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.lucene.filter.LuceneOGCFilter;
 import org.geotoolkit.lucene.filter.SerialChainFilter;
@@ -21,11 +19,13 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.test.utils.SpringTestRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.runner.RunWith;
+import org.opengis.filter.FilterFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -40,7 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 public abstract class AbstractGenericIndexTest {
 
     protected FilterFactory2 getFF() {
-        return (FilterFactory2)FactoryFinder.getFilterFactory(new Hints(Hints.FILTER_FACTORY,FilterFactory2.class));
+        return (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
     }
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata");

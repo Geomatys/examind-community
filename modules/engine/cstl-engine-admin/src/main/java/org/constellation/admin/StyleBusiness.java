@@ -33,8 +33,6 @@ import org.constellation.repository.*;
 import org.geotoolkit.display2d.ext.cellular.CellSymbolizer;
 import org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
-import org.geotoolkit.factory.FactoryFinder;
-import org.geotoolkit.factory.Hints;
 import org.geotoolkit.sld.*;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
@@ -65,6 +63,8 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.apache.sis.internal.system.DefaultFactories;
+import org.opengis.style.StyleFactory;
 
 /**
  * @author Bernard Fabien (Geomatys)
@@ -107,8 +107,7 @@ public class StyleBusiness implements IStyleBusiness {
 
     private final StyleXmlIO sldParser = new StyleXmlIO();
 
-    private static final MutableStyleFactory SF = (MutableStyleFactory) FactoryFinder.getStyleFactory(new Hints(Hints.STYLE_FACTORY,
-            MutableStyleFactory.class));
+    private static final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
     /**
      * Logger used for debugging and event notification.
      */
