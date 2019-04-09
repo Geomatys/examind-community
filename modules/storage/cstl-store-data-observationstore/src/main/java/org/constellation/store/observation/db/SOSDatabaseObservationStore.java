@@ -154,7 +154,7 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
             } else {
                 this.schemaPrefix = sp;
             }
-            
+
             // build database structure if needed
             buildDatasource();
 
@@ -615,13 +615,17 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
     private boolean buildDatasource() throws DataStoreException {
         try {
             if (OM2DatabaseCreator.validConnection(source)) {
-                if (!OM2DatabaseCreator.structurePresent(source, schemaPrefix)) {
-                    OM2DatabaseCreator.createObservationDatabase(source, true, null, schemaPrefix);
+                if (OM2DatabaseCreator.isPostgisInstalled(source, true)) {
+                    if (!OM2DatabaseCreator.structurePresent(source, schemaPrefix)) {
+                        OM2DatabaseCreator.createObservationDatabase(source, true, null, schemaPrefix);
+                        return true;
+                    } else {
+                        getLogger().info("OM2 structure already present");
+                    }
                     return true;
                 } else {
-                    getLogger().info("OM2 structure already present");
+                    getLogger().warning("Missing Postgis extension.");
                 }
-                return true;
             } else {
                 getLogger().warning("unable to connect OM datasource");
             }

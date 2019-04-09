@@ -107,6 +107,21 @@ public class OM2DatabaseCreator {
         return false;
     }
 
+    public static boolean isPostgisInstalled(final DataSource source, boolean isPostgres) {
+        if (!isPostgres) return true;
+        if (source != null) {
+            try (final Connection con = source.getConnection();
+                 final Statement stmt = con.createStatement();
+                 final ResultSet result = stmt.executeQuery("SELECT postgis_full_version()")) {
+                result.next();
+                return true;
+            } catch(SQLException ex) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     private static boolean newVersionTableMissing(final Connection con, final String schemaPrefix) {
         if (con != null) {
             try (final Statement stmt = con.createStatement();
