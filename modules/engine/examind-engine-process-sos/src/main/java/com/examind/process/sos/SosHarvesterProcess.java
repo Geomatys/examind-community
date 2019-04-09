@@ -17,11 +17,11 @@
 package com.examind.process.sos;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -42,8 +42,8 @@ import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.importdata.DatasourceAnalysisV3;
-import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
+import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
@@ -112,7 +112,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         =======================================*/
 
         final Path sourceFolder = Paths.get(inputParameters.getValue(SosHarvesterProcessDescriptor.DATA_FOLDER));
-        final String sosId = inputParameters.getValue(SosHarvesterProcessDescriptor.SERVICE_ID);
+        final ServiceProcessReference sosServ = inputParameters.getValue(SosHarvesterProcessDescriptor.SERVICE_ID);
         final String datasetIdentifier = inputParameters.getValue(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER);
         final Character separator = inputParameters.getValue(SosHarvesterProcessDescriptor.SEPARATOR);
         final String dateColumn = inputParameters.getValue(SosHarvesterProcessDescriptor.DATE_COLUMN);
@@ -136,7 +136,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         datasourceBusiness.updateDatasourceAnalysisState(dsId, "NOT_STARTED");
 
         // http://localhost:8080/examind/API/datasources/112/selectedPath
-        if (sourceFolder.toFile().isDirectory()) {
+        if (Files.isDirectory(sourceFolder)) {
             for (final File file : sourceFolder.toFile().listFiles()) {
 //                if("tsg-FNFP.csv".equals(file.getName())) {
 //                if("NOAAShipTrackWTEC_5031_e90c_b602.nc".equals(file.getName())) {
@@ -144,6 +144,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     datasourceBusiness.addSelectedPath(dsId, '/' + file.getName());
                 }
             }
+        } else {
+            throw new ProcessException("The source folder does not point to a directory", this);
         }
 
         try {
@@ -182,12 +184,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 DatasourceAnalysisV3 analyseDatasourceV3 = datasourceBusiness.analyseDatasourceV3(dsId, provConfig);
 
 
+                if (analyseDatasourceV3.getStores().isEmpty()) {
+                    throw new ProcessException("No CSV files detected", this);
+                }
                 // http://localhost:8080/examind/API/datas/accept?hidden=true
 
-                final Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
-
-                if(datasetId == null) {
-                    throw new ProcessException("", this);
+                Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
+                if (datasetId == null)  {
+                    datasetId = datasetBusiness.createDataset(datasetIdentifier, null, null);
                 }
 
                 final boolean hidden = false; // true
@@ -197,7 +201,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getResources().get(0).getId(), userId, hidden);
                     dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
 
-
                     // génération du sensorML
                     ids.addAll(generateSensorML(acceptData.getId()));
 
@@ -206,7 +209,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 datasourceBusiness.delete(dsId);
             } catch (Exception ex) {
                 LOGGER.warning(ex.getMessage());
-                throw new ProcessException("", this, ex);
+                throw new ProcessException("Error whie analysing the files", this, ex);
             }
         }
 
@@ -224,13 +227,13 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             for(final String sensorID : ids) {
                 // retrait d'un capteur du SOS
                 // http://localhost:8080/examind/API/SOS/sos1/sensor/NOAAShipTrackWTEC_5031_e90c_b602
-                configurer.removeSensor(sosId, sensorID);
-                LOGGER.info(String.format("retrait du capteur %s du service %s", sosId, sensorID));
+                configurer.removeSensor(sosServ.getName(), sensorID);
+                LOGGER.info(String.format("retrait du capteur %s du service %s", sosServ.getName(), sensorID));
 
                 // ajout d'un capteur au SOS
                 // http://localhost:8080/examind/API/SOS/sos1/sensor/import/NOAAShipTrackWTEC_5031_e90c_b602
-                importSensor(sosId, sensorID, configurer);
-                LOGGER.info(String.format("ajout du capteur %s au service %s", sosId, sensorID));
+                importSensor(sosServ.getName(), sensorID, configurer);
+                LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
             }
 
         } catch (ConfigurationException ex) {

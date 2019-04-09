@@ -21,6 +21,7 @@ import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.apache.sis.util.iso.SimpleInternationalString;
+import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.process.ExamindProcessFactory;
 import org.geotoolkit.data.csv.CSVFeatureStoreFactory;
 
@@ -44,11 +45,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRemarks("data folder")
             .setRequired(true)
             .create(String.class, null);
-    public static final ParameterDescriptor<String> SERVICE_ID = new ParameterBuilder()
-            .addName("service uri")
-            .setRemarks("service uri")
+    public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID = new ParameterBuilder()
+            .addName("SOS service")
+            .setRemarks("SOS service")
             .setRequired(true)
-            .create(String.class, null);
+            .create(ServiceProcessReference.class, null);
     public static final ParameterDescriptor<String> DATASET_IDENTIFIER = new ParameterBuilder()
             .addName("dataset identifier")
             .setRemarks("dataset identifier")

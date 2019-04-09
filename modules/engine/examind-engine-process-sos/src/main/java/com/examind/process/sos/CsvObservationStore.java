@@ -229,7 +229,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         final double longitude = Double.parseDouble(line[longitudeIndex]);
                         final double latitude = Double.parseDouble(line[latitudeIndex]);
-                        positions.add(SOSXmlFactory.buildDirectPosition("2.0.0", null, 2, Arrays.asList(latitude, longitude)));
+                        positions.add(SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude)));
                         gsb.addXYCoordinate(longitude, latitude);
                     }
 
@@ -422,7 +422,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
     @Override
     public ObservationReader getReader() {
 //        return new CsvObservationReader(dataFile, analyze);
-throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
