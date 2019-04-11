@@ -33,7 +33,7 @@ import org.opengis.parameter.ParameterValueGroup;
 /**
  * @author Samuel Andrés (Geomatys)
  */
-public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
+public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
 
     /**Process name : addition */
     public static final String NAME = "sosHarvester";
@@ -71,12 +71,6 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(Character.class, ',');
 
-    public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
-            .addName(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode())
-//            .setRemarks(Bundle.formatInternational(Bundle.Keys.paramURLRemarks))
-            .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
-
     public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
             .addName(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode())
 //            .setRemarks(Bundle.formatInternational(Bundle.Keys.paramURLRemarks))
@@ -101,6 +95,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, "LATITUDE (degree_north)");
 
+    public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
+            .addName(CsvObservationStoreFactory.FOI_COLUMN.getName().getCode())
+            .setRequired(false)
+            .create(String.class, "LATITUDE (degree_north)");
+
     public static final ParameterDescriptor<String> MEASURE_COLUMNS  = new ExtendedParameterDescriptor<>(
                 "measure columns",
                  "A set of measure columns to extract",
@@ -111,13 +110,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, SERVICE_ID, DATASET_IDENTIFIER, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS);
+                    SEPARATOR, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS);
 
 
     /** Instance */
-    public static final ProcessDescriptor INSTANCE = new SosHarvesterProcessDescriptor();
+    public static final ProcessDescriptor INSTANCE = new HarvesterPreProcessDescriptor();
 
-    public SosHarvesterProcessDescriptor() {
+    public HarvesterPreProcessDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION,
                 new SimpleInternationalString("Harvests SOS data."),
                 INPUT_DESC, PARAM_BUILDER.addName("OutputParameters").createGroup());

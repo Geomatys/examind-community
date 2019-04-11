@@ -38,12 +38,14 @@ import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.FileFeatureStoreFactory;
 import org.geotoolkit.data.csv.CSVFeatureStoreFactory;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
@@ -76,6 +78,8 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
     private static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data");
 
+    private static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
+
     /** factory identification **/
     public static final String NAME = "observationCsvFile";
 
@@ -88,40 +92,55 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
-    public static final ParameterDescriptor<String> DATE_COLUMN = new ParameterBuilder()
+    public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
+            .addName("main column")
+            .setRequired(true)
+            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
+
+    public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
             .addName("date column")
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
 
-    public static final ParameterDescriptor<String> DATE_FORMAT = new ParameterBuilder()
+    public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName("date format")
             .setRequired(true)
             .create(String.class, "yyyy-MM-dd'T'hh:mm:ss'Z'");
 
-    public static final ParameterDescriptor<String> LONGITUDE_COLUMN = new ParameterBuilder()
+    public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName("longitude column")
             .setRequired(true)
             .create(String.class, "LONGITUDE (degree_east)");
 
-    public static final ParameterDescriptor<String> LATITUDE_COLUMN = new ParameterBuilder()
+    public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
             .addName("latitude column")
             .setRequired(true)
             .create(String.class, "LATITUDE (degree_north)");
 
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS = new ParameterBuilder()
+    public static final ParameterDescriptor<String> MEASURE_COLUMNS = PARAM_BUILDER
             .addName("measure columns")
             .setRequired(false)
             .create(String.class, null);
 
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS_SEPARATOR = new ParameterBuilder()
+    public static final ParameterDescriptor<String> MEASURE_COLUMNS_SEPARATOR = PARAM_BUILDER
             .addName("measure columns separator")
             .setRequired(false)
             .create(String.class, "\\|");
 
+    public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
+            .addName("Feature  of Interest column")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> OBSERVATION_TYPE = PARAM_BUILDER
+            .addName("Observation type")
+            .setRequired(false)
+            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
+
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
-            = new ParameterBuilder().addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVFeatureStoreFactory.PATH, CSVFeatureStoreFactory.SEPARATOR,
-                    DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR);
+            = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVFeatureStoreFactory.PATH, CSVFeatureStoreFactory.SEPARATOR,
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, OBSERVATION_TYPE);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -143,17 +162,20 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
         final URI uri = (URI) params.parameter(CSVFeatureStoreFactory.PATH.getName().toString()).getValue();
         final char separator = (Character) params.parameter(CSVFeatureStoreFactory.SEPARATOR.getName().toString()).getValue();
+        final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
         final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
+        final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
+        final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         try {
             return new CsvObservationStore(Paths.get(uri),
                     separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns);
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);
@@ -167,17 +189,20 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
         final URI uri = (URI) params.parameter(CSVFeatureStoreFactory.PATH.getName().toString()).getValue();
         final char separator = (Character) params.parameter(CSVFeatureStoreFactory.SEPARATOR.getName().toString()).getValue();
+        final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
         final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
+        final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
+        final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         try {
             return new CsvObservationStore(Paths.get(uri),
                     separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns);
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);
@@ -279,9 +304,11 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
             public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
 
                 final Attribute<Point> att = TYPE.newInstance();
-                att.setValue(GF.createPoint(
-                        new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
-                                (Double) ftr.getPropertyValue(latitudeColumn))));
+                Point pt = GF.createPoint(
+                                new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
+                                               (Double) ftr.getPropertyValue(latitudeColumn)));
+                JTS.setCRS(pt, CommonCRS.defaultGeographic());
+                att.setValue(pt);
                 return att;
             }
         });

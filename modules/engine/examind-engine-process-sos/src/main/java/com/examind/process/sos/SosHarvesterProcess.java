@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.api.ServiceDef;
@@ -60,12 +59,15 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.util.StringUtilities;
 import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -103,23 +105,29 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String storeId = "observationCsvFile";// "observationFile";
         final String format = "text/csv; subtype=\"om\"";// "application/x-netcdf";
-//        final String storeId = "observationFile";
-//        final String format = "application/x-netcdf";
         final int userId = 1; // admin //assertAuthentificated(req);
 
         /*
         1- Récupération des paramètres du process
         =======================================*/
 
-        final Path sourceFolder = Paths.get(inputParameters.getValue(SosHarvesterProcessDescriptor.DATA_FOLDER));
-        final ServiceProcessReference sosServ = inputParameters.getValue(SosHarvesterProcessDescriptor.SERVICE_ID);
-        final String datasetIdentifier = inputParameters.getValue(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER);
-        final Character separator = inputParameters.getValue(SosHarvesterProcessDescriptor.SEPARATOR);
-        final String dateColumn = inputParameters.getValue(SosHarvesterProcessDescriptor.DATE_COLUMN);
-        final String dateFormat = inputParameters.getValue(SosHarvesterProcessDescriptor.DATE_FORMAT);
-        final String longitudeColumn = inputParameters.getValue(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN);
-        final String latitudeColumn = inputParameters.getValue(SosHarvesterProcessDescriptor.LATITUDE_COLUMN);
-        final String measureColumns = inputParameters.getValue(SosHarvesterProcessDescriptor.MEASURE_COLUMNS);
+        final Path sourceFolder = Paths.get(inputParameters.getValue(DATA_FOLDER));
+        final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
+        final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
+        final Character separator = inputParameters.getValue(SEPARATOR);
+        final String mainColumn = inputParameters.getValue(MAIN_COLUMN);
+        final String dateColumn = inputParameters.getValue(DATE_COLUMN);
+        final String dateFormat = inputParameters.getValue(DATE_FORMAT);
+        final String longitudeColumn = inputParameters.getValue(LONGITUDE_COLUMN);
+        final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
+        final String observationType = inputParameters.getValue(OBS_TYPE);
+
+        final List<String> measureColumns = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(MEASURE_COLUMNS.getName().getCode())) {
+                measureColumns.add(((ParameterValue)param).stringValue());
+            }
+        }
 
         /*
         2- Détermination des données à importer
@@ -135,11 +143,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ds = datasourceBusiness.getDatasource(dsId);
         datasourceBusiness.updateDatasourceAnalysisState(dsId, "NOT_STARTED");
 
-        // http://localhost:8080/examind/API/datasources/112/selectedPath
         if (Files.isDirectory(sourceFolder)) {
             for (final File file : sourceFolder.toFile().listFiles()) {
-//                if("tsg-FNFP.csv".equals(file.getName())) {
-//                if("NOAAShipTrackWTEC_5031_e90c_b602.nc".equals(file.getName())) {
                 if (file.getName().endsWith(".csv")) {
                     datasourceBusiness.addSelectedPath(dsId, '/' + file.getName());
                 }
@@ -151,7 +156,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         try {
             List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
         } catch (ConstellationException ex) {
-            Logger.getLogger(SosHarvesterProcess.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
 
@@ -174,11 +179,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.propertyToMap(provConfig.getParameters());
 
             provConfig.getParameters().put(CSVFeatureStoreFactory.SEPARATOR.getName().toString(), separator.toString());
+            provConfig.getParameters().put(CsvObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
             provConfig.getParameters().put(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), measureColumns);
+            provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS_SEPARATOR.getName().toString(), ",");
+            provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
+            provConfig.getParameters().put(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
 
             try {
                 DatasourceAnalysisV3 analyseDatasourceV3 = datasourceBusiness.analyseDatasourceV3(dsId, provConfig);

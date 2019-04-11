@@ -76,6 +76,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
     private final Path dataFile;
 
+    private final String mainColumn;
+
     // date column expected header
     private final String dateColumn;
     // date format
@@ -84,31 +86,42 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
     private final String longitudeColumn;
     // latitude column expected header
     private final String latitudeColumn;
+
+    private final String foiColumn;
+
     private final Set<String> measureColumns;
+
+    // timeSeries / trajectory / profiles
+    private final String observationType;
 
     /**
      *
      * @param observationFile path to the csv observation file
      * @param separator character used as field separator
      * @param featureType the feature type
+     * @param mainColumn the name (header) of the main column (date or pression/depth for profiles)
      * @param dateColumn the name (header) of the date column
      * @param dateTimeformat the date format (see {@link SimpleDateFormat})
      * @param longitudeColumn the name (header) of the longitude column
      * @param latitudeColumn the name (header) of the latitude column
      * @param measureColumns the names (headers) of the measure columns
+     * @param foiColumn the name (header) of the feature of interest column
      * @throws DataStoreException
      * @throws MalformedURLException
      */
     public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
-            final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns) throws DataStoreException, MalformedURLException {
+            final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
+            final Set<String> measureColumns, String observationType, String foiColumn) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
+        this.mainColumn = mainColumn;
         this.dateColumn = dateColumn;
         this.dateFormat = dateTimeformat;
         this.longitudeColumn = longitudeColumn;
         this.latitudeColumn = latitudeColumn;
         this.measureColumns = measureColumns;
+        this.observationType = observationType;
+        this.foiColumn = foiColumn;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -151,7 +164,9 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
                 /*
                 1- filter prepare spatial/time column indices from ordinary fields
+                  --  lat/lon fields are added only in measure for trajectory observation
                 ================================================================*/
+                int mainIndex = -1;
                 int dateIndex = -1;
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
@@ -164,12 +179,17 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
 
-                    if (dateColumn.equals(header)) {
+                    if (mainColumn.equals(header)) {
+                        mainIndex = i;
+                    } else if (dateColumn.equals(header)) {
                         dateIndex = i;
+                        if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
                     } else if (latitudeColumn.equals(header)) {
                         latitudeIndex = i;
+                        if (!"Trajectory".equals(observationType))  ignoredFields.add(latitudeIndex);
                     } else if (longitudeColumn.equals(header)) {
                         longitudeIndex = i;
+                        if (!"Trajectory".equals(observationType)) ignoredFields.add(longitudeIndex);
                     } else if (measureColumns.contains(header)) {
                         measureFields.add(header);
                     } else {
@@ -189,7 +209,13 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 final ExtractionResult result = new ExtractionResult();
                 result.fields.addAll(measureFields);
 
-                final AbstractDataRecord datarecord = OMUtils.getDataRecordTrajectory("2.0.0", fields);
+                final AbstractDataRecord datarecord;
+                switch (observationType) {
+                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
+                    case "Trajectory": datarecord = OMUtils.getDataRecordTrajectory("2.0.0", fields);break;
+                    case "Profile"   : datarecord = OMUtils.getDataRecordProfile("2.0.0", fields);   break;
+                    default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+                }
                 final Phenomenon phenomenon         = OMUtils.getPhenomenon("2.0.0", fields);
                 result.phenomenons.add(phenomenon);
 
@@ -220,16 +246,17 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     // update temporal interval
                     if (dateIndex != -1) {
                         final long millis = sdf.parse(line[dateIndex]).getTime();
-
                         gsb.addDate(millis);
-                        msb.appendDate(millis);
                     }
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         final double longitude = Double.parseDouble(line[longitudeIndex]);
                         final double latitude = Double.parseDouble(line[latitudeIndex]);
-                        positions.add(SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude)));
+                        DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
+                        if (!positions.contains(pos)) {
+                            positions.add(pos);
+                        }
                         gsb.addXYCoordinate(longitude, latitude);
                     }
 
@@ -238,16 +265,34 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     b- build measure string
                     =====================*/
 
+                    // add main field
+                    if (mainIndex != -1) {
+
+                        // assume that for profile main field is a double
+                        if ("Profile".equals(observationType)) {
+                            try {
+                                msb.appendValue(Double.parseDouble(line[mainIndex]));
+                            } catch (NumberFormatException ex) {
+                                LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
+                                continue;
+                            }
+                        // assume that is a date otherwise
+                        } else {
+                            final long millis = sdf.parse(line[mainIndex]).getTime();
+                            msb.appendDate(millis);
+                        }
+                    }
+
                     // memorize indices to skip
                     final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
 
                     // loop over columns to build measure string
                     for (int i = 0; i < line.length; i++) {
-                        if(i != dateIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
+                        if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
                             try {
                                 msb.appendValue(Double.parseDouble(line[i]));
                             } catch (NumberFormatException ex) {
-                                LOGGER.warning(String.format("Problem at line %d and column %d", count, i));
+                                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
                                 msb.appendValue(0.);
                             }
                         }
@@ -265,18 +310,23 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 final String procedureID = getProcedureID();
 
                 // sampling feature of interest
-                final SamplingFeature sp = OMUtils.buildSamplingCurve("foi-" + identifier, positions);
+                final SamplingFeature sp;
+                if (positions.size() > 1) {
+                    sp = OMUtils.buildSamplingCurve("foi-" + identifier, positions);
+                } else {
+                    sp = OMUtils.buildSamplingPoint("foi-" + identifier, positions.get(0).getOrdinate(0),  positions.get(0).getOrdinate(1));
+                }
                 result.addFeatureOfInterest(sp);
                 gsb.addGeometry((AbstractGeometry) sp.getGeometry());
 
                 result.observations.add(OMUtils.buildObservation(identifier,                    // id
-                                                                      sp,                            // foi
-                                                                      phenomenon,                    // phenomenon
-                                                                      procedureID,                   // procedure
-                                                                      count,                         // result
-                                                                      datarecord,                    // result
-                                                                      msb,                            // result
-                                                                      gsb.getTimeObject("2.0.0"))   // time);
+                                                                 sp,                            // foi
+                                                                 phenomenon,                    // phenomenon
+                                                                 procedureID,                   // procedure
+                                                                 count,                         // result
+                                                                 datarecord,                    // result
+                                                                 msb,                            // result
+                                                                 gsb.getTimeObject("2.0.0"))   // time);
                 );
 
                 result.spatialBound.merge(gsb);
