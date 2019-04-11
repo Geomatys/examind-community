@@ -20,18 +20,14 @@ package org.constellation.util;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
+import org.apache.sis.referencing.CRS;
 import org.constellation.dto.service.config.wxs.CRSCoverageList;
-import org.geotoolkit.factory.AuthorityFactoryFinder;
 import org.opengis.referencing.IdentifiedObject;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
@@ -62,7 +58,7 @@ public class CRSUtilities {
     public static Map<String, String> setWKTMap() throws FactoryException {
         if (ePSGCodes == null) {
             ePSGCodes = new TreeMap<>();
-            final CRSAuthorityFactory factory = AuthorityFactoryFinder.getCRSAuthorityFactory("EPSG", null);
+            final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
             final Collection<String> codes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
 
             for (final String code : codes) {
