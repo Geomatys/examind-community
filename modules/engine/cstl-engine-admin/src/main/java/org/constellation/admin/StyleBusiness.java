@@ -462,6 +462,12 @@ public class StyleBusiness implements IStyleBusiness {
 
     @Override
     @Transactional
+    public void linkToLayer(int styleId, int layerId) throws ConfigurationException {
+        styleRepository.linkStyleToLayer(styleId, layerId);
+    }
+
+    @Override
+    @Transactional
     public void deleteStyle(final int id) throws ConfigurationException {
         styleRepository.delete(id);
     }
@@ -534,6 +540,7 @@ public class StyleBusiness implements IStyleBusiness {
         request.put(KEY_IDENTIFIER, serviceIdentifier);
         clusterBusiness.publish(request);
     }
+
 
     @Override
     @Transactional

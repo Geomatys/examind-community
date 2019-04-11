@@ -1,40 +1,23 @@
 package org.constellation.database.impl.repository;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import org.constellation.dto.Data;
-import org.constellation.dto.Style;
 import org.constellation.database.api.jooq.tables.records.StyleRecord;
 import org.constellation.database.api.jooq.tables.records.StyledDataRecord;
 import org.constellation.database.api.jooq.tables.records.StyledLayerRecord;
+import org.constellation.dto.Data;
+import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.repository.StyleRepository;
-import org.jooq.Field;
-import org.jooq.InsertSetMoreStep;
-import org.jooq.UpdateConditionStep;
+import org.jooq.*;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 
-import static org.constellation.database.api.jooq.Tables.STYLE;
-import static org.constellation.database.api.jooq.Tables.STYLED_DATA;
-import static org.constellation.database.api.jooq.Tables.STYLED_LAYER;
+import static org.constellation.database.api.jooq.Tables.*;
 import static org.constellation.database.impl.repository.JooqDataRepository.convertDataListToDto;
-import org.jooq.Condition;
-import org.jooq.Select;
-import org.jooq.SelectConditionStep;
-import org.jooq.SelectLimitStep;
-import org.jooq.SortField;
-import org.jooq.UpdateSetFirstStep;
-import org.springframework.context.annotation.DependsOn;
 
 @Component
 @DependsOn("database-initer")

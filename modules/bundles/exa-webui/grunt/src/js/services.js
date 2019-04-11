@@ -363,7 +363,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
                     if (item) {
                         if ($scope.service) {
                             Examind.map.updateLayerStyle($scope.service.type, $scope.service.identifier,
-                                {values: {layerId: selected.name, spId: 'sld', styleName: item.name}}).then(
+                                {layerId: selected.id, styleId: item.id}).then(
                                 function() {
                                     selected.targetStyle.push(item);
                                     $scope.showLayerDashboardMap();

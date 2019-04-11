@@ -18,13 +18,6 @@
  */
 package org.constellation.api.rest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
@@ -36,43 +29,42 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.*;
+import org.constellation.dto.portrayal.LayerStyleUpdate;
 import org.constellation.dto.service.config.wxs.AddLayer;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerSummary;
-import org.constellation.dto.ParameterValues;
-import org.constellation.dto.SimpleValue;
-import org.constellation.dto.StyleBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 import org.constellation.security.SecurityManager;
 import org.constellation.util.Util;
 import org.geotoolkit.ows.xml.v110.BoundingBoxType;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.wmts.WMTSUtilities;
-import org.geotoolkit.wmts.xml.v100.Capabilities;
-import org.geotoolkit.wmts.xml.v100.ContentsType;
-import org.geotoolkit.wmts.xml.v100.LayerType;
 import org.geotoolkit.wmts.xml.v100.Style;
-import org.geotoolkit.wmts.xml.v100.TileMatrix;
-import org.geotoolkit.wmts.xml.v100.TileMatrixSet;
-import org.geotoolkit.wmts.xml.v100.TileMatrixSetLink;
+import org.geotoolkit.wmts.xml.v100.*;
 import org.opengis.geometry.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import org.opengis.util.FactoryException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
  *
@@ -197,11 +189,11 @@ public class MapRestAPI {
     }
 
     @RequestMapping(value="/MAP/{spec}/{id}/updatestyle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity updateLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier, final @RequestBody ParameterValues params) {
+    public ResponseEntity updateLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier, final @RequestBody LayerStyleUpdate params) {
         try {
-            styleBusiness.createOrUpdateStyleFromLayer(serviceType, serviceIdentifier, params.get("layerId"), params.get("spId"), params.get("styleName"));
+            styleBusiness.linkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
-        } catch(Throwable ex){
+        } catch(Exception ex){
             return new ErrorMessage(ex).build();
         }
     }
