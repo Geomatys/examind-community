@@ -17,6 +17,7 @@
 
 package com.examind.process.sos;
 
+import static com.examind.process.sos.CsvObservationStoreUtils.buildFOI;
 import com.opencsv.CSVReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -60,6 +61,7 @@ import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
+import org.opengis.observation.Observation;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
@@ -170,6 +172,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 int dateIndex = -1;
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
+                int foiIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -179,15 +182,18 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
 
-                    if (mainColumn.equals(header)) {
+                    if (header.equals(mainColumn)) {
                         mainIndex = i;
-                    } else if (dateColumn.equals(header)) {
+                    } else if (header.equals(foiColumn)) {
+                        foiIndex = i;
+                        ignoredFields.add(i);
+                    } else if (header.equals(dateColumn)) {
                         dateIndex = i;
                         if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
-                    } else if (latitudeColumn.equals(header)) {
+                    } else if (header.equals(latitudeColumn)) {
                         latitudeIndex = i;
                         if (!"Trajectory".equals(observationType))  ignoredFields.add(latitudeIndex);
-                    } else if (longitudeColumn.equals(header)) {
+                    } else if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
                         if (!"Trajectory".equals(observationType)) ignoredFields.add(longitudeIndex);
                     } else if (measureColumns.contains(header)) {
@@ -224,20 +230,71 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 3- compute measures
                 =================*/
 
-                // builder of measure string
-                final MeasureStringBuilder msb = new MeasureStringBuilder();
+                // -- global variables --
                 int count = 0;
 
                 // spatial / temporal boundaries
-                final GeoSpatialBound gsb = new GeoSpatialBound();
+                final GeoSpatialBound globalSpaBound = new GeoSpatialBound();
+                final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
 
+                // -- single observation related variables --
+                int currentCount                      = 0;
+                String currentFoi                     = null;
+                GeoSpatialBound currentSpaBound = new GeoSpatialBound();
+                // builder of measure string
+                MeasureStringBuilder msb = new MeasureStringBuilder();
                 // memorize positions to compute FOI
                 final List<DirectPosition> positions = new ArrayList<>();
 
-                final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
+                // -- previous variables leading to new observations --
+                String previousFoi = null;
+
                 while (it.hasNext()) {
                     count++;
                     final String[] line = it.next();
+
+
+                    // look for current foi
+                    if (foiIndex != -1) {
+                        currentFoi = line[foiIndex];
+                    }
+
+
+                    // closing current observation and starting new one
+                    if (previousFoi != null && !previousFoi.equals(currentFoi)) {
+
+                        final String oid = UUID.randomUUID().toString();
+                        final String procedureID = getProcedureID();
+
+                        // sampling feature of interest
+                        String foiID = "foi-" + oid;
+                        if (previousFoi != null) {
+                            foiID = previousFoi;
+                        }
+                        final SamplingFeature sp = buildFOI(foiID, positions);
+                        result.addFeatureOfInterest(sp);
+                        globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
+
+                        result.observations.add(OMUtils.buildObservation(oid,                           // id
+                                                                         sp,                            // foi
+                                                                         phenomenon,                    // phenomenon
+                                                                         procedureID,                   // procedure
+                                                                         currentCount,                  // count
+                                                                         datarecord,                    // result structure
+                                                                         msb,                           // measures
+                                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
+                        );
+
+                        // reset single observation related variables
+                        currentCount    = 0;
+                        currentSpaBound = new GeoSpatialBound();
+                        positions.clear();
+                        msb = new MeasureStringBuilder();
+                    }
+
+                    previousFoi = currentFoi;
+                    currentCount++;
+
 
                     /*
                     a- build spatio-temporal information
@@ -246,7 +303,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     // update temporal interval
                     if (dateIndex != -1) {
                         final long millis = sdf.parse(line[dateIndex]).getTime();
-                        gsb.addDate(millis);
+                        globalSpaBound.addDate(millis);
+                        currentSpaBound.addDate(millis);
                     }
 
                     // update spatial information
@@ -257,7 +315,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                         if (!positions.contains(pos)) {
                             positions.add(pos);
                         }
-                        gsb.addXYCoordinate(longitude, latitude);
+                        globalSpaBound.addXYCoordinate(longitude, latitude);
+                        currentSpaBound.addXYCoordinate(longitude, latitude);
                     }
 
 
@@ -292,8 +351,10 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                             try {
                                 msb.appendValue(Double.parseDouble(line[i]));
                             } catch (NumberFormatException ex) {
-                                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
-                                msb.appendValue(0.);
+                                if (!line[i].isEmpty()) {
+                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
+                                }
+                                msb.appendValue(Double.NaN);
                             }
                         }
                     }
@@ -306,34 +367,35 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 3- build result
                 =============*/
 
-                final String identifier = UUID.randomUUID().toString();
+                final String oid = UUID.randomUUID().toString();
                 final String procedureID = getProcedureID();
 
                 // sampling feature of interest
-                final SamplingFeature sp;
-                if (positions.size() > 1) {
-                    sp = OMUtils.buildSamplingCurve("foi-" + identifier, positions);
-                } else {
-                    sp = OMUtils.buildSamplingPoint("foi-" + identifier, positions.get(0).getOrdinate(0),  positions.get(0).getOrdinate(1));
+                String foiID = "foi-" + oid;
+                if (previousFoi != null) {
+                    foiID = previousFoi;
                 }
+                final SamplingFeature sp = buildFOI(foiID, positions);
                 result.addFeatureOfInterest(sp);
-                gsb.addGeometry((AbstractGeometry) sp.getGeometry());
+                globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
-                result.observations.add(OMUtils.buildObservation(identifier,                    // id
+                result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                  sp,                            // foi
                                                                  phenomenon,                    // phenomenon
                                                                  procedureID,                   // procedure
-                                                                 count,                         // result
-                                                                 datarecord,                    // result
-                                                                 msb,                            // result
-                                                                 gsb.getTimeObject("2.0.0"))   // time);
+                                                                 count,                         // count
+                                                                 datarecord,                    // result structure
+                                                                 msb,                           // measures
+                                                                 currentSpaBound.getTimeObject("2.0.0"))   // time
                 );
 
-                result.spatialBound.merge(gsb);
+
+
+                result.spatialBound.merge(globalSpaBound);
 
                 // build procedure tree
                 final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE);
-                procedure.spatialBound.merge(gsb);
+                procedure.spatialBound.merge(globalSpaBound);
                 result.procedures.add(procedure);
 
                 return result;

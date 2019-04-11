@@ -128,7 +128,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
             .create(String.class, "\\|");
 
     public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
-            .addName("Feature  of Interest column")
+            .addName("Feature of Interest column")
             .setRequired(false)
             .create(String.class, null);
 
@@ -140,7 +140,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVFeatureStoreFactory.PATH, CSVFeatureStoreFactory.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, OBSERVATION_TYPE);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -158,28 +158,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
     @Override
     public CsvObservationStore open(final ParameterValueGroup params) throws DataStoreException {
 
-        final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
-
-        final URI uri = (URI) params.parameter(CSVFeatureStoreFactory.PATH.getName().toString()).getValue();
-        final char separator = (Character) params.parameter(CSVFeatureStoreFactory.SEPARATOR.getName().toString()).getValue();
-        final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
-        final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
-        final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
-        final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
-        final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
-        final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
-        final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
-        final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
-        final Set<String> measureColumns = measureCols.getValue() == null ?
-                Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
-        try {
-            return new CsvObservationStore(Paths.get(uri),
-                    separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn);
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem opening csv file", ex);
-            throw new DataStoreException(ex);
-        }
+        return create(params);
     }
 
     @Override
@@ -276,9 +255,9 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
             atb.setName(NamesExt.create(field));
 
             if (dateColumn.equals(field)
-                    || (!measureColumns.contains(field)
-                    && !longitudeColumn.equals(field)
-                    && !latitudeColumn.equals(field))) {
+           || (!measureColumns.contains(field)
+            && !longitudeColumn.equals(field)
+            && !latitudeColumn.equals(field))) {
                 atb.setValueClass(String.class);
             } else {
                 atb.setValueClass(Double.class);

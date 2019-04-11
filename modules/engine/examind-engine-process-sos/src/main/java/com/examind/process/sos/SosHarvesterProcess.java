@@ -120,6 +120,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
         final String longitudeColumn = inputParameters.getValue(LONGITUDE_COLUMN);
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
+        final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
 
         final List<String> measureColumns = new ArrayList<>();
@@ -184,6 +185,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
             provConfig.getParameters().put(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
+            provConfig.getParameters().put(CsvObservationStoreFactory.FOI_COLUMN.getName().toString(), foiColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS_SEPARATOR.getName().toString(), ",");
             provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
             provConfig.getParameters().put(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
