@@ -16,7 +16,6 @@
  */
 package com.examind.process.sos;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +67,8 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -145,10 +146,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         datasourceBusiness.updateDatasourceAnalysisState(dsId, "NOT_STARTED");
 
         if (Files.isDirectory(sourceFolder)) {
-            for (final File file : sourceFolder.toFile().listFiles()) {
-                if (file.getName().endsWith(".csv")) {
-                    datasourceBusiness.addSelectedPath(dsId, '/' + file.getName());
+             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
+                for (Path child : stream) {
+                    if (child.getFileName().endsWith(".csv")) {
+                        datasourceBusiness.addSelectedPath(dsId, '/' + child.getFileName().toString());
+                    }
                 }
+            } catch (IOException e) {
+                throw new ProcessException("Error occurs during directory browsing", this, e);
             }
         } else {
             throw new ProcessException("The source folder does not point to a directory", this);

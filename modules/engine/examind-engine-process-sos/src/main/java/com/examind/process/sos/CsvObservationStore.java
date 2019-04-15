@@ -19,10 +19,10 @@ package com.examind.process.sos;
 
 import static com.examind.process.sos.CsvObservationStoreUtils.buildFOI;
 import com.opencsv.CSVReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -61,7 +61,6 @@ import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
-import org.opengis.observation.Observation;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
@@ -157,7 +156,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(new FileReader(dataFile.toFile()))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -418,7 +417,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
     public Set<String> getPhenomenonNames() {
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(new FileReader(dataFile.toFile()))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -449,7 +448,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
         final GeoSpatialBound result = new GeoSpatialBound();
         // open csv file
-        try (final CSVReader reader = new CSVReader(new FileReader(dataFile.toFile()))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
             final Iterator<String[]> it = reader.iterator();
 
@@ -542,7 +541,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
 
         // open csv file
-        try (final CSVReader reader = new CSVReader(new FileReader(dataFile.toFile()))) {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
             final Iterator<String[]> it = reader.iterator();
 

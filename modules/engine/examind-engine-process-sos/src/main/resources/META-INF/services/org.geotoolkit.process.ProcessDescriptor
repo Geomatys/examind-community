@@ -1,2 +1,2 @@
-#Providers process
 com.examind.process.sos.SosHarvesterProcessDescriptor
+com.examind.process.sos.HarvesterPreProcessDescriptor
