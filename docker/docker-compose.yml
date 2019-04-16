@@ -15,17 +15,20 @@ services :
         PGDATA: /var/lib/postgresql/data/pgdata/
 
     exa-dbpostgis:
-         image: docker.geomatys.com/geomatys-ubu-postgis
+         image: mdillon/postgis:10-alpine
          restart: "no"
          volumes:
           - "./mount/exa-dbpostgis/pgdata:/var/lib/postgis/data"
          ports:
           - "5441:5432"
          environment:
+           POSTGRES_DB: examind
+           POSTGRES_USER: examind
+           POSTGRES_PASSWORD: examind
            PGDATA: /var/lib/postgis/data
 
     examind:
-       image: docker.geomatys.com/tomcat-gdal:7-jre8u181-debian
+       image: tomcat:7-jre8
        restart: "no"
        volumes:
          - "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"

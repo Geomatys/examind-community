@@ -6,4 +6,4 @@
 
 
 NOTE: 
-The container exa-dbpostgis will create a database named cstl_sos with user=cstl and pwd=admin
+The container exa-dbpostgis will create a database named examind with user=examind and pwd=examind
