@@ -363,7 +363,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
        for (Layer configLayer : layers) {
             final Data layer = getLayerReference(configLayer);
 
-            if (layer == null || !layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
+            if (layer == null) {
+                LOGGER.log(Level.WARNING, "Unable to find a provider data correspounding to layer:{0}", configLayer.getIdentifier());
+                continue;
+            }
+
+            if (!layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
                 continue;
             }
 
