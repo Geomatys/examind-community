@@ -48,7 +48,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class WMSResponseWriter implements HttpMessageConverter<WMSResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.map.ws.rs");
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -63,7 +63,7 @@ public class WMSResponseWriter implements HttpMessageConverter<WMSResponse> {
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_XML);
     }
-    
+
     @Override
     public WMSResponse read(Class<? extends WMSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("WMSResponse message converter do not support reading.");
@@ -94,20 +94,24 @@ public class WMSResponseWriter implements HttpMessageConverter<WMSResponse> {
                 m = pool.acquireMarshaller();
                 m.setProperty(Marshaller.JAXB_FRAGMENT, true);
                 m.marshal(t, swCaps);
-                
+
             } else if (t instanceof WMSCapabilities){
                 pool = WMSMarshallerPool.getInstance130();
                 m = pool.acquireMarshaller();
                 m.marshal(t, outputMessage.getBody());
-                
+
             } else {
                 pool = WMSMarshallerPool.getInstance();
                 m = pool.acquireMarshaller();
                 m.marshal(t, outputMessage.getBody());
-            } 
+            }
             pool.recycle(m);
         } catch (JAXBException ex) {
-            LOGGER.log(Level.SEVERE, "JAXB exception while writing the WMS response", ex);
+            if (ex.getCause() instanceof IOException) {
+                LOGGER.log(Level.WARNING, "JAXB exception while writing the WMS response:{0}", ex.getCause().getMessage());
+            } else {
+                LOGGER.log(Level.SEVERE, "JAXB exception while writing the WMS response", ex);
+            }
         }
     }
 }
