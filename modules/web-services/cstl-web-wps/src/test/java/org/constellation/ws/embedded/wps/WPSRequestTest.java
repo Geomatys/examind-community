@@ -65,7 +65,7 @@ import org.junit.runner.RunWith;
  * @since 0.9
  */
 @RunWith(TestRunner.class)
- public class WPSRequestTest extends AbstractGrizzlyServer {
+public class WPSRequestTest extends AbstractGrizzlyServer {
 
 
     private static final String WPS_GETCAPABILITIES ="request=GetCapabilities&service=WPS&version=1.0.0";

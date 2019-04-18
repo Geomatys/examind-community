@@ -19,7 +19,7 @@
 
 package org.constellation.coverage.ws.rs;
 
-import org.geotoolkit.coverage.grid.GridCoverage2D;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 
 /**
@@ -28,8 +28,8 @@ import org.geotoolkit.image.io.metadata.SpatialMetadata;
  */
 public class GeotiffResponse {
 
-    public GridCoverage2D coverage;
-    
+    public GridCoverage coverage;
+
     public SpatialMetadata metadata;
 
     public String compression;

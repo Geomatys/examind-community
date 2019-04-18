@@ -33,10 +33,10 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.GridGeometry2D;
 import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
 import org.geotoolkit.filter.DefaultFilterFactory2;
@@ -299,7 +299,7 @@ public final class WCSUtils {
      * @return Given spatial metadata if not null, or a new one. In all cases, the metadata has been modified with
      * target data information.
      */
-    public static SpatialMetadata adapt(SpatialMetadata source, final GridCoverage2D targetData) {
+    public static SpatialMetadata adapt(SpatialMetadata source, final GridCoverage targetData) {
         return adapt(source, targetData.getGridGeometry(), targetData.getSampleDimensions().toArray(new SampleDimension[0]));
     }
 

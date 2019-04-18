@@ -25,7 +25,7 @@ import java.util.List;
 import org.constellation.exception.ConstellationStoreException;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.opengis.geometry.Envelope;
@@ -59,7 +59,7 @@ public interface CoverageData extends GeoData {
      * @throws ConstellationStoreException
      * @throws java.io.IOException
      */
-    GridCoverage2D getCoverage(final Envelope envelope, final Dimension dimension,
+    GridCoverage getCoverage(final Envelope envelope, final Dimension dimension,
             final Double elevation, final Date time) throws ConstellationStoreException, IOException;
 
     GridGeometry getGeometry() throws DataStoreException;

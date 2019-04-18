@@ -19,9 +19,7 @@
 
 package org.constellation.coverage.ws.rs;
 
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
@@ -30,6 +28,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.constellation.util.WCSUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -42,7 +41,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCoverage2D, SpatialMetadata>> {
+public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCoverage, SpatialMetadata>> {
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
@@ -60,19 +59,19 @@ public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCove
     }
 
     @Override
-    public Entry read(Class<? extends Entry<GridCoverage2D, SpatialMetadata>> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+    public Entry read(Class<? extends Entry<GridCoverage, SpatialMetadata>> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("Entry message converter do not support reading.");
     }
 
     @Override
-    public void write(Entry<GridCoverage2D, SpatialMetadata> entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    public void write(Entry<GridCoverage, SpatialMetadata> entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         writeInStream(entry, outputMessage.getBody());
     }
 
-    public static void writeInStream(final Entry<GridCoverage2D, SpatialMetadata> entry, final OutputStream out) throws IOException {
-        final GridCoverage2D coverage  = entry.getKey();
+    public static void writeInStream(final Entry<GridCoverage, SpatialMetadata> entry, final OutputStream out) throws IOException {
+        final GridCoverage coverage  = entry.getKey();
         final SpatialMetadata metadata = WCSUtils.adapt(entry.getValue(), coverage);
-        final IIOImage iioimage        = new IIOImage(coverage.getRenderedImage(), null, metadata);
+        final IIOImage iioimage        = new IIOImage(coverage.render(null), null, metadata);
         final ImageWriter iowriter     = ImageIO.getImageWritersByFormatName("netcdf").next();
 
         iowriter.setOutput(ImageIO.createImageOutputStream(out));

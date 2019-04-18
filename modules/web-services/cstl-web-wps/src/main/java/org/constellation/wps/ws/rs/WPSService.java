@@ -27,7 +27,6 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.Worker;
 import org.constellation.ws.rs.OGCWebService;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.ows.xml.ExceptionResponse;
@@ -90,6 +89,7 @@ import java.io.IOException;
 import java.util.Set;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
@@ -217,7 +217,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                     isTextPlain = true;
                 }
                 if (grResponse instanceof RenderedImage || grResponse instanceof BufferedImage
-                        || grResponse instanceof GridCoverage2D) {
+                        || grResponse instanceof GridCoverage) {
                     isImage = true;
                 }
                 if (isTextPlain)  {
@@ -255,7 +255,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                     isTextPlain = true;
                 }
                 if (executeResponse instanceof RenderedImage || executeResponse instanceof BufferedImage
-                        || executeResponse instanceof GridCoverage2D) {
+                        || executeResponse instanceof GridCoverage) {
                     isImage = true;
                 }
                 if (isTextPlain)  {

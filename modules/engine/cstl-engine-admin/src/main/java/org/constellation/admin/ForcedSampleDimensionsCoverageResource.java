@@ -28,7 +28,7 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.event.ChangeEvent;
 import org.apache.sis.storage.event.ChangeListener;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.io.CoverageStoreException;
+import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
@@ -60,13 +60,9 @@ public class ForcedSampleDimensionsCoverageResource implements GridCoverageResou
 
     @Override
     public GridCoverage read(GridGeometry domain, int... range) throws DataStoreException {
-
         final GridCoverage baseCoverage = base.read(domain, range);
 
-        if (!(baseCoverage instanceof GridCoverage2D)) {
-            throw new CoverageStoreException("Forced alpha reader only support grid coverage 2d, but found a "+baseCoverage.getClass().getName());
-        }
-        final GridCoverage2D cov2d = (GridCoverage2D) baseCoverage;
+        final GridCoverage2D cov2d = CoverageUtilities.toGeotk(baseCoverage);
         final RenderedImage ri = cov2d.getRenderedImage();
         return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
                 dimensions.toArray(new SampleDimension[0]), null, cov2d.getProperties(), null);

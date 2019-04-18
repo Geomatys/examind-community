@@ -22,9 +22,7 @@ package org.constellation.coverage.ws.rs;
 import java.io.File;
 import java.io.FileInputStream;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
@@ -36,8 +34,10 @@ import java.util.logging.Logger;
 import javax.imageio.ImageWriteParam;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
+import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -88,8 +88,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
     }
 
     public static File writeInFile(final GeotiffResponse entry) throws IOException {
-        GridCoverage2D coverage    = entry.coverage;
-
+        GridCoverage coverage = entry.coverage;
         coverage = coverage.forConvertedValues(false);
 
         //see if we convert to geophysic or not before writing
@@ -108,11 +107,11 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
 
         final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, entry.coverage);
 
-        final IIOImage iioimage    = new IIOImage(coverage.getRenderedImage(), null, spatialMetadata);
+        final IIOImage iioimage    = new IIOImage(coverage.render(null), null, spatialMetadata);
         final ImageWriter iowriter = ImageIO.getImageWritersByFormatName("geotiff").next();
 
         // TIFF writer do no support writing in output stream currently, we have to write in a file before
-        String name = coverage.getName().toString();
+        String name = CoverageUtilities.getName(coverage).toString();
         if (name.length() < 3) {
             //causes a java.lang.IllegalArgumentException: Prefix string too short if name is empty
             name += "data";

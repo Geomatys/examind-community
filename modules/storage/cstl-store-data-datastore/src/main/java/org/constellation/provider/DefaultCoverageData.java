@@ -55,7 +55,6 @@ import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.grid.ViewType;
@@ -66,7 +65,6 @@ import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.map.DefaultCoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
@@ -134,7 +132,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      * {@inheritDoc}
      */
     @Override
-    public GridCoverage2D getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation,
+    public GridCoverage getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation,
                                       final Date time) throws ConstellationStoreException, IOException
     {
         double[] res = null;
@@ -165,9 +163,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                 gd = gridGeom.derive().subgrid(envelope);
             }
             gd = gd.sliceByRatio(0.5, 0, 1);
-            final GridCoverage cov      =  ref.read(gd.build());
-            final GridCoverage2D cov2d  = CoverageUtilities.toGeotk(cov);
-            return new ResampleProcess(cov2d, crs2D, null, null, null).executeNow();
+            final GridCoverage cov = ref.read(gd.build());
+            return new ResampleProcess(cov, crs2D, null, null, null).executeNow();
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);

@@ -123,9 +123,19 @@
             <ows:Abstract>Return first double raised to the power of the second (first^second).</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:reformat</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:reformat</ows:Title>
+            <ows:Abstract>Change the sample type of a coverage.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:touches</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:touches</ows:Title>
             <ows:Abstract>Returns true if this geometry(geom1) touches the specified geometry(geom2).</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:straighten</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:straighten</ows:Title>
+            <ows:Abstract>Straighten a coverage, make a coverage with regular scale and no rotation.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:union</ns10:Identifier>
@@ -263,6 +273,11 @@
             <ows:Abstract>Returns true if this geometry source is an empty geometry.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:bandselect</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:bandselect</ows:Title>
+            <ows:Abstract>Select bands in a coverage.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:within</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:within</ows:Title>
             <ows:Abstract>Returns true if this geometry source (geom1) is within the specified geometry (geom2).</ows:Abstract>
@@ -291,6 +306,11 @@
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:lenght</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:lenght</ows:Title>
             <ows:Abstract>Returns the length of this Geometry.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:reduceToDomain</ows:Title>
+            <ows:Abstract>Reduce to CRS domain a coverage, correctly transpose values which cross the anti-meridan.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:centroid</ns10:Identifier>

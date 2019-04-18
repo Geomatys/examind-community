@@ -35,7 +35,6 @@ import org.constellation.util.WCSUtils;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -116,12 +115,14 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 
-import org.apache.sis.util.CharSequences;
 import org.constellation.api.DataType;
 import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
 import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
@@ -156,7 +157,6 @@ import org.constellation.ws.rs.MultiPart;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.gml.xml.v321.AssociationRoleType;
 import org.geotoolkit.gml.xml.v321.FileType;
@@ -1018,8 +1018,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                final GridCoverage2D gridCov = layerRef.getCoverage(refEnvel, size, elevation, date);
-                image = gridCov.getRenderedImage();
+                final GridCoverage gridCov = layerRef.getCoverage(refEnvel, size, elevation, date);
+                image = gridCov.render(null);
             } catch (IOException | ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
@@ -1202,8 +1202,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                final GridCoverage2D coverage = layerRef.getCoverage(readEnv, null, null, null);
-                image = coverage.getRenderedImage();
+                final GridCoverage coverage = layerRef.getCoverage(readEnv, null, null, null);
+                image = coverage.render(null);
             } catch (IOException | ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
@@ -1213,10 +1213,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(MimeType.NETCDF)) {
 
             try {
-                final GridCoverage2D coverage = layerRef.getCoverage(readEnv, null, null, null);
+                final GridCoverage coverage = layerRef.getCoverage(readEnv, null, null, null);
                 final SimpleEntry response = new SimpleEntry(coverage, metadata);
                 if (isMultiPart) {
-                    final File img = File.createTempFile(coverage.getName().toString(), ".nc");
+                    final File img = File.createTempFile(layerRef.getName().tip().toString(), ".nc");
                     GridCoverageNCWriter.writeInStream(response, new FileOutputStream(img));
                     final String xml = buildXmlPart(describeCoverage200(layerRef.getName().tip().toString(), layerRef), format);
                     final MultiPart multiPart = new MultiPart();

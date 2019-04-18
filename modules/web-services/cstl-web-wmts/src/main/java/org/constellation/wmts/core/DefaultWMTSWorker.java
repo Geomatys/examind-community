@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.inject.Named;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
@@ -67,7 +68,6 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.coverage.finder.StrictlyCoverageFinder;
-import org.geotoolkit.coverage.grid.GridCoverage;
 import org.geotoolkit.data.multires.Mosaic;
 import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.data.multires.Pyramid;
@@ -648,7 +648,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         }
 
         // 2. VIEW
-        final JTSEnvelope2D refEnv = new JTSEnvelope2D(c.getEnvelope());
+        final JTSEnvelope2D refEnv = new JTSEnvelope2D(c.getGridGeometry().getEnvelope());
         final double azimuth       = 0;//request.getAzimuth();
         final ViewDef vdef         = new ViewDef(refEnv,azimuth);
 
