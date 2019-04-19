@@ -44,10 +44,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-sql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature-store</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
