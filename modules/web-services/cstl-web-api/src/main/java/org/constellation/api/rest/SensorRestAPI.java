@@ -157,7 +157,7 @@ public class SensorRestAPI extends AbstractRestAPI {
     public ResponseEntity getSensorMetadata(@PathVariable("id") String id) {
 
         try {
-            AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(id);
+            Object sml = sensorBusiness.getSensorMetadata(id);
             if (sml != null) {
                 return new ResponseEntity(sml, OK);
             } else {
@@ -249,7 +249,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             @PathVariable("id") final Integer id, HttpServletResponse response) {
 
         try{
-            final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(id);
+            final Object sml = sensorBusiness.getSensorMetadata(id);
             if (sml != null) {
                 final String xml = sensorBusiness.marshallSensor(sml);
                 response.addHeader("Content-Disposition","attachment; filename=" + id + ".xml");
@@ -423,7 +423,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     try {
                         final Object objsml = sensorBusiness.unmarshallSensor(file);
-                        if(objsml instanceof AbstractSensorML) {
+                        if (objsml instanceof AbstractSensorML) {
                             final AbstractSensorML sml = (AbstractSensorML) objsml;
                             final String type = SensorMLUtilities.getSensorMLType(sml);
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
@@ -452,7 +452,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             }
         } else {
             final Object objsml = sensorBusiness.unmarshallSensor(imported);
-            if(objsml instanceof AbstractSensorML) {
+            if (objsml instanceof AbstractSensorML) {
                 final AbstractSensorML sml = (AbstractSensorML) objsml;
                 final String type          = SensorMLUtilities.getSensorMLType(sml);
                 final String sensorID      = SensorMLUtilities.getSmlID(sml);
