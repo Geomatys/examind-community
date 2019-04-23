@@ -1041,6 +1041,10 @@ public class ProviderBusiness implements IProviderBusiness {
             }
         }
 
+       /* ----------------------------------------------------------------------
+        * ----------------------- Sensor Provider  -----------------------------
+        * ----------------------------------------------------------------------
+        */
         if (provider instanceof SensorProvider) {
             final SensorProvider sensorProvider = (SensorProvider) provider;
             try {
@@ -1076,9 +1080,13 @@ public class ProviderBusiness implements IProviderBusiness {
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.WARNING, "Error while retrieving sensor from sensor store", ex);
             }
-        }
 
-        if (provider instanceof MetadataProvider) {
+       /* ----------------------------------------------------------------------
+        * ----------------------- Metadata Provider  ---------------------------
+        * ----------------------------------------------------------------------
+        */
+        } else if (provider instanceof MetadataProvider) {
+
             final MetadataProvider metadataProvider = (MetadataProvider) provider;
             try {
                 final Set<GenericName> keys = provider.getKeys();
@@ -1115,85 +1123,93 @@ public class ProviderBusiness implements IProviderBusiness {
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.WARNING, "Error while retrieving metadata from metadata store", ex);
             }
-        }
 
-        final Set<GenericName> keys = provider.getKeys();
 
-        // Remove no longer existing data.
-        for (final org.constellation.dto.Data data : previousData) {
-            boolean found = false;
-            for (final GenericName key : keys) {
-                String nmsp = NamesExt.getNamespace(key);
+       /* ----------------------------------------------------------------------
+        * ----------------------- Data Provider  -------------------------------
+        * ----------------------------------------------------------------------
+        */
+        } else {
 
-                if (nmsp != null && !nmsp.isEmpty()) {
-                    if (data.getName().equals(key.tip().toString()) &&
-                        data.getNamespace().equals(nmsp)) {
-                        found = true;
-                        break;
-                    }
-                } else {
-                    if (data.getName().equals(key.tip().toString())) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                dataBusiness.missingData(new QName(data.getNamespace(), data.getName()), provider.getId());
-            }
-        }
 
-        // Add new data.
-        for (final GenericName key : keys) {
-            final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
+            final Set<GenericName> keys = provider.getKeys();
 
-            boolean found = false;
+            // Remove no longer existing data.
             for (final org.constellation.dto.Data data : previousData) {
-                if (key.equals(NamesExt.create(data.getNamespace(),data.getName()))) {
-                    found = true;
-                    break;
+                boolean found = false;
+                for (final GenericName key : keys) {
+                    String nmsp = NamesExt.getNamespace(key);
+
+                    if (nmsp != null && !nmsp.isEmpty()) {
+                        if (data.getName().equals(key.tip().toString()) &&
+                            data.getNamespace().equals(nmsp)) {
+                            found = true;
+                            break;
+                        }
+                    } else {
+                        if (data.getName().equals(key.tip().toString())) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    dataBusiness.missingData(new QName(data.getNamespace(), data.getName()), provider.getId());
                 }
             }
-            if (!found) {
-                DataType type = provider.getDataType();
-                String subType  = null;
-                boolean included = true;
-                Boolean rendered = null;
 
-                try {
-                    final DataStore store = provider.getMainStore();
-                    Resource resource = store.findResource(key.toString());
-                    if (resource instanceof PyramidalCoverageResource) {
-                        type = DataType.COVERAGE;
-                        subType = "pyramid";
-                    } else if (resource instanceof GridCoverageResource) {
-                        type = DataType.COVERAGE;
-                    } else if (resource instanceof FeatureSet) {
-                        type = DataType.VECTOR;
-                    }
-                } catch (DataStoreException ex) {
-                    //fallback on provider metadatas
-                } catch (Exception ex) {
-                    //may be caused by the store itself for various reasons
-                }
+            // Add new data.
+            for (final GenericName key : keys) {
+                final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
 
-                if (DataType.COVERAGE.equals(provider.getDataType()) ||
-                    DataType.VECTOR.equals(provider.getDataType())) {
-                    Data providerData = provider.get(key);
-                    if (providerData != null) {
-                        // find if data is rendered
-                        rendered = providerData.isRendered();
-                        subType = providerData.getSubType();
+                boolean found = false;
+                for (final org.constellation.dto.Data data : previousData) {
+                    if (key.equals(NamesExt.create(data.getNamespace(),data.getName()))) {
+                        found = true;
+                        break;
                     }
                 }
+                if (!found) {
+                    DataType type = provider.getDataType();
+                    String subType  = null;
+                    boolean included = true;
+                    Boolean rendered = null;
+
+                    try {
+                        final DataStore store = provider.getMainStore();
+                        Resource resource = store.findResource(key.toString());
+                        if (resource instanceof PyramidalCoverageResource) {
+                            type = DataType.COVERAGE;
+                            subType = "pyramid";
+                        } else if (resource instanceof GridCoverageResource) {
+                            type = DataType.COVERAGE;
+                        } else if (resource instanceof FeatureSet) {
+                            type = DataType.VECTOR;
+                        }
+                    } catch (DataStoreException ex) {
+                        //fallback on provider metadatas
+                    } catch (Exception ex) {
+                        //may be caused by the store itself for various reasons
+                    }
+
+                    if (DataType.COVERAGE.equals(provider.getDataType()) ||
+                        DataType.VECTOR.equals(provider.getDataType())) {
+                        Data providerData = provider.get(key);
+                        if (providerData != null) {
+                            // find if data is rendered
+                            rendered = providerData.isRendered();
+                            subType = providerData.getSubType();
+                        }
+                    }
 
                 Integer dataId = dataBusiness.create(name,
                             pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
                             included, rendered, subType, null, hideNewData, owner);
 
 
-                if (datasetId != null) {
-                    dataBusiness.updateDataDataSetId(dataId, datasetId);
+                    if (datasetId != null) {
+                        dataBusiness.updateDataDataSetId(dataId, datasetId);
+                    }
                 }
             }
         }
