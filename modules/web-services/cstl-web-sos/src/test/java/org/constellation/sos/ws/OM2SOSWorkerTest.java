@@ -112,7 +112,7 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
                 configuration.getParameters().put("transactionSecurized", "false");
 
 
-                serviceBusiness.create("sos", "default", configuration, null);
+                serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "omSrc");
 
                 init();

@@ -134,7 +134,7 @@ public class WFSServiceTest {
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
 
-                serviceBusiness.create("wfs", "default", config, null);
+                serviceBusiness.create("wfs", "default", config, null, null);
                 layerBusiness.add("SamplingPoint",       "http://www.opengis.net/sampling/1.0",  "omSrc",      null, "default", "wfs", null);
 
                 serviceBusiness.start("wfs", "default");

@@ -218,7 +218,7 @@ public class WFS2WorkerTest {
                 config2.getCustomParameters().put("transactionSecurized", "false");
                 config2.getCustomParameters().put("transactional", "true");
 
-                serviceBusiness.create("wfs", "test1", config2, null);
+                serviceBusiness.create("wfs", "test1", config2, null, null);
                 layerBusiness.add("SamplingPoint",       "http://www.opengis.net/sampling/1.0",  "omSrc",      null, "test1", "wfs", null);
                 layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml/3.2",       "shapeSrc",   null, "test1", "wfs", null);
                 layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml/3.2",       "shapeSrc",   null, "test1", "wfs", null);

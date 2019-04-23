@@ -103,7 +103,7 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 configuration.setProfile("discovery");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null);
+                serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "omSrc");
 
                 init();

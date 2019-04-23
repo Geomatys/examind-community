@@ -767,7 +767,7 @@ public class DataBusiness implements IDataBusiness {
     public Integer create(final QName name, final String providerIdentifier,
                        final String type, final boolean sensorable,
                        final boolean included, final String subType, final String metadataXml) {
-        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml);
+        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml, false, null);
     }
 
     /**
@@ -776,7 +776,7 @@ public class DataBusiness implements IDataBusiness {
     @Override
     @Transactional
     public Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml) {
-        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml, false);
+        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml, false, null);
     }
 
     /**
@@ -784,16 +784,23 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden) {
+    public Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner) {
         final Integer provider = providerRepository.findIdForIdentifier(providerIdentifier);
         if (provider != null) {
             Data data = new Data();
             data.setDate(new Date());
             data.setName(name.getLocalPart());
             data.setNamespace(name.getNamespaceURI());
-            final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
-            if (user.isPresent()) {
-                data.setOwnerId(user.get().getId());
+            if (owner == null) {
+                final Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+                if (user.isPresent()) {
+                    data.setOwnerId(user.get().getId());
+                    if (user.isPresent()) {
+                        data.setOwnerId(user.get().getId());
+                    }
+                }
+            } else {
+                data.setOwnerId(owner);
             }
             data.setProviderId(provider);
             data.setSensorable(sensorable);
@@ -1331,7 +1338,10 @@ public class DataBusiness implements IDataBusiness {
         // 1. change the hidden status of the data
         updateDataHidden(id, hidden);
 
-        // 2. For coverage data, we create a pyramid conform.
+        // 2. change the ownership of the data
+        updateDataOwner(id, owner);
+
+        // 3. For coverage data, we create a pyramid conform.
         if ("raster".equalsIgnoreCase(dataType)) {
             final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
             DataBrief pyramidData = providerBusiness.createPyramidConform(id, owner);// link original data with the tiled data.
@@ -1341,10 +1351,10 @@ public class DataBusiness implements IDataBusiness {
             }
         }
 
-        // 3. Initialize the default metadata.
+        // 4. Initialize the default metadata.
         initDataMetadata(data.getId(), hidden);
 
-        // 4. if enable and for vector data, we generate feature catalog metadata
+        // 5. if enable and for vector data, we generate feature catalog metadata
         boolean generateFeatCat = Application.getBooleanProperty(AppProperty.GENERATE_FEATURE_CATALOG, true);
         if ("vector".equalsIgnoreCase(dataType) && generateFeatCat) {
             FeatureCatalogue fc = ISO19110Builder.createCatalogueForData(data.getProviderId(), new QName(data.getNamespace(), data.getName()));

@@ -226,7 +226,7 @@ public interface IProviderBusiness {
      */
     Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull) throws IOException, ConstellationException;
 
-    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData) throws IOException, ConstellationException;
+    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData, Integer owner) throws IOException, ConstellationException;
 
     void reload(int providerId) throws ConstellationException;
 

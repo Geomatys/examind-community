@@ -162,7 +162,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
                 final Automatic config2 = new Automatic();
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
-                serviceBusiness.create("csw", "csw2", config2, d2);
+                serviceBusiness.create("csw", "csw2", config2, d2, null);
                 serviceBusiness.linkCSWAndProvider("csw2", "metadataSrc2");
                 serviceBusiness.start("csw", "csw2");
 
@@ -205,7 +205,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                                         true, "eng");
 
                 final Automatic config = new Automatic();
-                serviceBusiness.create("csw", "default", config, d);
+                serviceBusiness.create("csw", "default", config, d, null);
                 serviceBusiness.linkCSWAndProvider("default", "CRmetadataSrc");
                 serviceBusiness.start("csw", "default");
 

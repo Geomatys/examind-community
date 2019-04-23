@@ -133,7 +133,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 Automatic configuration = new Automatic();
                 configuration.putParameter("transactionSecurized", "false");
 
-                serviceBusiness.create("csw", "default", configuration, null);
+                serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider("default", "FSmetadataSrc");
 
                 fillPoolAnchor((AnchoredMarshallerPool) pool);

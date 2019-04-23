@@ -136,7 +136,7 @@ public class TreeCloseTest {
                 configuration.setProfile("discovery");
                 configuration.putParameter("transactionSecurized", "false");
 
-                serviceBusiness.create("csw", "default", configuration, null);
+                serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider("default", "TCmetadataSrc");
 
                 if (!dataDirectory.isDirectory()) {

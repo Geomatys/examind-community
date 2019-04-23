@@ -129,7 +129,7 @@ public class ImportData extends AbstractCstlProcess {
                      LOGGER.log(Level.INFO, "No data / Error in file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
                  } else {
                      LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath() + " (" + i + "/" + paths.size() + ")");
-                     ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId);
+                     ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
                      for (ResourceAnalysisV3 rs : store.getResources()) {
                          storeDatas.add(rs.getId());
                      }

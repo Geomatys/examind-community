@@ -82,7 +82,7 @@ public interface IDatasourceBusiness {
 
     void updateDatasourceAnalysisState(int dsId, String state);
 
-    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId) throws ConstellationException;
+    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException;
 
     void updatePathStatus(int id, String path, String newStatus);
 }

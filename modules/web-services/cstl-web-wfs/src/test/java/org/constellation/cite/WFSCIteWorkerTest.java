@@ -187,7 +187,7 @@ public class WFSCIteWorkerTest {
 
                 Details details = new Details("default", "default", null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
-                serviceBusiness.create("wfs", "default", config, details);
+                serviceBusiness.create("wfs", "default", config, details, null);
                 layerBusiness.add("AggregateGeoFeature", "http://cite.opengeospatial.org/gmlsf", "aggGMLSrc", null, "default", "wfs", null);
                 layerBusiness.add("PrimitiveGeoFeature", "http://cite.opengeospatial.org/gmlsf", "primGMLSrc", null, "default", "wfs", null);
                 layerBusiness.add("EntitéGénérique",     "http://cite.opengeospatial.org/gmlsf", "entGMLSrc", null, "default", "wfs", null);

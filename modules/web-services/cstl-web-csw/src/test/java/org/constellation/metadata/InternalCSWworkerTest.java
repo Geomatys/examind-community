@@ -100,7 +100,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 Automatic configuration = new Automatic();
                 configuration.putParameter("transactionSecurized", "false");
 
-                serviceBusiness.create("csw", "default", configuration, null);
+                serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider("default", "default-internal-metadata");
 
                 worker = new CSWworker("default");

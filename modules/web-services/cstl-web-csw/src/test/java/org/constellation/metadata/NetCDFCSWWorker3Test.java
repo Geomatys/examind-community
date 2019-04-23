@@ -124,7 +124,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
 
-                serviceBusiness.create("csw", "default", configuration, d);
+                serviceBusiness.create("csw", "default", configuration, d, null);
                 serviceBusiness.linkCSWAndProvider("default", "NCmetadataSrc");
 
                 pool = EBRIMMarshallerPool.getInstance();

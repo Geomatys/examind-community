@@ -279,7 +279,7 @@ public class DataRestAPI extends AbstractRestAPI{
             // 7. create provider and all its datas with an hidden state
             final ProviderConfiguration config = new ProviderConfiguration("data-store", subType, dataFile);
             final Integer prId = providerBusiness.create(providerId, config);
-            providerBusiness.createOrUpdateData(prId, dsId, true, true);
+            providerBusiness.createOrUpdateData(prId, dsId, true, true, userId);
 
             // 8. verify CRS for vector and raster
             if ("vector".equalsIgnoreCase(uploadType) || "raster".equalsIgnoreCase(uploadType)) {

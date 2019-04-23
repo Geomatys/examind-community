@@ -89,7 +89,7 @@ public class ServiceBusinessTest {
         serviceDTO.setTitle("title test");
         serviceDTO.setType();*/
         final Details details = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
-        Object conf = serviceBusiness.create("wms", "test", new LayerContext(), details);
+        Object conf = serviceBusiness.create("wms", "test", new LayerContext(), details, null);
         Assert.assertTrue(serviceBusiness.getServiceIdentifiers("wms").contains("test"));
 
     }

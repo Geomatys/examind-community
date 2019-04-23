@@ -163,10 +163,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
                 final LayerContext config = new LayerContext();
 
-                serviceBusiness.create("wcs", "default", config, null);
+                serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "default", "wcs", null);
 
-                serviceBusiness.create("wcs", "test", config, null);
+                serviceBusiness.create("wcs", "test", config, null, null);
                 layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "test",    "wcs", null);
 
 

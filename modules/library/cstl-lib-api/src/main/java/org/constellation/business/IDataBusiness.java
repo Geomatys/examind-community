@@ -109,8 +109,9 @@ public interface IDataBusiness {
      * @param subType data subType.
      * @param metadataXml metadata of data.
      * @param hidden flag that indicates if data is hidden.
+     * @param owner the owner id, or {@code null} if you want to use the current logged user.
      */
-    Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden);
+    Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner);
 
     /**
      * Proceed to remove data for given provider.

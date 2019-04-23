@@ -1007,14 +1007,14 @@ public class ProviderBusiness implements IProviderBusiness {
     @Override
     public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull)
             throws IOException, ConstellationException{
-        return createOrUpdateData(providerId, datasetId, createDatasetIfNull, false);
+        return createOrUpdateData(providerId, datasetId, createDatasetIfNull, false, null);
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull, final boolean hideNewData)
+    public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull, final boolean hideNewData, Integer owner)
             throws IOException, ConstellationException{
         final ProviderBrief pr = providerRepository.findOne(providerId);
         if (pr == null) {
@@ -1160,8 +1160,9 @@ public class ProviderBusiness implements IProviderBusiness {
                 }
 
                 Integer dataId = dataBusiness.create(name,
-                        pr.getIdentifier(), provider.getDataType().name(), provider.isSensorAffectable(),
-                        included, rendered, subType, null, hideNewData);
+                            pr.getIdentifier(), provider.getDataType().name(), provider.isSensorAffectable(),
+                            included, rendered, subType, null, hideNewData, owner);
+
 
                 if (datasetId != null) {
                     dataBusiness.updateDataDataSetId(dataId, datasetId);

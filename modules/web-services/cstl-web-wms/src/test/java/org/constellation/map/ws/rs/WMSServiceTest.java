@@ -169,7 +169,7 @@ public class WMSServiceTest {
 
                 final LayerContext config = new LayerContext();
 
-                serviceBusiness.create("wms", "default", config, null);
+                serviceBusiness.create("wms", "default", config, null, null);
                 layerBusiness.add("SSTMDE200305",                      null,          "coverageTestSrc",        null, "default", "wms", null);
                 layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
                 layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);

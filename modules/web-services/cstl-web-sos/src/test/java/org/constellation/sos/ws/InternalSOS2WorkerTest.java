@@ -87,7 +87,7 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
                 configuration.getParameters().put("transactionSecurized", "false");
 
 
-                serviceBusiness.create("sos", "default", configuration, null);
+                serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(provider);

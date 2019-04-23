@@ -308,7 +308,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-                serviceBusiness.create("wms", "default", config, null);
+                serviceBusiness.create("wms", "default", config, null, null);
                 final Details details = serviceBusiness.getInstanceDetails("wms", "default", "eng");
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
@@ -332,7 +332,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-                serviceBusiness.create("wms", "wms1", config2, null);
+                serviceBusiness.create("wms", "wms1", config2, null, null);
                 layerBusiness.add("Lakes",    "http://www.opengis.net/gml", "shapeSrc",        null, "wms1", "wms", null);
 
 
@@ -369,7 +369,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details3.setName("wms2");
                 details3.setVersions(Arrays.asList("1.3.0"));
 
-                serviceBusiness.create("wms", "wms2", config3, details3);
+                serviceBusiness.create("wms", "wms2", config3, details3, null);
                 layerBusiness.add("SSTMDE200305",                      null,          "coverageTestSrc",        null, "wms2", "wms", null);
                 layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml",       "shapeSrc",        null, "wms2", "wms", null);
                 layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml",       "shapeSrc",        null, "wms2", "wms", null);

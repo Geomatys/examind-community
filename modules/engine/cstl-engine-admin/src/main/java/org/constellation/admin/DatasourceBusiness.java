@@ -423,7 +423,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             recordSelectedPath(ds);
             List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, Integer.MAX_VALUE);
             for (DataSourceSelectedPath sp : selectedPaths) {
-                ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null);
+                ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null, null);
                 if (rsa != null) {
                     results.add(rsa);
                 }
@@ -454,7 +454,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     @Override
     @Transactional
-    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId) throws ConstellationException {
+    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException {
 
         // 1. Extract and download files
         final ResourceStore store;
@@ -513,7 +513,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         // 4. Create the data, hidden for now and not bounded to any dataset
         try {
-            providerBusiness.createOrUpdateData(prId, datasetId, false, true);
+            providerBusiness.createOrUpdateData(prId, datasetId, false, true, owner);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Error while creating data for store " + ds.getStoreId() + ".", ex);
             errorMessage = ex.getMessage();

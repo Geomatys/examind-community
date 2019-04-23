@@ -111,8 +111,8 @@ import org.junit.runner.RunWith;
                 final Processes processes = new Processes(process);
                 final ProcessContext config = new ProcessContext(processes);
 
-                serviceBusiness.create("wps", "default", config, null);
-                serviceBusiness.create("wps", "test",    config, null);
+                serviceBusiness.create("wps", "default", config, null, null);
+                serviceBusiness.create("wps", "test",    config, null, null);
 
                 serviceBusiness.start("wps", "default");
                 serviceBusiness.start("wps", "test");

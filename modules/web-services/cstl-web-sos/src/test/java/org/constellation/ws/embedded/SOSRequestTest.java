@@ -159,14 +159,14 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sosconf.setProfile("transactional");
                 sosconf.setVerifySynchronization(false);
 
-                serviceBusiness.create("sos", "default", sosconf, null);
+                serviceBusiness.create("sos", "default", sosconf, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "sensor-default");
                 serviceBusiness.linkSOSAndProvider("default", "om-default");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:2");
 
-                serviceBusiness.create("sos", "test", sosconf, null);
+                serviceBusiness.create("sos", "test", sosconf, null, null);
                 serviceBusiness.linkSOSAndProvider("test", "sensor-test");
                 serviceBusiness.linkSOSAndProvider("test", "om-test");
                 sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");

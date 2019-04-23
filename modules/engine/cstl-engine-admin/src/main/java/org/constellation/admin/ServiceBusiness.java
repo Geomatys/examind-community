@@ -116,7 +116,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public Object create(final String serviceType, final String identifier, Object configuration, Details details)
+    public Object create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner)
             throws ConfigurationException {
 
         if (identifier == null || identifier.isEmpty()) {
@@ -126,15 +126,20 @@ public class ServiceBusiness implements IServiceBusiness {
         if (configuration == null) {
             configuration = DefaultServiceConfiguration.getDefaultConfiguration(serviceType);
         }
-        Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+        if (owner == null) {
+            Optional<CstlUser> user = userRepository.findOne(securityManager.getCurrentUserLogin());
+            if (user.isPresent()) {
+                owner = user.get().getId();
+            }
+        }
 
         final String config = getStringFromObject(configuration, GenericDatabaseMarshallerPool.getInstance());
         final Service service = new Service();
         service.setConfig(config);
         service.setDate(new Date());
         service.setType(ServiceDef.Specification.valueOf(serviceType.toUpperCase()).name().toLowerCase());
-        if (user.isPresent()) {
-            service.setOwner(user.get().getId());
+        if (owner != null) {
+            service.setOwner(owner);
         }
         service.setIdentifier(identifier);
         service.setStatus(ServiceStatus.STOPPED.toString());

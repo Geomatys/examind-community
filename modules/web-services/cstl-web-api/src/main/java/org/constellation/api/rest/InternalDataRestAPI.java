@@ -625,7 +625,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             final Integer prId = providerBusiness.create(providerId, provConfig);
 
             // 2. Create the data, hidden for now and not bounded to any dataset
-            providerBusiness.createOrUpdateData(prId, null, false, hidden);
+            providerBusiness.createOrUpdateData(prId, null, false, hidden, userId);
 
             // 3. For each created data
             final List<DataBrief> briefs = providerBusiness.getDataBriefsFromProviderId(prId, null, true, hidden);

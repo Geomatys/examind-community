@@ -49,7 +49,7 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
     protected void createInstance(final String identifier, LayerContext context) {
         final LayerContext configuration = context != null ? context : new LayerContext();
         try {
-            serviceBusiness.create(serviceName.toLowerCase(), identifier, configuration, null);
+            serviceBusiness.create(serviceName.toLowerCase(), identifier, configuration, null, null);
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.SEVERE, "Error while creating instance", ex);
         }
@@ -74,7 +74,7 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
      */
     protected Integer createCustomInstance(final String identifier, LayerContext context) {
         try {
-            serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null);
+            serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
             return serviceBusiness.getServiceIdByIdentifierAndType(serviceName.toLowerCase(), identifier);
         }  catch (ConfigurationException ex) {
             LOGGER.log(Level.SEVERE, "Error while creating custom instance", ex);

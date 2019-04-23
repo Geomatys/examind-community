@@ -99,7 +99,7 @@ public class FileSystemSOSWorkerTest extends SOSWorkerTest {
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null);
+                serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(pr);
