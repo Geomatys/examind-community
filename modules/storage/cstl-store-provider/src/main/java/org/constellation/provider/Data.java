@@ -28,6 +28,7 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 import java.util.Date;
 import java.util.SortedSet;
 import org.apache.sis.storage.DataStore;
+import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
@@ -42,14 +43,6 @@ import org.opengis.util.GenericName;
  * @author Cédric Briançon
  */
 public interface Data {
-    /**
-     * Defines the type of provider for a {@linkplain Data data}.
-     */
-    enum TYPE {
-        COVERAGE,
-        FEATURE,
-        OBSERVATION;
-    };
 
     String KEY_EXTRA_PARAMETERS = "EXTRA";
 
@@ -105,11 +98,6 @@ public interface Data {
     boolean isQueryable(ServiceDef.Query query);
 
     /**
-     * Returns the type of provider for a {@linkplain Data data}.
-     */
-    TYPE getType();
-
-    /**
      * Origin source of this data can be :
      * FeatureCollection, CoverageRefence, null.
      */
@@ -121,6 +109,8 @@ public interface Data {
     DataStore getStore();
 
     DataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException;
+
+    DataType getDataType();
 
     /**
      * Return the geometry type for a Feature data.

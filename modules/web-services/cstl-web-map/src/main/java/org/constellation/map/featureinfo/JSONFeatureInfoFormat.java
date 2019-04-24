@@ -58,6 +58,7 @@ import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
+import org.constellation.api.DataType;
 
 /**
  * A generic FeatureInfoFormat that produce JSON output for Features and Coverages.
@@ -125,7 +126,7 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         Data layerPostgrid = null;
 
         for (Data layer : layerDetailsList) {
-            if (layer.getType().equals(Data.TYPE.COVERAGE) && layer.getName().equals(fullLayerName)) {
+            if (layer.getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
                 layerPostgrid = layer;
             }
         }

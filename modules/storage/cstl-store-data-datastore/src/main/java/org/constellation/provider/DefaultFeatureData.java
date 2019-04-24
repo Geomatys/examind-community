@@ -56,6 +56,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.DataType;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
@@ -438,14 +439,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
 
 
     /**
-     * Specifies that the type of this layer is feature.
-     */
-    @Override
-    public TYPE getType() {
-        return TYPE.FEATURE;
-    }
-
-    /**
      * Gives a {@link FeatureDataDescription} instance describing the feature layer
      * data source.
      */
@@ -504,6 +497,11 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
+    }
+
+    @Override
+    public DataType getDataType() {
+        return DataType.VECTOR;
     }
 
     @Override

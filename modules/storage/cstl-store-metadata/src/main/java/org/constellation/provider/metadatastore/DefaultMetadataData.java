@@ -19,6 +19,7 @@ package org.constellation.provider.metadatastore;
 import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
+import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
@@ -56,11 +57,6 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     }
 
     @Override
-    public TYPE getType() {
-        return TYPE.valueOf("metadata");
-    }
-
-    @Override
     public DataStore getStore() {
         return store;
     }
@@ -73,6 +69,11 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     @Override
     public Node getMetadata() {
         return metadata;
+    }
+
+    @Override
+    public DataType getDataType() {
+        return DataType.METADATA;
     }
 
 }

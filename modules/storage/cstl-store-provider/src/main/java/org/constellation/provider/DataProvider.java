@@ -97,6 +97,7 @@ public interface DataProvider{
 
     ProviderType getProviderType();
 
+    @Deprecated
     DataType getDataType();
 
     boolean isSensorAffectable();

@@ -22,6 +22,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.api.DataType;
 import org.constellation.provider.Data;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.coverage.GridSampleDimension;
@@ -140,7 +141,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         Data layerPostgrid = null;
 
         for (Data layer : layerDetailsList) {
-            if (layer.getType().equals(Data.TYPE.COVERAGE) && layer.getName().equals(fullLayerName)) {
+            if (layer.getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
                 layerPostgrid = layer;
             }
         }

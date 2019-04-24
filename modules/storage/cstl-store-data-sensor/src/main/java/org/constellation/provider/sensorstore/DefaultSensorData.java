@@ -19,6 +19,7 @@ package org.constellation.provider.sensorstore;
 import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
+import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
@@ -57,8 +58,8 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     }
 
     @Override
-    public TYPE getType() {
-        return TYPE.valueOf("sensor");
+    public DataType getDataType() {
+        return DataType.SENSOR;
     }
 
     @Override

@@ -122,6 +122,7 @@ import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 
 import org.apache.sis.util.CharSequences;
+import org.constellation.api.DataType;
 import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
 import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
 import static org.constellation.coverage.core.WCSConstant.INTERPOLATION_V100;
@@ -268,7 +269,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             final GenericName tmpName = parseCoverageName(coverage);
             final Data layerRef = getLayerReference(userLogin, tmpName);
-            if (layerRef.getType().equals(Data.TYPE.FEATURE)) {
+            if (layerRef.getDataType().equals(DataType.VECTOR)) {
                 throw new CstlServiceException("The requested layer is vectorial. WCS is not able to handle it.",
                         LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
             }
@@ -700,7 +701,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     throw new CstlServiceException("There is no existing layer named:" + configLayer.getName());
                 }
 
-                if (layer.getType().equals(Data.TYPE.FEATURE)) {
+                if (layer.getDataType().equals(DataType.VECTOR)) {
                     continue;
                 }
                 if (!layer.isQueryable(ServiceDef.Query.WCS_ALL)) {
@@ -857,7 +858,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
         final GenericName tmpName = parseCoverageName(request.getCoverage());
         final Data tmplayerRef = getLayerReference(userLogin, tmpName);
-        if (!tmplayerRef.isQueryable(ServiceDef.Query.WCS_ALL) || tmplayerRef.getType().equals(Data.TYPE.FEATURE)) {
+        if (!tmplayerRef.isQueryable(ServiceDef.Query.WCS_ALL) || tmplayerRef.getDataType().equals(DataType.VECTOR)) {
             throw new CstlServiceException("You are not allowed to request the layer \"" +
                     tmplayerRef.getName() + "\".", INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
         }

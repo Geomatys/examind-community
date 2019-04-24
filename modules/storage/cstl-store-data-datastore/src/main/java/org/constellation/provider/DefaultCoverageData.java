@@ -38,6 +38,7 @@ import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ArgumentChecks;
+import org.constellation.api.DataType;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
@@ -289,11 +290,6 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     }
 
     @Override
-    public TYPE getType() {
-        return TYPE.COVERAGE;
-    }
-
-    @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
             GeneralGridGeometry ggg = getGeometry();
@@ -482,6 +478,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             throw new ConstellationStoreException(ex);
         }
         return description;
+    }
+
+    @Override
+    public DataType getDataType() {
+        return DataType.COVERAGE;
     }
 
     @Override

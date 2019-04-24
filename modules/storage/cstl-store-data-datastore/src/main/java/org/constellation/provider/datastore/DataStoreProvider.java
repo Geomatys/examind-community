@@ -73,7 +73,12 @@ public class DataStoreProvider extends AbstractDataProvider{
         visit();
     }
 
+    /**
+     *
+     * @deprecated a provider can contains heterogeneous dataType
+     */
     @Override
+    @Deprecated
     public DataType getDataType() {
         final org.apache.sis.storage.DataStoreProvider provider = getMainStore().getProvider();
         final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
