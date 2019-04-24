@@ -15,18 +15,13 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>Examind</name>
-    <url>https://www.geomatys.com/fr/nos-produits/examind-server</url>
+    <url>https://www.geomatys.com/en/products/examind-community</url>
 
     <organization>
         <name>Geomatys</name>
-        <url>http://www.geomatys.fr/</url>
+        <url>http://www.geomatys.com</url>
     </organization>
     <inceptionYear>2007</inceptionYear>
-
-    <ciManagement>
-        <system>jenkins</system>
-        <url>http://jenkins.geomatys.com/job/CI_Examind</url>
-    </ciManagement>
 
     <properties>
         <geoapi.version>4.0-M09</geoapi.version> <!-- Must be same than the version used by SIS. -->
@@ -1146,12 +1141,7 @@
         <repository>
             <id>geomatys</id>
             <name>Geomatys public repository</name>
-            <url>http://nexus.geomatys.com/repository/maven-public</url>
-        </repository>
-        <repository>
-            <id>private.geomatys</id>
-            <name>Geomatys private repository</name>
-            <url>http://nexus.geomatys.com/repository/maven-private</url>
+            <url>https://nexus.geomatys.com/repository/maven-public</url>
         </repository>
         <repository>
             <id>etrema</id>
@@ -1170,7 +1160,7 @@
         <pluginRepository>
             <id>geomatys.plugins</id>
             <name>Geomatys public repository</name>
-            <url>http://nexus.geomatys.com/repository/maven-public</url>
+            <url>https://nexus.geomatys.com/repository/maven-public</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
