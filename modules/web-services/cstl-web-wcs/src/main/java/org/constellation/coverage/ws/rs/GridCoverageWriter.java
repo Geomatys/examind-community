@@ -34,6 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.imageio.ImageWriteParam;
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.springframework.http.HttpInputMessage;
@@ -86,7 +88,23 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
     }
 
     public static File writeInFile(final GeotiffResponse entry) throws IOException {
-        final GridCoverage2D coverage    = entry.coverage;
+        GridCoverage2D coverage    = entry.coverage;
+
+        coverage = coverage.forConvertedValues(false);
+
+        //see if we convert to geophysic or not before writing
+        final List<SampleDimension> sampleDimensions = coverage.getSampleDimensions();
+        if (sampleDimensions != null) {
+            search:
+            for (SampleDimension sd : sampleDimensions) {
+                for(Category cat : sd.getCategories()) {
+                    if (cat.isQuantitative()) {
+                        coverage = coverage.forConvertedValues(true);
+                        break search;
+                    }
+                }
+            }
+        }
 
         final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, entry.coverage);
 
