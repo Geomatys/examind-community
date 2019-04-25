@@ -123,7 +123,7 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
  * @version 0.9
  */
 @Controller
-@RequestMapping("sos/{serviceId}")
+@RequestMapping("sos/{serviceId:.+}")
 public class SOService extends OGCWebService<SOSworker> {
 
     /**

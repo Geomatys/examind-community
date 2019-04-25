@@ -128,7 +128,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @version 0.9
  */
 @Controller
-@RequestMapping("wps/{serviceId}")
+@RequestMapping("wps/{serviceId:.+}")
 public class WPSService extends OGCWebService<WPSWorker> {
 
     /**

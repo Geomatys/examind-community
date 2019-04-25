@@ -160,7 +160,7 @@ import org.w3c.dom.Node;
  * @author Guilhem Legal (Geomatys)
  */
 @Controller
-@RequestMapping("wfs/{serviceId}")
+@RequestMapping("wfs/{serviceId:.+}")
 public class WFSService extends GridWebService<WFSWorker> {
 
     static {

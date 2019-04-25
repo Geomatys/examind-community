@@ -142,7 +142,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @since 0.1
  */
 @Controller
-@RequestMapping("wms/{serviceId}")
+@RequestMapping("wms/{serviceId:.+}")
 public class WMSService extends GridWebService<WMSWorker> {
 
     public static boolean writeDTD = true;
@@ -164,7 +164,7 @@ public class WMSService extends GridWebService<WMSWorker> {
     public ResponseObject treatIncomingRequest(final Object objectRequest, final WMSWorker worker) {
         ArgumentChecks.ensureNonNull("worker", worker);
         final QueryContext queryContext = new QueryContext();
-        
+
         ServiceDef version = null;
         try {
 

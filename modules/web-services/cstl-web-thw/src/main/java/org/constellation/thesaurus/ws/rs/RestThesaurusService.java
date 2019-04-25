@@ -86,7 +86,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Mehdi Sidhoum (Geomatys)
  */
 @Controller
-@RequestMapping("thw/{serviceId}")
+@RequestMapping("thw/{serviceId:.+}")
 public class RestThesaurusService extends OGCWebService<THWworker> {
 
 

@@ -126,7 +126,7 @@ import org.w3._2005.atom.FeedType;
  * @version 0.9
  */
 @Controller
-@RequestMapping("csw/{serviceId}")
+@RequestMapping("csw/{serviceId:.+}")
 public class CSWService extends OGCWebService<CSWworker> {
 
     /**

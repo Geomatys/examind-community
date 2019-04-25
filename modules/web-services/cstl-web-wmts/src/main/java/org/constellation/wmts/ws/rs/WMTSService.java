@@ -75,7 +75,7 @@ import javax.servlet.http.HttpServletResponse;
  * @since 0.3
  */
 @Controller
-@RequestMapping("wmts/{serviceId}")
+@RequestMapping("wmts/{serviceId:.+}")
 public class WMTSService extends GridWebService<WMTSWorker> {
 
     /**

@@ -161,7 +161,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @since 0.3
  */
 @Controller
-@RequestMapping("wcs/{serviceId}")
+@RequestMapping("wcs/{serviceId:.+}")
 public class WCSService extends GridWebService<WCSWorker> {
 
     /**
