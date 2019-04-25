@@ -67,6 +67,8 @@ public interface IStyleBusiness {
 
     void linkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
+    void unlinkToLayer(final int styleId, final int layerId) throws ConfigurationException;
+
     void removeStyleFromLayer(String serviceIdentifier, String serviceType, String layerName, String styleProviderId,
                               String styleName) throws TargetNotFoundException;
 

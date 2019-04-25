@@ -126,7 +126,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
                 // Intercept request to Constellation REST API.
                 if (isCstlRequest(config.url)) {
                     $rootScope.$broadcast('event:auth-cstl-request');
-                    
+
                     // Inject contextual values into request url.
                     config.url = CstlUtils.compileUrl(config, config.url);
                 }
@@ -145,7 +145,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
     // -------------------------------------------------------------------------
     //  Stomp WebSocket Service
     // -------------------------------------------------------------------------
-    
+
     .factory('StompService', function($timeout,CstlUtils) {
 
         function Topic(path) {
@@ -385,7 +385,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
             unlinkStyle : function($scope,styleProvider,styleId,styleName,layerProvider,layerId,layerName,selected) {
                 if ($scope.service) {
                     Examind.map.removeLayerStyle($scope.service.type, $scope.service.identifier,
-                        {values: {layerId: layerName, spId: 'sld', styleName: styleName}}).then(
+                        {layerId: layerId, styleId: styleId}).then(
                         function() {
                             for (var i=0; i<selected.targetStyle.length; i++) {
                                 var s = selected.targetStyle[i];
@@ -502,7 +502,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
             }
         };
     })
-    
+
     .factory('interval', function() {
         /**
          * An helper service to call an action on demand with a fixed time

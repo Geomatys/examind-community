@@ -465,6 +465,12 @@ public class StyleBusiness implements IStyleBusiness {
     public void linkToLayer(int styleId, int layerId) throws ConfigurationException {
         styleRepository.linkStyleToLayer(styleId, layerId);
     }
+    
+    @Override
+    @Transactional
+    public void unlinkToLayer(int styleId, int layerId) throws ConfigurationException {
+        styleRepository.unlinkStyleToLayer(styleId, layerId);
+    }
 
     @Override
     @Transactional

@@ -200,9 +200,9 @@ public class MapRestAPI {
 
     @RequestMapping(value="/MAP/{spec}/{id}/removestyle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier,
-        final @RequestBody ParameterValues params) {
+        final @RequestBody LayerStyleUpdate params) {
         try {
-            styleBusiness.removeStyleFromLayer(serviceIdentifier, serviceType, params.get("layerId"), params.get("spId"), params.get("styleName"));
+            styleBusiness.unlinkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
