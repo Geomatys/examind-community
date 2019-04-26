@@ -156,9 +156,12 @@ cstlAdminApp
             }else{
             	var cookieToken = $.cookie('access_token');
             	if(cookieToken && cookieToken.indexOf('_') !==-1){
-            		var splitArr = cookieToken.split('_');
-            		tokenDuration = splitArr[splitArr.length-1]/1000;
+                    var splitArr = cookieToken.split('_');
+                    tokenDuration = splitArr[splitArr.length-1]/1000;
             	}
+            }
+            if (Number.isNaN(tokenDuration)) {
+                tokenDuration = 30*60;
             }
             console.log("Token duration set to: " + tokenDuration);
 
