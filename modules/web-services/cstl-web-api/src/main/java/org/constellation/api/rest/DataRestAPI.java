@@ -39,8 +39,10 @@ import java.util.logging.Level;
 import java.util.zip.CRC32;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -455,11 +457,12 @@ public class DataRestAPI extends AbstractRestAPI{
      * @return {@code Response}
      */
     @RequestMapping(value="/datas/{dataId}/metadata",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getDataMetadata(final @PathVariable("dataId") int dataId, final @RequestParam(name="prune", defaultValue = "false") String prune) {
+    public ResponseEntity getDataMetadata(final @PathVariable("dataId") int dataId, final @RequestParam(name="prune", defaultValue = "false") String prune, HttpServletResponse response) {
 
         try {
             final String buffer = metadataBusiness.getJsonDataMetadata(dataId, Boolean.parseBoolean(prune), false);
-            return new ResponseEntity(buffer, OK);
+            IOUtils.write(buffer, response.getOutputStream());
+            return new ResponseEntity(OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();

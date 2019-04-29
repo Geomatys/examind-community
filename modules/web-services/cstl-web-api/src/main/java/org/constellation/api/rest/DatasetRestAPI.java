@@ -29,6 +29,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 
@@ -178,11 +180,12 @@ public class DatasetRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/datasets/{datasetId}/metadata",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasetMetadata(final @PathVariable("datasetId") int datasetId,
-            final @RequestParam(name="prune", defaultValue = "false") String prune) {
+            final @RequestParam(name="prune", defaultValue = "false") String prune, HttpServletResponse response) {
 
         try {
             final String buffer = metadataBusiness.getJsonDatasetMetadata(datasetId, Boolean.parseBoolean(prune), false);
-            return new ResponseEntity(buffer, OK);
+            IOUtils.write(buffer, response.getOutputStream());
+            return new ResponseEntity(OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, "error while writing metadata json.", ex);
             return new ErrorMessage(ex).build();
