@@ -347,12 +347,12 @@ public class WCSWorkerOutputTest {
         final List<String> axis = new ArrayList<>();
         axis.add("width");
         axis.add("height");
-        final int[] low  = new int[2];
-        low[0] = 0;
-        low[1] = 0;
-        final int[] high = new int[2];
-        high[0] = 1024;
-        high[1] = 512;
+        final long[] low  = new long[2];
+        low[0] = 0L;
+        low[1] = 0L;
+        final long[] high = new long[2];
+        high[0] = 1024L;
+        high[1] = 512L;
         final GridLimitsType limits = new GridLimitsType(low, high);
         final GridType grid = new GridType(limits, axis);
         final List<DirectPositionType> pos = new ArrayList<>();

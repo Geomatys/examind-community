@@ -506,7 +506,7 @@ public final class MetadataUtilities {
                     Georectified resRect = (Georectified) resSpa;
                     assertEquals(expRect.getAxisDimensionProperties(), resRect.getAxisDimensionProperties());
                     assertEquals(expRect.getCellGeometry(), resRect.getCellGeometry());
-                    assertEquals(expRect.getCenterPoint(), resRect.getCenterPoint());
+                    assertEquals(expRect.getCentrePoint(), resRect.getCentrePoint());
                     assertEquals(expRect.getCheckPointDescription(), resRect.getCheckPointDescription());
                     assertEquals(expRect.getCheckPoints(), resRect.getCheckPoints());
                     assertEquals(expRect.getCornerPoints(), resRect.getCornerPoints());
@@ -1084,7 +1084,7 @@ public final class MetadataUtilities {
         assertEquals(expResult.getVersionInfo(), result.getVersionInfo());
         assertEquals(expResult, result);
     }
-    
+
     private static void assertCollectionEquals(final Collection<?> expected, final Collection<?> actual) {
         if (expected != null && actual != null) {
             assertArrayEquals(expected.toArray(), actual.toArray());

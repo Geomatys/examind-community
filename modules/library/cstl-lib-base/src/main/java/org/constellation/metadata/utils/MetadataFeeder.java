@@ -69,6 +69,7 @@ import org.opengis.util.NameFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -663,10 +664,8 @@ public class MetadataFeeder {
      *
      * @param metadataLocale
      */
-    protected void setMetadataLocale(final Locale metadataLocale) {
-        Collection<Locale> locales = new ArrayList<>(0);
-        locales.add(metadataLocale);
-        eater.setLocales(locales);
+    protected void setMetadataLocale(final Locale metadataLocale, final Charset chars) {
+        eater.setLocalesAndCharsets(Collections.singletonMap(metadataLocale, chars));
     }
 
     /**
