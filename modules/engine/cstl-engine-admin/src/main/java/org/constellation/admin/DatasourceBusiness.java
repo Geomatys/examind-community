@@ -208,6 +208,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     @Override
+    public boolean existSelectedPath(final int dsId,  String subPath) {
+        return dsRepository.existSelectedPath(dsId, subPath);
+    }
+
+    @Override
     @Scheduled(fixedDelay = 3600000L)
     @Transactional
     public void removeOldDatasource() throws ConstellationException {

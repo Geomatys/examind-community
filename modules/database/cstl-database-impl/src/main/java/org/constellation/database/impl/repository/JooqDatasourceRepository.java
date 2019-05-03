@@ -127,6 +127,15 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
+    public boolean existSelectedPath(int id, String path) {
+        return dsl.selectCount()
+                  .from(DATASOURCE_SELECTED_PATH)
+                  .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+                  .and(DATASOURCE_SELECTED_PATH.PATH.eq(path))
+                  .fetchOneInto(Integer.class) > 0;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void addSelectedPath(int dsId, String subPath) {
         dsl.insertInto(DATASOURCE_SELECTED_PATH).set(DATASOURCE_SELECTED_PATH.DATASOURCE_ID, dsId).set(DATASOURCE_SELECTED_PATH.PATH, subPath).execute();

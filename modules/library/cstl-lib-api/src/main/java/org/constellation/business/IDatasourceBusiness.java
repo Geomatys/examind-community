@@ -62,6 +62,8 @@ public interface IDatasourceBusiness {
 
     DataSourceSelectedPath getSelectedPath(DataSource ds, String path);
 
+    boolean existSelectedPath(final int dsId, String path);
+
     List<FileBean> exploreDatasource(final Integer dsId, final String subPath) throws ConstellationException;
 
     DatasourceAnalysisV3 analyseDatasourceV3(final Integer dsId, ProviderConfiguration provConfig) throws ConstellationException;

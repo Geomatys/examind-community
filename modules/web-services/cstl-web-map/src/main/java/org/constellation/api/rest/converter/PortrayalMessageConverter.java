@@ -122,7 +122,13 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
 
             final byte[] result = out.toByteArray();
             r.setBuffer(result);
-            outputMessage.getBody().write(r.getBuffer());
+
+            // try to catch and hide uneccessary log Client Abort Exception...
+            try {
+                outputMessage.getBody().write(r.getBuffer());
+            } catch (IOException ex) {
+                LOGGER.log(Level.WARNING, "Error while Writing portrayal response:{0}", ex.getMessage());
+            }
         } catch (Throwable ex) {
             LOGGER.log(Level.SEVERE, "Error while Writing portrayal response", ex);
             throw new IOException(ex);

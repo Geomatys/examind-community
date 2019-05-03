@@ -52,6 +52,8 @@ public interface DatasourceRepository {
 
     void addSelectedPath(int dsId, String subPath);
 
+    boolean existSelectedPath(int dsId, String subPath);
+
     void updateAnalyzedPath(DataSourcePath dsPath, Map<String, String> types);
 
     void addAnalyzedPath(DataSourcePath dsPath, Map<String, String> types);
