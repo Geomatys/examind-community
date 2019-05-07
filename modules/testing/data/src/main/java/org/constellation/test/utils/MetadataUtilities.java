@@ -1086,6 +1086,10 @@ public final class MetadataUtilities {
     }
     
     private static void assertCollectionEquals(final Collection<?> expected, final Collection<?> actual) {
-        assertArrayEquals(expected.toArray(), actual.toArray());
+        if (expected != null && actual != null) {
+            assertArrayEquals(expected.toArray(), actual.toArray());
+        } else if (expected != null || actual != null) {
+            assertEquals(expected, actual);
+        }
     }
 }
