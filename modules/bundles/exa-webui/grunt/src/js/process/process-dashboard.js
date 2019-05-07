@@ -160,6 +160,16 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
             });
         };
 
+        $scope.cancelTask = function(idTask) {
+            Examind.tasks.cancelTaskParam(idTask).then(function(){
+                Growl('success', 'Success', 'The tasks have been cancelled');
+                $scope.init();
+            }).catch(function(){
+                Growl('error', 'Error', "Can't cancel this tasks");
+            });
+        };
+
+
         $scope.showPlanningTaskPopup = function(idTask) {
 
             var modal = $modal.open({

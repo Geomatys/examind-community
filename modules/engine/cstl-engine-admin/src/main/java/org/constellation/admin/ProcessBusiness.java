@@ -345,12 +345,12 @@ public class ProcessBusiness implements IProcessBusiness {
 
     /**
      * Get specific task from task journal (running or finished)
-     * @param uuid task id
+     * @param taskId task identifier
      * @return task object
      */
     @Override
-    public Task getTask(String uuid) {
-        return taskRepository.get(uuid);
+    public Task getTask(String taskId) {
+        return taskRepository.get(taskId);
     }
 
     @Override
@@ -414,6 +414,25 @@ public class ProcessBusiness implements IProcessBusiness {
     public void runProcess(final String title, final Callable<ParameterValueGroup> process, final Integer taskParameterId, final Integer userId)
             throws ConstellationException {
         quartzScheduler.scheduleJobNow(title, taskParameterId, userId, process);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cancelTask(final String taskId) throws ConstellationException {
+        quartzScheduler.interrupt(taskId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cancelTaskForTaskParameter(Integer taskparamId) throws ConstellationException {
+        List<Task> tasks = taskRepository.findRunningTasks(taskparamId, 0, Integer.MAX_VALUE);
+        for (Task task : tasks) {
+            quartzScheduler.interrupt(task.getIdentifier());
+        }
     }
 
     /**

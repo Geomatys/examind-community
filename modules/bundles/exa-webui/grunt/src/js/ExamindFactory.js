@@ -1943,6 +1943,18 @@ function Examind($http, url) {
         },
 
         /**
+         * Cancel a task.
+         *
+         * @returns {Promise}
+         */
+        cancelTaskParam : function(id) {
+            return self.request({
+                method: 'DELETE',
+                url: '/task/params/delete/' + id
+                });
+        },
+
+        /**
          * Returns a list all the saved tasks.
          *
          * @returns {Promise}

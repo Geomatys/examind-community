@@ -245,7 +245,14 @@ public class QuartzScheduler implements CstlScheduler {
     @Override
     public void interrupt(String keyS) throws ConstellationSchedulerException {
         try {
-            JobKey key = JobKey.jobKey(keyS);
+            // Strip the group / name
+            String group = null;
+            int pos = keyS.indexOf('.');
+            if (keyS.indexOf('.') != -1) {
+                group = keyS.substring(0, pos);
+                keyS  = keyS.substring(pos + 1, keyS.length());
+            }
+            JobKey key = JobKey.jobKey(keyS, group);
             quartzScheduler.interrupt(key);
         } catch (UnableToInterruptJobException ex) {
              throw new ConstellationSchedulerException(ex);

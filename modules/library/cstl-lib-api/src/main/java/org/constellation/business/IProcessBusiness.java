@@ -81,6 +81,10 @@ public interface IProcessBusiness {
 
     void updateTask(Task task) throws ConstellationException;
 
+    void cancelTask(final String taskId) throws ConstellationException;
+
+    void cancelTaskForTaskParameter(final Integer taskparamId) throws ConstellationException;
+
     List<Task> listRunningTasks();
 
     /**

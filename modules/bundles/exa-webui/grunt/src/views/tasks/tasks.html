@@ -55,7 +55,7 @@
                             </a>
                         </li>
                         <li class="divider-vertical"></li>
-                    </ul> 
+                    </ul>
                     <button type="button"
                             ng-click="resetFilters();"
                             class="btn btn-xs btn-info btn-process"
@@ -225,6 +225,14 @@
                                                 <button type="button" class="btn btn-process" ng-click="executeTask(selected.id);"
                                                         data-placement="bottom" title="{{'tasks.information.execute' | translate }}" tooltip>
                                                     <i class="glyphicon glyphicon-flash"></i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <span class="tooltipicon">
+                                                <button type="button" class="btn btn-process" ng-click="cancelTask(selected.id);"
+                                                        data-placement="bottom" title="{{'tasks.information.cancel' | translate }}" tooltip>
+                                                    <i class="glyphicon glyphicon-remove-circle"></i>
                                                 </button>
                                             </span>
                                         </div>

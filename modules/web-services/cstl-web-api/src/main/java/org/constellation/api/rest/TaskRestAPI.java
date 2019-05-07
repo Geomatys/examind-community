@@ -575,6 +575,38 @@ public class TaskRestAPI extends AbstractRestAPI {
         return new ResponseEntity(results, OK);
     }
 
+    /**
+     * List last execution history for the all the task.
+     *
+     * @return A list of task status
+     */
+    @RequestMapping(value="/task/params/delete/{id}",method=DELETE)
+    public ResponseEntity cancelTaskForTaskParameter(final @PathVariable("id") Integer id) {
+        try {
+            processBusiness.cancelTaskForTaskParameter(id);
+            return new ResponseEntity(OK);
+        } catch(Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * List last execution history for the all the task.
+     *
+     * @return A list of task status
+     */
+    @RequestMapping(value="/task/{taskId:.+}",method=DELETE)
+    public ResponseEntity cancelTask(final @PathVariable("taskId") String taskId) {
+        try {
+            processBusiness.cancelTask(taskId);
+            return new ResponseEntity(OK);
+        } catch(Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
     private TaskStatus toTaskStatus(Task task) {
         final TaskStatus status = new TaskStatus();
         status.setId(task.getIdentifier());

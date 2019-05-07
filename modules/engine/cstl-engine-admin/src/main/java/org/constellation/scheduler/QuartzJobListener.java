@@ -89,7 +89,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
         final ProcessJob pj = (ProcessJob) job;
         final ProcessJobDetail detail = (ProcessJobDetail) jec.getJobDetail();
         final QuartzTask quartzTask = (QuartzTask) detail.getJobDataMap().get(QuartzJobListener.PROPERTY_TASK);
-        String jobId = UUID.randomUUID().toString();
+        String jobId = detail.getKey().toString();
         pj.setJobId(jobId);
         SpringHelper.executeInTransaction(new TransactionCallback<Object>() {
             @Override
