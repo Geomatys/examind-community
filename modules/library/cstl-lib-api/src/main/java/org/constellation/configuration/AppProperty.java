@@ -131,7 +131,11 @@ public enum AppProperty {
 
     EXA_CWL_SHARED_DIR("examind.cwl.shared.dir"),
 
-    EXA_WPS_EXECUTE_SECURE("examind.wmp.execute.secure");
+    EXA_WPS_EXECUTE_SECURE("examind.wmp.execute.secure"),
+
+    EXA_DISABLE_NO_CACHE("examind.disable.no.cache"),
+
+    EXA_CACHE_CONTROL_TIME("examind.cache.control.time");
 
     private final String key;
 

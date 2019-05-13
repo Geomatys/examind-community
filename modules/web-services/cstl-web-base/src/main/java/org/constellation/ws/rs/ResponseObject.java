@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletOutputStream;
@@ -30,11 +31,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.rest.ErrorMessage;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.ws.rs.MultiPart.Part;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 
 /**
  *
@@ -143,7 +148,13 @@ public class ResponseObject {
                 out.write((boundaryTxt + "--\r\n").getBytes());
                 response.flushBuffer();
                 out.close();
-                return new ResponseEntity(HttpStatus.OK);
+
+                BodyBuilder builder = ResponseEntity.ok();
+                if (Application.getBooleanProperty(AppProperty.CSTL_URL, false)) {
+                    int second = Integer.parseInt(Application.getProperty(AppProperty.EXA_CACHE_CONTROL_TIME, "60"));
+                    builder = builder.cacheControl(CacheControl.maxAge(second, TimeUnit.SECONDS));
+                }
+                return builder.build();
 
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -184,7 +195,20 @@ public class ResponseObject {
                     responseHeaders.add(entry.getKey(), entry.getValue());
                 }
             }
-            return new ResponseEntity(entity, responseHeaders, status);
+            BodyBuilder builder = ResponseEntity.status(status);//.headers(responseHeaders);
+            if (Application.getBooleanProperty(AppProperty.EXA_DISABLE_NO_CACHE, false)) {
+                int second = Integer.parseInt(Application.getProperty(AppProperty.EXA_CACHE_CONTROL_TIME, "60"));
+                // does not work
+                //builder = builder.cacheControl(CacheControl.maxAge(second, TimeUnit.SECONDS));
+                // does not work either
+                //responseHeaders.add("Cache-Control", "max-age=" + second);
+
+                // only this one work
+                response.setHeader("Cache-Control", "max-age=" + second);
+                response.setHeader("Pragma", "cache");
+                response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
+            }
+            return builder.headers(responseHeaders).body(entity);
         }
     }
 }
