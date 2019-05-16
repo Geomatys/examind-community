@@ -61,6 +61,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import javax.servlet.http.HttpServletResponse;
 
 // Jersey dependencies
 
@@ -95,7 +96,7 @@ public class WMTSService extends GridWebService<WMTSWorker> {
     public ResponseObject treatIncomingRequest(final Object objectRequest, final WMTSWorker worker) {
         ServiceDef serviceDef = null;
         try {
-            
+
             // if the request is not an xml request we fill the request parameter.
             final RequestBase request;
             if (objectRequest == null) {
@@ -348,14 +349,15 @@ public class WMTSService extends GridWebService<WMTSWorker> {
     @RequestMapping(path = "{version}/{caps}", method = RequestMethod.GET)
     public ResponseEntity processGetCapabilitiesRestful(@PathVariable("serviceId") String serviceId,
                                                         @PathVariable("version") final String version,
-                                                        @PathVariable("caps") final String resourcename) {
+                                                        @PathVariable("caps") final String resourcename,
+                                                        HttpServletResponse response) {
         putServiceIdParam(serviceId);
         try {
             final GetCapabilities gc = createNewGetCapabilitiesRequestRestful(version);
-            return treatIncomingRequest(gc).getResponseEntity();
+            return treatIncomingRequest(gc).getResponseEntity(response);
         } catch (CstlServiceException ex) {
             final Worker w = wsengine.getInstance("WMTS", getSafeParameter("serviceId"));
-            return processExceptionResponse(ex, null, w).getResponseEntity();
+            return processExceptionResponse(ex, null, w).getResponseEntity(response);
         }
     }
 
@@ -378,7 +380,8 @@ public class WMTSService extends GridWebService<WMTSWorker> {
                                           @PathVariable("tileMatrix") final String tileMatrix,
                                           @PathVariable("tileRow") final String tileRow,
                                           @PathVariable("tileCol") final String tileCol,
-                                          @PathVariable("format") final String format) {
+                                          @PathVariable("format") final String format,
+                                          HttpServletResponse response) {
         putServiceIdParam(serviceId);
         try {
             final String mimeType;
@@ -388,10 +391,10 @@ public class WMTSService extends GridWebService<WMTSWorker> {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
             final GetTile gt = createNewGetTileRequestRestful(layer, tileMatrixSet, tileMatrix, tileRow, tileCol, mimeType, null);
-            return treatIncomingRequest(gt).getResponseEntity();
+            return treatIncomingRequest(gt).getResponseEntity(response);
         } catch (CstlServiceException ex) {
             final Worker w = wsengine.getInstance("WMTS", getSafeParameter("serviceId"));
-            return processExceptionResponse(ex, null, w).getResponseEntity();
+            return processExceptionResponse(ex, null, w).getResponseEntity(response);
         }
     }
 
@@ -407,7 +410,7 @@ public class WMTSService extends GridWebService<WMTSWorker> {
      *
      * @param ex The exception that has been generated during the web-service operation requested.
      * @param worker The worker operating this exception.
-     * 
+     *
      * @return An XML representing the exception.
      *
      */

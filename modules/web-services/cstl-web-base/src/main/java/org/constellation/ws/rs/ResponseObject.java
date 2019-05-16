@@ -120,6 +120,9 @@ public class ResponseObject {
 
     public ResponseEntity getResponseEntity(HttpServletResponse response) {
         if (entity instanceof MultiPart) {
+            if (response == null) {
+                throw new RuntimeException("HttpServletResponse is missing, it is required to set multi part headers");
+            }
             MultiPart mp = (MultiPart) entity;
             try {
                 String boundaryTxt = "--AMZ90RFX875LKMFasdf09DDFF3";
@@ -204,9 +207,13 @@ public class ResponseObject {
                 //responseHeaders.add("Cache-Control", "max-age=" + second);
 
                 // only this one work
-                response.setHeader("Cache-Control", "max-age=" + second);
-                response.setHeader("Pragma", "cache");
-                response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
+                if (response != null) {
+                    response.setHeader("Cache-Control", "max-age=" + second);
+                    response.setHeader("Pragma", "cache");
+                    response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
+                } else {
+                    LOGGER.log(Level.INFO, "cannot apply cache control header due to missing HttpServletResponse.");
+                }
             }
             return builder.headers(responseHeaders).body(entity);
         }
