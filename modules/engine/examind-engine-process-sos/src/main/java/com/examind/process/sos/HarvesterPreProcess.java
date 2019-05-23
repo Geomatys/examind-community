@@ -16,6 +16,7 @@
  */
 package com.examind.process.sos;
 
+import static com.examind.process.sos.HarvesterPreProcessDescriptor.TASK_NAME;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.opencsv.CSVReader;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.ChainProcess;
 import org.constellation.dto.process.ServiceProcessReference;
@@ -64,11 +66,21 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
-        final String sourceFolderStr    = inputParameters.getValue(HarvesterPreProcessDescriptor.DATA_FOLDER);
+        final String sourceFolderStr = inputParameters.getValue(HarvesterPreProcessDescriptor.DATA_FOLDER);
         final String observationType = inputParameters.getValue(HarvesterPreProcessDescriptor.OBS_TYPE);
+        final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
 
-        String uniqueId = UUID.randomUUID().toString();
-        String processId = "csv-sos-insertion-" + uniqueId;
+        String processId;
+        if (taskName != null) {
+            processId = taskName;
+            if (processBusiness.getChainProcess("examind-dynamic", taskName) != null) {
+                throw new ProcessException("The dynamic task: " + processId + " already exist.", this);
+            }
+        } else {
+            String uniqueId = UUID.randomUUID().toString();
+            processId = "csv-sos-insertion-" + uniqueId;
+        }
+
         final Chain chain = new Chain(processId);
 
         chain.setTitle("SOS Harvester");
@@ -124,19 +136,24 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, ",");
         inputs.add(SPparam);
 
-        final Parameter MCparam = new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, null, headers);
+        String defaultMainCol = null;
+        if (observationType.equals("Timeserie") || observationType.equals("Trajectory")) {
+            defaultMainCol = guessColumn(headers, Arrays.asList("time", "date"));
+        }
+
+        final Parameter MCparam = new Parameter(MAIN_COLUMN_NAME, String.class, MAIN_COLUMN_DESC, MAIN_COLUMN_DESC, 1, 1, defaultMainCol, headers);
         inputs.add(MCparam);
 
-        final Parameter DCparam = new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, null, headers);
+        final Parameter DCparam = new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("time", "date")), headers);
         inputs.add(DCparam);
 
         final Parameter DFparam = new Parameter(DATE_FORMAT_NAME, String.class, DATE_FORMAT_DESC, DATE_FORMAT_DESC, 1, 1, "yyyy-MM-dd'T'hh:mm:ss'Z'");
         inputs.add(DFparam);
 
-        final Parameter LatCparam = new Parameter(LONGITUDE_COLUMN_NAME, String.class, LONGITUDE_COLUMN_DESC, LONGITUDE_COLUMN_DESC, 1, 1, null, headers);
+        final Parameter LatCparam = new Parameter(LONGITUDE_COLUMN_NAME, String.class, LONGITUDE_COLUMN_DESC, LONGITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("longitude", "long")), headers);
         inputs.add(LatCparam);
 
-        final Parameter LonCparam = new Parameter(LATITUDE_COLUMN_NAME, String.class, LATITUDE_COLUMN_DESC, LATITUDE_COLUMN_DESC, 1, 1, null, headers);
+        final Parameter LonCparam = new Parameter(LATITUDE_COLUMN_NAME, String.class, LATITUDE_COLUMN_DESC, LATITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("latitude", "lat")), headers);
         inputs.add(LonCparam);
 
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
@@ -203,4 +220,16 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             throw new ProcessException("problem reading csv file", this, ex);
         }
     }
+
+    private String guessColumn(String[] headers, List<String> findValues) {
+        for (String header : headers) {
+            for (String findValue : findValues) {
+                if (StringUtils.containsIgnoreCase(header, findValue)) {
+                    return header;
+                }
+            }
+        }
+        return null;
+    }
+
 }

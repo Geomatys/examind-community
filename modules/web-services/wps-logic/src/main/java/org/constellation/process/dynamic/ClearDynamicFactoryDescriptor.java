@@ -23,6 +23,7 @@ import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.AbstractCstlProcessDescriptor;
 import org.constellation.process.ExamindProcessFactory;
+import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
@@ -40,9 +41,15 @@ public class ClearDynamicFactoryDescriptor extends AbstractCstlProcessDescriptor
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
+    public static final ParameterDescriptor<String> SINGLE_PROCESS = BUILDER
+            .addName("single process")
+            .setRemarks("single single")
+            .setRequired(false)
+            .create(String.class, null);
+
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup();
+            .createGroup(SINGLE_PROCESS);
 
 
     /**Output parameters */

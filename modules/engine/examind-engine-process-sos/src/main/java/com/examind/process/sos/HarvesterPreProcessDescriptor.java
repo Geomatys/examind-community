@@ -52,8 +52,14 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
 
+    public static final ParameterDescriptor<String> TASK_NAME = PARAM_BUILDER
+            .addName("generated task name")
+            .setRemarks("generated task name")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, OBS_TYPE);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, OBS_TYPE, TASK_NAME);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";

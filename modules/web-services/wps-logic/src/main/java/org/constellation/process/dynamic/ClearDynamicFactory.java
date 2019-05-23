@@ -22,6 +22,7 @@ import org.constellation.business.IProcessBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.ChainProcessRetriever;
+import static org.constellation.process.dynamic.ClearDynamicFactoryDescriptor.SINGLE_PROCESS;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
@@ -44,10 +45,15 @@ public class ClearDynamicFactory extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
+        final String processCode = inputParameters.getValue(SINGLE_PROCESS);
 
         try {
-            for (ProcessDescriptor chainDesc : ChainProcessRetriever.getChainDescriptors()) {
-                processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, chainDesc.getIdentifier().getCode());
+            if (processCode != null) {
+                processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, processCode);
+            } else {
+                for (ProcessDescriptor chainDesc : ChainProcessRetriever.getChainDescriptors()) {
+                    processBusiness.deleteChainProcess(ExamindDynamicProcessFactory.NAME, chainDesc.getIdentifier().getCode());
+                }
             }
         } catch (ConstellationException ex) {
             throw new ProcessException("Error while removing all chain process", this, ex);
