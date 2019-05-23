@@ -35,6 +35,14 @@ public class StringMap {
 
     private HashMap<String,String> map;
 
+    public StringMap() {
+
+    }
+
+    public StringMap(HashMap<String,String> map) {
+        this.map = map;
+    }
+
     public HashMap<String, String> getMap() {
         if(map == null){
             map = new HashMap<>();

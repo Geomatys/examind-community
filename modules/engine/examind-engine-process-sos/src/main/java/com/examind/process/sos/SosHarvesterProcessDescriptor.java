@@ -16,6 +16,7 @@
  */
 package com.examind.process.sos;
 
+import java.util.Collections;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.process.Process;
@@ -53,11 +54,9 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String SERVICE_ID_NAME = "SOS service";
     public static final String SERVICE_ID_DESC = "SOS service";
-    public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID = PARAM_BUILDER
-            .addName(SERVICE_ID_NAME)
-            .setRemarks(SERVICE_ID_DESC)
-            .setRequired(true)
-            .create(ServiceProcessReference.class, null);
+    public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
+        new ExtendedParameterDescriptor<>(
+                SERVICE_ID_NAME, SERVICE_ID_DESC, ServiceProcessReference.class, null, true, Collections.singletonMap("filter", Collections.singletonMap("type", "sos")));
 
     public static final String DATASET_IDENTIFIER_NAME = "dataset identifier";
     public static final String DATASET_IDENTIFIER_DESC = "dataset identifier";
@@ -77,11 +76,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String SEPARATOR_NAME = CSVFeatureStoreFactory.SEPARATOR.getName().getCode();
     public static final String SEPARATOR_DESC = CSVFeatureStoreFactory.SEPARATOR.getName().getCode();
-    public static final ParameterDescriptor<Character> SEPARATOR = PARAM_BUILDER
+    public static final ParameterDescriptor<String> SEPARATOR = PARAM_BUILDER
             .addName(SEPARATOR_NAME)
             .setRemarks(SEPARATOR_DESC)
             .setRequired(true)
-            .create(Character.class, ',');
+            .create(String.class, ",");
 
     public static final String MAIN_COLUMN_NAME = CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode();
     public static final String MAIN_COLUMN_DESC = CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode();

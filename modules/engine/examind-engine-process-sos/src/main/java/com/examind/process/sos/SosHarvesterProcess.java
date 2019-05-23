@@ -115,7 +115,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final Path sourceFolder = Paths.get(inputParameters.getValue(DATA_FOLDER));
         final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
-        final Character separator = inputParameters.getValue(SEPARATOR);
+        final String separator = inputParameters.getValue(SEPARATOR);
         final String mainColumn = inputParameters.getValue(MAIN_COLUMN);
         final String dateColumn = inputParameters.getValue(DATE_COLUMN);
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
@@ -148,7 +148,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         if (Files.isDirectory(sourceFolder)) {
              try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
                 for (Path child : stream) {
-                    if (child.getFileName().endsWith(".csv")) {
+                    if (child.getFileName().toString().endsWith(".csv")) {
                         datasourceBusiness.addSelectedPath(dsId, '/' + child.getFileName().toString());
                     }
                 }
@@ -184,7 +184,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.cleanupEmptyProperty();
             storeParams.propertyToMap(provConfig.getParameters());
 
-            provConfig.getParameters().put(CSVFeatureStoreFactory.SEPARATOR.getName().toString(), separator.toString());
+            provConfig.getParameters().put(CSVFeatureStoreFactory.SEPARATOR.getName().toString(), separator);
             provConfig.getParameters().put(CsvObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
