@@ -184,7 +184,6 @@
                 <configuration>
                     <repository>examind-community</repository>
                     <contextDirectory>${project.basedir}/../../../docker</contextDirectory>
-                    <dockerDirectory>${project.basedir}../../../docker</dockerDirectory>
                     <tag>${project.version}</tag>
                     <skip>${skipDocker}</skip>
                 </configuration>
