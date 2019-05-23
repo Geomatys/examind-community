@@ -370,7 +370,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                         } else {
                                             value = rs2.getString(field.fieldName);
                                         }
-                                        values.append(value).append(encoding.getTokenSeparator());
+                                        if (value != null) {
+                                            values.append(value);
+                                        }
+                                        values.append(encoding.getTokenSeparator());
                                     }
                                     values.deleteCharAt(values.length() - 1);
                                     values.append(encoding.getBlockSeparator());
@@ -410,7 +413,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                         } else {
                                             value = rs2.getString(field.fieldName);
                                         }
-                                        values.append(value).append(encoding.getTokenSeparator());
+                                        if (value != null) {
+                                            values.append(value);
+                                        }
+                                        values.append(encoding.getTokenSeparator());
                                     }
                                     values.deleteCharAt(values.length() - 1);
                                     values.append(encoding.getBlockSeparator());
@@ -592,10 +598,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                             } else {
                                 value = rs.getString(field.fieldName);
                             }
-                            if (value == null) {
-                                value = "";
+                            if (value != null) {
+                                values.append(value);
                             }
-                            values.append(value).append(encoding.getTokenSeparator());
+                            values.append(encoding.getTokenSeparator());
                         }
                         values.deleteCharAt(values.length() - 1);
                         values.append(encoding.getBlockSeparator());
