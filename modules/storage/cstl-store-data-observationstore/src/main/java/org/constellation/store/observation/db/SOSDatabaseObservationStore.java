@@ -31,11 +31,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.geotoolkit.feature.FeatureExt;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.UnsupportedQueryException;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CommonConstants;
 import org.geotoolkit.data.AbstractFeatureStore;
 import org.geotoolkit.data.FeatureReader;
@@ -108,6 +110,8 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
 
     private final boolean isPostgres;
     protected final GenericNameIndex<FeatureType> types;
+
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
 
     public SOSDatabaseObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(params);
@@ -434,16 +438,27 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
 
     @Override
     public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null);
+        return getResults(null, null, new HashSet<>(), new HashSet<>());
     }
 
     @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(sensorIDs);
+    public ExtractionResult getResults(final List<String> sensorIds) throws DataStoreException {
+        return getResults(null, sensorIds, new HashSet<>(), new HashSet<>());
     }
 
     @Override
-    public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
+    public ExtractionResult getResults(String affectedSensorID, List<String> sensorIds) throws DataStoreException {
+        return getResults(affectedSensorID, sensorIds, new HashSet<>(), new HashSet<>());
+    }
+
+    @Override
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
+            final Set<Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
+
+        if (affectedSensorId != null) {
+            LOGGER.warning("CSVObservation store does not allow to override sensor ID");
+        }
+
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 

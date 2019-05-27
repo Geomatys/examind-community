@@ -12,8 +12,8 @@
     <sf:type xlink:href="http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingPoint"/>
     <sf:sampledFeature xlink:href="urn:-sandre:object:bdrhf:123X"/>
     <sams:shape>
-        <gml:Point gml:id="STATION-LOCALISATION">
-            <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">65400.0 1731368.0</gml:pos>
+        <gml:Point gml:id="station-001">
+            <gml:pos srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">65400.0 1731368.0</gml:pos>
         </gml:Point>
     </sams:shape>
 </sams:SF_SpatialSamplingFeature>

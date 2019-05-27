@@ -217,36 +217,32 @@ public class OM2BaseReader {
             id = observedProperty.replace(':', '-');
         }
         try {
-            if (version.equals("2.0.0")) {
-                return buildPhenomenon(version, id, observedProperty);
-            } else {
-                // look for composite phenomenon
-                try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?")) {
-                    stmt.setString(1, observedProperty);
-                    try(final ResultSet rs = stmt.executeQuery()) {
-                        final List<Phenomenon> phenomenons = new ArrayList<>();
-                        while (rs.next()) {
-                            final String name = rs.getString(1);
-                            final String phenID;
-                            // hack for valid phenomenon ID in 1.0.0 static fields
-                            if (name.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
-                                phenID = "latitude";
-                            } else if (name.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
-                                phenID = "longitude";
-                            } else if (name.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
-                                phenID = "samplingTime";
-                            } else if (name.startsWith(phenomenonIdBase)) {
-                                phenID = name.substring(phenomenonIdBase.length());
-                            } else {
-                                phenID = null;
-                            }
-                            phenomenons.add(buildPhenomenon(version, phenID, name));
-                        }
-                        if (phenomenons.isEmpty()) {
-                            return buildPhenomenon(version, id, observedProperty);
+            // look for composite phenomenon
+            try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?")) {
+                stmt.setString(1, observedProperty);
+                try(final ResultSet rs = stmt.executeQuery()) {
+                    final List<Phenomenon> phenomenons = new ArrayList<>();
+                    while (rs.next()) {
+                        final String name = rs.getString(1);
+                        final String phenID;
+                        // hack for valid phenomenon ID in 1.0.0 static fields
+                        if (name.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
+                            phenID = "latitude";
+                        } else if (name.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
+                            phenID = "longitude";
+                        } else if (name.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
+                            phenID = "samplingTime";
+                        } else if (name.startsWith(phenomenonIdBase)) {
+                            phenID = name.substring(phenomenonIdBase.length());
                         } else {
-                            return buildCompositePhenomenon(version, id, observedProperty, phenomenons);
+                            phenID = null;
                         }
+                        phenomenons.add(buildPhenomenon(version, phenID, name));
+                    }
+                    if (phenomenons.isEmpty()) {
+                        return buildPhenomenon(version, id, observedProperty);
+                    } else {
+                        return buildCompositePhenomenon(version, id, observedProperty, phenomenons);
                     }
                 }
             }

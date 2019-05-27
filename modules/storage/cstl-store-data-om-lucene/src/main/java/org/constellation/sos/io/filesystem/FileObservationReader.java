@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.constellation.api.CommonConstants;
+import org.opengis.observation.Phenomenon;
 
 /**
  *
@@ -283,6 +284,33 @@ public class FileObservationReader implements ObservationReader {
             }
         }
         return phenomenonNames;
+    }
+
+    @Override
+    public Collection<Phenomenon> getPhenomenons(String version) throws DataStoreException {
+        final List<Phenomenon> results = new ArrayList<>();
+        if (Files.isDirectory(phenomenonDirectory)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(phenomenonDirectory)) {
+                for (Path phenomenonFile : stream) {
+                    try (InputStream is = Files.newInputStream(phenomenonFile)) {
+                        final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
+                        Object obj = unmarshaller.unmarshal(is);
+                        MARSHALLER_POOL.recycle(unmarshaller);
+                        if (obj instanceof JAXBElement) {
+                            obj = ((JAXBElement)obj).getValue();
+                        }
+                        if (obj instanceof Phenomenon) {
+                            results.add((Phenomenon) obj);
+                        }
+                    } catch (IOException | JAXBException e) {
+                        throw new DataStoreException("Error during phenomenon umarshalling", e);
+                    }
+                }
+            } catch (IOException e) {
+                throw new DataStoreException("Error during phenomenon directory scanning", e);
+            }
+        }
+        return results;
     }
 
     @Override
@@ -555,5 +583,10 @@ public class FileObservationReader implements ObservationReader {
             throw new DataStoreException("An error occurs while scanning observation template directory");
         }
         return null;
+    }
+
+    @Override
+    public Collection<SamplingFeature> getFeatureOfInterestForProcedure(String sensorID, String version) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

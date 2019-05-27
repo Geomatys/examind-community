@@ -148,12 +148,21 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     }
 
     @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(sensorIDs);
+    public ExtractionResult getResults(List<String> sensorIds) throws DataStoreException {
+        return getResults(null, sensorIds, new HashSet<>(), new HashSet<>());
     }
 
     @Override
-    public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
+        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
+    }
+
+    @Override
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs, Set<Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
+        if (affectedSensorId != null) {
+            LOGGER.warning("SOSLuceneObservationStore does not allow to override sensor ID");
+        }
+
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 
@@ -186,8 +195,6 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
                 result.observations.add(o);
             }
         }
-
-
         return result;
     }
 

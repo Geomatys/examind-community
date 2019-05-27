@@ -147,16 +147,24 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
 
     @Override
     public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null);
+        return getResults(null, null, new HashSet<>(), new HashSet<>());
     }
 
     @Override
     public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(sensorIDs);
+        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
     }
 
     @Override
     public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
+        return getResults(null, sensorIDs, new HashSet<>(), new HashSet<>());
+    }
+
+    @Override
+    public ExtractionResult getResults(String affectedSensorID, List<String> sensorIDs, Set<Phenomenon> phenomenons, Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
+        if (affectedSensorID != null) {
+            LOGGER.warning("GenericObservation store does not allow to override sensor ID");
+        }
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 

@@ -93,6 +93,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.inject.Inject;
+import org.apache.sis.util.ComparisonMode;
+import org.apache.sis.util.Utilities;
 
 import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
@@ -126,7 +128,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 public abstract class SOS2WorkerTest {
 
     @Inject
-    protected IServiceBusiness serviceBusiness;    
+    protected IServiceBusiness serviceBusiness;
     @Inject
     protected IProviderBusiness providerBusiness;
     @Inject
@@ -147,7 +149,7 @@ public abstract class SOS2WorkerTest {
         capabilities = (Capabilities) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/sos/SOSCapabilities1.0.0.xml"));
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     public abstract void initWorker();
 
     /**
@@ -363,7 +365,7 @@ public abstract class SOS2WorkerTest {
         assertTrue(exLaunched);
 
     }
-    
+
     /**
      * Tests the DescribeSensor method
      *
@@ -560,7 +562,7 @@ public abstract class SOS2WorkerTest {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
         final List<String> nullList = null;
-        
+
         /**
          *  Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:4 and no resultModel
          */
@@ -571,7 +573,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
 
         JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
@@ -585,6 +587,18 @@ public abstract class SOS2WorkerTest {
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName().getCode(), obsResult.getName().getCode());
+
+        assertTrue(expResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
+        assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
+        SFSpatialSamplingFeatureType expFOI = (SFSpatialSamplingFeatureType) expResult.getFeatureOfInterest();
+        SFSpatialSamplingFeatureType resFOI = (SFSpatialSamplingFeatureType) obsResult.getFeatureOfInterest();
+
+        assertEquals(expFOI.getGeometry(), resFOI.getGeometry());
+        assertEquals(expFOI.getShape(), resFOI.getShape());
+        assertEquals(expFOI.getId(), resFOI.getId());
+        Utilities.deepEquals(expFOI.getName(), resFOI.getName(), ComparisonMode.BY_CONTRACT);
+        assertEquals(expFOI, resFOI);
+
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
@@ -596,7 +610,7 @@ public abstract class SOS2WorkerTest {
 
         // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertTrue(obsR.getDataArray().getElementType().getAbstractRecord() instanceof DataRecordType);
         DataRecordType expSdr = (DataRecordType) expR.getDataArray().getElementType().getAbstractRecord();
         DataRecordType obsSdr = (DataRecordType) obsR.getDataArray().getElementType().getAbstractRecord();
@@ -643,7 +657,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
@@ -659,12 +673,12 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -680,7 +694,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
@@ -697,12 +711,12 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -717,7 +731,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         assertEquals(1, result.getMember().size());
@@ -741,7 +755,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         assertEquals(1, result.getMember().size());
@@ -762,7 +776,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         assertEquals(1, result.getMember().size());
@@ -787,7 +801,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         assertEquals(1, result.getMember().size());
@@ -812,7 +826,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         assertEquals(1, result.getMember().size());
@@ -834,7 +848,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
@@ -850,12 +864,12 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
         // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -871,7 +885,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation5.xml");
@@ -887,20 +901,20 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
         assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
         final DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
         final DataArrayPropertyType resArray = (DataArrayPropertyType) obsResult.getResult();
-        
+
         // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
         assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
         assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
         assertEquals(expArray.getDataArray(), resArray.getDataArray());
         assertEquals(expArray, resArray);
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -917,7 +931,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       Arrays.asList("station-002"),
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation5.xml");
@@ -933,12 +947,12 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -955,7 +969,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       Arrays.asList("station-002"),
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
 
@@ -974,7 +988,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       new BBOXType(null, 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observation3.xml");
@@ -991,12 +1005,12 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         expR = (DataArrayPropertyType) expResult.getResult();
         obsR = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
@@ -1011,7 +1025,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       new BBOXType(null, 66000.0, 1730000.0, 67000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
 
         collExpResult = new GetObservationResponseType();
@@ -1030,7 +1044,7 @@ public abstract class SOS2WorkerTest {
 
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         final List<String> nullList = null;
-        
+
         /**
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:8
          *
@@ -1062,10 +1076,10 @@ public abstract class SOS2WorkerTest {
         assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
         DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
         DataArrayPropertyType resArray = (DataArrayPropertyType) obsResult.getResult();
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
         assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
         assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
@@ -1086,7 +1100,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       Arrays.asList("station-006"),
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         result = (GetObservationResponseType) worker.getObservation(request);
         assertEquals(2, result.getMember().size());
         final Iterator it = result.getMember().iterator();
@@ -1098,38 +1112,38 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         expArray = (DataArrayPropertyType) expResult.getResult();
         resArray = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
-        
+
         obsResult = (OMObservationType) it.next();
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation7.xml");
         expResult = (OMObservationType)obj.getValue();
-        
+
         expResult.getPropertyFeatureOfInterest().setToHref();
-        
+
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         expArray = (DataArrayPropertyType) expResult.getResult();
         resArray = (DataArrayPropertyType) obsResult.getResult();
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expResult.getResult(), obsResult.getResult());
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     /**
      * Tests the GetObservation method
      *
@@ -1139,7 +1153,7 @@ public abstract class SOS2WorkerTest {
 
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         final List<String> nullList = null;
-        
+
         /**
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:8
          *
@@ -1170,10 +1184,10 @@ public abstract class SOS2WorkerTest {
         assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
         DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
         DataArrayPropertyType resArray = (DataArrayPropertyType) obsResult.getResult();
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
         assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
         assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
@@ -1188,30 +1202,39 @@ public abstract class SOS2WorkerTest {
 
     public void GetObservationByIdTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        
-        GetObservationByIdType request = new GetObservationByIdType("2.0.0", Arrays.asList("urn:ogc:object:observation:GEOM:304"));
-        
-        final GetObservationByIdResponseType response = (GetObservationByIdResponseType) worker.getObservationById(request);
-        
-        final OMObservationType result = (OMObservationType) response.getMember().get(0);
-        
-        java.io.Reader ioReader = new InputStreamReader(Util.getResourceAsStream("org/constellation/sos/v200/observation1.xml"), "UTF-8");
-        JAXBElement obj =  (JAXBElement) unmarshaller.unmarshal(ioReader);
 
+        GetObservationByIdType request = new GetObservationByIdType("2.0.0", Arrays.asList("urn:ogc:object:observation:GEOM:304"));
+
+        final GetObservationByIdResponseType response = (GetObservationByIdResponseType) worker.getObservationById(request);
+
+        final OMObservationType result = (OMObservationType) response.getMember().get(0);
+
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation1.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
+        assertTrue(expResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
+        assertTrue(result.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
+        SFSpatialSamplingFeatureType expFOI = (SFSpatialSamplingFeatureType) expResult.getFeatureOfInterest();
+        SFSpatialSamplingFeatureType resFOI = (SFSpatialSamplingFeatureType) result.getFeatureOfInterest();
+
+        assertEquals(expFOI.getGeometry(), resFOI.getGeometry());
+        assertEquals(expFOI.getShape(), resFOI.getShape());
+        assertEquals(expFOI.getId(), resFOI.getId());
+        Utilities.deepEquals(expFOI.getName(), resFOI.getName(), ComparisonMode.BY_CONTRACT);
+        assertEquals(expFOI, resFOI);
+
         assertEquals(expResult.getFeatureOfInterest(), result.getFeatureOfInterest());
-        
+
          // do not compare datarray name (ID) because it depends on the implementation
         DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
         DataArrayPropertyType resArray = (DataArrayPropertyType) result.getResult();
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-        
+
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     /**
      * Tests the RegisterSensor method
      *
@@ -1254,7 +1277,7 @@ public abstract class SOS2WorkerTest {
 
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     /**
      * Tests the RegisterSensor method
      *
@@ -1275,7 +1298,7 @@ public abstract class SOS2WorkerTest {
         InsertSensorType request = new InsertSensorType("2.0.0", sensorDescription, "http://www.opengis.net/sensorML/1.0.0");
 
         InsertSensorResponse response = worker.registerSensor(request);
-        
+
         assertTrue(response instanceof InsertSensorResponseType);
 
         assertEquals("sensor-system", response.getAssignedProcedure());
@@ -1297,15 +1320,15 @@ public abstract class SOS2WorkerTest {
 
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     public void DeleteSensorTest() throws Exception {
-        
+
         final DeleteSensorType request = new DeleteSensorType("2.0.0","sensor-system");
         final DeleteSensorResponseType result = (DeleteSensorResponseType) worker.deleteSensor(request);
         final DeleteSensorResponseType expResult = new DeleteSensorResponseType("sensor-system");
-        
+
         assertEquals(expResult, result);
-        
+
         /**
          * Test 1 system sensor
          */
@@ -1318,9 +1341,9 @@ public abstract class SOS2WorkerTest {
            assertTrue(ex.getMessage().contains("this sensor is not registered"));
         }
         assertTrue(exLaunched);
-        
+
     }
-    
+
     /**
      * Tests the RegisterSensor method
      *
@@ -1403,13 +1426,13 @@ public abstract class SOS2WorkerTest {
         result = worker.getFeatureOfInterest(request);
 
         assertTrue (result instanceof SFSpatialSamplingFeatureType);
-        
+
         final SFSpatialSamplingFeatureType resultC = (SFSpatialSamplingFeatureType) result;
 
         assertEquals(expResultC.getShape(), resultC.getShape());
-        
+
         assertEquals(expResultC.getBoundedBy(), resultC.getBoundedBy());
-        
+
         assertEquals(expResultC, resultC);
 
         /**
@@ -1430,37 +1453,37 @@ public abstract class SOS2WorkerTest {
 
     public void GetFeatureOfInterestObservedPropertiesTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        
+
         GetFeatureOfInterestType request = new GetFeatureOfInterestType("2.0.0", "SOS", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), null, null, null);
-        
+
         AbstractFeature result = worker.getFeatureOfInterest(request);
-        
+
         assertTrue(result instanceof FeatureCollectionType);
-        
+
         FeatureCollectionType collection = (FeatureCollectionType)result;
         assertEquals(2, collection.getFeatureMember().size());
-        
+
         assertTrue(collection.getFeatureMember().get(0).getAbstractFeature() instanceof SFSpatialSamplingFeatureType);
-        
+
         SFSpatialSamplingFeatureType sf1 = (SFSpatialSamplingFeatureType) collection.getFeatureMember().get(0).getAbstractFeature();
         assertEquals("station-002", sf1.getId());
         SFSpatialSamplingFeatureType sf2 = (SFSpatialSamplingFeatureType) collection.getFeatureMember().get(1).getAbstractFeature();
         assertEquals("station-006", sf2.getId());
-        
+
         request = new GetFeatureOfInterestType("2.0.0", "SOS", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), Arrays.asList("urn:ogc:object:sensor:GEOM:8"), null, null);
-        
+
         result = worker.getFeatureOfInterest(request);
-        
+
         assertTrue(result instanceof FeatureCollectionType);
-        
+
         collection = (FeatureCollectionType)result;
         assertEquals(1, collection.getFeatureMember().size());
-        
+
         assertTrue(collection.getFeatureMember().get(0).getAbstractFeature() instanceof SFSpatialSamplingFeatureType);
-        
+
         sf1 = (SFSpatialSamplingFeatureType) collection.getFeatureMember().get(0).getAbstractFeature();
         assertEquals("station-006", sf1.getId());
-        
+
         marshallerPool.recycle(unmarshaller);
     }
 
@@ -1518,7 +1541,7 @@ public abstract class SOS2WorkerTest {
 
     public void GetResultTemplateTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        /** 
+        /**
          *   getResultTemplate with procedure urn:ogc:object:sensor:GEOM:4
          */
         GetResultTemplateType GOrequest  = new GetResultTemplateType("2.0.0",
@@ -1532,8 +1555,8 @@ public abstract class SOS2WorkerTest {
 
         DataArrayPropertyType arrayP = (DataArrayPropertyType) templateExpResult.getResult();
         DataArrayType array = arrayP.getDataArray();
-        
-        // empty id 
+
+        // empty id
         array.getElementType().getValue().setId(null);
         obsCollResult.getResultStructure().setId(null);
 
@@ -1541,7 +1564,7 @@ public abstract class SOS2WorkerTest {
         assertEquals(array.getElementType().getValue(), obsCollResult.getResultStructure());
 
     }
-    
+
     /**
      * Tests the GetResult method
      *
@@ -1571,12 +1594,12 @@ public abstract class SOS2WorkerTest {
          */
         offeringId = "offering-3";
         request = new GetResultType("2.0.0", "SOS", offeringId, observedProperty, null, null, null);
-        
+
         // template filter
         TimeInstantType instant = new TimeInstantType(new TimePositionType("2007-05-01T05:00:00.0"));
         TemporalOpsType templatefilter = new TimeBeforeType(null, instant);
         request.addTemporalFilter(templatefilter);
-        
+
         result = (GetResultResponseType) worker.getResult(request);
 
         value = "2007-05-01T02:59:00.0,6.56@@2007-05-01T03:59:00.0,6.56@@2007-05-01T04:59:00.0,6.56@@";
@@ -1606,7 +1629,7 @@ public abstract class SOS2WorkerTest {
         TimeBeforeType bfilter = new TimeBeforeType(null, instant);
         List<TemporalOpsType> filters = new ArrayList<>();
         filters.add(templatefilter);
-        filters.add(bfilter);        
+        filters.add(bfilter);
         request = new GetResultType("2.0.0", "SOS", offeringId, observedProperty, filters, null, null);
         result = (GetResultResponseType) worker.getResult(request);
 
@@ -1623,7 +1646,7 @@ public abstract class SOS2WorkerTest {
         TimeEqualsType efilter = new TimeEqualsType(null, instant);
         filters = new ArrayList<>();
         filters.add(templatefilter);
-        filters.add(efilter);  
+        filters.add(efilter);
 
         request = new GetResultType("2.0.0", "SOS", offeringId, observedProperty, filters, null, null);
         result = (GetResultResponseType) worker.getResult(request);
@@ -1641,8 +1664,8 @@ public abstract class SOS2WorkerTest {
         TimeDuringType dfilter = new TimeDuringType(null, period);
         filters = new ArrayList<>();
         filters.add(templatefilter);
-        filters.add(dfilter);  
-        
+        filters.add(dfilter);
+
         request = new GetResultType("2.0.0", "SOS", offeringId, observedProperty, filters, null, null);
         result = (GetResultResponseType) worker.getResult(request);
 
@@ -1660,7 +1683,7 @@ public abstract class SOS2WorkerTest {
         instant = new TimeInstantType(new TimePositionType("2007-05-01T19:00:00.0"));
         templatefilter = new TimeAfterType(null, instant);
         request.addTemporalFilter(templatefilter);
-                
+
         result = (GetResultResponseType) worker.getResult(request);
 
         value = "2007-05-01T19:59:00.0,6.55@@2007-05-01T20:59:00.0,6.55@@2007-05-01T21:59:00.0,6.55@@";
@@ -1687,7 +1710,7 @@ public abstract class SOS2WorkerTest {
         marshallerPool.recycle(unmarshaller);
 
     }
-    
+
     /**
      * Tests the InsertObservation method
      *
@@ -1695,16 +1718,16 @@ public abstract class SOS2WorkerTest {
      */
     public void insertObservationTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        
+
         String observedProperty = "urn:ogc:def:phenomenon:GEOM:depth";
-        
+
         GetResultType GRrequest = new GetResultType("2.0.0", "SOS", "offering-3", observedProperty, null, null, null);
         GetResultResponseType result = (GetResultResponseType) worker.getResult(GRrequest);
 
         String value = "2007-05-01T02:59:00.0,6.56@@2007-05-01T03:59:00.0,6.56@@2007-05-01T04:59:00.0,6.56@@2007-05-01T05:59:00.0,6.56@@2007-05-01T06:59:00.0,6.56@@" +
                        "2007-05-01T07:59:00.0,6.56@@2007-05-01T08:59:00.0,6.56@@2007-05-01T09:59:00.0,6.56@@2007-05-01T10:59:00.0,6.56@@2007-05-01T11:59:00.0,6.56@@" +
                        "2007-05-01T17:59:00.0,6.56@@2007-05-01T18:59:00.0,6.55@@2007-05-01T19:59:00.0,6.55@@2007-05-01T20:59:00.0,6.55@@2007-05-01T21:59:00.0,6.55@@";
-        
+
         GetResultResponseType expResult = new GetResultResponseType(value);
 
         assertEquals(expResult.getResultValues(), result.getResultValues());
@@ -1740,7 +1763,7 @@ public abstract class SOS2WorkerTest {
 
         marshallerPool.recycle(unmarshaller);
     }
-    
+
     /**
      * Tests the InsertObservation method
      *
@@ -1766,15 +1789,15 @@ public abstract class SOS2WorkerTest {
 
         final String templateID = result.getAcceptedTemplate();
         //assertTrue(templateID.startsWith("urn:ogc:object:observation:template:GEOM:"));
-        
+
         String value = "2012-01-01T00:01:00.0,12.1@@2012-01-01T00:02:00.0,13.1@@";
         InsertResultType requestIR = new InsertResultType("2.0.0", templateID, value);
         final InsertResultResponse response = worker.insertResult(requestIR);
         assertNotNull(response);
-        
+
 
          final List<String> nullList = null;
-        
+
         /**
          *  Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:4 and no resultModel
          */
@@ -1785,7 +1808,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
                                       "text/xml; subtype=\"om/1.0.0\"");
-        
+
         GetObservationResponseType resultGO = (GetObservationResponseType) worker.getObservation(requestGO);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation4.xml");
@@ -1799,15 +1822,25 @@ public abstract class SOS2WorkerTest {
         Marshaller marshaller = marshallerPool.acquireMarshaller();
         //marshaller.marshal(obsResult, System.out);
         marshallerPool.recycle(marshaller);
-        
+
         assertTrue(obsResult != null);
         obsResult.setName(null);
         expResult.setName(null);
-        
+
         obsResult.setId(null);
         expResult.setId(null);
-        
+
         assertEquals(expResult.getName(), obsResult.getName());
+
+        SFSpatialSamplingFeatureType expFOI = (SFSpatialSamplingFeatureType) expResult.getFeatureOfInterest();
+        SFSpatialSamplingFeatureType resFOI = (SFSpatialSamplingFeatureType) obsResult.getFeatureOfInterest();
+
+        assertEquals(expFOI.getGeometry(), resFOI.getGeometry());
+        assertEquals(expFOI.getShape(), resFOI.getShape());
+        assertEquals(expFOI.getId(), resFOI.getId());
+        Utilities.deepEquals(expFOI.getName(), resFOI.getName(), ComparisonMode.BY_CONTRACT);
+        assertEquals(expFOI, resFOI);
+
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
         assertEquals(expResult.getObservedProperty(), obsResult.getObservedProperty());
         assertEquals(expResult.getProcedure(), obsResult.getProcedure());
@@ -1821,8 +1854,8 @@ public abstract class SOS2WorkerTest {
         DataRecordType expSdr = (DataRecordType) expR.getDataArray().getElementType().getAbstractRecord();
         DataRecordType obsSdr = (DataRecordType) obsR.getDataArray().getElementType().getAbstractRecord();
 
-        emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());        
-        
+        emptyNameAndId(expR.getDataArray(),  obsR.getDataArray());
+
         Iterator<Field> i1 = expSdr.getField().iterator();
         Iterator<Field> i2 = obsSdr.getField().iterator();
         TimeType expT = (TimeType) i1.next().getTime();
@@ -1833,24 +1866,24 @@ public abstract class SOS2WorkerTest {
         assertEquals(i1.next(), i2.next());
 
         assertEquals(expSdr, obsSdr);
-        
+
         assertEquals(expR.getDataArray().getElementType().getName(),     obsR.getDataArray().getElementType().getName());
         assertEquals(expR.getDataArray().getElementType().getAbstractArray(),     obsR.getDataArray().getElementType().getAbstractArray());
         assertEquals(expR.getDataArray().getElementType(),     obsR.getDataArray().getElementType());
         assertEquals(expR.getDataArray().getEncoding(),        obsR.getDataArray().getEncoding());
-        
-        
+
+
         String v = "2007-05-01T02:59:00.0,6.56@@2007-05-01T03:59:00.0,6.56@@2007-05-01T04:59:00.0,6.56@@2007-05-01T05:59:00.0,6.56@@2007-05-01T06:59:00.0,6.56@@"
                 +  "2007-05-01T07:59:00.0,6.56@@2007-05-01T08:59:00.0,6.56@@2007-05-01T09:59:00.0,6.56@@2007-05-01T10:59:00.0,6.56@@2007-05-01T11:59:00.0,6.56@@"
                 +  "2007-05-01T17:59:00.0,6.56@@2007-05-01T18:59:00.0,6.55@@2007-05-01T19:59:00.0,6.55@@2007-05-01T20:59:00.0,6.55@@2007-05-01T21:59:00.0,6.55@@"
                 +  "2007-06-01T01:01:00.0,6.56@@2007-06-01T02:00:00.0,6.55@@2007-06-01T03:00:00.0,6.55@@2012-01-01T00:01:00.0,12.1@@2012-01-01T00:02:00.0,13.1@@";
         expR.getDataArray().setValues(v);
-        
+
         assertEquals(expR.getDataArray().getValues(),          obsR.getDataArray().getValues());
         assertEquals(expR.getDataArray().getId(),              obsR.getDataArray().getId());
-        
+
         expR.getDataArray().setElementCount(20);
-        
+
         assertEquals(expR.getDataArray().getElementCount(),    obsR.getDataArray().getElementCount());
         assertEquals(expR.getDataArray().getName(),            obsR.getDataArray().getName());
         assertEquals(expR.getDataArray().getPropertyElementType(), obsR.getDataArray().getPropertyElementType());
@@ -1864,15 +1897,15 @@ public abstract class SOS2WorkerTest {
         assertEquals(expR.getDataArray(),                      obsR.getDataArray());
 
         assertEquals(expResult.getResult(), obsResult.getResult());
-        
+
         ((TimePeriodType)expResult.getSamplingTime()).setBeginPosition(new TimePositionType("2007-05-01T02:59:00.0"));
         ((TimePeriodType)expResult.getSamplingTime()).setEndPosition(new TimePositionType("2012-01-01T00:02:00"));
 
-                    
+
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        
+
         /**
          * Try to insert bad strcutured data
          */
@@ -1886,7 +1919,7 @@ public abstract class SOS2WorkerTest {
             assertEquals(ex.getLocator(), "resultValues");
         }
         assertTrue(exLaunched);
-        
+
         marshallerPool.recycle(unmarshaller);
     }
 
@@ -1911,17 +1944,17 @@ public abstract class SOS2WorkerTest {
         assertTrue(exLaunched);
         initWorker();
     }
-    
+
     private static void emptyNameAndId(final DataArrayType resArray, final DataArrayType expArray) {
-        resArray.setId(null);              
+        resArray.setId(null);
         expArray.setId(null);
-        resArray.setName(null);              
+        resArray.setName(null);
         expArray.setName(null);
         resArray.getPropertyElementType().setName(null);
         expArray.getPropertyElementType().setName(null);
         resArray.getPropertyElementType().getValue().setId(null);
         expArray.getPropertyElementType().getValue().setId(null);
-        
+
     }
 
     /**

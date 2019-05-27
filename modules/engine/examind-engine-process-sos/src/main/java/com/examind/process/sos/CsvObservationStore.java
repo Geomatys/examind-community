@@ -142,18 +142,25 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
     @Override
     public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null);
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        LOGGER.warning("CSVObservation store does not allow to override sensor ID");
-        return getResults(sensorIDs);
+        return getResults(null, null, new HashSet<>(), new HashSet<>());
     }
 
     @Override
     public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
+        return getResults(null, sensorIDs, new HashSet<>(), new HashSet<>());
+    }
 
+    @Override
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
+        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
+    }
+
+    @Override
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
+            final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
+        if (affectedSensorId != null) {
+            LOGGER.warning("CSVObservation store does not allow to override sensor ID");
+        }
 
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
@@ -221,7 +228,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     case "Profile"   : datarecord = OMUtils.getDataRecordProfile("2.0.0", fields);   break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
-                final Phenomenon phenomenon         = OMUtils.getPhenomenon("2.0.0", fields);
+
+                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, phenomenons);
                 result.phenomenons.add(phenomenon);
 
 
@@ -270,7 +278,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
-                        final SamplingFeature sp = buildFOI(foiID, positions);
+                        final SamplingFeature sp = buildFOI(foiID, positions, samplingFeatures);
                         result.addFeatureOfInterest(sp);
                         globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
@@ -374,7 +382,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
-                final SamplingFeature sp = buildFOI(foiID, positions);
+                final SamplingFeature sp = buildFOI(foiID, positions, samplingFeatures);
                 result.addFeatureOfInterest(sp);
                 globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 

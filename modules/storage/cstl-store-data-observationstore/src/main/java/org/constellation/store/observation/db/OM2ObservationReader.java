@@ -399,6 +399,21 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
+    @Override
+    public Collection<Phenomenon> getPhenomenons(final String version) throws DataStoreException {
+        try(final Connection c         = source.getConnection();
+            final Statement stmt       = c.createStatement();
+            final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\"")) {
+            final List<Phenomenon> results = new ArrayList<>();
+            while (rs.next()) {
+                results.add(getPhenomenon(version, rs.getString(1), c));
+            }
+            return results;
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving phenomenon names.", ex);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -493,6 +508,22 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             return results;
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
+        }
+    }
+
+    @Override
+    public Collection<SamplingFeature> getFeatureOfInterestForProcedure(String sensorID, String version) throws DataStoreException {
+        try(final Connection c         = source.getConnection();
+            final Statement stmt       = c.createStatement();
+            final ResultSet rs         = stmt.executeQuery("SELECT sf.\"id\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" sf, \"" + schemaPrefix + "om\".\"observations\" ob "
+                                                         + " WHERE sf.\"id\"=ob.\"foi\" AND ob.\"procedure\"='" + sensorID +"'")) {
+            final List<SamplingFeature> results = new ArrayList<>();
+            while (rs.next()) {
+                results.add(getFeatureOfInterest(rs.getString(1), version, c));
+            }
+            return results;
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving existingFeature for procedure.", ex);
         }
     }
 

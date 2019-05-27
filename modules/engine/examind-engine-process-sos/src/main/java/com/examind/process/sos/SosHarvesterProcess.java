@@ -69,6 +69,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.importdata.ResourceAnalysisV3;
+import org.opengis.observation.Phenomenon;
+import org.opengis.observation.sampling.SamplingFeature;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -88,6 +92,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private ISensorBusiness sensorBusiness;
+
+    @Autowired
+    private IServiceBusiness serviceBusiness;
 
     @Autowired
     private IWSEngine wsengine;
@@ -135,21 +142,31 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         2- Détermination des données à importer
         =====================================*/
 
-        DataSource ds = new DataSource();
-        ds.setType("file");
-        ds.setUrl(sourceFolder.toUri().toString());
-        ds.setStoreId(storeId);
-        ds.setFormat(format);
+        final int dsId;
+        DataSource ds = datasourceBusiness.getByUrl(sourceFolder.toUri().toString());
+        if (ds == null) {
+            LOGGER.info("Creating new datasource");
 
-        final int dsId = datasourceBusiness.create(ds);
-        ds = datasourceBusiness.getDatasource(dsId);
-        datasourceBusiness.updateDatasourceAnalysisState(dsId, "NOT_STARTED");
+            ds = new DataSource();
+            ds.setType("file");
+            ds.setUrl(sourceFolder.toUri().toString());
+            ds.setStoreId(storeId);
+            ds.setFormat(format);
+            ds.setPermanent(Boolean.TRUE);
+            dsId = datasourceBusiness.create(ds);
+            ds = datasourceBusiness.getDatasource(dsId);
+        } else {
+            LOGGER.info("Using already created datasource");
+            dsId = ds.getId();
+        }
 
         if (Files.isDirectory(sourceFolder)) {
              try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
                 for (Path child : stream) {
                     if (child.getFileName().toString().endsWith(".csv")) {
-                        datasourceBusiness.addSelectedPath(dsId, '/' + child.getFileName().toString());
+                        if (datasourceBusiness.getSelectedPath(ds, '/' + child.getFileName().toString()) == null) {
+                            datasourceBusiness.addSelectedPath(dsId, '/' + child.getFileName().toString());
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -157,12 +174,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         } else {
             throw new ProcessException("The source folder does not point to a directory", this);
-        }
-
-        try {
-            List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
         }
 
 
@@ -196,32 +207,52 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
 
             try {
-                DatasourceAnalysisV3 analyseDatasourceV3 = datasourceBusiness.analyseDatasourceV3(dsId, provConfig);
+                datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId);
 
 
-                if (analyseDatasourceV3.getStores().isEmpty()) {
-                    throw new ProcessException("No CSV files detected", this);
-                }
-                // http://localhost:8080/examind/API/datas/accept?hidden=true
+//                if (analyseDatasourceV3.getStores().isEmpty()) {
+//                    throw new ProcessException("No CSV files detected", this);
+//                }
 
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
                     datasetId = datasetBusiness.createDataset(datasetIdentifier, null, null);
                 }
 
+
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+
                 final boolean hidden = false; // true
 
-                for (final ResourceStoreAnalysisV3 resourceStore : analyseDatasourceV3.getStores()) {
+                for (final DataSourceSelectedPath p : paths) {
 
-                    final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getResources().get(0).getId(), userId, hidden);
-                    dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
-
-                    // génération du sensorML
-                    ids.addAll(generateSensorML(acceptData.getId()));
-
+                    switch (p.getStatus()) {
+                        case "NO_DATA":
+                        case "ERROR":
+                            LOGGER.log(Level.INFO, "No CSV / Error in file: {0}", p.getPath());
+                            break;
+                        case "INTEGRATED":
+                        case "COMPLETED":
+                            LOGGER.log(Level.INFO, "CSV already integrated for file: {0}", p.getPath());
+                            break;
+                        case "REMOVED":
+                            LOGGER.log(Level.INFO, "Removing CSV for file: {0}", p.getPath());
+                            //providerBusiness.removeProvider(p.getProviderId()); TODO
+                            datasourceBusiness.removePath(ds, p.getPath());
+                            break;
+                        default:
+                            LOGGER.log(Level.INFO, "Integrating CSV file: {0}", p.getPath());
+                            ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
+                            for (ResourceAnalysisV3 resourceStore : store.getResources()) {
+                                final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, hidden);
+                                dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
+                                // génération du sensorML
+                                ids.addAll(generateSensorML(acceptData.getId()));
+                            }
+                    }
                 }
 
-                datasourceBusiness.delete(dsId);
+                //datasourceBusiness.delete(dsId);
             } catch (Exception ex) {
                 LOGGER.warning(ex.getMessage());
                 throw new ProcessException("Error whie analysing the files", this, ex);
@@ -237,8 +268,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         try {
 
-            final SOSConfigurer configurer = (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
-
+            final SOSConfigurer configurer  = (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
+            final ObservationStore sosStore = getSOSObservationStore(sosServ.getName());
             for(final String sensorID : ids) {
                 // retrait d'un capteur du SOS
                 // http://localhost:8080/examind/API/SOS/sos1/sensor/NOAAShipTrackWTEC_5031_e90c_b602
@@ -247,11 +278,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                 // ajout d'un capteur au SOS
                 // http://localhost:8080/examind/API/SOS/sos1/sensor/import/NOAAShipTrackWTEC_5031_e90c_b602
-                importSensor(sosServ.getName(), sensorID, configurer);
+                importSensor(sosServ.getName(), sensorID, configurer, sosStore);
                 LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
             }
 
-        } catch (ConfigurationException ex) {
+        } catch (ConfigurationException | DataStoreException ex) {
             LOGGER.warning(ex.getMessage());
         }
     }
@@ -318,10 +349,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         sensorBusiness.linkDataToSensor(dataID, sensor.getId());
     }
 
-    private void importSensor(final String id, final String sensorID, final SOSConfigurer configurer) throws ConfigurationException{
-        final Sensor sensor               = sensorBusiness.getSensor(sensorID);
-        final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getParent());
-        final List<Integer> dataProviders = sensorBusiness.getLinkedDataProviderIds(sensor.getId());
+    private void importSensor(final String id, final String sensorID, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+        final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
+        final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
+        final List<Integer> dataProviders         = sensorBusiness.getLinkedDataProviderIds(sensor.getId());
+        final Set<Phenomenon> existingPhenomenons = new HashSet<>(sosStore.getReader().getPhenomenons("1.0.0"));
+        final Set<SamplingFeature> existingFois   = new HashSet<>(sosStore.getReader().getFeatureOfInterestForProcedure(sensorID, "2.0.0"));
         final List<String> sensorIds      = new ArrayList<>();
 
         sensorBusiness.addSensorToSOS(id, sensorID);
@@ -348,7 +381,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 final ObservationStore store = SOSUtils.getObservationStore(provider);
                 final ExtractionResult result;
                 if (store != null) {
-                    result = store.getResults(sensorID, sensorIds);
+                    result = store.getResults(sensorID, sensorIds, existingPhenomenons, existingFois);
+
+                    existingPhenomenons.addAll(result.phenomenons);
+                    existingFois.addAll(result.featureOfInterest);
 
                     // update sensor location
                     for (ExtractionResult.ProcedureTree process : result.procedures) {
@@ -408,5 +444,23 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         return prop;
+    }
+
+
+    protected DataProvider getOMProvider(final String serviceID) throws ConfigurationException {
+        final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
+        for (Integer providerID : providers) {
+            final DataProvider p = DataProviders.getProvider(providerID);
+            if(p.getMainStore() instanceof ObservationStore){
+                // TODO for now we only take one provider by type
+                return p;
+            }
+        }
+        throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
+    }
+
+    private ObservationStore getSOSObservationStore(final String serviceID) throws ConfigurationException {
+        final DataProvider omProvider = getOMProvider(serviceID);
+        return SOSUtils.getObservationStore(omProvider);
     }
 }

@@ -161,6 +161,16 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
+    @Override
+    public Collection<org.opengis.observation.Phenomenon> getPhenomenons(String version) throws DataStoreException {
+        List<org.opengis.observation.Phenomenon> results = new ArrayList<>();
+        List<String> names = getPhenomenonNames();
+        for (String name : names) {
+            results.add(getPhenomenon(name));
+        }
+        return results;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -806,6 +816,11 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
 
     @Override
     public Collection<String> getProcedureNames(String sensorType) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Collection<SamplingFeature> getFeatureOfInterestForProcedure(String sensorID, String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
