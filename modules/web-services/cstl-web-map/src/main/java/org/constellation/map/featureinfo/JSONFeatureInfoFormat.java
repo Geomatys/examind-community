@@ -340,12 +340,19 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         int cpt = 0;
         for (String layerName : values.keySet()) {
             for (final String record : values.get(layerName)) {
-                builder.append(record);
+                builder.append(record).append(',');
                 cpt++;
                 if (cpt >= maxValue) break;
             }
         }
-        return builder.toString();
+
+        // remove last comma
+        String result =  builder.toString().substring(0, builder.length() - 1);
+        if (cpt > 1) {
+            // add brackets
+            result = "[" + result + "]";
+        }
+        return result;
 
     }
 
