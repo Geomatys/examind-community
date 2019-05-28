@@ -21,6 +21,7 @@ package org.constellation.api.rest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.dto.DataBrief;
@@ -77,14 +78,15 @@ public class PortrayalRestAPI {
                             @RequestParam(name="HEIGHT", required=false) final int height,
                             @RequestParam(name="SLD_BODY", required=false) final String sldBody,
                             @RequestParam(name="SLD_VERSION", required=false) final String sldVersion,
-                            @RequestParam(name="CQLFILTER", required=false) final String filter) {
+                            @RequestParam(name="CQLFILTER", required=false) final String filter,
+                            HttpServletResponse response) {
         try {
             // OLD API
             if (dataId == null) {
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
                 dataId = brief.getId();
             }
-            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity();
+            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldBody, sldVersion, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -119,14 +121,15 @@ public class PortrayalRestAPI {
                             @RequestParam(name="SLD_VERSION", required=false) final String sldVersion,
                             @RequestParam(name="SLDPROVIDER", required=false) final String sldProvider,
                             @RequestParam(name="SLDID", required=false) final String styleId,
-                            @RequestParam(name="CQLFILTER", required=false) final String filter) {
+                            @RequestParam(name="CQLFILTER", required=false) final String filter,
+                            HttpServletResponse response) {
         try {
             // OLD API
             if (dataId == null) {
                 final DataBrief brief = dataBusiness.getDataBrief(Util.parseQName(dataName), providerId);
                 dataId = brief.getId();
             }
-            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldVersion, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity();
+            return new ResponseObject(mapBusiness.portray(dataId, crs, bbox, width, height, sldVersion, sldProvider, styleId, filter), MediaType.IMAGE_PNG, OK).getResponseEntity(response);
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
