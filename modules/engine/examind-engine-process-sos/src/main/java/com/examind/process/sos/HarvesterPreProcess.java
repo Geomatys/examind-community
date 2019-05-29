@@ -132,6 +132,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter OTparam = new Parameter(OBS_TYPE_NAME, String.class, OBS_TYPE_DESC, OBS_TYPE_DESC, 1, 1, observationType);
         inputs.add(OTparam);
 
+        final Parameter PRparam = new Parameter(PROCEDURE_ID_NAME, String.class, PROCEDURE_ID_DESC, PROCEDURE_ID_DESC, 0, 1);
+        inputs.add(PRparam);
+
         final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, ",");
         inputs.add(SPparam);
 

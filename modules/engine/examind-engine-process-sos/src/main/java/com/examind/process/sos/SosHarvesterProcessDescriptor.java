@@ -66,6 +66,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, null);
 
+    public static final String PROCEDURE_ID_NAME = "procedure id";
+    public static final String PROCEDURE_ID_DESC = "Assigned procedure identifier";
+    public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
+            .addName(PROCEDURE_ID_NAME)
+            .setRemarks(PROCEDURE_ID_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String OBS_TYPE_NAME = "Observation Type";
     public static final String OBS_TYPE_DESC = "Observation Type";
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
@@ -149,7 +157,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(Boolean.class, false);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, SERVICE_ID, DATASET_IDENTIFIER, OBS_TYPE,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
                     SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS);
 
 

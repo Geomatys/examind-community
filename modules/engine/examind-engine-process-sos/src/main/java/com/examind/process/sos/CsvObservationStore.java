@@ -95,6 +95,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
     // timeSeries / trajectory / profiles
     private final String observationType;
 
+    private final String procedureId;
+
     /**
      *
      * @param observationFile path to the csv observation file
@@ -112,7 +114,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
      */
     public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn) throws DataStoreException, MalformedURLException {
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
@@ -123,6 +125,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
         this.measureColumns = measureColumns;
         this.observationType = observationType;
         this.foiColumn = foiColumn;
+        this.procedureId = procedureId;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -137,7 +140,10 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
     }
 
     private String getProcedureID() {
-        return IOUtilities.filenameWithoutExtension(dataFile);
+        if (procedureId == null) {
+            return IOUtilities.filenameWithoutExtension(dataFile);
+        }
+        return procedureId;
     }
 
     @Override
@@ -190,6 +196,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
+                        if (header.equals(dateColumn)) dateIndex = i;
                     } else if (header.equals(foiColumn)) {
                         foiIndex = i;
                         ignoredFields.add(i);
@@ -229,7 +236,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 
-                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, phenomenons);
+                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
                 result.phenomenons.add(phenomenon);
 
 
@@ -494,11 +501,10 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                         if (minDate == null && maxDate == null) {
                             minDate = dateParse;
                             maxDate = dateParse;
-                        }
-                        else {
-                            if(minDate.compareTo(dateParse) > 0) {
+                        } else {
+                            if(minDate == null || minDate.compareTo(dateParse) > 0) {
                                 minDate = dateParse;
-                            } else if (maxDate.compareTo(dateParse) < 0) {
+                            } else if (maxDate == null || maxDate.compareTo(dateParse) < 0) {
                                 maxDate = dateParse;
                             }
                         }

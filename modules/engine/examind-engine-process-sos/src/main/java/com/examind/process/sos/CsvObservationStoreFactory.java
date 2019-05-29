@@ -137,10 +137,15 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
             .setRequired(false)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
 
+    public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
+            .addName("Assigned procedure id")
+            .setRequired(false)
+            .create(String.class, null);
+
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVFeatureStoreFactory.PATH, CSVFeatureStoreFactory.SEPARATOR,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -174,6 +179,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
         final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
         final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
+        final String procedureId = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
@@ -181,7 +187,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
         try {
             return new CsvObservationStore(Paths.get(uri),
                     separator, readType(uri, separator, dateColumn, longitudeColumn, latitudeColumn, measureColumns),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn);
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening csv file", ex);
             throw new DataStoreException(ex);
