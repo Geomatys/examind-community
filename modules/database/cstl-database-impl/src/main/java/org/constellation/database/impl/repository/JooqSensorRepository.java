@@ -194,6 +194,13 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
+    public List<Integer> getLinkedServices(Integer sensorID) {
+        return dsl.select(SENSOR_X_SOS.SOS_ID).from(SENSOR_X_SOS)
+                .where(SENSOR_X_SOS.SENSOR_ID.eq(sensorID))
+                .fetchInto(Integer.class);
+    }
+
+    @Override
     public int getLinkedSensorCount(int serviceId) {
         return dsl.selectCount().from(SENSOR_X_SOS)
                 .where(SENSOR_X_SOS.SOS_ID.eq(serviceId))

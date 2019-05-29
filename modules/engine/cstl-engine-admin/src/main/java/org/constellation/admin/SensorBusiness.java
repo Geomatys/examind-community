@@ -64,6 +64,7 @@ import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
+import org.constellation.dto.SensorReference;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
@@ -134,6 +135,16 @@ public class SensorBusiness implements ISensorBusiness {
     @Override
     public List<Integer> getLinkedDataProviderIds(final Integer sensorId){
         return sensorRepository.getLinkedDataProviders(sensorId);
+    }
+
+    @Override
+    public List<Integer> getLinkedDataIds(final Integer sensorId){
+        return sensorRepository.getLinkedDatas(sensorId);
+    }
+
+    @Override
+    public List<Integer> getLinkedServiceIds(Integer sensorId) {
+        return sensorRepository.getLinkedServices(sensorId);
     }
 
     @Override
@@ -291,6 +302,11 @@ public class SensorBusiness implements ISensorBusiness {
             return sensorRepository.findByServiceId(service);
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<SensorReference> getByDataId(int dataId) {
+        return sensorRepository.fetchByDataId(dataId);
     }
 
     @Override

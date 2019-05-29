@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.Sensor;
+import org.constellation.dto.SensorReference;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 
 /**
@@ -47,6 +48,8 @@ public interface ISensorBusiness {
     List<Sensor> getByProviderId(int providerId);
 
     List<Sensor> getByServiceId(String serviceId);
+
+    List<SensorReference> getByDataId(int dataId);
 
     int getCountByServiceId(String serviceId);
 
@@ -82,6 +85,10 @@ public interface ISensorBusiness {
     void update(Sensor childRecord);
 
     List<Integer> getLinkedDataProviderIds(Integer sensorId);
+
+    List<Integer> getLinkedDataIds(Integer sensorId);
+
+    List<Integer> getLinkedServiceIds(Integer sensorId);
 
     Integer getDefaultInternalProviderID() throws ConfigurationException;
 

@@ -19,6 +19,8 @@ public interface SensorRepository {
 
     public List<Integer> getLinkedDataProviders(Integer sensorID);
 
+    public List<Integer> getLinkedServices(Integer sensorID);
+
     public List<Sensor> getChildren(String parent);
 
     public List<Sensor> findAll();
