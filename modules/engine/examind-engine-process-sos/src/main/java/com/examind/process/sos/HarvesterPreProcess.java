@@ -16,7 +16,6 @@
  */
 package com.examind.process.sos;
 
-import static com.examind.process.sos.HarvesterPreProcessDescriptor.TASK_NAME;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.opencsv.CSVReader;
 import java.io.IOException;
@@ -161,6 +160,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, headers);
         inputs.add(MCSparam);
+
+        final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
+        inputs.add(RPparam);
 
         chain.setInputs(inputs);
 

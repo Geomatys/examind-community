@@ -39,11 +39,9 @@ import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
-import org.constellation.dto.importdata.DatasourceAnalysisV3;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -69,8 +67,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.util.logging.Logger;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
+import org.constellation.dto.service.ServiceComplete;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.NotRunningServiceException;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -95,6 +99,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private IServiceBusiness serviceBusiness;
+
+    @Autowired
+    private IProviderBusiness providerBusiness;
 
     @Autowired
     private IWSEngine wsengine;
@@ -122,6 +129,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final Path sourceFolder = Paths.get(inputParameters.getValue(DATA_FOLDER));
         final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
+        final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
+
         final String separator = inputParameters.getValue(SEPARATOR);
         final String mainColumn = inputParameters.getValue(MAIN_COLUMN);
         final String dateColumn = inputParameters.getValue(DATE_COLUMN);
@@ -158,6 +167,53 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         } else {
             LOGGER.info("Using already created datasource");
             dsId = ds.getId();
+        }
+
+        final SOSConfigurer configurer;
+        try {
+            configurer = (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
+        } catch (NotRunningServiceException ex) {
+            throw new ProcessException("Error while acquiring SOS configurer", this, ex);
+        }
+
+        // remove previous integration
+        if (removePrevious) {
+            LOGGER.info("Removing previous integration");
+            try {
+                Set<Integer> providers = new HashSet<>();
+                List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
+                for (DataSourceSelectedPath path : paths) {
+                    if (path.getProviderId() != null && path.getProviderId() != -1) {
+                        providers.add(path.getProviderId());
+                    }
+                }
+
+                // remove data
+                Set<SensorReference> sensors = new HashSet<>();
+                for (Integer pid : providers) {
+                    for (Integer dataId : providerBusiness.getDataIdsFromProviderId(pid)) {
+                        sensors.addAll(sensorBusiness.getByDataId(dataId));
+                    }
+                    providerBusiness.removeProvider(pid);
+                }
+
+                // remove sensors
+                for (SensorReference sid : sensors) {
+
+                    // unlink from SOS
+                    for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
+                        ServiceComplete sc = serviceBusiness.getServiceById(service);
+                        configurer.removeSensor(sc.getIdentifier(), sid.getIdentifier());
+                    }
+
+                    // remove sensor
+                    sensorBusiness.delete(sid.getId());
+                }
+
+                datasourceBusiness.clearSelectedPaths(dsId);
+            } catch (ConstellationException ex) {
+                throw new ProcessException("Error while removing previous insertion.", this, ex);
+            }
         }
 
         if (Files.isDirectory(sourceFolder)) {
@@ -237,7 +293,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             break;
                         case "REMOVED":
                             LOGGER.log(Level.INFO, "Removing CSV for file: {0}", p.getPath());
-                            //providerBusiness.removeProvider(p.getProviderId()); TODO
+                            providerBusiness.removeProvider(p.getProviderId());
+                            // TODO full removal
                             datasourceBusiness.removePath(ds, p.getPath());
                             break;
                         default:
@@ -252,23 +309,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     }
                 }
 
-                //datasourceBusiness.delete(dsId);
             } catch (Exception ex) {
                 LOGGER.warning(ex.getMessage());
                 throw new ProcessException("Error whie analysing the files", this, ex);
             }
         }
 
-
-
         /*
         4- Publication des données correspondant à chaque SensorML sur le service SOS
         ===========================================================================*/
 
-
         try {
-
-            final SOSConfigurer configurer  = (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
             final ObservationStore sosStore = getSOSObservationStore(sosServ.getName());
             for(final String sensorID : ids) {
                 // retrait d'un capteur du SOS

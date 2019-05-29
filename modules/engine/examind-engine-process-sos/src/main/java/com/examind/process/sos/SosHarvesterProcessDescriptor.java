@@ -140,9 +140,17 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                 null, null, null
                 );
 
+    public static final String REMOVE_PREVIOUS_NAME = "remove previous integration";
+    public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
+    public static final ParameterDescriptor<Boolean> REMOVE_PREVIOUS = PARAM_BUILDER
+            .addName(REMOVE_PREVIOUS_NAME)
+            .setRemarks(REMOVE_PREVIOUS_DESC)
+            .setRequired(false)
+            .create(Boolean.class, false);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, SERVICE_ID, DATASET_IDENTIFIER, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS);
+                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS);
 
 
     public static final ParameterDescriptorGroup OUTPUT_DESC =
