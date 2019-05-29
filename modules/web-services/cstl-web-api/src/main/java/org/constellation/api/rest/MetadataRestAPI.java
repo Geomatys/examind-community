@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
 import java.util.zip.ZipOutputStream;
@@ -50,6 +51,8 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMetadataBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.metadata.Attachment;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
@@ -84,7 +87,6 @@ import static org.springframework.http.MediaType.*;
 import org.springframework.web.bind.annotation.RequestMethod;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -1202,12 +1204,21 @@ public class MetadataRestAPI extends AbstractRestAPI{
                     responseHeaders.set("Content-Type", MediaType.APPLICATION_OCTET_STREAM_VALUE);
                 }
             }
+
+            boolean cacheEnabled = Application.getBooleanProperty(AppProperty.EXA_ENABLE_CACHE_ATTACHMENT, false);
+            if (cacheEnabled) {
+                // default to 1h
+                final int second = Application.getIntegerProperty(AppProperty.EXA_CACHE_CONTROL_ATTACHMENT_TIME, 3600);
+                response.setHeader("Cache-Control", "max-age=" + second);
+                response.setHeader("Pragma", "cache");
+                response.setDateHeader("Expires", System.currentTimeMillis() + second*1000);
+            }
             try {
                 IOUtils.write(quicklook, response.getOutputStream());
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, "Error while writing attached file response", ex);
             }
-            return new ResponseEntity(responseHeaders,OK);
+            return ResponseEntity.ok().headers(responseHeaders).build();
         }
         return null;
     }

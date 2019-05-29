@@ -156,7 +156,17 @@ public enum AppProperty {
 
     EXA_DISABLE_NO_CACHE("examind.disable.no.cache"),
 
-    EXA_CACHE_CONTROL_TIME("examind.cache.control.time");
+    EXA_CACHE_CONTROL_TIME("examind.cache.control.time"),
+
+    /**
+     * Enable the cache control attribute for metadata attachment (such as quicklook or linked document).
+     */
+    EXA_ENABLE_CACHE_ATTACHMENT("examind.enable.cache.attachment"),
+
+    /**
+     * Time in second for attchment cache.
+     */
+    EXA_CACHE_CONTROL_ATTACHMENT_TIME("examind.cache.control.attachment.time");
 
     private final String key;
 
