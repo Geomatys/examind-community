@@ -19,6 +19,8 @@ package com.examind.process.sos;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.opencsv.CSVReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,6 +40,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
+import org.constellation.util.FileSystemReference;
+import org.constellation.util.FileSystemUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.chain.model.Chain;
@@ -66,6 +70,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
         final String sourceFolderStr = inputParameters.getValue(HarvesterPreProcessDescriptor.DATA_FOLDER);
+        final String user            = inputParameters.getValue(HarvesterPreProcessDescriptor.USER);
+        final String pwd             = inputParameters.getValue(HarvesterPreProcessDescriptor.PWD);
+
         final String observationType = inputParameters.getValue(HarvesterPreProcessDescriptor.OBS_TYPE);
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
 
@@ -91,29 +98,43 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         String[] headers = null;
 
-        Path sourceFolder = Paths.get(sourceFolderStr);
-        if (Files.isDirectory(sourceFolder)) {
-             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
-                for (Path child : stream) {
-                    if (child.getFileName().toString().endsWith(".csv")) {
-                        String[] currentHeaders = extractHeaders(child);
-                        if (headers != null && !Arrays.equals(headers, currentHeaders)) {
-                            throw new ProcessException("Inconsistent dataset, the diferent CSV files does not have the same headers", this);
+        FileSystemReference fs = null;
+        try {
+            final URI dataUri = URI.create(sourceFolderStr);
+            fs = FileSystemUtilities.getFileSystem(dataUri.getScheme(), sourceFolderStr, user, pwd, null, true);
+
+            Path sourceFolder = FileSystemUtilities.getPath(fs, dataUri.getPath());
+
+            if (Files.isDirectory(sourceFolder)) {
+                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
+                    for (Path child : stream) {
+                        if (child.getFileName().toString().endsWith(".csv")) {
+                            String[] currentHeaders = extractHeaders(child);
+                            if (headers != null && !Arrays.equals(headers, currentHeaders)) {
+                                throw new ProcessException("Inconsistent dataset, the diferent CSV files does not have the same headers", this);
+                            }
+                            headers = currentHeaders;
                         }
-                        headers = currentHeaders;
+                        Thread.sleep(1000); // try to fix a bug with geomatys ftp
                     }
+                } catch (IOException e) {
+                    throw new ProcessException("Error occurs during directory browsing", this, e);
                 }
-            } catch (IOException e) {
-                throw new ProcessException("Error occurs during directory browsing", this, e);
+            } else {
+                throw new ProcessException("The source folder does not point to a directory", this);
             }
-        } else {
-            throw new ProcessException("The source folder does not point to a directory", this);
+        } catch (IOException | URISyntaxException | InterruptedException ex) {
+            throw new ProcessException("Error while opening data location.", this, ex);
+        } finally {
+            FileSystemUtilities.closeFileSystem(fs);
         }
 
 
         //input/out/constants parameters
 
-        final Constant c = chain.addConstant(id++, String.class, sourceFolderStr);
+        final Constant src     = chain.addConstant(id++, String.class, sourceFolderStr);
+        final Constant userSrc = chain.addConstant(id++, String.class, user);
+        final Constant pwdSrc  = chain.addConstant(id++, String.class, pwd);
 
         final List<Parameter> inputs = new ArrayList<>();
 
@@ -187,7 +208,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
 
         //data flow links
-        chain.addDataLink(c.getId(), "", dock.getId(), SosHarvesterProcessDescriptor.DATA_FOLDER_NAME);
+        chain.addDataLink(src.getId(),     "", dock.getId(), SosHarvesterProcessDescriptor.DATA_FOLDER_NAME);
+        chain.addDataLink(userSrc.getId(), "", dock.getId(), SosHarvesterProcessDescriptor.USER_NAME);
+        chain.addDataLink(pwdSrc.getId(),  "", dock.getId(), SosHarvesterProcessDescriptor.PWD_NAME);
 
         for (Parameter in : inputs) {
             chain.addDataLink(BEGIN.getId(), in.getCode(),  dock.getId(), in.getCode());

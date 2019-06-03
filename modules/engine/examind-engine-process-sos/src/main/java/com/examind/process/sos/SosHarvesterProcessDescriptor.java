@@ -52,6 +52,22 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, null);
 
+    public static final String USER_NAME = "user name";
+    public static final String USER_DESC = "user name";
+    public static final ParameterDescriptor<String> USER = PARAM_BUILDER
+            .addName(USER_NAME)
+            .setRemarks(USER_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String PWD_NAME = "password";
+    public static final String PWD_DESC = "password";
+    public static final ParameterDescriptor<String> PWD = PARAM_BUILDER
+            .addName(PWD_NAME)
+            .setRemarks(PWD_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String SERVICE_ID_NAME = "SOS service";
     public static final String SERVICE_ID_DESC = "SOS service";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
@@ -157,7 +173,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(Boolean.class, false);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
                     SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS);
 
 

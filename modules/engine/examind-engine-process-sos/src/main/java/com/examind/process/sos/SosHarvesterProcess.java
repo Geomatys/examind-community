@@ -16,9 +16,6 @@
  */
 package com.examind.process.sos;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,12 +62,11 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.util.logging.Logger;
+import java.net.URI;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;
+import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
@@ -126,7 +122,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         1- Récupération des paramètres du process
         =======================================*/
 
-        final Path sourceFolder = Paths.get(inputParameters.getValue(DATA_FOLDER));
+        final String sourceFolderStr = inputParameters.getValue(DATA_FOLDER);
+        final String user = inputParameters.getValue(USER);
+        final String pwd  = inputParameters.getValue(PWD);
+
+
         final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(PROCEDURE_ID);
@@ -151,16 +151,19 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         /*
         2- Détermination des données à importer
         =====================================*/
+        final URI dataUri = URI.create(sourceFolderStr);
 
         final int dsId;
-        DataSource ds = datasourceBusiness.getByUrl(sourceFolder.toUri().toString());
+        DataSource ds = datasourceBusiness.getByUrl(sourceFolderStr);
         if (ds == null) {
             LOGGER.info("Creating new datasource");
 
             ds = new DataSource();
-            ds.setType("file");
-            ds.setUrl(sourceFolder.toUri().toString());
+            ds.setType(dataUri.getScheme());
+            ds.setUrl(sourceFolderStr);
             ds.setStoreId(storeId);
+            ds.setUsername(user);
+            ds.setPwd(pwd);
             ds.setFormat(format);
             ds.setPermanent(Boolean.TRUE);
             dsId = datasourceBusiness.create(ds);
@@ -217,21 +220,19 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
-        if (Files.isDirectory(sourceFolder)) {
-             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
-                for (Path child : stream) {
-                    if (child.getFileName().toString().endsWith(".csv")) {
-                        if (datasourceBusiness.getSelectedPath(ds, '/' + child.getFileName().toString()) == null) {
-                            datasourceBusiness.addSelectedPath(dsId, '/' + child.getFileName().toString());
-                        }
+
+        try {
+            for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
+                if (child.getName().endsWith(".csv")) {
+                    if (datasourceBusiness.getSelectedPath(ds, '/' + child.getName()) == null) {
+                        datasourceBusiness.addSelectedPath(dsId, '/' + child.getName());
                     }
                 }
-            } catch (IOException e) {
-                throw new ProcessException("Error occurs during directory browsing", this, e);
             }
-        } else {
-            throw new ProcessException("The source folder does not point to a directory", this);
+        } catch (ConstellationException e) {
+            throw new ProcessException("Error occurs during directory browsing", this, e);
         }
+
 
 
         /*
@@ -313,6 +314,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             } catch (ConstellationException ex) {
                 LOGGER.warning(ex.getMessage());
                 throw new ProcessException("Error while analysing the files", this, ex);
+            } finally {
+                datasourceBusiness.close(dsId);
             }
         }
 

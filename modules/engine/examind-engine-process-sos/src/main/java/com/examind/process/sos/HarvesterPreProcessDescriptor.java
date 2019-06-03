@@ -46,6 +46,22 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, null);
 
+    public static final String USER_NAME = "user name";
+    public static final String USER_DESC = "user name";
+    public static final ParameterDescriptor<String> USER = PARAM_BUILDER
+            .addName(USER_NAME)
+            .setRemarks(USER_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String PWD_NAME = "password";
+    public static final String PWD_DESC = "password";
+    public static final ParameterDescriptor<String> PWD = PARAM_BUILDER
+            .addName(PWD_NAME)
+            .setRemarks(PWD_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
             .addName("Observation Type")
 //            .setRemarks(Bundle.formatInternational(Bundle.Keys.paramURLRemarks))
@@ -59,7 +75,7 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, OBS_TYPE, TASK_NAME);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";
