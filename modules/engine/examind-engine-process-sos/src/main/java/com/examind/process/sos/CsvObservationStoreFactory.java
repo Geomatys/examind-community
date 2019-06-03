@@ -34,6 +34,7 @@ import org.apache.sis.feature.AbstractOperation;
 import org.apache.sis.feature.DefaultAttributeType;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
+import org.apache.sis.feature.builder.PropertyTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
@@ -273,7 +274,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
         /*
         4- build a geometry operation property from longitude/latitude fields
         ===================================================================*/
-        ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, NamesExt.create("geometry"))) {
+        ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
 
             @Override
             public ParameterDescriptorGroup getParameters() {
@@ -290,8 +291,8 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
                 final Attribute<Point> att = TYPE.newInstance();
                 Point pt = GF.createPoint(
-                                new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
-                                               (Double) ftr.getPropertyValue(latitudeColumn)));
+                        new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
+                                (Double) ftr.getPropertyValue(latitudeColumn)));
                 JTS.setCRS(pt, CommonCRS.defaultGeographic());
                 att.setValue(pt);
                 return att;
