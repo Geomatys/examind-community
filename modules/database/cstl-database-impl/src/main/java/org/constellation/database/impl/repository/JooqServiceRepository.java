@@ -291,6 +291,14 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
+    public List<Service> getSensorLinkedServices(int sensorId) {
+        return convertListToDto(dsl.select(SERVICE.fields()).from(Arrays.asList(SENSOR_X_SOS,SERVICE))
+                .where(SENSOR_X_SOS.SOS_ID.eq(SERVICE.ID))
+                .and(SENSOR_X_SOS.SENSOR_ID.eq(sensorId))
+                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkSensorProvider(int serviceId, int providerID, boolean allSensor) {
         dsl.insertInto(PROVIDER_X_SOS).set(PROVIDER_X_SOS.SOS_ID, serviceId)

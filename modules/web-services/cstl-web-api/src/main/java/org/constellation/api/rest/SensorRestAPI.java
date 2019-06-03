@@ -134,7 +134,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         try {
             final Sensor sensor = sensorBusiness.getSensor(id);
             if (sensor != null) {
-                List<Service> services = serviceBusiness.getSOSLinkedServices(sensor.getProviderId());
+                List<Service> services = serviceBusiness.getSensorLinkedServices(sensor.getId());
                 for (Service service : services) {
                     getConfigurer().removeSensor(service.getIdentifier(), sensor.getIdentifier());
                 }

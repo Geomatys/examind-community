@@ -683,8 +683,8 @@ public class ServiceBusiness implements IServiceBusiness {
     }
 
     @Override
-    public List<Service> getSOSLinkedServices(Integer providerID) throws ConfigurationException {
-        return serviceRepository.getLinkedSOSServices(providerID);
+    public List<Service> getSensorLinkedServices(Integer sensorID) throws ConfigurationException {
+        return serviceRepository.getSensorLinkedServices(sensorID);
     }
 
     @Override

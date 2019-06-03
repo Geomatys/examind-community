@@ -287,7 +287,7 @@ public interface IServiceBusiness {
 
     List<Integer> getSOSLinkedProviders(final String serviceID);
 
-    List<Service> getSOSLinkedServices(final Integer providerID) throws ConfigurationException;
+    List<Service> getSensorLinkedServices(final Integer sensorID) throws ConfigurationException;
 
     void linkSOSAndProvider(final String serviceID, final String providerID);
 

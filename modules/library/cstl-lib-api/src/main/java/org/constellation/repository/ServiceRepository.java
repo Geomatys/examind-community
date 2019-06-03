@@ -74,6 +74,8 @@ public interface ServiceRepository {
 
     List<Service> getLinkedSOSServices(int providerId);
 
+    List<Service> getSensorLinkedServices(int sensorId);
+
     void linkSensorProvider(int serviceId, int providerID, boolean allSensor);
 
     void removelinkedSensorProviders(int serviceId);

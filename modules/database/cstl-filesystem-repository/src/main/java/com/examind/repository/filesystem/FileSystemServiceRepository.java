@@ -420,4 +420,9 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     public boolean isLinkedMetadataProviderAndService(int serviceId, int providerID) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public List<Service> getSensorLinkedServices(int sensorId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
