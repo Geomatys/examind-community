@@ -769,7 +769,7 @@ public final class DataProviders extends Static{
                             results.put(storeId, result.getMimeType());
                         }
                     } catch (Throwable ex) {
-                        LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode(), ex);
+                        LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
                         // renew connector in case of error
                         input.closeAllExcept(null);
                         input = new StorageConnector(p);

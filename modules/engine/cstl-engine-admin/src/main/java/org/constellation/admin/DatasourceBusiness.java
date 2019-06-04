@@ -758,7 +758,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      * Initialize provider files by creating links from given paths into a new
      * provider directory.
      *
-     * @implNote Works only with local files, as we make hard links to given
+     * @implNote if we works only with local files, we make hard links to given
      * files instead of copying them.
      *
      * @param storeId The identifier of provider type (file-coverage,  etc.)
@@ -781,18 +781,23 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         try {
             // 1. create the provider directory
-            final Path newMainPath = providerDir.resolve(mainPath.getFileName());
+            final Path newMainPath  = providerDir.resolve(mainPath.getFileName().toString());
             final String newMainStr = newMainPath.toUri().toString();
-
             final Path previousRoot = mainPath.getParent();
+            final String mainScheme = mainPath.toUri().getScheme();
 
             // 2. move files to provider directory
             final List<String> targetFiles = sourceFiles
                     .map(tempFile -> {
                         try {
                             final Path relativeSource = previousRoot.relativize(tempFile);
-                            final Path newFile = providerDir.resolve(relativeSource);
-                            return Files.createLink(newFile, tempFile);
+                            final Path newFile = providerDir.resolve(relativeSource.toString());
+                            if (mainScheme.equals("file")) {
+                                return Files.createLink(newFile, tempFile);
+                            } else {
+                                IOUtilities.copy(tempFile, newFile);
+                                return newFile;
+                            }
                         } catch (IOException ex) {
                             throw new UncheckedIOException(ex);
                         }
