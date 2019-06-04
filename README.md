@@ -30,10 +30,15 @@ resources to operate a platform of sensors that feeds back information in real t
   * Grib
   * Images with .tfw and .prj files for projection and transformation informations
 
-## Get started using docker
+## Get started using Docker
+Build the `examind-community:latest` Docker image
+```
+cd <base directory>/modules/bundles/exa-bundle
+mvn clean install dockerfile:build -Ddocker.tag=latest
+``` 
 Go to docker folder
 ```
-cd docker
+cd <base directory>/docker
 ```
 then type the command
 ```
