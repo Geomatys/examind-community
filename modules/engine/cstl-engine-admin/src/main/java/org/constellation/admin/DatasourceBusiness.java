@@ -142,24 +142,42 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     @Override
+    public void close(int id) {
+        try {
+            final DataSource datasource = dsRepository.findById(id);
+            if (datasource == null || datasource.getId() == null) {
+                LOGGER.log(Level.FINER, "unable to close an unexisting datasource for id {0}.", id);
+                return;
+            }
+            close(datasource, false);
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.WARNING, "Error while closing datasource.", ex);
+        }
+    }
+
+    @Override
     @Transactional
     public void delete(int id) throws ConstellationException {
         final DataSource datasource = dsRepository.findById(id);
-        if (datasource == null) {
-            throw new ConstellationException("No datasource found for id "+id);
+        if (datasource == null || datasource.getId() == null) {
+            throw new ConstellationException("No datasource found for id " + id);
         }
-        delete(datasource);
+        close(datasource, true);
     }
 
-    private void delete(DataSource ds) throws ConstellationException {
-        if (ds == null) {
-            throw new ConstellationException("No datasource given for deletion operation.");
-        }
-
+    /**
+     * Close and eventually delete a datasource.
+     *  - interrupt the analysis still going on
+     *  - remove the temporary files in case of a 'local_files' datasource.
+     *  - close the file system if not used anymore
+     *  - remove the datasource if asked
+     *
+     * @param ds
+     * @param delete
+     * @throws ConstellationException
+     */
+    private void close(DataSource ds, final boolean delete) throws ConstellationException {
         final Integer id = ds.getId();
-        if (id == null) {
-            throw new ConstellationException("Cannot delete a data source without identifier.");
-        }
 
         synchronized (datasourceLocks.computeIfAbsent(id, key -> key)) {
             final Thread analysisThread = currentRunningAnalysis.remove(id);
@@ -187,7 +205,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 }
             }
             closeFileSystem(ds);
-            dsRepository.delete(id);
+            if (delete) {
+                dsRepository.delete(id);
+            }
         }
     }
 

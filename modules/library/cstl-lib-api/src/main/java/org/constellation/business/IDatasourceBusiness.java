@@ -46,6 +46,8 @@ public interface IDatasourceBusiness {
 
     void update(DataSource ds) throws ConstellationException;
 
+    void close(int id);
+
     void delete(int id) throws ConstellationException;
 
     DataSource getDatasource(int id);
