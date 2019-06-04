@@ -79,7 +79,7 @@ public class OM2BaseReader {
     protected final String sensorIdBase;
 
     protected final String observationTemplateIdBase;
-    
+
     protected final String schemaPrefix;
 
     protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -286,6 +286,56 @@ public class OM2BaseReader {
         }
     }
 
+    /**
+     * Return the main field of the timeseries/trajectory (TIME) or profile (DEPTH, PRESSION, ...).
+     * This method assume that the main field is !ALWAYS! set a the order 1.
+     *
+     * @param procedureID
+     * @param c
+     * @return
+     * @throws SQLException
+     */
+    protected Field getMainField(final String procedureID, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=1")) {
+            stmt.setString(1, procedureID);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Field(rs.getString("field_type"),
+                            rs.getString("field_name"),
+                            rs.getString("field_definition"),
+                            rs.getString("uom"));
+                }
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Return the positions field for trajectory.
+     * This method assume that the fields are names 'lat' or 'lon'
+     *
+     * @param procedureID
+     * @param c
+     * @return
+     * @throws SQLException
+     */
+    protected List<Field> getPosFields(final String procedureID, final Connection c) throws SQLException {
+        final List<Field> results = new ArrayList<>();
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"='lat' OR \"field_name\"='lon') ORDER BY \"order\" DESC")) {
+            stmt.setString(1, procedureID);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    results.add(new Field(
+                            rs.getString("field_type"),
+                            rs.getString("field_name"),
+                            rs.getString("field_definition"),
+                            rs.getString("uom")));
+                }
+            }
+        }
+        return results;
+    }
+
     protected Field getFieldForPhenomenon(final String procedureID, final String phenomenon, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_definition\"= ?)")) {
             stmt.setString(1, procedureID);
@@ -340,7 +390,7 @@ public class OM2BaseReader {
             }
         }
     }
-    
+
     protected String getProcedureParent(final String procedureId, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT \"parent\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
             stmt.setString(1, procedureId);
@@ -367,7 +417,7 @@ public class OM2BaseReader {
             this.fieldType = fieldType;
             this.fieldUom  = fieldUom;
         }
-        
+
         public Field(final String fieldName, final AbstractDataComponent value) throws SQLException {
             this.fieldName = fieldName;
             if (value instanceof Quantity) {
@@ -392,9 +442,9 @@ public class OM2BaseReader {
             } else {
                 throw new SQLException("Only Quantity, Text AND Time is supported for now");
             }
-            
+
         }
-        
+
 
         public AnyScalar getScalar(final String version) {
             final AbstractDataComponent compo;
@@ -410,7 +460,7 @@ public class OM2BaseReader {
             }
             return buildAnyScalar(version, null, fieldName, compo);
         }
-        
+
         public String getSQLType(boolean isPostgres) throws SQLException {
             if (fieldType.equals("Quantity")) {
                 if (!isPostgres) {

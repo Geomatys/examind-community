@@ -559,6 +559,14 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         //do nothing
     }
 
+    public Field getMainField(final String procedure) throws DataStoreException {
+        try(final Connection c = source.getConnection()) {
+            return getMainField(procedure, c);
+        } catch (SQLException ex) {
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
+        }
+    }
+
     public Field getTimeField(final String procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             return getTimeField(procedure, c);

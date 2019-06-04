@@ -319,7 +319,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private String writePhenomenon(final PhenomenonProperty phenomenonP, final Connection c, final boolean partial) throws SQLException {
-        final String phenomenonId = getPhenomenonId(phenomenonP);
+        final String phenomenonId   = getPhenomenonId(phenomenonP);
         if (phenomenonId == null) return null;
 
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\", \"partial\" FROM  \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {
@@ -332,6 +332,20 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     exist = true;
                 }
             }
+
+            // if not exist with id, try without phenonmenon base (because of v2 href / v1 difference)
+            if (!exist && phenomenonId.startsWith(phenomenonIdBase)) {
+                String phenomenonId2 = phenomenonId.substring(phenomenonIdBase.length());
+                stmtExist.setString(1, phenomenonId2);
+                try(final ResultSet rs = stmtExist.executeQuery()) {
+                    if (rs.next()) {
+                        isPartial = rs.getBoolean("partial");
+                        exist = true;
+                    }
+                }
+            }
+
+
             if (!exist) {
                 try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observed_properties\" VALUES(?,?)")) {
                     stmtInsert.setString(1, phenomenonId);
@@ -1106,9 +1120,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         if (abstractRecord instanceof DataRecord) {
             final DataRecord record = (DataRecord) abstractRecord;
             recordField =  record.getField();
-        } else {
+        } else if (abstractRecord instanceof SimpleDataRecord) {
             final SimpleDataRecord record = (SimpleDataRecord) abstractRecord;
             recordField =  record.getField();
+        } else {
+            throw new IllegalArgumentException("Unexpected record type: " + abstractRecord);
         }
 
         for (Object field : recordField) {
@@ -1225,7 +1241,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 final Phenomenon phen = getObservedProperty(obs200.getObservedPropertyRef(), obs.getResult());
                 return new org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenonProperty(obs200.getObservedPropertyRef(), (org.geotoolkit.swe.xml.Phenomenon) phen);
             }
-        } else {
+        } else if (obs != null) {
             return obs.getPropertyObservedProperty();
         }
         return null;

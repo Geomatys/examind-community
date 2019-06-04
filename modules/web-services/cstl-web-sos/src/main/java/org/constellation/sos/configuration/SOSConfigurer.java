@@ -198,11 +198,17 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         final List<SensorMLTree> values = new ArrayList<>();
         for (Sensor sensor : sensors) {
             final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(sensor.getIdentifier());
-            final String smlType       = getSensorMLType(sml);
-            final String smlID         = getSmlID(sml);
-            final SensorMLTree t       = new SensorMLTree(sensor.getId(), smlID, smlType, null, null);
-            final List<SensorMLTree> children = SOSUtils.getChildren(sml);
-            t.setChildren(children);
+            final SensorMLTree t;
+            if (sml != null) {
+                final String smlType  = getSensorMLType(sml);
+                final String smlID    = getSmlID(sml);
+                t                     = new SensorMLTree(sensor.getId(), smlID, smlType, null, null);
+                final List<SensorMLTree> children = SOSUtils.getChildren(sml);
+                t.setChildren(children);
+            } else {
+                LOGGER.warning("Unable to retrieve Sensor Metadata for:" + sensor.getIdentifier());
+                t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), null, null, null);
+            }
             values.add(t);
         }
         return SensorMLTree.buildTree(values);

@@ -300,15 +300,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     final int oid = rs.getInt("id");
                     Observation observation = observations.get(procedure + '-' + featureID);
                     final int pid = getPIDFromProcedure(procedure, c);
-                    final Field timeField = getTimeField(procedure);
+                    final Field mainField = getMainField(procedure);
 
                     List<Field> fields = fieldMap.get(procedure);
                     if (fields == null) {
                         if (!currentFields.isEmpty()) {
                             fields = new ArrayList<>();
-                            // we add the main field TODO profiles???
-                            if (timeField != null) {
-                                fields.add(timeField);
+                            if (mainField != null) {
+                                fields.add(mainField);
                             }
                             for (String f : currentFields) {
                                 final Field field = getFieldForPhenomenon(procedure, f, c);
@@ -316,6 +315,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                     fields.add(field);
                                 }
                             }
+                            // special case for trajectory observation
+                            // if lat/lon are available, include it anyway if they are not part of the phenomenon.
+                            final List<Field> llFields = getPosFields(procedure, c);
+                            for (Field llField : llFields) {
+                                if (!fields.contains(llField)) {
+                                    fields.add(1, llField);
+                                }
+                            }
+
                         } else {
                             fields = readFields(procedure, c);
                         }
@@ -342,9 +350,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                          *  BUILD RESULT
                          */
                         final String sqlRequest;
-                        if (timeField != null) {
+                        if (mainField != null) {
                             sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", timeField.fieldName)
+                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
                                     + "ORDER BY m.\"id\"";
                         } else {
                             sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
@@ -389,9 +397,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     } else {
                         String lastTime = null;
                         final String sqlRequest;
-                        if (timeField != null) {
+                        if (mainField != null) {
                             sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", timeField.fieldName)
+                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
                                     + "ORDER BY m.\"id\"";
                         } else {
                             sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
@@ -561,9 +569,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     final List<Field> fields;
                     if (!currentFields.isEmpty()) {
                         fields = new ArrayList<>();
-                        // we add the main field TODO profiles???
-                        if (timeField != null) {
-                            fields.add(timeField);
+                        final Field mainField = getMainField(currentProcedure, c);
+                        if (mainField != null) {
+                            fields.add(mainField);
                         }
                         for (String f : currentFields) {
                             final Field field = getFieldForPhenomenon(currentProcedure, f, c);
@@ -630,10 +638,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         final List<Field> fields;
                         if (!currentFields.isEmpty()) {
                             fields = new ArrayList<>();
-                            // we add the main field TODO profiles???
-                            final Field timeField = getTimeField(currentProcedure, c);
-                            if (timeField != null) {
-                                fields.add(timeField);
+                            final Field mainField = getMainField(currentProcedure, c);
+                            if (mainField != null) {
+                                fields.add(mainField);
                             }
                             for (String f : currentFields) {
                                 final Field field = getFieldForPhenomenon(currentProcedure, f, c);
