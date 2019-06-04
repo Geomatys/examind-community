@@ -28,14 +28,15 @@ services :
            PGDATA: /var/lib/postgis/data
 
     examind:
-       image: tomcat:7-jre8
+       image: examind-community:latest
+       #image: tomcat:7-jre8
        restart: "no"
        volumes:
-         - "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"
-         - "./mount/examind/tomcat/fs/:/usr/local/tomcat/fs/"
-         - "./mount/examind/tomcat/bin/setenv.sh:/usr/local/tomcat/bin/setenv.sh"
-         - "./mount/examind/tomcat/conf/server.xml:/usr/local/tomcat/conf/server.xml"
          - "./mount/examind/data/:/var/examind/"
+         #- "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"
+         #- "./mount/examind/tomcat/fs/:/usr/local/tomcat/fs/"
+         #- "./mount/examind/tomcat/bin/setenv.sh:/usr/local/tomcat/bin/setenv.sh"
+         #- "./mount/examind/tomcat/conf/server.xml:/usr/local/tomcat/conf/server.xml"
        depends_on:
          - exa-db
          - exa-dbpostgis
