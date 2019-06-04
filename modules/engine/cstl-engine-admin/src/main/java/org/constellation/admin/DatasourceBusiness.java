@@ -347,7 +347,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             case "s3":
                 try {
                     String userUrl = getFileSystem(ds, true).uri;
-                    url = userUrl + subPath;
+                    String mainPath = URI.create(ds.getUrl()).getPath();
+                    url = userUrl + mainPath + subPath;
                 } catch (IOException | URISyntaxException ex) {
                     throw new ConfigurationException(ex);
                 }   break;
