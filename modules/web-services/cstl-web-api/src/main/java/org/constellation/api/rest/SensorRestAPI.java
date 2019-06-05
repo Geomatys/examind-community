@@ -87,6 +87,7 @@ import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  *
@@ -130,13 +131,19 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return {@code true} if the operation succeed.
      */
     @RequestMapping(value="/sensors/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity deleteSensor(@PathVariable("id") Integer id) {
+    public ResponseEntity deleteSensor(@PathVariable("id") Integer id, @RequestParam(name = "removeData", required = false) Boolean removeData) {
         try {
             final Sensor sensor = sensorBusiness.getSensor(id);
             if (sensor != null) {
-                List<Service> services = serviceBusiness.getSensorLinkedServices(sensor.getId());
+                List<Service> services = serviceBusiness.getSensorLinkedServices(id);
                 for (Service service : services) {
                     getConfigurer().removeSensor(service.getIdentifier(), sensor.getIdentifier());
+                }
+                if (removeData != null && removeData) {
+                    List<Integer> dataIds = sensorBusiness.getLinkedDataIds(id);
+                    for (Integer dataId : dataIds) {
+                        dataBusiness.removeData(dataId, false);
+                    }
                 }
                 sensorBusiness.delete(id);
             }

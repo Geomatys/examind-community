@@ -58,7 +58,7 @@ public interface IDataBusiness {
     void missingData(QName name, String providerIdentifier) throws ConstellationException;
 
     /**
-     * Set {@code updated} attribute to {@code false} in removed data and his children.
+     * Set {@code included} attribute to {@code false} in removed data and his children.
      * This may remove data/provider/dataset depending of the state of provider/dataset.
      *
      * @see #updateDataIncluded(int, boolean, boolean)

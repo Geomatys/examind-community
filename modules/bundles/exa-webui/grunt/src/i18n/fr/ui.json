@@ -913,6 +913,7 @@
   "dialog.message.confirm.validation.selected.accept": "Etes vous sûr de vouloir valider cette fiche de métadonnées ?",
   "dialog.message.confirm.delete.mapcontext": "Êtes vous sûre de vouloir supprimer la composition cartographique ?",
   "dialog.message.confirm.delete.sensor": "Êtes vous sûre de vouloir supprimer le capteur ?",
+  "dialog.message.confirm.delete.sensor.linkeddata": "Voulez vous aussi supprimer les données associées a ce capteur?",
   "dialog.message.confirm.delete.style": "Êtes vous sûre de vouloir supprimer le style ?",
   "dialog.message.confirm.delete.rule": "Êtes vous sûre de vouloir supprimer la règle ?",
   "dialog.message.confirm.delete.allrules": "Êtes vous sûre de vouloir supprimer toutes les règles ?",

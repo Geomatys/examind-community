@@ -644,10 +644,10 @@ function Examind($http, url) {
          *
          * @returns {Promise}
          */
-        delete : function(sensorId) {
+        delete : function(sensorId, removeData) {
             return self.request({
                 method: 'DELETE',
-                url: 'sensors/' + sensorId
+                url: 'sensors/' + sensorId + '?removeData=' + removeData
                 });
         },
 
