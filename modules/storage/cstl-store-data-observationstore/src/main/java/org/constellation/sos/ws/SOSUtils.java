@@ -45,7 +45,6 @@ import org.geotoolkit.sml.xml.AbstractProcessChain;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.ComponentProperty;
 import org.geotoolkit.sml.xml.SMLMember;
-import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.geotoolkit.sml.xml.System;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -65,7 +64,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
@@ -527,52 +525,6 @@ public final class SOSUtils {
             }
             return phenomenons;
         }
-    }
-
-    public static AbstractSensorML unmarshallSensor(final Path f) throws JAXBException, DataStoreException {
-        try (InputStream stream = Files.newInputStream(f)){
-            return unmarshallSensor(stream);
-        } catch (FileNotFoundException e) {
-            throw new DataStoreException("File to unmarhall not found", e);
-        } catch (IOException e) {
-            throw new DataStoreException("Unable to read file", e);
-        }
-    }
-
-    /**
-     *
-     * @param f
-     * @return
-     * @throws JAXBException
-     * @throws DataStoreException
-     *
-     * deprecated use {@link #unmarshallSensor(Path)} instead
-     */
-    @Deprecated
-    public static AbstractSensorML unmarshallSensor(final File f) throws JAXBException, DataStoreException {
-        try (InputStream stream = new FileInputStream(f)){
-            return unmarshallSensor(stream);
-        } catch (FileNotFoundException e) {
-            throw new DataStoreException("File to unmarhall not found", e);
-        } catch (IOException e) {
-            throw new DataStoreException("Unable to read file", e);
-        }
-    }
-
-    public static AbstractSensorML unmarshallSensor(final String xml) throws JAXBException, DataStoreException {
-        return unmarshallSensor(new ByteArrayInputStream(xml.getBytes(Charset.forName("UTF-8"))));
-    }
-
-    public static AbstractSensorML unmarshallSensor(final InputStream is) throws JAXBException, DataStoreException {
-        final Unmarshaller um = SensorMLMarshallerPool.getInstance().acquireUnmarshaller();
-        Object obj = um.unmarshal(is);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement)obj).getValue();
-        }
-        if (obj instanceof AbstractSensorML) {
-            return (AbstractSensorML)obj;
-        }
-        throw new DataStoreException("the sensorML file does not contain a valid sensorML object");
     }
 
     public static Object unmarshallObservationFile(final Path f) throws JAXBException, DataStoreException, IOException {

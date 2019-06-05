@@ -122,7 +122,7 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
         ConfigDirectory.shutdownTestEnvironement("InternalSOSWorkerTest");
     }
 
-     public static Object writeCommonDataFile(String resourceName) throws Exception {
+     public Object writeCommonDataFile(String resourceName) throws Exception {
 
         StringWriter fw = new StringWriter();
         InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
@@ -134,7 +134,7 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
             fw.write(new String(buffer, 0, size));
         }
         in.close();
-        return SOSUtils.unmarshallSensor(fw.toString());
+        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 
 

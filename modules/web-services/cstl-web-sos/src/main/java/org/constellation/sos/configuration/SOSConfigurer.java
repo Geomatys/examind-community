@@ -121,7 +121,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         try {
             for (Path importedFile: files) {
                 if (importedFile != null) {
-                    final AbstractSensorML sensor = SOSUtils.unmarshallSensor(importedFile);
+                    final AbstractSensorML sensor = (AbstractSensorML) sensorBusiness.unmarshallSensor(importedFile);
                     final String sensorID = getSmlID(sensor);
                     final String smlType = SensorMLUtilities.getSensorMLType(sensor);
                     sensorBusiness.create(sensorID, smlType, null, sensor, System.currentTimeMillis(), getSensorProviderId(id));
@@ -132,7 +132,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
             return new AcknowlegementType("Success", "The specified sensor have been imported in the SOS");
         } catch (JAXBException ex) {
             LOGGER.log(Level.WARNING, "Exception while unmarshalling imported file", ex);
-        } catch (DataStoreException ex) {
+        } catch (IOException ex) {
             throw new ConfigurationException(ex);
         }
         return new AcknowlegementType("Error", "An error occurs during the process");

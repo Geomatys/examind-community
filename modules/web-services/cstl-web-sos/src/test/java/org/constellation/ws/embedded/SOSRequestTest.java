@@ -506,7 +506,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         domCompare(result, expResult);
     }
 
-    public static Object writeDataFile(String resourceName) throws Exception {
+    public Object writeDataFile(String resourceName) throws Exception {
 
         StringWriter fw = new StringWriter();
         InputStream in = Util.getResourceAsStream("org/constellation/embedded/test/" + resourceName + ".xml");
@@ -518,6 +518,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
             fw.write(new String(buffer, 0, size));
         }
         in.close();
-        return SOSUtils.unmarshallSensor(fw.toString());
+        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 }
