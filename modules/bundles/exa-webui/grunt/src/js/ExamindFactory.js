@@ -1063,6 +1063,30 @@ function Examind($http, url) {
                 method: 'PUT',
                 url: 'SOS/' + id + '/sensor/import/' + sensorID
                 });
+        },
+
+        /**
+         * import a data into the SOS.
+         *
+         * @returns {Promise}
+         */
+        importData : function(id, dataID) {
+            return self.request({
+                method: 'PUT',
+                url: 'SOS/' + id + '/data/' + dataID
+                });
+        },
+
+        /**
+         * remove a data from the SOS.
+         *
+         * @returns {Promise}
+         */
+        removeData : function(id, dataID) {
+            return self.request({
+                method: 'DELETE',
+                url: 'SOS/' + id + '/data/' + dataID
+                });
         }
     };
 

@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
+import org.constellation.business.IDataBusiness;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -47,6 +48,7 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.constellation.sos.ws.SOSUtils;
+import org.opengis.observation.Observation;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -67,6 +69,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class SOSRestAPI {
+
+    @Inject
+    private IDataBusiness dataBusiness;
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -179,32 +184,66 @@ public class SOSRestAPI {
         return new ResponseEntity(getConfigurer().getObservedPropertiesIds(id), OK);
     }
 
-    @RequestMapping(value="/SOS/{id}/data/import", method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity importSensorFromData(final @PathVariable("id") String id, final ParameterValues params) throws Exception {
-        final String providerId = params.get("providerId");
-        final String dataId = params.get("dataId");
+    @RequestMapping(value="/SOS/{id}/data/{dataID}", method = PUT, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity importSensorFromData(final @PathVariable("id") String id, final @PathVariable("dataID") Integer dataID) throws Exception {
+        final Integer providerId = dataBusiness.getDataProvider(dataID);
 
-        final DataProvider provider = DataProviders.getProvider(providerId);
-        final ObservationStore store = SOSUtils.getObservationStore(provider);
-        final ExtractionResult result;
-        if (store != null) {
-            result = store.getResults();
+        if (providerId != null) {
+
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            final ObservationStore store = SOSUtils.getObservationStore(provider);
+            final ExtractionResult result;
+            if (store != null) {
+                result = store.getResults();
+            } else {
+                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
+            }
+
+            final SOSConfigurer configurer = getConfigurer();
+
+            // import in O&M database
+            configurer.importObservations(id, result.observations, result.phenomenons);
+
+            // SensorML generation
+            for (ProcedureTree process : result.procedures) {
+                generateSensorML(id, process, result, configurer, null);
+            }
+
+            return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the SOS"), OK);
         } else {
-            return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
+            return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
         }
-
-        final SOSConfigurer configurer = getConfigurer();
-
-        // import in O&M database
-        configurer.importObservations(id, result.observations, result.phenomenons);
-
-        // SensorML generation
-        for (ProcedureTree process : result.procedures) {
-            generateSensorML(id, process, result, configurer, null);
-        }
-
-        return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the SOS"), OK);
     }
+
+    @RequestMapping(value="/SOS/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity removeDataFromSOS(final @PathVariable("id") String id, final @PathVariable("dataID") Integer dataID) throws Exception {
+        final Integer providerId = dataBusiness.getDataProvider(dataID);
+
+        if (providerId != null) {
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            final ObservationStore store = SOSUtils.getObservationStore(provider);
+            final ExtractionResult result;
+            if (store != null) {
+                result = store.getResults();
+            } else {
+                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
+            }
+
+            final SOSConfigurer configurer = getConfigurer();
+
+            // remove from O&M database
+            for (Observation obs : result.observations) {
+                if (obs.getName() != null) {
+                    configurer.removeSingleObservation(id, obs.getName().getCode());
+                }
+            }
+
+            return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the SOS"), OK);
+        } else {
+            return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
+        }
+    }
+
 
     private void generateSensorML(final String id, final ProcedureTree process, final ExtractionResult result, final SOSConfigurer configurer, String parentID) throws ConfigurationException {
         final Properties prop = new Properties();

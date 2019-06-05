@@ -1016,13 +1016,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     public synchronized void removeObservation(final String observationID) throws DataStoreException {
         try(final Connection c              = source.getConnection()) {
             final int pid                   = getPIDFromObservation(observationID, c);
-            try(final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" WHERE id_observation IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?)");
-            final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?")) {
-                stmtMes.setString(1, observationID);
-                stmtMes.executeUpdate();
+            if (pid != -1) {
+                try(final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" WHERE id_observation IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?)");
+                final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?")) {
+                    stmtMes.setString(1, observationID);
+                    stmtMes.executeUpdate();
 
-                stmtObs.setString(1, observationID);
-                stmtObs.executeUpdate();
+                    stmtObs.setString(1, observationID);
+                    stmtObs.executeUpdate();
+                }
+            } else {
+                LOGGER.info("No observation " + observationID + " exisitng. Unable to delete");
             }
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting observation.", ex);

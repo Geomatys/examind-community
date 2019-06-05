@@ -123,18 +123,38 @@ function DatasetService($rootScope, $q,  $modal, Growl, Examind) {
             }
         }).result.then(function(confirmation){
             if (confirmation) {
-                return Examind.datas.removeData(data.id, false)
-                    .then(function(result) {
-                        if(angular.isFunction(successCallback)) {
-                            successCallback();
+
+                var deleteDataHandler = function(data) {
+                    return Examind.datas.removeData(data.id, false)
+                        .then(function(result) {
+                            if(angular.isFunction(successCallback)) {
+                                successCallback();
+                            }
+                            onDataDeleteSuccess(data);
+                            return result;
+                        })
+                        .catch(function(err) {
+                            onDataDeleteError(data);
+                            throw err;
+                        });
+                };
+
+                // remove from any SOS if there is one
+                if (data.targetService) {
+                    var $removed = [];
+                    data.targetService.forEach(function (service) {
+                        if (service.type.toLowerCase() === 'sos') {
+                            $removed.push(Examind.sos.removeData(service.identifier, data.id));
                         }
-                        onDataDeleteSuccess(data);
-                        return result;
-                    })
-                    .catch(function(err) {
-                        onDataDeleteError(data);
-                        throw err;
                     });
+                    $q.all($removed).then(function() {
+                        return deleteDataHandler(data);
+                    });
+                } else {
+                    return deleteDataHandler(data);
+                }
+
+
             }
             return $q.reject("cancel");
         });
