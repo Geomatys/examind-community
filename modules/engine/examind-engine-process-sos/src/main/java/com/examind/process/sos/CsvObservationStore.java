@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -168,6 +167,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
             LOGGER.warning("CSVObservation store does not allow to override sensor ID");
         }
 
+        int obsCpt = 0;
+
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
@@ -277,7 +278,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     // closing current observation and starting new one
                     if (previousFoi != null && !previousFoi.equals(currentFoi)) {
 
-                        final String oid = UUID.randomUUID().toString();
+                        final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
+                        obsCpt++;
                         final String procedureID = getProcedureID();
 
                         // sampling feature of interest
@@ -381,7 +383,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 3- build result
                 =============*/
 
-                final String oid = UUID.randomUUID().toString();
+                final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
+                obsCpt++;
                 final String procedureID = getProcedureID();
 
                 // sampling feature of interest
