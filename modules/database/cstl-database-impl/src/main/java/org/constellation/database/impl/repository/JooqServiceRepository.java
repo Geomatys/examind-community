@@ -44,6 +44,7 @@ import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
 import static org.constellation.database.api.jooq.Tables.METADATA_X_CSW;
 import static org.constellation.database.api.jooq.Tables.SENSOR_X_SOS;
+import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
 import static org.constellation.database.api.jooq.Tables.SERVICE;
 import static org.constellation.database.api.jooq.Tables.SERVICE_DETAILS;
 import static org.constellation.database.api.jooq.Tables.SERVICE_EXTRA_CONFIG;
@@ -66,18 +67,25 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
 
     @Override
     public List<Service> findByDataId(int dataId) {
-        SelectConditionStep<Record> from = dsl.select().from(SERVICE).join(Tables.LAYER).onKey()
-                .where(Tables.LAYER.DATA.eq(dataId));
-        final List<org.constellation.database.api.jooq.tables.pojos.Service> layerServices = from.fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class);
+        final List<org.constellation.database.api.jooq.tables.pojos.Service> results = new ArrayList<>();
 
-        final List<org.constellation.database.api.jooq.tables.pojos.Service> cswServices = dsl.select(SERVICE.fields()).from(Arrays.asList(SERVICE,METADATA_X_CSW,METADATA))
+        results.addAll(dsl.select().from(SERVICE).join(Tables.LAYER).onKey()
+                .where(Tables.LAYER.DATA.eq(dataId))
+                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
+
+        results.addAll(dsl.select(SERVICE.fields()).from(Arrays.asList(SERVICE,METADATA_X_CSW,METADATA))
                 .where(METADATA_X_CSW.CSW_ID.eq(SERVICE.ID))
                 .and(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID))
                 .and(METADATA.DATA_ID.eq(dataId))
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class);
+                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
 
-        layerServices.addAll(cswServices);
-        return convertListToDto(layerServices);
+        results.addAll(dsl.select(SERVICE.fields()).from(Arrays.asList(SERVICE,SENSOR_X_SOS,SENSORED_DATA))
+                .where(SENSOR_X_SOS.SOS_ID.eq(SERVICE.ID))
+                .and(SENSOR_X_SOS.SENSOR_ID.eq(SENSORED_DATA.SENSOR))
+                .and(SENSORED_DATA.DATA.eq(dataId))
+                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
+
+        return convertListToDto(results);
     }
 
     @Override
@@ -271,6 +279,13 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
                 .join(METADATA_X_CSW).on(METADATA_X_CSW.METADATA_ID.eq(METADATA.ID)) // metadata -> metadata_x_csw
                 .join(SERVICE).on(SERVICE.ID.eq(METADATA_X_CSW.CSW_ID)) // metadata_x_csw -> service
                 .where(DATA.ID.eq(dataId))
+                .fetchInto(ServiceReference.class));
+
+        // "Sensor" services.
+        services.addAll(dsl.select(SERVICE.fields()).from(Arrays.asList(SERVICE,SENSOR_X_SOS,SENSORED_DATA))
+                .where(SENSOR_X_SOS.SOS_ID.eq(SERVICE.ID))
+                .and(SENSOR_X_SOS.SENSOR_ID.eq(SENSORED_DATA.SENSOR))
+                .and(SENSORED_DATA.DATA.eq(dataId))
                 .fetchInto(ServiceReference.class));
 
         return services;
