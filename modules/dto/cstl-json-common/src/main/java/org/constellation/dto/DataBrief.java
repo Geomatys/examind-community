@@ -19,7 +19,6 @@
 
 package org.constellation.dto;
 
-import org.constellation.dto.service.ServiceProtocol;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public final class DataBrief extends Data implements Serializable {
     private List<StyleBrief> targetStyle = new ArrayList<>(0);
 
     @XmlElement(name="targetService")
-    private List<ServiceProtocol> targetService = new ArrayList<>(0);
+    private List<ServiceReference> targetService = new ArrayList<>(0);
 
     @XmlElement(name="targetSensor")
     private List<String> targetSensor = new ArrayList<>(0);
@@ -107,11 +106,11 @@ public final class DataBrief extends Data implements Serializable {
         this.targetStyle = targetStyle;
     }
 
-    public List<ServiceProtocol> getTargetService() {
+    public List<ServiceReference> getTargetService() {
         return targetService;
     }
 
-    public void setTargetService(final List<ServiceProtocol> targetService) {
+    public void setTargetService(final List<ServiceReference> targetService) {
         this.targetService = targetService;
     }
 

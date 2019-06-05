@@ -41,7 +41,6 @@ import org.constellation.admin.listener.IDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
-import org.constellation.api.ServiceDef;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
@@ -58,13 +57,13 @@ import org.constellation.dto.DataSummary;
 import org.constellation.dto.Dimension;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.ServiceReference;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.service.Service;
-import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -451,19 +450,15 @@ public class DataBusiness implements IDataBusiness {
             }
 
             //use HashSet to avoid duplicated objects.
-            final Set<ServiceProtocol> serviceProtocols = new HashSet<>();
+            final Set<ServiceReference> serviceRefs = new HashSet<>();
             for (final Service service : services) {
-                final List<String> protocol = new ArrayList<>();
-                final ServiceDef.Specification spec = ServiceDef.Specification.valueOf(service.getType().toUpperCase());
-                protocol.add(spec.name());
-                protocol.add(spec.fullName);
-                final ServiceProtocol sp = new ServiceProtocol(service.getIdentifier(), protocol);
-                serviceProtocols.add(sp);
+                final ServiceReference sp = new ServiceReference(service);
+                serviceRefs.add(sp);
             }
 
             if (published != null) {
-                if ((published  && serviceProtocols.isEmpty()) ||
-                    (!published && !serviceProtocols.isEmpty())) {
+                if ((published  && serviceRefs.isEmpty()) ||
+                    (!published && !serviceRefs.isEmpty())) {
                     continue;
                 }
             }
@@ -547,7 +542,7 @@ public class DataBusiness implements IDataBusiness {
                 styleBriefs.add(sb);
             }
             db.setTargetStyle(styleBriefs);
-            db.setTargetService(new ArrayList<>(serviceProtocols));
+            db.setTargetService(new ArrayList<>(serviceRefs));
 
             /**
              * Add for linked metadatas
@@ -595,19 +590,15 @@ public class DataBusiness implements IDataBusiness {
             }
 
             //use HashSet to avoid duplicated objects.
-            final Set<ServiceProtocol> serviceProtocols = new HashSet<>();
+            final Set<ServiceReference> serviceRefs = new HashSet<>();
             for (final Service service : services) {
-                final List<String> protocol = new ArrayList<>();
-                final ServiceDef.Specification spec = ServiceDef.Specification.valueOf(service.getType().toUpperCase());
-                protocol.add(spec.name());
-                protocol.add(spec.fullName);
-                final ServiceProtocol sp = new ServiceProtocol(service.getIdentifier(), protocol);
-                serviceProtocols.add(sp);
+                final ServiceReference sp = new ServiceReference(service);
+                serviceRefs.add(sp);
             }
 
             if (published != null) {
-                if ((published  && serviceProtocols.isEmpty()) ||
-                    (!published && !serviceProtocols.isEmpty())) {
+                if ((published  && serviceRefs.isEmpty()) ||
+                    (!published && !serviceRefs.isEmpty())) {
                     continue;
                 }
             }
