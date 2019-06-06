@@ -165,6 +165,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         close(datasource, true);
     }
 
+    @Override
+    @Transactional
+    public void deleteAll() throws ConstellationException {
+        final List<DataSource> datasources = dsRepository.findAll();
+        for (DataSource ds : datasources) {
+            close(ds, true);
+        }
+    }
+
     /**
      * Close and eventually delete a datasource.
      *  - interrupt the analysis still going on

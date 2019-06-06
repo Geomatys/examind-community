@@ -50,6 +50,8 @@ public interface IDatasourceBusiness {
 
     void delete(int id) throws ConstellationException;
 
+    void deleteAll() throws ConstellationException;
+
     DataSource getDatasource(int id);
 
     DataSource getByUrl(String url);
