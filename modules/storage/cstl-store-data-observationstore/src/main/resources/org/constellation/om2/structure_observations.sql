@@ -58,7 +58,7 @@ CREATE TABLE "$SCHEMAom"."observed_properties" (
 
 CREATE TABLE "$SCHEMAom"."procedures" (
     "id"     character varying(200) NOT NULL,
-    "shape"  varchar (200) for bit data,
+    "shape"  varchar (10000) for bit data,
     "crs"    integer,
     "pid"    integer NOT NULL,
     "parent" character varying(200),
@@ -79,7 +79,7 @@ CREATE TABLE "$SCHEMAom"."sampling_features" (
     "name"             character varying(200),
     "description"      character varying(200),
     "sampledfeature"   character varying(200),
-    "shape"            varchar (200) for bit data,
+    "shape"            varchar (10000) for bit data,
     "crs"              integer
 );
 

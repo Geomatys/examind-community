@@ -894,7 +894,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
 
             boolean mesureTableExist = true;
-            try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(id) FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"")) {
+            try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"")) {
                 stmtExist.executeQuery();
             } catch (SQLException ex) {
                 LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", pid);
@@ -974,8 +974,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                 + " AND    \"id\" NOT IN (SELECT DISTINCT \"component\"         FROM \"" + schemaPrefix + "om\".\"components\")")) {
                             while (rs.next()) {
                                 final String key = encodeQuote(rs.getString(1));
-                                stmtOP.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"='" + key + "';");
-                                stmtOP.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"='" + key + "';");
+                                stmtOP.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"='" + key + "'");
+                                stmtOP.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"='" + key + "'");
                             }
                         }
                         stmtOP.executeBatch();
@@ -988,7 +988,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             " AND    \"id\" NOT IN (SELECT DISTINCT \"foi\" FROM \"" + schemaPrefix + "om\".\"offering_foi\")")) {
 
                         while (rs2.next()) {
-                            stmtFOI.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"='" + encodeQuote(rs2.getString(1)) + "';");
+                            stmtFOI.addBatch("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"='" + encodeQuote(rs2.getString(1)) + "'");
                         }
                         stmtFOI.executeBatch();
                     }
@@ -1058,7 +1058,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 sb.append('"').append(field.fieldName).append("\" ").append(field.getSQLType(isPostgres)).append(",");
             }
             sb.setCharAt(sb.length() - 1, ' ');
-            sb.append(");");
+            sb.append(")");
             try(final Statement stmt = c.createStatement()) {
                 stmt.executeUpdate(sb.toString());
                 stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\")");

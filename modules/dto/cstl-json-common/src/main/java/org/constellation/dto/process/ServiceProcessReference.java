@@ -47,7 +47,7 @@ public class ServiceProcessReference implements Serializable {
         if (service != null) {
             this.id = service.getId();
             this.type = service.getType();
-            this.name  = service.getTitle();
+            this.name  = service.getIdentifier();
         }
     }
 
