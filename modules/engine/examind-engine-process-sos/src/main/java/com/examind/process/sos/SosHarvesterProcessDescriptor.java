@@ -176,9 +176,25 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
                     SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS);
 
+    public static final String FILE_INSERTED_NAME = "Files inserted number";
+    public static final String FILE_INSERTED_DESC = "Files inserted number";
+    public static final ParameterDescriptor<Integer> FILE_INSERTED = PARAM_BUILDER
+            .addName(FILE_INSERTED_NAME)
+            .setRemarks(FILE_INSERTED_DESC)
+            .setRequired(false)
+            .create(Integer.class, 0);
+
+
+    public static final String OBSERVATION_INSERTED_NAME = "Observations inserted number";
+    public static final String OBSERVATION_INSERTED_DESC = "Observations inserted number";
+    public static final ParameterDescriptor<Integer> OBSERVATION_INSERTED = PARAM_BUILDER
+            .addName(OBSERVATION_INSERTED_NAME)
+            .setRemarks(OBSERVATION_INSERTED_DESC)
+            .setRequired(false)
+            .create(Integer.class, 0);
 
     public static final ParameterDescriptorGroup OUTPUT_DESC =
-            PARAM_BUILDER.addName("OutputParameters").createGroup();
+            PARAM_BUILDER.addName("OutputParameters").createGroup(FILE_INSERTED, OBSERVATION_INSERTED);
 
 
     /** Instance */

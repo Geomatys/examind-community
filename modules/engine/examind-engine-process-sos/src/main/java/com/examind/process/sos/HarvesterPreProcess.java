@@ -199,8 +199,11 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         // no outputs for now
         final List<Parameter> outputs = new ArrayList<>();
 
-        //final Parameter param = new Parameter(out.getIdentifier().getValue(), type, out.getFirstTitle(), out.getFirstAbstract(), 0, 1);
-        //outputs.add(param);
+        final Parameter oparam1 = new Parameter(OBSERVATION_INSERTED_NAME, Integer.class, OBSERVATION_INSERTED_DESC, OBSERVATION_INSERTED_DESC, 0, 1);
+        outputs.add(oparam1);
+
+        final Parameter oparam2 = new Parameter(FILE_INSERTED_NAME, Integer.class, FILE_INSERTED_DESC, FILE_INSERTED_DESC, 0, 1);
+        outputs.add(oparam2);
 
         chain.setOutputs(outputs);
 

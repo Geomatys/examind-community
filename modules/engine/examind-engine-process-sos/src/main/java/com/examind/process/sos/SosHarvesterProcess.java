@@ -141,6 +141,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
 
+        // prepare the results
+        int nbFileInserted = 0;
+        int nbObsInserted  = 0;
+
         final List<String> measureColumns = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
             if (param.getDescriptor().getName().getCode().equals(MEASURE_COLUMNS.getName().getCode())) {
@@ -308,6 +312,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                                 dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
                                 dataToIntegrate.add(acceptData.getId());
                             }
+                            nbFileInserted++;
                     }
                 }
 
@@ -332,7 +337,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                 // ajout d'un capteur au SOS
                 for (String sensorID : ids) {
-                    importSensor(sosServ.getName(), sensorID, dataId, configurer, sosStore);
+                    nbObsInserted = nbObsInserted + importSensor(sosServ.getName(), sensorID, dataId, configurer, sosStore);
                     LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
                     reload = true;
                 }
@@ -344,6 +349,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         } catch (ConfigurationException | DataStoreException | SQLException ex) {
             throw new ProcessException(ex.getMessage(), this ,ex);
         }
+
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
 
     private List<String> generateSensorML(final int dataId) throws DataStoreException, ConfigurationException, SQLException, ProcessException {
@@ -408,7 +416,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         sensorBusiness.linkDataToSensor(dataID, sensor.getId());
     }
 
-    private void importSensor(final String sosId, final String sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+    private int importSensor(final String sosId, final String sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+        int nbObservationInserted                 = 0;
         final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
         final List<String> alreadyLinked          = sensorBusiness.getLinkedSensorIdentifiers(sosId);
@@ -455,6 +464,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                     // import in O&M database
                     configurer.importObservations(sosId, result.observations, result.phenomenons);
+                    nbObservationInserted = nbObservationInserted + result.observations.size();
                 } else {
                     LOGGER.info("Failure : Available only on Observation provider (and netCDF coverage) for now");
                 }
@@ -462,6 +472,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 LOGGER.warning(ex.getMessage());
             }
         }
+        return nbObservationInserted;
     }
 
 
