@@ -40,9 +40,11 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
     /**
      * Input parameters
      */
+    public static final String DATA_FOLDER_NAME = "data folder";
+    public static final String DATA_FOLDER_DESC = "data folder";
     public static final ParameterDescriptor<String> DATA_FOLDER = PARAM_BUILDER
-            .addName("data folder")
-            .setRemarks("data folder")
+            .addName(DATA_FOLDER_NAME)
+            .setRemarks(DATA_FOLDER_DESC)
             .setRequired(true)
             .create(String.class, null);
 
@@ -62,15 +64,19 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String OBS_TYPE_NAME = "Observation Type";
+    public static final String OBS_TYPE_DESC = "Observation Type";
     public static final ParameterDescriptor<String> OBS_TYPE = PARAM_BUILDER
-            .addName("Observation Type")
-//            .setRemarks(Bundle.formatInternational(Bundle.Keys.paramURLRemarks))
+            .addName(OBS_TYPE_NAME)
+            .setRemarks(OBS_TYPE_DESC)
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
 
+    public static final String TASK_NAME_NAME = "generated task name";
+    public static final String TASK_NAME_DESC = "generated task name";
     public static final ParameterDescriptor<String> TASK_NAME = PARAM_BUILDER
-            .addName("generated task name")
-            .setRemarks("generated task name")
+            .addName(TASK_NAME_NAME)
+            .setRemarks(TASK_NAME_DESC)
             .setRequired(false)
             .create(String.class, null);
 

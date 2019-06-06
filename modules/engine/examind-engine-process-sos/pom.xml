@@ -22,7 +22,6 @@
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-web-sos</artifactId>
-            <!--artifactId>cstl-store-data-observationstore</artifactId-->
             <version>${project.version}</version>
         </dependency>
 
@@ -36,7 +35,31 @@
         <dependency>
             <groupId>org.geotoolkit</groupId>
              <artifactId>geotk-feature-csv</artifactId>
-             <version>${geotoolkit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-test-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-engine-admin</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-web-wps</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-database-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

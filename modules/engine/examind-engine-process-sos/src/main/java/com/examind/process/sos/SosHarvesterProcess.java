@@ -325,6 +325,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         try {
             final ObservationStore sosStore = getSOSObservationStore(sosServ.getName());
+            boolean reload = false;
             for (final Integer dataId : dataToIntegrate) {
 
                 List<String> ids = generateSensorML(dataId);
@@ -333,11 +334,15 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 for (String sensorID : ids) {
                     importSensor(sosServ.getName(), sensorID, dataId, configurer, sosStore);
                     LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
+                    reload = true;
                 }
+            }
+            if (reload) {
+                serviceBusiness.restart("sos", sosServ.getName(), true);
             }
 
         } catch (ConfigurationException | DataStoreException | SQLException ex) {
-            LOGGER.warning(ex.getMessage());
+            throw new ProcessException(ex.getMessage(), this ,ex);
         }
     }
 

@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.ChainProcess;
@@ -105,25 +106,29 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
             Path sourceFolder = FileSystemUtilities.getPath(fs, dataUri.getPath());
 
+            List<Path> children = new ArrayList<>();
             if (Files.isDirectory(sourceFolder)) {
                  try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
                     for (Path child : stream) {
                         if (child.getFileName().toString().endsWith(".csv")) {
-                            String[] currentHeaders = extractHeaders(child);
-                            if (headers != null && !Arrays.equals(headers, currentHeaders)) {
-                                throw new ProcessException("Inconsistent dataset, the diferent CSV files does not have the same headers", this);
-                            }
-                            headers = currentHeaders;
+                            children.add(child);
                         }
-                        Thread.sleep(1000); // try to fix a bug with geomatys ftp
                     }
                 } catch (IOException e) {
                     throw new ProcessException("Error occurs during directory browsing", this, e);
                 }
+
+                for (Path child : children) {
+                    String[] currentHeaders = extractHeaders(child);
+                    if (headers != null && !Arrays.equals(headers, currentHeaders)) {
+                        throw new ProcessException("Inconsistent dataset, the diferent CSV files does not have the same headers", this);
+                    }
+                    headers = currentHeaders;
+                }
             } else {
                 throw new ProcessException("The source folder does not point to a directory", this);
             }
-        } catch (IOException | URISyntaxException | InterruptedException ex) {
+        } catch (IOException | URISyntaxException ex) {
             throw new ProcessException("Error while opening data location.", this, ex);
         } finally {
             FileSystemUtilities.closeFileSystem(fs);
@@ -232,7 +237,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
 
     private String[] extractHeaders(Path csvFile) throws ProcessException {
-           try (final CSVReader reader = new CSVReader(Files.newBufferedReader(csvFile))) {
+        LOGGER.log(Level.INFO, "Extracting headers from : {0}", csvFile.getFileName().toString());
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(csvFile))) {
 
             final Iterator<String[]> it = reader.iterator();
 
