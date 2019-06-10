@@ -508,9 +508,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                     if (dstore instanceof ResourceOnFileSystem) {
                         storeFiles = ((ResourceOnFileSystem) dstore).getComponentFiles();
                     } else {
-                        LOGGER.log(Level.WARNING, "{0} (TODO: implements ResourceOnFileSystem)", ds.getStoreId());
-                        dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
-                        return null;
+                        LOGGER.log(Level.WARNING, "{0} (TODO: implements ResourceOnFileSystem) Using only selected Path", ds.getStoreId());
+                        storeFiles = new Path[]{p};
                     }
                 } catch (DataStoreException ex) {
                     LOGGER.log(Level.WARNING, "Error while opening store " + ds.getStoreId() + " on path: " + p.toUri().toString(), ex);
