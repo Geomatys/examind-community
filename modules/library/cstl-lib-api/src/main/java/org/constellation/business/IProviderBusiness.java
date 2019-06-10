@@ -173,7 +173,7 @@ public interface IProviderBusiness {
 
     void updateParent(String id, String providerId);
 
-    ProviderPyramidChoiceList listPyramids(final String id, final String layerName) throws ConfigurationException;
+    ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException;
 
 
     /**

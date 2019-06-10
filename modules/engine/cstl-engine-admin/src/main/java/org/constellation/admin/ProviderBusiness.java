@@ -581,14 +581,14 @@ public class ProviderBusiness implements IProviderBusiness {
      * {@inheritDoc}
      */
     @Override
-    public ProviderPyramidChoiceList listPyramids(final String id, final String layerName) throws ConfigurationException {
+    public ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException {
         final ProviderPyramidChoiceList choices = new ProviderPyramidChoiceList();
 
         final List<ProviderBrief> childrenRecs = providerRepository.findChildren(id);
 
         for (ProviderBrief childRec : childrenRecs) {
             final DataProvider provider = DataProviders.getProvider(childRec.getId());
-            final GenericName gname = NamesExt.create(ProviderParameters.getNamespace(provider), layerName);
+            final GenericName gname = NamesExt.create(ProviderParameters.getNamespace(provider), dataName);
             final Data cacheData = provider.get(gname);
             if (cacheData != null) {
                 final PyramidalCoverageResource cacheRef = (PyramidalCoverageResource) cacheData.getOrigin();
@@ -608,7 +608,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 cache.setCrs(crsid.getCode());
                 cache.setScales(pyramid.getScales());
                 cache.setProviderId(provider.getId());
-                cache.setDataId(layerName);
+                cache.setDataId(dataName);
                 cache.setConform(childRec.getIdentifier().startsWith("conform_"));
 
                 choices.getPyramids().add(cache);

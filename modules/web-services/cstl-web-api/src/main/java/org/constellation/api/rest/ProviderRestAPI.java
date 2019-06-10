@@ -303,27 +303,27 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
     /**
      *
-     * @param layerName
+     * @param dataName
      * @param id
      * @param property
      * @return
      */
-    @RequestMapping(value="/{id}/{layerName}/{property}/propertyValues",method=GET,produces=APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/{id}/{dataName}/{property}/propertyValues",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity propertyValues(
             @PathVariable("id")         final String id,
-            @PathVariable("layerName")  final String layerName,
+            @PathVariable("dataName")   final String dataName,
             @PathVariable("property")   final String property) {
 
         try {
-            final Data data = getProviderData(id, layerName);
+            final Data data = getProviderData(id, dataName);
             if (data instanceof FeatureData) {
                 return new ResponseEntity(((FeatureData)data).getPropertyValues(property),OK);
             } else {
-                throw new ConstellationStoreException("No layer " + layerName + " found in provider:" + id + " (or is not a faure data)");
+                throw new ConstellationStoreException("No data " + dataName + " found in provider:" + id + " (or is not a faure data)");
             }
 
         } catch (ConfigurationException | ConstellationStoreException  ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve information for layer "+layerName, ex);
+            LOGGER.log(Level.WARNING, "Cannot retrieve information for data " + dataName, ex);
             return new ErrorMessage(ex).build();
         }
     }
@@ -332,17 +332,17 @@ public class ProviderRestAPI extends AbstractRestAPI {
      * Indicate if given provider contains a geophysic data.
      *
      * @param id
-     * @param layerName
+     * @param dataName
      * @return
      */
-    @RequestMapping(value="/{id}/{layerName}/isGeophysic",method=GET,produces=APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/{id}/{dataName}/isGeophysic",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity isGeophysic(
             @PathVariable("id")        final String id,
-            @PathVariable("layerName") final String layerName) {
+            @PathVariable("dataName") final String dataName) {
 
         boolean isGeophysic = false;
         try {
-            final Data data = getProviderData(id, layerName);
+            final Data data = getProviderData(id, dataName);
 
             if(data!=null && data.getOrigin() instanceof CoverageResource){
                 final CoverageResource ref = (CoverageResource) data.getOrigin();
@@ -354,7 +354,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
                 ref.recycle(reader);
             }
         } catch (CoverageStoreException | ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve information for layer "+layerName, ex);
+            LOGGER.log(Level.WARNING, "Cannot retrieve information for dataName " + dataName, ex);
             return new ErrorMessage(ex).build();
         }
 
@@ -365,18 +365,18 @@ public class ProviderRestAPI extends AbstractRestAPI {
      * List the available pyramids for this layer
      *
      * @param id
-     * @param layerName
+     * @param dataName
      * @return
      */
-    @RequestMapping(value="/{id}/{layerName}/listPyramidChoice",method=GET,produces=APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/{id}/{dataName}/listPyramidChoice",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity listPyramids(
             @PathVariable("id")        final String id,
-            @PathVariable("layerName") final String layerName) {
+            @PathVariable("dataName") final String dataName) {
 
         try {
-            return new ResponseEntity(providerBusiness.listPyramids(id, layerName),OK);
+            return new ResponseEntity(providerBusiness.listPyramids(id, dataName),OK);
         } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Cannot retrieve information for layer "+layerName, ex);
+            LOGGER.log(Level.WARNING, "Cannot retrieve information for data "+dataName, ex);
             return new ErrorMessage(ex).build();
         }
     }
