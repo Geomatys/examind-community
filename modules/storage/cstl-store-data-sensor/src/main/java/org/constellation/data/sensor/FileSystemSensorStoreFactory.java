@@ -48,6 +48,10 @@ public class FileSystemSensorStoreFactory extends DataStoreFactory {
             new ParameterBuilder().addName(NAME).addName("FileSensorParameters").createGroup(IDENTIFIER,DATA_DIRECTORY_DESCRIPTOR);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+    
     public CharSequence getDescription() {
         return "File system sensor store";
     }

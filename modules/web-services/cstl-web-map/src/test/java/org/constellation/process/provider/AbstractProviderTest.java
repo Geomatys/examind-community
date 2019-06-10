@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
+import org.geotoolkit.nio.IOUtilities;
 
 /**
  *
@@ -59,13 +60,14 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
     }
 
     @BeforeClass
-    public static void initFolder() throws MalformedURLException {
+    public static void initFolder() throws Exception {
 
         final File configDirectory = ConfigDirectory.setupTestEnvironement("ProcessProviderTest").toFile();
         final File providerDirectory = new File(configDirectory, "provider");
         providerDirectory.mkdir();
 
         File csv = new File(configDirectory, "file.csv");
+        IOUtilities.writeString("id;name", csv.toPath());
         EMPTY_CSV = csv.toURI();
 
     }
@@ -93,9 +95,9 @@ public abstract class AbstractProviderTest extends AbstractProcessTest {
             sourceValue.parameter("id").setValue(providerID);
 
             final ParameterValueGroup choiceValue = sourceValue.groups("choice").get(0);
-            final ParameterValueGroup csvValue = choiceValue.addGroup("CSVParameters");
-            csvValue.parameter("identifier").setValue("geotk_csv");
-            csvValue.parameter("path").setValue(url);
+            final ParameterValueGroup csvValue = choiceValue.addGroup("geotk_csv");
+            //csvValue.parameter("identifier").setValue("geotk_csv");
+            csvValue.parameter("location").setValue(url);
             csvValue.parameter("separator").setValue(Character.valueOf(separator));
 
             return sourceValue;

@@ -48,7 +48,7 @@ public class MetadataStoreProviderService extends AbstractDataProviderFactory {
 
     static {
         final List<ParameterDescriptorGroup> descs = new ArrayList<>();
-        final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.getAllFactories(org.apache.sis.storage.DataStoreProvider.class).iterator();
+        final Iterator<org.apache.sis.storage.DataStoreProvider> ite = DataStores.getProviders(org.apache.sis.storage.DataStoreProvider.class).iterator();
         while(ite.hasNext()){
             org.apache.sis.storage.DataStoreProvider provider = ite.next();
 

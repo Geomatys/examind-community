@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.csv.CSVFeatureStore;
+import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilter;
@@ -55,6 +55,8 @@ import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.netcdf.OMUtils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.util.NamesExt;
@@ -68,7 +70,7 @@ import org.opengis.util.GenericName;
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class CsvObservationStore extends CSVFeatureStore implements ObservationStore {
+public class CsvObservationStore extends CSVStore implements ObservationStore {
 
     private static final String PROCEDURE_TREE_TYPE = "Component";
 
@@ -125,6 +127,11 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureId = procedureId;
+    }
+
+    @Override
+    public DataStoreFactory getProvider() {
+        return DataStores.getFactoryById(CsvObservationStoreFactory.NAME);
     }
 
     ////////////////////////////////////////////////////////////////////////////

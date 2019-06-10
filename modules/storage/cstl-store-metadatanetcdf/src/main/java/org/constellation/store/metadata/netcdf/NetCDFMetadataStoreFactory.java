@@ -21,7 +21,11 @@ package org.constellation.store.metadata.netcdf;
 import java.nio.file.Path;
 import java.util.Map;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTRA_QUERYABLE;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
@@ -37,14 +41,14 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Johann Sorel (Geomatys)
  */
 @StoreMetadataExt(resourceTypes = ResourceType.METADATA, canWrite = true)
-public class NetCDFMetadataStoreFactory extends DataStoreFactory {
+public class NetCDFMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
      /** factory identification **/
     public static final String NAME = "NetCDFMetadata";
 
-    public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER = DataStoreFactory.createFixedIdentifier(NAME);
 
     public static final ParameterDescriptor<Map> CONFIG_PARAMS = BUILDER
             .addName("config-params")
@@ -62,6 +66,10 @@ public class NetCDFMetadataStoreFactory extends DataStoreFactory {
             BUILDER.addName(NAME).addName("NCMetadataParameters").createGroup(IDENTIFIER, CONFIG_PARAMS,FOLDER,EXTRA_QUERYABLE);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+
     public CharSequence getDescription() {
         return "Constellation internal metadata store";
     }
@@ -73,12 +81,22 @@ public class NetCDFMetadataStoreFactory extends DataStoreFactory {
 
     @Override
     public MetadataStore open(ParameterValueGroup params) throws DataStoreException {
-        ensureCanProcess(params);
+        //ensureCanProcess(params);
         try {
             return new NetCDFMetadataStore(params);
         } catch (MetadataIoException ex) {
             throw new DataStoreException(ex);
         }
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector sc) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public DataStore open(StorageConnector sc) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

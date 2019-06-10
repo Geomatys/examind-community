@@ -55,7 +55,7 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -103,7 +103,7 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("NetCDFMetadata");
+                final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 params.parameter("folder").setValue(new File(dataDirectory.getPath()));

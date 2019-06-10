@@ -1092,7 +1092,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 int colSize = 0;
 
                 // look for matching count
-                queryBuilder.setMaxFeatures(null);
+                queryBuilder.setMaxFeatures(Long.MAX_VALUE);
                 try {
                     colSize = collection.size();
                     nbMatched = nbMatched +  colSize;

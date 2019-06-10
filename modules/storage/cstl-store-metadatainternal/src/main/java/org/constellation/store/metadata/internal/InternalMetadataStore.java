@@ -29,6 +29,8 @@ import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataWriter;
@@ -64,7 +66,7 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     }
 
     @Override
-    protected Metadata createMetadata() throws DataStoreException {
+    public Metadata getMetadata() throws DataStoreException {
         final String name = "internal-metadata";
         final DefaultMetadata metadata = new DefaultMetadata();
         final DefaultDataIdentification identification = new DefaultDataIdentification();
@@ -157,5 +159,15 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     @Override
     public boolean deleteSupported() {
         return true;
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

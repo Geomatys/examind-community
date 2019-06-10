@@ -24,7 +24,7 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.process.ExamindProcessFactory;
-import org.geotoolkit.data.csv.CSVFeatureStoreFactory;
+import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 
 import org.opengis.parameter.ParameterDescriptor;
@@ -98,8 +98,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
 
-    public static final String SEPARATOR_NAME = CSVFeatureStoreFactory.SEPARATOR.getName().getCode();
-    public static final String SEPARATOR_DESC = CSVFeatureStoreFactory.SEPARATOR.getName().getCode();
+    public static final String SEPARATOR_NAME = CSVProvider.SEPARATOR.getName().getCode();
+    public static final String SEPARATOR_DESC = CSVProvider.SEPARATOR.getName().getCode();
     public static final ParameterDescriptor<String> SEPARATOR = PARAM_BUILDER
             .addName(SEPARATOR_NAME)
             .setRemarks(SEPARATOR_DESC)

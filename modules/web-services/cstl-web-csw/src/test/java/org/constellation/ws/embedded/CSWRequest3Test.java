@@ -85,7 +85,7 @@ import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.csw.xml.v300.RecordType;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.storage.DataStores;
 
 import org.junit.BeforeClass;
@@ -95,7 +95,6 @@ import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v300.FederatedSearchResultType;
 import org.geotoolkit.ebrim.xml.EBRIMClassesContext;
 import static org.geotoolkit.gml.xml.GMLMarshallerPool.createJAXBContext;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -145,7 +144,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
                 writeDataFile(dataDirectory2, "urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58");
 
-                final DataStoreFactory factory = DataStores.getFactoryById("FilesystemMetadata");
+                final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
                 params.parameter("folder").setValue(dataDirectory2);
                 params.parameter("store-id").setValue("testID2");

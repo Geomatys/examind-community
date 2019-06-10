@@ -64,6 +64,11 @@ public class SOSGenericObservationStoreFactory extends AbstractObservationStoreF
             .createGroup(IDENTIFIER,CONFIGURATION, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+
+    @Override
     public ParameterDescriptorGroup getOpenParameters() {
         return PARAMETERS_DESCRIPTOR;
     }

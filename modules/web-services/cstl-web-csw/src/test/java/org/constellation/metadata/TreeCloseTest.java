@@ -60,7 +60,7 @@ import static org.constellation.metadata.FileSystemCSWworkerTest.writeDataFile;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -122,7 +122,7 @@ public class TreeCloseTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("FilesystemMetadata");
+                final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 params.parameter("folder").setValue(new File(dataDirectory.getPath()));

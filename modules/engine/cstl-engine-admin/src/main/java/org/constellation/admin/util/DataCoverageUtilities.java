@@ -103,7 +103,7 @@ public class DataCoverageUtilities {
         }
 
         //access to features file factories
-        final Iterator<FileFeatureStoreFactory> ite = DataStores.getAllFactories(FileFeatureStoreFactory.class).iterator();
+        final Iterator<FileFeatureStoreFactory> ite = DataStores.getProviders(FileFeatureStoreFactory.class).iterator();
         while (ite.hasNext()) {
 
             final FileFeatureStoreFactory factory = ite.next();

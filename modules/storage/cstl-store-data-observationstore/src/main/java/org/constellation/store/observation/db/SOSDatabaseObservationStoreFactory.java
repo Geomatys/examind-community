@@ -112,6 +112,11 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     }
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+
+    @Override
     public SOSDatabaseObservationStore open(ParameterValueGroup params) throws DataStoreException {
         return new SOSDatabaseObservationStore(params);
     }

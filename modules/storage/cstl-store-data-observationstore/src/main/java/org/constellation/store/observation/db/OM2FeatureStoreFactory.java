@@ -143,15 +143,18 @@ public class OM2FeatureStoreFactory extends DataStoreFactory {
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("OM2Parameters").setRequired(true)
             .createGroup(IDENTIFIER, DBTYPE, HOST, PORT, DATABASE, USER, PASSWD, SGBDTYPE, DERBYURL, SCHEMA_PREFIX);
 
+    @Override
+    public String getShortName() {
+        return NAME;
+    }
+
     /**
      * {@inheritDoc }
      */
-    @Override
     public CharSequence getDescription() {
         return new ResourceInternationalString("org/constellation/data/om2/bundle", "datastoreDescription");
     }
 
-    @Override
     public CharSequence getDisplayName() {
         return new ResourceInternationalString("org/constellation/data/om2/bundle", "datastoreTitle");
     }

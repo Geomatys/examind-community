@@ -34,6 +34,8 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.constellation.admin.SpringHelper;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -91,7 +93,7 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
     }
 
     @Override
-    protected Metadata createMetadata() throws DataStoreException {
+    public Metadata getMetadata() throws DataStoreException {
         final String name = "file-metadata";
         final DefaultMetadata metadata = new DefaultMetadata();
         final DefaultDataIdentification identification = new DefaultDataIdentification();
@@ -197,5 +199,15 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
         } catch (SQLException ex) {
             throw new MetadataIoException(ex);
         }
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> listener, Class<T> eventType) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> listener, Class<T> eventType) {
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 }

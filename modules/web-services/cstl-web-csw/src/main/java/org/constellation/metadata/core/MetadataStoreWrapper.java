@@ -29,6 +29,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
@@ -200,7 +202,7 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
-    protected Metadata createMetadata() throws DataStoreException {
+    public Metadata getMetadata() throws DataStoreException {
         return wrapped.getMetadata();
     }
 
@@ -292,5 +294,15 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
      */
     public Integer getProviderID() {
         return providerID;
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

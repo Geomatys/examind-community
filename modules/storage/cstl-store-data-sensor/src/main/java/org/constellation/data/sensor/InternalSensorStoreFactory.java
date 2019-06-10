@@ -44,6 +44,10 @@ public class InternalSensorStoreFactory extends DataStoreFactory {
             new ParameterBuilder().addName(NAME).addName("CstlSensorParameters").createGroup(IDENTIFIER);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+    
     public CharSequence getDescription() {
         return "Constellation internal sensor store";
     }

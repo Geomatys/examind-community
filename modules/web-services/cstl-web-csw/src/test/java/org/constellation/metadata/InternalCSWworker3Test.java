@@ -117,7 +117,6 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
                 serviceBusiness.linkCSWAndProvider("default", "default-internal-metadata");
 
                 worker = new CSWworker("default");
-                worker.setLogLevel(Level.FINER);
                 initialized = true;
             }
         } catch (Exception ex) {

@@ -30,6 +30,8 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.filesystem.FileSensorReader;
@@ -65,7 +67,7 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
     }
 
     @Override
-    protected Metadata createMetadata() throws DataStoreException {
+    public Metadata getMetadata() throws DataStoreException {
         final String name = "file-observation";
         final DefaultMetadata metadata = new DefaultMetadata();
         final DefaultDataIdentification identification = new DefaultDataIdentification();
@@ -81,5 +83,15 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
     @Override
     public GenericName getIdentifier() {
         return null;
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -30,6 +30,8 @@ import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.event.ChangeEvent;
+import org.apache.sis.storage.event.ChangeListener;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.dto.service.config.generic.Automatic;
@@ -118,7 +120,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
     }
 
     @Override
-    protected Metadata createMetadata() throws DataStoreException {
+    public Metadata getMetadata() throws DataStoreException {
         final String name = "generic-observation";
         final DefaultMetadata metadata = new DefaultMetadata();
         final DefaultDataIdentification identification = new DefaultDataIdentification();
@@ -336,6 +338,16 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
     @Override
     public GenericName getIdentifier() {
         return null;
+    }
+
+    @Override
+    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

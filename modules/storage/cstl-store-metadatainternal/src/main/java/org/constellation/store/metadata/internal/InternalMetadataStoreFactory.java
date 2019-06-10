@@ -20,7 +20,11 @@ package org.constellation.store.metadata.internal;
 
 import java.util.Map;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTRA_QUERYABLE;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
@@ -37,14 +41,14 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 
 @StoreMetadataExt(resourceTypes = ResourceType.METADATA, canWrite = true)
-public class InternalMetadataStoreFactory extends DataStoreFactory {
+public class InternalMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
      /** factory identification **/
     public static final String NAME = "InternalCstlmetadata";
 
-    public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER = DataStoreFactory.createFixedIdentifier(NAME);
 
     public static final ParameterDescriptor<Map> CONFIG_PARAMS = BUILDER
             .addName("config-params")
@@ -56,6 +60,10 @@ public class InternalMetadataStoreFactory extends DataStoreFactory {
             BUILDER.addName(NAME).addName("CstlMetadataParameters").createGroup(IDENTIFIER, CONFIG_PARAMS, EXTRA_QUERYABLE);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+
     public CharSequence getDescription() {
         return "Constellation internal metadata store";
     }
@@ -67,12 +75,22 @@ public class InternalMetadataStoreFactory extends DataStoreFactory {
 
     @Override
     public MetadataStore open(ParameterValueGroup params) throws DataStoreException {
-        ensureCanProcess(params);
+        //ensureCanProcess(params);
         try {
             return new InternalMetadataStore(params);
         } catch (MetadataIoException ex) {
             throw new DataStoreException(ex);
         }
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public DataStore open(StorageConnector connector) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

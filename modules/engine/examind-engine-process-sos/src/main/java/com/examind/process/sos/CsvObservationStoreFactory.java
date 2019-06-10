@@ -45,7 +45,7 @@ import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.FileFeatureStoreFactory;
-import org.geotoolkit.data.csv.CSVFeatureStoreFactory;
+import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.storage.ProviderOnFileSystem;
@@ -145,7 +145,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
-            = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVFeatureStoreFactory.PATH, CSVFeatureStoreFactory.SEPARATOR,
+            = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID);
 
 
@@ -154,6 +154,11 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
         properties.put(ParameterDescriptorGroup.NAME_KEY, name);
         properties.put(Identifier.AUTHORITY_KEY, Citations.SIS);
         return new DefaultParameterDescriptorGroup(properties, minimumOccurs, 1);
+    }
+
+    @Override
+    public String getShortName() {
+        return NAME;
     }
 
     @Override
@@ -172,8 +177,8 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
         final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 
-        final URI uri = (URI) params.parameter(CSVFeatureStoreFactory.PATH.getName().toString()).getValue();
-        final char separator = (Character) params.parameter(CSVFeatureStoreFactory.SEPARATOR.getName().toString()).getValue();
+        final URI uri = (URI) params.parameter(CSVProvider.PATH.getName().toString()).getValue();
+        final char separator = (Character) params.parameter(CSVProvider.SEPARATOR.getName().toString()).getValue();
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
@@ -251,7 +256,7 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
         ftb.setName(path.substring(slash, dot));
 
-        ftb.addAttribute(String.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
+        ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
 
         /*
         3- map fields to feature type attributes

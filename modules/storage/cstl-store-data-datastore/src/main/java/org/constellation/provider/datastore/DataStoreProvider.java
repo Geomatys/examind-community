@@ -222,7 +222,7 @@ public class DataStoreProvider extends AbstractDataProvider{
         } catch (Exception ex) {
             // fallback : Try to find a factory matching given parameters.
             try {
-                final Iterator<DataStoreFactory> ite = DataStores.getAllFactories(DataStoreFactory.class).iterator();
+                final Iterator<DataStoreFactory> ite = DataStores.getProviders(DataStoreFactory.class).iterator();
                 while (store == null && ite.hasNext()) {
                     final DataStoreFactory factory = ite.next();
                     if (factory.getOpenParameters().getName().equals(factoryconfig.getDescriptor().getName())) {

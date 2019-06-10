@@ -244,8 +244,8 @@ public final class DataProviders extends Static{
         final Map<String, SortedSet<Path>> extensions = extensionVisitor.getExtensions();
 
         //search and sort possible file feature stores
-        final List<FileFeatureStoreFactory> factories = new ArrayList(DataStores.getAllFactories(FileFeatureStoreFactory.class));
-        final List<AbstractFolderFeatureStoreFactory> folderFactories = new ArrayList(DataStores.getAllFactories(AbstractFolderFeatureStoreFactory.class));
+        final List<FileFeatureStoreFactory> factories = new ArrayList(DataStores.getProviders(FileFeatureStoreFactory.class));
+        final List<AbstractFolderFeatureStoreFactory> folderFactories = new ArrayList(DataStores.getProviders(AbstractFolderFeatureStoreFactory.class));
         Collections.sort(factories, factoryComparator);
 
         //find factory which can support the given file

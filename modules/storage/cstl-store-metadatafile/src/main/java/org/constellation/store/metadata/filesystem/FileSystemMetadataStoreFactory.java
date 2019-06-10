@@ -21,7 +21,11 @@ package org.constellation.store.metadata.filesystem;
 import java.nio.file.Path;
 import java.util.Map;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTRA_QUERYABLE;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
@@ -37,14 +41,14 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Johann Sorel (Geomatys)
  */
 @StoreMetadataExt(resourceTypes = ResourceType.METADATA,canWrite = true)
-public class FileSystemMetadataStoreFactory extends DataStoreFactory {
+public class FileSystemMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
      /** factory identification **/
     public static final String NAME = "FilesystemMetadata";
 
-    public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER = DataStoreFactory.createFixedIdentifier(NAME);
 
     public static final ParameterDescriptor<Map> CONFIG_PARAMS = BUILDER
             .addName("config-params")
@@ -69,6 +73,10 @@ public class FileSystemMetadataStoreFactory extends DataStoreFactory {
             BUILDER.addName(NAME).addName("FSMetadataParameters").createGroup(IDENTIFIER, FOLDER, STORE_ID, CONFIG_PARAMS, EXTRA_QUERYABLE);
 
     @Override
+    public String getShortName() {
+        return NAME;
+    }
+
     public CharSequence getDescription() {
         return "Constellation filesystem metadata store";
     }
@@ -80,12 +88,22 @@ public class FileSystemMetadataStoreFactory extends DataStoreFactory {
 
     @Override
     public MetadataStore open(ParameterValueGroup params) throws DataStoreException {
-        ensureCanProcess(params);
+        //ensureCanProcess(params);
         try {
             return new FileSystemMetadataStore(params);
         } catch (MetadataIoException ex) {
             throw new DataStoreException(ex);
         }
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public DataStore open(StorageConnector connector) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

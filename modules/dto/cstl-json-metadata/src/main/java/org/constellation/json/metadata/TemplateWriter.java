@@ -43,6 +43,7 @@ import static org.constellation.dto.metadata.JsonMetadataConstants.DATE_READ_ONL
 
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.util.ReflectionUtilities;
+import org.opengis.metadata.identification.CharacterSet;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.util.ControlledVocabulary;
@@ -261,7 +262,10 @@ public class TemplateWriter extends AbstractTemplateHandler {
              * Above were unquoted cases. Below are texts to quote.
              */
 
-            if (value instanceof ControlledVocabulary) {
+            if (value instanceof CharacterSet) {
+                p = ((CharacterSet) value).toCharset().name();
+
+            } else if (value instanceof ControlledVocabulary) {
                 p = Types.getStandardName(value.getClass()) + '.' + Types.getCodeName((ControlledVocabulary) value);
             } else if (value instanceof Date) {
                 if (DATE_READ_ONLY.equals(n.render)) {

@@ -46,7 +46,7 @@ import org.constellation.sos.configuration.SOSConfigurer;
 import org.constellation.sos.ws.SOSUtils;
 import org.constellation.sos.ws.SensorMLGenerator;
 import org.constellation.ws.IWSEngine;
-import org.geotoolkit.data.csv.CSVFeatureStoreFactory;
+import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -257,7 +257,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.cleanupEmptyProperty();
             storeParams.propertyToMap(provConfig.getParameters());
 
-            provConfig.getParameters().put(CSVFeatureStoreFactory.SEPARATOR.getName().toString(), separator);
+            provConfig.getParameters().put(CSVProvider.SEPARATOR.getName().toString(), separator);
             provConfig.getParameters().put(CsvObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
             provConfig.getParameters().put(CsvObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
