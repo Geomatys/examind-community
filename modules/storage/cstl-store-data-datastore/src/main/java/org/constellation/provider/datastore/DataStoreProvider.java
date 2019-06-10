@@ -107,7 +107,7 @@ public class DataStoreProvider extends AbstractDataProvider{
      * {@inheritDoc }
      */
     @Override
-    public Set<GenericName> getKeys() {
+    public synchronized Set<GenericName> getKeys() {
         return Collections.unmodifiableSet(index);
     }
 

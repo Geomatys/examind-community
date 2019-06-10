@@ -1040,15 +1040,17 @@ public class ProviderBusiness implements IProviderBusiness {
         if (provider instanceof SensorProvider) {
             final SensorProvider sensorProvider = (SensorProvider) provider;
             try {
+                final Set<GenericName> keys = provider.getKeys();
+
                 final List<Sensor> sensors = sensorBusiness.getByProviderId(pr.getId());
                 // Remove no longer existing sensors.
                 for (final Sensor sensor : sensors) {
-                    if (!sensorProvider.getKeys().contains(NamesExt.create(sensor.getIdentifier()))) {
+                    if (!keys.contains(NamesExt.create(sensor.getIdentifier()))) {
                         sensorBusiness.delete(sensor.getId());
                     }
                 }
                 // Add not registered new sensor.
-                Set<GenericName> copyKeys = new HashSet<>(sensorProvider.getKeys());
+                Set<GenericName> copyKeys = new HashSet<>(keys);
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final Sensor sensor : sensors) {
@@ -1075,15 +1077,17 @@ public class ProviderBusiness implements IProviderBusiness {
         if (provider instanceof MetadataProvider) {
             final MetadataProvider metadataProvider = (MetadataProvider) provider;
             try {
+                final Set<GenericName> keys = provider.getKeys();
+
                 final List<MetadataBrief> metadatas = metadataBusiness.getByProviderId(pr.getId(), "DOC");
                 // Remove no longer existing metadatas.
                 for (final MetadataBrief metadata : metadatas) {
-                    if (!metadataProvider.getKeys().contains(NamesExt.create(metadata.getFileIdentifier()))) {
+                    if (!keys.contains(NamesExt.create(metadata.getFileIdentifier()))) {
                         metadataBusiness.deleteMetadata(metadata.getId());
                     }
                 }
                 // Add not registered new metadata.
-                Set<GenericName> copyKeys = new HashSet<>(metadataProvider.getKeys());
+                Set<GenericName> copyKeys = new HashSet<>(keys);
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final MetadataBrief metadata : metadatas) {
@@ -1109,15 +1113,17 @@ public class ProviderBusiness implements IProviderBusiness {
             }
         }
 
+        final Set<GenericName> keys = provider.getKeys();
+
         // Remove no longer existing data.
         for (final org.constellation.dto.Data data : previousData) {
             boolean found = false;
-            for (final GenericName key : provider.getKeys()) {
+            for (final GenericName key : keys) {
                 String nmsp = NamesExt.getNamespace(key);
 
                 if (nmsp != null && !nmsp.isEmpty()) {
                     if (data.getName().equals(key.tip().toString()) &&
-                            data.getNamespace().equals(nmsp)) {
+                        data.getNamespace().equals(nmsp)) {
                         found = true;
                         break;
                     }
@@ -1134,7 +1140,7 @@ public class ProviderBusiness implements IProviderBusiness {
         }
 
         // Add new data.
-        for (final GenericName key : provider.getKeys()) {
+        for (final GenericName key : keys) {
             final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
 
             boolean found = false;

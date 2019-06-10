@@ -96,7 +96,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
      * {@inheritDoc }
      */
     @Override
-    public Set<GenericName> getKeys() {
+    public synchronized Set<GenericName> getKeys() {
         return Collections.unmodifiableSet(index);
     }
 
