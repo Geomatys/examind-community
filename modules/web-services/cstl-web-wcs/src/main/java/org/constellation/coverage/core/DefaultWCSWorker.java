@@ -399,9 +399,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final SupportedInterpolationsType supInt = INTERPOLATION_V100;
 
             //we build the coverage offering for this layer/coverage
-            CharSequence remarks = CharSequences.toASCII(coverageRef.getRemarks());
             return new CoverageOfferingType(null, coverageName,
-                    coverageName, (remarks != null) ? remarks.toString() : null, llenvelope,
+                    coverageName, "", llenvelope,
                     keywords, domainSet, rangeSet, supCRS, supForm, supInt);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -499,7 +498,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             //general metadata
             final String title = coverageName;
-            final CharSequence abstractt = CharSequences.toASCII(coverageRef.getRemarks());
+            final String abstractt = "";
             final List<String> keywords = Arrays.asList("WCS", coverageName);
 
             // temporal metadata
@@ -509,14 +508,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //supported interpolations
             final InterpolationMethods interpolations = INTERPOLATION_V111;
 
-            final CharSequence thematic = CharSequences.toASCII(coverageRef.getThematic());
-            final RangeType range = new RangeType(new FieldType((thematic != null) ? thematic.toString() : null,
+            final String thematic = "";
+            final RangeType range = new RangeType(new FieldType(thematic,
                     null, new org.geotoolkit.ows.xml.v110.CodeType("0.0"), interpolations));
 
             //supported CRS
             final List<String> supportedCRS = Arrays.asList("urn:ogc:def:crs:EPSG::4326");
 
-            return new CoverageDescriptionType(title, (abstractt != null) ? abstractt.toString() : null,
+            return new CoverageDescriptionType(title, abstractt,
                     keywords, coverageName, domain, range, supportedCRS, SUPPORTED_FORMATS_111);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -812,13 +811,13 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
 
         final String title = coverageLayer.getName().tip().toString();
-        final CharSequence remark = CharSequences.toASCII(coverageLayer.getRemarks());
+        final String remark = "";
 
         final GeographicBoundingBox inputGeoBox = coverageLayer.getGeographicBoundingBox();
         final BoundingBox outputBBox = WCSXmlFactory.buildWGS84BoundingBox(version, inputGeoBox);
         final String coverageSubType = "GridCoverage";
         return WCSXmlFactory.createCoverageInfo(version, identifier, title,
-                (remark != null) ? remark.toString() : null, outputBBox, coverageSubType);
+                remark, outputBBox, coverageSubType);
     }
 
     /**

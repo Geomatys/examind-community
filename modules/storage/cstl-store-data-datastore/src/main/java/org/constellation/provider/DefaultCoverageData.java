@@ -318,16 +318,6 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     }
 
     @Override
-    public String getRemarks() {
-        return "";
-    }
-
-    @Override
-    public String getThematic() {
-        return "";
-    }
-
-    @Override
     public SpatialMetadata getSpatialMetadata() throws ConstellationStoreException {
         GridCoverageReader reader = null;
         try {

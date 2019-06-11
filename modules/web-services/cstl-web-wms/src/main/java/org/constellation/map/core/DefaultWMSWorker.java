@@ -630,12 +630,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final String legendUrlGif   = beginLegendUrl + MimeType.IMAGE_GIF + "&LAYER=" + layerName;
             final String legendUrlPng   = beginLegendUrl + MimeType.IMAGE_PNG + "&LAYER=" + layerName;
             final String queryable      = (layer.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
-            final CharSequence _abstract;
-            final CharSequence keyword;
+            final String _abstract;
+            final String keyword;
             if (layer instanceof CoverageData) {
-                final CoverageData coverageLayer = (CoverageData)layer;
-                _abstract = CharSequences.toASCII(coverageLayer.getRemarks());
-                keyword   = CharSequences.toASCII(coverageLayer.getThematic());
+                _abstract = "Coverage data";
+                keyword   = "Coverage data";
             } else {
                 _abstract = "Vector data";
                 keyword   = "Vector data";
@@ -719,8 +718,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             final AbstractGeographicBoundingBox bbox = createGeographicBoundingBox(queryVersion, inputGeoBox);
             final AbstractLayer outputLayerO = createLayer(queryVersion, layerName,
-                    (_abstract != null) ? _abstract.toString() : null,
-                    ( keyword  != null) ?  keyword .toString() : null,
+                    _abstract, keyword,
                     supportedCrs, bbox, outputBBox, queryable, dimensions, styles);
             if(nativeBBox!=null && !nativeBBox.getCRSCode().equals(outputBBox.getCRSCode())){
                 ((List)outputLayerO.getBoundingBox()).add(0, nativeBBox);

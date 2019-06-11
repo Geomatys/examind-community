@@ -44,16 +44,6 @@ public interface CoverageData extends GeoData {
      */
     String getImageFormat();
 
-    /**
-     */
-    @Deprecated
-    String getRemarks();
-
-    /**
-     */
-    @Deprecated
-    String getThematic();
-
     SpatialMetadata getSpatialMetadata() throws ConstellationStoreException;
 
     List<GridSampleDimension> getSampleDimensions() throws ConstellationStoreException;
