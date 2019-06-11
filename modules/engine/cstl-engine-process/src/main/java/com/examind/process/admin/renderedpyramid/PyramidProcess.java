@@ -1,7 +1,7 @@
 package com.examind.process.admin.renderedpyramid;
 
+import com.examind.process.admin.AdminProcessDescriptor;
 import com.examind.process.admin.AdminProcessRegistry;
-import static com.examind.process.admin.renderedpyramid.AbstractPyramidProcess.BUNDLE_LOCATION;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.parameter.ParameterBuilder;
@@ -32,8 +32,9 @@ import org.springframework.stereotype.Component;
  * @author Johann Sorel (Geomatys)
  */
 @Component
-public class PyramidProcess extends AbstractProcessDescriptor {
+public class PyramidProcess extends AbstractProcessDescriptor implements AdminProcessDescriptor {
 
+    public static final String BUNDLE_LOCATION = "com/examind/process/admin/renderedpyramid/bundle";
     protected static final ParameterDescriptor<MapContext> MAPCONTEXT;
     protected static final ParameterDescriptor<MultiResolutionResource> RESOURCE;
     protected static final ParameterDescriptor<InterpolationCase> INTERPOLATION;
