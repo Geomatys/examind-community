@@ -535,7 +535,12 @@ public class ServiceBusiness implements IServiceBusiness {
             if (language == null) {
                 details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
             } else {
-                details = serviceRepository.getServiceDetails(serviceId, language);
+                // if the service description is not available in the requested language, we return the default one.
+                if (serviceRepository.getServiceDefinedLanguage(serviceId).contains(language)) {
+                    details = serviceRepository.getServiceDetails(serviceId, language);
+                } else {
+                    details = serviceRepository.getServiceDetailsForDefaultLang(serviceId);
+                }
             }
             if (details != null) {
                 return (Details) getObjectFromString(details, GenericDatabaseMarshallerPool.getInstance());

@@ -162,6 +162,11 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
+    public List<String> getServiceDefinedLanguage(int serviceId) {
+        return dsl.select(SERVICE_DETAILS.LANG).from(SERVICE_DETAILS).where(SERVICE_DETAILS.ID.eq(serviceId)).fetchInto(String.class);
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void createOrUpdateServiceDetails(Integer id, String lang, String content, Boolean defaultLang) {
         final String old = getServiceDetails(id, lang);

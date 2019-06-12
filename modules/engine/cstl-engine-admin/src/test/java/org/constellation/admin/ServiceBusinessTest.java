@@ -38,8 +38,8 @@ import java.util.logging.Level;
 import org.constellation.configuration.ConfigDirectory;
 import org.junit.BeforeClass;
 
-import javax.annotation.PostConstruct;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.dto.service.Instance;
 import org.constellation.exception.ConstellationException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -54,17 +54,8 @@ public class ServiceBusinessTest {
         ConfigDirectory.setupTestEnvironement("ServiceBusinessTest");
     }
 
-    @PostConstruct
-    public void initSpring() {
-        clean();
-    }
-
     @AfterClass
     public static void tearDown() {
-        clean();
-    }
-
-    private static void clean() {
         try {
             final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
             if (service != null) {
@@ -77,20 +68,30 @@ public class ServiceBusinessTest {
     }
 
     @Test
-    public void createService() throws ConfigurationException {
-       /* ServiceDTO serviceDTO = new ServiceDTO();
-        serviceDTO.setId(0);
-        serviceDTO.setConfig("config");
-        serviceDTO.setDate(new Date());
-        serviceDTO.setIdentifier();
-        serviceDTO.setDescription("description test");
-        serviceDTO.setOwner("admin");
-        serviceDTO.setStatus("STARTED");
-        serviceDTO.setTitle("title test");
-        serviceDTO.setType();*/
-        final Details details = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
-        Object conf = serviceBusiness.create("wms", "test", new LayerContext(), details, null);
+    public void createService() throws Exception {
+        final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
+        Object conf = serviceBusiness.create("wms", "test", new LayerContext(), frDetails, null);
+        Assert.assertTrue(conf instanceof LayerContext);
         Assert.assertTrue(serviceBusiness.getServiceIdentifiers("wms").contains("test"));
+
+        final Details jpnDetails = new Details("nameJPN", "identifierJPN", Arrays.asList("keyword1JPN", "keyword2JPN"), "descriptionJPN", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "jpn");
+        serviceBusiness.setInstanceDetails("wms", "test", jpnDetails, "jpn", false);
+
+        Instance i = serviceBusiness.getI18nInstance("wms", "test", "FR");
+        Assert.assertNotNull(i);
+        Assert.assertEquals("test", i.getIdentifier());
+        Assert.assertEquals("name", i.getName());
+
+        // en is not defined so we get the default language
+        i = serviceBusiness.getI18nInstance("wms", "test", "en");
+        Assert.assertNotNull(i);
+        Assert.assertEquals("test", i.getIdentifier());
+        Assert.assertEquals("name", i.getName());
+
+        i = serviceBusiness.getI18nInstance("wms", "test", "jpn");
+        Assert.assertNotNull(i);
+        Assert.assertEquals("test", i.getIdentifier());
+        Assert.assertEquals("nameJPN", i.getName());
 
     }
 

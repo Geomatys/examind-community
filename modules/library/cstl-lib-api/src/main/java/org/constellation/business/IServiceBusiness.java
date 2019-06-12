@@ -168,7 +168,7 @@ public interface IServiceBusiness {
      * @param serviceMetadata An ISO 19115-2 metadata file to describe the service. If null a default empty metadata will be created.
      * @param owner the owner id, or {@code null} if you want to use the current logged user.
      *
-     * @return
+     * @return The configuration object of this service (can be auto generated).
      * @throws ConfigurationException
      */
     Object create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;

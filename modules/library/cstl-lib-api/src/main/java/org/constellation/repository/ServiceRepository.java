@@ -52,6 +52,8 @@ public interface ServiceRepository {
 
     String getServiceDetails(int serviceId, String language);
 
+    List<String> getServiceDefinedLanguage(int serviceId);
+
     void createOrUpdateServiceDetails(Integer id, String lang, String content, Boolean defaultLang);
 
     Map<String, String> getExtraConfig(int id);

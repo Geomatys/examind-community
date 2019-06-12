@@ -215,9 +215,11 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public DataBrief getDataBrief(int dataId) throws ConstellationException {
         final Data data = dataRepository.findById(dataId);
-        final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null);
-        if (dataBriefs != null && dataBriefs.size() == 1) {
-            return dataBriefs.get(0);
+        if (data != null) {
+            final List<DataBrief> dataBriefs = getDataBriefFrom(Collections.singletonList(data), null, null);
+            if (dataBriefs != null && dataBriefs.size() == 1) {
+                return dataBriefs.get(0);
+            }
         }
         throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
     }
@@ -228,11 +230,13 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public DataBrief getDataBrief(QName dataName,Integer providerId) throws ConstellationException {
         final Data data = dataRepository.findByNameAndNamespaceAndProviderId(dataName.getLocalPart(), dataName.getNamespaceURI(), providerId);
-        final List<Data> datas = new ArrayList<>();
-        datas.add(data);
-        final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null);
-        if (dataBriefs != null && dataBriefs.size() == 1) {
-            return dataBriefs.get(0);
+        if (data != null) {
+            final List<Data> datas = new ArrayList<>();
+            datas.add(data);
+            final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null);
+            if (dataBriefs != null && dataBriefs.size() == 1) {
+                return dataBriefs.get(0);
+            }
         }
         throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
     }

@@ -445,23 +445,20 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     @Override
     public FeatureDataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
         final FeatureDataDescription description = new FeatureDataDescription();
-        boolean full = false;
         try {
 
             // Acquire data feature type.
             final FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, getName().toString());
-            if(full) {
-                final FeatureType featureType = fs.getType();
+            final FeatureType featureType = fs.getType();
 
-                // Feature attributes description.
-                for (PropertyType pt : featureType.getProperties(true)) {
-                    if (pt instanceof AttributeType && !AttributeConvention.contains(pt.getName())) {
-                        final AttributeType attType = (AttributeType) pt;
-                        description.getProperties().add(new PropertyDescription(
-                            NamesExt.getNamespace(pt.getName()),
-                            pt.getName().tip().toString(),
-                            attType.getValueClass()));
-                    }
+            // Feature attributes description.
+            for (PropertyType pt : featureType.getProperties(true)) {
+                if (pt instanceof AttributeType && !AttributeConvention.contains(pt.getName())) {
+                    final AttributeType attType = (AttributeType) pt;
+                    description.getProperties().add(new PropertyDescription(
+                        NamesExt.getNamespace(pt.getName()),
+                        pt.getName().tip().toString(),
+                        attType.getValueClass()));
                 }
             }
 
