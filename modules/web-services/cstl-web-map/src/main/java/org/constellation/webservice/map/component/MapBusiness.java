@@ -326,8 +326,9 @@ public class MapBusiness {
                         }
 
                         //min-max from statistics
-                        final int min = (int) Math.floor(bands[i].getMin());
-                        final int max = (int) Math.ceil(bands[i].getMax());
+                        int min = (int) Math.floor(bands[i].getMin());
+                        int max = (int) Math.ceil(bands[i].getMax());
+                        if (min == max) min = max-1;
                         final Category cat = new Category("statdata", new Color[]{Color.BLACK, Color.WHITE}, min, max, 1, 0);
                         categories.add(0, cat);
 
