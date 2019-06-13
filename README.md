@@ -8,7 +8,7 @@ resources to operate a platform of sensors that feeds back information in real t
 #### Available [OGC web services](http://www.opengeospatial.org/standards)
 * **WMS** : 1.1.1 and 1.3.0 (INSPIRE-compliant)
 * **WMTS** : 1.0.0
-* **CSW** : 2.0.0 and 2.0.2 (INSPIRE-compliant)
+* **CSW** : 2.0.0, 2.0.2 and 3.0.0 (INSPIRE-compliant)
 * **SOS** : 1.0.0 and 2.0.0 (need PostGIS database)
 * **WFS** : 1.1.0 and  2.0.0 (INSPIRE-compliant)
 * **WPS** : 1.0.0
