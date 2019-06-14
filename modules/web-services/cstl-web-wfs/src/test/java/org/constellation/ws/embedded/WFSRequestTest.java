@@ -238,8 +238,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("primGMLSrc");
 
                 ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                ParameterValueGroup pgconfig = choice.addGroup("GMLParameters");
-                pgconfig.parameter("identifier").setValue("gml");
+                ParameterValueGroup pgconfig = choice.addGroup("gml");
                 pgconfig.parameter("path").setValue(primitive.toUri());
                 pgconfig.parameter("sparse").setValue(Boolean.TRUE);
                 pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
@@ -254,8 +253,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("entGMLSrc");
 
                 choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("GMLParameters");
-                pgconfig.parameter("identifier").setValue("gml");
+                pgconfig = choice.addGroup("gml");
                 pgconfig.parameter("path").setValue(entity.toUri());
                 pgconfig.parameter("sparse").setValue(Boolean.TRUE);
                 pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
@@ -269,8 +267,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("aggGMLSrc");
 
                 choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("GMLParameters");
-                pgconfig.parameter("identifier").setValue("gml");
+                pgconfig = choice.addGroup("gml");
                 pgconfig.parameter("path").setValue(aggregate.toUri());
                 pgconfig.parameter("sparse").setValue(Boolean.TRUE);
                 pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
