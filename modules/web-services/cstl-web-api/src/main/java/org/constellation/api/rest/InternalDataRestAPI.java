@@ -37,7 +37,6 @@ import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -61,7 +60,7 @@ import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ISO19110Builder;
 import org.constellation.util.Util;
-import org.geotoolkit.client.ClientFactory;
+import org.geotoolkit.client.AbstractClientProvider;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.db.AbstractJDBCFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
@@ -573,7 +572,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                         if (!(p instanceof AbstractJDBCFeatureStoreFactory)) continue;
                         break;
                     case "service":
-                        if (!(p instanceof ClientFactory)) continue;
+                        if (!(p instanceof AbstractClientProvider)) continue;
                         break;
                     case "data"   :
                         if (!(contains(resourceTypes, COVERAGE) || contains(resourceTypes, GRID) || contains(resourceTypes, PYRAMID) || contains(resourceTypes, VECTOR))) continue;
