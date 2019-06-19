@@ -56,8 +56,14 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
 
     @Override
     public List<Style> findByLayer(Integer layerId) {
-        return convertStyleListToDto(dsl.select(STYLE.fields()).from(STYLE).join(STYLED_LAYER).onKey()
-                .where(STYLED_LAYER.LAYER.eq(layerId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
+        return convertStyleListToDto(
+                dsl.select(STYLE.fields())
+                        .from(STYLE)
+                        .join(STYLED_LAYER).onKey()
+                        .where(STYLED_LAYER.LAYER.eq(layerId))
+                        .orderBy(STYLED_LAYER.IS_DEFAULT)
+                        .fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class)
+        );
     }
 
     @Override
