@@ -44,15 +44,8 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultCompoundCRS;
-import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.coverage.grid.GeneralGridGeometry;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.coverage.grid.ViewType;
-import org.geotoolkit.coverage.io.CoverageReader;
 import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReadParam;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -62,17 +55,19 @@ import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.geotoolkit.storage.coverage.CoverageResource;
-import org.opengis.coverage.SampleDimension;
-import org.opengis.coverage.grid.GridCoverage;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridEnvelope;
-import org.opengis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -145,7 +140,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         for (MapLayer layer : sdef.getContext().layers()) {
             if (layer instanceof CoverageMapLayer) {
-                final CoverageResource ressource = ((CoverageMapLayer) layer).getCoverageReference();
+                final GridCoverageResource ressource = ((CoverageMapLayer) layer).getResource();
                 try {
                     final ProfilLayer l = extract(sdef, vdef, cdef, getFI, geom, ressource);
                     l.name = layer.getName();
@@ -167,12 +162,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     private ProfilLayer extract(SceneDef sdef, ViewDef vdef, CanvasDef cdef,
-            GetFeatureInfo getFI, Geometry geom, CoverageResource resource) throws TransformException, CoverageStoreException, FactoryException {
+            GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, CoverageStoreException, FactoryException, DataStoreException {
 
         final ProfilLayer layer = new ProfilLayer();
 
         final ProfilData baseData;
-        final GridCoverageReader reader = (GridCoverageReader) resource.acquireReader();
         try {
             //build temporal and vertical slice
             final JTSEnvelope2D geomEnv = JTS.toEnvelope(geom);
@@ -181,7 +175,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final TemporalCRS vtcrs = CRS.getTemporalComponent(vcrs);
             final VerticalCRS vacrs = CRS.getVerticalComponent(vcrs, true);
 
-            final GeneralGridGeometry gridGeometry = reader.getGridGeometry(resource.getImageIndex());
+            final GridGeometry gridGeometry = resource.getGridGeometry();
             final CoordinateReferenceSystem ccrs = gridGeometry.getCoordinateReferenceSystem();
             final TemporalCRS ctcrs = CRS.getTemporalComponent(ccrs);
             final VerticalCRS cacrs = CRS.getVerticalComponent(ccrs, true);
@@ -272,14 +266,12 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 workEnv.setRange(3, alti, alti);
             }
 
-            final GridCoverage coverage = readCoverage(resource, reader, workEnv, null);
+            final GridCoverage coverage = readCoverage(resource, workEnv, null);
             baseData = extractData(resource, coverage, geom);
 
         } catch (CoverageStoreException ex) {
             layer.message = ex.getMessage();
             return layer;
-        } finally {
-            resource.recycle(reader);
         }
 
         //convert data in different units
@@ -320,7 +312,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return layer;
     }
 
-    private ProfilData extractData(CoverageResource resource, GridCoverage coverage, Geometry geom) throws TransformException, FactoryException {
+    private ProfilData extractData(GridCoverageResource resource, GridCoverage coverage, Geometry geom) throws TransformException, FactoryException {
 
         final ProfilData pdata = new ProfilData();
 
@@ -329,11 +321,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final CoordinateReferenceSystem vcrs = CRS.getVerticalComponent(crs, true);
         final GridGeometry gridGeometry = coverage.getGridGeometry();
         final GridEnvelope extent = gridGeometry.getExtent();
-        final MathTransform gridToCrs = gridGeometry.getGridToCRS();
+        final MathTransform gridToCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
 
         //build axes informations
         final int dim = crs.getCoordinateSystem().getDimension();
-        int[] lowsI = extent.getLow().getCoordinateValues();
+        long[] lowsI = extent.getLow().getCoordinateValues();
         double[] lowsD = new double[dim];
         for (int i=0;i<dim;i++) lowsD[i] = lowsI[i];
         final double[] gridPt = new double[extent.getDimension()];
@@ -343,8 +335,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         for (int i=2;i<dim;i++) {
             final CoordinateSystemAxis axis = crs.getCoordinateSystem().getAxis(i);
             System.arraycopy(lowsD, 0, gridPt, 0, dim);
-            final double[] range = new double[extent.getSpan(i)];
-            for (int k=0,kg=extent.getLow(k);k<range.length;k++,kg++) {
+            final double[] range = new double[(int)extent.getSize(i)];
+            for (int k=0,kg=(int) extent.getLow(k);k<range.length;k++,kg++) {
                 gridPt[i] = kg;
                 gridToCrs.transform(gridPt, 0, crsPt, 0, 1);
                 range[k] = crsPt[i];
@@ -365,14 +357,14 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final int ALTIIDX = altiIdx == null ? -1 : altiIdx;
 
         //build sample dimension informations
-        final int numSampleDimensions = coverage.getNumSampleDimensions();
+        final int numSampleDimensions = coverage.getSampleDimensions().size();
         final Band[] bands = new Band[numSampleDimensions];
         for (int i=0;i<numSampleDimensions;i++) {
-            SampleDimension sampleDimension = coverage.getSampleDimension(resource.getImageIndex());
-            Unit<?> unit = sampleDimension.getUnits();
+            SampleDimension sampleDimension = coverage.getSampleDimensions().get(0);
+            Unit<?> unit = sampleDimension.getUnits().get();
             final Band band = new Band();
             band.realUnit = unit;
-            band.name = String.valueOf(sampleDimension.getDescription());
+            band.name = String.valueOf(sampleDimension.getName());
             if (unit != null) band.unit = unit.getSymbol();
             bands[i] = band;
 
@@ -504,8 +496,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    private static GridCoverage readCoverage(CoverageResource resource, GridCoverageReader reader, Envelope work, Boolean deferred)
-            throws CoverageStoreException, TransformException {
+    private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work, Boolean deferred)
+            throws CoverageStoreException, TransformException, DataStoreException {
 
         //ensure envelope is no flat
         final GeneralEnvelope workEnv = new GeneralEnvelope(work);
@@ -522,37 +514,40 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             }
         }
 
+        /*
+        Removed because there is no deferred mecanism anymore
         if (deferred == null) {
-            //detec if expected image will be larger then 10Mb to load all the data.
-            deferred = true;
-            final GeneralGridGeometry gridGeometry = reader.getGridGeometry(0);
-            if (gridGeometry.isDefined(GeneralGridGeometry.GRID_TO_CRS) && gridGeometry.isDefined(GeneralGridGeometry.CRS)) {
-                final CoordinateReferenceSystem crs = CRS.getHorizontalComponent(gridGeometry.getCoordinateReferenceSystem());
-                MathTransform gridToCRS = gridGeometry.getGridToCRS();
-                TransformSeparator ts = new TransformSeparator(gridToCRS);
-                ts.addSourceDimensions(0,1);
-                ts.addTargetDimensions(0,1);
-                try {
-                    gridToCRS = ts.separate();
-                } catch (FactoryException ex) {
-                    //we have try
-                }
-                final MathTransform crsToGrid = gridToCRS.inverse();
-                final Envelope dataEnv = Envelopes.transform(workEnv, crs);
-                final GeneralEnvelope imgEnv = Envelopes.transform(crsToGrid, dataEnv);
-                final double nbPixel = imgEnv.getSpan(0) * imgEnv.getSpan(1);
-                deferred = nbPixel > 5000000;
-            }
+        //detec if expected image will be larger then 10Mb to load all the data.
+        deferred = true;
+        final GridGeometry gridGeometry = resource.getGridGeometry();
+        if (gridGeometry.isDefined(GeneralGridGeometry.GRID_TO_CRS) && gridGeometry.isDefined(GeneralGridGeometry.CRS)) {
+        final CoordinateReferenceSystem crs = CRS.getHorizontalComponent(gridGeometry.getCoordinateReferenceSystem());
+        MathTransform gridToCRS = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
+        TransformSeparator ts = new TransformSeparator(gridToCRS);
+        ts.addSourceDimensions(0,1);
+        ts.addTargetDimensions(0,1);
+        try {
+        gridToCRS = ts.separate();
+        } catch (FactoryException ex) {
+        //we have try
         }
-
+        final MathTransform crsToGrid = gridToCRS.inverse();
+        final Envelope dataEnv = Envelopes.transform(workEnv, crs);
+        final GeneralEnvelope imgEnv = Envelopes.transform(crsToGrid, dataEnv);
+        final double nbPixel = imgEnv.getSpan(0) * imgEnv.getSpan(1);
+        deferred = nbPixel > 5000000;
+        }
+        }
         final GridCoverageReadParam param = new GridCoverageReadParam();
         param.setDeferred(deferred);
         param.setEnvelope(workEnv);
         GridCoverage coverage = reader.read(resource.getImageIndex(), param);
         if (coverage instanceof GridCoverage2D) {
-            coverage = ((GridCoverage2D) coverage).view(ViewType.GEOPHYSICS);
-        }
-        return coverage;
+        coverage = ((GridCoverage2D) coverage).view(ViewType.GEOPHYSICS);
+        }*/
+        GridGeometry gg = resource.getGridGeometry().derive().rounding(GridRoundingMode.ENCLOSING).subgrid(workEnv).build();
+
+        return resource.read(gg).forConvertedValues(true);
     }
 
     public static class Band {

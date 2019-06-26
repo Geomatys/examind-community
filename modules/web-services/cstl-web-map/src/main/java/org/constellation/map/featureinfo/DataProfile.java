@@ -19,17 +19,18 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.geotoolkit.coverage.CoverageStack;
+import org.geotoolkit.coverage.grid.GridCoverageStack;
 import org.geotoolkit.coverage.grid.GridCoverage2D;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.geometry.jts.JTS;
-import org.opengis.coverage.Coverage;
-import org.opengis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridExtent;
 import org.opengis.coverage.grid.GridEnvelope;
-import org.opengis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -88,7 +89,7 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
         this.dataCrs = CRS.getHorizontalComponent(dataCrs);
 
         final GridGeometry gridGeometry = datasource.getGridGeometry();
-        final MathTransform gridToDataCrs = gridGeometry.getGridToCRS();
+        final MathTransform gridToDataCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
         final TransformSeparator ts = new TransformSeparator(gridToDataCrs);
         ts.addSourceDimensions(0,1);
         ts.addTargetDimensions(0,1);
@@ -121,17 +122,17 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
         ptIdx += 2;
 
         //compute a sample of expected dimension
-        final int nbSamples = datasource.getNumSampleDimensions();
+        final int nbSamples = datasource.getSampleDimensions().size();
         final int nbDim = globalExtent.getDimension()-2;
         templateSize = new int[1+nbDim];
         templateSize[0] = nbSamples;
         for (int i=0;i<nbDim;i++) {
-            templateSize[i+1] = globalExtent.getSpan(i+2);
+            templateSize[i+1] = (int) globalExtent.getSize(i+2);
         }
     }
 
     private void buildExtractors(GridCoverage coverage) {
-        final GridEnvelope extent = coverage.getGridGeometry().getExtent();
+        final GridExtent extent = coverage.getGridGeometry().getExtent();
         final int[] movableIndices = new int[extent.getDimension()];
         Arrays.fill(movableIndices, 1);
         movableIndices[0] = 0;
@@ -143,12 +144,12 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             final GridEnvelope slice = gridIterator.next();
             final int[] crd = new int[movableIndices.length-2];
             for (int i=0;i<crd.length;i++) {
-                crd[i] = slice.getLow(i+2);
+                crd[i] = (int) slice.getLow(i+2);
             }
 
-            Coverage c = coverage;
-            while (c instanceof CoverageStack) {
-                CoverageStack cs = (CoverageStack) coverage;
+            GridCoverage c = (GridCoverage) coverage;
+            while (c instanceof GridCoverageStack) {
+                GridCoverageStack cs = (GridCoverageStack) c;
                 c = cs.coverageAtIndex(crd[cs.zDimension-2]);
             }
 

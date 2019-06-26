@@ -2,6 +2,7 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.geom.Point2D;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.internal.referencing.GeodeticObjectBuilder;
 import org.apache.sis.measure.Units;
@@ -9,14 +10,14 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
-import org.geotoolkit.referencing.GeodeticCalculator;
 import org.geotoolkit.referencing.cs.PredefinedCS;
-import org.opengis.coverage.grid.GridCoverage;
+import org.apache.sis.referencing.GeodeticCalculator;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.cs.CartesianCS;
+import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.NoninvertibleTransformException;
 import org.opengis.referencing.operation.TransformException;
@@ -54,7 +55,7 @@ final class GridCalculator {
 
     public GridCalculator(GridCoverage coverage) throws NoninvertibleTransformException, FactoryException {
         this.coverageCrs = coverage.getCoordinateReferenceSystem();
-        this.gridToCrs = coverage.getGridGeometry().getGridToCRS();
+        this.gridToCrs = coverage.getGridGeometry().getGridToCRS(PixelInCell.CELL_CENTER);
 
         //extract 2d part
         this.coverageCrs = CRS.getHorizontalComponent(coverageCrs);
@@ -63,7 +64,7 @@ final class GridCalculator {
         ts.addTargetDimensions(0, 1);
         this.gridToCrs = ts.separate();
 
-        this.calc = new GeodeticCalculator(coverageCrs);
+        this.calc = GeodeticCalculator.create(coverageCrs);
         this.imgStart = new DirectPosition2D(coverageCrs);
         this.imgEnd = new DirectPosition2D(coverageCrs);
         this.covStart = new DirectPosition2D(coverageCrs);
@@ -75,7 +76,7 @@ final class GridCalculator {
     public GridCalculator copy() {
         GridCalculator cp = new GridCalculator();
         cp.coverageCrs = this.coverageCrs;
-        cp.calc = new GeodeticCalculator(coverageCrs);
+        cp.calc = GeodeticCalculator.create(coverageCrs);
         cp.gridToCrs = this.gridToCrs;
         cp.gridToWgs = this.gridToWgs;
         cp.imgStart = new DirectPosition2D(coverageCrs);
@@ -136,10 +137,12 @@ final class GridCalculator {
 
     public double getAzimuth() throws TransformException {
         gridToCrs.transform(imgStart, covStart);
-        calc.setStartingPosition(covStart);
+        calc.setStartPoint(covStart);
         gridToCrs.transform(imgEnd, covEnd);
-        calc.setDestinationPosition(covEnd);
-        return calc.getAzimuth();
+        calc.setEndPoint(covEnd);
+        // return calc.getAzimuth();
+        // what should we do here ? average?
+        return calc.getStartingAzimuth();
     }
 
 }
