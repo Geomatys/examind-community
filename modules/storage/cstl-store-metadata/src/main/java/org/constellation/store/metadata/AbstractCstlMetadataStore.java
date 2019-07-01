@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.xml.namespace.QName;
 import org.constellation.api.PathType;
 import org.constellation.metadata.CSWQueryable;
@@ -60,8 +61,8 @@ public abstract class AbstractCstlMetadataStore extends MetadataStore {
     }
 
     @Override
-    public GenericName getIdentifier() {
-        return null;
+    public Optional<GenericName> getIdentifier() {
+        return Optional.empty();
     }
 
     @Override

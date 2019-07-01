@@ -23,10 +23,9 @@ import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.Utilities;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
-import org.geotoolkit.geometry.DefaultBoundingBox;
+import org.geotoolkit.geometry.BoundingBox;
 import org.geotoolkit.geometry.jts.JTS;
 import org.opengis.filter.expression.Literal;
-import org.opengis.geometry.BoundingBox;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
@@ -57,8 +56,8 @@ public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
                 BoundingBox bbox = (BoundingBox) obj;
                 if(Utilities.equalsIgnoreMetadata(bbox.getCoordinateReferenceSystem(), baseCrs)){
                     final Envelope e = Envelopes.transform(bbox, replacementCrs);
-                    final BoundingBox rbbox = new DefaultBoundingBox(replacementCrs);
-                    rbbox.setBounds(new DefaultBoundingBox(e));
+                    final BoundingBox rbbox = new BoundingBox(replacementCrs);
+                    rbbox.setBounds(new BoundingBox(e));
 
                     obj = rbbox;
                 }

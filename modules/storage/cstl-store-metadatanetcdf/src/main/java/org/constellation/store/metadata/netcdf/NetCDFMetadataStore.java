@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
@@ -155,8 +156,8 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
     }
 
     @Override
-    public GenericName getIdentifier() {
-        return null;
+    public Optional<GenericName> getIdentifier() {
+        return Optional.empty();
     }
 
     @Override

@@ -21,7 +21,7 @@ package org.constellation.util;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import org.apache.sis.internal.storage.Resources;
-import org.apache.sis.internal.util.Citations;
+import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
@@ -90,7 +90,7 @@ public final class StoreUtilities {
             if (metadata != null) {
                 for (final Identification identification : metadata.getIdentificationInfo()) {
                     if (identification != null) {                                                   // Paranoiac check.
-                        if (Citations.identifierMatches(identification.getCitation(), null, identifier)) {
+                        if (Citations.identifierMatches(identification.getCitation(), identifier)) {
                             return candidate;
                         }
                     }

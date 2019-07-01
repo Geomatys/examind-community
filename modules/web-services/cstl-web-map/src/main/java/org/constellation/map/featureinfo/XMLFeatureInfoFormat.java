@@ -96,7 +96,11 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
-            fullLayerName = ref.getIdentifier();
+            if (ref.getIdentifier().isPresent()) {
+                fullLayerName = ref.getIdentifier().get().tip();
+            } else {
+                throw new RuntimeException("resource identifier not present");
+            }
         } catch (DataStoreException e) {
             throw new RuntimeException(e);      // TODO
         }
@@ -132,7 +136,11 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final Resource ref = coverage.getLayer().getResource();
         final GenericName fullLayerName;
         try {
-            fullLayerName = ref.getIdentifier();
+            if (ref.getIdentifier().isPresent()) {
+                fullLayerName = ref.getIdentifier().get().tip();
+            } else {
+                throw new RuntimeException("resource identifier not present");
+            }
         } catch (DataStoreException e) {
             throw new RuntimeException(e);      // TODO
         }

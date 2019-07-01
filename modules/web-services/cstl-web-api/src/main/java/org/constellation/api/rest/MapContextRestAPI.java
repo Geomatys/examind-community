@@ -93,6 +93,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
+import org.opengis.util.GenericName;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
@@ -641,14 +642,19 @@ public class MapContextRestAPI extends AbstractRestAPI {
              providerBusiness.createOrUpdateData(pyramidProvider, null, false);
 
             // Get the new data created
-            final QName outDataQName = new QName(NamesExt.getNamespace(outRef.getIdentifier()), outRef.getIdentifier().tip().toString());
-            final Integer dataId = dataBusiness.getDataId(outDataQName, pyramidProvider);
+            if (outRef.getIdentifier().isPresent()) {
+                GenericName outID = outRef.getIdentifier().get();
+                final QName outDataQName = new QName(NamesExt.getNamespace(outID), outID.toString());
+                final Integer dataId = dataBusiness.getDataId(outDataQName, pyramidProvider);
 
-            //set data as RENDERED
-            dataBusiness.updateDataRendered(outDataQName, outProvider.getId(), true);
+                //set data as RENDERED
+                dataBusiness.updateDataRendered(outDataQName, outProvider.getId(), true);
 
-            //set hidden value to true for the pyramid styled map
-            dataBusiness.updateDataHidden(dataId,true);
+                //set hidden value to true for the pyramid styled map
+                dataBusiness.updateDataHidden(dataId,true);
+            } else {
+                throw new ConstellationException("Empty identifier in pyramid resource.");
+            }
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);

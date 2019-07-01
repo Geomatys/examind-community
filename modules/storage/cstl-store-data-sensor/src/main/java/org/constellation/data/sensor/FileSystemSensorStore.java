@@ -21,6 +21,7 @@ package org.constellation.data.sensor;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
@@ -81,8 +82,8 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
     }
 
     @Override
-    public GenericName getIdentifier() {
-        return null;
+    public Optional<GenericName> getIdentifier() {
+        return Optional.empty();
     }
 
     @Override

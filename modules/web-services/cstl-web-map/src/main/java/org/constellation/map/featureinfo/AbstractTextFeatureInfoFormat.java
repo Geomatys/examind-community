@@ -63,7 +63,11 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
         final Resource ref = graphic.getLayer().getResource();
         final String layerName;
         try {
-            layerName = ref.getIdentifier().tip().toString();
+            if (ref.getIdentifier().isPresent()) {
+                layerName = ref.getIdentifier().get().tip().toString();
+            } else {
+                throw new RuntimeException("resource identifier not present");
+            }
         } catch (DataStoreException e) {
             throw new RuntimeException(e);      // TODO
         }

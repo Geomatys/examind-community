@@ -175,7 +175,11 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         final String layerName;
         try {
-            layerName = graphic.getLayer().getResource().getIdentifier().tip().toString();
+            if (graphic.getLayer().getResource().getIdentifier().isPresent()) {
+                layerName = graphic.getLayer().getResource().getIdentifier().get().tip().toString();
+            } else {
+                throw new RuntimeException("resource identifier not present");
+            }
         } catch (DataStoreException e) {
             throw new RuntimeException(e);      // TODO
         }

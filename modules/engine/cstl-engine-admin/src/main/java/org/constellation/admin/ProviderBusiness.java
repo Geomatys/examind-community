@@ -853,20 +853,24 @@ public class ProviderBusiness implements IProviderBusiness {
             outProvider = DataProviders.getProvider(outConfigProvider);
             createOrUpdateData(outConfigProvider, datasetID, false);
 
-            name = covRef.getIdentifier();
-            outStore = (XMLCoverageStore) outProvider.getMainStore();
-            outRef = (XMLCoverageResource) outStore.findResource(name.toString());
+            if (covRef.getIdentifier().isPresent()) {
+                name = covRef.getIdentifier().get();
+                outStore = (XMLCoverageStore) outProvider.getMainStore();
+                outRef = (XMLCoverageResource) outStore.findResource(name.toString());
 
-            // Update the parent attribute of the created provider
-            updateParent(outProvider.getId(), providerId);
+                // Update the parent attribute of the created provider
+                updateParent(outProvider.getId(), providerId);
 
-            final QName qName = new QName(namespace, name.tip().toString());
-            //set rendered attribute to false to indicates that this pyramid can have stats.
-            dataBusiness.updateDataRendered(qName, outProvider.getId(), false);
+                final QName qName = new QName(namespace, name.tip().toString());
+                //set rendered attribute to false to indicates that this pyramid can have stats.
+                dataBusiness.updateDataRendered(qName, outProvider.getId(), false);
 
-            //set hidden value to true for the pyramid conform data
-            pyramidDataBrief = dataBusiness.getDataBrief(qName, pyramidProviderId);
-            dataBusiness.updateDataHidden(pyramidDataBrief.getId(),true);
+                //set hidden value to true for the pyramid conform data
+                pyramidDataBrief = dataBusiness.getDataBrief(qName, pyramidProviderId);
+                dataBusiness.updateDataHidden(pyramidDataBrief.getId(),true);
+            } else {
+                throw new ConstellationException("Empty identifier in coverage resource.");
+            }
 
         } catch (Exception ex) {
             throw new ConstellationException("Failed to create pyramid provider " + ex.getMessage(),ex);

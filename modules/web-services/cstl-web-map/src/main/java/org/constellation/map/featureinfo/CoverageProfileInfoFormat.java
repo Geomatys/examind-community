@@ -145,7 +145,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                     final ProfilLayer l = extract(sdef, vdef, cdef, getFI, geom, ressource);
                     l.name = layer.getName();
                     if (l.name == null) {
-                        l.name = ressource.getIdentifier().tip().toString();
+                        if (ressource.getIdentifier().isPresent()) {
+                            l.name = ressource.getIdentifier().get().tip().toString();
+                        } else {
+                            throw new PortrayalException("resource identifier not present");
+                        }
                     }
                     profil.layers.add(l);
                 } catch (TransformException | DataStoreException | FactoryException ex) {

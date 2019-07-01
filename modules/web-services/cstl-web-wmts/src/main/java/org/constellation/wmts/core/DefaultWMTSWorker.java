@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -869,8 +870,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             @Override
-            public GenericName getIdentifier() throws DataStoreException {
-                return null;
+            public Optional<GenericName> getIdentifier() throws DataStoreException {
+                return Optional.empty();
             }
         };
     }

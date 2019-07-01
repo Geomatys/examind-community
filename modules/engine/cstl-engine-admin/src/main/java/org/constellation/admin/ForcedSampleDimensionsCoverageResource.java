@@ -20,6 +20,7 @@ package org.constellation.admin;
 
 import java.awt.image.RenderedImage;
 import java.util.List;
+import java.util.Optional;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
@@ -69,12 +70,12 @@ public class ForcedSampleDimensionsCoverageResource implements GridCoverageResou
     }
 
     @Override
-    public Envelope getEnvelope() throws DataStoreException {
+    public Optional<Envelope> getEnvelope() throws DataStoreException {
         return base.getEnvelope();
     }
 
     @Override
-    public GenericName getIdentifier() throws DataStoreException {
+    public Optional<GenericName> getIdentifier() throws DataStoreException {
         return base.getIdentifier();
     }
 

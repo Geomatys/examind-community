@@ -24,8 +24,8 @@
     <inceptionYear>2007</inceptionYear>
 
     <properties>
-        <geoapi.version>4.0-M10</geoapi.version>
-        <sis.version>dev-1.0-M0068</sis.version>
+        <geoapi.version>4.0-SNAPSHOT</geoapi.version>
+        <sis.version>2.0-SNAPSHOT</sis.version>
         <sis.build.helper.version>0.8</sis.build.helper.version>    <!-- Modified by JDK9 profile. -->
         <sis.epsg.version>1.0-M1</sis.epsg.version>
         <geotoolkit.version>5.0-SNAPSHOT</geotoolkit.version>

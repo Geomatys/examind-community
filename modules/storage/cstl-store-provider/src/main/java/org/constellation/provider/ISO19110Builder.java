@@ -159,7 +159,7 @@ public class ISO19110Builder {
         }
 
         final FeatureTypeImpl featureType = new FeatureTypeImpl();
-        final LocalName localName         = cr.getIdentifier().tip();
+        final LocalName localName         = cr.getIdentifier().get().tip();
         featureType.setTypeName(localName);
         if (!meta.getIdentificationInfo().isEmpty()) {
             final Identification ident = meta.getIdentificationInfo().iterator().next();

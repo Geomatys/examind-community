@@ -817,18 +817,21 @@ public class DataRestAPI extends AbstractRestAPI{
                 providerBusiness.createOrUpdateData(pojoProviderID, null, false);
 
                 // Get the new data created
-                final QName outDataQName = new QName(NamesExt.getNamespace(outRef.getIdentifier()), outRef.getIdentifier().tip().toString());
-                final Integer dataId = dataBusiness.getDataId(outDataQName, pojoProviderID);
+                if (outRef.getIdentifier().isPresent()) {
+                    GenericName outID = outRef.getIdentifier().get();
+                    final QName outDataQName = new QName(NamesExt.getNamespace(outID), outID.tip().toString());
+                    final Integer dataId = dataBusiness.getDataId(outDataQName, pojoProviderID);
 
-                //set data as RENDERED
-                dataBusiness.updateDataRendered(dataId, true);
+                    //set data as RENDERED
+                    dataBusiness.updateDataRendered(dataId, true);
 
-                //set hidden value to true for the pyramid styled map
-                dataBusiness.updateDataHidden(dataId,true);
+                    //set hidden value to true for the pyramid styled map
+                    dataBusiness.updateDataHidden(dataId,true);
 
-                //link pyramid data to original data
-                for(final DataBrief db : briefs){
-                    dataBusiness.linkDataToData(db.getId(), dataId);
+                    //link pyramid data to original data
+                    for(final DataBrief db : briefs){
+                        dataBusiness.linkDataToData(db.getId(), dataId);
+                    }
                 }
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);

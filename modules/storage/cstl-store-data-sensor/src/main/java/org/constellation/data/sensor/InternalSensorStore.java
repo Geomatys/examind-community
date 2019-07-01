@@ -20,6 +20,7 @@ package org.constellation.data.sensor;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
@@ -79,8 +80,8 @@ public class InternalSensorStore extends AbstractSensorStore implements Resource
     }
 
     @Override
-    public GenericName getIdentifier() {
-        return null;
+    public Optional<GenericName> getIdentifier() {
+        return Optional.empty();
     }
 
     @Override
