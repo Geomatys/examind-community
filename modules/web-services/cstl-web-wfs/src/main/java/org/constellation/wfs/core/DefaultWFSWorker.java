@@ -189,7 +189,7 @@ import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V110;
 import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V200;
 import static org.constellation.wfs.core.WFSConstants.TYPE_PARAM;
 import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
-import org.geotoolkit.data.FeatureSet;
+import org.apache.sis.storage.FeatureSet;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.data.FeatureWriter;

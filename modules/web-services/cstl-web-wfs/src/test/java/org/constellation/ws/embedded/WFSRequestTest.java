@@ -673,6 +673,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=8)
     public void testWFSTransactionInsert() throws Exception {
         initPool();
+        System.out.println("---------------testWFSTransactionInsert------------------");
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
@@ -803,6 +804,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=9)
     public void testWFSTransactionUpdate() throws Exception {
+
+        System.out.println("---------------testWFSTransactionUpdate------------------");
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
