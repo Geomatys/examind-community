@@ -36,6 +36,8 @@ public interface TaskParameterRepository {
 
     void delete(Integer taskId);
 
+    void deleteAll();
+
     void update(TaskParameter task);
 
     List<? extends TaskParameter> findProgrammedTasks();

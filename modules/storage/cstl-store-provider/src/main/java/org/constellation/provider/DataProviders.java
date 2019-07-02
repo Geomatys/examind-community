@@ -187,7 +187,7 @@ public final class DataProviders extends Static{
             final DataStore ds = provider.getMainStore();
             Collection<? extends Resource> resources = DataStores.flatten(ds, false);
             for (Resource rs : resources) {
-                names.add(NamesExt.create(getResourceIdentifier(rs)));
+                names.add(getResourceIdentifier(rs));
             }
             provider.dispose();
         }
@@ -206,7 +206,7 @@ public final class DataProviders extends Static{
         final DataStore store = provider.getMainStore();
 
         for (final Resource rs : DataStores.flatten(store, false)) {
-            GenericName name = NamesExt.create(getResourceIdentifier(rs));
+            GenericName name = getResourceIdentifier(rs);
              if (rs instanceof GridCoverageResource) {
                 final GridCoverageResource coverageReference = (GridCoverageResource) rs;
                 final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
@@ -542,26 +542,31 @@ public final class DataProviders extends Static{
 
                 Collection<? extends Resource> resources = org.geotoolkit.storage.DataStores.flatten(store, false);
                 for (Resource resource : resources) {
-                    String resId = getResourceIdentifier(resource);
-                    if (resource instanceof Aggregate) {
-                        Aggregate a = (Aggregate) resource;
-                        sb.append(margin).append("Aggregate: ").append(resId).append('\n');
+                    GenericName resName = getResourceIdentifier(resource);
+                    if (resName != null) {
+                        String resId = resName.tip().toString();
+                        if (resource instanceof Aggregate) {
+                            Aggregate a = (Aggregate) resource;
+                            sb.append(margin).append("Aggregate: ").append(resId).append('\n');
 
 
-                    } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
-                        FeatureSet a = (FeatureSet) resource;
-                        sb.append(margin).append("Resource: ").append(resId).append('\n');
-                        ResourceData d = new ResourceData(resId, getType(resource));
-                        if (result.containsKey(d)) {
-                            List<ResourceStore> stores = result.get(d);
-                            stores.add(rsStore);
+                        } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
+                            FeatureSet a = (FeatureSet) resource;
+                            sb.append(margin).append("Resource: ").append(resId).append('\n');
+                            ResourceData d = new ResourceData(resId, getType(resource));
+                            if (result.containsKey(d)) {
+                                List<ResourceStore> stores = result.get(d);
+                                stores.add(rsStore);
+                            } else {
+                               List<ResourceStore> stores = new ArrayList<>();
+                               stores.add(rsStore);
+                               result.put(d, stores);
+                            }
                         } else {
-                           List<ResourceStore> stores = new ArrayList<>();
-                           stores.add(rsStore);
-                           result.put(d, stores);
+                            sb.append(margin).append("Unknow resource:").append(resource);
                         }
                     } else {
-                        sb.append(margin).append("Unknow resource:").append(resource.toString());
+                        sb.append(margin).append("Unnamed resource:").append(resource);
                     }
                 }
             } catch (DataStoreException ex) {
@@ -654,27 +659,32 @@ public final class DataProviders extends Static{
 
                 Collection<? extends Resource> resources = org.geotoolkit.storage.DataStores.flatten(store, false);
                 for (Resource resource : resources) {
-                    String resId = getResourceIdentifier(resource);
-                    if (resource instanceof Aggregate) {
-                        Aggregate a = (Aggregate) resource;
-                        sb.append(margin).append("Aggregate: ").append(resId).append('\n');
+                    GenericName resName = getResourceIdentifier(resource);
+                    if (resName != null) {
+                        String resId = resName.tip().toString();
+                        if (resource instanceof Aggregate) {
+                            Aggregate a = (Aggregate) resource;
+                            sb.append(margin).append("Aggregate: ").append(resId).append('\n');
 
 
-                    } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
-                        FeatureSet a = (FeatureSet) resource;
-                        sb.append(margin).append("Resource: ").append(resId).append('\n');
-                        ResourceData d = new ResourceData(resId, getType(resource));
+                        } else if (resource instanceof FeatureSet | resource instanceof GridCoverageResource) {
+                            FeatureSet a = (FeatureSet) resource;
+                            sb.append(margin).append("Resource: ").append(resId).append('\n');
+                            ResourceData d = new ResourceData(resId, getType(resource));
 
-                        if (result.containsKey(rsStore)) {
-                            List<ResourceData> datas = result.get(rsStore);
-                            datas.add(d);
+                            if (result.containsKey(rsStore)) {
+                                List<ResourceData> datas = result.get(rsStore);
+                                datas.add(d);
+                            } else {
+                               List<ResourceData> datas = new ArrayList<>();
+                               datas.add(d);
+                               result.put(rsStore, datas);
+                            }
                         } else {
-                           List<ResourceData> datas = new ArrayList<>();
-                           datas.add(d);
-                           result.put(rsStore, datas);
+                            sb.append(margin).append("Unknow resource:").append(resource);
                         }
                     } else {
-                        sb.append(margin).append("Unknow resource:").append(resource.toString());
+                        sb.append(margin).append("Unnamed resource:").append(resource);
                     }
                 }
             } catch (DataStoreException ex) {
@@ -698,9 +708,9 @@ public final class DataProviders extends Static{
         }
     }
 
-    public static String getResourceIdentifier(Resource r) throws DataStoreException {
+    public static GenericName getResourceIdentifier(Resource r) throws DataStoreException {
         if (r.getIdentifier().isPresent()) {
-            return r.getIdentifier().get().tip().toString();
+            return r.getIdentifier().get();
         }
         return null;
     }

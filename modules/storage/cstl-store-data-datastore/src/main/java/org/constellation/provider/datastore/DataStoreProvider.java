@@ -174,7 +174,7 @@ public class DataStoreProvider extends AbstractDataProvider{
 
             for (final Resource rs : DataStores.flatten(store, true)) {
                 if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
-                    GenericName name = NamesExt.valueOf(DataProviders.getResourceIdentifier(rs));
+                    GenericName name = DataProviders.getResourceIdentifier(rs);
                     if (name != null) {
                         if (!index.contains(name)) {
                             index.add(name);
@@ -267,8 +267,8 @@ public class DataStoreProvider extends AbstractDataProvider{
     private boolean remove(Aggregate aggregate, GenericName key) throws DataStoreException {
 
         for (Resource r : aggregate.components()) {
-            final String identifier = DataProviders.getResourceIdentifier(r);
-            if (identifier.equals(key.toString())) {
+            final GenericName identifier = DataProviders.getResourceIdentifier(r);
+            if (identifier.equals(key)) {
                 if (aggregate instanceof WritableAggregate) {
                     ((WritableAggregate)aggregate).remove(r);
                     return true;

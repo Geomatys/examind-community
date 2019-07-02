@@ -152,6 +152,8 @@ public interface IProcessBusiness {
 
     void deleteTaskParameter(Integer taskParameterID);
 
+    void deleteAllTaskParameter();
+
     List<TaskParameter> findTaskParameterByNameAndProcess(String name, String authority, String code);
 
     /**

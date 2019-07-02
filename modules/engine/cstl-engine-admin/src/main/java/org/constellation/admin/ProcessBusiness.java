@@ -445,6 +445,9 @@ public class ProcessBusiness implements IProcessBusiness {
         if (title == null) {
             title = taskParameter.getName()+TASK_DATE.format(new Date());
         }
+        if (taskParameter.getId() == null) {
+            throw new ConstellationException("Task parameter id should no be null");
+        }
         quartzScheduler.scheduleJobNow(title, taskParameter.getId(), userId, taskParameter);
     }
 
@@ -631,5 +634,11 @@ public class ProcessBusiness implements IProcessBusiness {
             ltpwon.add(new TaskParameterWithOwnerName(tp, owerName));
         }
         return ltpwon;
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllTaskParameter() {
+        taskParameterRepository.deleteAll();
     }
 }

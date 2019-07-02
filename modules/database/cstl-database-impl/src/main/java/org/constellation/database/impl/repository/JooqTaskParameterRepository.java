@@ -87,6 +87,12 @@ public class JooqTaskParameterRepository extends AbstractJooqRespository<TaskPar
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteAll() {
+        dsl.delete(Tables.TASK_PARAMETER).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void update(TaskParameter task) {
         dsl.update(Tables.TASK_PARAMETER)
                 .set(Tables.TASK_PARAMETER.NAME, task.getName())

@@ -92,6 +92,7 @@ import org.geotoolkit.wfs.xml.v200.DropStoredQueryResponseType;
 import org.geotoolkit.wfs.xml.v200.StoredQueryListItemType;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.DataProvider;
 import static org.constellation.provider.ProviderParameters.SOURCE_ID_DESCRIPTOR;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
 import static org.constellation.provider.datastore.DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR;
@@ -273,8 +274,11 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
                 pgconfig.parameter("xsdtypename").setValue("AggregateGeoFeature");
                 pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-                providerBusiness.storeProvider("aggGMLSrc", null, ProviderType.LAYER, "data-store", source);
+                int pid = providerBusiness.storeProvider("aggGMLSrc", null, ProviderType.LAYER, "data-store", source);
                 dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), "aggGMLSrc", "VECTOR", false, true, null, null);
+
+                DataProvider d = DataProviders.getProvider(pid);
+                d.getKeys();
 
 
                 final ParameterValueGroup sourcef = featfactory.getProviderDescriptor().createValue();

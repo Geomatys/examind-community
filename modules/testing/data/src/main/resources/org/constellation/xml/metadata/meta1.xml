@@ -106,11 +106,11 @@
                                 <gmx:Anchor xlink:href="SDN:C371:1:2">2</gmx:Anchor>
                             </gmd:edition>
                             <gmd:identifier>
-                                <gmd:RS_Identifier>
+                                <gmd:MD_Identifier>
                                     <gmd:code>
                                         <gco:CharacterString>http://www.seadatanet.org/urnurl/</gco:CharacterString>
                                     </gmd:code>
-                                </gmd:RS_Identifier>
+                                </gmd:MD_Identifier>
                             </gmd:identifier>
                         </gmd:CI_Citation>
                     </gmd:authority>
@@ -322,11 +322,11 @@
                                 <gmx:Anchor xlink:href="SDN:C371:1:35">35</gmx:Anchor>
                             </gmd:edition>
                             <gmd:identifier>
-                                <gmd:RS_Identifier>
+                                <gmd:MD_Identifier>
                                     <gmd:code>
                                         <gco:CharacterString>http://www.seadatanet.org/urnurl/</gco:CharacterString>
                                     </gmd:code>
-                                </gmd:RS_Identifier>
+                                </gmd:MD_Identifier>
                             </gmd:identifier>
                         </gmd:CI_Citation>
                     </gmd:thesaurusName>

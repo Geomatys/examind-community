@@ -281,4 +281,12 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
         }
     }
 
+    @Override
+    public void deleteAll() {
+        for (Integer id : byId.keySet()) {
+            delete(id);
+        }
+    }
+
+
 }
