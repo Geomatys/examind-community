@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.process.service;
+package org.constellation.admin.process;
 
-import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
+import org.geotoolkit.processing.AbstractProcess;
 import org.opengis.parameter.ParameterValueGroup;
 
 
@@ -30,7 +30,7 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys).
  */
-public class ProgressTest extends AbstractCstlProcess {
+public class ProgressTest extends AbstractProcess {
 
 
     public ProgressTest(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
@@ -43,7 +43,10 @@ public class ProgressTest extends AbstractCstlProcess {
 
         try {
             fireProcessStarted("Start process");
-            waitAndcheckCanceled(2000);
+            Thread.sleep(2000);
+            if (isCanceled()) {
+                throw new ProcessException("Canceled By user", this);
+            }
             fireProgressing("step 1", 20f, false);
             waitAndcheckCanceled(5000);
             fireProgressing("step 2", 40f, false);

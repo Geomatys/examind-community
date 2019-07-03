@@ -252,6 +252,13 @@ public class QuartzScheduler implements CstlScheduler {
                 group = keyS.substring(0, pos);
                 keyS  = keyS.substring(pos + 1, keyS.length());
             }
+
+            // strip the last task part unique uuid
+            pos = keyS.lastIndexOf('_');
+            if (pos != -1) {
+                keyS = keyS.substring(0, pos);
+            }
+
             JobKey key = JobKey.jobKey(keyS, group);
             quartzScheduler.interrupt(key);
         } catch (UnableToInterruptJobException ex) {

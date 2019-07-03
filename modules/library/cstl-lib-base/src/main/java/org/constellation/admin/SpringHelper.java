@@ -109,8 +109,9 @@ public final class SpringHelper {
     }
 
     public static void sendEvent(Object event) {
-        if (get().eventBus != null) {
-            get().eventBus.post(event);
+        SpringHelper helper = get();
+        if (helper!=null && helper.eventBus != null) {
+            helper.eventBus.post(event);
         } else {
             LOGGER.warning("No event bus available");
         }

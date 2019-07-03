@@ -1950,7 +1950,7 @@ function Examind($http, url) {
         cancelTaskParam : function(id) {
             return self.request({
                 method: 'DELETE',
-                url: '/task/params/delete/' + id
+                url: 'task/params/delete/' + id
                 });
         },
 
