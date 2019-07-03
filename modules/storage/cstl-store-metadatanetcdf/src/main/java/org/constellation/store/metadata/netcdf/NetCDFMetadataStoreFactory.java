@@ -91,7 +91,7 @@ public class NetCDFMetadataStoreFactory extends DataStoreProvider {
 
     @Override
     public ProbeResult probeContent(StorageConnector sc) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return ProbeResult.UNSUPPORTED_STORAGE;
     }
 
     @Override

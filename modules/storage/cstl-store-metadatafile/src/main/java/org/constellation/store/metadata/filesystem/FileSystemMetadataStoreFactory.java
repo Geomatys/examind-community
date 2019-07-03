@@ -98,7 +98,7 @@ public class FileSystemMetadataStoreFactory extends DataStoreProvider {
 
     @Override
     public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return ProbeResult.UNSUPPORTED_STORAGE;
     }
 
     @Override
