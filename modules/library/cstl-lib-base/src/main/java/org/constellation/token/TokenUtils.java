@@ -125,11 +125,17 @@ public class TokenUtils {
     public static boolean validateToken(String access_token, String secret) {
         String[] parts = access_token.split(TOKEN_SEPARATOR);
         if (parts.length < 4) {
-            LOGGER.log(Level.WARNING, "Token malformed: " + access_token);
+            LOGGER.log(Level.WARNING, "Token malformed: {0}", access_token);
             return false;
         }
         String username = parts[0];
-        long expires = Long.parseLong(parts[1]);
+        long expires;
+        try {
+            expires = Long.parseLong(parts[1]);
+        } catch (NumberFormatException ex) {
+            LOGGER.log(Level.WARNING, "Token malformed: {0}", access_token);
+            return false;
+        }
         String signature = parts[2];
 
         if (expires < System.currentTimeMillis()) {
