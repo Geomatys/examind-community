@@ -424,7 +424,7 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2018-10-30", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-10-30T00:29:00.00", time.getBeginPosition().getValue());
         Assert.assertEquals("2018-11-30T11:59:00.00", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());

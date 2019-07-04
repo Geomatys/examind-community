@@ -217,6 +217,8 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     }
                 }
 
+                // memorize indices to skip
+                final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
 
                 /*
                 2- set ordinary fields
@@ -268,6 +270,26 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                     count++;
                     final String[] line = it.next();
 
+                    // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                    boolean empty = true;
+                    for (int i = 0; i < line.length; i++) {
+                        if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
+                            try {
+                                Double.parseDouble(line[i]);
+                                empty = false;
+                                break;
+                            } catch (NumberFormatException ex) {
+                                if (!line[i].isEmpty()) {
+                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
+                                }
+                            }
+                        }
+                    }
+
+                    if (empty) {
+                        LOGGER.info("skipping line due to none expected variable present.");
+                        continue;
+                    }
 
                     // look for current foi
                     if (foiIndex != -1) {
@@ -353,13 +375,15 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                             }
                         // assume that is a date otherwise
                         } else {
-                            final long millis = sdf.parse(line[mainIndex]).getTime();
-                            msb.appendDate(millis);
+                            try {
+                                final long millis = sdf.parse(line[mainIndex]).getTime();
+                                msb.appendDate(millis);
+                            } catch (ParseException ex) {
+                                LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
+                                continue;
+                            }
                         }
                     }
-
-                    // memorize indices to skip
-                    final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
 
                     // loop over columns to build measure string
                     for (int i = 0; i < line.length; i++) {
@@ -561,9 +585,11 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
             final Iterator<String[]> it = reader.iterator();
+            int count = 0;
 
             // at least one line is expected to contain headers information
             if (it.hasNext()) {
+                count++;
 
                 // prepare spatial/time column indices
                 int dateIndex = -1;
@@ -598,17 +624,21 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
 
                     // update temporal interval
                     if (dateIndex != -1) {
-                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
-                        if (minDate == null && maxDate == null) {
-                            minDate = dateParse;
-                            maxDate = dateParse;
-                        }
-                        else {
-                            if(minDate.compareTo(dateParse) > 0) {
+                        try {
+                            final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
+                            if (minDate == null && maxDate == null) {
                                 minDate = dateParse;
-                            } else if (maxDate.compareTo(dateParse) < 0) {
                                 maxDate = dateParse;
+                            } else {
+                                if(minDate.compareTo(dateParse) > 0) {
+                                    minDate = dateParse;
+                                } else if (maxDate.compareTo(dateParse) < 0) {
+                                    maxDate = dateParse;
+                                }
                             }
+                        } catch (ParseException ex) {
+                            LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                            continue;
                         }
                     }
 
@@ -628,7 +658,7 @@ public class CsvObservationStore extends CSVFeatureStore implements ObservationS
                 return Collections.singletonList(procedureTree);
             }
             throw new DataStoreException("csv headers not found");
-        } catch (IOException | ParseException ex) {
+        } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
