@@ -14,7 +14,7 @@
     <artifactId>examind</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Examind</name>
+    <name>Examind Community</name>
     <url>https://www.geomatys.com/en/products/examind-community</url>
 
     <organization>
@@ -423,6 +423,11 @@
                         <artifactId>jsr173-ri</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+               <groupId>com.ryantenney.metrics</groupId>
+               <artifactId>metrics-spring</artifactId>
+               <version>3.0.0-RC2</version>
             </dependency>
             <!-- JAXB  -->
             <dependency>

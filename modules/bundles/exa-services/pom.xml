@@ -61,6 +61,11 @@
             <dependencies>
                 <dependency>
                     <groupId>com.examind.community</groupId>
+                    <artifactId>examind-engine-process-sos</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.examind.community</groupId>
                     <artifactId>cstl-web-sos</artifactId>
                     <version>${project.version}</version>
                 </dependency>

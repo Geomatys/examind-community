@@ -36,11 +36,6 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>examind-engine-process-sos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
             <artifactId>cstl-engine-spring-security</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -97,10 +92,6 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature-shapefile</artifactId>
         </dependency>
-        <!--dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-client-wms</artifactId>
-        </dependency-->
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-owc</artifactId>
@@ -150,7 +141,6 @@
         <dependency>
             <groupId>com.ryantenney.metrics</groupId>
             <artifactId>metrics-spring</artifactId>
-            <version>3.0.0-RC2</version>
         </dependency>
     </dependencies>
 </project>
