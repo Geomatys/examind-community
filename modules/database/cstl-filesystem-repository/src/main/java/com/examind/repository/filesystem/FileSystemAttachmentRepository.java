@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ import org.springframework.stereotype.Component;
 public class FileSystemAttachmentRepository extends AbstractFileSystemRepository implements AttachmentRepository {
 
     private final Map<Integer, Attachment> byId = new HashMap<>();
+    private final Map<String, List<Attachment>> byFileName = new HashMap<>();
 
     public FileSystemAttachmentRepository() {
         super(Attachment.class);
@@ -54,6 +57,14 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                 for (Path attachmentFile : directoryStream) {
                     Attachment attachment = (Attachment) getObjectFromPath(attachmentFile, pool);
                     byId.put(attachment.getId(), attachment);
+
+                    if (!byFileName.containsKey(attachment.getFilename())) {
+                        List<Attachment> atts = new ArrayList<>();
+                        atts.add(attachment);
+                        byFileName.put(attachment.getFilename(), atts);
+                    } else {
+                        byFileName.get(attachment.getFilename()).add(attachment);
+                    }
 
                     if (attachment.getId() >= currentId) {
                         currentId = attachment.getId() +1;
@@ -78,7 +89,10 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
 
     @Override
     public List<Attachment> findByFileName(String fileName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byFileName.containsKey(fileName)) {
+            return byFileName.get(fileName);
+        }
+        return new ArrayList<>();
     }
 
     ////--------------------------------------------------------------------///
@@ -96,6 +110,14 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
 
             byId.put(att.getId(), att);
 
+            if (!byFileName.containsKey(att.getFilename())) {
+                List<Attachment> atts = new ArrayList<>();
+                atts.add(att);
+                byFileName.put(att.getFilename(), atts);
+            } else {
+                byFileName.get(att.getFilename()).add(att);
+            }
+
             currentId++;
             return att.getId();
         }
@@ -106,11 +128,22 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
     public void update(Attachment att) {
         if (byId.containsKey(att.getId())) {
 
+            Attachment previous = byId.get(att.getId());
+            byFileName.get(previous.getFilename()).remove(att);
+
+
             Path attachmentDir = getDirectory(ATTACHMENT_DIR);
             Path attachmentFile = attachmentDir.resolve(att.getId() + ".xml");
             writeObjectInPath(att, attachmentFile, pool);
 
             byId.put(att.getId(), att);
+            if (!byFileName.containsKey(att.getFilename())) {
+                List<Attachment> atts = new ArrayList<>();
+                atts.add(att);
+                byFileName.put(att.getFilename(), atts);
+            } else {
+                byFileName.get(att.getFilename()).add(att);
+            }
         }
     }
 
@@ -128,6 +161,7 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
             }
 
             byId.remove(att.getId());
+            byFileName.get(att.getFilename()).remove(att);
             return 1;
         }
         return 0;

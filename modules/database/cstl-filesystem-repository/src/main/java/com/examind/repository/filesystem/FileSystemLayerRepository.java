@@ -147,22 +147,63 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
 
      @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(layerName)) {
+                    return l;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(layerName)) {
+                    return l.getId();
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(layerName) &&
+                    (namespace == null || l.getNamespace().equals(namespace))) {
+                    return l;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public Layer findByServiceIdAndAlias(int serviceId, String alias) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(alias)) {
+                    return l;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getDataId().equals(dataId)) {
+                    return l;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -306,11 +347,6 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             }
         }
         return i;
-    }
-
-    @Override
-    public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

@@ -388,6 +388,16 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         return 0;
     }
 
+    @Override
+    public void updateStatistics(int dataId, String statsResult, String statsState) {
+        Data d = findById(dataId);
+        if (d != null) {
+            d.setStatsResult(statsResult);
+            d.setStatsState(statsState);
+            update(d);
+        }
+    }
+
 
     ////--------------------------------------------------------------------///
     ////------------------------    LINKS          -------------------------///
@@ -437,8 +447,4 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void updateStatistics(int dataId, String statsResult, String statsState) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }
