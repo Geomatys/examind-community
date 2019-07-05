@@ -1058,7 +1058,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final Sensor sensor : sensors) {
-                        if (key.equals(NamesExt.create(sensor.getIdentifier()))) {
+                        if (NamesExt.match(key, NamesExt.create(sensor.getIdentifier()))) {
                             found = true;
                             break;
                         }
@@ -1099,7 +1099,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 for (final GenericName key : copyKeys) {
                     boolean found = false;
                     for (final MetadataBrief metadata : metadatas) {
-                        if (key.equals(NamesExt.create(metadata.getFileIdentifier()))) {
+                        if (NamesExt.match(key, NamesExt.create(metadata.getFileIdentifier()))) {
                             found = true;
                             break;
                         }
@@ -1133,20 +1133,10 @@ public class ProviderBusiness implements IProviderBusiness {
             for (final org.constellation.dto.Data data : previousData) {
                 boolean found = false;
                 for (final GenericName key : keys) {
-                    String nmsp = NamesExt.getNamespace(key);
-
-                    if (nmsp != null && !nmsp.isEmpty()) {
-                        if (data.getName().equals(key.tip().toString()) &&
-                            data.getNamespace().equals(nmsp)) {
+                    if (NamesExt.match(key, NamesExt.create(data.getNamespace(),data.getName()))) {
                             found = true;
                             break;
                         }
-                    } else {
-                        if (data.getName().equals(key.tip().toString())) {
-                            found = true;
-                            break;
-                        }
-                    }
                 }
                 if (!found) {
                     dataBusiness.missingData(new QName(data.getNamespace(), data.getName()), provider.getId());
@@ -1159,7 +1149,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
                 boolean found = false;
                 for (final org.constellation.dto.Data data : previousData) {
-                    if (key.equals(NamesExt.create(data.getNamespace(),data.getName()))) {
+                    if (NamesExt.match(key, NamesExt.create(data.getNamespace(),data.getName()))) {
                         found = true;
                         break;
                     }
@@ -1180,7 +1170,7 @@ public class ProviderBusiness implements IProviderBusiness {
                         LOGGER.log(Level.FINER, ex.getMessage(), ex);
                     }
 
-                Integer dataId = dataBusiness.create(name,
+                    Integer dataId = dataBusiness.create(name,
                             pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
                             included, rendered, subType, null, hideNewData, owner);
 
