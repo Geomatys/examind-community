@@ -290,7 +290,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 }
                 final String name;
                 if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-                    name = configLayer.getAlias().trim().replaceAll(" ", "_");
+                    name = configLayer.getAlias();
                 } else {
                     name = configLayer.getName().getLocalPart();
                 }
@@ -377,7 +377,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
                     try {
                         final Envelope crs84Env = Envelopes.transform(pyramidSetEnv, CommonCRS.defaultGeographic());
-                        outputLayer.getWGS84BoundingBox().add(new WGS84BoundingBoxType("CRS:84",
+                        outputLayer.getWGS84BoundingBox().add(new WGS84BoundingBoxType("urn:ogc:def:crs:OGC:2:84",
                                 crs84Env.getMinimum(xAxis),
                                 crs84Env.getMinimum(yAxis),
                                 crs84Env.getMaximum(xAxis),
@@ -581,7 +581,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         // Workaround to normalize WGS84 that return "EPSG:WGS 84"
         // for IdentifiedObjects.getIdentifierOrName() call
         if (Utilities.equalsIgnoreMetadata(CommonCRS.WGS84.normalizedGeographic(), horizontal)) {
-            return "CRS:84";
+            return "urn:ogc:def:crs:OGC:2:84";
         } else {
             try {
                 final Integer identifier = IdentifiedObjects.lookupEPSG(horizontal);
