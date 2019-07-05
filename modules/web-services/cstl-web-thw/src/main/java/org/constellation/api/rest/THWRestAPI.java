@@ -86,19 +86,19 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 public class THWRestAPI {
-    
+
     private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
 
-    
+
     @Autowired
     private IThesaurusBusiness thesaurusBusiness;
-    
+
     /**
      * Use to install all ressource available thesaurus.
      * Will be probably remove later.
-     * 
+     *
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
     @RequestMapping(value="/THW/install",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity InstallAvaillableThesaurus() throws Exception {
@@ -144,7 +144,7 @@ public class THWRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     // -------------------------------------------------------------------------
     //  Instance API
     // -------------------------------------------------------------------------
@@ -182,7 +182,7 @@ public class THWRestAPI {
                     .setSize(pagedSearch.getSize())
                     .setContent(toThesaurusBriefs(results))
                     .setTotal(listThesaurus.size()), OK);
-            
+
         } catch (Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -317,7 +317,7 @@ public class THWRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     @RequestMapping(value="/THW/autocomplete/{language}/{limit}/{term}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity autocomplete(@PathVariable("limit") int limit, @PathVariable("language") String language, @PathVariable("term") String term) {
         try {
@@ -385,9 +385,9 @@ public class THWRestAPI {
             Marshaller m = SkosMarshallerPool.getInstance().acquireMarshaller();
             m.marshal(thesaurusRdf, response.getOutputStream());
             SkosMarshallerPool.getInstance().recycle(m);
-            
+
             response.addHeader("Content-Disposition","attachment; filename=" + thesaurus.getName() + ".xml");
-            response.setContentType(MediaType.APPLICATION_XML.getType());
+            response.setContentType(MediaType.APPLICATION_XML.toString());
             response.flushBuffer();
             return new ResponseEntity(OK);
         } catch (Throwable ex) {
@@ -406,13 +406,13 @@ public class THWRestAPI {
                 throw new ThesaurusException("No concept found in thesaurus (" + thesaurus.getURI() + ") for URI: " + conceptUri);
             }
             RDF thesaurusRdf = thesaurus.toRDF();
-            
+
             Marshaller m = SkosMarshallerPool.getInstance().acquireMarshaller();
             m.marshal(thesaurusRdf, response.getOutputStream());
             SkosMarshallerPool.getInstance().recycle(m);
-            
+
             response.addHeader("Content-Disposition", "attachment; filename=" + thesaurus.getName() + "_" + conceptUri + ".xml");
-            response.setContentType(MediaType.APPLICATION_XML.getType());
+            response.setContentType(MediaType.APPLICATION_XML.toString());
             response.flushBuffer();
             return new ResponseEntity(OK);
         } catch (Throwable ex) {
@@ -420,7 +420,7 @@ public class THWRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     // -------------------------------------------------------------------------
     //  Private methods
     // -------------------------------------------------------------------------
@@ -470,7 +470,7 @@ public class THWRestAPI {
     private static List<Concept> toPartialSkosConcept(List<ConceptBrief> briefs) {
         return Lists.transform(briefs, BRIEF_TO_SKOS);
     }
-    
+
     private static final Function<ConceptBrief, Concept> BRIEF_TO_SKOS = new Function<ConceptBrief, Concept>() {
         @Override
         public Concept apply(ConceptBrief brief) {
@@ -479,7 +479,7 @@ public class THWRestAPI {
             return concept;
         }
     };
-            
+
     /**
      * TODO handle IsTop concept
      */
@@ -502,7 +502,7 @@ public class THWRestAPI {
                 }
             }
             c.setDefinition(definitions);
-            
+
             final List<Value> prefLabels = new ArrayList<>();
             if (f.getPrefLabel()!= null) {
                 for (Map.Entry<String, String> entry : f.getPrefLabel().entrySet()) {
@@ -512,7 +512,7 @@ public class THWRestAPI {
                 }
             }
             c.setPrefLabel(prefLabels);
-            
+
             return c;
         }
     };
