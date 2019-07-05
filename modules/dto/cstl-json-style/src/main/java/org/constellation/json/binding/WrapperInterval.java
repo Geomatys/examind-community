@@ -33,7 +33,7 @@ import java.io.Serializable;
 public class WrapperInterval implements Serializable {
 
     private int dataId;
-    
+
     private String layerName;
 
     private String namespace;

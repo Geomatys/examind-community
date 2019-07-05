@@ -20,6 +20,7 @@ package org.constellation;
 
 import java.util.List;
 import org.constellation.api.rest.converter.JsonStyleMessageConverter;
+import org.constellation.api.rest.converter.JsonWrapperIntervalMessageConverter;
 import org.constellation.api.rest.converter.PortrayalMessageConverter;
 import org.constellation.api.rest.converter.ProfileMessageConverter;
 import org.constellation.api.rest.converter.StyleMessageConverter;
@@ -41,6 +42,7 @@ public class RestAPIControllerConfig extends WebMvcConfigurationSupport {
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new StyleMessageConverter());
         converters.add(new JsonStyleMessageConverter());
+        converters.add(new JsonWrapperIntervalMessageConverter());
         converters.add(new PortrayalMessageConverter());
         converters.add(new ProfileMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());

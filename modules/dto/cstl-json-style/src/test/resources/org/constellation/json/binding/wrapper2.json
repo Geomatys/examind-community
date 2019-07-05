@@ -1,0 +1,40 @@
+{
+    "dataId": 105,
+    "style": {
+        "name": "contour_agence-sld1562321926508",
+        "rules": [{
+                "name": "default",
+                "title": "",
+                "description": "",
+                "maxScale": 5000000000,
+                "symbolizers": [{
+                        "@symbol": "point",
+                        "name": "symbol point",
+                        "graphic": {
+                            "size": 15,
+                            "rotation": 0,
+                            "opacity": 1,
+                            "mark": {
+                                "geometry": "circle",
+                                "stroke": {
+                                    "color": "#000000",
+                                    "opacity": 1
+                                },
+                                "fill": {
+                                    "color": "#808080",
+                                    "opacity": 0.7
+                                }
+                            }
+                        }
+                    }],
+                "filter": null
+            }]
+    },
+    "intervalValues": {
+        "attr": "SURFACE",
+        "nbIntervals": 5,
+        "method": "equidistant",
+        "symbol": "polygon",
+        "colors": ["#e52520", "#ffde00", "#95c11f", "#1d71b8", "#662483"]
+    }
+}

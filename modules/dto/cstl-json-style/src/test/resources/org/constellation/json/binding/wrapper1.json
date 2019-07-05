@@ -1,0 +1,14 @@
+{
+    "dataId": 105,
+    "style": {
+        "name": "contour_agence-sld1562328510557",
+        "rules": []
+    },
+    "intervalValues": {
+        "attr": "ID_AGENCE",
+        "nbIntervals": 5,
+        "method": "equidistant",
+        "symbol": "polygon",
+        "colors": ["#e52520", "#ffde00", "#95c11f", "#1d71b8", "#662483"]
+    }
+}
