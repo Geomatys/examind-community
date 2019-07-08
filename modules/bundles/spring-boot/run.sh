@@ -7,4 +7,4 @@ export CSTL_URL="http://localhost:9000"
 
 export CSTL_SERVICE_URL="http://localhost:9000/WS"
 
-java -jar target/cstl-boot-1.0-SNAPSHOT.jar
+java -jar -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8001,suspend=n target/spring-boot-1.0-SNAPSHOT.jar

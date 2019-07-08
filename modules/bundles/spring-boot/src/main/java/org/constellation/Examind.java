@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.DispatcherType;
+import javax.servlet.MultipartConfigElement;
 import org.apache.catalina.Context;
 import org.constellation.admin.SessionListener;
 import org.constellation.configuration.AppProperty;
@@ -39,13 +40,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.DispatcherServlet;
 /**
  *
@@ -123,6 +128,8 @@ public class Examind extends SpringBootServletInitializer {
         return tomcat;
     }
 
+    private static final long MAX_UPLOAD_SIZE = 2000 * 1024 * 1024;
+
     /**
      * Manually register a dispatcher servlet with the selected controllers
      * @return
@@ -137,6 +144,12 @@ public class Examind extends SpringBootServletInitializer {
         final ServletRegistrationBean servletBean = new ServletRegistrationBean(servlet, "/API/*");
         servletBean.setName("examindapi");
         servletBean.setLoadOnStartup(1);
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setMaxFileSize(MAX_UPLOAD_SIZE);
+        factory.setMaxRequestSize(MAX_UPLOAD_SIZE * 2);
+        factory.setFileSizeThreshold((int) (MAX_UPLOAD_SIZE / 2));
+        MultipartConfigElement multipartConfigElement = factory.createMultipartConfig();
+        servletBean.setMultipartConfig(multipartConfigElement);
         servletBean.setAsyncSupported(true);
         return servletBean;
     }
@@ -204,7 +217,22 @@ public class Examind extends SpringBootServletInitializer {
      */
     @Bean
     public ServletRegistrationBean ogcServiceSOAPServlet() {
-        ServletRegistrationBean reg = new ServletRegistrationBean(new WSSpringServlet(),"/WS-SOAP/*");
+        WSSpringServlet servlet = new WSSpringServlet() {
+            @Override
+            public void destroy() {
+                WebApplicationContext wac =
+                WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+                if (wac instanceof ConfigurableApplicationContext) {
+                    ConfigurableApplicationContext gwac = (ConfigurableApplicationContext) wac;
+                    if (gwac.isRunning()) {
+                        gwac.close();
+                    }
+                }
+
+            }
+
+        };
+        ServletRegistrationBean reg = new ServletRegistrationBean(servlet,"/WS-SOAP/*");
         reg.setName("WS-SOAP");
         reg.setLoadOnStartup(1);
         return reg;
