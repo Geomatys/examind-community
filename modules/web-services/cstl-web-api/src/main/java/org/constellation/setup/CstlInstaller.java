@@ -56,7 +56,7 @@ public class CstlInstaller implements ServletContextListener {
         servletContextEvent.getServletContext().setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, METRIC_REGISTRY);
         servletContextEvent.getServletContext().setAttribute(MetricsServlet.METRICS_REGISTRY, METRIC_REGISTRY);
         servletContextEvent.getServletContext().setAttribute(HealthCheckServlet.HEALTH_CHECK_REGISTRY, HEALTH_CHECK_REGISTRY);
-        
+
         LOGGER.log(Level.INFO, "=== Configuration ended ===");
     }
 
@@ -65,7 +65,13 @@ public class CstlInstaller implements ServletContextListener {
     	LOGGER.info("Destroying Web application");
         WebApplicationContext ac = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContextEvent.getServletContext());
         ConfigurableApplicationContext gwac = (ConfigurableApplicationContext) ac;
-        gwac.close();
+        /* i had to put this test because in spring boot, the method gwac.close(); hangs forever and block the shutdown of the application.
+         * this test looks like its working, in a regular tomcat server, isRunning return true, and the close() act normal
+         * In Spring boot isRunning return false.
+         */
+        if (gwac.isRunning()) {
+            gwac.close();
+        }
         LOGGER.log(Level.FINE, "Web application destroyed");
     }
 }
