@@ -59,6 +59,7 @@ import org.apache.sis.util.ArraysExt;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.utils.Utils;
+import org.constellation.provider.DefaultOtherData;
 import org.constellation.util.StoreUtilities;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.data.FeatureStoreUtilities;
@@ -155,6 +156,10 @@ public class DataStoreProvider extends AbstractDataProvider{
                 return new DefaultCoverageData(key, (org.apache.sis.storage.GridCoverageResource) rs, store);
             } else if (rs instanceof FeatureSet){
                 return new DefaultFeatureData(key, store, null, null, null, null, null, version);
+
+            // Other Data
+            } else if (!(rs instanceof Aggregate)){
+                return new DefaultOtherData(key, rs, store);
             }
         } catch (DataStoreException ex) {
             getLogger().log(Level.WARNING, ex.getMessage(), ex);
@@ -175,10 +180,13 @@ public class DataStoreProvider extends AbstractDataProvider{
             for (final Resource rs : DataStores.flatten(store, true)) {
                 if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
                     GenericName name = DataProviders.getResourceIdentifier(rs);
-                    if (name != null) {
-                        if (!index.contains(name)) {
-                            index.add(name);
-                        }
+                    if (name != null && !index.contains(name)) {
+                        index.add(name);
+                    }
+                } else if (!(rs instanceof Aggregate)) {
+                    GenericName name = DataProviders.getResourceIdentifier(rs);
+                    if (name != null && !index.contains(name)) {
+                        index.add(name);
                     }
                 }
             }

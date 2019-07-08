@@ -24,10 +24,11 @@ package org.constellation.api;
  * @author Guilhem Legal (Geomatys)
  */
 public enum DataType {
-    
+
     VECTOR,
     COVERAGE,
     SENSOR,
-    METADATA
-    
+    METADATA,
+    OTHER
+
 }
