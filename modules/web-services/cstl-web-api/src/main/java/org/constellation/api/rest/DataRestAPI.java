@@ -812,7 +812,9 @@ public class DataRestAPI extends AbstractRestAPI{
                 outProvider.reload();
 
                 pyramidStore = outProvider.getMainStore();
-                outRef = (XMLCoverageResource) pyramidStore.findResource(outRef.getIdentifier().toString());
+                if (outRef.getIdentifier().isPresent()) {
+                    outRef = (XMLCoverageResource) pyramidStore.findResource(outRef.getIdentifier().get().toString());
+                }
                 //create database data object
                 providerBusiness.createOrUpdateData(pojoProviderID, null, false);
 
