@@ -49,23 +49,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.crs.AbstractCRS;
-import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.dto.DataDescription;
 import org.constellation.dto.StyleBrief;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.Extent;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.metadata.extent.GeographicExtent;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 /**
@@ -201,26 +190,6 @@ public final class Util {
         return name;
     }
 
-    /**
-     * Parse a String to instantiate a named Layer ({namespace}name).
-     * @param layerName
-     * @return
-     *
-     * @deprecated use parseQName()
-     */
-    @Deprecated
-    public static QName parseLayerQName(final String layerName) {
-        final QName name;
-        if (layerName != null && layerName.lastIndexOf('}') != -1) {
-            final String namespace = layerName.substring(1, layerName.lastIndexOf('}'));
-            final String localPart = layerName.substring(layerName.lastIndexOf('}') + 1);
-            name = new QName(namespace, localPart);
-        } else {
-            name = new QName(layerName);
-        }
-        return name;
-    }
-
     public static QName parseQName(String name) {
         if (name != null) {
             if (name.startsWith("{}")) {
@@ -317,61 +286,5 @@ public final class Util {
             }
         }
         return briefs;
-    }
-
-    /**
-     * Fills the geographical field of a {@link DataDescription} instance according the
-     * specified {@link Envelope}.
-     *
-     * @param envelope    the envelope to visit
-     * @param description the data description to update
-     */
-    public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
-        double[] lower = null;
-        double[] upper = null;
-        try {
-            GeneralEnvelope env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
-            env.simplify();
-            if (env.isEmpty()) {
-                env = null;
-                CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
-
-                //search for envelope directly in geographic
-                Extent extent = crs.getDomainOfValidity();
-                if (extent != null) {
-                    for (GeographicExtent ext : extent.getGeographicElements()) {
-                        if (ext instanceof GeographicBoundingBox) {
-                            final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
-                            env = new GeneralEnvelope(geo);
-                            env.simplify();
-                        }
-                    }
-                }
-                if (env == null) {
-                    //fallback on crs validity area
-                    Envelope cdt = CRS.getDomainOfValidity(crs);
-                    if (cdt != null) {
-                        env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
-                        env.simplify();
-                        if (env.isEmpty()) {
-                            env = null;
-                        }
-                    }
-                }
-            }
-
-            if (env == null) {
-                lower = new double[]{-180, -90};
-                upper = new double[]{180, 90};
-            } else {
-                lower = env.getLowerCorner().getCoordinate();
-                upper = env.getUpperCorner().getCoordinate();
-            }
-
-        } catch (Exception ignore) {
-            lower = new double[]{-180, -90};
-            upper = new double[]{180, 90};
-        }
-        description.setBoundingBox(new double[]{lower[0], lower[1], upper[0], upper[1]});
     }
 }

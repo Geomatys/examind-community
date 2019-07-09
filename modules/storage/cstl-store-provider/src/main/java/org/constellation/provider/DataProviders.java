@@ -63,6 +63,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.geotoolkit.data.AbstractFolderFeatureStoreFactory;
 import org.geotoolkit.data.FileFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
@@ -78,12 +79,17 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.referencing.CommonCRS;
+import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.ProviderRepository;
 import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
 import org.geotoolkit.io.wkt.PrjFiles;
+import org.opengis.metadata.extent.Extent;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.metadata.extent.GeographicExtent;
 
 
 /**
@@ -876,5 +882,60 @@ public final class DataProviders extends Static{
         PrjFiles.write(coordinateReferenceSystem, parentPath.resolve(fileNameWithoutExtention + ".prj"));
         provider.reload();
         return true;
+    }
+
+    /**
+     * Fills the geographical field of a {@link DataDescription} instance according the
+     * specified {@link Envelope}.
+     *
+     * @param envelope    the envelope to visit
+     * @param description the data description to update
+     */
+    public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
+        double[] lower, upper;
+        try {
+            GeneralEnvelope env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
+            env.simplify();
+            if (env.isEmpty()) {
+                env = null;
+                CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+
+                //search for envelope directly in geographic
+                Extent extent = crs.getDomainOfValidity();
+                if (extent != null) {
+                    for (GeographicExtent ext : extent.getGeographicElements()) {
+                        if (ext instanceof GeographicBoundingBox) {
+                            final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
+                            env = new GeneralEnvelope(geo);
+                            env.simplify();
+                        }
+                    }
+                }
+                if (env == null) {
+                    //fallback on crs validity area
+                    Envelope cdt = CRS.getDomainOfValidity(crs);
+                    if (cdt != null) {
+                        env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
+                        env.simplify();
+                        if (env.isEmpty()) {
+                            env = null;
+                        }
+                    }
+                }
+            }
+
+            if (env == null) {
+                lower = new double[]{-180, -90};
+                upper = new double[]{180, 90};
+            } else {
+                lower = env.getLowerCorner().getCoordinate();
+                upper = env.getUpperCorner().getCoordinate();
+            }
+
+        } catch (Exception ignore) {
+            lower = new double[]{-180, -90};
+            upper = new double[]{180, 90};
+        }
+        description.setBoundingBox(new double[]{lower[0], lower[1], upper[0], upper[1]});
     }
 }

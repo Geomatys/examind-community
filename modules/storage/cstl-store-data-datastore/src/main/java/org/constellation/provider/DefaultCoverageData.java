@@ -53,7 +53,6 @@ import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.util.Util;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
@@ -468,9 +467,9 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
             // Geographic extent description.
             final GridGeometry ggg = ref.getGridGeometry();
-            if(ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
+            if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
                 final Envelope envelope = ggg.getEnvelope();
-                Util.fillGeographicDescription(envelope, description);
+                DataProviders.fillGeographicDescription(envelope, description);
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }

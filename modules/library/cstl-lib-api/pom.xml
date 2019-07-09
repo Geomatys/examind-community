@@ -27,11 +27,6 @@
             <artifactId>cstl-json-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
 </project>

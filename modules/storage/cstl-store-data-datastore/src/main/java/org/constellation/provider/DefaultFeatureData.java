@@ -73,7 +73,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
 import static org.constellation.provider.AbstractData.LOGGER;
 import org.constellation.util.StoreUtilities;
-import org.constellation.util.Util;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import static org.geotoolkit.feature.FeatureExt.IS_NOT_CONVENTION;
 import org.geotoolkit.metadata.ImageStatistics;
@@ -489,7 +488,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
             queryBuilder.setTypeName(getName());
 
             final Envelope envelope = FeatureStoreUtilities.getEnvelope(fs);
-            Util.fillGeographicDescription(envelope, description);
+            DataProviders.fillGeographicDescription(envelope, description);
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
