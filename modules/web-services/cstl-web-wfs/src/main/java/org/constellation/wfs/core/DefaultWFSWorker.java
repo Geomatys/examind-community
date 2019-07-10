@@ -164,6 +164,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
@@ -190,6 +191,7 @@ import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V200;
 import static org.constellation.wfs.core.WFSConstants.TYPE_PARAM;
 import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
 import org.apache.sis.storage.FeatureSet;
+import org.geotoolkit.data.FeatureSetWrapper;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.data.FeatureWriter;
@@ -1085,14 +1087,24 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 if (maxFeatures != 0){
                     queryBuilder.setMaxFeatures(maxFeatures);
                 }
-
-                final Session session = ((FeatureStore)layer.getStore()).createSession(false);
                 final org.geotoolkit.data.query.Query qb = queryBuilder.buildQuery();
-                FeatureCollection collection = session.getFeatureCollection(qb);
+
+                FeatureCollection collection;
+                if (layer.getStore() instanceof FeatureStore) {
+                    final Session session = ((FeatureStore)layer.getStore()).createSession(false);
+                    collection = session.getFeatureCollection(qb);
+                } else if (layer.getOrigin() instanceof FeatureSet) {
+                    try {
+                        collection = new FeatureSetWrapper((FeatureSet) layer.getOrigin(), layer.getStore()).subset(qb);
+                    } catch (DataStoreException ex) {
+                        throw new CstlServiceException("Error while querying the featureSet", ex);
+                    }
+                } else {
+                    throw new CstlServiceException("Unexpected store configuration");
+                }
                 int colSize = 0;
 
                 // look for matching count
-                queryBuilder.setMaxFeatures(Long.MAX_VALUE);
                 try {
                     colSize = collection.size();
                     nbMatched = nbMatched +  colSize;

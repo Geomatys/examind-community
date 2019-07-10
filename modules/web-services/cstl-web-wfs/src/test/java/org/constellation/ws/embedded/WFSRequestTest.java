@@ -673,7 +673,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=8)
     public void testWFSTransactionInsert() throws Exception {
         initPool();
-        System.out.println("---------------testWFSTransactionInsert------------------");
+        System.out.println("---------------testWFSTransactionInsert INSERT 1------------------");
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
@@ -698,6 +698,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertEquals(ExpResult, result);
 
+        System.out.println("---------------testWFSTransactionInsert GET 1------------------");
 
         /**
          * We verify that the 2 new samplingPoint are inserted
@@ -717,6 +718,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         domCompare(xmlResult, xmlExpResult);
 
+
+        System.out.println("---------------testWFSTransactionInsert INSERT 1------------------");
         // for a POST request
         conec = getCapsUrl.openConnection();
 
@@ -738,6 +741,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertEquals(ExpResult, result);
 
+        System.out.println("---------------testWFSTransactionInsert GET 2------------------");
         /**
          * We verify that the 2 new samplingPoint are inserted
          */
@@ -758,6 +762,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         domCompare(xmlResult, xmlExpResult);
 
+        System.out.println("---------------testWFSTransactionInsert INSERT 3------------------");
 
         // for a POST request
         conec = getCapsUrl.openConnection();
@@ -780,6 +785,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertEquals(ExpResult, result);
 
+        System.out.println("---------------testWFSTransactionInsert GET 3------------------");
         /**
          * We verify that the 2 new samplingPoint are inserted
          */
@@ -1586,7 +1592,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=29)
-    public void testWFSGetFeatureCITET() throws Exception {
+    public void testWFSGetFeatureCITETest() throws Exception {
 
         URL getfeatsUrl;
         try {

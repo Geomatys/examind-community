@@ -220,7 +220,7 @@ public class WFSCIteWorkerTest {
      *
      */
     @Test
-    public void getFeatureShapeFileTest() throws Exception {
+    public void getFeatureGMLTest() throws Exception {
 
         /**
          * Test 1 : query on typeName aggragateGeofeature
@@ -247,6 +247,7 @@ public class WFSCIteWorkerTest {
         featureWriter.write(collection,writer);
         writer.flush();
         String xmlResult = writer.toString();
+        System.out.println(xmlResult);
         assertEquals(1, collection.size());
 
         /**
