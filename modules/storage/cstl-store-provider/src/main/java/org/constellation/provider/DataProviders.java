@@ -739,7 +739,11 @@ public final class DataProviders extends Static{
                         results.put(storeId, result.getMimeType());
                     }
                 } catch (Throwable ex) {
-                    LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode(), ex);
+                    if (ex instanceof UnsupportedOperationException) {
+                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ") cause: unsupported operation");
+                        } else {
+                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
+                        }
                     // renew connector in case of error
                     input.closeAllExcept(null);
                     input = new StorageConnector(p);
@@ -772,7 +776,11 @@ public final class DataProviders extends Static{
                             results.put(storeId, result.getMimeType());
                         }
                     } catch (Throwable ex) {
-                        LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
+                        if (ex instanceof UnsupportedOperationException) {
+                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ") cause: unsupported operation");
+                        } else {
+                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
+                        }
                         // renew connector in case of error
                         input.closeAllExcept(null);
                         input = new StorageConnector(p);

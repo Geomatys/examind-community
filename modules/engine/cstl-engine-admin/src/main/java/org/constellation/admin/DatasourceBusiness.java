@@ -372,8 +372,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         final String url;
         switch (ds.getType()) {
             case "smb":
-            case "ftp":
             case "s3":
+                try {
+                    String userUrl = getFileSystem(ds, true).uri;
+                    url = userUrl + subPath;
+                } catch (IOException | URISyntaxException ex) {
+                    throw new ConfigurationException(ex);
+                }   break;
+            case "ftp":
                 try {
                     String userUrl = getFileSystem(ds, true).uri;
                     String mainPath = URI.create(ds.getUrl()).getPath();
@@ -580,13 +586,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     @Override
     @Transactional
-    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async) throws ConstellationException {
-        return computeDatasourceStores(id, async, null);
+    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, boolean deep) throws ConstellationException {
+        return computeDatasourceStores(id, async, null, deep);
     }
 
     @Override
     @Transactional
-    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId) throws ConstellationException {
+    public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep) throws ConstellationException {
         final DataSource ds = getDatasource(id);
         if (ds == null) {
             throw new TargetNotFoundException("Unexisting datasource:" + id);
@@ -597,10 +603,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             if ( AnalysisState.NOT_STARTED.name().equals(datasourceState)) {
                 updateDatasourceAnalysisState(ds.getId(), AnalysisState.PENDING.name());
                 if (!async) {
-                    return analyzeDataSource(ds, storeId);
+                    return analyzeDataSource(ds, storeId, deep);
                 } else {
                     // TODO: work with FutureTask instead, and use an executor service to avoid hard-coded thread creation
-                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId));
+                    final Thread t = new Thread(() -> analyzeDataSource(ds, storeId, deep));
                     currentRunningAnalysis.put(id, t);
                     t.start();
                     return Collections.EMPTY_MAP;
@@ -611,11 +617,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId) {
+    private Map<String, Set<String>> analyzeDataSource(final DataSource source, String storeId, boolean deep) {
         final Map<String, Set<String>> results = new HashMap<>();
         try {
             long start = System.nanoTime();
-            computeDatasourceStores(source, results, null, "/", true, storeId);
+            computeDatasourceStores(source, results, null, "/", true, deep, storeId);
             updateDatasourceAnalysisState(source.getId(), AnalysisState.COMPLETED.name());
             LOGGER.fine("Analysis complete in " + ((System.nanoTime() - start) / 1e6) + " ms");
         } catch (Exception ex) {
@@ -625,7 +631,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return results;
     }
 
-    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, String storeId) throws ConstellationException {
+    private void computeDatasourceStores(final DataSource ds, final Map<String, Set<String>> types, final String parentPath, String subPath, boolean root, boolean deep, String storeId) throws ConstellationException {
         final Path path = getDataSourcePath(ds, subPath);
         if (!Files.exists(path)) {
             throw new ConstellationException("path does not exists:" + path.toString());
@@ -654,7 +660,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             }
         }
 
-        if (root) {
+        if (root || deep) {
             List<Path> children = new ArrayList<>();
             // do not keep opened the stream while calling recursively the method
             // because it can induce problem withe pooled client FileSystem (like ftp for example).
@@ -674,7 +680,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 if (Files.isDirectory(child)) {
                     childPath = childPath + '/';
                 }
-                computeDatasourceStores(ds, types, subPath, childPath, false, storeId);
+                computeDatasourceStores(ds, types, subPath, childPath, false, deep, storeId);
             }
         }
     }

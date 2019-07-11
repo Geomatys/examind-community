@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasourceBusiness;
+import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -171,7 +172,7 @@ public class ImportData extends AbstractCstlProcess {
                  storeDatas.removeAll(failedDatas);
                  outputDatas.addAll(storeDatas);
                  outputParameters.getOrCreate(OUT_CONFIGURATION).setValue(outputDatas);
-                 datasourceBusiness.updatePathStatus(ds.getId(), p.getPath(), "COMPLETED");
+                 datasourceBusiness.updatePathStatus(ds.getId(), p.getPath(), PathStatus.COMPLETED.name());
                  i++;
              }
 

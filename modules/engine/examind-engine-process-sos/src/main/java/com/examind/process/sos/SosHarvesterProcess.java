@@ -270,7 +270,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(CsvObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
 
             try {
-                datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId);
+                datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);
 
 
 //                if (analyseDatasourceV3.getStores().isEmpty()) {

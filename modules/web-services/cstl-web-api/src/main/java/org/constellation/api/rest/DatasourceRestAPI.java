@@ -171,7 +171,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             }
 
             // 3. reset the analyse state
-            datasourceBusiness.updateDatasourceAnalysisState(id, "NOT_STARTED");
+            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
             return new ResponseEntity(OK);
         } catch (Throwable ex) {
@@ -255,7 +255,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 }
             }
             // 3. reset the analyse state
-            datasourceBusiness.updateDatasourceAnalysisState(id, "NOT_STARTED");
+            datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
             return new ResponseEntity(OK);
         } catch (Throwable ex) {
@@ -275,9 +275,10 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     }
 
     @RequestMapping(value = "/datasources/{id}/stores", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasourceStores(@PathVariable("id") int id, @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async) {
+    public ResponseEntity getDatasourceStores(@PathVariable("id") int id, @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
+                                               @RequestParam(name = "depp", required = false, defaultValue = "false") Boolean deep) {
         try {
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep);
             final List<StoreFormat> results = new ArrayList<>();
             for (Entry<String, Set<String>> entry : storeFormats.entrySet()) {
                 for (String format : entry.getValue()) {
