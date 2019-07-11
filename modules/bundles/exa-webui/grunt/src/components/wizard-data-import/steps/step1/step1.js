@@ -165,6 +165,15 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
         cfpLoadingBar.inc();
 
         self.stores.computeStoresCompleted = false;
+
+        /**
+         * deep analysis is deactivated by default.
+         * activate it only for local files for now
+         */
+        var deep = false;
+        if (self.wizardValues.step1.dataSource.type === "local_files") {
+            deep = true;
+        }
         /**
          * store the interval promise to cancel
          *
@@ -172,7 +181,7 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
         var cancelled = $interval.cancel(self.stores.asyncComputeStoresInterval);
         self.stores.asyncComputeStoresInterval = $interval(function () {
             self.stores.computeStoresFailed = false;
-            Examind.dataSources.computeDatasourceStores(dsId, true)
+            Examind.dataSources.computeDatasourceStores(dsId, true, deep)
                 .then(function (response) {
                     angular.forEach(response.data, function (item) {
                         item.title = $filter('translate')(item.store + '-' + item.format);

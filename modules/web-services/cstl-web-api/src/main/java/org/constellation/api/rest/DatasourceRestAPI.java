@@ -276,7 +276,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value = "/datasources/{id}/stores", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasourceStores(@PathVariable("id") int id, @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
-                                               @RequestParam(name = "depp", required = false, defaultValue = "false") Boolean deep) {
+                                               @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep) {
         try {
             Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep);
             final List<StoreFormat> results = new ArrayList<>();

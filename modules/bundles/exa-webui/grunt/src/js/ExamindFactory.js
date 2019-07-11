@@ -947,12 +947,13 @@ function Examind($http, url) {
          * Get the list of stores from analysing the datasource
          * @param dataSourceId
          * @param async
+         * @param deep
          * @returns {Promise}
          */
-        computeDatasourceStores : function(dataSourceId, async) {
+        computeDatasourceStores : function(dataSourceId, async, deep) {
             return self.request({
                 method: 'GET',
-                url: 'datasources/' + dataSourceId + '/stores?async=' + async
+                url: 'datasources/' + dataSourceId + '/stores?async=' + async + '&deep=' + deep
                 });
         }
 
