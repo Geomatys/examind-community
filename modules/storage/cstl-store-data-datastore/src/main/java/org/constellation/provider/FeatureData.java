@@ -20,6 +20,7 @@
 package org.constellation.provider;
 
 import org.constellation.exception.ConstellationStoreException;
+import org.opengis.feature.FeatureType;
 
 /**
  * Layer details for Feature sources.
@@ -28,6 +29,8 @@ import org.constellation.exception.ConstellationStoreException;
  * @author Johann Sorel (Geomatys)
  */
 public interface FeatureData extends GeoData {
+
+    FeatureType getType() throws ConstellationStoreException;
 
     Object[] getPropertyValues(String property) throws ConstellationStoreException;
 

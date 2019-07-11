@@ -164,7 +164,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
@@ -191,6 +190,8 @@ import static org.constellation.wfs.core.WFSConstants.OPERATIONS_METADATA_V200;
 import static org.constellation.wfs.core.WFSConstants.TYPE_PARAM;
 import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.WritableFeatureSet;
+import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.data.FeatureSetWrapper;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStreams;
@@ -418,8 +419,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final FeatureData fld = (FeatureData) layer;
                 final FeatureType type;
                 try {
-                    type  = getFeatureTypeFromLayer(fld);
-                } catch (DataStoreException ex) {
+                    type  = fld.getType();
+                } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.WARNING, "Error while getting featureType for:{0}\ncause:{1}", new Object[]{fld.getName(), ex.getMessage()});
                     continue;
                 }
@@ -582,22 +583,25 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     FeatureData fLayer = (FeatureData)layer;
+                    DataStore store    = fLayer.getStore();
+                    FeatureType ftType = fLayer.getType();
 
-                    DataStore store = fLayer.getStore();
-                    if(store instanceof ExtendedFeatureStore) store = (DataStore)((ExtendedFeatureStore)store).getWrapped();
+                    if (store instanceof ExtendedFeatureStore) {
+                        store = (DataStore) ((ExtendedFeatureStore) store).getWrapped();
+                    }
                     if (store instanceof XSDFeatureStore) {
-                        final Map params = (Map)((XSDFeatureStore)store).getSchema(layer.getName());
-                        if(params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema){
-                            final FeatureType ft = NameOverride.wrap(getFeatureTypeFromLayer(fLayer), name.name);
+                        final Map params = (Map) ((XSDFeatureStore) store).getSchema(layer.getName());
+                        if (params.size() == 1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
+                            final FeatureType ft = NameOverride.wrap(ftType, name.name);
                             declaredSchema.put(ft, (Schema) params.get(params.keySet().iterator().next()));
                             types.add(ft);
-                        }else{
+                        } else {
                             locations.putAll(params);
                         }
                     } else {
-                        types.add(NameOverride.wrap(getFeatureTypeFromLayer(fLayer), name.name));
+                        types.add(NameOverride.wrap(ftType, name.name));
                     }
-                } catch (DataStoreException ex) {
+                } catch (ConstellationStoreException | DataStoreException ex) {
                     LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
             }
@@ -620,21 +624,22 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     FeatureData fLayer = (FeatureData)layer;
-                    DataStore store = fLayer.getStore();
+                    DataStore store    = fLayer.getStore();
+                    FeatureType ftType = fLayer.getType();
+
                     if(store instanceof ExtendedFeatureStore) store = (DataStore)((ExtendedFeatureStore)store).getWrapped();
                     if (store instanceof XSDFeatureStore) {
                         final Map params = (Map)((XSDFeatureStore)store).getSchema(layerName);
                         if(params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema){
-                            final FeatureType ft = getFeatureTypeFromLayer(fLayer);
-                            declaredSchema.put(NameOverride.wrap(ft, layerName), (Schema) params.get(params.keySet().iterator().next()));
-                            types.add(ft);
+                            declaredSchema.put(NameOverride.wrap(ftType, layerName), (Schema) params.get(params.keySet().iterator().next()));
+                            types.add(ftType);
                         }else{
                             locations.putAll(params);
                         }
                     } else {
-                        types.add(NameOverride.wrap(getFeatureTypeFromLayer(fLayer), layerName));
+                        types.add(NameOverride.wrap(ftType, layerName));
                     }
-                } catch (DataStoreException ex) {
+                } catch (ConstellationStoreException | DataStoreException ex) {
                     LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
             }
@@ -768,8 +773,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 if (!(layer instanceof FeatureData)) {continue;}
 
                 try {
-                    types.add(NameOverride.wrap(getFeatureTypeFromLayer((FeatureData)layer), name.name));
-                } catch (DataStoreException ex) {
+                    types.add(NameOverride.wrap(((FeatureData)layer).getType(), name.name));
+                } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
             }
@@ -786,8 +791,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
 
             try {
-                types.add(NameOverride.wrap(getFeatureTypeFromLayer((FeatureData)layer), n));
-            } catch (DataStoreException ex) {
+                types.add(NameOverride.wrap(((FeatureData)layer).getType(), n));
+            } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "error while getting featureType for:"+ layer.getName(), ex);
             }
             suffix = "&typename=ns:" + request.featureType.getLocalPart() + "&namespace=xmlns(ns=" + request.featureType.getNamespaceURI() + ")";
@@ -807,21 +812,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         return schema;
 
     }
-
-    /**
-     * Extract a FeatureType from a FeatureLayerDetails
-     *
-     * @param fld A feature layer object.
-     * @return A Feature type.
-     */
-    private FeatureType getFeatureTypeFromLayer(final FeatureData fld) throws DataStoreException {
-        Resource rs = StoreUtilities.findResource(fld.getStore(), fld.getName().toString());
-        if (rs instanceof FeatureSet) {
-            return ((FeatureSet)rs).getType();
-        }
-        return null;
-    }
-
 
     private LinkedHashMap<String,? extends Query> extractStoredQueries(final FeatureRequest request) throws CstlServiceException {
         final List<? extends Query> queries = request.getQuery();
@@ -1068,8 +1058,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 final FeatureType ft;
                 try {
-                    ft = getFeatureTypeFromLayer(layer);
-                } catch (DataStoreException ex) {
+                    ft = layer.getType();
+                } catch (ConstellationStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
@@ -1274,8 +1264,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 final FeatureType ft;
                 try {
-                    ft = getFeatureTypeFromLayer(layer);
-                } catch (DataStoreException ex) {
+                    ft = layer.getType();
+                } catch (ConstellationStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
@@ -1466,7 +1456,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     }
                     final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
                     try {
-                        final FeatureType type = getFeatureTypeFromLayer(layer);
+                        final FeatureType type = layer.getType();
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
                         if(trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))){
                             final FeatureCollection collection = FeatureStoreUtilities.collection(ft,featureCollection);
@@ -1480,7 +1470,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             totalInserted++;
                             LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
                         }
-                    } catch (DataStoreException ex) {
+                    } catch (ConstellationStoreException | DataStoreException ex) {
                         Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
                     } catch (ClassCastException ex) {
                         Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
@@ -1507,8 +1497,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
                 final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
                 try {
-                    final FeatureType ft = getFeatureTypeFromLayer(layer);
+                    final FeatureType ft = layer.getType();
                     final Filter cleanFilter = processFilter(ft, filter, null);
+                    FeatureSet fs = (FeatureSet) layer.getOrigin();
 
                     // we verify that all the properties contained in the filter are known by the feature type.
                     verifyFilterProperty(NameOverride.wrap(ft, typeName), cleanFilter, null);
@@ -1516,10 +1507,15 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     // we extract the number of feature deleted
                     final QueryBuilder queryBuilder = new QueryBuilder(layer.getName().toString());
                     queryBuilder.setFilter(cleanFilter);
-                    totalDeleted = totalDeleted + (int) ((FeatureStore)layer.getStore()).getCount(queryBuilder.buildQuery());
 
-                    ((FeatureStore)layer.getStore()).removeFeatures(layer.getName().toString(), filter);
-                } catch (DataStoreException ex) {
+                    totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
+
+                    if (fs instanceof WritableFeatureSet) {
+                        ((WritableFeatureSet) fs).removeIf((f)-> filter.evaluate(f));
+                    } else {
+                        throw new CstlServiceException("This feature set is not Writable");
+                    }
+                } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 } catch (ClassCastException ex) {
                     Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
@@ -1552,10 +1548,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
                 final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
                 try {
-                    final FeatureType ft = getFeatureTypeFromLayer(layer);
+                    final FeatureType ft = layer.getType();
                     if (ft == null) {
                         throw new CstlServiceException("Unable to find the featuretype:" + layer.getName());
                     }
+                    final FeatureSet fs = (FeatureSet) layer.getOrigin();
 
                     final Map<String,Object> values = new HashMap<>();
 
@@ -1623,7 +1620,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     // we extract the number of feature update
                     final QueryBuilder queryBuilder = new QueryBuilder(layer.getName().toString());
                     queryBuilder.setFilter(cleanFilter);
-                    totalUpdated = totalUpdated + (int) ((FeatureStore)layer.getStore()).getCount(queryBuilder.buildQuery());
+                    totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
 
                     FeatureWriter fw = ((FeatureStore)layer.getStore()).getFeatureWriter(QueryBuilder.filtered(layer.getName().toString(), filter));
                     try {
@@ -1638,7 +1635,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     } finally {
                         fw.close();
                     }
-                } catch (DataStoreException ex) {
+                } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
@@ -1720,13 +1717,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
-                    final FeatureType ft = getFeatureTypeFromLayer(layer);
-                    final String layerName = layer.getName().toString();
+                    final FeatureType ft    = layer.getType();
+                    final FeatureSet fs     = (FeatureSet) layer.getOrigin();
+                    final String layerName  = layer.getName().toString();
 
                     // we extract the number of feature to replace
                     final QueryBuilder queryBuilder = new QueryBuilder(layerName);
                     queryBuilder.setFilter(processFilter(ft, filter, null));
-                    totalReplaced = totalReplaced + (int) ((FeatureStore)layer.getStore()).getCount(queryBuilder.buildQuery());
+                    totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
 
                     // first remove the feature to replace
                     ((FeatureStore)layer.getStore()).removeFeatures(layerName, filter);
@@ -1744,7 +1742,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
                     }
 
-                } catch (DataStoreException ex) {
+                } catch (ConstellationStoreException | DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
@@ -2128,7 +2126,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             if (!(layer instanceof FeatureData)) {continue;}
             try {
                 //fix feature type to define the exposed crs : true EPSG axis order
-                final FeatureType baseType = getFeatureTypeFromLayer((FeatureData)layer);
+                final FeatureType baseType = ((FeatureData)layer).getType();
                 final String crsCode = getCRSCode(baseType);
                 final CoordinateReferenceSystem exposedCrs = CRS.forCode(crsCode);
                 final FeatureType exposedType = FeatureTypeExt.createSubType(baseType, null, exposedCrs);

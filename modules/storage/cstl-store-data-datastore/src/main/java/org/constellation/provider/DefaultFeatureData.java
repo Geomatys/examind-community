@@ -129,44 +129,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
      */
     protected final Date versionDate;
 
-    /**
-     * Build a FeatureLayerDetails with layer name, store and favorite style names.
-     *
-     * @param name layer name
-     * @param store FeatureStore
-     * @param favorites style names
-     */
-    public DefaultFeatureData(GenericName name, DataStore store, List<String> favorites){
-        this(name,store,favorites,null,null,null,null,null);
-    }
-
-    /**
-     * Build a FeatureLayerDetails with layer name, store, favorite style names and data version date.
-     *
-     * @param name layer name
-     * @param store FeatureStore
-     * @param favorites style names
-     * @param versionDate data version date of the layer (can be null)
-     */
-    public DefaultFeatureData(GenericName name, DataStore store, List<String> favorites, Date versionDate){
-        this(name,store,favorites,null,null,null,null, versionDate);
-    }
-
-    /**
-     * Build a FeatureLayerDetails with layer name, store, favorite style names and temporal/elevation filters.
-     *
-     * @param name layer name
-     * @param store FeatureStore
-     * @param favorites style names
-     * @param dateStart temporal filter start
-     * @param dateEnd temporal filter end
-     * @param elevationStart elevation filter start
-     * @param elevationEnd elevation filter end
-     */
-    public DefaultFeatureData(GenericName name, DataStore store, List<String> favorites,
-            String dateStart, String dateEnd, String elevationStart, String elevationEnd){
-        this(name,store,favorites,dateStart,dateEnd,elevationStart,elevationEnd , null);
-    }
+    protected final FeatureSet fs;
 
     /**
      * Build a FeatureLayerDetails with layer name, store, favorite style names, temporal/elevation filters and
@@ -181,7 +144,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
      * @param elevationEnd elevation filter end
      * @param versionDate data version date of the layer (can be null)
      */
-    public DefaultFeatureData(GenericName name, DataStore store, List<String> favorites,
+    public DefaultFeatureData(GenericName name, DataStore store, FeatureSet fs, List<String> favorites,
                                         String dateStart, String dateEnd, String elevationStart, String elevationEnd, Date versionDate){
 
         super(name,favorites);
@@ -197,6 +160,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
         }*/
 
+        this.fs    = fs;
         this.store = store;
         this.versionDate = versionDate;
 
@@ -216,7 +180,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
 
     }
 
-    protected MapLayer createMapLayer(MutableStyle style, final Map<String, Object> params) throws DataStoreException {
+    protected MapLayer createMapLayer(MutableStyle style, final Map<String, Object> params) throws DataStoreException, ConstellationStoreException {
         if(style == null && favorites.size() > 0){
             //no style provided, try to get the favorite one
             //there are some favorites styles
@@ -230,7 +194,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         }
 
 
-        final FeatureType featureType = ((FeatureSet)StoreUtilities.findResource(store, name.toString())).getType();
+        final FeatureType featureType = getType();
         if(style == null){
             //no favorites defined, create a default one
             style = RandomStyleBuilder.createDefaultVectorStyle(featureType);
@@ -317,12 +281,11 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, name.toString());
             final QueryBuilder query = new QueryBuilder();
             query.setVersionDate(versionDate);
-            query.setTypeName(fs.getType().getName());
-            fs = fs.subset(query.buildQuery());
-            return FeatureStoreUtilities.getEnvelope(fs);
+            query.setTypeName(name);
+            FeatureSet subfs = fs.subset(query.buildQuery());
+            return FeatureStoreUtilities.getEnvelope(subfs);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -337,7 +300,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         final SortedSet<Date> dates = new TreeSet<>();
         if (dateStartField != null) {
             try {
-                final FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, name.toString());
                 final AttributeType desc = (AttributeType) dateStartField.evaluate(fs.getType());
 
                 if(desc == null){
@@ -385,7 +347,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         if (elevationStartField != null) {
 
             try {
-                final FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, name.toString());
                 final AttributeType desc = (AttributeType) elevationStartField.evaluate(fs.getType());
                 if(desc == null){
                     LOGGER.log(Level.WARNING , "Invalid field : "+ elevationStartField + " Does not exist in layer :" + name);
@@ -431,14 +392,26 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FeatureType getType() throws ConstellationStoreException {
+        try {
+            return fs.getType();
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    /**
      * Returns a {@linkplain FeatureCollection feature collection} containing all the data.
      */
     @Override
     public Object getOrigin() {
-        final QueryBuilder builder = new QueryBuilder();
+        /*final QueryBuilder builder = new QueryBuilder();
         builder.setTypeName(name);
 
-        //build query using versionDate if not null and sotre support versioning.
+        build query using versionDate if not null and sotre support versioning.
         if (store instanceof FeatureStore) {
             FeatureStore fs = (FeatureStore) store;
             if (fs.getQueryCapabilities().handleVersioning()) {
@@ -449,13 +422,9 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
             }
             final Query query =  builder.buildQuery();
             return fs.createSession(false).getFeatureCollection(query);
-        } else {
-            try {
-                return StoreUtilities.findResource(store, name.toString());
-            } catch (DataStoreException ex) {
-                throw new IllegalArgumentException("Unable to find a resource:" + name);
-            }
-        }
+        } else {*/
+            return fs;
+        //}
     }
 
 
@@ -469,7 +438,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
         try {
 
             // Acquire data feature type.
-            final FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, getName().toString());
             final FeatureType featureType = fs.getType();
 
             // Feature attributes description.
@@ -499,9 +467,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     @Override
     public Object[] getPropertyValues(String property) throws ConstellationStoreException {
         try {
-            // Get feature collection.
-            FeatureSet fs = (FeatureSet) StoreUtilities.findResource(store, getName().toString());
-
             // Visit collection.
             final QueryBuilder qb = new QueryBuilder();
             qb.setProperties(new String[]{property});
@@ -525,12 +490,8 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     @Override
     public String getSubType() throws ConstellationStoreException {
         try {
-            final Resource rs = StoreUtilities.findResource(store, getName().toString());
-            if (rs instanceof FeatureSet) {
-                FeatureType fType = ((FeatureSet) rs).getType();
-                return findGeometryType(fType, null);
-            }
-            return null;
+            FeatureType fType = fs.getType();
+            return findGeometryType(fType, null);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }

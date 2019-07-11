@@ -42,7 +42,6 @@ import org.geotoolkit.db.postgres.PostgresFeatureStore;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
@@ -155,7 +154,7 @@ public class DataStoreProvider extends AbstractDataProvider{
             if (rs instanceof org.apache.sis.storage.GridCoverageResource) {
                 return new DefaultCoverageData(key, (org.apache.sis.storage.GridCoverageResource) rs, store);
             } else if (rs instanceof FeatureSet){
-                return new DefaultFeatureData(key, store, null, null, null, null, null, version);
+                return new DefaultFeatureData(key, store, (FeatureSet) rs, null, null, null, null, null, version);
 
             // Other Data
             } else if (!(rs instanceof Aggregate)){
