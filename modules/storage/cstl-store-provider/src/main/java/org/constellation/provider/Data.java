@@ -100,7 +100,7 @@ public interface Data {
 
     /**
      * Origin source of this data can be :
-     * FeatureCollection, CoverageRefence, null.
+     * FeatureSet, GridCoverageResource, ... or null.
      */
     Object getOrigin();
 

@@ -70,7 +70,7 @@ public class ValueCollectionWriter implements HttpMessageConverter<ValueCollecti
     public void write(ValueCollectionWrapper t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             final XmlFeatureWriter featureWriter = new JAXPStreamValueCollectionWriter(t.getValueReference());
-            featureWriter.write(t.getFeatureCollection(), outputMessage.getBody());
+            featureWriter.write(t.getFeatureSet(), outputMessage.getBody());
         } catch (XMLStreamException ex) {
             LOGGER.log(Level.SEVERE, "Stax exception while writing the feature collection", ex);
         } catch (DataStoreException ex) {

@@ -40,7 +40,7 @@ import org.constellation.provider.FeatureData;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.QnameLocalComparator;
-import org.constellation.wfs.ws.rs.FeatureCollectionWrapper;
+import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
@@ -169,9 +169,7 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.Names;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.business.IDataBusiness;
@@ -180,7 +178,6 @@ import org.constellation.dto.NameInProvider;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.util.StoreUtilities;
 import org.constellation.wfs.NameOverride;
 import org.constellation.wfs.core.WFSConstants.GetXSD;
 import static org.constellation.wfs.core.WFSConstants.IDENTIFIER_FILTER;
@@ -192,7 +189,6 @@ import static org.constellation.wfs.core.WFSConstants.UNKNOW_TYPENAME;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.WritableFeatureSet;
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.data.FeatureSetWrapper;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.data.FeatureWriter;
@@ -448,7 +444,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             title,
                             defaultCRS,
                             others,
-                            toBBox(fld.getStore(), fld.getName(), currentVersion));
+                            toBBox(fld, currentVersion));
 
                     /*
                      * we apply the layer customization
@@ -1085,7 +1081,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     collection = session.getFeatureCollection(qb);
                 } else if (layer.getOrigin() instanceof FeatureSet) {
                     try {
-                        collection = new FeatureSetWrapper((FeatureSet) layer.getOrigin(), layer.getStore()).subset(qb);
+                        collection = new org.geotoolkit.data.FeatureSetWrapper((FeatureSet) layer.getOrigin(), layer.getStore()).subset(qb);
                     } catch (DataStoreException ex) {
                         throw new CstlServiceException("Error while querying the featureSet", ex);
                     }
@@ -1173,9 +1169,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         LOGGER.log(Level.INFO, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
         if(queries.size()==1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")){
-            return new FeatureCollectionWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
+            return new FeatureSetWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
         }else{
-            return new FeatureCollectionWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
+            return new FeatureSetWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
         }
 
     }
@@ -1954,26 +1950,22 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      * Extract the WGS84 BBOx from a featureSource.
      * what ? may not be wgs84 exactly ? why is there a CRS attribute on a wgs84 bbox ?
      */
-    private static Object toBBox(final DataStore source, final GenericName groupName, final String version) throws CstlServiceException{
+    private static Object toBBox(final FeatureData fld, final String version) throws CstlServiceException{
         try {
-            Resource rs = StoreUtilities.findResource(source, groupName.toString());
-            if (rs instanceof DataSet) {
-                DataSet ds = (DataSet) rs;
-                Envelope env = FeatureStoreUtilities.getEnvelope(ds);
-                if (env != null) {
-                    final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
-                    if (!Utilities.equalsIgnoreMetadata(env.getCoordinateReferenceSystem(), epsg4326)) {
-                        env = Envelopes.transform(env, epsg4326);
-                    }
-                    return buildBBOX(version,
-                           "urn:ogc:def:crs:OGC:2:84",
-                           env.getMinimum(0),
-                           env.getMinimum(1),
-                           env.getMaximum(0),
-                           env.getMaximum(1));
+            Envelope env = fld.getEnvelope();
+            if (env != null) {
+                final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
+                if (!Utilities.equalsIgnoreMetadata(env.getCoordinateReferenceSystem(), epsg4326)) {
+                    env = Envelopes.transform(env, epsg4326);
                 }
+                return buildBBOX(version,
+                       "urn:ogc:def:crs:OGC:2:84",
+                       env.getMinimum(0),
+                       env.getMinimum(1),
+                       env.getMaximum(0),
+                       env.getMaximum(1));
             }
-        } catch (DataStoreException | TransformException | FactoryException ex) {
+        } catch (ConstellationStoreException | TransformException | FactoryException ex) {
             throw new CstlServiceException(ex);
         }
         // return default full BBOX

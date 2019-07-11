@@ -20,7 +20,7 @@ package org.constellation.ws.embedded.wps;
 
 import java.util.List;
 import org.constellation.wps.ws.rs.BoundingBoxWriter;
-import org.constellation.wps.ws.rs.FeatureCollectionWriter;
+import org.constellation.wps.ws.rs.FeatureSetWriter;
 import org.constellation.wps.ws.rs.FileWriter;
 import org.constellation.wps.ws.rs.GeometryWriter;
 import org.constellation.wps.ws.rs.WPSResponseWriter;
@@ -44,7 +44,7 @@ public class WPSControllerConfig  extends WebMvcConfigurationSupport {
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new BoundingBoxWriter());
-        converters.add(new FeatureCollectionWriter());
+        converters.add(new FeatureSetWriter());
         converters.add(new FileWriter());
         converters.add(new GeometryWriter());
         converters.add(new WPSResponseWriter());

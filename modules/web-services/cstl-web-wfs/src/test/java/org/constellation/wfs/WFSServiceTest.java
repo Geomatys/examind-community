@@ -30,10 +30,9 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
-import org.constellation.wfs.ws.rs.FeatureCollectionWrapper;
+import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.WFSService;
 import org.constellation.ws.rs.AbstractWebService;
-import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -54,10 +53,12 @@ import java.sql.Connection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
+import org.apache.sis.storage.FeatureSet;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
+import org.geotoolkit.data.FeatureStoreUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
@@ -184,9 +185,9 @@ public class WFSServiceTest {
 
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
-        assertTrue(result.getBody() instanceof FeatureCollectionWrapper);
-        FeatureCollection collection = ((FeatureCollectionWrapper) result.getBody()).getFeatureCollection();
-        assertEquals(6, collection.size());
+        assertTrue(result.getBody() instanceof FeatureSetWrapper);
+        FeatureSet collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        assertEquals(6, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
          * we insert the feature
@@ -204,9 +205,9 @@ public class WFSServiceTest {
 
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
-        assertTrue(result.getBody() instanceof FeatureCollectionWrapper);
-        collection = ((FeatureCollectionWrapper) result.getBody()).getFeatureCollection();
-        assertEquals(8, collection.size());
+        assertTrue(result.getBody() instanceof FeatureSetWrapper);
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        assertEquals(8, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
          * we delete the features
@@ -224,9 +225,9 @@ public class WFSServiceTest {
 
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
-        assertTrue(result.getBody() instanceof FeatureCollectionWrapper);
-        collection = ((FeatureCollectionWrapper) result.getBody()).getFeatureCollection();
-        assertEquals(6, collection.size());
+        assertTrue(result.getBody() instanceof FeatureSetWrapper);
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        assertEquals(6, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
          * we insert the feature with another request
@@ -244,9 +245,9 @@ public class WFSServiceTest {
 
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
-        assertTrue(result.getBody() instanceof FeatureCollectionWrapper);
-        collection = ((FeatureCollectionWrapper) result.getBody()).getFeatureCollection();
-        assertEquals(8, collection.size());
+        assertTrue(result.getBody() instanceof FeatureSetWrapper);
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        assertEquals(8, FeatureStoreUtilities.getCount(collection).intValue());
 
     }
 }

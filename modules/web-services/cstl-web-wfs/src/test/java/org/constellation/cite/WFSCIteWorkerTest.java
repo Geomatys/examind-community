@@ -32,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -50,8 +51,8 @@ import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
-import org.constellation.wfs.ws.rs.FeatureCollectionWrapper;
-import org.geotoolkit.data.FeatureCollection;
+import org.constellation.wfs.ws.rs.FeatureSetWrapper;
+import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.gml.xml.v311.MultiPointType;
@@ -239,16 +240,16 @@ public class WFSCIteWorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
+        assertTrue(result instanceof FeatureSetWrapper);
 
-        FeatureCollection collection = ((FeatureCollectionWrapper)result).getFeatureCollection();
+        FeatureSet collection = ((FeatureSetWrapper)result).getFeatureSet();
 
         StringWriter writer = new StringWriter();
         featureWriter.write(collection,writer);
         writer.flush();
         String xmlResult = writer.toString();
         System.out.println(xmlResult);
-        assertEquals(1, collection.size());
+        assertEquals(1, FeatureStoreUtilities.getCount(collection).intValue());
 
         /**
          * Test 1 : query on typeName aggragateGeofeature
@@ -261,16 +262,16 @@ public class WFSCIteWorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
+        assertTrue(result instanceof FeatureSetWrapper);
 
-        collection = ((FeatureCollectionWrapper)result).getFeatureCollection();
+        collection = ((FeatureSetWrapper)result).getFeatureSet();
 
         writer = new StringWriter();
         featureWriter.write(collection, writer);
         writer.flush();
         xmlResult = writer.toString();
 
-        assertEquals(5, collection.size());
+        assertEquals(5, FeatureStoreUtilities.getCount(collection).intValue());
 
         /**
          * Test 1 : query on typeName aggragateGeofeature
@@ -293,16 +294,16 @@ public class WFSCIteWorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
+        assertTrue(result instanceof FeatureSetWrapper);
 
-        collection = ((FeatureCollectionWrapper)result).getFeatureCollection();
+        collection = ((FeatureSetWrapper)result).getFeatureSet();
 
         writer = new StringWriter();
         featureWriter.write(collection, writer);
         writer.flush();
         xmlResult = writer.toString();
 
-        assertEquals(1, collection.size());
+        assertEquals(1, FeatureStoreUtilities.getCount(collection).intValue());
 
         String url = "http://localhost:8180/constellation/WS/wfs/ows11?service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns%28sf=http://cite.opengeospatial.org/gmlsf%29&filter=%3Cogc:Filter%20xmlns:gml=%22http://www.opengis.net/gml%22%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E//gml:description%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f008%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
 

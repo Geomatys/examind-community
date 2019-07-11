@@ -19,7 +19,7 @@
 package org.constellation.ws.embedded;
 
 import java.util.List;
-import org.constellation.wfs.ws.rs.FeatureCollectionWriter;
+import org.constellation.wfs.ws.rs.FeatureSetWriter;
 import org.constellation.wfs.ws.rs.FeatureTypeGJSWriter;
 import org.constellation.wfs.ws.rs.NodeReader;
 import org.constellation.wfs.ws.rs.SchemaWriter;
@@ -45,7 +45,7 @@ public class WFSControllerConfig  extends WebMvcConfigurationSupport {
 
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new FeatureCollectionWriter());
+        converters.add(new FeatureSetWriter());
         converters.add(new FeatureTypeGJSWriter());
         converters.add(new ValueCollectionWriter());
         converters.add(new WFSResponseWriter());

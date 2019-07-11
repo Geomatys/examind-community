@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import org.geotoolkit.data.FeatureCollection;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -44,7 +43,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class FileWriter implements HttpMessageConverter<File> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -59,7 +58,7 @@ public class FileWriter implements HttpMessageConverter<File> {
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.APPLICATION_OCTET_STREAM);
     }
-    
+
     @Override
     public File read(Class<? extends File> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("File message converter do not support reading.");

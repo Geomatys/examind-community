@@ -50,6 +50,7 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.FeatureData;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.utils.CstlDOMComparator;
@@ -60,12 +61,10 @@ import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
-import org.constellation.wfs.ws.rs.FeatureCollectionWrapper;
+import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.embedded.AbstractGrizzlyServer;
-import org.geotoolkit.data.FeatureCollection;
-import org.geotoolkit.data.FeatureSet;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
@@ -113,7 +112,7 @@ public class WFS2WorkerTest {
     private static final org.geotoolkit.ogc.xml.v200.ObjectFactory ogcFactory = new org.geotoolkit.ogc.xml.v200.ObjectFactory();
     private static final String EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
-    private static final List<QName> alltypes = new ArrayList<>();
+    private static final List<QName> ALL_TYPES = new ArrayList<>();
     private static boolean initialized = false;
     private static MarshallerPool pool;
     private static WFSWorker worker ;
@@ -198,20 +197,20 @@ public class WFS2WorkerTest {
                 providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
                 dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, null, null);
 
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","BuildingCenters"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","BasicPolygons"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Bridges"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Streams"));
-                alltypes.add(new QName("http://www.opengis.net/sampling/1.0","SamplingPoint"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Lakes"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","NamedPlaces"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Buildings"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","RoadSegments"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","DividedRoutes"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Forests"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","MapNeatline"));
-                alltypes.add(new QName("http://www.opengis.net/gml/3.2","Ponds"));
-                Collections.sort(alltypes, new QNameComparator());
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","BuildingCenters"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","BasicPolygons"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Bridges"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Streams"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/sampling/1.0","SamplingPoint"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Lakes"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","NamedPlaces"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Buildings"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","RoadSegments"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","DividedRoutes"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Forests"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","MapNeatline"));
+                ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Ponds"));
+                Collections.sort(ALL_TYPES, new QNameComparator());
 
 
                 final LayerContext config2 = new LayerContext();
@@ -464,13 +463,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer, 6);
+        featureWriter.write(result,writer, 6);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -503,13 +502,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-5v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -530,13 +529,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-4v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -557,13 +556,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-4v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -584,13 +583,13 @@ public class WFS2WorkerTest {
 
        result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -611,13 +610,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -638,13 +637,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-6v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -665,13 +664,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-7v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -692,13 +691,13 @@ public class WFS2WorkerTest {
         request.setStartIndex(2);
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-9v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -781,13 +780,13 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof ValueCollectionWrapper);
         ValueCollectionWrapper wrapper = (ValueCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         JAXPStreamValueCollectionWriter valueWriter = new JAXPStreamValueCollectionWriter(valueReference);
 
         StringWriter writer = new StringWriter();
-        valueWriter.write((FeatureCollection)result,writer);
+        valueWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.ValueCollectionOM1.xml"));
         domCompare(expectedResult, writer.toString());
@@ -801,13 +800,13 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof ValueCollectionWrapper);
         wrapper = (ValueCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         valueWriter = new JAXPStreamValueCollectionWriter(valueReference);
 
         writer = new StringWriter();
-        valueWriter.write((FeatureCollection)result,writer);
+        valueWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.ValueCollectionOM2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -856,13 +855,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.systemCollectionSelfJoin.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -896,13 +895,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.systemCollectionSelfJoin.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -926,13 +925,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -951,13 +950,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -975,13 +974,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1014,13 +1013,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1039,13 +1038,13 @@ public class WFS2WorkerTest {
         request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         result = worker.getFeature(request);
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1065,13 +1064,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1209,13 +1208,13 @@ public class WFS2WorkerTest {
 
         Object resultGF = worker.getFeature(requestGF);
 
-        assertTrue(resultGF instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) resultGF;
-        resultGF = wrapper.getFeatureCollection();
+        assertTrue(resultGF instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
+        resultGF = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)resultGF,writer);
+        featureWriter.write(resultGF,writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1235,7 +1234,7 @@ public class WFS2WorkerTest {
 
         final DataProvider provider = DataProviders.getProvider(providerShpId);
 
-        final FeatureType ft = ((FeatureSet)provider.getMainStore().findResource(tName.tip().toString())).getType();
+        final FeatureType ft = ((FeatureData)provider.get(tName)).getType();
         final JAXPStreamFeatureReader fr = new JAXPStreamFeatureReader(NameOverride.wrap(ft, tName));
         fr.getProperties().put(JAXPStreamFeatureReader.BINDING_PACKAGE, "GML");
         fr.getProperties().put(JAXPStreamFeatureReader.LONGITUDE_FIRST, false);
@@ -1265,13 +1264,13 @@ public class WFS2WorkerTest {
 
         Object resultGF = worker.getFeature(requestGF);
 
-        assertTrue(resultGF instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) resultGF;
-        resultGF = wrapper.getFeatureCollection();
+        assertTrue(resultGF instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
+        resultGF = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)resultGF,writer);
+        featureWriter.write(resultGF,writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1327,12 +1326,12 @@ public class WFS2WorkerTest {
 
         Object resultGF = worker.getFeature(requestGF);
 
-        assertTrue(resultGF instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) resultGF;
-        resultGF = wrapper.getFeatureCollection();
+        assertTrue(resultGF instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
+        resultGF = wrapper.getFeatureSet();
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)resultGF,writer);
+        featureWriter.write(resultGF,writer);
 
         String sresult = writer.toString();
         sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
@@ -1382,7 +1381,7 @@ public class WFS2WorkerTest {
 
         final List<StoredQueryListItemType> items = new ArrayList<>();
         items.add(new StoredQueryListItemType("nameQuery", Arrays.asList(new Title("Name query")), Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"))));
-        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), alltypes));
+        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), ALL_TYPES));
         items.add(new StoredQueryListItemType("urn:ogc:def:storedQuery:OGC-WFS::GetFeatureByType", Arrays.asList(new Title("By type query")), Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "AbstractFeatureType"))));
         final ListStoredQueriesResponseType expResult = new ListStoredQueriesResponseType(items);
 
@@ -1479,7 +1478,7 @@ public class WFS2WorkerTest {
 
         final List<StoredQueryListItemType> items = new ArrayList<>();
         items.add(new StoredQueryListItemType("nameQuery",     Arrays.asList(new Title("Name query")),     Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"))));
-        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), alltypes));
+        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), ALL_TYPES));
         items.add(new StoredQueryListItemType("urn:ogc:def:storedQuery:OGC-WFS::GetFeatureByType", Arrays.asList(new Title("By type query")), Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "AbstractFeatureType"))));
         items.add(new StoredQueryListItemType("geomQuery",     Arrays.asList(new Title("Geom query")),     Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "Bridges"))));
         items.add(new StoredQueryListItemType("envelopeQuery", Arrays.asList(new Title("Envelope query")), Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"))));
@@ -1533,7 +1532,7 @@ public class WFS2WorkerTest {
 
         final List<StoredQueryListItemType> items = new ArrayList<>();
         items.add(new StoredQueryListItemType("nameQuery", Arrays.asList(new Title("Name query")), Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"))));
-        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), alltypes));
+        items.add(new StoredQueryListItemType("urn:ogc:def:query:OGC-WFS::GetFeatureById", Arrays.asList(new Title("Identifier query")), ALL_TYPES));
         items.add(new StoredQueryListItemType("urn:ogc:def:storedQuery:OGC-WFS::GetFeatureByType", Arrays.asList(new Title("By type query")), Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "AbstractFeatureType"))));
         items.add(new StoredQueryListItemType("envelopeQuery", Arrays.asList(new Title("Envelope query")), Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"))));
         final ListStoredQueriesResponseType expResultlsq = new ListStoredQueriesResponseType(items);
@@ -1578,13 +1577,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1612,13 +1611,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1639,13 +1638,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1670,13 +1669,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-8v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1697,13 +1696,13 @@ public class WFS2WorkerTest {
 
         result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer,6);
+        featureWriter.write(result,writer,6);
 
         expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-3v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1730,13 +1729,13 @@ public class WFS2WorkerTest {
 
         Object result = worker.getFeature(request);
 
-        assertTrue(result instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) result;
-        result = wrapper.getFeatureCollection();
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
-        featureWriter.write((FeatureCollection)result,writer);
+        featureWriter.write(result,writer);
 
         String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.samplingPointCollection-2v2.xml"));
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
@@ -1756,8 +1755,8 @@ public class WFS2WorkerTest {
 
         Object resultGF = worker.getFeature(requestGF);
 
-        assertTrue(resultGF instanceof FeatureCollectionWrapper);
-        FeatureCollectionWrapper wrapper = (FeatureCollectionWrapper) resultGF;
+        assertTrue(resultGF instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
 
         final Map<String, String> expResult = new HashMap<>();
         expResult.put("http://www.opengis.net/gml/3.2", "http://geomatys.com/constellation/WS/wfs/test1?request=DescribeFeatureType&version=2.0.0&service=WFS&namespace=xmlns(ns1=http://www.opengis.net/gml/3.2)&typenames=ns1:NamedPlaces");

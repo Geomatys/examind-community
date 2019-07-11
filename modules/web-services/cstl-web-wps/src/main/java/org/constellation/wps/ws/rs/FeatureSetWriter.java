@@ -21,7 +21,6 @@ package org.constellation.wps.ws.rs;
 
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
@@ -32,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.storage.FeatureSet;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -43,10 +43,10 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Quentin Boileau
  */
-public class FeatureCollectionWriter implements HttpMessageConverter<FeatureCollection> {
+public class FeatureSetWriter implements HttpMessageConverter<FeatureSet> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -54,25 +54,25 @@ public class FeatureCollectionWriter implements HttpMessageConverter<FeatureColl
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return FeatureCollection.class.isAssignableFrom(clazz);
+        return FeatureSet.class.isAssignableFrom(clazz);
     }
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.APPLICATION_XML, MediaType.TEXT_XML);
     }
-    
+
     @Override
-    public FeatureCollection read(Class<? extends FeatureCollection> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+    public FeatureSet read(Class<? extends FeatureSet> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("Feature Collection message converter do not support reading.");
     }
 
    @Override
-    public void write(FeatureCollection t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    public void write(FeatureSet t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             final XmlFeatureWriter featureWriter = new JAXPStreamFeatureWriter();
             featureWriter.write(t, outputMessage.getBody());
-        
+
         } catch (XMLStreamException ex) {
             LOGGER.log(Level.SEVERE, "Stax exception while writing the feature collection", ex);
         } catch (DataStoreException ex) {

@@ -163,6 +163,8 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static final String WFS_GETFEATURE_CITE2 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns(sf=http://cite.opengeospatial.org/gmlsf)&filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E*%5B1%5D%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f001%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
 
+    private static final String WFS_GETFEATURE_CITE3 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns(sf=http://cite.opengeospatial.org/gmlsf)&filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E*%5B1%5D%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-wrong%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
+
     private static String EPSG_VERSION;
 
     private static boolean initialized = false;
@@ -1594,6 +1596,11 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=29)
     public void testWFSGetFeatureCITETest() throws Exception {
 
+        /**
+         * GET FEATURE KVP with filter gml:description = description-f008
+         *
+         * one result expected
+         */
         URL getfeatsUrl;
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE1);
@@ -1609,6 +1616,11 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         FeatureCollectionType feat = (FeatureCollectionType) obj;
         assertEquals(1, feat.getFeatureMember().size());
 
+        /**
+         * GET FEATURE KVP with filter gml:description = description-f001
+         *
+         * one result expected
+         */
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE2);
         } catch (MalformedURLException ex) {
@@ -1622,6 +1634,28 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         feat = (FeatureCollectionType) obj;
         assertEquals(1, feat.getFeatureMember().size());
+
+        /**
+         * GET FEATURE KVP with filter gml:description = description-wrong
+         *
+         * zero result expected
+         */
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_CITE3);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        obj = unmarshallResponse(getfeatsUrl);
+
+        assertTrue(obj instanceof FeatureCollectionType);
+
+        feat = (FeatureCollectionType) obj;
+        assertEquals(0, feat.getFeatureMember().size());
+
+        String xmlResult = getStringResponse(getfeatsUrl);
+        System.out.println(xmlResult);
     }
 
     @Test

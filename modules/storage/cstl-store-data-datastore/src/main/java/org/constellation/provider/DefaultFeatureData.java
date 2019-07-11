@@ -23,8 +23,6 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.data.FeatureCollection;
-import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.query.Query;
 import org.geotoolkit.data.query.QueryBuilder;
 import org.apache.sis.internal.system.DefaultFactories;
@@ -257,15 +255,19 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
                 }
                 if (filter != null) {
                     final FeatureMapLayer fml = (FeatureMapLayer) layer;
-                    final FeatureType type = ((FeatureCollection)fml.getResource()).getType();
-                    if (filter instanceof PropertyIsEqualTo) {
-                        final String propName = ((PropertyName)((PropertyIsEqualTo)filter).getExpression1()).getPropertyName();
-                        for (PropertyType desc : type.getProperties(true)) {
-                            if (desc.getName().tip().toString().equalsIgnoreCase(propName)) {
-                                fml.setQuery(QueryBuilder.filtered(type.getName().toString(), filter));
-                                break;
+                    try {
+                        final FeatureType type = fml.getResource().getType();
+                        if (filter instanceof PropertyIsEqualTo) {
+                            final String propName = ((PropertyName)((PropertyIsEqualTo)filter).getExpression1()).getPropertyName();
+                            for (PropertyType desc : type.getProperties(true)) {
+                                if (desc.getName().tip().toString().equalsIgnoreCase(propName)) {
+                                    fml.setQuery(QueryBuilder.filtered(type.getName().toString(), filter));
+                                    break;
+                                }
                             }
                         }
+                    } catch (DataStoreException ex) {
+                        throw new ConstellationStoreException(ex);
                     }
                 }
             }
@@ -404,7 +406,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     }
 
     /**
-     * Returns a {@linkplain FeatureCollection feature collection} containing all the data.
+     * Returns a {@linkplain FeatureSet feature set} containing all the data.
      */
     @Override
     public Object getOrigin() {

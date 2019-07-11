@@ -56,10 +56,10 @@ public class FeatureTypeGJSWriter implements HttpMessageConverter<FeatureTypeLis
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.APPLICATION_JSON); // GML_3_1_1_MIME  and GML_3_2_1_MIME are not supported by Spring
     }
-    
+
     @Override
     public FeatureTypeList read(Class<? extends FeatureTypeList> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("FeatureCollectionWrapper message converter do not support reading.");
+        throw new HttpMessageNotReadableException("FeatureTypeList message converter do not support reading.");
     }
 
     @Override

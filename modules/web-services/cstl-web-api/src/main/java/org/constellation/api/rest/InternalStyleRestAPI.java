@@ -264,8 +264,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 queryBuilder.setTypeName(typeName);
                 queryBuilder.setProperties(new String[]{attribute});
 
-                try (final Stream<Feature> featureCollection = fs.subset(queryBuilder.buildQuery()).features(false)) {
-                    Iterator<Feature> it = featureCollection.iterator();
+                try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
+                    Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
                         final Number number = property.evaluate(feature, Number.class);
@@ -500,8 +500,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 queryBuilder.setTypeName(typeName);
                 queryBuilder.setProperties(new String[]{attribute});
 
-                try (final Stream<Feature> featureCollection = fs.subset(queryBuilder.buildQuery()).features(false)) {
-                    Iterator<Feature> it = featureCollection.iterator();
+                try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
+                    Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
                         final Object value = property.evaluate(feature);
@@ -629,11 +629,11 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     result.setNumberField(Number.class.isAssignableFrom(cl));
                 }
 
-                try (final Stream<Feature> featureCollection = fs.features(false)) {
+                try (final Stream<Feature> featureSet = fs.features(false)) {
 
                     if (result.isNumberField()) {
                         final Set<Double> values = new HashSet<>();
-                        Iterator<Feature> it = featureCollection.iterator();
+                        Iterator<Feature> it = featureSet.iterator();
                         while (it.hasNext()) {
                             final Feature feature = it.next();
                             final Number number = property.evaluate(feature, Number.class);
@@ -677,7 +677,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             mapping.put((long)start+" - "+(long)end,(long)subCol.features(false).count());
                         }
                     } else {
-                        Iterator<Feature> it = featureCollection.iterator();
+                        Iterator<Feature> it = featureSet.iterator();
                         while(it.hasNext()){
                             final Feature feature = it.next();
                             Object value = property.evaluate(feature);

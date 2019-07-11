@@ -18,19 +18,18 @@
  */
 package org.constellation.wfs.ws.rs;
 
-import org.geotoolkit.data.FeatureCollection;
-
 import java.util.Map;
+import org.apache.sis.storage.FeatureSet;
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class FeatureCollectionWrapper {
+public class FeatureSetWrapper {
 
-    private final FeatureCollection featureCollection;
+    private final FeatureSet featureSet;
 
     private final int nbMatched;
-    
+
     private final Map<String, String> schemaLocations;
 
     private final String gmlVersion;
@@ -39,9 +38,9 @@ public class FeatureCollectionWrapper {
 
     private final boolean writeSingleFeature;
 
-    public FeatureCollectionWrapper(final FeatureCollection featureCollection, final Map<String, String> schemaLocations, final String gmlVersion,
+    public FeatureSetWrapper(final FeatureSet featureSet, final Map<String, String> schemaLocations, final String gmlVersion,
             final String wfsVersion, final int nbMatched, boolean writeSingleFeature) {
-        this.featureCollection = featureCollection;
+        this.featureSet = featureSet;
         this.gmlVersion = gmlVersion;
         this.wfsVersion = wfsVersion;
         this.schemaLocations = schemaLocations;
@@ -50,10 +49,10 @@ public class FeatureCollectionWrapper {
     }
 
     /**
-     * @return the featureCollection
+     * @return the featureSet
      */
-    public FeatureCollection getFeatureCollection() {
-        return featureCollection;
+    public FeatureSet getFeatureSet() {
+        return featureSet;
     }
 
     /**

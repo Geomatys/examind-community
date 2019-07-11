@@ -19,7 +19,7 @@
 
 package org.constellation.wfs.ws.rs;
 
-import org.geotoolkit.data.FeatureCollection;
+import org.apache.sis.storage.FeatureSet;
 
 /**
  *
@@ -28,24 +28,24 @@ import org.geotoolkit.data.FeatureCollection;
 public class ValueCollectionWrapper {
 
 
-    private final FeatureCollection featureCollection;
+    private final FeatureSet featureSet;
 
     private final String valueReference;
 
     private final String gmlVersion;
 
-    public ValueCollectionWrapper(final FeatureCollection featureCollection, final String valueReference, final String gmlVersion) {
-        this.featureCollection = featureCollection;
-        this.gmlVersion        = gmlVersion;
-        this.valueReference    = valueReference;
+    public ValueCollectionWrapper(final FeatureSet featureSet, final String valueReference, final String gmlVersion) {
+        this.featureSet     = featureSet;
+        this.gmlVersion     = gmlVersion;
+        this.valueReference = valueReference;
 
     }
 
     /**
-     * @return the featureCollection
+     * @return the featureSet
      */
-    public FeatureCollection getFeatureCollection() {
-        return featureCollection;
+    public FeatureSet getFeatureSet() {
+        return featureSet;
     }
 
     /**
