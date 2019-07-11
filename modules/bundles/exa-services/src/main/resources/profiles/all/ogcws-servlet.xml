@@ -40,9 +40,9 @@
         <bean class="org.constellation.wfs.ws.rs.SchemaWriter" />
         <bean class="org.constellation.wfs.ws.rs.ValueCollectionWriter" />
         <bean class="org.constellation.wfs.ws.rs.WFSResponseWriter" />
-        <bean class="org.constellation.wfs.ws.rs.FeatureCollectionWriter" />
+        <bean class="org.constellation.wfs.ws.rs.FeatureSetWriter" />
         <bean class="org.constellation.wps.ws.rs.BoundingBoxWriter" />
-        <bean class="org.constellation.wps.ws.rs.FeatureCollectionWriter" />
+        <bean class="org.constellation.wps.ws.rs.FeatureSetWriter" />
         <bean class="org.constellation.wps.ws.rs.FileWriter" />
         <bean class="org.constellation.wps.ws.rs.GeometryWriter" />
         <bean class="org.constellation.wps.ws.rs.WPSResponseWriter" />
