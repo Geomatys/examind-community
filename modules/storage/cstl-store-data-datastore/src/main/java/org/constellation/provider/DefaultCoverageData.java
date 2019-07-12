@@ -37,6 +37,7 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
@@ -260,8 +261,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (FactoryException | TransformException | CoverageStoreException e) {
-            throw new ConstellationStoreException("Unable to extract available times from coevrage data " + name, e);
+        } catch (FactoryException | TransformException | CoverageStoreException | IncompleteGridGeometryException e) {
+            throw new ConstellationStoreException("Unable to extract available times from coverage data " + name, e);
         }
         return dates;
     }
@@ -293,8 +294,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (TransformException | CoverageStoreException e) {
-            throw new ConstellationStoreException("Unable to extract available elevations from layer " + name, e);
+        } catch (TransformException | CoverageStoreException | IncompleteGridGeometryException e) {
+            throw new ConstellationStoreException("Unable to extract available elevations from coverage data " + name, e);
         }
 
         return result;
