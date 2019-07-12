@@ -604,7 +604,7 @@ function Examind($http, url) {
         activate : function(id) {
             return self.request({
                 method: 'PUT',
-                url: '/users/' + id + '/activate'
+                url: 'users/' + id + '/activate'
                 });
         }
     };
