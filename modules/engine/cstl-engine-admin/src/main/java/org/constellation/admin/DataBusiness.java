@@ -32,7 +32,6 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
-import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -93,6 +92,7 @@ import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.PropertyType;
 import org.opengis.feature.catalog.FeatureCatalogue;
+import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -1225,8 +1225,7 @@ public class DataBusiness implements IDataBusiness {
             case "vector":
                 try {
                     MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
-                    extractedMetadata = copier.copy(DefaultMetadata.class, dataP.getResourceMetadata());
-                    //extractedMetadata.transition(ModifiableMetadata.State.EDITABLE);
+                    extractedMetadata = (DefaultMetadata) copier.copy(Metadata.class, dataP.getResourceMetadata());
                     crsName = dataP.getResourceCRSName();
                 } catch (ConstellationStoreException e) {
                     LOGGER.log(Level.WARNING, "Error when trying to get resource metadata", e);
