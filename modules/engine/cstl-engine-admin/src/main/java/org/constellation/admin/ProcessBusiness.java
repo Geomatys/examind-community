@@ -273,7 +273,10 @@ public class ProcessBusiness implements IProcessBusiness {
 
     @Override
     @Transactional
-    public void deleteTaskParameter(Integer taskParameterID) {
+    public void deleteTaskParameter(Integer taskParameterID) throws ConstellationException {
+        if (scheduledTasks.containsKey(taskParameterID)) {
+            stopScheduleTaskParameter(taskParameterID);
+        }
         taskParameterRepository.delete(taskParameterID);
     }
 
@@ -473,11 +476,7 @@ public class ProcessBusiness implements IProcessBusiness {
 
         // Stop previous scheduling first.
         if (scheduledTasks.containsKey(task.getId())) {
-            try {
-                stopScheduleTaskParameter(task, userId);
-            } catch (ConfigurationException e) {
-                throw new ConstellationException("Unable to re-schedule task.", e);
-            }
+            stopScheduleTaskParameter(task.getId());
         }
 
         String trigger = task.getTrigger();
@@ -553,26 +552,25 @@ public class ProcessBusiness implements IProcessBusiness {
     }
 
     @Override
-    public void stopScheduleTaskParameter(final TaskParameter task, final Integer userId)
-            throws ConstellationException, ConfigurationException {
+    public void stopScheduleTaskParameter(final Integer taskParamId) throws ConstellationException{
 
-        if (!scheduledTasks.containsKey(task.getId())) {
-            throw new ConstellationException("Task "+task.getName()+" wasn't scheduled.");
+        if (!scheduledTasks.containsKey(taskParamId)) {
+            throw new ConstellationException("Task "+ taskParamId +" wasn't scheduled.");
         }
 
-        final Object obj = scheduledTasks.get(task.getId());
+        final Object obj = scheduledTasks.get(taskParamId);
 
         //scheduled task
         if (obj instanceof String) {
             unregisterTaskInScheduler((String) obj);
-            scheduledTasks.remove(task.getId());
+            scheduledTasks.remove(taskParamId);
 
         } else if (obj instanceof Path) {
             //directory watched task
             directoryWatcher.unregister((Path) obj);
-            scheduledTasks.remove(task.getId());
+            scheduledTasks.remove(taskParamId);
         } else {
-            throw new ConstellationException("Unable to stop scheduled task " + task.getName());
+            throw new ConstellationException("Unable to stop scheduled task: " + taskParamId);
         }
     }
 
@@ -638,7 +636,10 @@ public class ProcessBusiness implements IProcessBusiness {
 
     @Override
     @Transactional
-    public void deleteAllTaskParameter() {
-        taskParameterRepository.deleteAll();
+    public void deleteAllTaskParameter() throws ConstellationException {
+        List<? extends TaskParameter> params = taskParameterRepository.findAll();
+        for (TaskParameter param : params) {
+            deleteTaskParameter(param.getId());
+        }
     }
 }

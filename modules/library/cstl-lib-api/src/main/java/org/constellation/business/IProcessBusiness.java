@@ -137,12 +137,13 @@ public interface IProcessBusiness {
 
     /**
      * Remove TaskParameter from scheduler.
-     * @param task
-     * @param userId
+     *
+     * @param taskParamId identifier of the taskParameter to unschedule.
+     *
      * @throws ConstellationException
      * @throws ConfigurationException
      */
-    void stopScheduleTaskParameter (TaskParameter task, Integer userId) throws ConstellationException, ConfigurationException;
+    void stopScheduleTaskParameter (Integer taskParamId) throws ConstellationException, ConfigurationException;
 
     TaskParameter getTaskParameterById(Integer id);
 
@@ -150,9 +151,9 @@ public interface IProcessBusiness {
 
     void updateTaskParameter(TaskParameter taskParameter);
 
-    void deleteTaskParameter(Integer taskParameterID);
+    void deleteTaskParameter(Integer taskParameterID) throws ConstellationException;
 
-    void deleteAllTaskParameter();
+    void deleteAllTaskParameter() throws ConstellationException;
 
     List<TaskParameter> findTaskParameterByNameAndProcess(String name, String authority, String code);
 

@@ -23,12 +23,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.process.Task;
 import org.constellation.dto.process.TaskParameter;
+import org.constellation.exception.ConstellationException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -60,15 +62,15 @@ public class ProcessBusinessTest {
 
     @AfterClass
     public static void tearDown() {
-        //try {
+        try {
             final IProcessBusiness dbus = SpringHelper.getBean(IProcessBusiness.class);
             if (dbus != null) {
                 dbus.deleteAllTaskParameter();
             }
             ConfigDirectory.shutdownTestEnvironement("ProcessBusinessTest");
-        /*} catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
-        }*/
+        } catch (ConstellationException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Test
@@ -144,6 +146,8 @@ public class ProcessBusinessTest {
                 Assert.fail("multiple scheduled execution every second fail");
             }
         }
+
+        processBusiness.deleteTaskParameter(tpid);
     }
 
     @Test
@@ -186,6 +190,8 @@ public class ProcessBusinessTest {
 
         tasks = processBusiness.listRunningTasks(tpid, 0, 10);
         Assert.assertEquals(0, tasks.size());
+
+        processBusiness.deleteTaskParameter(tpid);
 
     }
 
@@ -250,7 +256,7 @@ public class ProcessBusinessTest {
         Assert.assertEquals("FAILED", task.getState());
 
 
-        // verify that the process is still scheduler, and will stile be launched
+        // verify that the process is still scheduler, and will still be launched
         LOGGER.info("waiting for next scheduled execution to start  (maximum one minute)");
         isRunning = false;
         i = 0;
@@ -263,5 +269,114 @@ public class ProcessBusinessTest {
                 Assert.fail("multiple scheduled execution every minute fail");
             }
         }
+        processBusiness.deleteTaskParameter(tpid);
+    }
+
+    @Test
+    public void taskParametersUncheduleTest() throws Exception {
+        processBusiness.deleteAllTaskParameter();
+
+        TaskParameter tp = new TaskParameter();
+        tp.setDate(System.currentTimeMillis());
+        tp.setName("add test schedule remove");
+        tp.setProcessAuthority("geotoolkit");
+        tp.setProcessCode("math:add");
+        tp.setInputs("{\"first\":[2],\"second\":[2]}");
+        tp.setOwner(1);
+        tp.setTriggerType("CRON");
+        tp.setTrigger("{\"cron\":\"* * * * * ? *\",\"endDate\":" + (System.currentTimeMillis() + 30000) + "}");
+
+        Integer tpid = processBusiness.addTaskParameter(tp);
+
+        Assert.assertNotNull(tpid);
+
+        // verify that the task parameter is well saved
+        List<TaskParameter> results = processBusiness.findTaskParameterByNameAndProcess("add test schedule remove", "geotoolkit", "math:add");
+        Assert.assertEquals(1, results.size());
+
+        tp = results.get(0);
+
+        // test scheduled execution
+        final String title = tp.getName()+" "+TASK_DATE.format(new Date());
+        processBusiness.scheduleTaskParameter(tp, title, 1, true);
+
+        List<Task> tasks = new ArrayList<>();
+        int i = 0;
+        while (tasks.size() < 9 ) {
+            tasks = processBusiness.listTaskHistory(tpid, 0, 30);
+            Thread.sleep(1000);
+            i++;
+            if (i > 20) {
+                Assert.fail("multiple scheduled execution every second fail");
+            }
+        }
+
+        // unschedule job
+        processBusiness.stopScheduleTaskParameter(tp.getId());
+
+        // wait for unscheduling
+        Thread.sleep(1000);
+
+        // try to assert that there is no more execution
+        tasks = processBusiness.listTaskHistory(tpid, 0, 30);
+        Thread.sleep(1000);
+        List<Task> tasks2 = processBusiness.listTaskHistory(tpid, 0, 30);
+
+        Assert.assertEquals(tasks.size(), tasks2.size());
+
+        processBusiness.deleteTaskParameter(tpid);
+    }
+
+    @Test
+    public void taskParametersRemoveScheduledTest() throws Exception {
+        processBusiness.deleteAllTaskParameter();
+
+        TaskParameter tp = new TaskParameter();
+        tp.setDate(System.currentTimeMillis());
+        tp.setName("add test schedule remove");
+        tp.setProcessAuthority("geotoolkit");
+        tp.setProcessCode("math:add");
+        tp.setInputs("{\"first\":[2],\"second\":[2]}");
+        tp.setOwner(1);
+        tp.setTriggerType("CRON");
+        tp.setTrigger("{\"cron\":\"* * * * * ? *\",\"endDate\":" + (System.currentTimeMillis() + 30000) + "}");
+
+        Integer tpid = processBusiness.addTaskParameter(tp);
+
+        Assert.assertNotNull(tpid);
+
+        // verify that the task parameter is well saved
+        List<TaskParameter> results = processBusiness.findTaskParameterByNameAndProcess("add test schedule remove", "geotoolkit", "math:add");
+        Assert.assertEquals(1, results.size());
+
+        tp = results.get(0);
+
+        // test scheduled execution
+        final String title = tp.getName()+" "+TASK_DATE.format(new Date());
+        processBusiness.scheduleTaskParameter(tp, title, 1, true);
+
+        List<Task> tasks = new ArrayList<>();
+        int i = 0;
+        while (tasks.size() < 9 ) {
+            tasks = processBusiness.listTaskHistory(tpid, 0, 30);
+            Thread.sleep(1000);
+            i++;
+            if (i > 20) {
+                Assert.fail("multiple scheduled execution every second fail");
+            }
+        }
+
+        // remove task parameter
+        processBusiness.deleteTaskParameter(tpid);
+
+        // wait for unscheduling
+        Thread.sleep(1000);
+
+        // try to assert that there is no more execution
+        tasks = processBusiness.listTaskHistory(tpid, 0, 30);
+        Thread.sleep(1000);
+        List<Task> tasks2 = processBusiness.listTaskHistory(tpid, 0, 30);
+
+        Assert.assertEquals(tasks.size(), tasks2.size());
     }
 }

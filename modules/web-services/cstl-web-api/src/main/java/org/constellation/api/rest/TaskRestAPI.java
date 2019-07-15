@@ -336,8 +336,12 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/task/params/delete/{id}",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteParamsTask(final @PathVariable("id") Integer id) {
-        processBusiness.deleteTaskParameter(id);
-        return new ResponseEntity(OK);
+        try {
+            processBusiness.deleteTaskParameter(id);
+            return new ResponseEntity(OK);
+        } catch (ConstellationException ex) {
+            return new ErrorMessage(ex).build();
+        }
     }
 
     /**
@@ -419,10 +423,9 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/task/params/schedule/stop/{id}",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity stopScheduleParamsTask(final @PathVariable("id") Integer id, HttpServletRequest req) {
-        final TaskParameter taskParameter = processBusiness.getTaskParameterById(id);
         try {
-            int userId = assertAuthentificated(req);
-            processBusiness.stopScheduleTaskParameter(taskParameter, userId);
+            assertAuthentificated(req);
+            processBusiness.stopScheduleTaskParameter(id);
         } catch (ConstellationException ex) {
             return new ErrorMessage(INTERNAL_SERVER_ERROR).error(ex).message("Failure to un-schedule  task: "+ex.getMessage()).build();
         }
