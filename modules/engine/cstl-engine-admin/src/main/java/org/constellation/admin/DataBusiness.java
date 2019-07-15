@@ -30,6 +30,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+import org.apache.sis.metadata.MetadataCopier;
+import org.apache.sis.metadata.MetadataStandard;
+import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -639,19 +642,23 @@ public class DataBusiness implements IDataBusiness {
                 db.setPyramidConformProviderId(providerName);
             }
 
-            final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-            final org.constellation.provider.Data layer = provider.get(NamesExt.create(data.getNamespace(), data.getName()));
+            org.constellation.provider.Data layer = null;
+
+            try {
+                final DataProvider provider = DataProviders.getProvider(data.getProviderId());
+                layer = provider.get(NamesExt.create(data.getNamespace(), data.getName()));
+            } catch (ConstellationException ex) {
+                LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
+            }
 
             try {
                 if (layer != null) {
                     final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
                     final DataDescription dataDescription = layer.getDataDescription(stats);
                     db.setDataDescription(dataDescription);
-                } else {
-                    LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
                 }
             } catch (ConstellationStoreException e) {
-                LOGGER.log(Level.WARNING, e.getMessage(), e);
+                LOGGER.log(Level.WARNING, "Error retrieving statistics for the data  {" + data.getNamespace() + "} " + data.getName() + ":" + e.getMessage(), e);
             }
 
             // List of elevations, times and dim_range values.
@@ -1217,7 +1224,9 @@ public class DataBusiness implements IDataBusiness {
             case "coverage":
             case "vector":
                 try {
-                    extractedMetadata = dataP.getResourceMetadata();
+                    MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
+                    extractedMetadata = copier.copy(DefaultMetadata.class, dataP.getResourceMetadata());
+                    //extractedMetadata.transition(ModifiableMetadata.State.EDITABLE);
                     crsName = dataP.getResourceCRSName();
                 } catch (ConstellationStoreException e) {
                     LOGGER.log(Level.WARNING, "Error when trying to get resource metadata", e);

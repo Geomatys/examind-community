@@ -95,18 +95,23 @@ public class DataStoreProvider extends AbstractDataProvider{
     @Deprecated
     public DataType getDataType() {
         final org.apache.sis.storage.DataStoreProvider provider = getMainStore().getProvider();
-        final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
-        if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
-             || ArraysExt.contains(resourceTypes, ResourceType.GRID)
-             || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
-            return DataType.COVERAGE;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
-            return DataType.VECTOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
-            return DataType.SENSOR;
-        } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
-            return DataType.METADATA;
+        if (provider != null) {
+            final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
+            if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
+                 || ArraysExt.contains(resourceTypes, ResourceType.GRID)
+                 || ArraysExt.contains(resourceTypes, ResourceType.PYRAMID)) {
+                return DataType.COVERAGE;
+            } else if (ArraysExt.contains(resourceTypes, ResourceType.VECTOR)) {
+                return DataType.VECTOR;
+            } else if (ArraysExt.contains(resourceTypes, ResourceType.SENSOR)) {
+                return DataType.SENSOR;
+            } else if (ArraysExt.contains(resourceTypes, ResourceType.METADATA)) {
+                return DataType.METADATA;
+            } else {
+                return DataType.VECTOR; // unknown
+            }
         } else {
+            LOGGER.warning("Unable to find a DatastoreProvider for:" + id);
             return DataType.VECTOR; // unknown
         }
     }

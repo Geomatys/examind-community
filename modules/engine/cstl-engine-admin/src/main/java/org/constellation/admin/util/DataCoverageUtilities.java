@@ -61,7 +61,12 @@ public class DataCoverageUtilities {
                     switch (state) {
                         case "PARTIAL" : //fall through
                         case "COMPLETED" :
-                            return deserializeImageStatistics(result);
+                            if (result != null && result.startsWith("{")) {
+                                return deserializeImageStatistics(result);
+                            } else {
+                                LOGGER.warning("Unreadable statistics flagged as " + state);
+                                return null;
+                            }
                         case "PENDING" : return null;
                         case "ERROR" :
                             //can have partial statistics even if an error occurs.
