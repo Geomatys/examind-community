@@ -567,6 +567,10 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
         }
     }
 
+    @Override
+    public List<StyleReference> fetchByLayerId(int layerId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///

@@ -126,7 +126,7 @@ public final class FeatureInfoUtilities extends Static {
             }
         }
 
-        //try generics
+        //try generics assigned to the service
         if (featureInfo == null) {
             final Set<GetFeatureInfoCfg> generics = FeatureInfoUtilities.getGenericFeatureInfos(serviceConf);
             for (GetFeatureInfoCfg infoCfg : generics) {

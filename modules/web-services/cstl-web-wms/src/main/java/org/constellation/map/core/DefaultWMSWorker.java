@@ -137,6 +137,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -179,6 +180,7 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.opengis.util.GenericName;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.dto.StyleReference;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.util.DtoToOGCFilterTransformer;
 import org.constellation.util.Util;
@@ -991,9 +993,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<GenericName> layerNames        = getFI.getQueryLayers();
         final List<Data> layerRefs;
         final List<Layer> layerConfig;
+        final Map<GenericName, List<StyleReference>> layerStyles;
         try {
             layerRefs = getLayerReferences(userLogin, layerNames);
             layerConfig = getConfigurationLayers(userLogin, layerNames);
+            layerStyles = getLayersStyles(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             throw new CstlServiceException(ex, LAYER_NOT_DEFINED, KEY_LAYERS.toLowerCase());
         }
@@ -1009,7 +1013,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<String> styleNames   = getFI.getStyles();
         final StyledLayerDescriptor sld = getFI.getSld();
 
-        final List<MutableStyle> styles        = getStyles(layerConfig, sld, styleNames, userLogin);
+        final List<MutableStyle> styles        = getStyles(layerStyles, sld, styleNames);
         //       -- create the rendering parameter Map
         final Double elevation                 = getFI.getElevation();
         final List<Date> time                  = getFI.getTime();
@@ -1258,10 +1262,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
         }
         final List<Data> layerRefs;
-        final List<Layer> layerConfig;
+        final Map<GenericName, List<StyleReference>> layerStyles;
         try{
             layerRefs = getLayerReferences(userLogin, layerNames);
-            layerConfig = getConfigurationLayers(userLogin, layerNames);
+            layerStyles = getLayersStyles(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, LAYER_NOT_DEFINED,  KEY_LAYERS.toLowerCase());
         }
@@ -1278,7 +1282,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         List<MutableStyle> styles;
         try {
-            styles = getStyles(layerConfig, sld, styleNames, userLogin);
+            styles = getStyles(layerStyles, sld, styleNames);
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, STYLE_NOT_DEFINED, null);
         }
@@ -1485,7 +1489,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
     }
 
-    private MutableStyle extractStyle(final GenericName layerName, final Layer configLayer, final StyledLayerDescriptor sld) throws CstlServiceException{
+    private MutableStyle extractStyle(final GenericName layerName, final List<StyleReference> layerStyles, final StyledLayerDescriptor sld) throws CstlServiceException{
         if(sld == null){
             throw new IllegalArgumentException("SLD should not be null");
         }
@@ -1510,7 +1514,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     if (mls instanceof MutableNamedStyle) {
                         final MutableNamedStyle mns = (MutableNamedStyle) mls;
                         final String namedStyle = mns.getName();
-                        final DataReference styleRef = Util.getStyleReference(namedStyle, configLayer.getStyles());
+                        final StyleReference styleRef = Util.findStyleReference(namedStyle, layerStyles);
                         return getStyle(styleRef);
                     } else if (mls instanceof MutableStyle) {
                         return (MutableStyle) mls;
@@ -1529,46 +1533,42 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return null;
     }
 
-    private List<MutableStyle> getStyles(final List<Layer> layerConfig, final StyledLayerDescriptor sld,
-                                         final List<String> styleNames, final String userLogin) throws CstlServiceException {
-        final List<MutableStyle> styles = new ArrayList<>();
-        for (int i=0; i<layerConfig.size(); i++) {
-            final Layer config = layerConfig.get(i);
-            if (config != null) {
-                final GenericName layerName = NamesExt.create(config.getName());
-
-                final MutableStyle style;
-                if (sld != null) {
-                    //try to use the provided SLD
-                    style = extractStyle(layerName, config, sld);
-                } else if (styleNames != null && styleNames.size() > i && styleNames.get(i) != null && !styleNames.get(i).isEmpty()) {
-                    //try to grab the style if provided
-                    //a style has been given for this layer, try to use it
-                    final String namedStyle = styleNames.get(i);
-                    final DataReference styleRef = Util.getStyleReference(namedStyle, config.getStyles());
-                    if (styleRef == null) {
-                        style = null;
-                    } else {
-                        style = (Util.getLayerId(styleRef) == null) ? null : getStyle(styleRef);
-                    }
-                    if (style == null) {
-                        throw new CstlServiceException("Style provided not found.", STYLE_NOT_DEFINED);
-                    }
+    private List<MutableStyle> getStyles(final Map<GenericName, List<StyleReference>> layersStyles, final StyledLayerDescriptor sld, final List<String> styleNames) throws CstlServiceException {
+        final List<MutableStyle> results = new ArrayList<>();
+        int i = 0;
+        for (Entry<GenericName, List<StyleReference>> layerStyles : layersStyles.entrySet()) {
+            final List<StyleReference> styles = layerStyles.getValue();
+            final MutableStyle style;
+            if (sld != null) {
+                //try to use the provided SLD
+                style = extractStyle(layerStyles.getKey(), styles, sld);
+            } else if (styleNames != null && styleNames.size() > i && styleNames.get(i) != null && !styleNames.get(i).isEmpty()) {
+                //try to grab the style if provided
+                //a style has been given for this layer, try to use it
+                final String namedStyle = styleNames.get(i);
+                final StyleReference styleRef = Util.findStyleReference(namedStyle, styles);
+                if (styleRef == null) {
+                    style = null;
                 } else {
-                    //no defined styles, use the favorite one, let the layer get it himself.
-
-                    final List<DataReference> defaultStyleRefs = config.getStyles();
-                    if (defaultStyleRefs != null && !defaultStyleRefs.isEmpty()) {
-                        final DataReference styleRef = defaultStyleRefs.get(0);
-                        style = (Util.getLayerId(styleRef) == null) ? null : getStyle(styleRef);
-                    } else {
-                        style = null;
-                    }
+                    style = getStyle(styleRef);
                 }
-                styles.add(style);
+                if (style == null) {
+                    throw new CstlServiceException("Style provided not found.", STYLE_NOT_DEFINED);
+                }
+            } else {
+                //no defined styles, use the favorite one, let the layer get it himself.
+                if (!styles.isEmpty()) {
+                    final StyleReference styleRef = styles.get(0);
+                    style = getStyle(styleRef);
+                } else {
+                    style = null;
+                }
             }
+            results.add(style);
+            
+            i++;
         }
-        return styles;
+        return results;
     }
 
     /**

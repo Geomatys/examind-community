@@ -106,8 +106,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
 
     @Override
     public boolean exist(Integer id) {
-        return dsl.selectCount().from(SERVICE)
-                .where(SERVICE.ID.eq(id)).fetchOneInto(Integer.class) > 0;
+        return dsl.fetchExists(dsl.selectOne().from(SERVICE).where(SERVICE.ID.eq(id)));
 
     }
 

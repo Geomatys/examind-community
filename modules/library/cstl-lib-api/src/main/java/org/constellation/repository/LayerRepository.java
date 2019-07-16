@@ -55,12 +55,16 @@ public interface LayerRepository {
 
     void delete(int layerId);
 
+    Integer findIdByServiceIdAndLayerName(int serviceId, String layerName);
+    
     Layer findByServiceIdAndLayerName(int serviceId, String layerName);
 
-    Integer findIdByServiceIdAndLayerName(int serviceId, String layerName);
-
+    Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace);
+    
     Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace);
 
+    Integer findIdByServiceIdAndAlias(int serviceId, String alias);
+    
     Layer findByServiceIdAndAlias(int serviceId, String alias);
 
     Layer findByServiceIdAndDataId(int serviceId, int dataId);

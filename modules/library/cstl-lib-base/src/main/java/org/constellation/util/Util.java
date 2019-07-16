@@ -43,6 +43,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.StyleBrief;
+import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
@@ -215,6 +216,17 @@ public final class Util {
         if (styles != null) {
             for (DataReference styleRef : styles) {
                 if (Util.getLayerId(styleRef).tip().toString().equals(styleID)) {
+                    return styleRef;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static StyleReference findStyleReference(final String styleID, List<StyleReference> styles) {
+        if (styles != null) {
+            for (StyleReference styleRef : styles) {
+                if (styleRef.getName().equals(styleID)) {
                     return styleRef;
                 }
             }

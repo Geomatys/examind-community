@@ -194,6 +194,31 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
         return byServiceIdDataId.get(serviceId + "-" + dataId);
     }
+    
+    @Override
+    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(layerName) &&
+                    (namespace == null || l.getNamespace().equals(namespace))) {
+                    return l.getId();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Integer findIdByServiceIdAndAlias(int serviceId, String alias) {
+        if (byService.containsKey(serviceId)) {
+            for (Layer l : byService.get(serviceId)) {
+                if (l.getName().equals(alias)) {
+                    return l.getId();
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public List<Layer> getLayersByLinkedStyle(int styleId) {

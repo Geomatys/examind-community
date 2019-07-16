@@ -204,6 +204,26 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     }
 
     @Override
+    public List<StyleReference> fetchByLayerId(int layerId) {
+        final List<StyleReference> refs =
+                dsl.select(REFERENCE_FIELDS)
+                        .from(STYLE)
+                        .join(STYLED_LAYER).onKey()
+                        .where(STYLED_LAYER.LAYER.eq(layerId))
+                        .orderBy(STYLED_LAYER.IS_DEFAULT)
+                        .fetchInto(StyleReference.class);
+
+        for(StyleReference sr : refs){
+            switch(sr.getProviderId()){
+                case 1 : sr.setProviderIdentifier("sld"); break;
+                case 2 : sr.setProviderIdentifier("sld_temp"); break;
+                default : throw new IllegalArgumentException("Style provider with identifier \"" + sr.getProviderId() + "\" does not exist.");
+            }
+        }
+        return refs;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void changeSharedProperty(int id, boolean shared) {
         UpdateSetFirstStep<StyleRecord> update = dsl.update(STYLE);

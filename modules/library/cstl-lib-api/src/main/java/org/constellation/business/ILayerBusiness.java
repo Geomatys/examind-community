@@ -27,6 +27,8 @@ import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.NameInProvider;
+import org.constellation.dto.Style;
+import org.constellation.dto.StyleReference;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -95,5 +97,7 @@ public interface ILayerBusiness {
      * @return the list of light {@link DataBrief}.
      */
     List<LayerSummary> getLayerRefFromStyleId(final Integer styleId);
+
+    List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConstellationException;
 
 }

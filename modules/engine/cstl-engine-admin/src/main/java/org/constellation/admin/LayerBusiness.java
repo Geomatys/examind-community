@@ -72,6 +72,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.dto.StyleReference;
 
 /**
  *
@@ -522,6 +523,37 @@ public class LayerBusiness implements ILayerBusiness {
         return new FilterAndDimension();
     }
 
+    @Override
+    public List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException {
+        serviceBusiness.ensureExistingInstance(serviceId);
+
+        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+
+        Integer layerId;
+        if (namespace != null && !namespace.isEmpty()) {
+            //1. search by name and namespace
+            layerId = layerRepository.findIdByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
+        } else {
+            //2. search by alias
+            layerId = layerRepository.findIdByServiceIdAndAlias(serviceId, nameOrAlias);
+
+            //3. search by single name
+            if  (layerId == null) {
+                layerId = layerRepository.findIdByServiceIdAndLayerName(serviceId, nameOrAlias);
+            }
+        }
+
+        if (layerId != null) {
+            if (securityFilter.allowed(login, layerId)) {
+                return styleRepository.fetchByLayerId(layerId);
+            } else {
+                throw new ConfigurationException("Not allowed to see this layer.");
+            }
+        } else {
+            throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
+        }
+    }
+    
     /**
      *
      * @param login

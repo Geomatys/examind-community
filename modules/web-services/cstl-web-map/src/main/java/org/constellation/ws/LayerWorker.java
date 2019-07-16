@@ -41,7 +41,9 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
 import org.constellation.business.ClusterMessage;
@@ -58,6 +60,8 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.opengis.util.GenericName;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.dto.StyleReference;
+import org.constellation.exception.ConstellationException;
 
 /**
  * A super class for all the web service worker dealing with layers (WMS, WCS, WMTS, WFS, ...)
@@ -306,6 +310,28 @@ public abstract class LayerWorker extends AbstractWorker {
         return null;
     }
 
+    protected Map<GenericName, List<StyleReference>> getLayersStyles(final String login, final List<GenericName> layerNames) {
+        final Map<GenericName, List<StyleReference>> results = new LinkedHashMap<>();
+        for (GenericName layerName : layerNames) {
+            results.put(layerName, getLayerStyles(login, layerName));
+        }
+        return results;
+    }
+
+    protected List<StyleReference> getLayerStyles(final String login, final GenericName layerName) {
+        List<StyleReference> results = new ArrayList<>();
+        try {
+            results.addAll(layerBusiness.getLayerStyles(getServiceId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login));
+        } catch (ConstellationException ex) {
+             LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
+        }
+        return results;
+    }
+
+    /**
+     * @deprecated use directly {@link #getStyle(org.constellation.dto.StyleReference)
+     */
+    @Deprecated
     protected MutableStyle getStyle(final DataReference styleReference) throws CstlServiceException {
         MutableStyle style;
         if (styleReference != null) {
@@ -318,18 +344,21 @@ public abstract class LayerWorker extends AbstractWorker {
             //no defined styles, use the favorite one, let the layer get it himself.
             style = null;
         }
-//        final MutableStyle style;
-//        if (styleName != null) {
-//            //try to grab the style if provided
-//            //a style has been given for this layer, try to use it
-//            style = StyleProviders.getInstance().get(styleName.getLayerId().getLocalPart(), styleName.getProviderId());
-//            if (style == null) {
-//                throw new CstlServiceException("Style provided: " + styleName.getReference() + " not found.", STYLE_NOT_DEFINED);
-//            }
-//        } else {
-//            //no defined styles, use the favorite one, let the layer get it himself.
-//            style = null;
-//        }
+        return style;
+    }
+
+    protected MutableStyle getStyle(final StyleReference styleReference) throws CstlServiceException {
+        MutableStyle style;
+        if (styleReference != null) {
+            try {
+                style = (MutableStyle) styleBusiness.getStyle(styleReference.getId());
+            } catch (TargetNotFoundException e) {
+                throw new CstlServiceException("Style provided: " + styleReference.getName()+ " not found.", STYLE_NOT_DEFINED);
+            }
+        } else {
+            //no defined styles, use the favorite one, let the layer get it himself.
+            style = null;
+        }
         return style;
     }
 

@@ -69,6 +69,8 @@ public interface StyleRepository {
 
     public List<StyleReference> fetchByDataId(int dataId);
 
+    public List<StyleReference> fetchByLayerId(int layerId);
+
     void changeSharedProperty(final int id, final boolean shared);
 
     Map.Entry<Integer, List<Style>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);

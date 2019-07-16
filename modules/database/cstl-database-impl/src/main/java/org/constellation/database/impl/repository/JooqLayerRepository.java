@@ -133,13 +133,22 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     }
 
     @Override
+    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
+        return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
+    }
+    
+    @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
     @Override
-    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
-        return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
+    public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
+        if (namespace != null) {
+            return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.eq(namespace)).fetchOneInto(Integer.class);
+        } else {
+            return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
+        }
     }
 
     @Override
@@ -157,6 +166,11 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     public Layer findByServiceIdAndAlias(int serviceId, String alias) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias))
                     .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    }
+    
+    @Override
+    public Integer findIdByServiceIdAndAlias(int serviceId, String alias) {
+        return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias)).fetchOneInto(Integer.class);
     }
 
     @Override
