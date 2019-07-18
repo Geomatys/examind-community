@@ -53,6 +53,8 @@
     "gdal-application/x-gdal+pdf":"Gdal : PDF",
     "gdal-application/x-gdal+vrt":"Gdal : VRT",
     "coverage-file-image/tiff": "Examind : TIFF",
+    "coverage-file-image/png": "Examind : PNG",
+    "coverage-file-image/png-wf": "Examind : PNG World file",
     "gdalfeature-application/x-ogr+dat": "Gdal : DAT (Feature)",
     "gdalfeature-application/x-ogr+xml": "Gdal : XML (Feature)",
     "gdalfeature-application/x-ogr+dbf": "Gdal : DBF",

@@ -18,8 +18,11 @@
  */
 package org.constellation.json.metadata.bean;
 
+import java.util.Date;
 import org.apache.sis.metadata.MetadataStandard;
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.json.metadata.Template;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,6 +53,14 @@ public class ImportTemplate extends Template {
     @Override
     public boolean matchDataType(String dataType) {
         return false;
+    }
+
+    @Override
+    public Object emptyMetadata() {
+        DefaultMetadata meta = new DefaultMetadata();
+        MetadataFeeder feeder = new MetadataFeeder(meta);
+        feeder.setCreationDate(new Date());
+        return meta;
     }
 
 }
