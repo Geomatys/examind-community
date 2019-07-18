@@ -18,15 +18,13 @@
  */
 package org.constellation.ws;
 
-import org.constellation.dto.service.config.DataSourceType;
-
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public interface MapFactory {
 
-    boolean factoryMatchType(final DataSourceType type);
-    
+    public String getIdentifier();
+
     LayerSecurityFilter getSecurityFilter();
 }

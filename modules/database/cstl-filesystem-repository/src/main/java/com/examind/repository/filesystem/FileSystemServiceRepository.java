@@ -190,6 +190,15 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     }
 
     @Override
+    public String getImplementation(Integer serviceId) {
+        Service s = byId.get(serviceId);
+        if (s != null) {
+            return s.getImpl();
+        }
+        return null;
+    }
+
+    @Override
     public Service findByMetadataId(String metadataId) {
         return byMetadataService.get(metadataId);
     }

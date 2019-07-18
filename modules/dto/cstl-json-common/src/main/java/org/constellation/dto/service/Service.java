@@ -35,12 +35,13 @@ public class Service implements Serializable {
     private Integer owner;
     private String status;
     private String versions;
+    private String impl;
 
     public Service() {
     }
 
     public Service(Integer id, String identifier, String type, Date date,
-            String config, Integer owner, String status, String versions) {
+            String config, Integer owner, String status, String versions, String impl) {
         this.id = id;
         this.identifier = identifier;
         this.type = type;
@@ -49,6 +50,7 @@ public class Service implements Serializable {
         this.owner = owner;
         this.status = status;
         this.versions = versions;
+        this.impl = impl;
     }
 
     public int getId() {
@@ -113,6 +115,23 @@ public class Service implements Serializable {
 
     public void setVersions(String versions) {
         this.versions = versions;
+    }
+
+    /**
+     * @return the impl
+     */
+    public String getImpl() {
+        if (impl == null) {
+            impl = "default";
+        }
+        return impl;
+    }
+
+    /**
+     * @param impl the impl to set
+     */
+    public void setImpl(String impl) {
+        this.impl = impl;
     }
 
     @Override

@@ -367,7 +367,7 @@ public class ConfigurationXmlBindingTest {
         context.getCustomParameters().put("test", "value");
         ObjectMapper mapper = new ObjectMapper();
 
-        String expresult = "{\"type\":\"LayerContext\",\"implementation\":null,\"mainLayer\":null,\"security\":null,\"supportedLanguages\":null,"
+        String expresult = "{\"type\":\"LayerContext\",\"mainLayer\":null,\"security\":null,\"supportedLanguages\":null,"
                          + "\"customParameters\":{\"test\":\"value\",\"multipleVersion\":\"false\"},\"getFeatureInfoCfgs\":[]}";
 
         String result = mapper.writeValueAsString(context);
@@ -390,7 +390,7 @@ public class ConfigurationXmlBindingTest {
         gfiList.add(gfiParam);
         context.setGetFeatureInfoCfgs(gfiList);
 
-        expresult = "{\"type\":\"LayerContext\",\"implementation\":null,\"mainLayer\":null,\"security\":null,\"supportedLanguages\":null,"
+        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":null,\"security\":null,\"supportedLanguages\":null,"
                   + "\"customParameters\":{},\"getFeatureInfoCfgs\":[{\"mimeType\":\"text/xml\",\"binding\":\"org.some.package.ClassXML\",\"gfiParameter\":null},"
                   + "{\"mimeType\":\"image/png\",\"binding\":\"org.some.package.ClassImage\",\"gfiParameter\":[{\"key\":\"paramKey1\",\"value\":\"paramValue1\"},{\"key\":\"paramKey2\",\"value\":\"paramValue2\"}]}]}";
 
@@ -416,7 +416,7 @@ public class ConfigurationXmlBindingTest {
         context = new LayerContext();
         context.setMainLayer(mainLayer);
 
-        expresult = "{\"type\":\"LayerContext\",\"implementation\":null,\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"providerType\":null,\"providerID\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
+        expresult = "{\"type\":\"LayerContext\",\"mainLayer\":{\"id\":null,\"dataId\":null,\"name\":null,\"alias\":null,\"version\":null,\"styles\":[],\"filter\":null,\"title\":\"mainTitle\",\"multiLangTitle\":{\"eng\":\"mainTitle\"},\"abstrac\":null,\"multiLangAbstract\":{},\"keywords\":[],\"multiLangKeywords\":{\"eng\":{\"list\":[\"kw1\",\"kw2\"]}},\"metadataURL\":null,\"dataURL\":null,\"authorityURL\":null,\"identifier\":null,\"attribution\":null,\"opaque\":null,\"crs\":[\"CRS-custo1\",\"CRS-custo2\"],\"dimensions\":[],\"date\":null,\"providerType\":null,\"providerID\":null,\"owner\":null,\"getFeatureInfoCfgs\":[]},\"security\":null,\"supportedLanguages\":null,\"customParameters\":{},\"getFeatureInfoCfgs\":[]}";
 
         result = mapper.writeValueAsString(context);
         assertEquals(expresult, result);

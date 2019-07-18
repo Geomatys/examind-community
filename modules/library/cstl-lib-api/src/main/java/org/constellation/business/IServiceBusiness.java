@@ -241,6 +241,15 @@ public interface IServiceBusiness {
     void setExtraConfiguration(String serviceType, String identifier, String fileName, Object config, MarshallerPool pool);
 
     /**
+     * Return the service specific implementation.
+     * Used for overriding some behaviour such as LayerSecurityFilter in sub-project.
+     *
+     * @param serviceId The service identifier.
+     * @return
+     */
+    String getServiceImplementation(Integer serviceId);
+
+    /**
      * Delete all the services.
      *
      * @throws ConstellationException

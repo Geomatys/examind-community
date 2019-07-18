@@ -19,13 +19,10 @@
 
 package org.constellation.dto.service.config.wxs;
 
-import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.AbstractConfigurationObject;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -44,9 +41,6 @@ import java.util.Objects;
 @XmlRootElement(name="LayerContext")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LayerContext extends AbstractConfigurationObject {
-
-    @XmlAttribute
-    private DataSourceType implementation;
 
     private Layer mainLayer;
 
@@ -70,7 +64,7 @@ public class LayerContext extends AbstractConfigurationObject {
     public Layer getMainLayer() {
         return mainLayer;
     }
-    
+
     public void setMainLayer(final Layer mainlayer) {
         this.mainLayer = mainlayer;
     }
@@ -113,20 +107,6 @@ public class LayerContext extends AbstractConfigurationObject {
     }
 
     /**
-     * @return the implementation
-     */
-    public DataSourceType getImplementation() {
-        return implementation;
-    }
-
-    /**
-     * @param implementation the implementation to set
-     */
-    public void setImplementation(DataSourceType implementation) {
-        this.implementation = implementation;
-    }
-
-    /**
      * Return custom getFeatureInfos
      * @return a list with GetFeatureInfoCfg, can be null.
      */
@@ -149,9 +129,6 @@ public class LayerContext extends AbstractConfigurationObject {
         }
         if (supportedLanguages != null) {
             sb.append("Supported languages:\n").append(supportedLanguages);
-        }
-        if (implementation != null) {
-            sb.append("Implementation:\n").append(implementation);
         }
         if (customParameters != null && !customParameters.isEmpty()) {
             sb.append("Custom parameters:\n");

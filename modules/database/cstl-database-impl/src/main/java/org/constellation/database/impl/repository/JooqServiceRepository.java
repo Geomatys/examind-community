@@ -243,6 +243,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
         serviceRecord.setOwner(service.getOwner());
         serviceRecord.setStatus(service.getStatus());
         serviceRecord.setVersions(service.getVersions());
+        serviceRecord.setImpl(service.getImpl());
         serviceRecord.store();
         return serviceRecord.getId();
     }
@@ -286,6 +287,12 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
                 .fetchInto(ServiceReference.class));
 
         return services;
+    }
+
+    @Override
+    public String getImplementation(Integer serviceId) {
+        return dsl.select(SERVICE.IMPL).from(SERVICE)
+                .where(SERVICE.ID.eq(serviceId)).fetchOneInto(String.class);
     }
 
     @Override
@@ -393,6 +400,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
             serviceDTO.setStatus(service.getStatus());
             serviceDTO.setType(service.getType());
             serviceDTO.setVersions(service.getVersions());
+            serviceDTO.setImpl(service.getImpl());
             return serviceDTO;
         }
         return null;

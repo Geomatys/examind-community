@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Service extends org.jooq.impl.TableImpl<org.constellation.database.api.jooq.tables.records.ServiceRecord> {
 
-	private static final long serialVersionUID = 1941934939;
+	private static final long serialVersionUID = -686377598;
 
 	/**
 	 * The reference instance of <code>admin.service</code>
@@ -70,6 +70,11 @@ public class Service extends org.jooq.impl.TableImpl<org.constellation.database.
 	 * The column <code>admin.service.versions</code>.
 	 */
 	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.ServiceRecord, java.lang.String> VERSIONS = createField("versions", org.jooq.impl.SQLDataType.VARCHAR.length(32).nullable(false), this, "");
+
+	/**
+	 * The column <code>admin.service.impl</code>.
+	 */
+	public final org.jooq.TableField<org.constellation.database.api.jooq.tables.records.ServiceRecord, java.lang.String> IMPL = createField("impl", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
 	 * Create a <code>admin.service</code> table reference

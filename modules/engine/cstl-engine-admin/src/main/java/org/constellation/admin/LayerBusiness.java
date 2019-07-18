@@ -23,8 +23,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.imageio.spi.ServiceRegistry;
 import javax.xml.bind.JAXBException;
@@ -45,10 +47,8 @@ import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
 import org.constellation.dto.service.ServiceComplete;
-import org.constellation.dto.service.config.DataSourceType;
 import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
-import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -100,6 +100,11 @@ public class LayerBusiness implements ILayerBusiness {
     protected IDataBusiness dataBusiness;
     @Autowired
     protected IClusterBusiness clusterBusiness;
+
+    /**
+     * Lazy loaded map of {@link MapFactory} found in classLoader.
+     */
+    private Map<String, MapFactory> mapFactories = null;
 
     @Override
     @Transactional
@@ -400,7 +405,6 @@ public class LayerBusiness implements ILayerBusiness {
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec.toLowerCase(), identifier);
 
         if (service != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(service);
             Layer layer;
             if (namespace != null && !namespace.isEmpty()) {
                 //1. search by name and namespace
@@ -416,6 +420,7 @@ public class LayerBusiness implements ILayerBusiness {
             }
 
             if (layer != null) {
+                final LayerSecurityFilter securityFilter = getSecurityFilter(service);
                 if (securityFilter.allowed(login, layer.getId())) {
                     return toLayerConfig(layer);
                 } else {
@@ -434,8 +439,6 @@ public class LayerBusiness implements ILayerBusiness {
                                                           final String namespace, final String login) throws ConfigurationException {
         serviceBusiness.ensureExistingInstance(serviceId);
 
-        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-
         Layer layer;
         if (namespace != null && !namespace.isEmpty()) {
             //1. search by name and namespace
@@ -452,6 +455,7 @@ public class LayerBusiness implements ILayerBusiness {
 
         if (layer != null) {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
+            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
                 final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
                 Date version = null;
@@ -473,12 +477,11 @@ public class LayerBusiness implements ILayerBusiness {
     public NameInProvider getFullLayerName(final Integer serviceId, final Integer layerId, final String login) throws ConfigurationException {
         serviceBusiness.ensureExistingInstance(serviceId);
 
-        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-
         Layer layer = layerRepository.findById(layerId);
 
         if (layer != null) {
             final GenericName layerName = NamesExt.create(layer.getNamespace(), layer.getName());
+            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layer.getId())) {
                 final ProviderBrief provider  = providerRepository.findForData(layer.getDataId());
                 Date version = null;
@@ -502,12 +505,12 @@ public class LayerBusiness implements ILayerBusiness {
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec.toLowerCase(), identifier);
 
         if (service != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(service);
             Layer layer = (namespace != null && !namespace.isEmpty())?
                         layerRepository.findByServiceIdAndLayerName(service, name, namespace) :
                         layerRepository.findByServiceIdAndLayerName(service, name);
 
             if (layer != null) {
+                final LayerSecurityFilter securityFilter = getSecurityFilter(service);
                 if (securityFilter.allowed(login, layer.getId())) {
                     org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
                     if (layerConfig != null) {
@@ -527,8 +530,6 @@ public class LayerBusiness implements ILayerBusiness {
     public List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException {
         serviceBusiness.ensureExistingInstance(serviceId);
 
-        final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-
         Integer layerId;
         if (namespace != null && !namespace.isEmpty()) {
             //1. search by name and namespace
@@ -544,6 +545,7 @@ public class LayerBusiness implements ILayerBusiness {
         }
 
         if (layerId != null) {
+            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             if (securityFilter.allowed(login, layerId)) {
                 return styleRepository.fetchByLayerId(layerId);
             } else {
@@ -605,14 +607,10 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     private LayerSecurityFilter getSecurityFilter(int  serviceId) throws ConfigurationException {
-        final Object config = serviceBusiness.getConfiguration(serviceId);
-        if (config instanceof LayerContext) {
-            final LayerContext context = (LayerContext) config;
-            final MapFactory mapfactory = getMapFactory(context.getImplementation());
-            return mapfactory.getSecurityFilter();
-        } else {
-            throw new ConfigurationException("Trying to get a layer security filter on a non Layer service");
-        }
+        final String servImpl = serviceBusiness.getServiceImplementation(serviceId);
+        final MapFactory mapfactory = getMapFactory(servImpl != null ? servImpl : "default"); // backward compatibility
+        return mapfactory.getSecurityFilter();
+
     }
 
     private org.constellation.dto.service.config.wxs.Layer readLayerConfiguration(final String xml) throws ConfigurationException {
@@ -651,14 +649,18 @@ public class LayerBusiness implements ILayerBusiness {
      * @param type
      * @return
      */
-    private MapFactory getMapFactory(final DataSourceType type) throws ConfigurationException {
-        final Iterator<MapFactory> ite = ServiceRegistry.lookupProviders(MapFactory.class);
-        while (ite.hasNext()) {
-            MapFactory currentFactory = ite.next();
-            if (currentFactory.factoryMatchType(type)) {
-                return currentFactory;
+    private MapFactory getMapFactory(final String impl) throws ConfigurationException {
+        if (mapFactories == null) {
+            mapFactories = new HashMap<>();
+            final Iterator<MapFactory> ite = ServiceRegistry.lookupProviders(MapFactory.class);
+            while (ite.hasNext()) {
+                MapFactory currentFactory = ite.next();
+                mapFactories.put(impl, currentFactory);
             }
         }
-        throw new ConfigurationException("No Map factory has been found for type:" + type);
+        if (!mapFactories.containsKey(impl)) {
+            throw new ConfigurationException("No Map factory has been found for type:" + impl);
+        }
+        return mapFactories.get(impl);
     }
 }

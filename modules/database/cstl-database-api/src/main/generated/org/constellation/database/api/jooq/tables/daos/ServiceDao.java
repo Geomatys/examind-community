@@ -100,4 +100,11 @@ public class ServiceDao extends org.jooq.impl.DAOImpl<org.constellation.database
 	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Service> fetchByVersions(java.lang.String... values) {
 		return fetch(org.constellation.database.api.jooq.tables.Service.SERVICE.VERSIONS, values);
 	}
+
+	/**
+	 * Fetch records that have <code>impl IN (values)</code>
+	 */
+	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Service> fetchByImpl(java.lang.String... values) {
+		return fetch(org.constellation.database.api.jooq.tables.Service.SERVICE.IMPL, values);
+	}
 }

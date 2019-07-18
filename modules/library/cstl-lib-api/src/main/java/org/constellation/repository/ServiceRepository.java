@@ -90,4 +90,6 @@ public interface ServiceRepository {
 
     boolean isLinkedMetadataProviderAndService(int serviceId, int providerID);
 
+    public String getImplementation(Integer serviceId);
+
 }

@@ -29,17 +29,15 @@ import org.constellation.ws.MapFactory;
  */
 public class DefaultMapFactory implements MapFactory {
 
+
     @Override
     public LayerSecurityFilter getSecurityFilter() {
         return new NoLayerSecurityFilter();
     }
 
     @Override
-    public boolean factoryMatchType(final DataSourceType type) {
-        if (type == null || type.getName().isEmpty()) {
-            return true;
-        }
-        return false;
+    public String getIdentifier() {
+        return "default";
     }
 
 }

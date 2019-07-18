@@ -722,6 +722,11 @@ public class ServiceBusiness implements IServiceBusiness {
     }
 
     @Override
+    public String getServiceImplementation(Integer serviceId) {
+        return serviceRepository.getImplementation(serviceId);
+    }
+
+    @Override
     public Object getDefaultConfiguration(final String serviceType) {
         switch(serviceType.toLowerCase()) {
             case "csw": return new Automatic();

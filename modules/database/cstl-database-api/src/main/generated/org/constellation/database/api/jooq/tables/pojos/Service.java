@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Service implements java.io.Serializable {
 
-	private static final long serialVersionUID = -1285366777;
+	private static final long serialVersionUID = 1996334932;
 
 	private java.lang.Integer id;
 	private java.lang.String  identifier;
@@ -26,6 +26,7 @@ public class Service implements java.io.Serializable {
 	private java.lang.Integer owner;
 	private java.lang.String  status;
 	private java.lang.String  versions;
+	private java.lang.String  impl;
 
 	public Service() {}
 
@@ -37,7 +38,8 @@ public class Service implements java.io.Serializable {
 		java.lang.String  config,
 		java.lang.Integer owner,
 		java.lang.String  status,
-		java.lang.String  versions
+		java.lang.String  versions,
+		java.lang.String  impl
 	) {
 		this.id = id;
 		this.identifier = identifier;
@@ -47,6 +49,7 @@ public class Service implements java.io.Serializable {
 		this.owner = owner;
 		this.status = status;
 		this.versions = versions;
+		this.impl = impl;
 	}
 
 	@javax.validation.constraints.NotNull
@@ -128,6 +131,16 @@ public class Service implements java.io.Serializable {
 
 	public Service setVersions(java.lang.String versions) {
 		this.versions = versions;
+		return this;
+	}
+
+	@javax.validation.constraints.Size(max = 255)
+	public java.lang.String getImpl() {
+		return this.impl;
+	}
+
+	public Service setImpl(java.lang.String impl) {
+		this.impl = impl;
 		return this;
 	}
 }

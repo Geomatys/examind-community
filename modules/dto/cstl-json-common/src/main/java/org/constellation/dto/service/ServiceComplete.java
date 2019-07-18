@@ -32,7 +32,7 @@ public class ServiceComplete extends Service {
     public ServiceComplete(Service service , Details details) {
         super(service.getId(), service.getIdentifier(), service.getType(),
               service.getDate(), service.getConfig(), service.getOwner(),
-              service.getStatus(),service.getVersions());
+              service.getStatus(),service.getVersions(), service.getImpl());
         this.description = details != null ? details.getDescription() : "";
         this.title = details != null ? details.getName() : "";
     }

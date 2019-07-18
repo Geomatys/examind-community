@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."service" ADD COLUMN impl character varying(255);
