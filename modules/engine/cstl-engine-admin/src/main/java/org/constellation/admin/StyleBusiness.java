@@ -548,10 +548,34 @@ public class StyleBusiness implements IStyleBusiness {
         clusterBusiness.publish(request);
     }
 
-    public MutableStyle parseStyle(final String name, final String xml) {
+    protected MutableStyle parseStyle(final String name, final String xml) {
         MutableStyle value = null;
         StringReader sr = new StringReader(xml);
         final String baseErrorMsg = "SLD Style ";
+         // try UserStyle SLD 1.1
+        try {
+            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.V_1_1_0);
+            if (value != null) {
+                value.setName(name);
+                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.1.0", new Object[] { baseErrorMsg, name });
+                return value;
+            }
+        } catch (JAXBException | FactoryException ex) { /* dont log */
+        } finally {
+            sr = new StringReader(xml);
+        }
+        // try UserStyle SLD 1.0
+        try {
+            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.SLD_1_0_0);
+            if (value != null) {
+                value.setName(name);
+                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.0.0", new Object[] { baseErrorMsg, name });
+                return value;
+            }
+        } catch (JAXBException | FactoryException ex) { /* dont log */
+        } finally {
+            sr = new StringReader(xml);
+        }
         // try SLD 1.1
         try {
             final MutableStyledLayerDescriptor sld = sldParser.readSLD(sr, Specification.StyledLayerDescriptor.V_1_1_0);
@@ -572,30 +596,6 @@ public class StyleBusiness implements IStyleBusiness {
             if (value != null) {
                 value.setName(name);
                 LOGGER.log(Level.FINE, "{0}{1} is an SLD 1.0.0", new Object[] { baseErrorMsg, name });
-                return value;
-            }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try UserStyle SLD 1.1
-        try {
-            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.V_1_1_0);
-            if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.1.0", new Object[] { baseErrorMsg, name });
-                return value;
-            }
-        } catch (JAXBException | FactoryException ex) { /* dont log */
-        } finally {
-            sr = new StringReader(xml);
-        }
-        // try UserStyle SLD 1.0
-        try {
-            value = sldParser.readStyle(sr, Specification.SymbologyEncoding.SLD_1_0_0);
-            if (value != null) {
-                value.setName(name);
-                LOGGER.log(Level.FINE, "{0}{1} is a UserStyle SLD 1.0.0", new Object[] { baseErrorMsg, name });
                 return value;
             }
         } catch (JAXBException | FactoryException ex) { /* dont log */
