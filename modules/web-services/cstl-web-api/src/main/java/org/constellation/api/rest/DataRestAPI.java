@@ -1311,14 +1311,18 @@ public class DataRestAPI extends AbstractRestAPI{
             try {
                 final DataBrief db = dataBusiness.getDataBrief(dataId);
                 final DataDescription ddesc = db.getDataDescription();
-                final double[] bbox = ddesc.getBoundingBox();
-                final GeneralEnvelope dataEnv = new GeneralEnvelope(CRS.forCode("CRS:84"));
-                dataEnv.setRange(0,bbox[0],bbox[2]);
-                dataEnv.setRange(1,bbox[1],bbox[3]);
-                if(globalEnv == null) {
-                    globalEnv = dataEnv;
-                }else {
-                    globalEnv.add(dataEnv);
+                if (ddesc != null) {
+                    final double[] bbox = ddesc.getBoundingBox();
+                    final GeneralEnvelope dataEnv = new GeneralEnvelope(CRS.forCode("CRS:84"));
+                    dataEnv.setRange(0,bbox[0],bbox[2]);
+                    dataEnv.setRange(1,bbox[1],bbox[3]);
+                    if(globalEnv == null) {
+                        globalEnv = dataEnv;
+                    }else {
+                        globalEnv.add(dataEnv);
+                    }
+                } else {
+                    LOGGER.warning("Null dataDescription for data:" + db.getName());
                 }
             }catch(Exception ex){
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

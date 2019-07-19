@@ -256,7 +256,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
     public void initLayerList() {
-
+        pool = WMSMarshallerPool.getInstance();
         if (!initialized) {
             try {
                 startServer(null);
@@ -394,8 +394,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 layerBusiness.add("MapNeatline",         "http://www.opengis.net/gml",       "shapeSrc",        null, "wms2", "wms", null);
                 layerBusiness.add("Ponds",               "http://www.opengis.net/gml",       "shapeSrc",        null, "wms2", "wms", null);
 
-                pool = WMSMarshallerPool.getInstance();
-
                 WorldFileImageReader.Spi.registerDefaults(null);
                 WMSPortrayal.setEmptyExtension(true);
 
@@ -531,7 +529,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=3)
     public void testWMSGetMapLakeGif() throws Exception {
-
+        initLayerList();
          // Creates a valid GetMap url.
         final URL getMapUrl;
         try {
@@ -862,6 +860,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=12)
     public void testWMSGetCapabilitiesLanguage() throws JAXBException, Exception {
+        pool = WMSMarshallerPool.getInstance();
 
          // Creates a valid GetMap url.
         URL getCapsUrl;
@@ -932,7 +931,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      */
     @Test
     @Order(order=13)
-    public void testWMSGetFeatureInfo() throws Exception {
+    public void testWMSGetFeatureInfoPlainCoveragePng() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
@@ -973,7 +972,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Ignore
     @Order(order=14)
-    public void testWMSGetFeatureInfo2() throws Exception {
+    public void testWMSGetFeatureInfoPlainShapePng() throws Exception {
 
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
@@ -1010,7 +1009,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Ignore
     @Order(order=15)
-    public void testWMSGetFeatureInfo3() throws Exception {
+    public void testWMSGetFeatureInfoPlainShapeGif() throws Exception {
 
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
@@ -1047,7 +1046,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Ignore
     @Order(order=16)
-    public void testWMSGetFeatureInfo4() throws Exception {
+    public void testWMSGetFeatureInfoGMLShapeGif() throws Exception {
 
         // Creates a valid GetFeatureInfo url.
         final URL gfi;

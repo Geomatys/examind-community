@@ -31,6 +31,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
 import static org.constellation.api.CommonConstants.SUPPORTED_SERVICE_TYPE;
+import org.constellation.dto.ServiceReference;
 
 /**
  * Add a layer to a map service. If service instance doesn't exist, process will create it.
@@ -80,32 +81,20 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
             .create(DataReference.class, null);
 
     /*
-     * Service Type
-     */
-    public static final String SERVICE_TYPE_PARAM_NAME = "service_type";
-    public static final InternationalString SERVICE_TYPE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_TYPE_PARAM_REMARKS_KEY);
-    private static final String[] SERVICE_TYPE_VALID_VALUES = SUPPORTED_SERVICE_TYPE.toArray(new String[SUPPORTED_SERVICE_TYPE.size()]);
-    public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
-            .addName(SERVICE_TYPE_PARAM_NAME)
-            .setRemarks(SERVICE_TYPE_PARAM_REMARKS)
-            .setRequired(true)
-            .createEnumerated(String.class, SERVICE_TYPE_VALID_VALUES, "WMS");
-
-    /*
-     * Service instance name
+     * Service reference
      */
     public static final String SERVICE_INSTANCE_PARAM_NAME = "service_instance";
     public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_INSTANCE_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<String> SERVICE_INSTANCE = BUILDER
+    public static final ParameterDescriptor<ServiceReference> SERVICE_REF = BUILDER
             .addName(SERVICE_INSTANCE_PARAM_NAME)
             .setRemarks(SERVICE_INSTANCE_PARAM_REMARKS)
             .setRequired(true)
-            .create(String.class, null);
+            .create(ServiceReference.class, null);
 
 
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(LAYER_REF, SERVICE_TYPE, SERVICE_INSTANCE);
+            .createGroup(LAYER_REF, SERVICE_REF);
 
     /*
      * Output Layer context

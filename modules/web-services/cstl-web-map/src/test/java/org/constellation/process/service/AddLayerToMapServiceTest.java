@@ -132,11 +132,12 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         //init
+        Integer serviceId = null;
         try{
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            Integer serviceId = createCustomInstance("addLayer1", inputContext);
+            serviceId = createCustomInstance("addLayer1", inputContext);
             startInstance("addLayer1");
 
             final Filter bbox = FF.bbox("geom", 10, 0, 30, 50, null);
@@ -165,7 +166,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer1"));
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness, "addLayer1");
+            deleteInstance( layerBusiness, serviceId);
         }
     }
 
@@ -177,9 +178,10 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     public void testAddSFLayerToConfiguration2() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
+        Integer serviceId = null;
         try{
             final LayerContext inputContext = new LayerContext();
-            Integer serviceId = createCustomInstance("addLayer2", inputContext);
+            serviceId = createCustomInstance("addLayer2", inputContext);
 
             startInstance("addLayer2");
 
@@ -213,7 +215,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer2"));
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness,  "addLayer2");
+            deleteInstance(layerBusiness,  serviceId);
         }
     }
 
@@ -224,11 +226,12 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     public void testAddSFLayerToConfiguration3() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
+        Integer serviceId = null;
         try{
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            Integer serviceId = createCustomInstance("addLayer3", inputContext);
+            serviceId = createCustomInstance("addLayer3", inputContext);
             startInstance("addLayer3");
 
             Layer layer = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
@@ -277,7 +280,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
             assertTrue(checkInstanceExist("addLayer3"));
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness, "addLayer3");
+            deleteInstance(layerBusiness, serviceId);
         }
     }
 
@@ -289,6 +292,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     public void testAddSFLayerToConfiguration5() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
+        Integer serviceId = null;
         try{
             //init
             final LayerContext inputContext = new LayerContext();
@@ -296,7 +300,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             final GetFeatureInfoCfg[] gfiArray = gfi.toArray(new GetFeatureInfoCfg[gfi.size()]);
             inputContext.setGetFeatureInfoCfgs(gfi);
 
-            Integer serviceId = createCustomInstance("addLayer5", inputContext);
+            serviceId = createCustomInstance("addLayer5", inputContext);
             startInstance("addLayer5");
 
             Layer layer1 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
@@ -359,7 +363,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertTrue(checkInstanceExist("addLayer5"));
 
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness, "addLayer5");
+            deleteInstance(layerBusiness, serviceId);
         }
 
     }
@@ -370,12 +374,13 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      @Test
     public void testAddSFLayerToConfiguration6() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
 
+        Integer serviceId = null;
         try{
         //init
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            Integer serviceId = createCustomInstance("addLayer6", inputContext);
+            serviceId = createCustomInstance("addLayer6", inputContext);
             startInstance("addLayer6");
 
             final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
@@ -406,7 +411,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertTrue(checkInstanceExist("addLayer6"));
 
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness, "addLayer6");
+            deleteInstance(layerBusiness, serviceId);
         }
 
     }
@@ -418,12 +423,13 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     public void testAddSFLayerToConfiguration7() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
+        Integer serviceId = null;
         try{
             //init
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            Integer serviceId = createCustomInstance("addLayer7", inputContext);
+            serviceId = createCustomInstance("addLayer7", inputContext);
             startInstance("addLayer7");
 
             final Filter bbox = FF.bbox("geom", 10, 0, 30, 50, null);
@@ -465,7 +471,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             assertTrue(checkInstanceExist("addLayer7"));
 
         }finally{
-            deleteInstance(serviceBusiness, layerBusiness, "addLayer7");
+            deleteInstance(layerBusiness, serviceId);
         }
     }
 

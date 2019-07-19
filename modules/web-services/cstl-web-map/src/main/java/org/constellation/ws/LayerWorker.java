@@ -201,7 +201,7 @@ public abstract class LayerWorker extends AbstractWorker {
 
     protected Layer getConfigurationLayer(final QName layerName, final String login) {
         try {
-            return layerBusiness.getLayer(this.specification.name(), getId(), layerName.getLocalPart(), layerName.getNamespaceURI(), login);
+            return layerBusiness.getLayer(getServiceId(), layerName.getLocalPart(), layerName.getNamespaceURI(), login);
         } catch (ConfigurationException e) {
             LOGGER.log(Level.FINE, "No layer is exactly named as queried. Search using alias will start now", e);
         }
@@ -210,7 +210,7 @@ public abstract class LayerWorker extends AbstractWorker {
 
     protected List<NameInProvider> getConfigurationLayerNames(final String login) {
         try {
-            return layerBusiness.getLayerNames(this.specification.name().toLowerCase(), getId(), login);
+            return layerBusiness.getLayerNames(getServiceId(), login);
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while getting layers names", ex);
         }
@@ -219,7 +219,7 @@ public abstract class LayerWorker extends AbstractWorker {
 
     protected FilterAndDimension getLayerFilterDimensions(final GenericName layerName, final String login) {
         try {
-            return layerBusiness.getLayerFilterDimension(this.specification.name().toLowerCase(), getId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
+            return layerBusiness.getLayerFilterDimension(getServiceId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while getting filter and dimension for layer", ex);
         }

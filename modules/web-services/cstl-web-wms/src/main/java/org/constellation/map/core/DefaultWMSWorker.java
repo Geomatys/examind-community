@@ -1458,7 +1458,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     private PortrayalResponse handleExceptions(GetMap getMap, boolean errorInImage, boolean errorBlank,
                                                Exception ex, OWSExceptionCode expCode, String locator) throws CstlServiceException {
         if (errorInImage) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            if (!OWSExceptionCode.LAYER_NOT_DEFINED.equals(expCode)) {
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            }
             BufferedImage img = CstlPortrayalService.getInstance().writeInImage(ex, getMap.getSize());
             Boolean trs = getMap.getTransparent();
             if (Boolean.FALSE.equals(trs)) {
@@ -1478,7 +1480,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             if (getMap.getTransparent()) {
                 exColor = new Color(0x00FFFFFF & exColor.getRGB(), true); //mark alpha bit as 0 to make color transparent
             }
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            if (!OWSExceptionCode.LAYER_NOT_DEFINED.equals(expCode)) {
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            }
             return new PortrayalResponse(CstlPortrayalService.getInstance().writeBlankImage(exColor, getMap.getSize()));
         } else {
             if (locator != null) {
@@ -1565,7 +1569,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 }
             }
             results.add(style);
-            
+
             i++;
         }
         return results;

@@ -472,7 +472,7 @@ public abstract class AbstractGrizzlyServer {
             final StringWriter sw = new StringWriter();
             Marshaller marshaller = pool.acquireMarshaller();
             marshaller.marshal(request, sw);
-
+            pool.recycle(marshaller);
             wr.write(sw.toString());
         }
         wr.flush();
@@ -507,7 +507,7 @@ public abstract class AbstractGrizzlyServer {
         final StringWriter sw = new StringWriter();
         Marshaller marshaller = pool.acquireMarshaller();
         marshaller.marshal(request, sw);
-
+        pool.recycle(marshaller);
         wr.write(sw.toString());
         wr.flush();
     }

@@ -251,7 +251,8 @@ public class OGCRestAPI {
     @RequestMapping(value="/OGC/{spec}/{id}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity delete(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
-            layerBusiness.removeForService(serviceType, id);
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id);
+            layerBusiness.removeForService(sid);
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.delete(s.getId());

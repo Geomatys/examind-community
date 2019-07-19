@@ -97,11 +97,11 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
         return context;
     }
 
-    protected static void deleteInstance(final IServiceBusiness serviceBusiness, final ILayerBusiness layerBusiness, String identifier) {
+    protected static void deleteInstance(final ILayerBusiness layerBusiness, Integer serviceId) {
         try {
-            layerBusiness.removeForService(serviceName, identifier);
+            layerBusiness.removeForService(serviceId);
         } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Unable to delete layer "+serviceName+" "+identifier);
+            LOGGER.log(Level.WARNING, "Unable to delete layers for service: "+ serviceName);
         }
     }
 }

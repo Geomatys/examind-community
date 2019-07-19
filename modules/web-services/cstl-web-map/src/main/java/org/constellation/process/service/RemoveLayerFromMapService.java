@@ -19,6 +19,7 @@
 package org.constellation.process.service;
 
 import org.constellation.business.ILayerBusiness;
+import org.constellation.dto.ServiceReference;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.process.AbstractCstlProcess;
@@ -49,17 +50,15 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
         super(desc, input);
     }
 
-    public RemoveLayerFromMapService(final String serviceType, final String serviceInstance,
-                                     final DataReference layerRef) {
-        this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef));
+    public RemoveLayerFromMapService(final ServiceReference serviceRef, final DataReference layerRef) {
+        this(INSTANCE, toParameters(serviceRef, layerRef));
     }
 
-    private static ParameterValueGroup toParameters(final String serviceType, final String serviceInstance,
+    private static ParameterValueGroup toParameters(final ServiceReference serviceRef,
                                                     final DataReference layerRef){
         final ParameterValueGroup params = INSTANCE.getInputDescriptor().createValue();
         getOrCreate(LAYER_REF, params).setValue(layerRef);
-        getOrCreate(SERVICE_TYPE, params).setValue(serviceType);
-        getOrCreate(SERVICE_INSTANCE, params).setValue(serviceInstance);
+        getOrCreate(SERVICE_REF, params).setValue(serviceRef);
         return params;
     }
 
@@ -67,8 +66,7 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
 
         final DataReference layerRef        = inputParameters.getValue(LAYER_REF);
-        final String serviceType            = inputParameters.getValue(SERVICE_TYPE);
-        final String serviceInstance        = inputParameters.getValue(SERVICE_INSTANCE);
+        final ServiceReference serviceRef   = inputParameters.getValue(SERVICE_REF);
 
         //check layer reference
         final String dataType = layerRef.getDataType();
@@ -85,8 +83,8 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
             } catch (RuntimeException ex) {
                //do nothing
             }
-            oldLayer = layerBusiness.getLayer(serviceType, serviceInstance, layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
-            layerBusiness.remove(serviceType, serviceInstance, layerName.tip().toString(), NamesExt.getNamespace(layerName));
+            oldLayer = layerBusiness.getLayer(serviceRef.getId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
+            layerBusiness.remove(serviceRef.getType(), serviceRef.getIdentifier(), layerName.tip().toString(), NamesExt.getNamespace(layerName));
         } catch (ConfigurationException ex) {
             throw new ProcessException("Error while saving layer", this, ex);
         }

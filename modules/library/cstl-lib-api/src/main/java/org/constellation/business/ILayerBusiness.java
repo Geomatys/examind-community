@@ -54,17 +54,17 @@ public interface ILayerBusiness {
      */
     void updateLayerTitle(int layerID, String newTitle) throws ConfigurationException;
 
-    void removeForService(final String serviceType, final String serviceId) throws ConfigurationException;
+    void removeForService(Integer serviceId) throws ConfigurationException;
 
     List<Layer> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
 
-    List<NameInProvider> getLayerNames(String serviceType, String serviceName, String userLogin) throws ConfigurationException;
+    List<NameInProvider> getLayerNames(Integer ServiceId, String userLogin) throws ConfigurationException;
 
     List<Integer> getLayerIds(Integer layerId, String userLogin) throws ConfigurationException;
 
-    Layer getLayer(String spec, String identifier, String name, String namespace, String login) throws ConfigurationException;
+    Layer getLayer(Integer serviceId, String name, String namespace, String login) throws ConfigurationException;
 
-    FilterAndDimension getLayerFilterDimension(String spec, String identifier, String name, String namespace, String login) throws ConfigurationException;
+    FilterAndDimension getLayerFilterDimension(Integer serviceId, String name, String namespace, String login) throws ConfigurationException;
 
     NameInProvider getFullLayerName(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException;
 

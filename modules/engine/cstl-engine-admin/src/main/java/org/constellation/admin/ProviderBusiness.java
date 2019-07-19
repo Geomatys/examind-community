@@ -361,14 +361,17 @@ public class ProviderBusiness implements IProviderBusiness {
         final String type = config.getType();
         final String subType = config.getSubType();
         final Map<String,String> inParams = config.getParameters();
-
+        
         final DataProviderFactory providerService = DataProviders.getFactory(type);
-        final ParameterDescriptorGroup sourceDesc = providerService.getProviderDescriptor();
-        ParameterValueGroup sources = sourceDesc.createValue();
-        sources.parameter("id").setValue(id);
-        sources.parameter("providerType").setValue(type);
-        sources = fillProviderParameter(type, subType, inParams, sources);
-        return create(id, providerService.getName(), sources);
+        if (providerService != null) {
+            final ParameterDescriptorGroup sourceDesc = providerService.getProviderDescriptor();
+            ParameterValueGroup sources = sourceDesc.createValue();
+            sources.parameter("id").setValue(id);
+            sources.parameter("providerType").setValue(type);
+            sources = fillProviderParameter(type, subType, inParams, sources);
+            return create(id, providerService.getName(), sources);
+        }
+        throw new ConfigurationException("Unable to find a provider factory for type:" + type);
     }
 
     /**
