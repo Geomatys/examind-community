@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "LAYER_ALIAS-SERVICE_IDX" ON "admin"."layer" USING btree ("alias", service);

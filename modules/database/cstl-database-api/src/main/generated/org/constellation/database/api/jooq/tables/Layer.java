@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Layer extends org.jooq.impl.TableImpl<org.constellation.database.api.jooq.tables.records.LayerRecord> {
 
-	private static final long serialVersionUID = 1765270454;
+	private static final long serialVersionUID = -1634706855;
 
 	/**
 	 * The reference instance of <code>admin.layer</code>
@@ -124,7 +124,7 @@ public class Layer extends org.jooq.impl.TableImpl<org.constellation.database.ap
 	 */
 	@Override
 	public java.util.List<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.LayerRecord>> getKeys() {
-		return java.util.Arrays.<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.LayerRecord>>asList(org.constellation.database.api.jooq.Keys.LAYER_PK, org.constellation.database.api.jooq.Keys.LAYER_NAME_UQ);
+		return java.util.Arrays.<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.LayerRecord>>asList(org.constellation.database.api.jooq.Keys.LAYER_PK, org.constellation.database.api.jooq.Keys.LAYER_NAME_UQ, org.constellation.database.api.jooq.Keys.LAYER_UNIQUE_ALIAS);
 	}
 
 	/**

@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."layer" ADD CONSTRAINT Layer_unique_alias UNIQUE ("service", "alias");
