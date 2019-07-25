@@ -544,9 +544,7 @@
                 <ows:Abstract xml:lang="fr-FR">Image à reformater</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:reformat:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-srtmhgt" encoding="base64" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/x-ogc-srtmhgt" maximumMegabytes="100"/>
-                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100" default="true"/>
                     <wps:Format mimeType="application/x-ogc-vi3g" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
@@ -1422,9 +1420,7 @@
                 <ows:Abstract xml:lang="fr-FR">Image dont on va changer les bandes</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:bandselect:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-srtmhgt" encoding="base64" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/x-ogc-srtmhgt" maximumMegabytes="100"/>
-                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100" default="true"/>
                     <wps:Format mimeType="application/x-ogc-vi3g" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
