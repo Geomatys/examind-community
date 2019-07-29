@@ -18,6 +18,7 @@
  */
 package org.constellation.wfs.ws.rs;
 
+import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.FeatureSet;
 /**
@@ -26,7 +27,7 @@ import org.apache.sis.storage.FeatureSet;
  */
 public class FeatureSetWrapper {
 
-    private final FeatureSet featureSet;
+    private final List<FeatureSet> featureSets;
 
     private final int nbMatched;
 
@@ -38,9 +39,9 @@ public class FeatureSetWrapper {
 
     private final boolean writeSingleFeature;
 
-    public FeatureSetWrapper(final FeatureSet featureSet, final Map<String, String> schemaLocations, final String gmlVersion,
+    public FeatureSetWrapper(final List<FeatureSet> featureSets, final Map<String, String> schemaLocations, final String gmlVersion,
             final String wfsVersion, final int nbMatched, boolean writeSingleFeature) {
-        this.featureSet = featureSet;
+        this.featureSets = featureSets;
         this.gmlVersion = gmlVersion;
         this.wfsVersion = wfsVersion;
         this.schemaLocations = schemaLocations;
@@ -51,8 +52,8 @@ public class FeatureSetWrapper {
     /**
      * @return the featureSet
      */
-    public FeatureSet getFeatureSet() {
-        return featureSet;
+    public List<FeatureSet> getFeatureSet() {
+        return featureSets;
     }
 
     /**

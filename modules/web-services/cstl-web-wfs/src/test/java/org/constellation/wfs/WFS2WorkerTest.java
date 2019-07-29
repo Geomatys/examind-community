@@ -465,7 +465,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -504,7 +504,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -531,7 +531,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -558,7 +558,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -585,7 +585,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -612,7 +612,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -639,7 +639,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -666,7 +666,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -693,7 +693,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -828,6 +828,36 @@ public class WFS2WorkerTest {
         assertTrue(exLaunched);
     }
 
+    @Test
+    @Order(order=6)
+    public void getFeatureMixedTest() throws Exception {
+        /**
+         * Test 1 : query on typeName bridges and NamedPlaces
+         */
+        List<QueryType> queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "Bridges"), new QName("http://www.opengis.net/gml/3.2", "NamedPlaces")), null));
+        GetFeatureType request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        Object result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
+
+
+        StringWriter writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+
+        String sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        String expectedResult = IOUtilities.toString(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.mixedCollectionV2.xml"));
+        expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
+
+        domCompare(sresult, expectedResult);
+    }
+
 
     /**
      * test the feature marshall
@@ -927,7 +957,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -952,7 +982,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -976,7 +1006,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1015,7 +1045,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1040,7 +1070,7 @@ public class WFS2WorkerTest {
         result = worker.getFeature(request);
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1066,7 +1096,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1210,7 +1240,7 @@ public class WFS2WorkerTest {
 
         assertTrue(resultGF instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet();
+        resultGF = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -1266,7 +1296,7 @@ public class WFS2WorkerTest {
 
         assertTrue(resultGF instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet();
+        resultGF = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -1328,7 +1358,7 @@ public class WFS2WorkerTest {
 
         assertTrue(resultGF instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet();
+        resultGF = wrapper.getFeatureSet().get(0);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(resultGF,writer);
@@ -1579,7 +1609,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -1613,7 +1643,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();
@@ -1640,7 +1670,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1671,7 +1701,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1698,7 +1728,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         writer = new StringWriter();
@@ -1731,7 +1761,7 @@ public class WFS2WorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
         assertEquals("3.2.1", wrapper.getGmlVersion());
 
         StringWriter writer = new StringWriter();

@@ -242,7 +242,7 @@ public class WFSCIteWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
 
-        FeatureSet collection = ((FeatureSetWrapper)result).getFeatureSet();
+        FeatureSet collection = ((FeatureSetWrapper)result).getFeatureSet().get(0);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(collection,writer);
@@ -264,7 +264,7 @@ public class WFSCIteWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
 
-        collection = ((FeatureSetWrapper)result).getFeatureSet();
+        collection = ((FeatureSetWrapper)result).getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(collection, writer);
@@ -296,7 +296,7 @@ public class WFSCIteWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
 
-        collection = ((FeatureSetWrapper)result).getFeatureSet();
+        collection = ((FeatureSetWrapper)result).getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(collection, writer);

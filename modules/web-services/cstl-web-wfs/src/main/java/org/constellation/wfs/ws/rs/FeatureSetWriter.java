@@ -85,8 +85,11 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
         }
 
         if (MediaType.APPLICATION_JSON.equals(media)) {
-            try (FeatureWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().getType(), JsonEncoding.UTF8, 4, true)) {
-                FeatureStoreUtilities.write(featureWriter, t.getFeatureSet().features(false).collect(Collectors.toList()));
+            if (t.getFeatureSet().size() > 1) {
+                throw new UnsupportedOperationException("TODO MULTIPLE JSON");
+            }
+            try (FeatureWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), JsonEncoding.UTF8, 4, true)) {
+                FeatureStoreUtilities.write(featureWriter, t.getFeatureSet().get(0).features(false).collect(Collectors.toList()));
             } catch (DataStoreException ex) {
                 LOGGER.log(Level.SEVERE, "DataStore exception while writing the feature collection", ex);
             } catch (FeatureStoreRuntimeException ex) {
@@ -98,7 +101,12 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                 final XmlFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
                 if (t.isWriteSingleFeature()) {
                     //write a single feature without collection element container
-                    final Optional<Feature> feat = t.getFeatureSet().features(true).findFirst();
+                    final Optional<Feature> feat;
+                    if (!t.getFeatureSet().isEmpty()) {
+                        feat = t.getFeatureSet().get(0).features(true).findFirst();
+                    } else {
+                        feat = Optional.empty();
+                    }
 
                     if (feat.isPresent()) {
                         Feature f = feat.get();
@@ -110,7 +118,11 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
                     }
 
                 } else {
-                    featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                    if (t.getFeatureSet().size() == 1) {
+                        featureWriter.write(t.getFeatureSet().get(0), outputMessage.getBody(), t.getNbMatched());
+                    } else {
+                        featureWriter.write(t.getFeatureSet(), outputMessage.getBody(), t.getNbMatched());
+                    }
                 }
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, "Exception while writing the feature collection", ex);

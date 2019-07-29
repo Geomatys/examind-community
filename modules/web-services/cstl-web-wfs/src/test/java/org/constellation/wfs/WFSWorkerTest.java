@@ -490,7 +490,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -529,7 +529,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -556,7 +556,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -582,7 +582,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -608,7 +608,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -634,7 +634,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -662,7 +662,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -689,7 +689,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -770,7 +770,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
 
         StringWriter writer = new StringWriter();
@@ -797,7 +797,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -821,7 +821,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -859,7 +859,7 @@ public class WFSWorkerTest {
 
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -884,7 +884,7 @@ public class WFSWorkerTest {
         result = worker.getFeature(request);
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -909,7 +909,7 @@ public class WFSWorkerTest {
         result = worker.getFeature(request);
         assertTrue(result instanceof FeatureSetWrapper);
         wrapper = (FeatureSetWrapper) result;
-        result = wrapper.getFeatureSet();
+        result = wrapper.getFeatureSet().get(0);
 
         writer = new StringWriter();
         featureWriter.write(result,writer);
@@ -924,12 +924,42 @@ public class WFSWorkerTest {
 
     }
 
+    @Test
+    @Order(order=6)
+    public void getFeatureMixedTest() throws Exception {
+        /**
+         * Test 1 : query on typeName bridges and NamedPlaces
+         */
+
+        List<QueryType> queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml", "Bridges"), new QName("http://www.opengis.net/gml", "NamedPlaces")), null));
+        GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+
+        Object result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet();
+
+
+        StringWriter writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+
+        String sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(sresult,
+                IOUtilities.getResourceAsPath("org.constellation.wfs.xml.mixedCollection.xml")
+                );
+    }
+
     /**
      *
      *
      */
     @Test
-    @Order(order=6)
+    @Order(order=7)
     public void DescribeFeatureTest() throws Exception {
         Unmarshaller unmarshaller = XSDMarshallerPool.getInstance().acquireUnmarshaller();
 
@@ -975,7 +1005,7 @@ public class WFSWorkerTest {
      *
      */
     @Test
-    @Order(order=7)
+    @Order(order=8)
     public void TransactionUpdateTest() throws Exception {
 
         /**
@@ -1067,7 +1097,7 @@ public class WFSWorkerTest {
 
         assertTrue(resultGF instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet();
+        resultGF = wrapper.getFeatureSet().get(0);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(resultGF,writer);
@@ -1082,7 +1112,7 @@ public class WFSWorkerTest {
     }
 
     @Test
-    @Order(order=8)
+    @Order(order=9)
     public void TransactionDeleteTest() throws Exception {
 
         /**
@@ -1130,7 +1160,7 @@ public class WFSWorkerTest {
 
         assertTrue(resultGF instanceof FeatureSetWrapper);
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
-        resultGF = wrapper.getFeatureSet();
+        resultGF = wrapper.getFeatureSet().get(0);
 
         StringWriter writer = new StringWriter();
         featureWriter.write(resultGF,writer);
@@ -1147,7 +1177,7 @@ public class WFSWorkerTest {
      *
      */
     @Test
-    @Order(order=9)
+    @Order(order=10)
     public void TransactionInsertTest() throws Exception {
 
         /**
@@ -1169,7 +1199,7 @@ public class WFSWorkerTest {
     }
 
     @Test
-    @Order(order=10)
+    @Order(order=11)
     public void schemaLocationTest() throws Exception {
         List<QueryType> queries = new ArrayList<>();
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml", "NamedPlaces")), null));

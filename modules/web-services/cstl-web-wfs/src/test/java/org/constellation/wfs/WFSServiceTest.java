@@ -186,7 +186,7 @@ public class WFSServiceTest {
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
-        FeatureSet collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        FeatureSet collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
         assertEquals(6, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
@@ -206,7 +206,7 @@ public class WFSServiceTest {
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
-        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
         assertEquals(8, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
@@ -226,7 +226,7 @@ public class WFSServiceTest {
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
-        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
         assertEquals(6, FeatureStoreUtilities.getCount(collection).intValue());
 
         /*
@@ -246,7 +246,7 @@ public class WFSServiceTest {
         assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
-        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet();
+        collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
         assertEquals(8, FeatureStoreUtilities.getCount(collection).intValue());
 
     }

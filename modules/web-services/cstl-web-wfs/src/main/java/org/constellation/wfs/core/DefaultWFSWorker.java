@@ -949,7 +949,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final String currentVersion                = request.getVersion().toString();
         final int maxFeatures                      = request.getCount();
         final Integer startIndex                   = request.getStartIndex();
-        final List<FeatureCollection> collections  = new ArrayList<>();
+        final List<FeatureSet> collections         = new ArrayList<>();
         final Map<String, String> schemaLocations  = new HashMap<>();
         final Map<String, String> namespaceMapping = request.getPrefixMapping();
 
@@ -1143,19 +1143,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
         /**
          * 3 possibilities here :
-         *    1) merge the collections
-         *    2) return a collection of collection.
+         *    1) return a collection of collection.
+         *    2) return an ampty collection
          *    3) if there is only one feature we return (change the return type in object)
          *
          * result TODO find an id and a member type
          */
-        final FeatureCollection featureCollection;
-	if (collections.size() > 1) {
-            featureCollection = FeatureStreams.sequence("collection-1", collections.toArray(new FeatureCollection[collections.size()]));
-        } else if (collections.size() == 1) {
-            featureCollection = collections.get(0);
-        } else {
-            featureCollection = FeatureStoreUtilities.collection("collection-1", null);
+	if (collections.isEmpty()) {
+            collections.add(FeatureStoreUtilities.collection("collection-1", null));
         }
         if (request.getResultType() == ResultTypeType.HITS) {
             final XMLGregorianCalendar calendar;
@@ -1164,14 +1159,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             } catch (DatatypeConfigurationException e) {
                 throw new CstlServiceException("Unable to create XMLGregorianCalendar from Date.");
             }
-            return buildFeatureCollection(currentVersion, "collection-1", featureCollection.size(), calendar);
+            return buildFeatureCollection(currentVersion, "collection-1", (int)nbMatched, calendar);
         }
         LOGGER.log(Level.INFO, "GetFeature treated in {0}ms", (System.currentTimeMillis() - start));
 
         if(queries.size()==1 && queries.containsKey("urn:ogc:def:query:OGC-WFS::GetFeatureById")){
-            return new FeatureSetWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
+            return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,true);
         }else{
-            return new FeatureSetWrapper(featureCollection, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
+            return new FeatureSetWrapper(collections, schemaLocations, gmlVersion, currentVersion, (int)nbMatched,false);
         }
 
     }
