@@ -360,13 +360,17 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final Envelope layerNativeEnv;
             try {
                 layerNativeEnv = layer.getEnvelope();
+                if (layerNativeEnv == null) {
+                    LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", layer);
+                    continue;
+                }
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, ex, () -> "Cannot get envelope for layer "+layer);
                 continue;
             }
 
             String nativeCrs = null;
-           try {
+            try {
                CoordinateReferenceSystem crs = layerNativeEnv.getCoordinateReferenceSystem();
                if (crs != null) {
                    final Integer epsgCode = IdentifiedObjects.lookupEPSG(crs);
