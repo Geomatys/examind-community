@@ -1427,6 +1427,14 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     } else if (featureObject instanceof FeatureCollection) {
                         featureCollection = (Collection) featureObject;
                         ft = ((FeatureCollection)featureCollection).getType();
+                    } else if (featureObject instanceof FeatureSet) {
+                        try {
+                            featureCollection = ((FeatureSet) featureObject).features(false).collect(Collectors.toList());
+                            ft = ((FeatureSet) featureObject).getType();
+                        } catch (DataStoreException ex) {
+                            throw new CstlServiceException(ex);
+                        }
+
                     } else {
                         final String featureType;
                         if (featureObject == null) {
@@ -1688,6 +1696,18 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 } else if (featureObject instanceof FeatureCollection) {
                     featureCollection = (FeatureCollection) featureObject;
                     typeName = ((FeatureCollection) featureCollection).getType().getName();
+                } else if (featureObject instanceof FeatureSet) {
+                    try {
+                        typeName = ((FeatureSet) featureObject).getType().getName();
+                        if (getFullLayerName(userLogin, typeName) == null) {
+                            throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
+                        }
+                        final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
+                        featureCollection = new org.geotoolkit.data.FeatureSetWrapper((FeatureSet) featureObject, layer.getStore());
+                    } catch (DataStoreException ex) {
+                        throw new CstlServiceException(ex);
+                    }
+
                 } else {
                     final String featureType;
                     if (featureObject == null) {
