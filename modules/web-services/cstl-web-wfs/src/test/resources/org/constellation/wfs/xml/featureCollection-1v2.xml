@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" timeStamp="" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" numberReturned="1">
+    <wfs:boundedBy>
+        <gml:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+            <gml:lowerCorner>-80.83775386582222 35.24980190252168</gml:lowerCorner>
+            <gml:upperCorner>-80.83775386582222 35.24980190252168</gml:upperCorner>
+        </gml:Envelope>
+    </wfs:boundedBy>
+    <wfs:member>
+        <gml:featureCollection gml:id="fc-gs-002">
+            <geometry>
+                <gml:Point srsName="urn:ogc:def:crs:OGC:1.3:CRS84" gml:id="fc-gs-002_g0">
+                    <gml:pos srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2">-80.83775386582222 35.24980190252168</gml:pos>
+                </gml:Point>
+            </geometry>
+            <gml:name>DOUBLE OAKS CENTER</gml:name>
+            <address>1326 WOODWARD AV</address>
+            <id>fc-gs-002</id>
+        </gml:featureCollection>
+    </wfs:member>
+</wfs:FeatureCollection>

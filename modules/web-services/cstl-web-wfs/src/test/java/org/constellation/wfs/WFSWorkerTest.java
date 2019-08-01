@@ -125,11 +125,13 @@ public class WFSWorkerTest {
     private static boolean initialized = false;
 
     private static Path shapefiles;
+    private static Path geojsons;
 
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
         File workspace = ConfigDirectory.setupTestEnvironement("WFSWorkerTest").toFile();
         shapefiles = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WMS111_SHAPEFILES);
+        geojsons   = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.JSON);
     }
 
     @PostConstruct
@@ -144,8 +146,10 @@ public class WFSWorkerTest {
 
                 final DataProviderFactory featfactory = DataProviders.getFactory("data-store");
 
-                final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
+                /**
+                 * SHAPEFILE DATA
+                 */
+                final ParameterValueGroup sourcef = featfactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
 
                 final ParameterValueGroup choice2 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
@@ -167,6 +171,9 @@ public class WFSWorkerTest {
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, null, null);
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, null, null);
 
+                /**
+                 * SOS DB DATA
+                 */
                 final String url = "jdbc:derby:memory:TestWFSWorkerOM";
                 final DefaultDataSource ds = new DefaultDataSource(url + ";create=true");
                 Connection con = ds.getConnection();
@@ -189,6 +196,28 @@ public class WFSWorkerTest {
                 providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
                 dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, null, null);
 
+                /**
+                 * GEOJSON DATA
+                 */
+                final ParameterValueGroup sourcegjs = featfactory.getProviderDescriptor().createValue();
+                sourcegjs.parameter("id").setValue("geojsonSrc");
+                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcegjs);
+                final ParameterValueGroup gjsconfig = choice3.addGroup("GeoJSONParameters");
+                gjsconfig.parameter("path").setValue(geojsons.resolve("feature.json").toUri());
+
+                providerBusiness.storeProvider("geojsonSrc", null, ProviderType.LAYER, "data-store", sourcegjs);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "feature"), "geojsonSrc", "VECTOR", false, true, null, null);
+
+                final ParameterValueGroup sourcegjs2 = featfactory.getProviderDescriptor().createValue();
+                sourcegjs2.parameter("id").setValue("geojsonSrc2");
+                final ParameterValueGroup choice4 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcegjs2);
+                final ParameterValueGroup gjsconfig2 = choice4.addGroup("GeoJSONParameters");
+                gjsconfig2.parameter("path").setValue(geojsons.resolve("featureCollection.json").toUri());
+
+                providerBusiness.storeProvider("geojsonSrc2", null, ProviderType.LAYER, "data-store", sourcegjs2);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "featureCollection"), "geojsonSrc2", "VECTOR", false, true, null, null);
+
+
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
@@ -196,18 +225,20 @@ public class WFSWorkerTest {
                 serviceBusiness.create("wfs", "default", config, null, null);
 
                 layerBusiness.add("SamplingPoint",       "http://www.opengis.net/sampling/1.0",  "omSrc",      null, "default", "wfs", null);
-                layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Bridges",             "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Streams",             "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Lakes",               "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("NamedPlaces",         "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Buildings",           "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("RoadSegments",        "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("DividedRoutes",       "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Forests",             "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("MapNeatline",         "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
-                layerBusiness.add("Ponds",               "http://www.opengis.net/gml",       "shapeSrc",   null, "default", "wfs", null);
+                layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Bridges",             "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Streams",             "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Lakes",               "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("NamedPlaces",         "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Buildings",           "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("RoadSegments",        "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("DividedRoutes",       "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Forests",             "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("MapNeatline",         "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("Ponds",               "http://www.opengis.net/gml",       "shapeSrc",       null, "default", "wfs", null);
+                layerBusiness.add("feature",             "http://www.opengis.net/gml",       "geojsonSrc",     null, "default", "wfs", null);
+                layerBusiness.add("featureCollection",   "http://www.opengis.net/gml",       "geojsonSrc2",    null, "default", "wfs", null);
 
                 serviceBusiness.create("wfs", "test", config, null, null);
 
@@ -244,6 +275,8 @@ public class WFSWorkerTest {
                 layerBusiness.add("Forests",             "http://www.opengis.net/gml",       "shapeSrc",   null, "test1", "wfs", null);
                 layerBusiness.add("MapNeatline",         "http://www.opengis.net/gml",       "shapeSrc",   null, "test1", "wfs", null);
                 layerBusiness.add("Ponds",               "http://www.opengis.net/gml",       "shapeSrc",   null, "test1", "wfs", null);
+                layerBusiness.add("feature",             "http://www.opengis.net/gml",       "geojsonSrc",     null, "test1", "wfs", null);
+                layerBusiness.add("featureCollection",   "http://www.opengis.net/gml",       "geojsonSrc2",    null, "test1", "wfs", null);
 
                 pool = WFSMarshallerPool.getInstance();
 
@@ -1213,6 +1246,61 @@ public class WFSWorkerTest {
         final Map<String, String> expResult = new HashMap<>();
         expResult.put("http://www.opengis.net/gml", "http://geomatys.com/constellation/WS/wfs/test1?request=DescribeFeatureType&version=1.1.0&service=WFS&namespace=xmlns(ns1=http://www.opengis.net/gml)&typename=ns1:NamedPlaces");
         assertEquals(wrapper.getSchemaLocations(), expResult);
+
+    }
+
+    @Test
+    @Order(order=12)
+    public void getFeatureGJsonTest() throws Exception {
+
+        /*
+         * Test 1 : query on typeName feature
+         */
+        List<QueryType> queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml", "feature")), null));
+        GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+
+        Object result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+        assertEquals("3.1.1", wrapper.getGmlVersion());
+
+        StringWriter writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        String sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.feature-1.xml"),
+                sresult);
+
+        /*
+         * Test 2 : query on typeName featureCollection with propertyName = {FID}
+         */
+        queries = new ArrayList<>();
+        ComparisonOpsType pe = new PropertyIsEqualToType(new LiteralType("DOUBLE OAKS CENTER"), new PropertyNameType("name"), Boolean.TRUE);
+        FilterType filter = new FilterType(pe);
+        queries.add(new QueryType(filter, Arrays.asList(new QName("http://www.opengis.net/gml", "featureCollection")), null));
+        request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+
+        result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+        assertEquals("3.1.1", wrapper.getGmlVersion());
+
+        writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(
+                IOUtilities.getResourceAsPath("org.constellation.wfs.xml.featureCollection-1.xml"),
+                sresult);
 
     }
 

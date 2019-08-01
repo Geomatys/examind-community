@@ -145,6 +145,28 @@
                 <ows:UpperCorner>0.0024 0.0036</ows:UpperCorner>
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
+        <wfs:FeatureType>
+            <wfs:Name>{gmlPrefix}:feature</wfs:Name>
+            <wfs:Title>feature</wfs:Title>
+            <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
+            <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+                <ows:LowerCorner>-80.72487831115721 35.2553619492954</ows:LowerCorner>
+                <ows:UpperCorner>-80.70324897766113 35.27035945142482</ows:UpperCorner>
+            </ows:WGS84BoundingBox>
+        </wfs:FeatureType>
+        <wfs:FeatureType>
+            <wfs:Name>{gmlPrefix}:featureCollection</wfs:Name>
+            <wfs:Title>featureCollection</wfs:Title>
+            <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
+            <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+                <ows:LowerCorner>-80.87088507656375 35.21515162500578</ows:LowerCorner>
+                <ows:UpperCorner>-80.70324897766113 35.40148708491418</ows:UpperCorner>
+            </ows:WGS84BoundingBox>
+        </wfs:FeatureType>
     </wfs:FeatureTypeList>
     <ogc:Filter_Capabilities>
         <ogc:Spatial_Capabilities>

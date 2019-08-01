@@ -145,7 +145,29 @@
                 <ns9:UpperCorner>0.0024 0.0036</ns9:UpperCorner>
             </ns9:WGS84BoundingBox>
         </ns8:FeatureType>
-      </ns8:FeatureTypeList>
+        <ns8:FeatureType>
+            <ns8:Name>gml:feature</ns8:Name>
+            <ns8:Title>feature</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:OGC:1.3:CRS84</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+                <ns9:LowerCorner>-80.72487831115721 35.2553619492954</ns9:LowerCorner>
+                <ns9:UpperCorner>-80.70324897766113 35.27035945142482</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+        <ns8:FeatureType>
+            <ns8:Name>gml:featureCollection</ns8:Name>
+            <ns8:Title>featureCollection</ns8:Title>
+            <ns8:DefaultCRS>urn:ogc:def:crs:OGC:1.3:CRS84</ns8:DefaultCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</ns8:OtherCRS>
+            <ns8:OtherCRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</ns8:OtherCRS>
+            <ns9:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84" dimensions="2">
+                <ns9:LowerCorner>-80.87088507656375 35.21515162500578</ns9:LowerCorner>
+                <ns9:UpperCorner>-80.70324897766113 35.40148708491418</ns9:UpperCorner>
+            </ns9:WGS84BoundingBox>
+        </ns8:FeatureType>
+    </ns8:FeatureTypeList>
     <fes:Filter_Capabilities>
         <fes:Conformance>
             <fes:Constraint name="ImplementsQuery">
