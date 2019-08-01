@@ -1,45 +1,41 @@
-// Define a pod to launch job into. Needs Jenkins Kubernetes plugin
-podTemplate(label: 'slave', containers: [
-    containerTemplate(name: 'postgres', image: 'postgres:9')
-    ]
-) {
-
-    /*
-     * FUNCTIONS
-     */
-
-    /**
-     * Fonction de mise a jour des versions des pom.xml du projet maven
-     */
-    def updatePomVersion() {
-        def oldver = OLD_VERSION;
-        def newver = NEW_VERSION;
-        def ant = '<?xml version="1.0" encoding="UTF-8"?> \
+/**
+ * Fonction de mise a jour des versions des pom.xml du projet maven
+ */
+def updatePomVersion() {
+    def oldver = OLD_VERSION;
+    def newver = NEW_VERSION;
+    def ant = '<?xml version="1.0" encoding="UTF-8"?> \
             <project name="Replace" default="replace"> \
               <target name="replace"> \
                 <replace dir="." summary="yes"> \
                   <include name="**/pom.xml"/> \
-                  <replacefilter token="'+ oldver +'" value="'+ newver +'"/> \
+                  <replacefilter token="' + oldver + '" value="' + newver + '"/> \
                 </replace> \
               </target> \
             </project>';
 
-        writeFile text: ant, file: 'Replace.xml';
-        def antHome = tool 'ant1.9.7';
-        sh "${antHome}/bin/ant -f Replace.xml";
-    }
+    writeFile text: ant, file: 'Replace.xml';
+    def antHome = tool 'ant1.9.7';
+    sh "${antHome}/bin/ant -f Replace.xml";
+}
+
+// Define a pod to launch job into. Needs Jenkins Kubernetes plugin
+podTemplate(label: 'slave', containers: [
+        containerTemplate(name: 'postgres', image: 'postgres:9')
+]
+) {
 
     // Launch into a JNLP container
     node('slave') {
         deleteDir()
 
         //variables globales
-        def projectName = "RELEASE-Examind"
-        def repoGitlab = "gitlab.geomatys.com/constellation-enterprise/constellation-ee.git"
+        def projectName = "RELEASE-Examind-Community"
+        def repoGitlab = "ssh://git@gitlab.geomatys.com:10022/geomatys-group/examind-community.git"
         def releaseVersion = NEW_VERSION
-        env.JAVA_HOME = "${tool 'jdk8u112'}"
-        env.PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
-        sh "export CHARSET=UTF-8"
+        // env.JAVA_HOME = "${tool 'jdk8u112'}"
+        // env.PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
+        // sh "export CHARSET=UTF-8"
 
         echo '\n\
         --- PARAMETERS ---------------------------\n\
@@ -56,7 +52,7 @@ podTemplate(label: 'slave', containers: [
         '
 
         stage('Checkout') {
-            git branch: 'master', url: 'https://' + repoGitlab, credentialsId: GIT_CREDENTIALS
+            git branch: 'master', url: repoGitlab, credentialsId: GIT_CREDENTIALS
             sh "git checkout " + SHA1_COMMIT
             sh 'git config user.name "Jenkins"'
             sh 'git config user.email "admin@geomatys.com"'
@@ -72,9 +68,9 @@ podTemplate(label: 'slave', containers: [
                 def dbPort = "5432"
                 def dbUrl = "postgres://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/postgres"
                 def dbName = "release_examind_test_db"
-                
+
                 sh "psql -d ${dbUrl} -c 'DROP DATABASE ${dbName}' -c 'CREATE DATABASE ${dbName}'"
-                
+
                 env.TEST_DATABASE_URL = "${dbUrl}"
             }
         }
@@ -96,26 +92,27 @@ podTemplate(label: 'slave', containers: [
             sh "git checkout release"
             updatePomVersion()
             sh "git commit -m 'chore(*): Release ${NEW_VERSION}' -a"
-            sh "git tag "+releaseVersion
+            sh "git tag " + releaseVersion
         }
 
-        withMaven (jdk:'jdk8_latest', maven:'maven_latest', mavenLocalRepo:'m2rep', mavenSettingsConfig:'5919b553-67ec-4e2e-a9f9-bb0f3d51c8cd') {
+
+        withMaven(jdk: 'jdk8_latest', maven: 'maven_latest', mavenLocalRepo: 'm2_repo', mavenSettingsConfig: '5919b553-67ec-4e2e-a9f9-bb0f3d51c8cd') {
             stage('Build') {
                 echo '-------------------------------'
                 sh "mvn -version"
                 echo '-------------------------------'
-                sh "mvn clean source:jar javadoc:jar install -B -Pfull -Dmaven.repo.local=m2rep"
+                sh "mvn clean source:jar javadoc:jar install -B -Dmaven.repo.local=m2_repo"
             }
 
+
             stage('Deployment') {
-                sh "mvn source:jar javadoc:jar deploy -B -DskipTests -Dmaven.repo.local=m2rep -DaltDeploymentRepository=nexus::default::" + NEXUS_DEPLOY_URL
-                withCredentials([[$class          : 'UsernamePasswordMultiBinding',
-                                  credentialsId   : GIT_CREDENTIALS,
-                                  usernameVariable: 'GITUSR',
-                                  passwordVariable: 'GITPWD']]) {
-                    sh "git push https://" + GITUSR + ":" + GITPWD + "@" + repoGitlab + " " + releaseVersion
+                sh "mvn source:jar javadoc:jar deploy -B -DskipTests -Dmaven.repo.local=m2rep -DaltDeploymentRepository=releases::" + NEXUS_DEPLOY_URL
+                sshagent([GIT_CREDENTIALS]) {
+                    sh "git push origin " + releaseVersion
                 }
             }
+
+
         }
 
         stage('Clean') {
@@ -123,9 +120,10 @@ podTemplate(label: 'slave', containers: [
         }
 
         stage('Notification') {
-            emailext subject: '[JENKINS] Release '+projectName+' '+releaseVersion,
-                    body: 'Nouveau tag disponible pour le projet '+projectName+' : '+releaseVersion+ " , sur le repository "+NEXUS_DEPLOY_URL,
+            emailext subject: '[JENKINS] Release ' + projectName + ' ' + releaseVersion,
+                    body: 'Nouveau tag disponible pour le projet ' + projectName + ' : ' + releaseVersion + " , sur le repository " + NEXUS_DEPLOY_URL,
                     to: 'dev@geomatys.com'
         }
+
     }
 }
