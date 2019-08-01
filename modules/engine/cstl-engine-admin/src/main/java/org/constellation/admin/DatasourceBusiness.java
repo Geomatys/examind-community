@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -828,11 +829,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                             final Path relativeSource = previousRoot.relativize(tempFile);
                             final Path newFile = providerDir.resolve(relativeSource.toString());
                             if (mainScheme.equals("file")) {
-                                return Files.createLink(newFile, tempFile);
-                            } else {
-                                IOUtilities.copy(tempFile, newFile);
-                                return newFile;
+                                try {
+                                    return Files.createLink(newFile, tempFile);
+                                } catch (FileSystemException ex) {
+                                    // link are not supported for external device or mounted volume
+                                    LOGGER.warning(ex.getMessage());
+                                }
                             }
+                            IOUtilities.copy(tempFile, newFile);
+                            return newFile;
                         } catch (IOException ex) {
                             throw new UncheckedIOException(ex);
                         }
