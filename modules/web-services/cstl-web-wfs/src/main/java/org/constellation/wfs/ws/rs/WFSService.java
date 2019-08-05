@@ -22,57 +22,6 @@ package org.constellation.wfs.ws.rs;
 // J2SE dependencies
 
 import java.io.IOException;
-
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.api.ServiceDef;
-import org.constellation.api.ServiceDef.Specification;
-import org.constellation.wfs.core.WFSWorker;
-import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.UnauthorizedException;
-import org.constellation.ws.WebServiceUtilities;
-import org.constellation.ws.Worker;
-import org.constellation.ws.rs.GridWebService;
-import org.constellation.xml.PrefixMappingInvocationHandler;
-import org.geotoolkit.client.RequestsUtilities;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.ogc.xml.FilterXmlFactory;
-import org.geotoolkit.ogc.xml.SortBy;
-import org.geotoolkit.ogc.xml.XMLFilter;
-import org.geotoolkit.ows.xml.AcceptFormats;
-import org.geotoolkit.ows.xml.AcceptVersions;
-import org.geotoolkit.ows.xml.ExceptionResponse;
-import org.geotoolkit.ows.xml.RequestBase;
-import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.ows.xml.v100.SectionsType;
-import org.geotoolkit.wfs.xml.AllSomeType;
-import org.geotoolkit.wfs.xml.BaseRequest;
-import org.geotoolkit.wfs.xml.CreateStoredQuery;
-import org.geotoolkit.wfs.xml.DeleteElement;
-import org.geotoolkit.wfs.xml.DescribeFeatureType;
-import org.geotoolkit.wfs.xml.DescribeStoredQueries;
-import org.geotoolkit.wfs.xml.DropStoredQuery;
-import org.geotoolkit.wfs.xml.GetCapabilities;
-import org.geotoolkit.wfs.xml.GetFeature;
-import org.geotoolkit.wfs.xml.GetGmlObject;
-import org.geotoolkit.wfs.xml.GetPropertyValue;
-import org.geotoolkit.wfs.xml.ListStoredQueries;
-import org.geotoolkit.wfs.xml.LockFeature;
-import org.geotoolkit.wfs.xml.Parameter;
-import org.geotoolkit.wfs.xml.ParameterExpression;
-import org.geotoolkit.wfs.xml.Query;
-import org.geotoolkit.wfs.xml.ResultTypeType;
-import org.geotoolkit.wfs.xml.StoredQuery;
-import org.geotoolkit.wfs.xml.Transaction;
-import org.opengis.filter.sort.SortOrder;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.lang.reflect.Proxy;
@@ -85,7 +34,15 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.logging.Level;
-
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
 import static org.constellation.api.QueryConstants.ACCEPT_VERSIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
@@ -93,6 +50,8 @@ import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
+import org.constellation.api.ServiceDef;
+import org.constellation.api.ServiceDef.Specification;
 import static org.constellation.wfs.core.WFSConstants.FILTER;
 import static org.constellation.wfs.core.WFSConstants.GML_3_1_1_MIME;
 import static org.constellation.wfs.core.WFSConstants.GML_3_2_1_MIME;
@@ -111,13 +70,50 @@ import static org.constellation.wfs.core.WFSConstants.STR_LIST_STORED_QUERIES;
 import static org.constellation.wfs.core.WFSConstants.STR_LOCKFEATURE;
 import static org.constellation.wfs.core.WFSConstants.STR_TRANSACTION;
 import static org.constellation.wfs.core.WFSConstants.STR_XSD;
+import org.constellation.wfs.core.WFSWorker;
+import org.constellation.ws.CstlServiceException;
+import org.constellation.ws.UnauthorizedException;
+import org.constellation.ws.WebServiceUtilities;
+import org.constellation.ws.Worker;
+import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
+import org.constellation.xml.PrefixMappingInvocationHandler;
+import org.geotoolkit.client.RequestsUtilities;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.ogc.xml.FilterXmlFactory;
+import org.geotoolkit.ogc.xml.SortBy;
+import org.geotoolkit.ogc.xml.XMLFilter;
+import org.geotoolkit.ows.xml.AcceptFormats;
+import org.geotoolkit.ows.xml.AcceptVersions;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
+import org.geotoolkit.ows.xml.RequestBase;
+import org.geotoolkit.ows.xml.Sections;
+import org.geotoolkit.ows.xml.v100.SectionsType;
+import org.geotoolkit.wfs.xml.AllSomeType;
+import org.geotoolkit.wfs.xml.BaseRequest;
+import org.geotoolkit.wfs.xml.CreateStoredQuery;
+import org.geotoolkit.wfs.xml.DeleteElement;
+import org.geotoolkit.wfs.xml.DescribeFeatureType;
+import org.geotoolkit.wfs.xml.DescribeStoredQueries;
+import org.geotoolkit.wfs.xml.DropStoredQuery;
+import org.geotoolkit.wfs.xml.GetCapabilities;
+import org.geotoolkit.wfs.xml.GetFeature;
+import org.geotoolkit.wfs.xml.GetGmlObject;
+import org.geotoolkit.wfs.xml.GetPropertyValue;
 import org.geotoolkit.wfs.xml.InsertElement;
+import org.geotoolkit.wfs.xml.ListStoredQueries;
+import org.geotoolkit.wfs.xml.LockFeature;
+import org.geotoolkit.wfs.xml.Parameter;
+import org.geotoolkit.wfs.xml.ParameterExpression;
 import org.geotoolkit.wfs.xml.Property;
+import org.geotoolkit.wfs.xml.Query;
 import org.geotoolkit.wfs.xml.ReplaceElement;
+import org.geotoolkit.wfs.xml.ResultTypeType;
+import org.geotoolkit.wfs.xml.StoredQuery;
 import org.geotoolkit.wfs.xml.StoredQueryDescription;
+import org.geotoolkit.wfs.xml.Transaction;
 import org.geotoolkit.wfs.xml.UpdateElement;
 import org.geotoolkit.wfs.xml.WFSXmlFactory;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildAcceptFormat;
@@ -139,6 +135,7 @@ import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSections;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildSortBy;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildStoredQuery;
 import static org.geotoolkit.wfs.xml.WFSXmlFactory.buildTransaction;
+import org.opengis.filter.sort.SortOrder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -148,11 +145,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.w3c.dom.Node;
-
-// JAXB dependencies
-// jersey dependencies
-// constellation dependencies
-// Geotoolkit dependencies
 
 
 /**
@@ -979,7 +971,15 @@ public class WFSService extends GridWebService<WFSWorker> {
                     if (namesp != null) {
                         typeNames.add(new QName(namesp, localPart, prefix));
                     } else {
-                        typeNames.add(new QName(prefix, localPart));
+                        if (prefix.length() < 5) {
+                            //prefix in likely really a prefix, not a complete namespace
+                            //this case has been raised by OGC MLB Pilot in 2019 when none of the WFS client
+                            //could handle the namespace as defined by wfs, the name was send as prefix:localpart without namespace parameter
+                            //we should raise an error but for compatibility reasons with other tools we decideed to tolerate it
+                            typeNames.add(new QName(localPart));
+                        } else {
+                            typeNames.add(new QName(prefix, localPart));
+                        }
                         /*throw new CstlServiceException("The typeName parameter is malformed : the prefix [" + prefix + "] is not bounded with a namespace",
                                                   INVALID_PARAMETER_VALUE, "typeName");*/
                     }
