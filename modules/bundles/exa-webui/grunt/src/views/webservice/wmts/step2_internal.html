@@ -94,7 +94,7 @@
                                  ng-click="toggleDataInArray(data)"
                                  data-name="{{data.provider+':'+data.name}}">
                                 <div class="top">
-                                    <span class="item-title title-modal">{{truncate(data.name,40)}}</span>
+                                    <span class="item-title title-modal">{{data.title}}</span>
                                     <span class="pull-right text-right item-list-style"
                                           style="font-size:14px;">{{data.type}}</span>
                                     <img ng-if="data.type=='VECTOR' && (data.subtype=='Point' || data.subtype=='MultiPoint')"

@@ -480,10 +480,17 @@ public class DataBusiness implements IDataBusiness {
                 }
             }
 
+            String title = data.getName();
+            Integer dsid = data.getDatasetId();
+            if(dsid != null && dsid >= 0) {
+                String datasetId = datasetRepository.findById(dsid).getIdentifier();
+                title = datasetId+" / "+data.getName();
+            }
             final int providerId = data.getProviderId();
             final String providerName = getProviderIdentifier(providerId);
             db.setName(data.getName());
             db.setNamespace(data.getNamespace());
+            db.setTitle(title);
             db.setDate(data.getDate());
             db.setProviderId(providerId);
             db.setProvider(providerName);
