@@ -1024,7 +1024,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 queryBuilder.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
             }
             if (startIndex != 0){
-                queryBuilder.setStartIndex(startIndex);
+                queryBuilder.setOffset(startIndex);
             }
 
             for (QName typeName : typeNames) {
@@ -1067,7 +1067,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 verifyFilterProperty(NameOverride.wrap(ft, layerName), cleanFilter, aliases);
 
                 if (maxFeatures != 0){
-                    queryBuilder.setMaxFeatures(maxFeatures);
+                    queryBuilder.setLimit(maxFeatures);
                 }
                 final org.geotoolkit.data.query.Query qb = queryBuilder.buildQuery();
 
@@ -1234,7 +1234,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 queryBuilder.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
             }
             if (maxFeatures != 0){
-                queryBuilder.setMaxFeatures(maxFeatures);
+                queryBuilder.setLimit(maxFeatures);
             }
 
             for (QName typeName : typeNames) {
