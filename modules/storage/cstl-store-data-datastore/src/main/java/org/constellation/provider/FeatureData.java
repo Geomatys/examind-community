@@ -19,6 +19,7 @@
 
 package org.constellation.provider;
 
+import org.apache.sis.storage.FeatureSet;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.feature.FeatureType;
 
@@ -33,5 +34,8 @@ public interface FeatureData extends GeoData {
     FeatureType getType() throws ConstellationStoreException;
 
     Object[] getPropertyValues(String property) throws ConstellationStoreException;
+
+    @Override
+    FeatureSet getOrigin();
 
 }
