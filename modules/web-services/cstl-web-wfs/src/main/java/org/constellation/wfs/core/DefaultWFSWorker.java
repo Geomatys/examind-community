@@ -46,6 +46,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.internal.xml.XmlUtilities;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -91,13 +93,11 @@ import org.constellation.ws.LayerWorker;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.data.FeatureWriter;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
 import org.geotoolkit.data.query.QueryBuilder;
-import org.geotoolkit.data.session.Session;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.Utils;
@@ -204,6 +204,7 @@ import org.opengis.feature.PropertyType;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinaryLogicOperator;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.capability.FilterCapabilities;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.filter.sort.SortBy;
@@ -1017,16 +1018,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final List<SortBy> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
 
 
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.setCRS(queryCRS);
-
-            if (!sortBys.isEmpty()) {
-                queryBuilder.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
-            }
-            if (startIndex != 0){
-                queryBuilder.setOffset(startIndex);
-            }
-
             for (QName typeName : typeNames) {
                 final Layer confLayer = confLayers.get(typeName);
 
@@ -1056,64 +1047,88 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     throw new CstlServiceException(ex);
                 }
 
-                // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
-                queryBuilder.setProperties(verifyPropertyNames(typeName, ft, requestPropNames));
-                queryBuilder.setTypeName(layer.getName());
+                final FeatureSet origin = layer.getOrigin();
+                final SimpleQuery subquery = new SimpleQuery();
+                if (!sortBys.isEmpty()) {
+                    subquery.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
+                }
+                if (startIndex != 0){
+                    subquery.setOffset(startIndex);
+                }
+                if (maxFeatures != 0){
+                    subquery.setLimit(maxFeatures);
+                }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
-                queryBuilder.setFilter(cleanFilter);
+                subquery.setFilter(cleanFilter);
+
+                // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
+                final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+                String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
+                if (properties != null) {
+                    List<SimpleQuery.Column> columns = Arrays.asList(properties)
+                            .stream()
+                            .map((String t) -> new SimpleQuery.Column(ff.property(t)))
+                            .collect(Collectors.toList());
+                    subquery.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+                }
+
+                FeatureSet collection;
+                try {
+                    collection = origin.subset(subquery);
+                    if (queryCRS != null) {
+                        final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), queryCRS);
+                        collection = collection.subset(reproject);
+                    }
+                } catch (DataStoreException ex) {
+                    throw new CstlServiceException(ex);
+                }
+
 
                 // we verify that all the properties contained in the filter are known by the feature type.
                 final GenericName layerName = NamesExt.create(typeName);
                 verifyFilterProperty(NameOverride.wrap(ft, layerName), cleanFilter, aliases);
 
-                if (maxFeatures != 0){
-                    queryBuilder.setLimit(maxFeatures);
-                }
-                final org.geotoolkit.data.query.Query qb = queryBuilder.buildQuery();
-
-                FeatureCollection collection;
-                if (layer.getStore() instanceof FeatureStore) {
-                    final Session session = ((FeatureStore)layer.getStore()).createSession(false);
-                    collection = session.getFeatureCollection(qb);
-                } else if (layer.getOrigin() instanceof FeatureSet) {
-                    try {
-                        collection = new org.geotoolkit.data.FeatureSetWrapper((FeatureSet) layer.getOrigin(), layer.getStore()).subset(qb);
-                    } catch (DataStoreException ex) {
-                        throw new CstlServiceException("Error while querying the featureSet", ex);
-                    }
-                } else {
-                    throw new CstlServiceException("Unexpected store configuration");
-                }
-                int colSize = 0;
+                long colSize = 0;
 
                 // look for matching count
                 try {
-                    colSize = collection.size();
-                    nbMatched = nbMatched +  colSize;
-                } catch (FeatureStoreRuntimeException ex) {
+                    colSize = FeatureStoreUtilities.getCount(collection);
+                    nbMatched = nbMatched + colSize;
+                } catch (DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
 
-                if (colSize>0) {
-                    if(queryCRS == null){
+                if (colSize > 0) {
+                    if (queryCRS == null) {
                         try {
                             //ensure axes are in the declared order, since we use urn epsg, we must comply
                             //to proper epsg axis order
                             final String defaultCRS = getCRSCode(ft);
                             final CoordinateReferenceSystem rcrs = CRS.forCode(defaultCRS);
                             final CoordinateReferenceSystem dataCrs = FeatureExt.getCRS(ft);
-                            if(!Utilities.equalsIgnoreMetadata(rcrs, dataCrs)){
-                                collection = FeatureStreams.reproject(collection, CRS.forCode(defaultCRS));
+                            if (!Utilities.equalsIgnoreMetadata(rcrs, dataCrs)) {
+                                final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), CRS.forCode(defaultCRS));
+                                collection = collection.subset(reproject);
                             }
-                        } catch (FactoryException|PropertyNotFoundException|IllegalStateException ex) {
+                        } catch (FactoryException|PropertyNotFoundException|IllegalStateException|DataStoreException ex) {
                             // If we cannot extract coordinate system information, we send back brut data.
                             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                         }
                     }
 
                     // Ensure exposed name is compliant with service capabilities
-                    if (!layerName.equals(ft.getName())) {
-                        collection = NameOverride.wrap(collection, layerName);
+                    try {
+                        if (!layerName.equals(ft.getName()) || !collection.getIdentifier().isPresent()) {
+                            try {
+                                //TODO : test cases expect the collection with identifier 'id', we should change this behavior
+                                collection = NameOverride.wrap(collection, layerName, NamesExt.create("id"));
+                            } catch (DataStoreException ex) {
+                                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+                            }
+                        }
+                    } catch (DataStoreException ex) {
+                        // If we cannot extract coordinate system information, we send back brut data.
+                        LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                     }
 
                     collections.add(collection);
@@ -1145,7 +1160,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
          *
          * result TODO find an id and a member type
          */
-	if (collections.isEmpty()) {
+        if (collections.isEmpty()) {
             collections.add(FeatureStoreUtilities.collection("collection-1", null));
         }
         if (request.getResultType() == ResultTypeType.HITS) {

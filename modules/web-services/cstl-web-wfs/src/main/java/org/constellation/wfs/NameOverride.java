@@ -95,11 +95,13 @@ public class NameOverride extends Static {
         private final FeatureSet original;
         private final FeatureType originalType;
         private final FeatureType nameOverride;
+        private final GenericName featureSetId;
 
-        public NameOverrideFeatureSet(FeatureSet originalFC, final GenericName name) throws DataStoreException {
+        public NameOverrideFeatureSet(FeatureSet originalFC, final GenericName name, final GenericName featureSetId) throws DataStoreException {
             this.original = originalFC;
             this.originalType = originalFC.getType();
             this.nameOverride = wrap(originalType, name);
+            this.featureSetId = featureSetId;
         }
 
         @Override
@@ -130,6 +132,9 @@ public class NameOverride extends Static {
 
         @Override
         public Optional<GenericName> getIdentifier() throws DataStoreException {
+            if (featureSetId != null) {
+                return Optional.of(featureSetId);
+            }
             return Optional.of(getType().getName());
         }
 
@@ -161,7 +166,7 @@ public class NameOverride extends Static {
         return new NameOverrideCollection(source, newName);
     }
 
-    public static FeatureSet wrap(final FeatureSet source, final GenericName newName) throws DataStoreException {
-        return new NameOverrideFeatureSet(source, newName);
+    public static FeatureSet wrap(final FeatureSet source, final GenericName newTypeName, final GenericName newFeatureSetId) throws DataStoreException {
+        return new NameOverrideFeatureSet(source, newTypeName, newFeatureSetId);
     }
 }
