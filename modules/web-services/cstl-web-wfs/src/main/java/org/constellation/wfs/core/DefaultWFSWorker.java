@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -46,6 +47,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.ConcatenatedFeatureSet;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.internal.xml.XmlUtilities;
@@ -91,10 +93,8 @@ import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.UnauthorizedException;
-import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.FeatureStoreUtilities;
-import org.geotoolkit.data.FeatureStreams;
 import org.geotoolkit.data.FeatureWriter;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
 import org.geotoolkit.data.query.QueryBuilder;
@@ -115,6 +115,7 @@ import org.geotoolkit.gml.xml.AbstractGML;
 import org.geotoolkit.gml.xml.DirectPosition;
 import org.geotoolkit.gml.xml.v311.AbstractGeometryType;
 import org.geotoolkit.gml.xml.v311.FeaturePropertyType;
+import org.geotoolkit.internal.data.ArrayFeatureSet;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.XMLLiteral;
 import org.geotoolkit.ogc.xml.v200.BBOXType;
@@ -1212,7 +1213,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final Collection<? extends Query> queries  = extractStoredQueries(request).values();
         final Integer maxFeatures                  = request.getCount();
         final Map<String, String> schemaLocations  = new HashMap<>();
-        final List<FeatureCollection> collections  = new ArrayList<>();
+        final List<FeatureSet> collections  = new ArrayList<>();
 
         for (final Query query : queries) {
 
@@ -1239,18 +1240,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final List<String> requestPropNames = extractPropertyNames(query.getPropertyNames());
 
             //decode sort by----------------------------------------------------
-             final List<SortBy> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
+            final List<SortBy> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
 
-
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.setCRS(crs);
-
-            if (!sortBys.isEmpty()) {
-                queryBuilder.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
-            }
-            if (maxFeatures != 0){
-                queryBuilder.setLimit(maxFeatures);
-            }
 
             for (QName typeName : typeNames) {
 
@@ -1263,6 +1254,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 if (!(layerD instanceof FeatureData)) {continue;}
 
                 final FeatureData layer = (FeatureData) layerD;
+                final FeatureSet origin = layer.getOrigin();
 
                 final FeatureType ft;
                 try {
@@ -1272,19 +1264,42 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
 
-                // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
-                queryBuilder.setProperties(verifyPropertyNames(typeName, ft, requestPropNames));
-                queryBuilder.setFilter(cleanFilter);
+                final SimpleQuery subquery = new SimpleQuery();
+                subquery.setFilter(cleanFilter);
 
-                queryBuilder.setTypeName(layer.getName());
+                if (!sortBys.isEmpty()) {
+                    subquery.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
+                }
+                if (maxFeatures != 0){
+                    subquery.setLimit(maxFeatures);
+                }
+
+                // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
+                final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+                String[] properties = verifyPropertyNames(typeName, ft, requestPropNames);
+                if (properties != null) {
+                    List<SimpleQuery.Column> columns = Arrays.asList(properties)
+                            .stream()
+                            .map((String t) -> new SimpleQuery.Column(ff.property(t)))
+                            .collect(Collectors.toList());
+                    subquery.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+                }
 
                 // we verify that all the properties contained in the filter are known by the feature type.
                 verifyFilterProperty(NameOverride.wrap(ft, fullTypeName), cleanFilter, aliases);
 
-                FeatureCollection col = ((FeatureStore)layer.getStore()).createSession(false)
-                        .getFeatureCollection(queryBuilder.buildQuery());
-                NameOverride.wrap(col, fullTypeName);
-                collections.add(col);
+                try {
+                    FeatureSet col = origin.subset(subquery);
+
+                    if (crs != null) {
+                        col = col.subset(QueryBuilder.reproject(col.getType(), crs));
+                    }
+
+                    col = NameOverride.wrap(col, fullTypeName, NamesExt.create("id"));
+                    collections.add(col);
+                } catch (DataStoreException ex) {
+                    throw new CstlServiceException(ex.getMessage(), ex);
+                }
 
                 // we write The SchemaLocation
                 putSchemaLocation(typeName, schemaLocations, currentVersion);
@@ -1299,9 +1314,13 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
          *
          * result TODO find an id and a member type
          */
-        final FeatureCollection featureCollection;
-	if (collections.size() > 1) {
-            featureCollection = FeatureStreams.sequence("collection-1", collections.toArray(new FeatureCollection[collections.size()]));
+        final FeatureSet featureCollection;
+        if (collections.size() > 1) {
+            try {
+                featureCollection = ConcatenatedFeatureSet.create(collections);
+            } catch (DataStoreException ex) {
+                throw new CstlServiceException(ex.getMessage(), ex);
+            }
         } else if (collections.size() == 1) {
             featureCollection = collections.get(0);
         } else {
@@ -1316,7 +1335,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             } catch (DatatypeConfigurationException e) {
                 throw new CstlServiceException("Unable to create XMLGregorianCalendar from Date.");
             }
-            return buildValueCollection(currentVersion, featureCollection.size(), calendar);
+            try {
+                return buildValueCollection(currentVersion, FeatureStoreUtilities.getCount(featureCollection).intValue(), calendar);
+            } catch (DataStoreException ex) {
+                throw new CstlServiceException(ex.getMessage(), ex);
+            }
         }
         return new ValueCollectionWrapper(featureCollection, request.getValueReference(), "3.2.1");
     }
@@ -1434,9 +1457,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         featureCollection = Arrays.asList(feature);
                     } else if (featureObject instanceof List) {
                         featureCollection = (List) featureObject;
-                    } else if (featureObject instanceof FeatureCollection) {
-                        featureCollection = (Collection) featureObject;
-                        ft = ((FeatureCollection)featureCollection).getType();
                     } else if (featureObject instanceof FeatureSet) {
                         try {
                             featureCollection = ((FeatureSet) featureObject).features(false).collect(Collectors.toList());
@@ -1468,8 +1488,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final FeatureType type = layer.getType();
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
                         if(trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))){
-                            final FeatureCollection collection = FeatureStoreUtilities.collection(ft,featureCollection);
-                            featureCollection = FeatureStreams.reproject(collection, trueCrs);
+                            final FeatureSet collection = new ArrayFeatureSet(type, featureCollection, null);
+                            final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
+                            featureCollection = collection.subset(reproject).features(false).collect(Collectors.toList());
                         }
 
                         final List<FeatureId> features = ((FeatureStore)layer.getStore()).addFeatures(typeName.toString(), featureCollection);
@@ -1687,9 +1708,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             ft = feat.getType();
                             features.add(feat);
                         }
-                        final FeatureCollection collection = FeatureStoreUtilities.collection(id, ft);
-                        collection.addAll(features);
-                        featureObject = collection;
+                        featureObject = new ArrayFeatureSet(NamesExt.create(id), ft, features, null);
                     }
                 } catch (IllegalArgumentException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
@@ -1697,15 +1716,12 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     throw new CstlServiceException(ex);
                 }
                 final GenericName typeName;
-                FeatureCollection featureCollection;
+                FeatureSet featureCollection;
 
                 if (featureObject instanceof Feature) {
                     final Feature feature = (Feature) featureObject;
                     typeName = feature.getType().getName();
                     featureCollection = FeatureStoreUtilities.collection(feature);
-                } else if (featureObject instanceof FeatureCollection) {
-                    featureCollection = (FeatureCollection) featureObject;
-                    typeName = ((FeatureCollection) featureCollection).getType().getName();
                 } else if (featureObject instanceof FeatureSet) {
                     try {
                         typeName = ((FeatureSet) featureObject).getType().getName();
@@ -1739,28 +1755,40 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 try {
                     final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
                     final FeatureType ft    = layer.getType();
-                    final FeatureSet fs     = (FeatureSet) layer.getOrigin();
+                    final WritableFeatureSet fs = (WritableFeatureSet) layer.getOrigin();
                     final String layerName  = layer.getName().toString();
 
                     // we extract the number of feature to replace
-                    final QueryBuilder queryBuilder = new QueryBuilder(layerName);
-                    queryBuilder.setFilter(processFilter(ft, filter, null));
-                    totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
+                    final SimpleQuery query = new SimpleQuery();
+                    query.setFilter(processFilter(ft, filter, null));
+                    totalReplaced = totalReplaced + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     // first remove the feature to replace
-                    ((FeatureStore)layer.getStore()).removeFeatures(layerName, filter);
+                    fs.removeIf(filter::evaluate);
 
                     // then add the new one
                     final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(ft);
-                    if(trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))){
-                        featureCollection = FeatureStreams.reproject(featureCollection, trueCrs);
+                    if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(featureCollection.getType()))) {
+                        final SimpleQuery reproject = QueryBuilder.reproject(featureCollection.getType(), trueCrs);
+                        featureCollection = featureCollection.subset(reproject);
                     }
 
-                    final List<FeatureId> features = ((FeatureStore)layer.getStore()).addFeatures(layerName, featureCollection);
+                    DataStore store = layer.getStore();
+                    if (store instanceof FeatureStore) {
+                        try (Stream<Feature> stream = featureCollection.features(false)) {
+                            List<Feature> collected = stream.collect(Collectors.toList());
+                            final List<FeatureId> features = ((FeatureStore) layer.getStore()).addFeatures(layerName, collected);
 
-                    for (FeatureId fid : features) {
-                        replaced.put(fid.getID(), handle);// get the id of the replaced feature
-                        LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
+                            for (FeatureId fid : features) {
+                                replaced.put(fid.getID(), handle);// get the id of the replaced feature
+                                LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
+                            }
+                        }
+                    } else {
+                        //TODO this approach to not return the created ID
+                        try (Stream<Feature> stream = featureCollection.features(false)) {
+                            fs.add(stream.iterator());
+                        }
                     }
 
                 } catch (ConstellationStoreException | DataStoreException ex) {

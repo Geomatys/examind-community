@@ -15,9 +15,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.event.ChangeEvent;
 import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.Static;
-import org.geotoolkit.data.FeatureCollection;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
-import org.geotoolkit.data.memory.WrapFeatureCollection;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.Property;
@@ -57,36 +55,6 @@ public class NameOverride extends Static {
         @Override
         public Property getProperty(String name) throws PropertyNotFoundException {
             return decorated.getProperty(name);
-        }
-    }
-
-    private static class NameOverrideCollection extends WrapFeatureCollection {
-
-        final FeatureType originalType;
-        final FeatureType nameOverride;
-
-        public NameOverrideCollection(FeatureCollection originalFC, final GenericName name) {
-            super(originalFC);
-            originalType = originalFC.getType();
-            nameOverride = wrap(originalType, name);
-        }
-
-        @Override
-        protected Feature modify(Feature original) throws FeatureStoreRuntimeException {
-            final FeatureType targetType;
-            final FeatureType currentType = original.getType();
-            if (originalType.equals(currentType)) {
-                targetType = nameOverride;
-            } else {
-                targetType = wrap(currentType, nameOverride.getName());
-            }
-
-            return new SimpleDecoratedFeature(original, targetType);
-        }
-
-        @Override
-        public FeatureType getType() {
-            return nameOverride;
         }
     }
 
@@ -160,10 +128,6 @@ public class NameOverride extends Static {
 
     public static Feature wrap(final Feature source, final GenericName newName) {
         return new SimpleDecoratedFeature(source, wrap(source.getType(), newName));
-    }
-
-    public static FeatureCollection wrap(final FeatureCollection source, final GenericName newName) {
-        return new NameOverrideCollection(source, newName);
     }
 
     public static FeatureSet wrap(final FeatureSet source, final GenericName newTypeName, final GenericName newFeatureSetId) throws DataStoreException {
