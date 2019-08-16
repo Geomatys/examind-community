@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 
 import org.apache.sis.util.iso.DefaultInternationalString;
@@ -53,7 +54,6 @@ import org.constellation.json.binding.WrapperInterval;
 import org.constellation.json.view.JsonView;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.nio.IOUtilities;
@@ -251,11 +251,10 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
                 final PropertyName property = FF.property(attribute);
 
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(fs.getType().getName());
-                queryBuilder.setProperties(new String[]{attribute});
+                final SimpleQuery query = new SimpleQuery();
+                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
 
-                try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
+                try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
@@ -481,11 +480,10 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final PropertyName property = FF.property(attribute);
                 final List<Object> differentValues = new ArrayList<>();
 
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(fs.getType().getName());
-                queryBuilder.setProperties(new String[]{attribute});
+                final SimpleQuery query = new SimpleQuery();
+                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
 
-                try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
+                try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
                     Iterator<Feature> it = featureSet.iterator();
                     while(it.hasNext()){
                         final Feature feature = it.next();
@@ -589,11 +587,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final FilterFactory2 FF = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
                 final PropertyName property = FF.property(attribute);
 
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(fs.getType().getName());
-                queryBuilder.setProperties(new String[]{attribute});
-                fs = fs.subset(queryBuilder.buildQuery());
-
+                final SimpleQuery query = new SimpleQuery();
+                query.setColumns(new SimpleQuery.Column(FF.property(attribute)));
+                fs = fs.subset(query);
 
                 //check if property is numeric
                 // if it is numeric then proceed to create intervals as the keys and get for each interval the feature count.
@@ -639,7 +635,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                         for (int i = 1; i < interValues.length; i++) {
                             double start = interValues[i - 1];
                             double end = interValues[i];
-                            QueryBuilder qb = new QueryBuilder();
+                            SimpleQuery qb = new SimpleQuery();
                             final Filter above = FF.greaterOrEqual(property, FF.literal(start));
                             final Filter under;
                             if (i == interValues.length - 1) {
@@ -649,8 +645,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             }
                             final Filter interval = FF.and(above, under);
                             qb.setFilter(interval);
-                            qb.setTypeName(fs.getType().getName());
-                            final FeatureSet subCol = fs.subset(qb.buildQuery());
+                            final FeatureSet subCol = fs.subset(qb);
                             mapping.put((long)start+" - "+(long)end,(long)subCol.features(false).count());
                         }
                     } else {

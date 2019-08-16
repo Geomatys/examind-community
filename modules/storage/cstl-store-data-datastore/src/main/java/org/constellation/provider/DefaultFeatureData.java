@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
@@ -243,7 +244,9 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
                             final String propName = ((PropertyName)((PropertyIsEqualTo)filter).getExpression1()).getPropertyName();
                             for (PropertyType desc : type.getProperties(true)) {
                                 if (desc.getName().tip().toString().equalsIgnoreCase(propName)) {
-                                    fml.setQuery(QueryBuilder.filtered(type.getName().toString(), filter));
+                                    final SimpleQuery query = new SimpleQuery();
+                                    query.setFilter(filter);
+                                    fml.setQuery(query);
                                     break;
                                 }
                             }

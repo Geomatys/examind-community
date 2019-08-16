@@ -1535,10 +1535,10 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     verifyFilterProperty(NameOverride.wrap(ft, typeName), cleanFilter, null);
 
                     // we extract the number of feature deleted
-                    final QueryBuilder queryBuilder = new QueryBuilder(layer.getName().toString());
-                    queryBuilder.setFilter(cleanFilter);
+                    final SimpleQuery query = new SimpleQuery();
+                    query.setFilter(cleanFilter);
 
-                    totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
+                    totalDeleted = totalDeleted + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     if (fs instanceof WritableFeatureSet) {
                         ((WritableFeatureSet) fs).removeIf((f)-> filter.evaluate(f));
@@ -1648,9 +1648,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     verifyFilterProperty(NameOverride.wrap(ft, typeName), cleanFilter, null);
 
                     // we extract the number of feature update
-                    final QueryBuilder queryBuilder = new QueryBuilder(layer.getName().toString());
-                    queryBuilder.setFilter(cleanFilter);
-                    totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(queryBuilder.buildQuery())).intValue();
+                    final SimpleQuery query = new SimpleQuery();
+                    query.setFilter(cleanFilter);
+                    totalUpdated = totalUpdated + (int) FeatureStoreUtilities.getCount(fs.subset(query)).intValue();
 
                     FeatureWriter fw = ((FeatureStore)layer.getStore()).getFeatureWriter(QueryBuilder.filtered(layer.getName().toString(), filter));
                     try {

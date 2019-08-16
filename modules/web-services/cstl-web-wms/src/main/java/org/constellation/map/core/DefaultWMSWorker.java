@@ -57,7 +57,6 @@ import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.cql.CQL;
 import org.geotoolkit.cql.CQLException;
-import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -146,6 +145,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.referencing.GeodeticObjectBuilder;
+import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.IdentifiedObjects;
 
@@ -1582,7 +1582,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 } catch (FactoryException e) {
                     LOGGER.log(Level.INFO, e.getLocalizedMessage(), e);
                 }
-                fml.setQuery(QueryBuilder.filtered(type.getName().toString(), filterGt));
+                final SimpleQuery query = new SimpleQuery();
+                query.setFilter(filterGt);
+                fml.setQuery(query);
             }
 
             for(DimensionDefinition ddef : layerFnD.getDimensions()){

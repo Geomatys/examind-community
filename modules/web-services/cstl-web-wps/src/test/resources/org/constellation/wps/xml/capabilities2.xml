@@ -313,19 +313,9 @@
             <ows:Abstract>Reduce to CRS domain a coverage, correctly transpose values which cross the anti-meridan.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
-            <ns10:Identifier>urn:exa:wps:geotoolkit::vector:centroid</ns10:Identifier>
-            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:centroid</ows:Title>
-            <ows:Abstract>Return Feature centroid of all Feature in FeatureCollection</ows:Abstract>
-        </wps:Process>
-        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>
             <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
-        </wps:Process>
-        <wps:Process wps:processVersion="1.0.0">
-            <ns10:Identifier>urn:exa:wps:geotoolkit::vector:buffer</ns10:Identifier>
-            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:buffer</ows:Title>
-            <ows:Abstract>Apply buffer function to a FeatureCollection geometry</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ns10:Identifier>
