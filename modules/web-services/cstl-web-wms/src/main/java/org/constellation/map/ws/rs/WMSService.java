@@ -59,7 +59,6 @@ import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
-
 import javax.xml.bind.JAXBException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -74,7 +73,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.apache.sis.util.ArgumentChecks;
-
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
@@ -629,6 +627,12 @@ public class WMSService extends GridWebService<WMSWorker> {
             height = RequestsUtilities.toInt(strHeight);
         } catch (NumberFormatException n) {
             throw new CstlServiceException(n, INVALID_DIMENSION_VALUE);
+        }
+        if (width < 1) {
+            throw new CstlServiceException("Width must be a positive number", INVALID_DIMENSION_VALUE);
+        }
+        if (height < 1) {
+            throw new CstlServiceException("Height must be a positive number", INVALID_DIMENSION_VALUE);
         }
         final Dimension size = new Dimension(width, height);
         final Color background = RequestsUtilities.toColor(strBGColor);

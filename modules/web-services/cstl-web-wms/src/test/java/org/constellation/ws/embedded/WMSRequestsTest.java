@@ -144,6 +144,16 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                                       "srs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "layers="+ LAYER_TEST +"&styles=";
 
+    private static final String WMS_GETMAP_BAD_HEIGHT ="request=GetMap&service=WMS&version=1.1.1&" +
+                                      "format=image/png&width=1024&height=0&" +
+                                      "srs=EPSG:4326&bbox=-180,-90,180,90&" +
+                                      "layers="+ LAYER_TEST +"&styles=";
+
+    private static final String WMS_GETMAP_BAD_WIDTH ="request=GetMap&service=WMS&version=1.1.1&" +
+                                      "format=image/png&width=-1&height=512&" +
+                                      "srs=EPSG:4326&bbox=-180,-90,180,90&" +
+                                      "layers="+ LAYER_TEST +"&styles=";
+
 
     private static final String WMS_GETMAP_LAYER_LIMIT ="request=GetMap&service=WMS&version=1.1.1&" +
                                       "format=image/png&width=1024&height=512&" +
@@ -475,8 +485,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Order(order=2)
     public void testWMSGetMap() throws Exception {
 
+        initLayerList();
+
         // Creates a valid GetMap url.
-        final URL getMapUrl;
+        URL getMapUrl;
         try {
             getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP);
         } catch (MalformedURLException ex) {
@@ -493,6 +505,24 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(512,  image.getHeight());
         assertTrue  (ImageTesting.getNumColors(image) > 8);
 
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_HEIGHT);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+        String obj = getStringResponse(getMapUrl);
+        assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
+
+
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_BAD_WIDTH);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+        obj = getStringResponse(getMapUrl);
+        assertTrue("was " + obj, obj.contains("InvalidDimensionValue"));
     }
 
     /**
