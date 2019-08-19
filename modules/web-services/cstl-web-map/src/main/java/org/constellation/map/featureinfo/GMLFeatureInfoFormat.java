@@ -23,6 +23,8 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +39,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
@@ -68,6 +71,7 @@ import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
 import org.opengis.geometry.Envelope;
@@ -353,7 +357,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 builder.append(margin).append('<').append(ftPrefix).append(ftLocal).append(">\n");
                 margin += "\t";
 
-                toGML3(builder, feature, margin);
+                toGML3(builder, feature, margin, new ArrayList());
 
                 // end featureType mark
                 margin = margin.substring(1);
@@ -380,7 +384,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
     }
 
-    private void toGML3(final StringBuilder builder, final Feature complexAtt, String margin) {
+    private void toGML3(final StringBuilder builder, final Feature complexAtt, String margin, Collection visited) {
+        visited.add(complexAtt);
 
         for (PropertyType pt : complexAtt.getType().getProperties(true)) {
 
@@ -416,46 +421,71 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                     builder.append("\n");
                     builder.append(margin).append("</").append(pPrefix).append(pLocal).append(">\n");
                 } else {
-
-                    if (value instanceof Feature) {
-                        final Feature complex = (Feature) value;
-                        builder.append(margin).append('<').append(pPrefix).append(pLocal).append(">\n");
-                        margin += "\t";
-
-                        toGML3(builder, complex, margin);
-
-                        margin = margin.substring(1);
-                        builder.append(margin).append("</").append(pPrefix).append(pLocal).append(">\n");
-                    } else {
-                        //simple
-                        if (value instanceof List) {
-                            List valueList = (List) value;
-                            if (valueList.isEmpty()) {
-                                builder.append(margin).append('<').append(pLocal).append("/>\n");
-                            } else {
-                                for (Object v : valueList) {
-                                    if (v != null) {
-                                        final String strValue = encodeXML(value.toString());
-                                        builder.append(margin).append('<').append(pLocal).append(">")
-                                                .append(strValue)
-                                                .append("</").append(pLocal).append(">\n");
-                                    } else {
-                                        builder.append(margin).append('<').append(pLocal).append("/>\n");
-                                    }
+                    //simple
+                    if (value instanceof List) {
+                        List valueList = (List) value;
+                        if (valueList.isEmpty()) {
+                            builder.append(margin).append('<').append(pPrefix).append(pLocal).append("/>\n");
+                        } else {
+                            for (Object v : valueList) {
+                                if (v != null) {
+                                    final String strValue = encodeXML(value.toString());
+                                    builder.append(margin).append('<').append(pLocal).append(">")
+                                            .append(strValue)
+                                            .append("</").append(pLocal).append(">\n");
+                                } else {
+                                    builder.append(margin).append('<').append(pLocal).append("/>\n");
                                 }
                             }
-                        } else if (value != null) {
-                            final String strValue = encodeXML(value.toString());
-                            builder.append(margin).append('<').append(pPrefix).append(pLocal).append('>')
-                                    .append(strValue)
-                                    .append("</").append(pPrefix).append(pLocal).append(">\n");
-                        } else {
-                            builder.append(margin).append('<').append(pLocal).append("/>\n");
+                        }
+                    } else if (value != null) {
+                        final String strValue = encodeXML(value.toString());
+                        builder.append(margin).append('<').append(pPrefix).append(pLocal).append('>')
+                                .append(strValue)
+                                .append("</").append(pPrefix).append(pLocal).append(">\n");
+                    } else {
+                        builder.append(margin).append('<').append(pPrefix).append(pLocal).append("/>\n");
+                    }
+                }
+            } else if (pt instanceof FeatureAssociationRole) {
+                Object value = complexAtt.getPropertyValue(pt.getName().toString());
+                if (value != null) {
+                    if (!(value instanceof Collection)) {
+                        value = Arrays.asList(value);
+                    }
+                    Collection c = (Collection) value;
+                    if (c.isEmpty()) {
+                        builder.append(margin).append('<').append(pPrefix).append(pLocal).append("/>\n");
+                    } else {
+                        for (Object v : c) {
+                            final Feature complex = (Feature) v;
+
+                            if (identityContains(visited,complex)) {
+                                //copy the id only
+                                builder.append(margin).append('<').append(pPrefix).append(pLocal).append(" xlink:href=\"#").append(complex.getPropertyValue(AttributeConvention.IDENTIFIER)).append("\"/>\n");
+                            } else {
+                                builder.append(margin).append('<').append(pPrefix).append(pLocal).append(">\n");
+                                margin += "\t";
+                                toGML3(builder, complex, margin, visited);
+                                margin = margin.substring(1);
+                                builder.append(margin).append("</").append(pPrefix).append(pLocal).append(">\n");
+                            }
+
                         }
                     }
                 }
+
             }
         }
+    }
+
+    //hack until FeatureType recursive hashcode bug is fixed
+    //when fixed replace by a IdentityHashMap
+    private static boolean identityContains(Collection lst, Object candidate) {
+        for (Object obj : lst) {
+            if (obj == candidate) return true;
+        }
+        return false;
     }
 
     /**
