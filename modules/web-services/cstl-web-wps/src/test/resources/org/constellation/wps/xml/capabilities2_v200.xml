@@ -337,19 +337,9 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
-            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:centroid</ows:Title>
-            <ows:Abstract>Return Feature centroid of all Feature in FeatureCollection</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:centroid</ows:Identifier>
-        </wps:ProcessSummary>
-        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>
             <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>
-        </wps:ProcessSummary>
-        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
-            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:buffer</ows:Title>
-            <ows:Abstract>Apply buffer function to a FeatureCollection geometry</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:boundary</ows:Title>

@@ -959,18 +959,11 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
+                            <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
-                        <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
-                        </Format>
                         <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
@@ -2870,18 +2863,11 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
+                            <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
-                        <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>application/x-ogc-vi3g</MimeType>
-                        </Format>
                         <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>

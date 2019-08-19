@@ -544,9 +544,7 @@
                 <ows:Abstract xml:lang="fr-FR">Image à reformater</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:reformat:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/x-ogc-vi3g" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100" default="true"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
@@ -1420,9 +1418,7 @@
                 <ows:Abstract xml:lang="fr-FR">Image dont on va changer les bandes</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:bandselect:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-vi3g" encoding="base64" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/x-ogc-vi3g" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100" default="true"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
@@ -1976,41 +1972,6 @@
     </wps:ProcessOffering>
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
-            <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:centroid</ows:Title>
-            <ows:Abstract xml:lang="fr-FR">Return Feature centroid of all Feature in FeatureCollection</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:centroid</ows:Identifier>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Feature_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input FeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:centroid:input:feature_in</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                </wps:ComplexData>
-            </wps:Input>
-            <wps:Output>
-                <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Output FeatureFeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:centroid:output:feature_out</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                </wps:ComplexData>
-            </wps:Output>
-        </wps:Process>
-    </wps:ProcessOffering>
-    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
-        <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:diffGeometry</ows:Title>
             <ows:Abstract xml:lang="fr-FR">Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>
@@ -2046,68 +2007,6 @@
                 <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Output FeatureFeatureCollection</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry:output:feature_out</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                </wps:ComplexData>
-            </wps:Output>
-        </wps:Process>
-    </wps:ProcessOffering>
-    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
-        <wps:Process>
-            <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:buffer</ows:Title>
-            <ows:Abstract xml:lang="fr-FR">Apply buffer function to a FeatureCollection geometry</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer</ows:Identifier>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Feature_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input FeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer:input:feature_in</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                </wps:ComplexData>
-            </wps:Input>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Distance_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input buffer distance in meters.</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer:input:distance_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
-                        <ows:UOM>m</ows:UOM>
-                        <ows:DefaultValue>1.0</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Input minOccurs="0" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Lenient_transform_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input boolean to set accuracy CRS transformation</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer:input:lenient_transform_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#boolean">Boolean</ows:DataType>
-                        <ows:DefaultValue>true</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Output>
-                <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Output FeatureFeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:buffer:output:feature_out</ows:Identifier>
                 <wps:ComplexData>
                     <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
