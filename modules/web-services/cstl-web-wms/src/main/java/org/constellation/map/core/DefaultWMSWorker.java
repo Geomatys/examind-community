@@ -492,6 +492,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             //-- execute only if it is a CoverageData
+            Double nativeResolutionX = null;
+            Double nativeResolutionY = null;
             if (layer instanceof CoverageData) {
                 final CoverageData covdata = (CoverageData) layer;
                 try {
@@ -499,6 +501,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(),
                                 d.getUnitSymbol(), d.getDefault(), null, null, null));
                     }
+
+                    double[] nativeResolution = covdata.getGeometry().getResolution(true);
+                    nativeResolutionX = nativeResolution[0];
+                    nativeResolutionY = nativeResolution[1];
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getMessage(), ex);
                     break;
@@ -598,7 +604,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         inputGeoBox.getWestBoundLongitude(),
                         inputGeoBox.getSouthBoundLatitude(),
                         inputGeoBox.getEastBoundLongitude(),
-                        inputGeoBox.getNorthBoundLatitude(), 0.0, 0.0);
+                        inputGeoBox.getNorthBoundLatitude(), null, null);
 
                 if (nativeCrs != null && layerNativeEnv.getCoordinateReferenceSystem() != null) {
                     try {
@@ -609,7 +615,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                             rightHanded.getMinimum(0),
                             rightHanded.getMinimum(1),
                             rightHanded.getMaximum(0),
-                            rightHanded.getMaximum(1), 0.0, 0.0);
+                            rightHanded.getMaximum(1), nativeResolutionX, nativeResolutionY);
                     } catch (TransformException ex) {
                         LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :"+ layer.getName(), ex);
                     }
@@ -625,15 +631,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                             inputGeoBox.getSouthBoundLatitude(),
                             inputGeoBox.getWestBoundLongitude(),
                             inputGeoBox.getNorthBoundLatitude(),
-                            inputGeoBox.getEastBoundLongitude(), 0.0, 0.0);
+                            inputGeoBox.getEastBoundLongitude(), null, null);
 
-                if(nativeCrs!=null){
+                if (nativeCrs != null) {
                     nativeBBox = createBoundingBox(queryVersion,
                         nativeCrs,
                         layerNativeEnv.getMinimum(0),
                         layerNativeEnv.getMinimum(1),
                         layerNativeEnv.getMaximum(0),
-                        layerNativeEnv.getMaximum(1), 0.0, 0.0);
+                        layerNativeEnv.getMaximum(1), nativeResolutionX, nativeResolutionY);
                 }
 
             }
@@ -653,12 +659,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             //list supported crs
             final List<String> supportedCrs;
-            if(nativeCrs!=null && DEFAULT_CRS.indexOf(nativeCrs)!=0){
+            if (nativeCrs != null && DEFAULT_CRS.indexOf(nativeCrs) != 0) {
                 //we add or move to first position the native crs
                 supportedCrs = new ArrayList<>(DEFAULT_CRS);
                 supportedCrs.remove(nativeCrs);
                 supportedCrs.add(0, nativeCrs);
-            }else{
+            } else {
                 supportedCrs = DEFAULT_CRS;
             }
 
@@ -666,8 +672,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final AbstractLayer outputLayerO = createLayer(queryVersion, layerName,
                     _abstract, keyword,
                     supportedCrs, bbox, outputBBox, queryable, dimensions, styles);
-            if(nativeBBox!=null && !nativeBBox.getCRSCode().equals(outputBBox.getCRSCode())){
-                ((List)outputLayerO.getBoundingBox()).add(0, nativeBBox);
+            if (nativeBBox!=null && !nativeBBox.getCRSCode().equals(outputBBox.getCRSCode())) {
+                ((List) outputLayerO.getBoundingBox()).add(0, nativeBBox);
             }
 
             final AbstractLayer outputLayer = customizeLayer(queryVersion, outputLayerO, configLayer, currentLanguage);
