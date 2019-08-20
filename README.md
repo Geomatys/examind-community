@@ -30,29 +30,7 @@ resources to operate a platform of sensors that feeds back information in real t
   * Grib
   * Images with .tfw and .prj files for projection and transformation informations
 
-## Get started using Docker
-Build the `examind-community:latest` Docker image
-```
-cd <base directory>/modules/bundles/exa-bundle
-mvn clean install dockerfile:build -Ddocker.tag=latest
-``` 
-Go to docker folder
-```
-cd <base directory>/docker
-```
-then type the command
-```
-./run.sh
-
-or
-
-docker-compose up -d
-```
-
-the web application will be available at http://localhost:8080/examind
-you can authenticate with user = admin and password = admin.
-
-## Get started manually
+## Get started
 
 ### Prerequires
 To run Examind, you'll need :
@@ -74,6 +52,30 @@ mvn install -DskipTests
 Note 1 : for smaller download without git history: `git clone --depth 1 https://github.com/Geomatys/examind-community.git`
 
 Note 2 : if you want to build with tests, you'll need a test database named `cstl-test` owned by role:password `cstl:admin`.
+
+### Deploy using Docker
+If not already done, build sources as stated in previous section.
+
+Build the `examind-community:latest` Docker image
+```
+cd <base directory>/modules/bundles/exa-bundle
+mvn clean install dockerfile:build -Ddocker.tag=latest
+``` 
+Go to docker folder
+```
+cd <base directory>/docker
+```
+then type the command
+```
+./run.sh
+
+or
+
+docker-compose up -d
+```
+
+the web application will be available at http://localhost:8080/examind
+you can authenticate with user = admin and password = admin.
 
 ### Deploy on Tomcat
 #### Tomcat configuration
