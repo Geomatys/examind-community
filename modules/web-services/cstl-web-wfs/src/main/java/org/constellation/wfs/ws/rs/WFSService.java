@@ -1089,7 +1089,7 @@ public class WFSService extends GridWebService<WFSWorker> {
 
         final String targetNamespace      = getParameter("targetnamespace", true);
         final Map<String, String> mapping = extractNamespace(version);
-        final String typeNameStr          = getParameter("typeName", true);
+        String typeNameStr                = getParameter("typeName", false);
         final List<QName> typeNames       = extractTypeName(typeNameStr, mapping);
         QName typeName;
         if (typeNames.size() == 1) {

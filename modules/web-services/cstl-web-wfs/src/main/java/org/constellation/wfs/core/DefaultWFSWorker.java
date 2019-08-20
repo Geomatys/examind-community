@@ -101,7 +101,7 @@ import org.geotoolkit.data.query.QueryBuilder;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.Utils;
-import org.geotoolkit.feature.xml.XSDFeatureStore;
+import org.geotoolkit.feature.xml.XmlFeatureSet;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureReader;
 import org.geotoolkit.filter.binding.Binding;
@@ -568,7 +568,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final List<FeatureType> types       = new ArrayList<>();
         final Map<String, String> locations = new HashMap<>();
 
-        //XSDFeatureStore may provide the xsd themselves
+        //XmlFeatureSet may provide the xsd themselves
         final Map<FeatureType,Schema> declaredSchema = new HashMap<>();
         if (names.isEmpty()) {
             //search all types
@@ -576,16 +576,18 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final Data layer = getLayerReference(userLogin, name.name);
                 if (!(layer instanceof FeatureData)) {continue;}
 
+                FeatureData fLayer = (FeatureData) layer;
+
                 try {
-                    FeatureData fLayer = (FeatureData)layer;
+                    FeatureSet featureset = fLayer.getOrigin();
                     DataStore store    = fLayer.getStore();
                     FeatureType ftType = fLayer.getType();
 
                     if (store instanceof ExtendedFeatureStore) {
                         store = (DataStore) ((ExtendedFeatureStore) store).getWrapped();
                     }
-                    if (store instanceof XSDFeatureStore) {
-                        final Map params = (Map) ((XSDFeatureStore) store).getSchema(layer.getName());
+                    if (featureset instanceof XmlFeatureSet) {
+                        final Map params = (Map) ((XmlFeatureSet) featureset).getSchema();
                         if (params.size() == 1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
                             final FeatureType ft = NameOverride.wrap(ftType, name.name);
                             declaredSchema.put(ft, (Schema) params.get(params.keySet().iterator().next()));
@@ -613,22 +615,24 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 final GenericName layerName = NamesExt.create(confLayer.getName());
                 final Data layer = getLayerReference(userLogin, layerName);
 
-                if(!(layer instanceof FeatureData)) {
+                if (!(layer instanceof FeatureData)) {
                     throw new CstlServiceException(UNKNOW_TYPENAME + name, INVALID_PARAMETER_VALUE, "typenames");
                 }
 
+                FeatureData fLayer = (FeatureData) layer;
+
                 try {
-                    FeatureData fLayer = (FeatureData)layer;
+                    FeatureSet featureset = fLayer.getOrigin();
                     DataStore store    = fLayer.getStore();
                     FeatureType ftType = fLayer.getType();
 
-                    if(store instanceof ExtendedFeatureStore) store = (DataStore)((ExtendedFeatureStore)store).getWrapped();
-                    if (store instanceof XSDFeatureStore) {
-                        final Map params = (Map)((XSDFeatureStore)store).getSchema(layerName);
-                        if(params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema){
+                    if (store instanceof ExtendedFeatureStore) store = (DataStore) ((ExtendedFeatureStore) store).getWrapped();
+                    if (featureset instanceof XmlFeatureSet) {
+                        final Map params = ((XmlFeatureSet) featureset).getSchema();
+                        if (params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
                             declaredSchema.put(NameOverride.wrap(ftType, layerName), (Schema) params.get(params.keySet().iterator().next()));
                             types.add(ftType);
-                        }else{
+                        } else {
                             locations.putAll(params);
                         }
                     } else {
@@ -654,9 +658,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final FeatureType type = types.get(0);
             final String tn        = type.getName().tip().toString();
             final String tnmsp     = NamesExt.getNamespace(type.getName());
-            if(declaredSchema.containsKey(type)){
+            if (declaredSchema.containsKey(type)) {
                 schema = declaredSchema.get(type);
-            }else{
+            } else {
                 schema = writer.getSchemaFromFeatureType(type);
                 final Set<String> nmsps = Utils.listAllNamespaces(type);
                 nmsps.remove(tnmsp);
@@ -670,6 +674,24 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
          * Second case. we have many feature type in the same namespace
          */
         } else if (AllInSameNamespace(types)) {
+
+            //shortcut if all types have the same schema defined, return only this schema
+            Schema commonSchema = null;
+            for (FeatureType ft : types) {
+                Schema sc = declaredSchema.get(ft);
+                if (commonSchema == null) {
+                    commonSchema = sc;
+                    continue;
+                } else if ( commonSchema != sc) {
+                    commonSchema = null;
+                    break;
+                }
+            }
+            if (commonSchema != null) {
+                return commonSchema;
+            }
+
+
             schema = writer.getSchemaFromFeatureType(types);
             final Set<String> nmsps = new HashSet<>();
             for (FeatureType type : types) {
