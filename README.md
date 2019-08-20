@@ -32,18 +32,13 @@ resources to operate a platform of sensors that feeds back information in real t
 
 ## Get started
 
-### Prerequires
-To run Examind, you'll need :
-* **JDK 8+** from Oracle. Can be downloaded [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) for your platform.
-* **PostgreSQL 9.x** (found [here](http://www.postgresql.org/download/)) with a database named `constellation` owned by role:password `cstl:admin`
-* **Apache Tomcat 7.0.47+** with support of websockets found [here](http://tomcat.apache.org/download-70.cgi)
-or
-* **Apache Tomcat 8.0.39+** with support of websockets found [here](http://tomcat.apache.org/download-80.cgi)
-
-For building :
-* **Maven 3.3.x** found [here](https://maven.apache.org/download.cgi)
-
 ### Build from sources
+
+#### Requirements
+* **JDK 8+** from Oracle. Can be downloaded [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) for your platform.
+* **Maven 3.x** found [here](https://maven.apache.org/download.cgi)
+
+#### Procedure
 ```sh
 git clone https://github.com/Geomatys/examind-community.git
 cd examind-community
@@ -78,6 +73,16 @@ the web application will be available at http://localhost:8080/examind
 you can authenticate with user = admin and password = admin.
 
 ### Deploy on Tomcat
+
+#### Requirements
+
+To run Examind, you'll need :
+* **JDK 8**. Can be downloaded [here](https://adoptopenjdk.net/) for your platform.
+* **PostgreSQL 9.x** (found [here](http://www.postgresql.org/download/)) with a database named `constellation` owned by role:password `cstl:admin`
+* **Apache Tomcat 7.0.47+** with support of websockets found [here](http://tomcat.apache.org/download-70.cgi)
+or
+* **Apache Tomcat 8.0.39+** with support of websockets found [here](http://tomcat.apache.org/download-80.cgi)
+
 #### Tomcat configuration
 Create a **setenv.sh** executable file in **bin/** folder of Tomcat with :
 
