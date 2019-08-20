@@ -20,10 +20,6 @@
 package org.constellation.wfs.ws.rs;
 
 import com.fasterxml.jackson.core.JsonEncoding;
-import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.feature.xml.XmlFeatureWriter;
-import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -32,10 +28,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.FeatureWriter;
 import org.geotoolkit.data.geojson.GeoJSONStreamWriter;
+import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.opengis.feature.Feature;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -98,7 +96,15 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
 
         } else {
             try {
-                final XmlFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
+                final JAXPStreamFeatureWriter featureWriter = new JAXPStreamFeatureWriter(t.getGmlVersion(), t.getWfsVersion(), t.getSchemaLocations());
+                //write possible namespaces first, even if they are not used
+                //this avoids jaxb to add them millions of times
+                if (!"3.1.1".equals(t.getGmlVersion())) featureWriter.getCommonPrefixes().put("gml30", "http://www.opengis.net/gml");
+                featureWriter.getCommonPrefixes().put("gmd", "http://www.isotc211.org/2005/gmd");
+                featureWriter.getCommonPrefixes().put("gmx", "http://www.isotc211.org/2005/gmx");
+                featureWriter.getCommonPrefixes().put("srv1", "http://www.isotc211.org/2005/srv");
+                featureWriter.getCommonPrefixes().put("gco", "http://www.isotc211.org/2005/gco");
+
                 if (t.isWriteSingleFeature()) {
                     //write a single feature without collection element container
                     final Optional<Feature> feat;
