@@ -22,7 +22,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
+import javax.annotation.PostConstruct;
+import org.apache.sis.parameter.DefaultParameterValueGroup;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.util.ComparisonMode;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
@@ -39,11 +42,6 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import javax.annotation.PostConstruct;
-import org.apache.sis.parameter.DefaultParameterValueGroup;
-import org.apache.sis.util.ComparisonMode;
-import org.geotoolkit.storage.DataStoreFactory;
 
 /**
  * Date: 18/09/14
@@ -81,7 +79,7 @@ public class ProviderBusinessTest {
     @Test
     public void createFromDataStoreFactory() throws ConfigurationException, IOException, URISyntaxException {
         final String id = "myProvider";
-        final DataStoreFactory cvgFactory = new FileCoverageProvider();
+        final DataStoreProvider cvgFactory = new FileCoverageProvider();
         final ParameterValueGroup config = cvgFactory.getOpenParameters().createValue();
         Path path = Files.createTempDirectory("ProviderBusinessTest");
         final URI dataPath = path.toUri();
@@ -106,7 +104,7 @@ public class ProviderBusinessTest {
     public void createFromProviderFactory() throws ConfigurationException, IOException {
         // Create data store configuration
         final String id = "myProvider2";
-        final DataStoreFactory cvgFactory = new FileCoverageProvider();
+        final DataStoreProvider cvgFactory = new FileCoverageProvider();
         final ParameterValueGroup config = cvgFactory.getOpenParameters().createValue();
 
         Path path = Files.createTempDirectory("ProviderBusinessTest");

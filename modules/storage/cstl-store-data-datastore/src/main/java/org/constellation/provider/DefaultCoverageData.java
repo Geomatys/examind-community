@@ -66,6 +66,7 @@ import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.io.ImageCoverageReader;
+import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.query.QueryBuilder;
@@ -73,7 +74,6 @@ import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.map.DefaultCoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
@@ -620,6 +620,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                 } finally {
                     reff.recycle(coverageReader);
                 }
+            } else if (ref instanceof GridCoverageResource) {
+                return new DefaultMetadata(ref.getMetadata());
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
