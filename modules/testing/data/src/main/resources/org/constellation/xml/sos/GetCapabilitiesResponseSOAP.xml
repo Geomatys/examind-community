@@ -148,8 +148,8 @@
                     <ows:Parameter name="eventTime">
                         <ows:AllowedValues>
                             <ows:Range>
-                                <ows:MinimumValue>now</ows:MinimumValue>
-                                <ows:MaximumValue>now</ows:MaximumValue>
+                                <ows:MinimumValue>2009-05-01 13:47:00.0</ows:MinimumValue>
+                                <ows:MaximumValue>2007-05-01 16:59:00.0</ows:MaximumValue>
                             </ows:Range>
                         </ows:AllowedValues>
                     </ows:Parameter>
@@ -398,7 +398,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
+                                <gml:endPosition>2009-05-01T14:03:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:10"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
                         <sos:featureOfInterest xlink:href="station-001"/>
@@ -414,7 +419,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2001-01-01</gml:beginPosition>
+                                <gml:endPosition></gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>
                         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
                         <sos:resultModel>om:Observation</sos:resultModel>
@@ -427,7 +437,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2007-05-01T02:59:00.00</gml:beginPosition>
+                                <gml:endPosition>2007-05-01T21:59:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:3"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
@@ -444,7 +459,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
+                                <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:4"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
@@ -461,7 +481,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
+                                <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
@@ -504,7 +529,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
+                                <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:8"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
@@ -521,7 +551,12 @@
                         <gml:boundedBy>
                             <gml:Null>not_bounded</gml:Null>
                         </gml:boundedBy>
-                        <sos:time/>
+                        <sos:time>
+                            <gml:TimePeriod>
+                                <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
+                                <gml:endPosition>2009-05-01T13:47:00.00</gml:endPosition>
+                            </gml:TimePeriod>
+                        </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:9"/>
                         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
                         <sos:featureOfInterest xlink:href="station-006"/>

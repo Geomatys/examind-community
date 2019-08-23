@@ -27,16 +27,16 @@ INSERT INTO "om"."sampling_features" VALUES ('station-005', '44499X4517-TRUC',  
 INSERT INTO "om"."sampling_features" VALUES ('station-006', 'cycle1',           'Geology traverse',   NULL,                           x'000000000200000007c03eb604189374bc4060c68f5c28f5c3c03eb5c28f5c28f64060c6872b020c4ac03eb5810624dd2f4060c67ef9db22d1c03eb53f7ced91684060c66e978d4fdfc03eb4bc6a7ef9db4060c645a1cac083c03eb3f7ced916874060c64dd2f1a9fcc03eb3b645a1cac14060c65e353f7cee', 27582);
 
 
-INSERT INTO "om"."offerings" VALUES ('offering-1',  NULL, 'offering-1',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:1');
-INSERT INTO "om"."offerings" VALUES ('offering-2',  NULL, 'offering-2',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2');
-INSERT INTO "om"."offerings" VALUES ('offering-3',  NULL, 'offering-3',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3');
-INSERT INTO "om"."offerings" VALUES ('offering-4',  NULL, 'offering-4',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4');
-INSERT INTO "om"."offerings" VALUES ('offering-5',  NULL, 'offering-5',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:5');
-INSERT INTO "om"."offerings" VALUES ('offering-6',  NULL, 'offering-6',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:6');
-INSERT INTO "om"."offerings" VALUES ('offering-7',  NULL, 'offering-7',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:7');
-INSERT INTO "om"."offerings" VALUES ('offering-8',  NULL, 'offering-8',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8');
-INSERT INTO "om"."offerings" VALUES ('offering-9',  NULL, 'offering-9',  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9');
-INSERT INTO "om"."offerings" VALUES ('offering-10', NULL, 'offering-10', NULL, NULL, 'urn:ogc:object:sensor:GEOM:10');
+INSERT INTO "om"."offerings" VALUES ('offering-1',  NULL, 'offering-1',  NULL,                    NULL,                    'urn:ogc:object:sensor:GEOM:1');
+INSERT INTO "om"."offerings" VALUES ('offering-2',  NULL, 'offering-2',  '2001-01-01 00:00:00.0', NULL,                    'urn:ogc:object:sensor:GEOM:2');
+INSERT INTO "om"."offerings" VALUES ('offering-3',  NULL, 'offering-3',  '2007-05-01 02:59:00.0', '2007-05-01 21:59:00.0', 'urn:ogc:object:sensor:GEOM:3');
+INSERT INTO "om"."offerings" VALUES ('offering-4',  NULL, 'offering-4',  '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:object:sensor:GEOM:4');
+INSERT INTO "om"."offerings" VALUES ('offering-5',  NULL, 'offering-5',  '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:object:sensor:GEOM:5');
+INSERT INTO "om"."offerings" VALUES ('offering-6',  NULL, 'offering-6',  NULL,                    NULL,                    'urn:ogc:object:sensor:GEOM:6');
+INSERT INTO "om"."offerings" VALUES ('offering-7',  NULL, 'offering-7',  NULL,                    NULL,                    'urn:ogc:object:sensor:GEOM:7');
+INSERT INTO "om"."offerings" VALUES ('offering-8',  NULL, 'offering-8',  '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:object:sensor:GEOM:8');
+INSERT INTO "om"."offerings" VALUES ('offering-9',  NULL, 'offering-9',  '2009-05-01 13:47:00.0', '2009-05-01 13:47:00.0', 'urn:ogc:object:sensor:GEOM:9');
+INSERT INTO "om"."offerings" VALUES ('offering-10', NULL, 'offering-10', '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:object:sensor:GEOM:10');
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:depth');

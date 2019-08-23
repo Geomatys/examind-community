@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
+import org.apache.sis.storage.DataStoreProvider;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
@@ -91,8 +92,9 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 // clean up
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
+                sensorBusiness.deleteAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("filesensor");
+                final DataStoreProvider factory = DataStores.getProviderById("filesensor");
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 params.parameter("data_directory").setValue(new File(instDirectory.getPath() + "/sensors"));
                 Integer pr = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);

@@ -1291,6 +1291,8 @@ public abstract class SOS2WorkerTest {
          */
         AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sml/system.xml");
 
+        sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
+
         /*JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/observationTemplate-6.xml"));
 
         OMObservationType obsTemplate = (OMObservationType)obj.getValue();*/
@@ -1301,12 +1303,12 @@ public abstract class SOS2WorkerTest {
 
         assertTrue(response instanceof InsertSensorResponseType);
 
-        assertEquals("sensor-system", response.getAssignedProcedure());
+        assertEquals("urn:ogc:object:sensor:GEOM:66", response.getAssignedProcedure());
 
         /**
          * we verify that the sensor is well registered
          */
-        DescribeSensorType DSrequest  = new DescribeSensorType("2.0.0","SOS","sensor-system", "http://www.opengis.net/sensorML/1.0.0");
+        DescribeSensorType DSrequest  = new DescribeSensorType("2.0.0","SOS","urn:ogc:object:sensor:GEOM:66", "http://www.opengis.net/sensorML/1.0.0");
         AbstractSensorML absResult = (AbstractSensorML) worker.describeSensor(DSrequest);
 
 
@@ -1323,16 +1325,16 @@ public abstract class SOS2WorkerTest {
 
     public void DeleteSensorTest() throws Exception {
 
-        final DeleteSensorType request = new DeleteSensorType("2.0.0","sensor-system");
+        final DeleteSensorType request = new DeleteSensorType("2.0.0","urn:ogc:object:sensor:GEOM:66");
         final DeleteSensorResponseType result = (DeleteSensorResponseType) worker.deleteSensor(request);
-        final DeleteSensorResponseType expResult = new DeleteSensorResponseType("sensor-system");
+        final DeleteSensorResponseType expResult = new DeleteSensorResponseType("urn:ogc:object:sensor:GEOM:66");
 
         assertEquals(expResult, result);
 
         /**
          * Test 1 system sensor
          */
-        DescribeSensorType requestds  = new DescribeSensorType("2.0.0", "SOS", "sensor-system", "http://www.opengis.net/sensorml/1.0.0");
+        DescribeSensorType requestds  = new DescribeSensorType("2.0.0", "SOS", "urn:ogc:object:sensor:GEOM:66", "http://www.opengis.net/sensorml/1.0.0");
         boolean exLaunched = false;
         try {
             worker.describeSensor(requestds);
@@ -1369,7 +1371,7 @@ public abstract class SOS2WorkerTest {
          * Test 2 : no filter => not an error in v2
          */
         exLaunched = false;
-        request = new GetFeatureOfInterestType("2.0.0", "SOS", new ArrayList<String>());
+        request = new GetFeatureOfInterestType("2.0.0", "SOS", new ArrayList<>());
 
         try {
             worker.getFeatureOfInterest(request);

@@ -21,9 +21,11 @@ package org.constellation.sos.ws;
 
 import java.io.File;
 import java.sql.Connection;
+import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.configuration.ConfigDirectory;
@@ -35,8 +37,9 @@ import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.Sensor;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 
 import org.junit.AfterClass;
@@ -51,6 +54,8 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 @RunWith(SpringTestRunner.class)
 public class OM2SOSConfigurerTest extends SOSConfigurerTest {
+
+    private static File instDirectory;
 
     private static DefaultDataSource ds = null;
 
@@ -76,7 +81,18 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        ConfigDirectory.setupTestEnvironement("OM2SOSConfigurerTest");
+        final File configDir = ConfigDirectory.setupTestEnvironement("OM2SOSConfigurerTest").toFile();
+
+        File SOSDirectory  = new File(configDir, "SOS");
+        SOSDirectory.mkdirs();
+        instDirectory = new File(SOSDirectory, "default");
+        instDirectory.mkdirs();
+
+
+        File sensorDirectory = new File(instDirectory, "sensors");
+        sensorDirectory.mkdirs();
+        writeCommonDataFile(sensorDirectory, "system.xml",     "urn:ogc:object:sensor:GEOM:1");
+
         pool.recycle(marshaller);
     }
 
@@ -90,7 +106,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("observationSOSDatabase");
+                final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
                 final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
                 dbConfig.parameter("sgbdtype").setValue("derby");
                 dbConfig.parameter("derbyurl").setValue(url);
@@ -100,6 +116,12 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
                 providerBusiness.create("omSrc", dbConfig);
 
+                final DataStoreProvider factorySML = DataStores.getProviderById("filesensor");
+                final ParameterValueGroup params = factorySML.getOpenParameters().createValue();
+                params.parameter("data_directory").setValue(new File(instDirectory.getPath() + "/sensors"));
+                Integer pr = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                providerBusiness.createOrUpdateData(pr, null, false);
+
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
@@ -107,6 +129,13 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
                 serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "omSrc");
+                serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
+
+                List<Sensor> sensors = sensorBusiness.getByProviderId(pr);
+                sensors.stream().forEach((sensor) -> {
+                    sensorBusiness.addSensorToSOS("default", sensor.getIdentifier());
+                });
+
                 initialized = true;
             }
         } catch (Exception ex) {
@@ -135,7 +164,6 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     @Order(order=1)
     public void getObservationsCsvTest() throws Exception {
         super.getObservationsCsvTest();
-
     }
 
     @Test
@@ -143,6 +171,54 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     @Order(order=2)
     public void getObservationsCsvProfileTest() throws Exception {
         super.getObservationsCsvProfileTest();
+    }
 
+    @Test
+    @Override
+    @Order(order=3)
+    public void getSensorIdTest() throws Exception {
+        super.getSensorIdTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=4)
+    public void getSensorIdsForObservedPropertyTest() throws Exception {
+        super.getSensorIdsForObservedPropertyTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=5)
+    public void getObservedPropertiesForSensorIdTest() throws Exception {
+        super.getSensorIdsForObservedPropertyTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=6)
+    public void getTimeForSensorIdTest() throws Exception {
+        super.getTimeForSensorIdTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=7)
+    public void getObservedPropertiesTest() throws Exception {
+        super.getObservedPropertiesTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=8)
+    public void getDecimatedObservationsCsvTest() throws Exception {
+        super.getDecimatedObservationsCsvTest();
+    }
+
+    @Test
+    @Override
+    @Order(order=8)
+    public void getWKTSensorLocationTest() throws Exception {
+        super.getWKTSensorLocationTest();
     }
 }

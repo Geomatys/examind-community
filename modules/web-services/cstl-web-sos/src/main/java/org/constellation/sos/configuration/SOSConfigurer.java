@@ -348,15 +348,17 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         try {
             final SensorMLTree root          = getSensorTree(id);
             final SensorMLTree current       = root.find(sensorID);
-            final List<Geometry> jtsGeometries = SOSUtils.getJTSGeometryFromSensor(current, reader);
-            if (jtsGeometries.size() == 1) {
-                final WKTWriter writer = new WKTWriter();
-                return writer.write(jtsGeometries.get(0));
-            } else if (!jtsGeometries.isEmpty()) {
-                final Geometry[] geometries   = jtsGeometries.toArray(new Geometry[jtsGeometries.size()]);
-                final GeometryCollection coll = new GeometryCollection(geometries, new GeometryFactory());
-                final WKTWriter writer        = new WKTWriter();
-                return writer.write(coll);
+            if (current != null) {
+                final List<Geometry> jtsGeometries = SOSUtils.getJTSGeometryFromSensor(current, reader);
+                if (jtsGeometries.size() == 1) {
+                    final WKTWriter writer = new WKTWriter();
+                    return writer.write(jtsGeometries.get(0));
+                } else if (!jtsGeometries.isEmpty()) {
+                    final Geometry[] geometries   = jtsGeometries.toArray(new Geometry[jtsGeometries.size()]);
+                    final GeometryCollection coll = new GeometryCollection(geometries, new GeometryFactory());
+                    final WKTWriter writer        = new WKTWriter();
+                    return writer.write(coll);
+                }
             }
             return "";
         } catch (DataStoreException | FactoryException | TransformException ex) {
@@ -364,7 +366,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public String getObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final Date start, final Date end) throws ConfigurationException {
+    public String getObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
         final ObservationFilterReader filter = (ObservationFilterReader) getObservationFilter(id); // TODO handle ObservationFilter
         try {
             filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
@@ -372,6 +374,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 observedProperties.addAll(getObservedPropertiesForSensorId(id, sensorID));
             }
             filter.setObservedProperties(observedProperties);
+            filter.setFeatureOfInterest(foi);
             filter.setResponseFormat("text/csv");
 
             if (start != null && end != null) {

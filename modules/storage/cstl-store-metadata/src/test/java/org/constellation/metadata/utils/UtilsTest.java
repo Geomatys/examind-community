@@ -60,7 +60,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test the utilities class org.constellation.metadata.utils.utils from the storage-metadata.
- * 
+ *
  * This class is tested here because it use reflection and the storage metadata has no dependencies with the tested object.
  *
  * @author Guilhem Legal (Geomatys)
@@ -132,7 +132,7 @@ public class UtilsTest {
         result = Utils.findIdentifier(record);
 
         assertEquals(expResult, result);
-        
+
 
         /*
          * DublinCore Record v200 with identifer
@@ -163,7 +163,7 @@ public class UtilsTest {
         assertEquals(expResult, result);
 
 
-        
+
     }
 
     @Test
@@ -196,30 +196,30 @@ public class UtilsTest {
         expResult = "unknow_identifier";
         result = Utils.findIdentifier(metadata);
         assertEquals(expResult, result);
-        
+
         /*
          * Responsible party
          */
         DefaultResponsibleParty party = new DefaultResponsibleParty();
         party.getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString("70c745bf-5338-4c0e-836f-addd26264770"));
         party.setOrganisationName(new SimpleInternationalString("partyIdent"));
-        
+
         expResult = "70c745bf-5338-4c0e-836f-addd26264770";
         result = Utils.findIdentifier(party);
         assertEquals(expResult, result);
-        
-        
+
+
         party = new DefaultResponsibleParty();
         party.getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString("34c40181-0ca4-4cbf-8ee2-c63981b41ad9"));
         party.setOrganisationName(new SimpleInternationalString("partyIdent"));
         party.setIndividualName("myName");
-        
+
         expResult = "34c40181-0ca4-4cbf-8ee2-c63981b41ad9";
         result = Utils.findIdentifier(party);
         assertEquals(expResult, result);
     }
 
-    
+
     @Test
     public void findIdentifierISO19110Test() throws Exception {
         FeatureCatalogueImpl catalogue = new FeatureCatalogueImpl();
@@ -364,7 +364,7 @@ public class UtilsTest {
         result = Utils.findTitle(metadata);
 
         assertEquals(expResult, result);
-        
+
         MI_Metadata metadataMI = new MI_Metadata();
         DefaultDataIdentification identificationMI = new DefaultDataIdentification();
         DefaultCitation citationMI = new DefaultCitation();
@@ -608,7 +608,7 @@ public class UtilsTest {
 
         assertEquals("new-ident", record.getIdentifier().getContent().get(0));
     }
-    
+
     @Test
     public void setTitleTestDC() throws Exception {
         /*
@@ -674,13 +674,13 @@ public class UtilsTest {
          * Ebrim v 2.5 with no identifier (insert)
          */
         reg25 = new org.geotoolkit.ebrim.xml.v250.RegistryObjectType();
-        
+
 
         Utils.setIdentifier("id22", reg25);
 
         assertEquals("id22", reg25.getId());
     }
-    
+
     @Test
     public void setTitleEbrimTest() throws Exception {
         /*
@@ -717,7 +717,7 @@ public class UtilsTest {
          * Ebrim v 2.5 with no identifier (insert)
          */
         reg25 = new org.geotoolkit.ebrim.xml.v250.RegistryObjectType();
-        
+
 
         Utils.setTitle("id22", reg25);
 
@@ -731,7 +731,7 @@ public class UtilsTest {
          */
         DefaultMetadata metadata = new DefaultMetadata();
         metadata.setFileIdentifier("ident1");
-        
+
         Utils.setIdentifier("ident-2", metadata);
         assertEquals("ident-2", metadata.getFileIdentifier());
 
@@ -742,21 +742,21 @@ public class UtilsTest {
 
         Utils.setIdentifier("ident-3", metadata);
         assertEquals("ident-3", metadata.getFileIdentifier());
-        
+
         /*
          * Responsible party
          */
         DefaultResponsibleParty party = new DefaultResponsibleParty();
         party.setOrganisationName(new SimpleInternationalString("partyIdent"));
-        
+
         Utils.setIdentifier("34c40181-0ca4-4cbf-8ee2-c63981b41ad9", party);
-        
+
         String expResult = "34c40181-0ca4-4cbf-8ee2-c63981b41ad9";
         String result = Utils.findIdentifier(party);
         assertEquals(expResult, result);
 
     }
-    
+
     @Test
     public void setTitleISO19115Test() throws Exception {
         /*
@@ -768,7 +768,7 @@ public class UtilsTest {
         citation.setTitle(new DefaultInternationalString("titleMeta"));
         identification.setCitation(citation);
         metadata.setIdentificationInfo(Arrays.asList(identification));
-        
+
         Utils.setTitle("titleMeta-2", metadata);
         assertEquals("titleMeta-2", metadata.getIdentificationInfo().iterator().next().getCitation().getTitle().toString());
 
@@ -779,15 +779,15 @@ public class UtilsTest {
 
         Utils.setTitle("titleMeta-2", metadata);
         assertEquals("titleMeta-2", metadata.getIdentificationInfo().iterator().next().getCitation().getTitle().toString());
-        
+
         /*
          * Responsible party with title (replace)
          */
         DefaultResponsibleParty party = new DefaultResponsibleParty();
         party.setOrganisationName(new SimpleInternationalString("partyIdent"));
-        
+
         Utils.setTitle("party-ident-2", party);
-        
+
         String expResult = "party-ident-2";
         assertEquals(expResult, party.getOrganisationName().toString());
 
@@ -795,9 +795,9 @@ public class UtilsTest {
          * Responsible party with title (replace)
          */
         DefaultResponsibleParty party2 = new DefaultResponsibleParty();
-        
+
         Utils.setTitle("party-ident-3", party2);
-        
+
         assertEquals("party-ident-3", party2.getOrganisationName().toString());
     }
 
@@ -821,7 +821,7 @@ public class UtilsTest {
         Utils.setIdentifier("fcat2", catalogue);
         assertEquals("fcat2", catalogue.getId());
     }
-    
+
     @Test
     public void setTitleISO19110Test() throws Exception {
 
@@ -891,7 +891,7 @@ public class UtilsTest {
 
         assertEquals("newidC-101", smlC1.getMember().get(0).getProcess().getValue().getId());
     }
-    
+
     @Test
     public void setTitleSensorMLTest() throws Exception {
         /*
@@ -1046,7 +1046,7 @@ public class UtilsTest {
          */
         Node n = getOriginalMetadata("org/constellation/xml/sml/system.xml");
 
-        String expResult = "sensor-system";
+        String expResult = "urn:ogc:object:sensor:GEOM:1";
         String result = Utils.findIdentifier(n);
 
         assertEquals(expResult, result);
