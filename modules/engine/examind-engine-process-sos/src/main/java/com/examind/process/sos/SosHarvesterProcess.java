@@ -108,14 +108,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
-        LOGGER.info("exécution du process sos");
+        LOGGER.info("executiing sos insertion process");
 
         /*
         0- Paramètres fixés
         =================*/
 
-        final String storeId = "observationCsvFile";// "observationFile";
-        final String format = "text/csv; subtype=\"om\"";// "application/x-netcdf";
+        final String storeId = inputParameters.getValue(STORE_ID);
+        final String format = inputParameters.getValue(FORMAT);
         final int userId = 1; // admin //assertAuthentificated(req);
 
         /*
@@ -224,10 +224,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
+        final String ext = storeId.equals("observationCsvFile") ? ".csv" : ".dbf";
 
         try {
             for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
-                if (child.getName().endsWith(".csv")) {
+                if (child.getName().endsWith(ext)) {
                     if (datasourceBusiness.getSelectedPath(ds, '/' + child.getName()) == null) {
                         datasourceBusiness.addSelectedPath(dsId, '/' + child.getName());
                     }
@@ -258,16 +259,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             storeParams.propertyToMap(provConfig.getParameters());
 
             provConfig.getParameters().put(CSVProvider.SEPARATOR.getName().toString(), separator);
-            provConfig.getParameters().put(CsvObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
-            provConfig.getParameters().put(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.FOI_COLUMN.getName().toString(), foiColumn);
-            provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS_SEPARATOR.getName().toString(), ",");
-            provConfig.getParameters().put(CsvObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
-            provConfig.getParameters().put(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
-            provConfig.getParameters().put(CsvObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MAIN_COLUMN.getName().toString(), mainColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_COLUMN.getName().toString(), dateColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.DATE_FORMAT.getName().toString(), dateFormat);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().toString(), longitudeColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().toString(), latitudeColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.FOI_COLUMN.getName().toString(), foiColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_COLUMNS_SEPARATOR.getName().toString(), ",");
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
 
             try {
                 datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);
@@ -292,20 +293,20 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     switch (p.getStatus()) {
                         case "NO_DATA":
                         case "ERROR":
-                            LOGGER.log(Level.INFO, "No CSV / Error in file: {0}", p.getPath());
+                            LOGGER.log(Level.INFO, "No data / Error in file: {0}", p.getPath());
                             break;
                         case "INTEGRATED":
                         case "COMPLETED":
-                            LOGGER.log(Level.INFO, "CSV already integrated for file: {0}", p.getPath());
+                            LOGGER.log(Level.INFO, "File already integrated for file: {0}", p.getPath());
                             break;
                         case "REMOVED":
-                            LOGGER.log(Level.INFO, "Removing CSV for file: {0}", p.getPath());
+                            LOGGER.log(Level.INFO, "Removing data for file: {0}", p.getPath());
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
                             datasourceBusiness.removePath(ds, p.getPath());
                             break;
                         default:
-                            LOGGER.log(Level.INFO, "Integrating CSV file: {0}", p.getPath());
+                            LOGGER.log(Level.INFO, "Integrating data file: {0}", p.getPath());
                             ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, ds, provConfig, true, datasetId, userId);
                             for (ResourceAnalysisV3 resourceStore : store.getResources()) {
                                 final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, hidden);

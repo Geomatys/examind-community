@@ -1084,7 +1084,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try (Statement addColumnStmt = c.createStatement()) {
                 for (Field newField : newfields) {
                     StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.fieldName + "\" ");
-                    sb.append(newField.getSQLType(isPostgres)).append(';');
+                    sb.append(newField.getSQLType(isPostgres));
                     addColumnStmt.execute(sb.toString());
                 }
             }

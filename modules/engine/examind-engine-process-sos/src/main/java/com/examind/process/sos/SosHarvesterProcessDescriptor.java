@@ -106,48 +106,48 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .create(String.class, ",");
 
-    public static final String MAIN_COLUMN_NAME = CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode();
-    public static final String MAIN_COLUMN_DESC = CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode();
+    public static final String MAIN_COLUMN_NAME = FileParsingObservationStoreFactory.MAIN_COLUMN.getName().getCode();
+    public static final String MAIN_COLUMN_DESC = FileParsingObservationStoreFactory.MAIN_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
             .addName(MAIN_COLUMN_NAME)
             .setRemarks(MAIN_COLUMN_DESC)
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
 
-    public static final String DATE_COLUMN_NAME = CsvObservationStoreFactory.DATE_COLUMN.getName().getCode();
-    public static final String DATE_COLUMN_DESC = CsvObservationStoreFactory.DATE_COLUMN.getName().getCode();
+    public static final String DATE_COLUMN_NAME = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
+    public static final String DATE_COLUMN_DESC = FileParsingObservationStoreFactory.DATE_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
             .addName(DATE_COLUMN_NAME)
             .setRemarks(DATE_COLUMN_DESC)
             .setRequired(true)
             .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
 
-    public static final String DATE_FORMAT_NAME = CsvObservationStoreFactory.DATE_FORMAT.getName().getCode();
-    public static final String DATE_FORMAT_DESC = CsvObservationStoreFactory.DATE_FORMAT.getName().getCode();
+    public static final String DATE_FORMAT_NAME = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
+    public static final String DATE_FORMAT_DESC = FileParsingObservationStoreFactory.DATE_FORMAT.getName().getCode();
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName(DATE_FORMAT_NAME)
             .setRemarks(DATE_FORMAT_DESC)
             .setRequired(true)
             .create(String.class, "yyyy-MM-dd'T'hh:mm:ss'Z'");
 
-    public static final String LONGITUDE_COLUMN_NAME = CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();
-    public static final String LONGITUDE_COLUMN_DESC = CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();
+    public static final String LONGITUDE_COLUMN_NAME = FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();
+    public static final String LONGITUDE_COLUMN_DESC = FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName(LONGITUDE_COLUMN_NAME)
             .setRemarks(LONGITUDE_COLUMN_DESC)
             .setRequired(true)
             .create(String.class, "LONGITUDE (degree_east)");
 
-    public static final String LATITUDE_COLUMN_NAME = CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
-    public static final String LATITUDE_COLUMN_DESC = CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
+    public static final String LATITUDE_COLUMN_NAME = FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
+    public static final String LATITUDE_COLUMN_DESC = FileParsingObservationStoreFactory.LATITUDE_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
             .addName(LATITUDE_COLUMN_NAME)
             .setRemarks(LATITUDE_COLUMN_DESC)
             .setRequired(true)
             .create(String.class, "LATITUDE (degree_north)");
 
-    public static final String FOI_COLUMN_NAME = CsvObservationStoreFactory.FOI_COLUMN.getName().getCode();
-    public static final String FOI_COLUMN_DESC = CsvObservationStoreFactory.FOI_COLUMN.getName().getCode();
+    public static final String FOI_COLUMN_NAME = FileParsingObservationStoreFactory.FOI_COLUMN.getName().getCode();
+    public static final String FOI_COLUMN_DESC = FileParsingObservationStoreFactory.FOI_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
             .addName(FOI_COLUMN_NAME)
             .setRemarks(FOI_COLUMN_DESC)
@@ -172,9 +172,26 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Boolean.class, false);
 
+    public static final String STORE_ID_NAME = "Store Id";
+    public static final String STORE_ID_DESC = "Store Id";
+    public static final ParameterDescriptor<String> STORE_ID = PARAM_BUILDER
+            .addName(STORE_ID_NAME)
+            .setRemarks(STORE_ID_DESC)
+            .setRequired(true)
+            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationDbfFile"}, "observationCsvFile");
+
+    public static final String FORMAT_NAME = "Format";
+    public static final String FORMAT_DESC = "Format";
+    public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
+            .addName(FORMAT_NAME)
+            .setRemarks(FORMAT_DESC)
+            .setRequired(true)
+            .createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"", "application/dbase; subtype=\"om\""}, "text/csv; subtype=\"om\"");
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS);
+                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS,
+                    STORE_ID, FORMAT);
 
     public static final String FILE_INSERTED_NAME = "Files inserted number";
     public static final String FILE_INSERTED_DESC = "Files inserted number";

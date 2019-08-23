@@ -1,1 +1,2 @@
-com.examind.process.sos.CsvObservationStoreFactory
+com.examind.process.sos.csv.CsvObservationStoreFactory
+com.examind.process.sos.dbf.DbfObservationStoreFactory

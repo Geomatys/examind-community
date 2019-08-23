@@ -378,6 +378,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                                 first = false;
                                             }
                                             lastTime = value;
+                                        } else if (field.fieldType.equals("Quantity")){
+                                            value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                            if (value != null && !value.isEmpty()) {
+                                                value = Double.toString(rs2.getDouble(field.fieldName));
+                                                emptyLine = false;
+                                                line.append(value);
+                                            }
+                                            line.append(encoding.getTokenSeparator());
                                         } else {
                                             value = rs2.getString(field.fieldName);
                                             if (value != null && !value.isEmpty()) {
@@ -417,6 +425,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
+                                    StringBuilder line = new StringBuilder();
+                                    boolean emptyLine = true;
                                     for (int i = 0; i < fields.size(); i++) {
                                         Field field = fields.get(i);
                                         String value;
@@ -426,17 +436,31 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                                 value = format2.format(t);
                                             }
                                             lastTime = value;
+                                            line.append(value).append(encoding.getTokenSeparator());
+                                        } else if (field.fieldType.equals("Quantity")){
+                                            value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                            if (value != null && !value.isEmpty()) {
+                                                value = Double.toString(rs2.getDouble(field.fieldName));
+                                                emptyLine = false;
+                                                line.append(value);
+                                            }
+                                            line.append(encoding.getTokenSeparator());
                                         } else {
                                             value = rs2.getString(field.fieldName);
+                                            if (value != null && !value.isEmpty()) {
+                                                emptyLine = false;
+                                                line.append(value);
+                                            }
+                                            line.append(encoding.getTokenSeparator());
                                         }
-                                        if (value != null) {
-                                            values.append(value);
-                                        }
-                                        values.append(encoding.getTokenSeparator());
                                     }
-                                    values.deleteCharAt(values.length() - 1);
-                                    values.append(encoding.getBlockSeparator());
-                                    nbValue++;
+                                    if (!emptyLine) {
+                                        values.append(line);
+                                        // remove last token separator
+                                        values.deleteCharAt(values.length() - 1);
+                                        values.append(encoding.getBlockSeparator());
+                                        nbValue++;
+                                    }
                                 }
                             }
                         }

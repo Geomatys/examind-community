@@ -14,8 +14,9 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package com.examind.process.sos;
+package com.examind.process.sos.csv;
 
+import com.examind.process.sos.FileParsingObservationStoreFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -28,26 +29,21 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.apache.sis.feature.AbstractIdentifiedType.NAME_KEY;
 import org.apache.sis.feature.AbstractOperation;
 import org.apache.sis.feature.DefaultAttributeType;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.feature.builder.PropertyTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
-import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.FileFeatureStoreFactory;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
@@ -73,13 +69,9 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Samuel Andrés (Geomatys)
  */
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class CsvObservationStoreFactory extends AbstractObservationStoreFactory implements ProviderOnFileSystem {
+public class CsvObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
 
     private static final GeometryFactory GF = new GeometryFactory();
-
-    private static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data");
-
-    private static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
 
     /** factory identification **/
     public static final String NAME = "observationCsvFile";
@@ -92,57 +84,6 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
     private static final ParameterDescriptorGroup EMPTY_PARAMS = parameters("CalculatePoint", 1);
 
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
-
-    public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
-            .addName("main column")
-            .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
-
-    public static final ParameterDescriptor<String> DATE_COLUMN = PARAM_BUILDER
-            .addName("date column")
-            .setRequired(true)
-            .create(String.class, "DATE (yyyy-mm-ddThh:mi:ssZ)");
-
-    public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
-            .addName("date format")
-            .setRequired(true)
-            .create(String.class, "yyyy-MM-dd'T'hh:mm:ss'Z'");
-
-    public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
-            .addName("longitude column")
-            .setRequired(true)
-            .create(String.class, "LONGITUDE (degree_east)");
-
-    public static final ParameterDescriptor<String> LATITUDE_COLUMN = PARAM_BUILDER
-            .addName("latitude column")
-            .setRequired(true)
-            .create(String.class, "LATITUDE (degree_north)");
-
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS = PARAM_BUILDER
-            .addName("measure columns")
-            .setRequired(false)
-            .create(String.class, null);
-
-    public static final ParameterDescriptor<String> MEASURE_COLUMNS_SEPARATOR = PARAM_BUILDER
-            .addName("measure columns separator")
-            .setRequired(false)
-            .create(String.class, "\\|");
-
-    public static final ParameterDescriptor<String> FOI_COLUMN = PARAM_BUILDER
-            .addName("Feature of Interest column")
-            .setRequired(false)
-            .create(String.class, null);
-
-    public static final ParameterDescriptor<String> OBSERVATION_TYPE = PARAM_BUILDER
-            .addName("Observation type")
-            .setRequired(false)
-            .createEnumerated(String.class, new String[]{"Timeserie", "Trajectory", "Profile"}, "Timeserie");
-
-    public static final ParameterDescriptor<String> PROCEDURE_ID = PARAM_BUILDER
-            .addName("Assigned procedure id")
-            .setRequired(false)
-            .create(String.class, null);
-
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationCsvFileParameters").createGroup(IDENTIFIER, NAMESPACE, CSVProvider.PATH, CSVProvider.SEPARATOR,
@@ -168,7 +109,6 @@ public class CsvObservationStoreFactory extends AbstractObservationStoreFactory 
 
     @Override
     public CsvObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-
         return create(params);
     }
 

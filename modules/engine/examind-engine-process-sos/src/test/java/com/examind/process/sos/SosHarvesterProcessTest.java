@@ -19,6 +19,7 @@
 package com.examind.process.sos;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +52,6 @@ import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.xml.v200.OMObservationType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.sos.xml.Capabilities;
@@ -69,7 +69,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.test.annotation.DirtiesContext;
@@ -97,9 +96,13 @@ public class SosHarvesterProcessTest {
 
     private static boolean initialized = false;
 
+    // CSV dir
     private static File argoDirectory;
     private static File fmlwDirectory;
     private static File mooDirectory;
+
+    // DBF dir
+    private static File ltDirectory;
 
     @Inject
     protected IServiceBusiness serviceBusiness;
@@ -137,6 +140,8 @@ public class SosHarvesterProcessTest {
         fmlwDirectory.mkdirs();
         mooDirectory       = new File(dataDirectory, "moo-ts");
         mooDirectory.mkdirs();
+        ltDirectory       = new File(dataDirectory, "lt-ts");
+        ltDirectory.mkdirs();
 
         writeDataFile(argoDirectory, "argo-profiles-2902402-1.csv");
 
@@ -144,7 +149,10 @@ public class SosHarvesterProcessTest {
         writeDataFile(fmlwDirectory, "tsg-FMLW-2.csv");
         writeDataFile(fmlwDirectory, "tsg-FMLW-3.csv");
 
-        writeDataFile(mooDirectory, "mooring-buoys-time-series-62069.csv");
+        writeDataFile(mooDirectory,  "mooring-buoys-time-series-62069.csv");
+
+        writeDataFileBin(ltDirectory,   "LakeTile_001.dbf");
+        writeDataFileBin(ltDirectory,   "LakeTile_002.dbf");
 
     }
 
@@ -203,7 +211,7 @@ public class SosHarvesterProcessTest {
 
     @Test
     @Order(order = 1)
-    public void harvestProfileTest() throws Exception {
+    public void harvestCSVProfileTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -311,7 +319,7 @@ public class SosHarvesterProcessTest {
 
     @Test
     @Order(order = 2)
-    public void harvestTrajTest() throws Exception {
+    public void harvestCSVTrajTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -382,7 +390,7 @@ public class SosHarvesterProcessTest {
 
     @Test
     @Order(order = 3)
-    public void harvestTSTest() throws Exception {
+    public void harvestCSVTSTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
@@ -462,7 +470,7 @@ public class SosHarvesterProcessTest {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
-        String sensorId = "urn:sensor:4";
+        String sensorId = "urn:sensor:5";
 
         String datasetId = "SOS_DATA";
 
@@ -551,6 +559,82 @@ public class SosHarvesterProcessTest {
 
     }
 
+
+    @Test
+    @Order(order = 4)
+    public void harvestDBFTSTest() throws Exception {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        String sensorId = "urn:sensor:4";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(ltDirectory.toURI().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationDbfFile");
+        in.parameter(SosHarvesterProcessDescriptor.FORMAT_NAME).setValue("application/dbase; subtype=\"om\"");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time_str");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time_str");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd' 'hh:mm:ss");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
+
+        in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("prior_id");
+
+        in.parameter(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).setValue("height");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2022-08-20T01:55:11.00", time.getBeginPosition().getValue());
+        Assert.assertEquals("2022-08-28T10:58:39.00", time.getEndPosition().getValue());
+
+        Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
+
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        /*
+        * Verify an inserted time serie
+        */
+        String foi = "54008001708";
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResultFile("LakeTile_foi-1.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        foi = "54008001586";
+        gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        expectedResult = getResultFile("LakeTile_foi-2.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+    }
+
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {
         Capabilities capa        = worker.getCapabilities(new GetCapabilitiesType());
         Contents ct              = capa.getContents();
@@ -580,6 +664,23 @@ public class SosHarvesterProcessTest {
 
         while ((size = in.read(buffer, 0, 1024)) > 0) {
             fw.write(new String(buffer, 0, size));
+        }
+        in.close();
+        fw.close();
+    }
+
+    public static void writeDataFileBin(File dataDirectory, String resourceName) throws IOException {
+
+        final File dataFile = new File(dataDirectory, resourceName);
+
+        FileOutputStream fw = new FileOutputStream(dataFile);
+        InputStream in = Util.getResourceAsStream("com/examind/process/sos/" + resourceName);
+
+        byte[] buffer = new byte[1024];
+        int size;
+
+        while ((size = in.read(buffer, 0, 1024)) > 0) {
+            fw.write(buffer);
         }
         in.close();
         fw.close();

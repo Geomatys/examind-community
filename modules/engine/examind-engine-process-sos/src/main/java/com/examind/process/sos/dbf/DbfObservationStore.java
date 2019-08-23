@@ -15,15 +15,15 @@
  *    Lesser General Public License for more details.
  */
 
-package com.examind.process.sos;
+package com.examind.process.sos.dbf;
 
-import static com.examind.process.sos.CsvObservationStoreUtils.buildFOI;
-import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -40,7 +39,10 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.csv.CSVStore;
+import org.geotoolkit.data.dbf.DbaseFileFeatureStore;
+import org.geotoolkit.data.dbf.DbaseFileHeader;
+import org.geotoolkit.data.dbf.DbaseFileReader;
+import org.geotoolkit.data.dbf.DbaseFileReader.Row;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilter;
@@ -60,21 +62,21 @@ import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIById;
 
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class CsvObservationStore extends CSVStore implements ObservationStore {
+public class DbfObservationStore extends DbaseFileFeatureStore implements ObservationStore {
 
     private static final String PROCEDURE_TREE_TYPE = "Component";
 
-    private static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data");
+    private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos.dbf");
 
     private final Path dataFile;
 
@@ -100,9 +102,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
     /**
      *
-     * @param observationFile path to the csv observation file
-     * @param separator character used as field separator
-     * @param featureType the feature type
+     * @param observationFile path to the dbf observation file
      * @param mainColumn the name (header) of the main column (date or pression/depth for profiles)
      * @param dateColumn the name (header) of the date column
      * @param dateTimeformat the date format (see {@link SimpleDateFormat})
@@ -113,10 +113,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      * @throws DataStoreException
      * @throws MalformedURLException
      */
-    public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
+    public DbfObservationStore(final Path observationFile,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
             final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, featureType);
+        super(observationFile);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
         this.dateColumn = dateColumn;
@@ -131,7 +131,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
     @Override
     public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(CsvObservationStoreFactory.NAME);
+        return DataStores.getFactoryById(DbfObservationStoreFactory.NAME);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -171,18 +171,18 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
             final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
         if (affectedSensorId != null) {
-            LOGGER.warning("CSVObservation store does not allow to override sensor ID");
+            LOGGER.warning("DBFObservation store does not allow to override sensor ID");
         }
 
         int obsCpt = 0;
 
-        // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
-            final Iterator<String[]> it = reader.iterator();
+            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
+            final DbaseFileHeader headers = reader.getHeader();
 
-            // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            // expected to contain headers information
+            if (headers != null) {
 
                 /*
                 1- filter prepare spatial/time column indices from ordinary fields
@@ -195,12 +195,11 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int foiIndex = -1;
 
                 // read headers
-                final String[] headers = it.next();
                 final List<String> measureFields = new ArrayList<>();
                 final List<Integer> ignoredFields = new ArrayList<>();
 
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
+                for (int i = 0; i < headers.getNumFields(); i++) {
+                    final String header = headers.getFieldName(i);
 
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
@@ -273,34 +272,29 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 // -- previous variables leading to new observations --
                 String previousFoi = null;
 
-                while (it.hasNext()) {
+                while (reader.hasNext()) {
                     count++;
-                    final String[] line = it.next();
+                    final Row line = reader.next();
 
                     // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                     boolean empty = true;
-                    for (int i = 0; i < line.length; i++) {
-                        if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
-                            try {
-                                Double.parseDouble(line[i]);
+                    for (int i = 0; i < headers.getNumFields(); i++) {
+                        if (i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
+                            if (line.read(i) != null) {
                                 empty = false;
                                 break;
-                            } catch (NumberFormatException ex) {
-                                if (!line[i].isEmpty()) {
-                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
-                                }
                             }
                         }
                     }
 
                     if (empty) {
-                        LOGGER.info("skipping line due to none expected variable present.");
+                        LOGGER.info("skipping row due to none expected variable present.");
                         continue;
                     }
 
                     // look for current foi
                     if (foiIndex != -1) {
-                        currentFoi = line[foiIndex];
+                        currentFoi = line.read(foiIndex).toString();
                     }
 
 
@@ -316,7 +310,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
-                        final SamplingFeature sp = buildFOI(foiID, positions, samplingFeatures);
+                        final SamplingFeature sp = buildFOIById(foiID, positions, samplingFeatures);
                         result.addFeatureOfInterest(sp);
                         globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
@@ -347,20 +341,15 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                     // update temporal interval
                     if (dateIndex != -1) {
-                        try {
-                            final long millis = sdf.parse(line[dateIndex]).getTime();
-                            globalSpaBound.addDate(millis);
-                            currentSpaBound.addDate(millis);
-                        } catch (ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
-                            continue;
-                        }
+                        final long millis = sdf.parse((String)line.read(dateIndex)).getTime();
+                        globalSpaBound.addDate(millis);
+                        currentSpaBound.addDate(millis);
                     }
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        final double longitude = Double.parseDouble(line[longitudeIndex]);
-                        final double latitude = Double.parseDouble(line[latitudeIndex]);
+                        final double longitude = ((Double)line.read(longitudeIndex));
+                        final double latitude  = ((Double)line.read(latitudeIndex));
                         DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
                         if (!positions.contains(pos)) {
                             positions.add(pos);
@@ -380,32 +369,31 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         // assume that for profile main field is a double
                         if ("Profile".equals(observationType)) {
                             try {
-                                msb.appendValue(Double.parseDouble(line[mainIndex]));
-                            } catch (NumberFormatException ex) {
-                                LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
+                                msb.appendValue((Double)(line.read(mainIndex)));
+                            } catch (ClassCastException ex) {
+                                LOGGER.warning(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
                                 continue;
                             }
                         // assume that is a date otherwise
                         } else {
                             try {
-                                final long millis = sdf.parse(line[mainIndex]).getTime();
+                                final Date millis = sdf.parse((String)line.read(mainIndex));
                                 msb.appendDate(millis);
-                            } catch (ParseException ex) {
-                                LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
+                            } catch (ClassCastException ex) {
+                                LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
                                 continue;
                             }
                         }
                     }
 
                     // loop over columns to build measure string
-                    for (int i = 0; i < line.length; i++) {
+                    for (int i = 0; i < headers.getNumFields(); i++) {
                         if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
+                            Object value = line.read(i);
                             try {
-                                msb.appendValue(Double.parseDouble(line[i]));
-                            } catch (NumberFormatException ex) {
-                                if (!line[i].isEmpty()) {
-                                    LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, line[i]));
-                                }
+                                msb.appendValue((Double)value);
+                            } catch (ClassCastException ex) {
+                                LOGGER.warning(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, value));
                                 msb.appendValue(Double.NaN);
                             }
                         }
@@ -428,7 +416,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
-                final SamplingFeature sp = buildFOI(foiID, positions, samplingFeatures);
+                final SamplingFeature sp = buildFOIById(foiID, positions, samplingFeatures);
                 result.addFeatureOfInterest(sp);
                 globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
@@ -453,9 +441,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 return result;
             }
-            throw new DataStoreException("csv headers not found");
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            throw new DataStoreException("dbf headers not found");
+        } catch (IOException | ParseException ex) {
+            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
             throw new DataStoreException(ex);
         }
     }
@@ -470,19 +458,19 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public Set<String> getPhenomenonNames() {
 
-        // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
-            final Iterator<String[]> it = reader.iterator();
+            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
+            final DbaseFileHeader headers = reader.getHeader();
+
 
             // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            if (headers != null) {
 
                 // read headers
-                final String[] headers = it.next();
                 final Set<String> measureFields = new HashSet<>();
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
+                for (int i = 0; i < headers.getNumFields(); i++) {
+                    final String header = headers.getFieldName(i);
 
                     if (measureColumns.contains(header)) {
                         measureFields.add(header);
@@ -492,7 +480,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
             }
             return Collections.emptySet();
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
             throw new UncheckedIOException(ex);
         }
     }
@@ -501,13 +489,15 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
 
         final GeoSpatialBound result = new GeoSpatialBound();
-        // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        // open dbf file
+        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
-            final Iterator<String[]> it = reader.iterator();
+            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
+            final DbaseFileHeader headers = reader.getHeader();
+
 
             // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            if (headers != null) {
 
                 // prepare spatial/time column indices
                 int dateIndex = -1;
@@ -515,9 +505,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int longitudeIndex = -1;
 
                 // read headers
-                final String[] headers = it.next();
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
+                for (int i = 0; i < headers.getNumFields(); i++) {
+                    final String header = headers.getFieldName(i);
 
                     if (dateColumn.equals(header)) {
                         dateIndex = i;
@@ -531,12 +520,12 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 Date minDate = null;
                 Date maxDate = null;
 
-                while (it.hasNext()) {
-                    final String[] line = it.next();
+                while (reader.hasNext()) {
+                    final Row line = reader.next();
 
                     // update temporal information
                     if (dateIndex != -1) {
-                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
+                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse((String)line.read(dateIndex));
                         if (minDate == null && maxDate == null) {
                             minDate = dateParse;
                             maxDate = dateParse;
@@ -552,8 +541,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         result.addXYCoordinate(
-                                Double.parseDouble(line[longitudeIndex]),
-                                Double.parseDouble(line[latitudeIndex]));
+                                (Double)(line.read(longitudeIndex)),
+                                (Double)(line.read(latitudeIndex)));
                     }
                 }
 
@@ -565,9 +554,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 return result.getTimeObject("2.0.0");
             }
-            throw new DataStoreException("csv headers not found");
+            throw new DataStoreException("dbf headers not found");
         } catch (IOException | ParseException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
             throw new DataStoreException(ex);
         }
     }
@@ -585,7 +574,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     @Override
     public ObservationReader getReader() {
-//        return new CsvObservationReader(dataFile, analyze);
+//        return new DbfObservationReader(dataFile, analyze);
         throw new UnsupportedOperationException();
     }
 
@@ -593,14 +582,17 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
 
 
-        // open csv file
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+        // open dbf file
+        // open dbf file
+        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
-            final Iterator<String[]> it = reader.iterator();
+            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
+            final DbaseFileHeader headers = reader.getHeader();
+
             int count = 0;
 
             // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+            if (headers != null) {
                 count++;
 
                 // prepare spatial/time column indices
@@ -609,10 +601,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int longitudeIndex = -1;
 
                 // read headers
-                final String[] headers = it.next();
                 final List<String> measureFields = new ArrayList<>();
-                for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
+                for (int i = 0; i < headers.getNumFields(); i++) {
+                    final String header = headers.getFieldName(i);
 
                     if (dateColumn.equals(header)) {
                         dateIndex = i;
@@ -631,13 +622,13 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 Date minDate = null;
                 Date maxDate = null;
 
-                while (it.hasNext()) {
-                    final String[] line = it.next();
+                while (reader.hasNext()) {
+                    final Row line = reader.next();
 
                     // update temporal interval
                     if (dateIndex != -1) {
                         try {
-                            final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
+                            final Date dateParse = new SimpleDateFormat(this.dateFormat).parse((String)line.read(dateIndex));
                             if (minDate == null && maxDate == null) {
                                 minDate = dateParse;
                                 maxDate = dateParse;
@@ -648,8 +639,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                                     maxDate = dateParse;
                                 }
                             }
-                        } catch (ParseException ex) {
-                            LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                        } catch (ClassCastException ex) {
+                            LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
                             continue;
                         }
                     }
@@ -657,7 +648,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         procedureTree.spatialBound.addXYCoordinate(
-                                Double.parseDouble(line[longitudeIndex]), Double.parseDouble(line[latitudeIndex]));
+                                (Double)line.read(longitudeIndex),
+                                (Double)line.read(latitudeIndex));
                     }
                 }
 
@@ -669,9 +661,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 return Collections.singletonList(procedureTree);
             }
-            throw new DataStoreException("csv headers not found");
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            throw new DataStoreException("dbf headers not found");
+        } catch (IOException | ParseException ex) {
+            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
             throw new DataStoreException(ex);
         }
     }
