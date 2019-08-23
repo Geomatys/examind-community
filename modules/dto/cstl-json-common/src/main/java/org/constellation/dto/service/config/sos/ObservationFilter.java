@@ -32,18 +32,33 @@ import java.util.List;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ObservationFilter {
-    
+
     private String sensorID;
-    
+
     private List<String> observedProperty;
 
+    private List<String> foi;
+
     private Date start;
-    
+
     private Date end;
-    
+
     private int width = 840;
-    
-    
+
+
+    public ObservationFilter() {
+
+    }
+
+    public ObservationFilter(String sensorID, List<String> observedProperty, List<String> foi, Date start, Date end, int width) {
+        this.sensorID = sensorID;
+        this.observedProperty = observedProperty;
+        this.foi = foi;
+        this.start = start;
+        this.end = end;
+        this.width = width;
+    }
+
     /**
      * @return the sensorID
      */
@@ -57,7 +72,7 @@ public class ObservationFilter {
     public void setSensorID(String sensorID) {
         this.sensorID = sensorID;
     }
-    
+
     /**
      * @return the start
      */
@@ -71,7 +86,7 @@ public class ObservationFilter {
     public void setStart(Date start) {
         this.start = start;
     }
-    
+
     /**
      * @return the end
      */
@@ -102,17 +117,6 @@ public class ObservationFilter {
     public void setObservedProperty(List<String> observedProperty) {
         this.observedProperty = observedProperty;
     }
-    
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("[Observation Filter]\n");
-        sb.append("sensorID:").append(sensorID).append("\n");
-        sb.append("observedProperties:\n");
-        for (String op : observedProperty) {
-            sb.append(op).append("\n");
-        }
-        return sb.toString();
-    }
 
     /**
      * @return the width
@@ -127,4 +131,48 @@ public class ObservationFilter {
     public void setWidth(int width) {
         this.width = width;
     }
+
+    /**
+     * @return the foi
+     */
+    public List<String> getFoi() {
+        if (foi == null) {
+            foi = new ArrayList<>();
+        }
+        return foi;
+    }
+
+    /**
+     * @param foi the foi to set
+     */
+    public void setFoi(List<String> foi) {
+        this.foi = foi;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("[Observation Filter]\n");
+        sb.append("sensorID:").append(sensorID).append("\n");
+        sb.append("observedProperties:\n");
+        if (observedProperty != null) {
+            for (String op : observedProperty) {
+                sb.append(op).append("\n");
+            }
+        }
+        sb.append("foi:\n");
+        if (foi != null) {
+            for (String op : foi) {
+                sb.append(op).append("\n");
+            }
+        }
+        if (start != null) {
+            sb.append("start:").append(start).append("\n");
+        }
+        if (end != null) {
+            sb.append("end:").append(end).append("\n");
+        }
+        sb.append("width:").append(width).append("\n");
+        return sb.toString();
+    }
+
 }

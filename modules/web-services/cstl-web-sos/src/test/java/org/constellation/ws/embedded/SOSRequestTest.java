@@ -57,10 +57,9 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.test.utils.TestRunner;
 
-import org.constellation.sos.ws.SOSUtils;
 import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestFile;
 import org.geotoolkit.nio.IOUtilities;
@@ -505,6 +504,44 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         System.out.println("GFI SOAP 2 result:\n" + result);
 
         domCompare(result, expResult);
+    }
+
+    @Test
+    @Order(order=9)
+    public void testSOSAPIGetObservation() throws Exception {
+        // Creates a valid GetObservation url.
+        final URL getCapsUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/SOS/default/observations?");
+
+        // for a POST request
+        URLConnection conec = getCapsUrl.openConnection();
+
+        ObservationFilter request  = new ObservationFilter("urn:ogc:object:sensor:GEOM:3",
+                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"),
+                                      null,
+                                      null,
+                                      null,
+                                      10);
+
+        postJsonRequestObject(conec, request);
+        String result = getStringResponse(conec);
+
+        String expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
+                                 "2007-05-01T02:59:00,6.56\n" +
+                                 "2007-05-01T04:53:00,6.56\n" +
+                                 "2007-05-01T04:59:00,6.56\n" +
+                                 "2007-05-01T06:53:00,6.56\n" +
+                                 "2007-05-01T06:59:00,6.56\n" +
+                                 "2007-05-01T08:53:00,6.56\n" +
+                                 "2007-05-01T08:59:00,6.56\n" +
+                                 "2007-05-01T10:53:00,6.56\n" +
+                                 "2007-05-01T10:59:00,6.56\n" +
+                                 "2007-05-01T12:53:00,6.56\n" +
+                                 "2007-05-01T17:59:00,6.55\n" +
+                                 "2007-05-01T19:53:00,6.55\n" +
+                                 "2007-05-01T19:59:00,6.55\n" +
+                                 "2007-05-01T21:53:00,6.55\n";
+        result = result.replace("\\n", "\n").replace("\"", "");
+        assertEquals(expResult, result);
     }
 
     public Object writeDataFile(String resourceName) throws Exception {

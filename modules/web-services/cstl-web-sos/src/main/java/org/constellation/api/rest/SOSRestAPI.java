@@ -161,7 +161,7 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/observations", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservations(final @PathVariable("id") String id, final @RequestBody ObservationFilter filter) throws Exception {
-        return new ResponseEntity(getConfigurer().getDecimatedObservationsCsv(id, filter.getSensorID(), filter.getObservedProperty(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
+        return new ResponseEntity(getConfigurer().getDecimatedObservationsCsv(id, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations", method = PUT, produces = APPLICATION_JSON_VALUE)

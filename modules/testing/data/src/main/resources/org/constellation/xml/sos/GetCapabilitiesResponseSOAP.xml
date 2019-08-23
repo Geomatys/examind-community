@@ -400,6 +400,9 @@
                         </gml:boundedBy>
                         <sos:time/>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:10"/>
+                        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+                        <sos:featureOfInterest xlink:href="station-001"/>
+                        <sos:featureOfInterest xlink:href="station-002"/>
                         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
                         <sos:resultModel>om:Observation</sos:resultModel>
                         <sos:resultModel>om:Measurement</sos:resultModel>

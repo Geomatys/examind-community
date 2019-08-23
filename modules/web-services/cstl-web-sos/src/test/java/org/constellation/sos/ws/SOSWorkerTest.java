@@ -2577,7 +2577,7 @@ public abstract class SOSWorkerTest {
         /**
          * Test 1 : getFeatureOfInterestTime with featureID filter
          */
-        TimePeriodType expResult = new TimePeriodType(null, "2007-05-01T02:59:00.00", "2007-06-01T03:00:00.00");
+        TimePeriodType expResult = new TimePeriodType(null, "2007-05-01T02:59:00.00", "2009-05-01T14:00:00.00");
 
         GetFeatureOfInterestTime request = new GetFeatureOfInterestTime("1.0.0", "station-001");
 

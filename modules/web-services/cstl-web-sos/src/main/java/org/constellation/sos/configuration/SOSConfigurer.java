@@ -391,7 +391,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public String getDecimatedObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final Date start, final Date end, final int width) throws ConfigurationException {
+    public String getDecimatedObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
         final ObservationFilterReader filter = (ObservationFilterReader) getObservationFilter(id); // TODO handle ObservationFilter
         try {
             filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
@@ -399,6 +399,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 observedProperties.addAll(getObservedPropertiesForSensorId(id, sensorID));
             }
             filter.setObservedProperties(observedProperties);
+            filter.setFeatureOfInterest(foi);
             filter.setResponseFormat("text/csv");
 
             if (start != null && end != null) {
