@@ -347,9 +347,14 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                     // update temporal interval
                     if (dateIndex != -1) {
-                        final long millis = sdf.parse(line[dateIndex]).getTime();
-                        globalSpaBound.addDate(millis);
-                        currentSpaBound.addDate(millis);
+                        try {
+                            final long millis = sdf.parse(line[dateIndex]).getTime();
+                            globalSpaBound.addDate(millis);
+                            currentSpaBound.addDate(millis);
+                        } catch (ParseException ex) {
+                            LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                            continue;
+                        }
                     }
 
                     // update spatial information
@@ -449,7 +454,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 return result;
             }
             throw new DataStoreException("csv headers not found");
-        } catch (IOException | ParseException ex) {
+        } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }

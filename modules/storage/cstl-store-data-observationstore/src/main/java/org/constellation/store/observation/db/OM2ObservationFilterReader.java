@@ -362,6 +362,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
+                                    StringBuilder line = new StringBuilder();
+                                    boolean emptyLine = true;
                                     for (int i = 0; i < fields.size(); i++) {
                                         Field field = fields.get(i);
                                         String value;
@@ -370,6 +372,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                             synchronized(format2) {
                                                 value = format2.format(t);
                                             }
+                                            line.append(value).append(encoding.getTokenSeparator());
                                             if (first) {
                                                 firstTime = value;
                                                 first = false;
@@ -377,15 +380,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                             lastTime = value;
                                         } else {
                                             value = rs2.getString(field.fieldName);
+                                            if (value != null && !value.isEmpty()) {
+                                                emptyLine = false;
+                                                line.append(value);
+                                            }
+                                            line.append(encoding.getTokenSeparator());
                                         }
-                                        if (value != null) {
-                                            values.append(value);
-                                        }
-                                        values.append(encoding.getTokenSeparator());
                                     }
-                                    values.deleteCharAt(values.length() - 1);
-                                    values.append(encoding.getBlockSeparator());
-                                    nbValue++;
+                                    if (!emptyLine) {
+                                        values.append(line);
+                                        // remove last token separator
+                                        values.deleteCharAt(values.length() - 1);
+                                        values.append(encoding.getBlockSeparator());
+                                        nbValue++;
+                                    }
                                 }
                             }
                         }
@@ -595,6 +603,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     }
 
                     while (rs.next()) {
+                        StringBuilder line = new StringBuilder();
+                        boolean emptyLine = true;
                         for (int i = 0; i < fields.size(); i++) {
                             Field field = fields.get(i);
                             String value; ;
@@ -603,16 +613,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                 synchronized(format2) {
                                     value = format2.format(t);
                                 }
+                                line.append(value).append(encoding.getTokenSeparator());
                             } else {
                                 value = rs.getString(field.fieldName);
+                                if (value != null && !value.isEmpty()) {
+                                    emptyLine = false;
+                                    line.append(value);
+                                }
+                                line.append(encoding.getTokenSeparator());
                             }
-                            if (value != null) {
-                                values.append(value);
-                            }
-                            values.append(encoding.getTokenSeparator());
                         }
-                        values.deleteCharAt(values.length() - 1);
-                        values.append(encoding.getBlockSeparator());
+                        if (!emptyLine) {
+                            values.append(line);
+                            // remove last token separator
+                            values.deleteCharAt(values.length() - 1);
+                            values.append(encoding.getBlockSeparator());
+                        }
                     }
                 }
             }
