@@ -61,8 +61,13 @@ public class TestingDBConfiguration implements IDatabaseConfiguration {
         HikariConfig config = DatabaseConfigurationUtils.createHikariConfig(testDBURL, "testing", 5);
         try {
             testDatasource = new HikariDataSource(config);
-            testSettings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
-            testDialect = SQLDialect.POSTGRES;
+            if (testDBURL.contains("postgres")) {
+                testSettings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
+                testDialect = SQLDialect.POSTGRES;
+            } else {
+                testSettings = new Settings().withRenderNameStyle(RenderNameStyle.QUOTED);
+                testDialect = SQLDialect.HSQLDB;
+            }
         } catch (Exception e) {
             throw new ConfigurationRuntimeException("No testing database found with matching URL : "+testDBURL, e);
         }

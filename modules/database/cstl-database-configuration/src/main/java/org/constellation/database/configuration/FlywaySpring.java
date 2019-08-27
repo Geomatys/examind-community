@@ -18,6 +18,7 @@
  */
 package org.constellation.database.configuration;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.database.model.FlywayUtils;
 import org.constellation.business.IClusterBusiness;
@@ -33,6 +34,8 @@ import java.sql.*;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 
 /**
  * Bean used to initialize/migrate database in Spring context.
@@ -86,7 +89,11 @@ public class FlywaySpring {
             }
 
             try {
-                final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource);
+                boolean isPostgres = true;
+                if (dataSource instanceof HikariDataSource) {
+                    isPostgres = ((HikariDataSource)dataSource).getJdbcUrl().contains("postgres");
+                }
+                final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource, isPostgres);
 
                 //create schema_version table if not exist, even if database is not empty
                 flyway.setBaselineOnMigrate(true);

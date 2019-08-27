@@ -66,7 +66,7 @@ public class FlywayGenerator {
                 }
             }
 
-            final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource);
+            final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource, true);
             flyway.clean();
             flyway.migrate();
 

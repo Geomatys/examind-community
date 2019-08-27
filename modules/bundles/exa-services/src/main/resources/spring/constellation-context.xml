@@ -16,6 +16,8 @@
 
   <bean class="org.constellation.admin.ConfigurationServiceInit" init-method="init" autowire="byType" />
 
+  <!-- Add this line in case of hsql datasource bean id="database-conf" class="org.constellation.database.configuration.HSQLDatabaseConfiguration"/-->
+
   <context:component-scan base-package="org.constellation.admin org.constellation.rest.api org.constellation.api.rest org.constellation.scheduler" />
 
 

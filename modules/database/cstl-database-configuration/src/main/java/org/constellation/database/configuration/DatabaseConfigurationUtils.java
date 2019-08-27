@@ -37,6 +37,8 @@ public class DatabaseConfigurationUtils {
                 databaseURL = databaseURL.concat(";create=true");
             }
             return "jdbc:"+databaseURL;
+        } else if (scheme.equals("hsqldb")) {
+            return "jdbc:"+databaseURL;
         }
 
         if (scheme.equals("postgres")) {

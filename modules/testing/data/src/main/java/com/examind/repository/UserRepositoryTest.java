@@ -20,6 +20,7 @@ package com.examind.repository;
 
 import org.constellation.dto.CstlUser;
 import org.constellation.repository.UserRepository;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,11 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     @Test
     @Transactional()
     public void crude() throws Throwable {
+
+        Optional<CstlUser> previous = userRepository.findByEmail(TestSamples.newAdminUser().getEmail());
+        if (previous.isPresent()) {
+            userRepository.delete(previous.get().getId());
+        }
 
         CstlUser insert = userRepository.create(TestSamples.newAdminUser());
         Assert.assertNotNull(insert);

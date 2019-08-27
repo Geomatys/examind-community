@@ -18,6 +18,7 @@
  */
 package org.constellation.test.component;
 
+import com.zaxxer.hikari.HikariDataSource;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import org.geotoolkit.index.tree.manager.postgres.PGDataSource;
@@ -31,13 +32,17 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class TestSpatialIndexDBConfiguration {
-    
+
     @Autowired
     @Qualifier(value = "dataSource")
     private DataSource datasource;
-            
+
     @PostConstruct
     public void init() {
-        PGDataSource.setDataSource(datasource);
+        boolean isPostgres = true;
+        if (datasource instanceof HikariDataSource) {
+            isPostgres = ((HikariDataSource)datasource).getJdbcUrl().contains("postgres");
+        }
+        PGDataSource.setDataSource(datasource, isPostgres);
     }
 }
