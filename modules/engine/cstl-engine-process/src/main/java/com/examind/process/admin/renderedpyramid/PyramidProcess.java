@@ -114,7 +114,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
                     CoverageTileGenerator ctg;
                     try {
-                        ctg = new CoverageTileGenerator((org.geotoolkit.storage.coverage.GridCoverageResource) resources.get(0));
+                        ctg = new CoverageTileGenerator(resources.get(0));
                     } catch (DataStoreException ex) {
                         throw new ProcessException(ex.getMessage(), this, ex);
                     }

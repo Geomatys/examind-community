@@ -638,7 +638,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             outProvider.reload();
 
             pyramidStore = outProvider.getMainStore();
-            outRef = (XMLCoverageResource) pyramidStore.findResource(outRef.getIdentifier().toString());
+            outRef = (XMLCoverageResource) pyramidStore.findResource(String.valueOf(outRef.getIdentifier().orElse(null)));
             //create database data object
              providerBusiness.createOrUpdateData(pyramidProvider, null, false);
 
