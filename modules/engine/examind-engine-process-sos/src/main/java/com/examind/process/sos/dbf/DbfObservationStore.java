@@ -341,7 +341,17 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
 
                     // update temporal interval
                     if (dateIndex != -1) {
-                        final long millis = sdf.parse((String)line.read(dateIndex)).getTime();
+                        final Object dateObj = line.read(dateIndex);
+                        final long millis;
+                        if (dateObj instanceof Double) {
+                            millis = dateFromDouble((Double)dateObj).getTime();
+                        } else if (dateObj instanceof String) {
+                            millis = sdf.parse((String)dateObj).getTime();
+                        } else if (dateObj instanceof Date) {
+                            millis = ((Date) dateObj).getTime();
+                        } else {
+                            throw new ClassCastException("Unhandled date type");
+                        }
                         globalSpaBound.addDate(millis);
                         currentSpaBound.addDate(millis);
                     }
@@ -377,7 +387,17 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
                         // assume that is a date otherwise
                         } else {
                             try {
-                                final Date millis = sdf.parse((String)line.read(mainIndex));
+                                final Object dateObj = line.read(mainIndex);
+                                final Date millis;
+                                if (dateObj instanceof Double) {
+                                    millis = dateFromDouble((Double)dateObj);
+                                } else if (dateObj instanceof String) {
+                                    millis = sdf.parse((String)dateObj);
+                                } else if (dateObj instanceof Date) {
+                                    millis = (Date) dateObj;
+                                } else {
+                                    throw new ClassCastException("Unhandled date type");
+                                }
                                 msb.appendDate(millis);
                             } catch (ClassCastException ex) {
                                 LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
@@ -525,7 +545,17 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
 
                     // update temporal information
                     if (dateIndex != -1) {
-                        final Date dateParse = new SimpleDateFormat(this.dateFormat).parse((String)line.read(dateIndex));
+                        final Object dateObj = line.read(dateIndex);
+                        final Date dateParse;
+                        if (dateObj instanceof Double) {
+                            dateParse = dateFromDouble((Double)dateObj);
+                        } else if (dateObj instanceof String) {
+                            dateParse = new SimpleDateFormat(this.dateFormat).parse((String)dateObj);
+                        } else if (dateObj instanceof Date) {
+                            dateParse = (Date) dateObj;
+                        } else {
+                            throw new ClassCastException("Unhandled date type");
+                        }
                         if (minDate == null && maxDate == null) {
                             minDate = dateParse;
                             maxDate = dateParse;
@@ -628,7 +658,17 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
                     // update temporal interval
                     if (dateIndex != -1) {
                         try {
-                            final Date dateParse = new SimpleDateFormat(this.dateFormat).parse((String)line.read(dateIndex));
+                            final Object dateObj = line.read(dateIndex);
+                            final Date dateParse;
+                            if (dateObj instanceof Double) {
+                                dateParse = dateFromDouble((Double)dateObj);
+                            } else if (dateObj instanceof String) {
+                                dateParse = new SimpleDateFormat(this.dateFormat).parse((String)dateObj);
+                            } else if (dateObj instanceof Date) {
+                                dateParse = (Date) dateObj;
+                            } else {
+                                throw new ClassCastException("Unhandled date type");
+                            }
                             if (minDate == null && maxDate == null) {
                                 minDate = dateParse;
                                 maxDate = dateParse;
@@ -692,4 +732,27 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
         throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
     }
 
+    private static final long TIME_AT_2000;
+    static {
+        long candidate = 0L;
+        try {
+            candidate = new SimpleDateFormat("yyyy-MM-dd").parse("2000-01-01").getTime();
+        } catch (ParseException ex) {
+            LOGGER.log(Level.SEVERE, "Errow while caculationg time at 2000-01-01", ex);
+        }
+        TIME_AT_2000 = candidate;
+    }
+
+    /**
+     * Assume that the date is the number of second since the  first january 2000.
+     *
+     * @param myDouble
+     * @return
+     * @throws ParseException
+     */
+    private static Date dateFromDouble(double myDouble) throws ParseException {
+        long i = (long) (myDouble*1000);
+        long l = TIME_AT_2000 + i;
+        return new Date(l);
+    }
 }
