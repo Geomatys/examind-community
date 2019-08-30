@@ -52,4 +52,29 @@ function SystemProvidersController($scope,$modal, Examind, Growl,OldDashboard) {
             });
     };
 
+    $scope.removeProvider = function (provider) {
+        var dlg = $modal.open({
+            templateUrl: 'views/modal-confirm.html',
+            controller: 'ModalConfirmController',
+            resolve: {
+                'keyMsg':function(){return "dialog.message.confirm.delete.provider";}
+            }
+        });
+        dlg.result.then(function (cfrm) {
+            if (cfrm) {
+                Examind.providers.delete(provider.id)
+                        .then(function () {
+                            Growl('success', 'Success', 'Provider successfully removed');
+                            Examind.providers.getProviders().then(
+                                    function (response) {
+                                        OldDashboard($scope, response.data, true);
+                                    },
+                                    function (response) {
+                                        Growl('error', 'Error', 'Table reload failed');
+                                    }
+                            );
+                        });
+            }
+        });
+    };
 }

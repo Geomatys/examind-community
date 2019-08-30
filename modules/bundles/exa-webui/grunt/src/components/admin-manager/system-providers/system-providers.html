@@ -55,7 +55,7 @@
                         </td>
                         <td>
                             <a>
-                                <span>{{'label.reindexation' | translate}}</span>
+                                <span>{{'label.operations' | translate}}</span>
                             </a>
                         </td>
                     </tr>
@@ -73,6 +73,13 @@
                                         title="{{'providers.reindexProvider' | translate}}"
                                         class="btn btn-info btn-xs">
                                     <span class="float-left">{{'service.description.reload.button' | translate}}</span>
+                                    <i class="i-reloading" ng-show="p.reloading"
+                                       class="pull-right fa fa-spinner fa-spin"></i>
+                                </button>
+                                <button ng-click="removeProvider(p)"
+                                        title="{{'' | translate}}"
+                                        class="btn btn-info btn-xs">
+                                    <span class="float-left">{{'providers.removeProvider' | translate}}</span>
                                     <i class="i-reloading" ng-show="p.reloading"
                                        class="pull-right fa fa-spinner fa-spin"></i>
                                 </button>
