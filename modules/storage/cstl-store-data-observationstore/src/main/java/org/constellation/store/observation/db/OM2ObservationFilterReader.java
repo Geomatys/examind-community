@@ -631,13 +631,21 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         boolean emptyLine = true;
                         for (int i = 0; i < fields.size(); i++) {
                             Field field = fields.get(i);
-                            String value; ;
+                            String value;
                             if (field.fieldType.equals("Time")) {
                                 Timestamp t = rs.getTimestamp(field.fieldName);
                                 synchronized(format2) {
                                     value = format2.format(t);
                                 }
                                 line.append(value).append(encoding.getTokenSeparator());
+                            } else if (field.fieldType.equals("Quantity")){
+                                value = rs.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                if (value != null && !value.isEmpty()) {
+                                    value = Double.toString(rs.getDouble(field.fieldName));
+                                    emptyLine = false;
+                                    line.append(value);
+                                }
+                                line.append(encoding.getTokenSeparator());
                             } else {
                                 value = rs.getString(field.fieldName);
                                 if (value != null && !value.isEmpty()) {

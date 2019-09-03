@@ -40,6 +40,8 @@
         <bean class="org.constellation.api.rest.converter.JsonWrapperIntervalMessageConverter" />
         <bean class="org.constellation.api.rest.converter.PortrayalMessageConverter" />
         <bean class="org.constellation.api.rest.converter.WMTSCapabilitiesMessageConverter" />
+        <bean class="org.constellation.api.rest.converter.TimeObjectConverter" />
+        <bean class="org.constellation.api.rest.converter.AbstractGeometryConverter" />
         <!--fallback on generic xml marshaller-->
         <bean class="org.springframework.http.converter.xml.MarshallingHttpMessageConverter">
             <property name="marshaller" ref="xml.xstream.marshaller" />

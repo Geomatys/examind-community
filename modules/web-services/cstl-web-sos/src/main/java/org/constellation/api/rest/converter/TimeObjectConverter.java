@@ -21,6 +21,7 @@ package org.constellation.api.rest.converter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometricPrimitive> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
-    
+
     @Override
     public boolean canRead(Class<?> type, MediaType mt) {
         return false;
@@ -63,7 +64,7 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_XML, MediaType.TEXT_XML);
     }
 
     @Override
@@ -75,7 +76,8 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
     public void write(TemporalGeometricPrimitive r, MediaType mt, HttpOutputMessage hom) throws IOException, HttpMessageNotWritableException {
         try {
             // if it's a json POST, create a JSonMarshaller.
-            if (mt.equals(MediaType.APPLICATION_JSON)) {
+            if (mt.equals(MediaType.APPLICATION_JSON) ||
+                mt.equals(MediaType.APPLICATION_JSON_UTF8)) {
                 //transform xlm namespace to json namespace
                 Map<String, String> nSMap = new HashMap<>(0);
                 nSMap.put("http://www.opengis.net/gml/3.2", "gml32");
@@ -86,7 +88,7 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
                 MappedNamespaceConvention con = new MappedNamespaceConvention(config);
                 Writer writer = new OutputStreamWriter(hom.getBody());
                 XMLStreamWriter xmlStreamWriter = new MappedXMLStreamWriter(con, writer);
-                
+
                 // create marshaller
                 JAXBContext jc = JAXBContext.newInstance("org.geotoolkit.gml.xml.v311:org.geotoolkit.gml.xml.v321");
                 Marshaller marshaller = jc.createMarshaller();
@@ -104,5 +106,5 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
             LOGGER.log(Level.SEVERE, "JAXB exception while writing the layerContext", ex);
         }
     }
-    
+
 }

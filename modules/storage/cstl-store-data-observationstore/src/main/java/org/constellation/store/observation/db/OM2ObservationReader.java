@@ -850,19 +850,24 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName, final String version) throws DataStoreException {
         try(final Connection c           = source.getConnection();
-            final PreparedStatement stmt = c.prepareStatement("SELECT min(\"time_begin\"), max(\"time_end\") "
-                                                            + "FROM \"" + schemaPrefix + "om\".\"observations\""
+            final PreparedStatement stmt = c.prepareStatement("SELECT min(\"time_begin\") as mib, max(\"time_begin\") as mab, max(\"time_end\") as mae "
+                                                            + "FROM \"" + schemaPrefix + "om\".\"observations\" "
                                                             + "WHERE \"foi\"=?")) {
             stmt.setString(1, samplingFeatureName);
             try (final ResultSet rs = stmt.executeQuery()) {
                 final TemporalGeometricPrimitive time;
                 if (rs.next()) {
-                    final Timestamp b = rs.getTimestamp(1);
-                    final Timestamp e = rs.getTimestamp(2);
-                    if (b != null && e == null) {
-                        time = buildTimeInstant(version, b);
-                    } else if (b != null && e != null) {
-                        time = buildTimePeriod(version, b, e);
+                    final Timestamp mib = rs.getTimestamp(1);
+                    final Timestamp mab = rs.getTimestamp(2);
+                    final Timestamp mae = rs.getTimestamp(3);
+                    if (mib != null && mae == null) {
+                        if (mab != null && !mib.equals(mab)) {
+                            time = buildTimePeriod(version, mib, mab);
+                        } else {
+                            time = buildTimeInstant(version, mib);
+                        }
+                    } else if (mib != null && mae != null) {
+                        time = buildTimePeriod(version, mib, mae);
                     } else {
                         time = null;
                     }
