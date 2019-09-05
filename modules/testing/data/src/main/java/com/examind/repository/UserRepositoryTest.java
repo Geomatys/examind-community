@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2019 Geomatys.
+ * Copyright 2014 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.database.impl.repository;
+package com.examind.repository;
 
-import com.examind.repository.AttachmentRepositoryTest;
-import org.constellation.repository.AttachmentRepository;
+import org.constellation.dto.CstlUser;
+import org.constellation.repository.UserRepository;
+import com.examind.repository.AbstractRepositoryTest;
+import com.examind.repository.TestSamples;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- *
- * @author Guilhem Legal (Geomatys)
- */
-public class JooqAttachmentRepositoryTestCase extends AttachmentRepositoryTest {
+@Transactional
+public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
-    private AttachmentRepository attachmentRepository;
+    private UserRepository userRepository;
+
+    @Test
+    public void all() {
+        dump(userRepository.findAll());
+    }
 
     @Test
     @Transactional()
-    @Override
-    public void crude() {
-        super.crude();
+    public void crude() throws Throwable {
+
+        CstlUser insert = userRepository.create(TestSamples.newAdminUser());
+        Assert.assertNotNull(insert);
+
+        Assert.assertEquals("Should have deleled 1 record",1, userRepository.delete(insert.getId()));
+
+        Assert.assertFalse(userRepository.findById(insert.getId()).isPresent());
+
     }
 
 }

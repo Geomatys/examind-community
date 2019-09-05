@@ -18,76 +18,40 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-
-import org.constellation.dto.service.Service;
-import org.constellation.repository.ServiceRepository;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.ServicesRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqServicesRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ServiceRepository serviceRepository;
-
+public class JooqServicesRepositoryTestCase extends ServicesRepositoryTest {
 
     @Test
+    @Override
     public void all() {
-        dump(serviceRepository.findAll());
+        super.all();
     }
 
     @Test
+    @Override
     public void findByDataId() {
-        List<Service> findByDataId = serviceRepository.findByDataId(3);
-        dump(findByDataId);
+        super.findByDataId();
     }
 
     @Test
+    @Override
     public void findByDataIdentierAndType() {
-        Service service = serviceRepository.findByIdentifierAndType("test", "WMS");
-        dump(service);
+        super.findByDataIdentierAndType();
     }
 
     @Test
+    @Override
     public void findIdentifiersByType() {
-        dump(serviceRepository.findIdentifiersByType("WMS"));
+        super.findIdentifiersByType();
     }
 
     @Test
     @Transactional()
+    @Override
     public void crud() {
-
-        // no removeAll method
-        List<Service> all = serviceRepository.findAll();
-        for (Service p : all) {
-            serviceRepository.delete(p.getId());
-        }
-        all = serviceRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
-        Assert.assertNotNull(sid);
-
-        Service s = serviceRepository.findById(sid);
-        Assert.assertNotNull(s);
-
-        serviceRepository.delete(sid);
-
-        s = serviceRepository.findById(sid);
-        Assert.assertNull(s);
+        super.crud();
     }
-
 }

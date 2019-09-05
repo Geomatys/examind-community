@@ -18,68 +18,24 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.repository.DataRepository;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.repository.ProviderRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.DataRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqDataRepositoryTestCase extends AbstractJooqTestTestCase {
+public class JooqDataRepositoryTestCase extends DataRepositoryTest {
 
-    @Autowired
-    private DataRepository dataRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ProviderRepository providerRepository;
 
     @Test
+    @Override
     public void findAll() {
-        dump(dataRepository.findAll());
+        super.findAll();
     }
 
     @Test
     @Transactional()
+    @Override
     public void crud() {
-
-        // no removeAll method
-        List<Data> all = dataRepository.findAll();
-        for (Data p : all) {
-            dataRepository.delete(p.getId());
-        }
-        all = dataRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
-
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
-
-        int res = dataRepository.delete(data.getId());
-
-        Assert.assertEquals(1, res);
-
-        res = dataRepository.delete(-1);
-        Assert.assertEquals(0, res);
-
-        data = dataRepository.findById(data.getId());
-        Assert.assertNull(data);
+        super.crud();
     }
 
 }

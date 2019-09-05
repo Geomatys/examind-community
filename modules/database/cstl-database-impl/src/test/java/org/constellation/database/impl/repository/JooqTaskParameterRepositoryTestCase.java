@@ -18,59 +18,20 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.process.TaskParameter;
-import org.constellation.repository.MapContextRepository;
-import org.constellation.repository.TaskParameterRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.TaskParameterRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqTaskParameterRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TaskParameterRepository taskParamRepository;
+public class JooqTaskParameterRepositoryTestCase extends TaskParameterRepositoryTest {
 
     @Test
     @Transactional()
     public void crude() {
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        // no removeAll method
-        List<? extends TaskParameter> all = taskParamRepository.findAll();
-        for (TaskParameter p : all) {
-            taskParamRepository.delete(p.getId());
-        }
-        all = taskParamRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        int sid = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
-        Assert.assertNotNull(sid);
-
-        TaskParameter s = taskParamRepository.get(sid);
-        Assert.assertNotNull(s);
-
-        taskParamRepository.delete(s.getId());
-
-        s = taskParamRepository.get(s.getId());
-        Assert.assertNull(s);
+        super.crude();
     }
 
 }
-

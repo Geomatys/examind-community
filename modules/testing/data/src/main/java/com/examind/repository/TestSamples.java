@@ -1,4 +1,4 @@
-package org.constellation.database.impl;
+package com.examind.repository;
 
 import java.util.ArrayList;
 import java.util.Arrays;

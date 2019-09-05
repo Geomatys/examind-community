@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.database.impl;
+package com.examind.repository;
 
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -33,7 +33,7 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/cstl/spring/test-no-hazelcast.xml")
-public abstract class AbstractJooqTestTestCase {
+public abstract class AbstractRepositoryTest {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

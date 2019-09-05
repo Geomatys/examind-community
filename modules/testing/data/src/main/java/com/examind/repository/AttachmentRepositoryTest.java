@@ -16,10 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.database.impl.repository;
+package com.examind.repository;
 
-import com.examind.repository.AttachmentRepositoryTest;
+import java.util.List;
+import org.constellation.dto.metadata.Attachment;
 import org.constellation.repository.AttachmentRepository;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,16 +30,33 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqAttachmentRepositoryTestCase extends AttachmentRepositoryTest {
+public class AttachmentRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private AttachmentRepository attachmentRepository;
 
     @Test
     @Transactional()
-    @Override
     public void crude() {
-        super.crude();
+
+        // no removeAll method
+        List<Attachment> all = attachmentRepository.findAll();
+        for (Attachment p : all) {
+            attachmentRepository.delete(p.getId());
+        }
+        all = attachmentRepository.findAll();
+        Assert.assertTrue(all.isEmpty());
+
+        int sid = attachmentRepository.create(TestSamples.newAttachment());
+        Assert.assertNotNull(sid);
+
+        Attachment s = attachmentRepository.findById(sid);
+        Assert.assertNotNull(s);
+
+        attachmentRepository.delete(s.getId());
+
+        s = attachmentRepository.findById(s.getId());
+        Assert.assertNull(s);
     }
 
 }

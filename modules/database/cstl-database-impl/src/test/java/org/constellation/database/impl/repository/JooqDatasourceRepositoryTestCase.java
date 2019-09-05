@@ -18,14 +18,8 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.DataSource;
-import org.constellation.repository.DatasourceRepository;
-import org.junit.Assert;
+import com.examind.repository.DatasourceRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -33,34 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Guilhem Legal (Geomatys)
  */
 @Transactional
-public class JooqDatasourceRepositoryTestCase extends AbstractJooqTestTestCase {
+public class JooqDatasourceRepositoryTestCase extends DatasourceRepositoryTest {
 
-    @Autowired
-    private DatasourceRepository datasourceRepository;
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-
-        // no removeAll method
-        List<DataSource> all = datasourceRepository.findAll();
-        for (DataSource p : all) {
-            datasourceRepository.delete(p.getId());
-        }
-        all = datasourceRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-
-        int did = datasourceRepository.create(TestSamples.newDataSource());
-        Assert.assertNotNull(did);
-
-        DataSource s = datasourceRepository.findById(did);
-        Assert.assertNotNull(s);
-
-        datasourceRepository.delete(did);
-
-        s = datasourceRepository.findById(did);
-        Assert.assertNull(s);
+        super.crude();
     }
 
 }

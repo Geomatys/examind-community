@@ -18,56 +18,20 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.thesaurus.Thesaurus;
-import org.constellation.repository.ThesaurusRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.ThesaurusRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqThesaurusRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ThesaurusRepository thesaurusRepository;
+public class JooqThesaurusRepositoryTestCase extends ThesaurusRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        // no removeAll method
-        List<Thesaurus> all = thesaurusRepository.getAll();
-        for (Thesaurus p : all) {
-            thesaurusRepository.delete(p.getId());
-        }
-        all = thesaurusRepository.getAll();
-        Assert.assertTrue(all.isEmpty());
-
-        int sid = thesaurusRepository.create(TestSamples.newThesaurus());
-        Assert.assertNotNull(sid);
-
-        Thesaurus s = thesaurusRepository.get(sid);
-        Assert.assertNotNull(s);
-
-        thesaurusRepository.delete(s.getId());
-
-        s = thesaurusRepository.get(s.getId());
-        Assert.assertNull(s);
+        super.crude();
     }
-
 }

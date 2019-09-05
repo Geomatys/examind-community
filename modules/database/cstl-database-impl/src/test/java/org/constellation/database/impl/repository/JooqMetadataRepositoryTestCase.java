@@ -18,16 +18,8 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.metadata.Metadata;
-import org.constellation.repository.MetadataRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.MetadataRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -35,35 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Guilhem Legal (Geomatys)
  */
 @Transactional
-public class JooqMetadataRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private MetadataRepository metadataRepository;
+public class JooqMetadataRepositoryTestCase extends MetadataRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
 
-        metadataRepository.deleteAll();
-        List<Metadata> all = metadataRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        int mid = metadataRepository.create(TestSamples.newMetadata(owner.getId(), "meta-1"));
-        Assert.assertNotNull(mid);
-
-        Metadata s = metadataRepository.findById(mid);
-        Assert.assertNotNull(s);
-
-        metadataRepository.delete(mid);
-
-        s = metadataRepository.findById(mid);
-        Assert.assertNull(s);
+        super.crude();
     }
 }

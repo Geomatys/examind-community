@@ -18,64 +18,26 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.repository.TaskRepository;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.process.Task;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.TaskRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class JooqTaskRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
+public class JooqTaskRepositoryTestCase extends TaskRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-        // no removeAll method
-        List<? extends Task> all = taskRepository.findAll();
-        for (Task p : all) {
-            taskRepository.delete(p.getIdentifier());
-        }
-        all = taskRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-
-        String uuid = taskRepository.create(TestSamples.newTask(owner.getId(), "999-666"));
-        Assert.assertNotNull(uuid);
-
-        Task t = taskRepository.get(uuid);
-        Assert.assertNotNull(t);
-
-        taskRepository.delete(uuid);
-
-        t = taskRepository.get(uuid);
-        Assert.assertNull(t);
+        super.crude();
 
     }
 
     @Test
     @Transactional()
+    @Override
     public void findDayTask() throws Throwable {
-
-
-        taskRepository.findDayTask("espace-dev");
-
-
+        super.findDayTask();
     }
 
 }

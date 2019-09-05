@@ -18,53 +18,21 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Sensor;
-import org.constellation.repository.SensorRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.SensorRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqSensorRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SensorRepository sensorRepository;
+public class JooqSensorRepositoryTestCase extends SensorRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-
-        // no removeAll method
-        sensorRepository.deleteAll();
-        List<Sensor> all = sensorRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        Sensor s = sensorRepository.create(TestSamples.newSensor(owner.getId(), "ds1"));
-        Assert.assertNotNull(s);
-
-        s = sensorRepository.findById(s.getId());
-        Assert.assertNotNull(s);
-
-        sensorRepository.delete(s.getIdentifier());
-
-        s = sensorRepository.findById(s.getId());
-        Assert.assertNull(s);
+        super.crude();
     }
 
 }

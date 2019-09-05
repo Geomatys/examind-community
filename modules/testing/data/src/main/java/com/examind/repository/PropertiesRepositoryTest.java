@@ -16,38 +16,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.database.impl.repository;
+package com.examind.repository;
 
-import com.examind.repository.PropertiesRepositoryTest;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.constellation.repository.PropertyRepository;
+import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqPropertiesRepositoryTestCase extends PropertiesRepositoryTest {
+public class PropertiesRepositoryTest extends AbstractRepositoryTest {
+
+
+    @Autowired
+    private PropertyRepository propertyRepository;
 
     @Test
-    @Override
     public void all() {
-        super.all();
+        dump(propertyRepository.findAll());
+
+        List<String> keys = new ArrayList<String>();
+        keys.add("test");
+
+        dump(propertyRepository.findIn(keys));
+
+
     }
 
     @Test
-    @Override
     public void getValue() {
-        super.getValue();
+        String value = propertyRepository.getValue("test.notfound.property", "blurp");
+        Assert.assertEquals("Default value is not matching", "blurp", value);
     }
 
     @Test
     @Transactional()
-    @Override
     public void save() {
-        super.save();
+        propertyRepository.update("test", "value");
     }
 
     @Test
     @Transactional()
-    @Override
     public void delete() {
-        super.delete();
+        propertyRepository.delete("test");
     }
 
 }

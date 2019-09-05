@@ -18,37 +18,25 @@
  */
 package org.constellation.database.impl.repository;
 
-import org.constellation.dto.CstlUser;
-import org.constellation.repository.UserRepository;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.junit.Assert;
+import com.examind.repository.UserRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class JooqUserRepositoryTestCase extends AbstractJooqTestTestCase {
+public class JooqUserRepositoryTestCase extends UserRepositoryTest {
 
-    @Autowired
-    private UserRepository userRepository;
 
     @Test
+    @Override
     public void all() {
-        dump(userRepository.findAll());
+        super.all();
     }
 
     @Test
     @Transactional()
+    @Override
     public void crude() throws Throwable {
-
-        CstlUser insert = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(insert);
-
-        Assert.assertEquals("Should have deleled 1 record",1, userRepository.delete(insert.getId()));
-
-        Assert.assertFalse(userRepository.findById(insert.getId()).isPresent());
-
+        super.crude();
     }
 
 }

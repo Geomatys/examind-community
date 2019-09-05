@@ -18,79 +18,22 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.repository.LayerRepository;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.dto.Layer;
-import org.constellation.dto.service.Service;
-import org.constellation.repository.DataRepository;
-import org.constellation.repository.ProviderRepository;
-import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.LayerRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqLayerRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private ServiceRepository serviceRepository;
-
-    @Autowired
-    private LayerRepository layerRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ProviderRepository providerRepository;
-
-    @Autowired
-    private DataRepository dataRepository;
+public class JooqLayerRepositoryTestCase extends LayerRepositoryTest {
 
     @Test
+    @Override
     public void all() {
-        dump(layerRepository.findAll());
+        super.all();
     }
 
     @Test
     @Transactional()
+    @Override
     public void crud() {
-
-        // no removeAll method
-        List<Layer> all = layerRepository.findAll();
-        for (Layer p : all) {
-            layerRepository.delete(p.getId());
-        }
-        all = layerRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
-
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
-
-        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
-        Assert.assertNotNull(sid);
-
-        Integer lid = layerRepository.create(TestSamples.newLayer(owner.getId(), pid, data.getId(), sid));
-        Assert.assertNotNull(lid);
-
-        layerRepository.delete(lid);
-
-        Layer layer = layerRepository.findById(lid);
-        Assert.assertNull(layer);
+        super.crud();
     }
-
-
 }

@@ -18,56 +18,21 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.DataSet;
-import org.constellation.repository.DatasetRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.DatasetRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqDatasetRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private DatasetRepository datasetRepository;
+public class JooqDatasetRepositoryTestCase extends DatasetRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-
-        // no removeAll method
-        List<DataSet> all = datasetRepository.findAll();
-        for (DataSet p : all) {
-            datasetRepository.delete(p.getId());
-        }
-        all = datasetRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        int did = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "ds1"));
-        Assert.assertNotNull(did);
-
-        DataSet s = datasetRepository.findById(did);
-        Assert.assertNotNull(s);
-
-        datasetRepository.delete(did);
-
-        s = datasetRepository.findById(did);
-        Assert.assertNull(s);
+        super.crude();
     }
 
 }

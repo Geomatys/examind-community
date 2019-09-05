@@ -18,56 +18,21 @@
  */
 package org.constellation.database.impl.repository;
 
-import java.util.List;
-import org.constellation.database.impl.AbstractJooqTestTestCase;
-import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.MapContextDTO;
-import org.constellation.repository.MapContextRepository;
-import org.constellation.repository.UserRepository;
-import org.junit.Assert;
+import com.examind.repository.MapcontextRepositoryTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class JooqMapcontextRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private MapContextRepository mapcontextRepository;
+public class JooqMapcontextRepositoryTestCase extends MapcontextRepositoryTest {
 
     @Test
     @Transactional()
+    @Override
     public void crude() {
-
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
-
-        // no removeAll method
-        List<MapContextDTO> all = mapcontextRepository.findAll();
-        for (MapContextDTO p : all) {
-            mapcontextRepository.delete(p.getId());
-        }
-        all = mapcontextRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
-        int sid = mapcontextRepository.create(TestSamples.newMapcontext(owner, "mp"));
-        Assert.assertNotNull(sid);
-
-        MapContextDTO s = mapcontextRepository.findById(sid);
-        Assert.assertNotNull(s);
-
-        mapcontextRepository.delete(s.getId());
-
-        s = mapcontextRepository.findById(s.getId());
-        Assert.assertNull(s);
+        super.crude();
     }
 
 }
