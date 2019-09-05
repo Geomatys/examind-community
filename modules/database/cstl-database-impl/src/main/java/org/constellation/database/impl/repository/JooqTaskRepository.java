@@ -134,6 +134,11 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
         return convertTaskListToDto(dsl.select().from(Tables.TASK).fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
     }
 
+     @Override
+    public void delete(String uuid) {
+        dsl.delete(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).execute();
+    }
+
     private List<Task> convertTaskListToDto(List<org.constellation.database.api.jooq.tables.pojos.Task> daos) {
         List<org.constellation.dto.process.Task> results = new ArrayList<>();
         for (org.constellation.database.api.jooq.tables.pojos.Task dao : daos) {

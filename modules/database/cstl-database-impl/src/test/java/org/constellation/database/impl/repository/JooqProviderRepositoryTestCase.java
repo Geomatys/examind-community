@@ -18,20 +18,62 @@
  */
 package org.constellation.database.impl.repository;
 
+import java.util.List;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
+import org.constellation.database.impl.TestSamples;
+import org.constellation.dto.CstlUser;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.repository.UserRepository;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 public class JooqProviderRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
     private ProviderRepository providerRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     public void all() {
         dump(providerRepository.findAll());
+    }
+
+    @Test
+    @Transactional()
+    public void crude() {
+
+        // no removeAll method
+        List<ProviderBrief> all = providerRepository.findAll();
+        for (ProviderBrief p : all) {
+            providerRepository.delete(p.getId());
+        }
+        all = providerRepository.findAll();
+        Assert.assertTrue(all.isEmpty());
+
+        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        Assert.assertNotNull(owner);
+        Assert.assertNotNull(owner.getId());
+
+        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
+        Assert.assertNotNull(pid);
+
+        ProviderBrief pr = providerRepository.findOne(pid);
+        Assert.assertNotNull(pr);
+
+        int res = providerRepository.delete(pid);
+        Assert.assertEquals(1, res);
+
+        res = providerRepository.delete(-1);
+        Assert.assertEquals(0, res);
+
+        pr = providerRepository.findOne(pid);
+        Assert.assertNull(pr);
+
     }
 
 

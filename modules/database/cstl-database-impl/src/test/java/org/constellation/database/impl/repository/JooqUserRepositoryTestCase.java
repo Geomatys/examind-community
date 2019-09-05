@@ -47,6 +47,8 @@ public class JooqUserRepositoryTestCase extends AbstractJooqTestTestCase {
 
         Assert.assertEquals("Should have deleled 1 record",1, userRepository.delete(insert.getId()));
 
+        Assert.assertFalse(userRepository.findById(insert.getId()).isPresent());
+
     }
 
 }

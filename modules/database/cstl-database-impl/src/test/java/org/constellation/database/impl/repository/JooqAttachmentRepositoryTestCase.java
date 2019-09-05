@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,63 +19,46 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import org.constellation.repository.TaskRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
 import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.process.Task;
-import org.constellation.repository.UserRepository;
+import org.constellation.dto.metadata.Attachment;
+import org.constellation.repository.AttachmentRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
-public class JooqTaskRepositoryTestCase extends AbstractJooqTestTestCase {
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class JooqAttachmentRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
+    private AttachmentRepository attachmentRepository;
 
     @Test
     @Transactional()
     public void crude() {
+
         // no removeAll method
-        List<? extends Task> all = taskRepository.findAll();
-        for (Task p : all) {
-            taskRepository.delete(p.getIdentifier());
+        List<Attachment> all = attachmentRepository.findAll();
+        for (Attachment p : all) {
+            attachmentRepository.delete(p.getId());
         }
-        all = taskRepository.findAll();
+        all = attachmentRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
+        int sid = attachmentRepository.create(TestSamples.newAttachment());
+        Assert.assertNotNull(sid);
 
+        Attachment s = attachmentRepository.findById(sid);
+        Assert.assertNotNull(s);
 
-        String uuid = taskRepository.create(TestSamples.newTask(owner.getId(), "999-666"));
-        Assert.assertNotNull(uuid);
+        attachmentRepository.delete(s.getId());
 
-        Task t = taskRepository.get(uuid);
-        Assert.assertNotNull(t);
-
-        taskRepository.delete(uuid);
-
-        t = taskRepository.get(uuid);
-        Assert.assertNull(t);
-
-    }
-
-    @Test
-    @Transactional()
-    public void findDayTask() throws Throwable {
-
-
-        taskRepository.findDayTask("espace-dev");
-
-
+        s = attachmentRepository.findById(s.getId());
+        Assert.assertNull(s);
     }
 
 }

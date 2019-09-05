@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,67 +19,55 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import org.constellation.repository.DataRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
 import org.constellation.database.impl.TestSamples;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.repository.ProviderRepository;
+import org.constellation.dto.DataSet;
+import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqDataRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private DataRepository dataRepository;
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class JooqDatasetRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private ProviderRepository providerRepository;
-
-    @Test
-    public void findAll() {
-        dump(dataRepository.findAll());
-    }
+    private DatasetRepository datasetRepository;
 
     @Test
     @Transactional()
-    public void crud() {
+    public void crude() {
 
         // no removeAll method
-        List<Data> all = dataRepository.findAll();
-        for (Data p : all) {
-            dataRepository.delete(p.getId());
+        List<DataSet> all = datasetRepository.findAll();
+        for (DataSet p : all) {
+            datasetRepository.delete(p.getId());
         }
-        all = dataRepository.findAll();
+        all = datasetRepository.findAll();
         Assert.assertTrue(all.isEmpty());
-
 
         CstlUser owner = userRepository.create(TestSamples.newAdminUser());
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
+        int did = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "ds1"));
+        Assert.assertNotNull(did);
 
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
+        DataSet s = datasetRepository.findById(did);
+        Assert.assertNotNull(s);
 
-        int res = dataRepository.delete(data.getId());
+        datasetRepository.delete(did);
 
-        Assert.assertEquals(1, res);
-
-        res = dataRepository.delete(-1);
-        Assert.assertEquals(0, res);
-
-        data = dataRepository.findById(data.getId());
-        Assert.assertNull(data);
+        s = datasetRepository.findById(did);
+        Assert.assertNull(s);
     }
 
 }

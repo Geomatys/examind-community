@@ -74,6 +74,11 @@ public interface AttachmentRepository {
     List<Attachment> findByFileName(String fileName);
 
     /**
+     * Return all the attachment.
+     */
+    List<Attachment> findAll();
+
+    /**
      * Test if an attachment exist.
      *
      * @param id

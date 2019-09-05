@@ -32,6 +32,8 @@ public interface TaskRepository {
 
     void update(Task task);
 
+    void delete(String uuid);
+
     List<Task> findRunningTasks();
 
     List<Task> findRunningTasks(Integer id, Integer offset, Integer limit);

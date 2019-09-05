@@ -23,11 +23,18 @@ import java.util.List;
 import org.constellation.dto.service.Service;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
+import org.constellation.database.impl.TestSamples;
+import org.constellation.dto.CstlUser;
+import org.constellation.repository.UserRepository;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 public class JooqServicesRepositoryTestCase extends AbstractJooqTestTestCase {
 
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ServiceRepository serviceRepository;
@@ -56,11 +63,31 @@ public class JooqServicesRepositoryTestCase extends AbstractJooqTestTestCase {
     }
 
     @Test
-    public void save() {
-    }
+    @Transactional()
+    public void crud() {
 
-    @Test
-    public void delete() {
+        // no removeAll method
+        List<Service> all = serviceRepository.findAll();
+        for (Service p : all) {
+            serviceRepository.delete(p.getId());
+        }
+        all = serviceRepository.findAll();
+        Assert.assertTrue(all.isEmpty());
+
+        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        Assert.assertNotNull(owner);
+        Assert.assertNotNull(owner.getId());
+
+        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
+        Assert.assertNotNull(sid);
+
+        Service s = serviceRepository.findById(sid);
+        Assert.assertNotNull(s);
+
+        serviceRepository.delete(sid);
+
+        s = serviceRepository.findById(sid);
+        Assert.assertNull(s);
     }
 
 }

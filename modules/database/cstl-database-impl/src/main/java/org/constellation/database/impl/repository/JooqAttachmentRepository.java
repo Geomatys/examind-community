@@ -73,6 +73,14 @@ public class JooqAttachmentRepository extends AbstractJooqRespository<Attachment
     }
 
     @Override
+    public List<Attachment> findAll() {
+        return convertToAttachmentDtos(
+        dsl.select()
+           .from(ATTACHMENT)
+           .fetchInto(org.constellation.database.api.jooq.tables.pojos.Attachment.class));
+    }
+
+    @Override
     public boolean existsById(int styleId) {
         return dsl.selectCount().from(ATTACHMENT)
                 .where(ATTACHMENT.ID.eq(styleId))

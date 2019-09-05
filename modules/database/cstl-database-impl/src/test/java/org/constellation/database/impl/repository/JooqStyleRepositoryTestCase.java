@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,67 +19,55 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import org.constellation.repository.DataRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
 import org.constellation.database.impl.TestSamples;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.repository.ProviderRepository;
+import org.constellation.dto.Style;
+import org.constellation.repository.StyleRepository;
 import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqDataRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private DataRepository dataRepository;
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class JooqStyleRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private ProviderRepository providerRepository;
-
-    @Test
-    public void findAll() {
-        dump(dataRepository.findAll());
-    }
+    private StyleRepository styleRepository;
 
     @Test
     @Transactional()
-    public void crud() {
+    public void crude() {
 
         // no removeAll method
-        List<Data> all = dataRepository.findAll();
-        for (Data p : all) {
-            dataRepository.delete(p.getId());
+        List<Style> all = styleRepository.findAll();
+        for (Style p : all) {
+            styleRepository.delete(p.getId());
         }
-        all = dataRepository.findAll();
+        all = styleRepository.findAll();
         Assert.assertTrue(all.isEmpty());
-
 
         CstlUser owner = userRepository.create(TestSamples.newAdminUser());
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
+        int sid = styleRepository.create(TestSamples.newStyle(owner.getId(), "ds1"));
+        Assert.assertNotNull(sid);
 
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
+        Style s = styleRepository.findById(sid);
+        Assert.assertNotNull(s);
 
-        int res = dataRepository.delete(data.getId());
+        styleRepository.delete(s.getId());
 
-        Assert.assertEquals(1, res);
-
-        res = dataRepository.delete(-1);
-        Assert.assertEquals(0, res);
-
-        data = dataRepository.findById(data.getId());
-        Assert.assertNull(data);
+        s = styleRepository.findById(s.getId());
+        Assert.assertNull(s);
     }
 
 }

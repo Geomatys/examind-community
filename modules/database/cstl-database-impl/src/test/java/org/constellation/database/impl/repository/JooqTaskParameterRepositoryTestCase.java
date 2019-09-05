@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,67 +19,58 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import org.constellation.repository.DataRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
 import org.constellation.database.impl.TestSamples;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.repository.ProviderRepository;
+import org.constellation.dto.MapContextDTO;
+import org.constellation.dto.process.TaskParameter;
+import org.constellation.repository.MapContextRepository;
+import org.constellation.repository.TaskParameterRepository;
 import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-public class JooqDataRepositoryTestCase extends AbstractJooqTestTestCase {
-
-    @Autowired
-    private DataRepository dataRepository;
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
+public class JooqTaskParameterRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private ProviderRepository providerRepository;
-
-    @Test
-    public void findAll() {
-        dump(dataRepository.findAll());
-    }
+    private TaskParameterRepository taskParamRepository;
 
     @Test
     @Transactional()
-    public void crud() {
-
-        // no removeAll method
-        List<Data> all = dataRepository.findAll();
-        for (Data p : all) {
-            dataRepository.delete(p.getId());
-        }
-        all = dataRepository.findAll();
-        Assert.assertTrue(all.isEmpty());
-
+    public void crude() {
 
         CstlUser owner = userRepository.create(TestSamples.newAdminUser());
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
-        Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
-        Assert.assertNotNull(pid);
+        // no removeAll method
+        List<? extends TaskParameter> all = taskParamRepository.findAll();
+        for (TaskParameter p : all) {
+            taskParamRepository.delete(p.getId());
+        }
+        all = taskParamRepository.findAll();
+        Assert.assertTrue(all.isEmpty());
 
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
+        int sid = taskParamRepository.create(TestSamples.newTaskParameter(owner.getId(), "auth", "code"));
+        Assert.assertNotNull(sid);
 
-        int res = dataRepository.delete(data.getId());
+        TaskParameter s = taskParamRepository.get(sid);
+        Assert.assertNotNull(s);
 
-        Assert.assertEquals(1, res);
+        taskParamRepository.delete(s.getId());
 
-        res = dataRepository.delete(-1);
-        Assert.assertEquals(0, res);
-
-        data = dataRepository.findById(data.getId());
-        Assert.assertNull(data);
+        s = taskParamRepository.get(s.getId());
+        Assert.assertNull(s);
     }
 
 }
+

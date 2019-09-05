@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,63 +19,48 @@
 package org.constellation.database.impl.repository;
 
 import java.util.List;
-import org.constellation.repository.TaskRepository;
 import org.constellation.database.impl.AbstractJooqTestTestCase;
 import org.constellation.database.impl.TestSamples;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.process.Task;
-import org.constellation.repository.UserRepository;
+import org.constellation.dto.DataSource;
+import org.constellation.repository.DatasourceRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ *
+ * @author Guilhem Legal (Geomatys)
+ */
 @Transactional
-public class JooqTaskRepositoryTestCase extends AbstractJooqTestTestCase {
+public class JooqDatasourceRepositoryTestCase extends AbstractJooqTestTestCase {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
+    private DatasourceRepository datasourceRepository;
 
     @Test
     @Transactional()
     public void crude() {
+
         // no removeAll method
-        List<? extends Task> all = taskRepository.findAll();
-        for (Task p : all) {
-            taskRepository.delete(p.getIdentifier());
+        List<DataSource> all = datasourceRepository.findAll();
+        for (DataSource p : all) {
+            datasourceRepository.delete(p.getId());
         }
-        all = taskRepository.findAll();
+        all = datasourceRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(owner);
-        Assert.assertNotNull(owner.getId());
 
+        int did = datasourceRepository.create(TestSamples.newDataSource());
+        Assert.assertNotNull(did);
 
-        String uuid = taskRepository.create(TestSamples.newTask(owner.getId(), "999-666"));
-        Assert.assertNotNull(uuid);
+        DataSource s = datasourceRepository.findById(did);
+        Assert.assertNotNull(s);
 
-        Task t = taskRepository.get(uuid);
-        Assert.assertNotNull(t);
+        datasourceRepository.delete(did);
 
-        taskRepository.delete(uuid);
-
-        t = taskRepository.get(uuid);
-        Assert.assertNull(t);
-
-    }
-
-    @Test
-    @Transactional()
-    public void findDayTask() throws Throwable {
-
-
-        taskRepository.findDayTask("espace-dev");
-
-
+        s = datasourceRepository.findById(did);
+        Assert.assertNull(s);
     }
 
 }

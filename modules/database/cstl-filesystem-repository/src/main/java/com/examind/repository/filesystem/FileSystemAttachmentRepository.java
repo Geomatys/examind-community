@@ -95,6 +95,11 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
         return new ArrayList<>();
     }
 
+    @Override
+    public List<Attachment> findAll() {
+        return new ArrayList<>(byId.values());
+    }
+
     ////--------------------------------------------------------------------///
     ////------------------------    TRANSACTIONAL  -------------------------///
     ////--------------------------------------------------------------------///
