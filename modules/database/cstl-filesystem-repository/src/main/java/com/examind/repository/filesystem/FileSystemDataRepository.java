@@ -92,7 +92,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
                         byDataset.get(data.getDatasetId()).add(data);
                     }
 
-                    if (data.getHidden()) {
+                    if (data.getHidden() != null && data.getHidden()) {
                         invisibleData.put(data.getId(), data);
                     } else {
                         visibleData.put(data.getId(), data);

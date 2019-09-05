@@ -47,6 +47,7 @@ public class TestSamples {
         data.setOwnerId(ownerId);
         data.setType("type");
         data.setProviderId(providerId);
+        data.setHidden(false);
         return data;
     }
 

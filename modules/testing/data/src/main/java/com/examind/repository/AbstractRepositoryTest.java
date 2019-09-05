@@ -30,6 +30,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import org.constellation.configuration.ConfigDirectory;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/cstl/spring/test-no-hazelcast.xml")
@@ -40,6 +43,16 @@ public abstract class AbstractRepositoryTest {
     @Autowired
     DSLContext create;
 
+    @BeforeClass
+    public static void beforeClass() {
+        ConfigDirectory.setupTestEnvironement("RepositoryTest");
+    }
+
+    @AfterClass
+    public static void shutDown() {
+        ConfigDirectory.shutdownTestEnvironement("RepositoryTest");
+    }
+
     protected void dump(List<?> findAll) {
         for (Object property : findAll) {
                 LOGGER.debug(property.toString());
@@ -47,18 +60,16 @@ public abstract class AbstractRepositoryTest {
 
     }
 
-    
-    
     protected void dump(Result<Record> o) {
         if(o != null)
             LOGGER.debug(o.toString());
-        
+
     }
-    
+
     protected void dump(Object o) {
         if(o != null)
             LOGGER.debug(o.toString());
-        
+
     }
 
 }
