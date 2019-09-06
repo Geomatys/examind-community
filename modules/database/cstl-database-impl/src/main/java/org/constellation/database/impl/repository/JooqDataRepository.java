@@ -102,11 +102,11 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public Data create(Data data) {
+    public Integer create(Data data) {
         DataRecord newRecord = dsl.newRecord(DATA);
         newRecord.from(convertIntoDao(data));
         newRecord.store();
-        return newRecord.into(Data.class);
+        return newRecord.getId();
     }
 
     @Override

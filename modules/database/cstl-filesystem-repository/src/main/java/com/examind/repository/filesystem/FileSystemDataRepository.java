@@ -251,7 +251,8 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         if (byDataset.containsKey(datasetId)) {
             List<Data> datas = byDataset.get(datasetId);
             for (Data data : datas) {
-                if (data.getIncluded().equals(included) && data.getHidden().equals(hidden)) {
+                if ((data.getIncluded() != null && data.getIncluded().equals(included)) &&
+                    (data.getHidden() != null   && data.getHidden().equals(hidden))) {
                     results.add(data);
                 }
             }
@@ -344,7 +345,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
 
     @Override
-    public Data create(Data data) {
+    public Integer create(Data data) {
         if (data != null) {
             data.setId(currentId);
 
@@ -381,7 +382,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             }
 
             currentId++;
-            return data;
+            return data.getId();
         }
         return null;
     }

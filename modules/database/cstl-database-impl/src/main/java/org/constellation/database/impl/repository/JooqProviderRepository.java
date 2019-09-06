@@ -65,7 +65,7 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
 
     @Override
     public ProviderBrief findForData(Integer dataId) {
-        return convertToDto(dsl.select().from(PROVIDER, DATA).where(PROVIDER.ID.eq(DATA.PROVIDER)).and(DATA.ID.eq(dataId)).fetchOneInto(Provider.class));
+        return convertToDto(dsl.select(PROVIDER.fields()).from(PROVIDER, DATA).where(PROVIDER.ID.eq(DATA.PROVIDER)).and(DATA.ID.eq(dataId)).fetchOneInto(Provider.class));
     }
 
     @Override

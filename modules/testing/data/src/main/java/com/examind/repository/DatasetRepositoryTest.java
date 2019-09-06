@@ -56,12 +56,27 @@ public class DatasetRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
+        /**
+         * dataset insertion
+         */
         int did = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "ds1"));
         Assert.assertNotNull(did);
 
         DataSet s = datasetRepository.findById(did);
         Assert.assertNotNull(s);
 
+        /**
+         * dataset search
+         */
+        Assert.assertNotNull(datasetRepository.findByIdentifier("ds1"));
+
+        Assert.assertEquals(s.getId(), datasetRepository.findIdForIdentifier("ds1"));
+
+        Assert.assertTrue(datasetRepository.findAll().contains(s));
+
+        /**
+         * dataset deletion
+         */
         datasetRepository.delete(did);
 
         s = datasetRepository.findById(did);

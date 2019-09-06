@@ -18,6 +18,8 @@
  */
 package org.constellation.dto.metadata;
 
+import java.util.Objects;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -468,4 +470,71 @@ public class Metadata {
     public void setIsHidden(Boolean isHidden) {
         this.isHidden = isHidden;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Metadata) {
+            Metadata that = (Metadata) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.comment, that.comment)
+                    && Objects.equals(this.dataId, that.dataId)
+                    && Objects.equals(this.datasetId, that.datasetId)
+                    && Objects.equals(this.dateCreation, that.dateCreation)
+                    && Objects.equals(this.datestamp, that.datestamp)
+                    && Objects.equals(this.isHidden, that.isHidden)
+                    && Objects.equals(this.isPublished, that.isPublished)
+                    && Objects.equals(this.isShared, that.isShared)
+                    && Objects.equals(this.isValidated, that.isValidated)
+                    && Objects.equals(this.level, that.level)
+                    && Objects.equals(this.mapContextId, that.mapContextId)
+                    && Objects.equals(this.mdCompletion, that.mdCompletion)
+                    && Objects.equals(this.metadataId, that.metadataId)
+                    && Objects.equals(this.owner, that.owner)
+                    && Objects.equals(this.parentIdentifier, that.parentIdentifier)
+                    && Objects.equals(this.profile, that.profile)
+                    && Objects.equals(this.providerId, that.providerId)
+                    && Objects.equals(this.resume, that.resume)
+                    && Objects.equals(this.serviceId, that.serviceId)
+                    && Objects.equals(this.title, that.title)
+                    && Objects.equals(this.profile, that.profile)
+                    && Objects.equals(this.type, that.type)
+                    && Objects.equals(this.validatedState, that.validatedState)
+                    && Objects.equals(this.validationRequired, that.validationRequired);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 37 * hash + Objects.hashCode(this.metadataId);
+        hash = 37 * hash + Objects.hashCode(this.dataId);
+        hash = 37 * hash + Objects.hashCode(this.datasetId);
+        hash = 37 * hash + Objects.hashCode(this.serviceId);
+        hash = 37 * hash + Objects.hashCode(this.mdCompletion);
+        hash = 37 * hash + Objects.hashCode(this.owner);
+        hash = 37 * hash + Objects.hashCode(this.datestamp);
+        hash = 37 * hash + Objects.hashCode(this.dateCreation);
+        hash = 37 * hash + Objects.hashCode(this.title);
+        hash = 37 * hash + Objects.hashCode(this.profile);
+        hash = 37 * hash + Objects.hashCode(this.parentIdentifier);
+        hash = 37 * hash + Objects.hashCode(this.isValidated);
+        hash = 37 * hash + Objects.hashCode(this.isPublished);
+        hash = 37 * hash + Objects.hashCode(this.level);
+        hash = 37 * hash + Objects.hashCode(this.resume);
+        hash = 37 * hash + Objects.hashCode(this.validationRequired);
+        hash = 37 * hash + Objects.hashCode(this.validatedState);
+        hash = 37 * hash + Objects.hashCode(this.comment);
+        hash = 37 * hash + Objects.hashCode(this.providerId);
+        hash = 37 * hash + Objects.hashCode(this.mapContextId);
+        hash = 37 * hash + Objects.hashCode(this.type);
+        hash = 37 * hash + Objects.hashCode(this.isShared);
+        hash = 37 * hash + Objects.hashCode(this.isHidden);
+        return hash;
+    }
+
 }

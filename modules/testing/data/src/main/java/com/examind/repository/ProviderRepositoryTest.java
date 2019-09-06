@@ -22,6 +22,7 @@ import java.util.List;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,6 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 public class ProviderRepositoryTest extends AbstractRepositoryTest {
+
+    @Autowired
+    private DataRepository dataRepository;
 
     @Autowired
     private ProviderRepository providerRepository;
@@ -57,12 +61,31 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
+
+        /**
+         * provider insertion
+         */
         Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
         Assert.assertNotNull(pid);
 
         ProviderBrief pr = providerRepository.findOne(pid);
         Assert.assertNotNull(pr);
 
+        Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, null));
+        Assert.assertNotNull(did1);
+
+        /**
+         * provider search
+         */
+        Assert.assertEquals(pr, providerRepository.findByIdentifier("provider-test"));
+        Assert.assertEquals(pr.getId(), providerRepository.findIdForIdentifier("provider-test"));
+
+        Assert.assertTrue(providerRepository.findByImpl("immmmp").contains(pr));
+
+        Assert.assertTrue(providerRepository.findForData(did1).equals(pr));
+        /**
+         * provider deletion
+         */
         int res = providerRepository.delete(pid);
         Assert.assertEquals(1, res);
 
@@ -71,6 +94,9 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
 
         pr = providerRepository.findOne(pid);
         Assert.assertNull(pr);
+
+        //cleanup
+        dataRepository.delete(did1);
 
     }
 }

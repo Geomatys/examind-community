@@ -21,9 +21,9 @@ package com.examind.repository;
 import java.util.List;
 import org.constellation.repository.LayerRepository;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.repository.DataRepository;
+import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.UserRepository;
@@ -49,6 +49,9 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private DataRepository dataRepository;
 
+    @Autowired
+    private DatasetRepository datasetRepository;
+
     @Test
     public void all() {
         dump(layerRepository.findAll());
@@ -70,19 +73,43 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
+        Integer dsid = datasetRepository.create(TestSamples.newDataSet(owner.getId(), "dataset 1"));
+
         Integer pid = providerRepository.create(TestSamples.newProvider(owner.getId()));
         Assert.assertNotNull(pid);
 
-        Data data = dataRepository.create(TestSamples.newData(owner.getId(), pid));
-        Assert.assertNotNull(data);
-        Assert.assertNotNull(data.getId());
+        Integer did1 = dataRepository.create(TestSamples.newData1(owner.getId(), pid, dsid));
+        Assert.assertNotNull(did1);
 
         Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
         Assert.assertNotNull(sid);
 
-        Integer lid = layerRepository.create(TestSamples.newLayer(owner.getId(), pid, data.getId(), sid));
+        /**
+         * Layer insertion
+         */
+
+        Integer lid = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid));
         Assert.assertNotNull(lid);
 
+        Layer l1 = layerRepository.findById(lid);
+        Assert.assertNotNull(l1);
+
+        /**
+         * layer search
+         */
+        List<Layer> layers = layerRepository.findAll();
+        Assert.assertTrue(layers.contains(l1));
+
+        List<Integer> lids = layerRepository.findByDataId(did1);
+        Assert.assertTrue(lids.contains(lid));
+
+        layers = layerRepository.findByServiceId(sid);
+        Assert.assertTrue(layers.contains(l1));
+
+
+        /**
+         * layer deletion
+         */
         layerRepository.delete(lid);
 
         Layer layer = layerRepository.findById(lid);
@@ -91,8 +118,9 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
         // cleanup after test
         serviceRepository.delete(sid);
-        dataRepository.delete(data.getId());
+        dataRepository.delete(did1);
         providerRepository.delete(pid);
+        datasetRepository.delete(dsid);
 
     }
 

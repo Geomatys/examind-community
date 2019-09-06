@@ -20,6 +20,7 @@
 package org.constellation.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -133,5 +134,36 @@ public class ProviderBrief implements Serializable {
      */
     public void setOwner(Integer owner) {
         this.owner = owner;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof ProviderBrief) {
+            ProviderBrief that = (ProviderBrief) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.config, that.config)
+                    && Objects.equals(this.identifier, that.identifier)
+                    && Objects.equals(this.impl, that.impl)
+                    && Objects.equals(this.type, that.type)
+                    && Objects.equals(this.parent, that.parent)
+                    && Objects.equals(this.owner, that.owner);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 37 * hash + Objects.hashCode(this.identifier);
+        hash = 37 * hash + Objects.hashCode(this.parent);
+        hash = 37 * hash + Objects.hashCode(this.type);
+        hash = 37 * hash + Objects.hashCode(this.impl);
+        hash = 37 * hash + Objects.hashCode(this.config);
+        hash = 37 * hash + Objects.hashCode(this.owner);
+        return hash;
     }
 }

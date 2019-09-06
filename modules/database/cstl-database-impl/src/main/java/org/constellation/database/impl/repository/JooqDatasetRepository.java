@@ -84,7 +84,7 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
         newRecord.setDate(dataset.getDate());
         newRecord.setType(dataset.getType());
         newRecord.store();
-        return newRecord.into(Dataset.class).getId();
+        return newRecord.getId();
     }
 
     @Override

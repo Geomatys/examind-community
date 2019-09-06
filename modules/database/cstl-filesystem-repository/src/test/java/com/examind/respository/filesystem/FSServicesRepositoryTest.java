@@ -31,24 +31,6 @@ public class FSServicesRepositoryTest extends ServicesRepositoryTest {
     }
 
     @Test
-    @Override
-    public void findByDataId() {
-        super.findByDataId();
-    }
-
-    @Test
-    @Override
-    public void findByDataIdentierAndType() {
-        super.findByDataIdentierAndType();
-    }
-
-    @Test
-    @Override
-    public void findIdentifiersByType() {
-        super.findIdentifiersByType();
-    }
-
-    @Test
     @Transactional()
     @Override
     public void crud() {

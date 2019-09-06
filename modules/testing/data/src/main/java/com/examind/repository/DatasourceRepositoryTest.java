@@ -49,12 +49,23 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(all.isEmpty());
 
 
+        /**
+         * datasource insertion
+         */
         int did = datasourceRepository.create(TestSamples.newDataSource());
         Assert.assertNotNull(did);
 
         DataSource s = datasourceRepository.findById(did);
         Assert.assertNotNull(s);
 
+        /**
+         * datasource search
+         */
+        Assert.assertNotNull(datasourceRepository.findByUrl(s.getUrl()));
+
+        /**
+         * datasource delete
+         */
         datasourceRepository.delete(did);
 
         s = datasourceRepository.findById(did);

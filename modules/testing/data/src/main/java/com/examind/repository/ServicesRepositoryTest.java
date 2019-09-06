@@ -44,23 +44,6 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findByDataId() {
-        List<Service> findByDataId = serviceRepository.findByDataId(3);
-        dump(findByDataId);
-    }
-
-    @Test
-    public void findByDataIdentierAndType() {
-        Service service = serviceRepository.findByIdentifierAndType("test", "WMS");
-        dump(service);
-    }
-
-    @Test
-    public void findIdentifiersByType() {
-        dump(serviceRepository.findIdentifiersByType("WMS"));
-    }
-
-    @Test
     @Transactional()
     public void crud() {
 
@@ -76,12 +59,25 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
+        /**
+         * service insertion
+         */
         Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
         Assert.assertNotNull(sid);
 
         Service s = serviceRepository.findById(sid);
         Assert.assertNotNull(s);
 
+        /**
+         * service search
+         */
+        Assert.assertEquals(s, serviceRepository.findByIdentifierAndType("default", "wms"));
+        Assert.assertTrue(serviceRepository.findByType("wms").contains(s));
+        Assert.assertEquals(new Integer(s.getId()), serviceRepository.findIdByIdentifierAndType("default", "wms"));
+
+        /**
+         * service deletion
+         */
         serviceRepository.delete(sid);
 
         s = serviceRepository.findById(sid);

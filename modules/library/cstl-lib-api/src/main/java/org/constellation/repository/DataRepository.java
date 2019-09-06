@@ -33,7 +33,7 @@ public interface DataRepository {
 
     Data findById(int dataId);
 
-    Data create(Data data);
+    Integer create(Data data);
 
     int delete(int id);
 

@@ -20,7 +20,9 @@ package org.constellation.dto.service;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.constellation.dto.Data;
 
 @XmlRootElement
 public class Service implements Serializable {
@@ -119,6 +121,39 @@ public class Service implements Serializable {
                 + ", type=" + type + ", date=" + date
                 + ", config=" + config
                 + ", owner=" + owner + ", status=" + status + "]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Service) {
+            Service that = (Service) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.config, that.config)
+                    && Objects.equals(this.identifier, that.identifier)
+                    && Objects.equals(this.status, that.status)
+                    && Objects.equals(this.type, that.type)
+                    && Objects.equals(this.owner, that.owner)
+                    && Objects.equals(this.versions, that.versions)
+                    && Objects.equals(this.date, that.date);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 67 * hash + this.id;
+        hash = 67 * hash + Objects.hashCode(this.identifier);
+        hash = 67 * hash + Objects.hashCode(this.type);
+        hash = 67 * hash + Objects.hashCode(this.date);
+        hash = 67 * hash + Objects.hashCode(this.config);
+        hash = 67 * hash + Objects.hashCode(this.owner);
+        hash = 67 * hash + Objects.hashCode(this.status);
+        hash = 67 * hash + Objects.hashCode(this.versions);
+        return hash;
     }
 
 }

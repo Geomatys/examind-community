@@ -39,15 +39,54 @@ public class TestSamples {
         return user;
     }
 
-    public static Data newData(Integer ownerId, Integer providerId) {
+    public static Data newData1(Integer ownerId, Integer providerId, Integer datasetId) {
         Data data = new Data();
         data.setDate(new Date());
-        data.setName("testdata");
+        data.setName("test data 1");
         data.setNamespace("");
         data.setOwnerId(ownerId);
-        data.setType("type");
+        data.setType("raster");
         data.setProviderId(providerId);
         data.setHidden(false);
+        data.setDatasetId(datasetId);
+
+        // by default value setted
+        data.setIncluded(true);
+        data.setSensorable(false);
+        return data;
+    }
+
+    public static Data newData2(Integer ownerId, Integer providerId, Integer datasetId) {
+        Data data = new Data();
+        data.setDate(new Date());
+        data.setName("test data 2");
+        data.setNamespace("");
+        data.setOwnerId(ownerId);
+        data.setType("vector");
+        data.setProviderId(providerId);
+        data.setHidden(false);
+        data.setDatasetId(datasetId);
+
+        // by default value setted
+        data.setIncluded(true);
+        data.setSensorable(false);
+        return data;
+    }
+
+    public static Data newData3(Integer ownerId, Integer providerId, Integer datasetId) {
+        Data data = new Data();
+        data.setDate(new Date());
+        data.setName("test data 3");
+        data.setNamespace("");
+        data.setOwnerId(ownerId);
+        data.setType("vector");
+        data.setProviderId(providerId);
+        data.setHidden(true);
+        data.setDatasetId(datasetId);
+
+        // by default value setted
+        data.setIncluded(true);
+        data.setSensorable(false);
         return data;
     }
 
@@ -65,7 +104,7 @@ public class TestSamples {
 
     public static ProviderBrief newProvider(Integer ownerId) {
         ProviderBrief provider = new ProviderBrief();
-        provider.setIdentifier("test");
+        provider.setIdentifier("provider-test");
         provider.setImpl("immmmp");
         provider.setOwner(ownerId);
         provider.setType("coverage");
@@ -74,7 +113,7 @@ public class TestSamples {
         return provider;
     }
 
-    public static Layer newLayer(Integer ownerId, Integer providerId, Integer dataId, Integer serviceId) {
+    public static Layer newLayer(Integer ownerId, Integer dataId, Integer serviceId) {
         Layer layer = new Layer();
         layer.setAlias("layerAlias");
         layer.setDataId(dataId);
@@ -100,7 +139,7 @@ public class TestSamples {
         return task;
     }
 
-    public static MetadataComplete newMetadata(Integer ownerId, String identifier) {
+    public static MetadataComplete newMetadata(Integer ownerId, String identifier, Integer dataId, Integer datasetId, Integer serviceId) {
         MetadataComplete metadata = new MetadataComplete();
         List<MetadataBbox> bboxes = new ArrayList<>();
         metadata.setBboxes(bboxes);
@@ -119,6 +158,11 @@ public class TestSamples {
         metadata.setResume("some resumte");
         metadata.setTitle("ttle");
         metadata.setType("DOC");
+
+        // association
+        metadata.setDataId(dataId);
+        metadata.setDatasetId(datasetId);
+        metadata.setServiceId(serviceId);
         return metadata;
     }
 

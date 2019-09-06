@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +178,9 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
 
             byId.remove(att.getId());
             if (att.getFilename() != null) {
-                byFileName.get(att.getFilename()).remove(att);
+                if (byFileName.containsKey(att.getFilename())) {
+                    byFileName.get(att.getFilename()).remove(att);
+                }
             }
             return 1;
         }

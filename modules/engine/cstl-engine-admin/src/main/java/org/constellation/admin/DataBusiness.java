@@ -796,7 +796,8 @@ public class DataBusiness implements IDataBusiness {
             data.setMetadata(metadataXml);
             data.setRendered(rendered);
             data.setHidden(hidden);
-            data = dataRepository.create(data);
+            int id = dataRepository.create(data);
+            data.setId(id);
             dataBusinessListener.postDataCreate(data);
             return data.getId();
         }

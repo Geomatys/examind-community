@@ -19,6 +19,7 @@
 package org.constellation.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -115,4 +116,32 @@ public class DataSet implements Serializable {
     public void setType(String type) {
         this.type = type;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof DataSet) {
+            DataSet that = (DataSet) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.identifier, that.identifier)
+                    && Objects.equals(this.type, that.type)
+                    && Objects.equals(this.ownerId, that.ownerId)
+                    && Objects.equals(this.date, that.date);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        hash = 59 * hash + Objects.hashCode(this.identifier);
+        hash = 59 * hash + Objects.hashCode(this.ownerId);
+        hash = 59 * hash + Objects.hashCode(this.date);
+        hash = 59 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
 }

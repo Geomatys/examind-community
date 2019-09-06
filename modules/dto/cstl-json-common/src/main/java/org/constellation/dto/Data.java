@@ -20,6 +20,7 @@ package org.constellation.dto;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -327,5 +328,54 @@ public class Data implements Serializable {
      */
     public void setHidden(Boolean hidden) {
         this.hidden = hidden;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof Data) {
+            Data that = (Data) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.name, that.name)
+                    && Objects.equals(this.namespace, that.namespace)
+                    && Objects.equals(this.providerId, that.providerId)
+                    && Objects.equals(this.type, that.type)
+                    && Objects.equals(this.subtype, that.subtype)
+                    && Objects.equals(this.included, that.included)
+                    && Objects.equals(this.sensorable, that.sensorable)
+                    && Objects.equals(this.date, that.date)
+                    && Objects.equals(this.ownerId, that.ownerId)
+                    && Objects.equals(this.metadata, that.metadata)
+                    && Objects.equals(this.datasetId, that.datasetId)
+                    && Objects.equals(this.statsResult, that.statsResult)
+                    && Objects.equals(this.rendered, that.rendered)
+                    && Objects.equals(this.statsState, that.statsState)
+                    && Objects.equals(this.hidden, that.hidden);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + Objects.hashCode(this.id);
+        hash = 71 * hash + Objects.hashCode(this.name);
+        hash = 71 * hash + Objects.hashCode(this.namespace);
+        hash = 71 * hash + Objects.hashCode(this.providerId);
+        hash = 71 * hash + Objects.hashCode(this.type);
+        hash = 71 * hash + Objects.hashCode(this.subtype);
+        hash = 71 * hash + Objects.hashCode(this.included);
+        hash = 71 * hash + Objects.hashCode(this.sensorable);
+        hash = 71 * hash + Objects.hashCode(this.date);
+        hash = 71 * hash + Objects.hashCode(this.ownerId);
+        hash = 71 * hash + Objects.hashCode(this.metadata);
+        hash = 71 * hash + Objects.hashCode(this.datasetId);
+        hash = 71 * hash + Objects.hashCode(this.statsResult);
+        hash = 71 * hash + Objects.hashCode(this.rendered);
+        hash = 71 * hash + Objects.hashCode(this.statsState);
+        hash = 71 * hash + Objects.hashCode(this.hidden);
+        return hash;
     }
 }
