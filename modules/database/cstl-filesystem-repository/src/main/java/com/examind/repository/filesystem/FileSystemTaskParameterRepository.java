@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,8 +63,9 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                     if (byType.containsKey(taskParam.getType())) {
                         byType.get(taskParam.getType()).add(taskParam);
                     } else {
-                        List<TaskParameterWithOwnerName> styles = Arrays.asList(taskParam);
-                        byType.put(taskParam.getType(), styles);
+                        List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                        tasks.add(taskParam);
+                        byType.put(taskParam.getType(), tasks);
                     }
 
                     if (byAuthCodeName.containsKey(taskParam.getProcessAuthority())) {
@@ -75,18 +75,21 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                             if (byName.containsKey(taskParam.getName())) {
                                 byName.get(taskParam.getName()).add(taskParam);
                             } else {
-                                List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                                List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                                tasks.add(taskParam);
                                 byName.put(taskParam.getName(), tasks);
                             }
 
                         } else {
-                            List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                            List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                            tasks.add(taskParam);
                             Map<String, List<TaskParameterWithOwnerName>> byName = new HashMap<>();
                             byName.put(taskParam.getName(), tasks);
                             byCode.put(taskParam.getProcessCode(), byName);
                         }
                     } else {
-                        List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                        List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                        tasks.add(taskParam);
                         Map<String, List<TaskParameterWithOwnerName>> named = new HashMap<>();
                         named.put(taskParam.getName(), tasks);
                         Map<String, Map<String, List<TaskParameterWithOwnerName>>> byCode = new HashMap<>();
@@ -123,7 +126,7 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
     @Override
     public List<? extends TaskParameter> findAllByType(String type) {
         if (byType.containsKey(type)) {
-            return byType.get(type);
+            return new ArrayList<>(byType.get(type));
         }
         return new ArrayList<>();
     }
@@ -132,7 +135,7 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
     public List<? extends TaskParameter> findAllByNameAndProcess(String name, String authority, String code) {
         if (byAuthCodeName.containsKey(authority)) {
             if (byAuthCodeName.get(authority).containsKey(code)) {
-                return byAuthCodeName.get(authority).get(code).get(name);
+                return new ArrayList<>(byAuthCodeName.get(authority).get(code).get(name));
             }
         }
         return new ArrayList<>();
@@ -163,8 +166,9 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
             if (byType.containsKey(taskParam.getType())) {
                 byType.get(taskParam.getType()).add(taskParam);
             } else {
-                List<TaskParameterWithOwnerName> styles = Arrays.asList(taskParam);
-                byType.put(taskParam.getType(), styles);
+                List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                tasks.add(taskParam);
+                byType.put(taskParam.getType(), tasks);
             }
 
             if (byAuthCodeName.containsKey(taskParam.getProcessAuthority())) {
@@ -174,18 +178,21 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                     if (byName.containsKey(taskParam.getName())) {
                         byName.get(taskParam.getName()).add(taskParam);
                     } else {
-                        List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                        List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                        tasks.add(taskParam);
                         byName.put(taskParam.getName(), tasks);
                     }
 
                 } else {
-                    List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                    List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                    tasks.add(taskParam);
                     Map<String, List<TaskParameterWithOwnerName>> byName = new HashMap<>();
                     byName.put(taskParam.getName(), tasks);
                     byCode.put(taskParam.getProcessCode(), byName);
                 }
             } else {
-                List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                tasks.add(taskParam);
                 Map<String, List<TaskParameterWithOwnerName>> named = new HashMap<>();
                 named.put(taskParam.getName(), tasks);
                 Map<String, Map<String, List<TaskParameterWithOwnerName>>> byCode = new HashMap<>();
@@ -218,8 +225,9 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
             if (byType.containsKey(taskParam.getType())) {
                 byType.get(taskParam.getType()).add(taskParam);
             } else {
-                List<TaskParameterWithOwnerName> styles = Arrays.asList(taskParam);
-                byType.put(taskParam.getType(), styles);
+                List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                tasks.add(taskParam);
+                byType.put(taskParam.getType(), tasks);
             }
 
             if (byAuthCodeName.containsKey(taskParam.getProcessAuthority())) {
@@ -229,18 +237,21 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                     if (byName.containsKey(taskParam.getName())) {
                         byName.get(taskParam.getName()).add(taskParam);
                     } else {
-                        List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                        List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                        tasks.add(taskParam);
                         byName.put(taskParam.getName(), tasks);
                     }
 
                 } else {
-                    List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                    List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                    tasks.add(taskParam);
                     Map<String, List<TaskParameterWithOwnerName>> byName = new HashMap<>();
                     byName.put(taskParam.getName(), tasks);
                     byCode.put(taskParam.getProcessCode(), byName);
                 }
             } else {
-                List<TaskParameterWithOwnerName> tasks = Arrays.asList(taskParam);
+                List<TaskParameterWithOwnerName> tasks = new ArrayList<>();
+                tasks.add(taskParam);
                 Map<String, List<TaskParameterWithOwnerName>> named = new HashMap<>();
                 named.put(taskParam.getName(), tasks);
                 Map<String, Map<String, List<TaskParameterWithOwnerName>>> byCode = new HashMap<>();

@@ -18,6 +18,16 @@ public class StyleReference implements Serializable {
 
     protected String providerIdentifier;
 
+    public StyleReference() {
+
+    }
+
+    public StyleReference(Integer id, String name, Integer providerId, String providerIdentifier) {
+        this.id = id;
+        this.name = name;
+        this.providerId = providerId;
+        this.providerIdentifier = providerIdentifier;
+    }
 
     public Integer getId() {
         return id;

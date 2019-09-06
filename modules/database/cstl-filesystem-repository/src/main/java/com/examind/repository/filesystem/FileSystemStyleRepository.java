@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
-import org.constellation.dto.Data;
+import org.constellation.dto.StringList;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationPersistenceException;
@@ -48,6 +48,8 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     private final Map<String, List<Style>> byName = new HashMap<>();
     private final Map<String, List<Style>> byType = new HashMap<>();
     private final Map<Integer, List<Style>> byProvider = new HashMap<>();
+    private final Map<Integer, List<Style>> byData = new HashMap<>();
+    private final Map<Integer, List<Style>> byLayer = new HashMap<>();
 
     public FileSystemStyleRepository() {
         super(Style.class);
@@ -65,21 +67,24 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
                     if (byName.containsKey(style.getName())) {
                         byName.get(style.getName()).add(style);
                     } else {
-                        List<Style> styles = Arrays.asList(style);
+                        List<Style> styles = new ArrayList<>();
+                        styles.add(style);
                         byName.put(style.getName(), styles);
                     }
 
                     if (byProvider.containsKey(style.getProviderId())) {
                         byProvider.get(style.getProviderId()).add(style);
                     } else {
-                        List<Style> styles = Arrays.asList(style);
+                        List<Style> styles = new ArrayList<>();
+                        styles.add(style);
                         byProvider.put(style.getProviderId(), styles);
                     }
 
                     if (byType.containsKey(style.getType())) {
                         byType.get(style.getType()).add(style);
                     } else {
-                        List<Style> styles = Arrays.asList(style);
+                        List<Style> styles = new ArrayList<>();
+                        styles.add(style);
                         byType.put(style.getType(), styles);
                     }
 
@@ -87,6 +92,36 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
                         currentId = style.getId() +1;
                     }
                 }
+            }
+
+            Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleDataDir)) {
+                for (Path styleDataFile : directoryStream) {
+                    StringList styleList = (StringList) getObjectFromPath(styleDataFile, pool);
+                    String fileName = styleDataFile.getFileName().toString();
+                    Integer dataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                    List<Style> styled = new ArrayList<>();
+                    for (Integer styleId : getIntegerList(styleList)) {
+                        styled.add(byId.get(styleId));
+                    }
+                    byData.put(dataId, styled);
+                }
+
+            }
+
+            Path styleLayerDir = getDirectory(STYLE_X_LAYER_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleLayerDir)) {
+                for (Path styleLayerFile : directoryStream) {
+                    StringList styleList = (StringList) getObjectFromPath(styleLayerFile, pool);
+                    String fileName = styleLayerFile.getFileName().toString();
+                    Integer layerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                    List<Style> styled = new ArrayList<>();
+                    for (Integer styleId : getIntegerList(styleList)) {
+                        styled.add(byId.get(styleId));
+                    }
+                    byLayer.put(layerId, styled);
+                }
+
             }
 
         } catch (IOException | JAXBException ex) {
@@ -102,7 +137,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     @Override
     public List<Style> findByType(String type) {
         if (byType.containsKey(type)) {
-            return byType.get(type);
+            return new ArrayList<>(byType.get(type));
         }
         return new ArrayList<>();
     }
@@ -123,7 +158,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     @Override
     public List<Style> findByProvider(int providerId) {
         if (byProvider.containsKey(providerId)) {
-            return byProvider.get(providerId);
+            return new ArrayList<>(byProvider.get(providerId));
         }
         return new ArrayList<>();
     }
@@ -148,7 +183,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     @Override
     public List<Style> findByName(String name) {
         if (byName.containsKey(name)) {
-            return byName.get(name);
+            return new ArrayList<>(byName.get(name));
         }
         return new ArrayList<>();
     }
@@ -175,21 +210,24 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             if (byName.containsKey(style.getName())) {
                 byName.get(style.getName()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byName.put(style.getName(), styles);
             }
 
             if (byProvider.containsKey(style.getProviderId())) {
                 byProvider.get(style.getProviderId()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byProvider.put(style.getProviderId(), styles);
             }
 
             if (byType.containsKey(style.getType())) {
                 byType.get(style.getType()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byType.put(style.getType(), styles);
             }
 
@@ -211,21 +249,24 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             if (byName.containsKey(style.getName())) {
                 byName.get(style.getName()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byName.put(style.getName(), styles);
             }
 
             if (byProvider.containsKey(style.getProviderId())) {
                 byProvider.get(style.getProviderId()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byProvider.put(style.getProviderId(), styles);
             }
 
             if (byType.containsKey(style.getType())) {
                 byType.get(style.getType()).add(style);
             } else {
-                List<Style> styles = Arrays.asList(style);
+                List<Style> styles = new ArrayList<>();
+                styles.add(style);
                 byType.put(style.getType(), styles);
             }
         }
@@ -257,6 +298,34 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             }
 
         }
+
+        // update linked data
+        Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleDataDir)) {
+            for (Path styleDataFile : directoryStream) {
+                String fileName = styleDataFile.getFileName().toString();
+                Integer dataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                unlinkStyleToData(id, dataId);
+            }
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
+        }
+
+        // update linked data
+        Path styleLayerDir = getDirectory(STYLE_X_LAYER_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleLayerDir)) {
+            for (Path styleLayerFile : directoryStream) {
+                String fileName = styleLayerFile.getFileName().toString();
+                Integer layerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                unlinkStyleToLayer(id, layerId);
+            }
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
+        }
     }
 
     @Override
@@ -282,53 +351,222 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
 
     @Override
     public List<Style> findByData(Integer dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byData.containsKey(dataId)) {
+            return new ArrayList<>(byData.get(dataId));
+        }
+        return new ArrayList<>();
     }
 
     @Override
-    public List<Style> findByLayer(Integer layerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Data> getLinkedData(int styleId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkStyleToData(int styleId, int dataid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void unlinkStyleToData(int styleId, int dataid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void unlinkAllStylesFromData(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkStyleToLayer(int styleId, int layerid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void unlinkStyleToLayer(int styleId, int layerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Integer> getStyleIdsForData(int id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Integer> getStyleIdsForData(int dataId) {
+        List<Integer> results = new ArrayList<>();
+        if (byData.containsKey(dataId)) {
+            for (Style s : byData.get(dataId)) {
+                results.add(s.getId());
+            }
+        }
+        return results;
     }
 
     @Override
     public List<StyleReference> fetchByDataId(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<StyleReference> results = new ArrayList<>();
+        if (byData.containsKey(dataId)) {
+            for (Style s : byData.get(dataId)) {
+                results.add(new StyleReference(s.getId(),
+                                               s.getName(),
+                                               s.getProviderId(),
+                                               (s.getProviderId() == 1) ? "sld" : "sld_temp"));
+            }
+        }
+        return results;
     }
+
+    @Override
+    public void linkStyleToData(int styleId, int dataId) {
+        Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleDataDir)) {
+            for (Path styleDataFile : directoryStream) {
+                String fileName = styleDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId == dataId) {
+                    found = true;
+                    StringList styleList = (StringList) getObjectFromPath(styleDataFile, pool);
+                    List<Integer> styleIds = getIntegerList(styleList);
+                    if (!styleIds.contains(styleId)) {
+                        styleIds.add(styleId);
+
+                        // update fs
+                        writeObjectInPath(styleList, styleDataFile, pool);
+
+                        // update memory
+                        List<Style> styles = byData.get(dataId);
+                        styles.add(byId.get(styleId));
+                    }
+                }
+            }
+
+            // create new file
+            if (found) {
+                // update fs
+                StringList styleList = new StringList(Arrays.asList(styleId + ""));
+                Path styleDataFile = styleDataDir.resolve(dataId + ".xml");
+                writeObjectInPath(styleList, styleDataFile, pool);
+
+                // update memory
+                List<Style> styles = new ArrayList<>();
+                styles.add(byId.get(styleId));
+                byData.put(dataId, styles);
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
+        }
+    }
+
+    @Override
+    public void unlinkStyleToData(int styleId, int dataId) {
+
+        Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleDataDir)) {
+            for (Path styleDataFile : directoryStream) {
+                String fileName = styleDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId == dataId) {
+                    StringList styleList = (StringList) getObjectFromPath(styleDataFile, pool);
+                    List<Integer> styleIds = getIntegerList(styleList);
+                    if (styleIds.contains(styleId)) {
+                        styleIds.remove(styleId);
+
+                        // update fs
+                        writeObjectInPath(styleList, styleDataFile, pool);
+
+                        // update memory
+                        List<Style> styles = byData.get(dataId);
+                        styles.remove(byId.get(styleId));
+                    }
+                }
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking style and data", ex);
+        }
+    }
+
+    @Override
+    public void unlinkAllStylesFromData(int dataId) {
+        Path styleDataDir = getDirectory(STYLE_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleDataDir)) {
+            for (Path styleDataFile : directoryStream) {
+                String fileName = styleDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId == dataId) {
+                    StringList styleList = new StringList();
+
+                    // update fs
+                    writeObjectInPath(styleList, styleDataFile, pool);
+
+                    // update memory
+                    byData.remove(dataId);
+                }
+            }
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking all styles for data", ex);
+        }
+    }
+
+
+    @Override
+    public List<Style> findByLayer(Integer layerId) {
+        if (byLayer.containsKey(layerId)) {
+            return new ArrayList<>(byLayer.get(layerId));
+        }
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void linkStyleToLayer(int styleId, int layerId) {
+        Path styleLayerDir = getDirectory(STYLE_X_LAYER_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleLayerDir)) {
+            for (Path styleLayerFile : directoryStream) {
+                String fileName = styleLayerFile.getFileName().toString();
+                Integer currentLayerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentLayerId == layerId) {
+                    found = true;
+                    StringList styleList = (StringList) getObjectFromPath(styleLayerFile, pool);
+                    List<Integer> styleIds = getIntegerList(styleList);
+                    if (!styleIds.contains(styleId)) {
+                        styleIds.add(styleId);
+
+                        // update fs
+                        writeObjectInPath(styleList, styleLayerFile, pool);
+
+                        // update memory
+                        List<Style> styles = byLayer.get(layerId);
+                        styles.add(byId.get(styleId));
+                    }
+                }
+            }
+
+            // create new file
+            if (found) {
+                // update fs
+                StringList styleList = new StringList(Arrays.asList(styleId + ""));
+                Path styleDataFile = styleLayerDir.resolve(layerId + ".xml");
+                writeObjectInPath(styleList, styleDataFile, pool);
+
+                // update memory
+                List<Style> styles = new ArrayList<>();
+                styles.add(byId.get(styleId));
+                byLayer.put(layerId, styles);
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking style and layer", ex);
+        }
+    }
+
+    @Override
+    public void unlinkStyleToLayer(int styleId, int layerId) {
+        Path styleLayerDir = getDirectory(STYLE_X_LAYER_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(styleLayerDir)) {
+            for (Path styleLayerFile : directoryStream) {
+                String fileName = styleLayerFile.getFileName().toString();
+                Integer currentLayerId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentLayerId == layerId) {
+                    StringList styleList = (StringList) getObjectFromPath(styleLayerFile, pool);
+                    List<Integer> styleIds = getIntegerList(styleList);
+                    if (styleIds.contains(styleId)) {
+                        styleIds.remove(styleId);
+
+                        // update fs
+                        writeObjectInPath(styleList, styleLayerFile, pool);
+
+                        // update memory
+                        List<Style> styles = byLayer.get(layerId);
+                        styles.remove(byId.get(styleId));
+                    }
+                }
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking style and layer", ex);
+        }
+    }
+
 
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///

@@ -20,56 +20,40 @@ package org.constellation.repository;
 
 import java.util.List;
 
-import org.constellation.dto.Data;
-import org.constellation.dto.Style;
 import org.constellation.dto.ProviderBrief;
 
 public interface ProviderRepository {
 
-    public List<ProviderBrief> findAll();
+    List<ProviderBrief> findAll();
 
-    public ProviderBrief findOne(Integer id);
+    ProviderBrief findOne(Integer id);
 
     boolean existById(Integer id);
 
-    public ProviderBrief findForData(Integer dataId);
+    ProviderBrief findForData(Integer dataId);
 
-    public List<ProviderBrief> findByImpl(String serviceName);
+    List<ProviderBrief> findByImpl(String serviceName);
 
-    public List<String> getProviderIds();
+    List<String> getProviderIds();
 
-    public Integer findIdForIdentifier(String providerIdentifier);
+    Integer findIdForIdentifier(String providerIdentifier);
 
-    public ProviderBrief findByIdentifier(String providerIdentifier);
+    ProviderBrief findByIdentifier(String providerIdentifier);
 
-    public ProviderBrief getProviderParentIdOfLayer(String serviceType, String serviceId, String layerid);
+    Integer create(ProviderBrief newProvider);
 
-    public Integer create(ProviderBrief newProvider);
+    int delete(int id);
 
-    public int delete(int id);
+    int deleteByIdentifier(String providerID);
 
-    public int deleteByIdentifier(String providerID);
+    List<ProviderBrief> findChildren(String id);
 
-    public List<ProviderBrief> findChildren(String id);
+    int update(ProviderBrief provider);
 
-    public List<Data> findDatasByProviderId(Integer id);
+    int removeLinkedServices(int providerID);
 
-    public List<Integer> findDataIdsByProviderId(Integer id);
+    List<Integer> getAllIds();
 
-    public List<Data> findDatasByProviderId(Integer id, String dataType, boolean included, boolean hidden);
-
-    public List<Integer> findDataIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden);
-
-    public List<Data> findDatasByProviderId(Integer id, String dataType);
-
-    public int update(ProviderBrief provider);
-
-    public List<Style> findStylesByProviderId(Integer providerId);
-
-    public int removeLinkedServices(int providerID);
-
-    public List<Integer> getAllIds();
-
-    public List<Integer> getAllIdsWithNoParent();
+    List<Integer> getAllIdsWithNoParent();
 
 }

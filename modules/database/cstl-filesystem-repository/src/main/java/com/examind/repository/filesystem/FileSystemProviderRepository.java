@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +31,10 @@ import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.Data;
 import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.Style;
 import org.constellation.exception.ConstellationPersistenceException;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,6 +47,9 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     private final Map<Integer, ProviderBrief> byId = new HashMap<>();
     private final Map<String, ProviderBrief> byName = new HashMap<>();
     private final Map<String, List<ProviderBrief>> byParent = new HashMap<>();
+
+    @Autowired
+    private DataRepository dataRepository;
 
     public FileSystemProviderRepository() {
         super(ProviderBrief.class);
@@ -64,7 +67,8 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
                     byName.put(provider.getIdentifier(), provider);
 
                     if (!byParent.containsKey(provider.getParent())) {
-                        List<ProviderBrief> providers = Arrays.asList(provider);
+                        List<ProviderBrief> providers = new ArrayList<>();
+                        providers.add(provider);
                         byParent.put(provider.getParent(), providers);
                     } else {
                         byParent.get(provider.getParent()).add(provider);
@@ -144,14 +148,9 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     }
 
     @Override
-    public ProviderBrief getProviderParentIdOfLayer(String serviceType, String serviceId, String layerid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public List<ProviderBrief> findChildren(String id) {
         if (byParent.containsKey(id)) {
-            return byParent.get(id);
+            return new ArrayList<>(byParent.get(id));
         }
         return new ArrayList<>();
     }
@@ -174,7 +173,8 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byName.put(provider.getIdentifier(), provider);
 
             if (!byParent.containsKey(provider.getParent())) {
-                List<ProviderBrief> children = Arrays.asList(provider);
+                List<ProviderBrief> children = new ArrayList<>();
+                children.add(provider);
                 byParent.put(provider.getParent(), children);
             } else {
                 byParent.get(provider.getParent()).add(provider);
@@ -200,7 +200,8 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             byName.put(provider.getIdentifier(), provider);
 
             if (!byParent.containsKey(provider.getParent())) {
-                List<ProviderBrief> children = Arrays.asList(provider);
+                List<ProviderBrief> children = new ArrayList<>();
+                children.add(provider);
                 byParent.put(provider.getParent(), children);
             } else {
                 byParent.get(provider.getParent()).add(provider);
@@ -266,37 +267,13 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
 
     @Override
     public ProviderBrief findForData(Integer dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Data> findDatasByProviderId(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Integer> findDataIdsByProviderId(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Data> findDatasByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Integer> findDataIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Data> findDatasByProviderId(Integer id, String dataType) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Style> findStylesByProviderId(Integer providerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Data d = dataRepository.findById(dataId);
+        if (d != null) {
+            if (byId.containsKey(d.getProviderId())) {
+                return byId.get(d.getProviderId());
+            }
+        }
+        return null;
     }
 
     @Override

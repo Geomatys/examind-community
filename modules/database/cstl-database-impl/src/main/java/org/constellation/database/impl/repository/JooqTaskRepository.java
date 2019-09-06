@@ -19,10 +19,7 @@
 package org.constellation.database.impl.repository;
 
 import java.util.ArrayList;
-import static org.constellation.database.api.jooq.Tables.TASK_PARAMETER;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.constellation.database.api.jooq.Tables;
@@ -109,32 +106,11 @@ public class JooqTaskRepository extends AbstractJooqRespository<TaskRecord, org.
 
 
     @Override
-    public List<Task> findDayTask(String process_authority) {
-        Calendar calendar = GregorianCalendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        Long minValue = calendar.getTimeInMillis();
-        calendar.add(Calendar.DAY_OF_YEAR, 1);
-        Long maxValue = calendar.getTimeInMillis();
-
-        return convertTaskListToDto(dsl.select()
-                                       .from(Tables.TASK)
-                                       .join(TASK_PARAMETER).onKey()
-                                       .where(TASK_PARAMETER.PROCESS_AUTHORITY.eq(process_authority))
-                                       .and(Tables.TASK.DATE_END.between(minValue, maxValue))
-                                       .orderBy(Tables.TASK.DATE_END.desc())
-                                       .fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
-    }
-
-    @Override
     public List<Task> findAll() {
         return convertTaskListToDto(dsl.select().from(Tables.TASK).fetchInto(org.constellation.database.api.jooq.tables.pojos.Task.class));
     }
 
-     @Override
+    @Override
     public void delete(String uuid) {
         dsl.delete(Tables.TASK).where(Tables.TASK.IDENTIFIER.eq(uuid)).execute();
     }

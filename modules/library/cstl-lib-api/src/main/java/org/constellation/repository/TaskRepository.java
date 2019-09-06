@@ -22,23 +22,65 @@ import java.util.List;
 
 import org.constellation.dto.process.Task;
 
-public interface TaskRepository {
+ public interface TaskRepository {
 
-    List<? extends Task> findAll();
+    /**
+     * Return all the registered tasks.
+     * @return
+     */
+     List<? extends Task> findAll();
 
-    String create(Task task);
+    /**
+     * Insert a new task into the datasource.
+     *
+     * @param task the task to insert
+     * @return the task identifier.
+     */
+     String create(Task task);
 
-    Task get(String uuid);
+    /**
+     * Return a task identifier by the specified uuid.
+     *
+     * @param uuid An identifier.
+     * @return
+     */
+     Task get(String uuid);
 
-    void update(Task task);
+    /**
+     * Update a task.
+     *
+     * @param task
+     */
+     void update(Task task);
 
-    void delete(String uuid);
+     void delete(String uuid);
+     
+    /**
+     * List all the tasks with the state "RUNNING".
+     *
+     * @return
+     */
+     List<Task> findRunningTasks();
 
-    List<Task> findRunningTasks();
+    /**
+     * List all the tasks with the state "RUNNING" for the specified task parameter.
+     *
+     * @param id Task parameter id.
+     * @param offset
+     * @param limit maximum number of results returned.
+     * @return
+     */
+     List<Task> findRunningTasks(Integer id, Integer offset, Integer limit);
 
-    List<Task> findRunningTasks(Integer id, Integer offset, Integer limit);
+    /**
+     * List all the tasks for the specified task parameter.
+     *
+     * @param id Task parameter id.
+     * @param offset
+     * @param limit maximum number of results returned.
+     * @return
+    */
+     List<Task> taskHistory(Integer id, Integer offset, Integer limit);
 
-    List<Task> taskHistory(Integer id, Integer offset, Integer limit);
+ }
 
-    List<Task> findDayTask(String process_authority);
-}

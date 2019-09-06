@@ -24,7 +24,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
 
                     if (metadata.getDataId() != null) {
                         if (!byData.containsKey(metadata.getDataId())) {
-                            List<MetadataComplete> children = Arrays.asList(metadata);
+                            List<MetadataComplete> children = new ArrayList<>();
+                            children.add(metadata);
                             byData.put(metadata.getDataId(), children);
                         } else {
                             byData.get(metadata.getDataId()).add(metadata);
@@ -87,7 +87,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     }
 
                     if (!byProvider.containsKey(metadata.getProviderId())) {
-                        List<MetadataComplete> children = Arrays.asList(metadata);
+                        List<MetadataComplete> children = new ArrayList<>();
+                        children.add(metadata);
                         byProvider.put(metadata.getProviderId(), children);
                     } else {
                         byProvider.get(metadata.getProviderId()).add(metadata);
@@ -184,7 +185,7 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     @Override
     public List<MetadataBbox> getBboxes(int id) {
         if (byId.containsKey(id)) {
-            return byId.get(id).getBboxes();
+            return new ArrayList<>(byId.get(id).getBboxes());
         }
         return new ArrayList<>();
     }
@@ -307,7 +308,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
 
             if (metadata.getDataId() != null) {
                 if (!byData.containsKey(metadata.getDataId())) {
-                    List<MetadataComplete> children = Arrays.asList(metadata);
+                    List<MetadataComplete> children = new ArrayList<>();
+                    children.add(metadata);
                     byData.put(metadata.getDataId(), children);
                 } else {
                     byData.get(metadata.getDataId()).add(metadata);
@@ -315,7 +317,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
             }
 
             if (!byProvider.containsKey(metadata.getProviderId())) {
-                List<MetadataComplete> children = Arrays.asList(metadata);
+                List<MetadataComplete> children = new ArrayList<>();
+                children.add(metadata);
                 byProvider.put(metadata.getProviderId(), children);
             } else {
                 byProvider.get(metadata.getProviderId()).add(metadata);
@@ -352,7 +355,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
 
             if (metadata.getDataId() != null) {
                 if (!byData.containsKey(metadata.getDataId())) {
-                    List<MetadataComplete> children = Arrays.asList(metadata);
+                    List<MetadataComplete> children = new ArrayList<>();
+                    children.add(metadata);
                     byData.put(metadata.getDataId(), children);
                 } else {
                     byData.get(metadata.getDataId()).add(metadata);
@@ -360,7 +364,8 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
             }
 
             if (!byProvider.containsKey(metadata.getProviderId())) {
-                List<MetadataComplete> children = Arrays.asList(metadata);
+                List<MetadataComplete> children = new ArrayList<>();
+                children.add(metadata);
                 byProvider.put(metadata.getProviderId(), children);
             } else {
                 byProvider.get(metadata.getProviderId()).add(metadata);
@@ -484,6 +489,60 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
         }
     }
 
+    @Override
+    public void linkMetadataMapContext(int metadataID, int contextId) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setMapContextId(contextId);
+            update(metadata);
+        }
+    }
+
+    @Override
+    public void unlinkMetadataMapContext(int metadataID) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setMapContextId(null);
+            update(metadata);
+        }
+    }
+
+    @Override
+    public void linkMetadataDataset(int metadataID, int datasetId) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setDatasetId(datasetId);
+            update(metadata);
+        }
+    }
+
+    @Override
+    public void unlinkMetadataDataset(int metadataID) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setDatasetId(null);
+            update(metadata);
+        }
+    }
+
+    @Override
+    public void linkMetadataData(int metadataID, int dataId) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setDataId(dataId);
+            update(metadata);
+        }
+    }
+
+    @Override
+    public void unlinkMetadataData(int metadataID) {
+        if (byId.containsKey(metadataID)) {
+            MetadataComplete metadata = byId.get(metadataID);
+            metadata.setDataId(null);
+            update(metadata);
+        }
+    }
+
 
     ////--------------------------------------------------------------------///
     ////------------------------    LINKED         -------------------------///
@@ -534,47 +593,18 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void unlinkMetadataData(int metadataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkMetadataMapContext(int metadataID, int contextId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void unlinkMetadataMapContext(int metadataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkMetadataDataset(int metadataID, int datasetId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void unlinkMetadataDataset(int metadataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void linkMetadataData(int metadataID, int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///
     ////--------------------------------------------------------------------///
 
     @Override
-    public Map.Entry<Integer, List<Metadata>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
+    public List<Map<String, Object>> filterAndGetWithoutPagination(Map<String, Object> filterMap) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+
     @Override
-    public List<Map<String, Object>> filterAndGetWithoutPagination(Map<String, Object> filterMap) {
+    public Map.Entry<Integer, List<Metadata>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

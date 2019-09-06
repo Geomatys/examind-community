@@ -24,17 +24,18 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
+import org.constellation.dto.Style;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.LayerRepository;
+import org.constellation.repository.StyleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,6 +49,14 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     private final Map<Integer, List<Layer>> byService = new HashMap<>();
     private final Map<Integer, List<Layer>> byData = new HashMap<>();
     private final Map<Integer, List<QName>> byServiceName = new HashMap<>();
+
+    private final Map<String,  Layer> byServiceIdLayerName = new HashMap<>();
+    private final Map<String,  Layer> byServiceIdLayerNameNmsp = new HashMap<>();
+    private final Map<String,  Layer> byServiceIdAlias = new HashMap<>();
+    private final Map<String,  Layer> byServiceIdDataId = new HashMap<>();
+
+    @Autowired
+    private StyleRepository styleRepository;
 
     public FileSystemLayerRepository() {
         super(Layer.class);
@@ -64,27 +73,40 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
                     byId.put(layer.getId(), layer);
 
                     if (!byData.containsKey(layer.getDataId())) {
-                        List<Layer> layers = Arrays.asList(layer);
+                        List<Layer> layers = new ArrayList<>();
+                        layers.add(layer);
                         byData.put(layer.getDataId(), layers);
                     } else {
                         byData.get(layer.getDataId()).add(layer);
                     }
 
                     if (!byService.containsKey(layer.getService())) {
-                        List<Layer> layers = Arrays.asList(layer);
+                        List<Layer> layers = new ArrayList<>();
+                        layers.add(layer);
                         byService.put(layer.getService(), layers);
                     } else {
                         byService.get(layer.getService()).add(layer);
                     }
 
                     if (!byServiceName.containsKey(layer.getService())) {
-                        List<QName> layers = Arrays.asList(new QName(layer.getNamespace(), layer.getName()));
+                        List<QName> layers = new ArrayList<>();
+                        layers.add(new QName(layer.getNamespace(), layer.getName()));
                         byServiceName.put(layer.getService(), layers);
                     } else {
                         byServiceName.get(layer.getService()).add(new QName(layer.getNamespace(), layer.getName()));
                     }
 
+                    String serviceIdLayerName = layer.getService() + '-' + layer.getName();
+                    byServiceIdLayerName.put(serviceIdLayerName, layer);
 
+                    String serviceIdLayerNameNmsp = layer.getService() + '-' + layer.getName() + '-' + layer.getNamespace();
+                    byServiceIdLayerNameNmsp.put(serviceIdLayerNameNmsp, layer);
+
+                    String serviceIdAlias = layer.getService() + '-' + layer.getAlias();
+                    byServiceIdAlias.put(serviceIdAlias, layer);
+
+                    String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
+                    byServiceIdDataId.put(serviceIdDataId, layer);
 
                     if (layer.getId() >= currentId) {
                         currentId = layer.getId() +1;
@@ -110,7 +132,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     @Override
     public List<Layer> findByServiceId(int serviceId) {
         if (byService.containsKey(serviceId)) {
-            return byService.get(serviceId);
+            return new ArrayList<>(byService.get(serviceId));
         }
         return new ArrayList<>();
     }
@@ -129,7 +151,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     @Override
     public List<QName> findNameByServiceId(int serviceId) {
         if (byServiceName.containsKey(serviceId)) {
-            return byServiceName.get(serviceId);
+            return new ArrayList<>(byServiceName.get(serviceId));
         }
         return new ArrayList<>();
     }
@@ -147,84 +169,50 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
 
      @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
-        if (byService.containsKey(serviceId)) {
-            for (Layer l : byService.get(serviceId)) {
-                if (l.getName().equals(layerName)) {
-                    return l;
-                }
-            }
-        }
-        return null;
+        return byServiceIdLayerName.get(serviceId + '-' + layerName);
     }
 
     @Override
     public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
-        if (byService.containsKey(serviceId)) {
-            for (Layer l : byService.get(serviceId)) {
-                if (l.getName().equals(layerName)) {
-                    return l.getId();
-                }
-            }
+        if (byServiceIdLayerName.containsKey(serviceId + '-' + layerName)) {
+            return byServiceIdLayerName.get(serviceId + '-' + layerName).getId();
         }
         return null;
     }
 
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
-        if (byService.containsKey(serviceId)) {
-            for (Layer l : byService.get(serviceId)) {
-                if (l.getName().equals(layerName) &&
-                    (namespace == null || l.getNamespace().equals(namespace))) {
-                    return l;
-                }
-            }
-        }
-        return null;
+        return byServiceIdLayerNameNmsp.get(serviceId + '-' + layerName + '-' + namespace);
     }
 
     @Override
     public Layer findByServiceIdAndAlias(int serviceId, String alias) {
-        if (byService.containsKey(serviceId)) {
-            for (Layer l : byService.get(serviceId)) {
-                if (l.getName().equals(alias)) {
-                    return l;
-                }
-            }
-        }
-        return null;
+        return byServiceIdAlias.get(serviceId + '-' + alias);
     }
 
     @Override
     public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
-        if (byService.containsKey(serviceId)) {
-            for (Layer l : byService.get(serviceId)) {
-                if (l.getDataId().equals(dataId)) {
-                    return l;
-                }
-            }
-        }
-        return null;
+        return byServiceIdDataId.get(serviceId + "-" + dataId);
     }
 
     @Override
     public List<Layer> getLayersByLinkedStyle(int styleId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+        List<Layer> results = new ArrayList<>();
+        for (Layer l : byId.values()) {
+            for (Style s : styleRepository.findByLayer(l.getId())) {
+                if (s.getId().equals(styleId)) {
+                    results.add(l);
+                    break;
+                }
+            }
+        }
+        return results;
+     }
 
     @Override
     public List<Layer> getLayersRefsByLinkedStyle(int styleId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Data findDatasFromLayerAlias(String layerAlias, String dataProviderIdentifier) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Data findDataFromLayer(int layerId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+        return getLayersByLinkedStyle(styleId);
+     }
 
     ////--------------------------------------------------------------------///
     ////------------------------    TRANSACTIONAL  -------------------------///
@@ -241,25 +229,40 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
 
             byId.put(layer.getId(), layer);
             if (!byData.containsKey(layer.getDataId())) {
-                List<Layer> layers = Arrays.asList(layer);
+                List<Layer> layers = new ArrayList<>();
+                layers.add(layer);
                 byData.put(layer.getDataId(), layers);
             } else {
                 byData.get(layer.getDataId()).add(layer);
             }
 
             if (!byService.containsKey(layer.getService())) {
-                List<Layer> layers = Arrays.asList(layer);
+                List<Layer> layers = new ArrayList<>();
+                layers.add(layer);
                 byService.put(layer.getService(), layers);
             } else {
                 byService.get(layer.getService()).add(layer);
             }
 
             if (!byServiceName.containsKey(layer.getService())) {
-                List<QName> layers = Arrays.asList(new QName(layer.getNamespace(), layer.getName()));
+                List<QName> layers = new ArrayList<>();
+                layers.add(new QName(layer.getNamespace(), layer.getName()));
                 byServiceName.put(layer.getService(), layers);
             } else {
                 byServiceName.get(layer.getService()).add(new QName(layer.getNamespace(), layer.getName()));
             }
+
+            String serviceIdLayerName = layer.getService() + '-' + layer.getName();
+            byServiceIdLayerName.put(serviceIdLayerName, layer);
+
+            String serviceIdLayerNameNmsp = layer.getService() + '-' + layer.getName() + '-' + layer.getNamespace();
+            byServiceIdLayerNameNmsp.put(serviceIdLayerNameNmsp, layer);
+
+            String serviceIdAlias = layer.getService() + '-' + layer.getAlias();
+            byServiceIdAlias.put(serviceIdAlias, layer);
+
+            String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
+            byServiceIdDataId.put(serviceIdDataId, layer);
 
             currentId++;
             return layer.getId();
@@ -271,33 +274,48 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     public void update(Layer layer) {
         if (byId.containsKey(layer.getId())) {
 
+            delete(layer.getId());
+
             Path layerDir = getDirectory(LAYER_DIR);
             Path layerFile = layerDir.resolve(layer.getId() + ".xml");
             writeObjectInPath(layer, layerFile, pool);
 
-            delete(layer.getId());
-
             byId.put(layer.getId(), layer);
             if (!byData.containsKey(layer.getDataId())) {
-                List<Layer> layers = Arrays.asList(layer);
+                List<Layer> layers = new ArrayList<>();
+                layers.add(layer);
                 byData.put(layer.getDataId(), layers);
             } else {
                 byData.get(layer.getDataId()).add(layer);
             }
 
             if (!byService.containsKey(layer.getService())) {
-                List<Layer> layers = Arrays.asList(layer);
+                List<Layer> layers = new ArrayList<>();
+                layers.add(layer);
                 byService.put(layer.getService(), layers);
             } else {
                 byService.get(layer.getService()).add(layer);
             }
 
             if (!byServiceName.containsKey(layer.getService())) {
-                List<QName> layers = Arrays.asList(new QName(layer.getNamespace(), layer.getName()));
+                List<QName> layers = new ArrayList<>();
+                layers.add(new QName(layer.getNamespace(), layer.getName()));
                 byServiceName.put(layer.getService(), layers);
             } else {
                 byServiceName.get(layer.getService()).add(new QName(layer.getNamespace(), layer.getName()));
             }
+
+            String serviceIdLayerName = layer.getService() + '-' + layer.getName();
+            byServiceIdLayerName.put(serviceIdLayerName, layer);
+
+            String serviceIdLayerNameNmsp = layer.getService() + '-' + layer.getName() + '-' + layer.getNamespace();
+            byServiceIdLayerNameNmsp.put(serviceIdLayerNameNmsp, layer);
+
+            String serviceIdAlias = layer.getService() + '-' + layer.getAlias();
+            byServiceIdAlias.put(serviceIdAlias, layer);
+
+            String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
+            byServiceIdDataId.put(serviceIdDataId, layer);
         }
     }
 
@@ -324,6 +342,22 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             }
             if (byServiceName.containsKey(layer.getService())) {
                 byServiceName.get(layer.getService()).remove(new QName(layer.getNamespace(), layer.getName()));
+            }
+
+            String serviceIdLayerName = layer.getService() + '-' + layer.getName();
+            byServiceIdLayerName.remove(serviceIdLayerName);
+
+            String serviceIdLayerNameNmsp = layer.getService() + '-' + layer.getName() + '-' + layer.getNamespace();
+            byServiceIdLayerNameNmsp.remove(serviceIdLayerNameNmsp);
+
+            String serviceIdAlias = layer.getService() + '-' + layer.getAlias();
+            byServiceIdAlias.remove(serviceIdAlias);
+
+            String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
+            byServiceIdDataId.remove(serviceIdDataId);
+
+            for (Style s : styleRepository.findByLayer(id)) {
+                styleRepository.unlinkStyleToLayer(s.getId(), id);
             }
         }
     }

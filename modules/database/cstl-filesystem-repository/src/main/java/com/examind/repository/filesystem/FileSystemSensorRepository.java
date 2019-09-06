@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.SensorReference;
+import org.constellation.dto.StringList;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.SensorRepository;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
     private final Map<String, Sensor> byIdentifier = new HashMap<>();
     private final Map<String, List<Sensor>> byParent = new HashMap<>();
     private final Map<Integer, List<Sensor>> byProvider = new HashMap<>();
+    private final Map<Integer, List<Sensor>> byData = new HashMap<>();
 
     public FileSystemSensorRepository() {
         super(Sensor.class);
@@ -65,14 +67,16 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
                     if (byParent.containsKey(sensor.getParent())) {
                         byParent.get(sensor.getParent()).add(sensor);
                     } else {
-                        List<Sensor> children = Arrays.asList(sensor);
+                        List<Sensor> children = new ArrayList<>();
+                        children.add(sensor);
                         byParent.put(sensor.getIdentifier(), children);
                     }
 
                     if (byProvider.containsKey(sensor.getProviderId())) {
                         byProvider.get(sensor.getProviderId()).add(sensor);
                     } else {
-                        List<Sensor> sensors = Arrays.asList(sensor);
+                        List<Sensor> sensors = new ArrayList<>();
+                        sensors.add(sensor);
                         byProvider.put(sensor.getProviderId(), sensors);
                     }
 
@@ -80,6 +84,21 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
                         currentId = sensor.getId() +1;
                     }
                 }
+            }
+
+            Path sensorDataDir = getDirectory(SENSOR_X_DATA_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorDataDir)) {
+                for (Path sensorDataFile : directoryStream) {
+                    StringList styleList = (StringList) getObjectFromPath(sensorDataFile, pool);
+                    String fileName = sensorDataFile.getFileName().toString();
+                    Integer dataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                    List<Sensor> linked = new ArrayList<>();
+                    for (Integer sensorId : getIntegerList(styleList)) {
+                        linked.add(byId.get(sensorId));
+                    }
+                    byData.put(dataId, linked);
+                }
+
             }
 
         } catch (IOException | JAXBException ex) {
@@ -156,14 +175,16 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
             if (byParent.containsKey(sensor.getParent())) {
                 byParent.get(sensor.getParent()).add(sensor);
             } else {
-                List<Sensor> children = Arrays.asList(sensor);
+                List<Sensor> children = new ArrayList<>();
+                children.add(sensor);
                 byParent.put(sensor.getIdentifier(), children);
             }
 
             if (byProvider.containsKey(sensor.getProviderId())) {
                 byProvider.get(sensor.getProviderId()).add(sensor);
             } else {
-                List<Sensor> sensors = Arrays.asList(sensor);
+                List<Sensor> sensors = new ArrayList<>();
+                sensors.add(sensor);
                 byProvider.put(sensor.getProviderId(), sensors);
             }
 
@@ -187,14 +208,16 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
             if (byParent.containsKey(sensor.getParent())) {
                 byParent.get(sensor.getParent()).add(sensor);
             } else {
-                List<Sensor> children = Arrays.asList(sensor);
+                List<Sensor> children = new ArrayList<>();
+                children.add(sensor);
                 byParent.put(sensor.getIdentifier(), children);
             }
 
             if (byProvider.containsKey(sensor.getProviderId())) {
                 byProvider.get(sensor.getProviderId()).add(sensor);
             } else {
-                List<Sensor> sensors = Arrays.asList(sensor);
+                List<Sensor> sensors = new ArrayList<>();
+                sensors.add(sensor);
                 byProvider.put(sensor.getProviderId(), sensors);
             }
         }
@@ -240,9 +263,11 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
 
     @Override
     public void deleteFromProvider(Integer providerId) {
-        List<Sensor> sensors = byProvider.get(providerId);
-        for (Sensor s : sensors) {
-            delete(s.getIdentifier());
+        if (byProvider.containsKey(providerId)) {
+            List<Sensor> sensors = byProvider.get(providerId);
+            for (Sensor s : sensors) {
+                delete(s.getIdentifier());
+            }
         }
     }
 
@@ -257,17 +282,88 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
 
     @Override
     public void linkDataToSensor(Integer dataId, Integer sensorId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Path sensorDataDir = getDirectory(SENSOR_X_DATA_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorDataDir)) {
+            for (Path sensorDataFile : directoryStream) {
+                String fileName = sensorDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId.equals(dataId)) {
+                    found = true;
+                    StringList sensorList = (StringList) getObjectFromPath(sensorDataFile, pool);
+                    List<Integer> sensorIds = getIntegerList(sensorList);
+                    if (!sensorIds.contains(sensorId)) {
+                        sensorIds.add(sensorId);
+
+                        // update fs
+                        writeObjectInPath(sensorList, sensorDataFile, pool);
+
+                        // update memory
+                        List<Sensor> sensors = byData.get(dataId);
+                        sensors.add(byId.get(sensorId));
+                    }
+                }
+            }
+
+            // create new file
+            if (found) {
+                // update fs
+                StringList sensorList = new StringList(Arrays.asList(sensorId + ""));
+                Path sensorDataFile = sensorDataDir.resolve(dataId + ".xml");
+                writeObjectInPath(sensorList, sensorDataFile, pool);
+
+                // update memory
+                List<Sensor> sensors = new ArrayList<>();
+                sensors.add(byId.get(sensorId));
+                byData.put(dataId, sensors);
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while linking sensor and data", ex);
+        }
     }
 
     @Override
     public void unlinkDataToSensor(Integer dataId, Integer sensorId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Path sensorDataDir = getDirectory(SENSOR_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sensorDataDir)) {
+            for (Path sensorDataFile : directoryStream) {
+                String fileName = sensorDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId.equals(dataId)) {
+                    StringList sensorList = (StringList) getObjectFromPath(sensorDataFile, pool);
+                    List<Integer> sensorIds = getIntegerList(sensorList);
+                    if (sensorIds.contains(sensorId)) {
+                        sensorIds.remove(sensorId);
+
+                        // update fs
+                        writeObjectInPath(sensorList, sensorDataFile, pool);
+
+                        // update memory
+                        List<Sensor> sensors = byData.get(dataId);
+                        sensors.remove(byId.get(sensorId));
+                    }
+                }
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking sensor and data", ex);
+        }
     }
 
     @Override
     public List<SensorReference> fetchByDataId(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<SensorReference> results = new ArrayList<>();
+        if (byData.containsKey(dataId)) {
+            for (Sensor s: byData.get(dataId)) {
+                results.add(new  SensorReference(s.getId(), s.getIdentifier()));
+            }
+        }
+        return results;
     }
 
     @Override
@@ -296,9 +392,15 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
     }
 
     @Override
-    public List<String> getLinkedSensors(Integer dataID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public List<String> getLinkedSensors(Integer dataId) {
+        List<String> results = new ArrayList<>();
+        if (byData.containsKey(dataId)) {
+            for (Sensor s: byData.get(dataId)) {
+                results.add(s.getIdentifier());
+            }
+        }
+        return results;
+     }
 
     @Override
     public List<Integer> getLinkedDatas(Integer sensorID) {

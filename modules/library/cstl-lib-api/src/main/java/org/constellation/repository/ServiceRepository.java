@@ -20,9 +20,7 @@ package org.constellation.repository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.constellation.dto.Data;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.ServiceReference;
 
@@ -67,8 +65,6 @@ public interface ServiceRepository {
     void updateExtraFile(Integer serviceID, String fileName, String config);
 
     Service findByMetadataId(String metadataId);
-
-    List<Data> findDataByServiceId(Integer id);
 
     List<ServiceReference> fetchByDataId(int dataId);
 

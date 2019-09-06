@@ -639,15 +639,14 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     public List<MetadataLightBrief> getMetadataBriefForData(final int dataId) {
         final List<MetadataLightBrief> list = new ArrayList<>();
-        final Map<String, Object> filter = Collections.singletonMap("data", dataId);
-        final List<Map<String,Object>> map = metadataRepository.filterAndGetWithoutPagination(filter);
-        if (map != null) {
-            for (final Map entry : map) {
-                list.add(new MetadataLightBrief((Integer)entry.get("id"),
-                                                (String)entry.get("title"),
-                                                (String)entry.get("profile")));
-            }
+        final List<Metadata> metadatas = metadataRepository.findByDataId(dataId);
+
+        for (final Metadata entry : metadatas) {
+            list.add(new MetadataLightBrief(entry.getId(),
+                                            entry.getTitle(),
+                                            entry.getProfile()));
         }
+
         return list;
     }
 

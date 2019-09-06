@@ -87,6 +87,13 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
         Layer layer = layerRepository.findById(lid);
         Assert.assertNull(layer);
+
+
+        // cleanup after test
+        serviceRepository.delete(sid);
+        dataRepository.delete(data.getId());
+        providerRepository.delete(pid);
+
     }
 
 

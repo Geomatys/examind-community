@@ -58,6 +58,7 @@ import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSet;
 import org.constellation.dto.DataSummary;
 import org.constellation.dto.Dimension;
+import org.constellation.dto.Layer;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ServiceReference;
@@ -287,25 +288,12 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    public DataBrief getDataLayer(final String layerAlias,
-                                  final String providerId) throws ConstellationException {
-        final Data data = layerRepository.findDatasFromLayerAlias(layerAlias, providerId);
-        final List<Data> datas = new ArrayList<>();
-        datas.add(data);
-        final List<DataBrief> dataBriefs = getDataBriefFrom(datas, null, null);
-        if (dataBriefs != null && !dataBriefs.isEmpty()){
-            return dataBriefs.get(0);
-        }
-        throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public DataBrief getDataLayer(final int layerId) throws ConstellationException {
-        final Data data = layerRepository.findDataFromLayer(layerId);
-        return getDataBrief(data.getId());
+        final Layer layer = layerRepository.findById(layerId);
+        if (layer != null) {
+            return getDataBrief(layer.getDataId());
+        }
+        return null;
     }
 
     /**
@@ -346,7 +334,7 @@ public class DataBusiness implements IDataBusiness {
 
     @Override
     public List<DataBrief> getDataBriefsFromProviderId(Integer providerId, String dataType, boolean included, boolean hidden, Boolean sensorable, Boolean published, Boolean fetchDataDescription) throws ConstellationException {
-        final List<Data> dataList = providerRepository.findDatasByProviderId(providerId, dataType, included, hidden);
+        final List<Data> dataList = dataRepository.findByProviderId(providerId, dataType, included, hidden);
         return getDataBriefFrom(dataList, sensorable, published, fetchDataDescription);
     }
 
@@ -376,7 +364,7 @@ public class DataBusiness implements IDataBusiness {
         if (dataset != null){
             dataResult = dataRepository.findByDatasetId(dataset.getId());
         } else if (service!= null) {
-            dataResult = serviceRepository.findDataByServiceId(service.getId());
+            dataResult = dataRepository.findByServiceId(service.getId());
         } else if (data != null) {
             dataResult.add(data);
         }

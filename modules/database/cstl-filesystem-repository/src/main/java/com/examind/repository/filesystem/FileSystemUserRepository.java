@@ -92,17 +92,17 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
     @Override
     public Optional<CstlUser> findById(Integer id) {
-        return Optional.of(byId.get(id));
+        return Optional.ofNullable(byId.get(id));
     }
 
     @Override
     public Optional<CstlUser> findByEmail(String email) {
-        return Optional.of(byEmail.get(email));
+        return Optional.ofNullable(byEmail.get(email));
     }
 
     @Override
     public Optional<CstlUser> findByForgotPasswordUuid(String uuid) {
-        return Optional.of(byForgotPwd.get(uuid));
+        return Optional.ofNullable(byForgotPwd.get(uuid));
     }
 
     @Override
@@ -112,12 +112,12 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
     @Override
     public Optional<UserWithRole> findOneWithRole(Integer id) {
-        return Optional.of(byId.get(id));
+        return Optional.ofNullable(byId.get(id));
     }
 
     @Override
     public Optional<UserWithRole> findOneWithRole(String login) {
-        return Optional.of(bylogin.get(login));
+        return Optional.ofNullable(bylogin.get(login));
     }
 
     @Override
@@ -146,7 +146,13 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
     @Override
     public boolean isLastAdmin(int userId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for (UserWithRole u : byId.values()) {
+            if (!u.getId().equals(userId) &&
+                 u.getRoles().contains("cstl-admin")) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -163,12 +169,12 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
         Path userFile = userDir.resolve(currentId + ".xml");
         writeObjectInPath(userR, userFile, pool);
 
-        byId.put(user.getId(), userR);
-        bylogin.put(user.getLogin(), userR);
-        byEmail.put(user.getEmail(), userR);
-        byForgotPwd.put(user.getForgotPasswordUuid(), userR);
+        byId.put(userR.getId(), userR);
+        bylogin.put(userR.getLogin(), userR);
+        byEmail.put(userR.getEmail(), userR);
+        byForgotPwd.put(userR.getForgotPasswordUuid(), userR);
         if (user.getActive()) {
-            activeById.put(user.getId(), userR);
+            activeById.put(userR.getId(), userR);
         }
 
         currentId++;

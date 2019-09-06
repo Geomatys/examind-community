@@ -31,7 +31,9 @@ import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.DataSet;
 import org.constellation.exception.ConstellationPersistenceException;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,6 +45,9 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
     private final Map<Integer, DataSet> byId = new HashMap<>();
     private final Map<String, DataSet> byName = new HashMap<>();
+
+    @Autowired
+    private DataRepository dataRepository;
 
     public FileSystemDatasetRepository() {
         super(DataSet.class);
@@ -99,7 +104,7 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
     @Override
     public Integer getDataCount(int datasetId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return dataRepository.findByDatasetId(datasetId).size();
     }
 
     @Override
@@ -139,6 +144,7 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
             byName.put(dataset.getIdentifier(), dataset);
 
             currentId++;
+            return dataset.getId();
         }
         return null;
     }

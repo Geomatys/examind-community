@@ -198,16 +198,6 @@ public interface IDataBusiness {
     void updateDataIncluded(int dataId, boolean included, final boolean removeFiles) throws ConstellationException;
 
     /**
-     * Returns {@link DataBrief} for given layer alias and data provider identifier.
-     *
-     * @param layerAlias given layer name.
-     * @param providerId given data provider identifier.
-     * @return {@link DataBrief}.
-     * @throws ConstellationException is thrown if result fails.
-     */
-    DataBrief getDataLayer(String layerAlias, String providerId) throws ConstellationException;
-
-    /**
      * Returns {@link DataBrief} for given layer identifier.
      *
      * @param layerId given layer identifier.

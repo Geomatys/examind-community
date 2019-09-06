@@ -21,7 +21,6 @@ package org.constellation.repository;
 import java.util.List;
 import java.util.Map;
 
-import org.constellation.dto.Data;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 
@@ -46,8 +45,6 @@ public interface StyleRepository {
     List<Style> findByData(Integer dataId);
 
     List<Style> findByLayer(Integer layerId);
-
-    List<Data> getLinkedData(int styleId);
 
     void linkStyleToData(int styleId, int dataid);
 

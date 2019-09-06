@@ -53,6 +53,7 @@ import static org.constellation.database.api.jooq.Tables.METADATA;
 import static org.constellation.database.api.jooq.Tables.METADATA_X_CSW;
 import static org.constellation.database.api.jooq.Tables.PROVIDER;
 import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
+import static org.constellation.database.api.jooq.Tables.SERVICE;
 import static org.constellation.database.api.jooq.Tables.STYLED_DATA;
 import org.springframework.context.annotation.DependsOn;
 
@@ -97,12 +98,6 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
     @Override
     public Data findById(int id) {
         return convertDataIntoDto(dsl.select().from(DATA).where(DATA.ID.eq(id)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public Data fromLayer(String layerAlias, String providerId) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -175,6 +170,35 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
                                    .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
+
+    @Override
+    public List<Data> findByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
+        SelectConditionStep c = dsl.select(DATA.fields()).from(DATA)
+                .where(DATA.PROVIDER.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
+
+        if (dataType != null) {
+            c = c.and(DATA.TYPE.eq(dataType));
+        }
+        return convertDataListToDto(c.fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
+    }
+
+    @Override
+    public List<Integer> findIdsByProviderId(Integer id) {
+        return dsl.select(DATA.ID).from(DATA)
+                .where(DATA.PROVIDER.eq(id)).fetchInto(Integer.class);
+    }
+
+    @Override
+    public List<Integer> findIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
+        SelectConditionStep c = dsl.select(DATA.ID).from(DATA)
+                .where(DATA.PROVIDER.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
+
+        if (dataType != null) {
+            c = c.and(DATA.TYPE.eq(dataType));
+        }
+        return c.fetchInto(Integer.class);
+    }
+
     @Override
     public List<Data> findByDatasetId(Integer id) {
         return convertDataListToDto(dsl.select()
@@ -210,6 +234,12 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
                                  .and(DATA.NAME.eq(localPart))
                                  .and(DATA.NAMESPACE.eq(namespaceURI))
                                  .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
+    }
+
+    @Override
+    public List<Data> findByServiceId(Integer id) {
+        return convertDataListToDto(dsl.select().from(DATA).join(LAYER).on(LAYER.DATA.eq(DATA.ID)).join(SERVICE).on(LAYER.SERVICE.eq(SERVICE.ID)).where(SERVICE.ID.eq(id))
+                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override

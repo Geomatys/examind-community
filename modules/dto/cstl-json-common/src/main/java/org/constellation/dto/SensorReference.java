@@ -15,6 +15,15 @@ public class SensorReference implements Serializable {
     protected String identifier;
 
 
+    public SensorReference() {
+
+    }
+
+    public SensorReference(Integer id, String identifier) {
+        this.id = id;
+        this.identifier = identifier;
+    }
+
     public Integer getId() {
         return id;
     }

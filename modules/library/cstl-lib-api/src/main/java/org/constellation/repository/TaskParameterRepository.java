@@ -24,21 +24,63 @@ import org.constellation.dto.process.TaskParameter;
 
 public interface TaskParameterRepository {
 
-    List<? extends TaskParameter> findAll();
+    /**
+     * Return all the registered task parameters.
+     * @return
+     */
+     List<? extends TaskParameter> findAll();
 
-    List<? extends TaskParameter> findAllByType(String type);
+    /**
+     * Return all the registered task parameters wih the specified type.
+     * @return
+     */
+     List<? extends TaskParameter> findAllByType(String type);
 
-    List<? extends TaskParameter> findAllByNameAndProcess(String name, String authority, String code);
+    /**
+     * Return all the registered task parameters wih the specified name, authority and code.
+     * @return
+     */
+     List<? extends TaskParameter> findAllByNameAndProcess(String name, String authority, String code);
 
-    Integer create(TaskParameter task);
+    /**
+     * Insert a new Task parameter into the datasource.
+     *
+     * @param task the task parameter to insert
+     * @return
+     */
+     Integer create(TaskParameter task);
 
-    TaskParameter get(Integer uuid);
+    /**
+     * Return a task identifier by the specified id.
+     *
+     * @param id An identifier.
+     * @return
+     */
+    TaskParameter get(Integer id);
 
-    void delete(Integer taskId);
+    /**
+     * Remove a task parameter.
+     *
+     * @param taskId
+     */
+     void delete(Integer taskId);
 
-    void deleteAll();
+     /**
+     * Remove all task parameters.
+     */
+     void deleteAll();
 
-    void update(TaskParameter task);
+    /**
+     * Update a task parameter.
+     *
+     * @param task
+     */
+     void update(TaskParameter task);
 
-    List<? extends TaskParameter> findProgrammedTasks();
-}
+    /**
+     * Return all the registered task parameters with a trigger.
+     *
+     * @return
+     */
+     List<? extends TaskParameter> findProgrammedTasks();
+ }

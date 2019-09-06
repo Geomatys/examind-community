@@ -110,6 +110,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Node;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.repository.DataRepository;
+import org.constellation.repository.StyleRepository;
 
 @Component("providerBusiness")
 @Primary
@@ -129,6 +131,12 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private org.constellation.security.SecurityManager securityManager;
+
+    @Inject
+    private StyleRepository styleRepository;
+
+    @Inject
+    private DataRepository dataRepository;
 
     @Inject
     private IDataBusiness dataBusiness;
@@ -265,7 +273,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     public List<Integer> getDataIdsFromProviderId(Integer id) {
-        return providerRepository.findDataIdsByProviderId(id);
+        return dataRepository.findIdsByProviderId(id);
     }
 
     @Override
@@ -273,7 +281,7 @@ public class ProviderBusiness implements IProviderBusiness {
         if (dataType != null) {
             dataType = dataType.toUpperCase();
         }
-        return providerRepository.findDataIdsByProviderId(id, dataType, included, hidden);
+        return dataRepository.findIdsByProviderId(id, dataType, included, hidden);
     }
 
     @Override
@@ -615,7 +623,7 @@ public class ProviderBusiness implements IProviderBusiness {
      */
     @Override
     public void createAllPyramidConformForProvider(final int providerId) throws ConstellationException {
-        final List<org.constellation.dto.Data> dataList = providerRepository.findDatasByProviderId(providerId);
+        final List<org.constellation.dto.Data> dataList = dataRepository.findByProviderId(providerId);
         for(final org.constellation.dto.Data d : dataList) {
             try {
                 final DataBrief db = createPyramidConform(d.getId(), d.getOwnerId());
@@ -1012,7 +1020,7 @@ public class ProviderBusiness implements IProviderBusiness {
         if (pr == null) {
             throw new ConstellationException("Provider " + providerId + " does not exist.");
         }
-        final List<org.constellation.dto.Data> previousData = providerRepository.findDatasByProviderId(pr.getId());
+        final List<org.constellation.dto.Data> previousData = dataRepository.findByProviderId(pr.getId());
 
         final DataProvider provider = DataProviders.getProvider(providerId);
 
@@ -1179,6 +1187,6 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Override
     public List<Style> getStylesFromProviderId(Integer providerId) {
-        return providerRepository.findStylesByProviderId(providerId);
+        return styleRepository.findByProvider(providerId);
     }
 }

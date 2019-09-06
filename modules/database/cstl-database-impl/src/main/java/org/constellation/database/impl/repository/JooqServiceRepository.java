@@ -19,7 +19,6 @@
 package org.constellation.database.impl.repository;
 
 import org.constellation.database.api.jooq.Tables;
-import org.constellation.dto.Data;
 import org.constellation.dto.service.Service;
 import org.constellation.database.api.jooq.tables.pojos.ServiceExtraConfig;
 import org.constellation.database.api.jooq.tables.records.ServiceDetailsRecord;
@@ -48,7 +47,6 @@ import static org.constellation.database.api.jooq.Tables.SENSORED_DATA;
 import static org.constellation.database.api.jooq.Tables.SERVICE;
 import static org.constellation.database.api.jooq.Tables.SERVICE_DETAILS;
 import static org.constellation.database.api.jooq.Tables.SERVICE_EXTRA_CONFIG;
-import static org.constellation.database.impl.repository.JooqDataRepository.convertDataListToDto;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -116,6 +114,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void delete(Integer id) {
+        dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.SOS_ID.eq(id)).execute();
         dsl.delete(SERVICE_DETAILS).where(SERVICE_DETAILS.ID.eq(id)).execute();
         dsl.delete(SERVICE_EXTRA_CONFIG).where(SERVICE_EXTRA_CONFIG.ID.eq(id)).execute();
         dsl.delete(SERVICE).where(SERVICE.ID.eq(id)).execute();
@@ -259,12 +258,6 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
                 .onKey(METADATA.SERVICE_ID)
                 .where(METADATA.METADATA_ID.eq(metadataId))
                 .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Service.class));
-    }
-
-    @Override
-    public List<Data> findDataByServiceId(Integer id) {
-        return convertDataListToDto(dsl.select().from(DATA).join(LAYER).on(LAYER.DATA.eq(DATA.ID)).join(SERVICE).on(LAYER.SERVICE.eq(SERVICE.ID)).where(SERVICE.ID.eq(id))
-                .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override

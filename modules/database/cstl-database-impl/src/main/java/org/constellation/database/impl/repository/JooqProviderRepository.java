@@ -23,21 +23,15 @@ import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.LAYER;
 import static org.constellation.database.api.jooq.Tables.PROVIDER;
 import static org.constellation.database.api.jooq.Tables.SERVICE;
-import static org.constellation.database.api.jooq.Tables.STYLE;
 
 import java.util.List;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
 
-import org.constellation.dto.Data;
 import org.constellation.database.api.jooq.tables.pojos.Provider;
-import org.constellation.dto.Style;
 import org.constellation.database.api.jooq.tables.records.ProviderRecord;
 import org.constellation.repository.ProviderRepository;
-import static org.constellation.database.impl.repository.JooqDataRepository.convertDataListToDto;
-import static org.constellation.database.impl.repository.JooqStyleRepository.convertStyleListToDto;
 import org.constellation.dto.ProviderBrief;
-import org.jooq.SelectConditionStep;
 import org.jooq.UpdateConditionStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -95,14 +89,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     }
 
     @Override
-    public ProviderBrief getProviderParentIdOfLayer(String serviceType, String serviceId, String layerid) {
-        return convertToDto(dsl.select(provider.fields()).from(provider).join(data).on(data.PROVIDER.eq(provider.ID)).join(LAYER)
-                .on(LAYER.DATA.eq(data.ID)).join(SERVICE).on(SERVICE.ID.eq(LAYER.SERVICE))
-                .where(LAYER.NAME.eq(layerid).and(SERVICE.IDENTIFIER.eq(serviceId)).and(SERVICE.TYPE.eq(serviceType)))
-                .fetchOneInto(Provider.class));
-    }
-
-    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Integer create(ProviderBrief provider) {
         ProviderRecord newRecord = dsl.newRecord(PROVIDER);
@@ -136,47 +122,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     }
 
     @Override
-    public List<Data> findDatasByProviderId(Integer id) {
-        return convertDataListToDto(dsl.select(DATA.fields()).from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(id)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public List<Integer> findDataIdsByProviderId(Integer id) {
-        return dsl.select(DATA.ID).from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(id)).fetchInto(Integer.class);
-    }
-
-    @Override
-    public List<Data> findDatasByProviderId(Integer id, String dataType) {
-        return convertDataListToDto(dsl.select(DATA.fields()).from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(id)).and(DATA.TYPE.eq(dataType)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-
-    @Override
-    public List<Data> findDatasByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
-        SelectConditionStep c = dsl.select(DATA.fields()).from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
-
-        if (dataType != null) {
-            c = c.and(DATA.TYPE.eq(dataType));
-        }
-        return convertDataListToDto(c.fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public List<Integer> findDataIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden) {
-        SelectConditionStep c = dsl.select(DATA.ID).from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(id)).and(DATA.INCLUDED.eq(included)).and(DATA.HIDDEN.eq(hidden));
-
-        if (dataType != null) {
-            c = c.and(DATA.TYPE.eq(dataType));
-        }
-        return c.fetchInto(Integer.class);
-    }
-
-    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int update(ProviderBrief provider) {
         ProviderRecord providerRecord = new ProviderRecord();
@@ -192,12 +137,6 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
 
         return set.execute();
 
-    }
-
-    @Override
-    public List<Style> findStylesByProviderId(Integer providerId) {
-        return convertStyleListToDto(dsl.select().from(STYLE).join(PROVIDER).on(STYLE.PROVIDER.eq(PROVIDER.ID))
-                .where(PROVIDER.ID.eq(providerId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Style.class));
     }
 
     @Override

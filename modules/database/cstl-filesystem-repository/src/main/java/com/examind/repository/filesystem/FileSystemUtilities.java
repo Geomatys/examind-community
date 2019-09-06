@@ -21,11 +21,14 @@ package com.examind.repository.filesystem;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.StringList;
 import org.constellation.exception.ConstellationPersistenceException;
 
 /**
@@ -38,6 +41,8 @@ public class FileSystemUtilities {
     public static final String DATA_DIR = "datas";
     public static final String DATASET_DIR = "datasets";
     public static final String DATASOURCE_DIR = "datasources";
+    public static final String DATASOURCE_SELECTED_PATH_DIR = "datasources_selected_paths";
+    public static final String DATASOURCE_COMPLETE_PATH_DIR = "datasources_complete_paths";
     public static final String PROVIDER_DIR = "providers";
     public static final String LAYER_DIR = "layers";
     public static final String METADATA_DIR = "metadatas";
@@ -51,6 +56,10 @@ public class FileSystemUtilities {
     public static final String STYLE_DIR = "styles";
     public static final String TASK_PARAM_DIR = "task_params";
     public static final String TASK_DIR = "tasks";
+    public static final String STYLE_X_DATA_DIR = "style_x_data";
+    public static final String STYLE_X_LAYER_DIR = "style_x_layer";
+    public static final String DATA_X_DATA_DIR = "data_x_data";
+    public static final String SENSOR_X_DATA_DIR = "sensor_x_data";
 
 
     public static Path getDirectory(String dirName) {
@@ -86,5 +95,13 @@ public class FileSystemUtilities {
                 throw new ConstellationPersistenceException(e);
             }
         }
+    }
+
+    public static List<Integer> getIntegerList(StringList lst) {
+        List<Integer> result = new ArrayList<>();
+        for (String s : lst.getList()) {
+            result.add(Integer.parseInt(s));
+        }
+        return result;
     }
 }

@@ -73,14 +73,4 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNull(pr);
 
     }
-
-
-    @Test
-    public void getProviderParentIdOfLayer() {
-        ProviderBrief provider = providerRepository.getProviderParentIdOfLayer("WMS", "test","tile");
-        if(provider==null)
-            LOGGER.debug("Null parent id");
-        else
-            LOGGER.debug(provider.toString());
-    }
 }

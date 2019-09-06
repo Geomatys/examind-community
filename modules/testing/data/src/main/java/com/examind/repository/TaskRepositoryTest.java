@@ -65,15 +65,4 @@ public class TaskRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNull(t);
 
     }
-
-    @Test
-    @Transactional()
-    public void findDayTask() throws Throwable {
-
-
-        taskRepository.findDayTask("espace-dev");
-
-
-    }
-
 }

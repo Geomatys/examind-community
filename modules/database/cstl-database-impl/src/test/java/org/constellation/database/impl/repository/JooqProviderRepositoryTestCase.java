@@ -37,10 +37,4 @@ public class JooqProviderRepositoryTestCase extends ProviderRepositoryTest {
     public void crude() {
         super.crude();
     }
-
-    @Test
-    @Override
-    public void getProviderParentIdOfLayer() {
-        super.getProviderParentIdOfLayer();
-    }
 }

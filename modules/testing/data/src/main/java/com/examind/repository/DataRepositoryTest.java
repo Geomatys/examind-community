@@ -78,6 +78,9 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
 
         data = dataRepository.findById(data.getId());
         Assert.assertNull(data);
+
+        // cleanup after test
+        providerRepository.delete(pid);
     }
 
 }

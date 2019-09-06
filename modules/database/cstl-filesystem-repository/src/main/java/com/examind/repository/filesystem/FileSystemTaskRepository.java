@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.process.Task;
+import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.TaskRepository;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Component;
 public class FileSystemTaskRepository  extends AbstractFileSystemRepository implements TaskRepository {
 
     private final Map<String, Task> byId = new HashMap<>();
+    private final Map<Integer, List<Task>> byTaskParameter = new HashMap<>();
 
     public FileSystemTaskRepository() {
         super(Task.class);
@@ -54,6 +56,13 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
                 for (Path taskFile : directoryStream) {
                     Task task = (Task) getObjectFromPath(taskFile, pool);
                     byId.put(task.getIdentifier(), task);
+                    if (byTaskParameter.containsKey(task.getTaskParameterId())) {
+                        byTaskParameter.get(task.getTaskParameterId()).add(task);
+                    } else {
+                        List<Task> tasks = new ArrayList<>();
+                        tasks.add(task);
+                        byTaskParameter.put(task.getTaskParameterId(), tasks);
+                    }
                 }
             }
 
@@ -103,10 +112,25 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
     public void update(Task task) {
         if (byId.containsKey(task.getIdentifier())) {
 
+            Task old = byId.get(task.getIdentifier());
+            if (old.getTaskParameterId() != null) {
+                if (byTaskParameter.containsKey(old.getTaskParameterId())) {
+                    byTaskParameter.get(old.getTaskParameterId()).remove(old);
+                }
+            }
+
             Path taskDir = getDirectory(TASK_DIR);
             Path taskFile = taskDir.resolve(task.getIdentifier()+ ".xml");
             writeObjectInPath(task, taskFile, pool);
             byId.put(task.getIdentifier(), task);
+
+            if (byTaskParameter.containsKey(task.getTaskParameterId())) {
+                byTaskParameter.get(task.getTaskParameterId()).add(task);
+            } else {
+                List<Task> tasks = new ArrayList<>();
+                tasks.add(task);
+                byTaskParameter.put(task.getTaskParameterId(), tasks);
+            }
         }
     }
 
@@ -115,23 +139,59 @@ public class FileSystemTaskRepository  extends AbstractFileSystemRepository impl
     ////--------------------------------------------------------------------///
 
     @Override
-    public List<Task> findRunningTasks(Integer id, Integer offset, Integer limit) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Task> findRunningTasks(Integer tpid, Integer offset, Integer limit) {
+        List<Task> results = new ArrayList<>();
+        if (byTaskParameter.containsKey(tpid)) {
+            List<Task> tasks = new ArrayList<>();
+            for (Task t : byTaskParameter.get(tpid)) {
+                if (t.getState().equalsIgnoreCase("RUNNING")) {
+                    tasks.add(t);
+                }
+            }
+            int i = offset;
+            int cpt = 0;
+            while (i < tasks.size() && cpt < limit) {
+                results.add(tasks.get(i));
+            }
+        }
+        return results;
     }
 
     @Override
-    public List<Task> taskHistory(Integer id, Integer offset, Integer limit) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Task> findDayTask(String process_authority) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Task> taskHistory(Integer tpid, Integer offset, Integer limit) {
+        List<Task> results = new ArrayList<>();
+        if (byTaskParameter.containsKey(tpid)) {
+            List<Task> tasks = byTaskParameter.get(tpid);
+            int i = offset;
+            int cpt = 0;
+            while (i < tasks.size() && cpt < limit) {
+                results.add(tasks.get(i));
+            }
+        }
+        return results;
     }
 
     @Override
     public void delete(String uuid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (byId.containsKey(uuid)) {
+
+            Task t = byId.get(uuid);
+
+            Path taskDir = getDirectory(TASK_DIR);
+            Path taskFile = taskDir.resolve(t.getIdentifier()+ ".xml");
+            try {
+                Files.delete(taskFile);
+            } catch (IOException ex) {
+                throw new ConstellationPersistenceException(ex);
+            }
+
+            byId.remove(t.getIdentifier());
+            if (t.getTaskParameterId() != null) {
+                if (byTaskParameter.containsKey(t.getTaskParameterId())) {
+                    byTaskParameter.get(t.getTaskParameterId()).remove(t);
+                }
+            }
+        }
     }
 
 }

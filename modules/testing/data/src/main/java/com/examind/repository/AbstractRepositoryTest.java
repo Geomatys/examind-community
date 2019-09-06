@@ -22,14 +22,13 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -38,7 +37,7 @@ import org.junit.BeforeClass;
 @ContextConfiguration("classpath:/cstl/spring/test-no-hazelcast.xml")
 public abstract class AbstractRepositoryTest {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    protected final static Logger LOGGER = Logging.getLogger("com.examind.repository");
 
     @Autowired
     DSLContext create;
@@ -55,20 +54,20 @@ public abstract class AbstractRepositoryTest {
 
     protected void dump(List<?> findAll) {
         for (Object property : findAll) {
-                LOGGER.debug(property.toString());
+                LOGGER.finer(property.toString());
         }
 
     }
 
     protected void dump(Result<Record> o) {
         if(o != null)
-            LOGGER.debug(o.toString());
+            LOGGER.finer(o.toString());
 
     }
 
     protected void dump(Object o) {
         if(o != null)
-            LOGGER.debug(o.toString());
+            LOGGER.finer(o.toString());
 
     }
 

@@ -31,11 +31,17 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.Data;
+import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.StringList;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.DataRepository;
+import org.constellation.repository.LayerRepository;
+import org.constellation.repository.StyleRepository;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,10 +56,18 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     private final Map<Integer, List<Data>> byProvider = new HashMap<>();
     private final Map<Integer, List<Data>> byDataset = new HashMap<>();
 
+    private final Map<Integer, List<Data>> linkedData = new HashMap<>();
+
     private final Map<Integer, Data> visibleData = new HashMap<>();
     private final Map<Integer, Data> invisibleData = new HashMap<>();
 
     private final Map<Integer, String> providerMapping = new HashMap<>();
+
+    @Autowired
+    private StyleRepository styleRepository;
+
+    @Autowired
+    private LayerRepository layerRepository;
 
     public FileSystemDataRepository() {
         super(ProviderBrief.class, Data.class);
@@ -79,14 +93,16 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
                     byFullName.put(new NameInProvider(NamesExt.create(data.getNamespace(), data.getName()), providerMapping.get(data.getProviderId())), data);
 
                     if (!byProvider.containsKey(data.getProviderId())) {
-                        List<Data> datas = Arrays.asList(data);
+                        List<Data> datas = new ArrayList<>();
+                        datas.add(data);
                         byProvider.put(data.getProviderId(), datas);
                     } else {
                         byProvider.get(data.getProviderId()).add(data);
                     }
 
                     if (!byDataset.containsKey(data.getDatasetId())) {
-                        List<Data> datas = Arrays.asList(data);
+                        List<Data> datas = new ArrayList<>();
+                        datas.add(data);
                         byDataset.put(data.getDatasetId(), datas);
                     } else {
                         byDataset.get(data.getDatasetId()).add(data);
@@ -102,6 +118,21 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
                         currentId = data.getId() +1;
                     }
                 }
+            }
+
+            Path DataDataDir = getDirectory(DATA_X_DATA_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(DataDataDir)) {
+                for (Path DataDataFile : directoryStream) {
+                    StringList dataList = (StringList) getObjectFromPath(DataDataFile, pool);
+                    String fileName = DataDataFile.getFileName().toString();
+                    Integer dataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                    List<Data> linked = new ArrayList<>();
+                    for (Integer linkedDataId : getIntegerList(dataList)) {
+                        linked.add(byId.get(linkedDataId));
+                    }
+                    linkedData.put(dataId, linked);
+                }
+
             }
 
         } catch (IOException | JAXBException ex) {
@@ -152,11 +183,52 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public List<Data> findByProviderId(Integer id) {
-        if (byProvider.containsKey(id)) {
-            return byProvider.get(id);
+    public List<Data> findByProviderId(Integer providerId) {
+        if (byProvider.containsKey(providerId)) {
+            return new ArrayList<>(byProvider.get(providerId));
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<Integer> findIdsByProviderId(Integer providerId) {
+        List<Integer> results = new ArrayList<>();
+        if (byProvider.containsKey(providerId)) {
+            for (Data d : byProvider.get(providerId)) {
+                results.add(d.getId());
+            }
+        }
+        return results;
+    }
+
+    @Override
+    public List<Data> findByProviderId(Integer providerId, String dataType, boolean included, boolean hidden) {
+        List<Data> results = new ArrayList<>();
+        if (byProvider.containsKey(providerId)) {
+            for (Data d : byProvider.get(providerId)) {
+                if (d.getIncluded().equals(included) &&
+                    d.getHidden().equals(hidden)     &&
+                    (dataType == null || dataType.equals(d.getType()))) {
+                    results.add(d);
+                }
+            }
+        }
+        return results;
+    }
+
+    @Override
+    public List<Integer> findIdsByProviderId(Integer providerId, String dataType, boolean included, boolean hidden) {
+        List<Integer> results = new ArrayList<>();
+        if (byProvider.containsKey(providerId)) {
+            for (Data d : byProvider.get(providerId)) {
+                if (d.getIncluded().equals(included) &&
+                    d.getHidden().equals(hidden)     &&
+                    (dataType == null || dataType.equals(d.getType()))) {
+                    results.add(d.getId());
+                }
+            }
+        }
+        return results;
     }
 
     @Override
@@ -190,7 +262,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     @Override
     public List<Data> findAllByDatasetId(Integer id) {
         if (byDataset.containsKey(id)) {
-            return byDataset.get(id);
+            return new ArrayList<>(byDataset.get(id));
         }
         return new ArrayList<>();
     }
@@ -239,27 +311,31 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
 
     @Override
-    public List<Data> getCswLinkedData(int cswId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Data> getFullDataByLinkedStyle(int styleId) {
+        List<Data> results = new ArrayList<>();
+        for (Data d : byId.values()) {
+            if (styleRepository.getStyleIdsForData(d.getId()).contains(styleId)) {
+                results.add(d);
+            }
+        }
+        return results;
     }
 
     @Override
     public List<Data> getDataLinkedData(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Data> getFullDataByLinkedStyle(int styleId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (linkedData.containsKey(dataId)) {
+            return new ArrayList<>(linkedData.get(dataId));
+        }
+        return new ArrayList<>();
     }
 
     @Override
     public List<Data> getRefDataByLinkedStyle(int styleId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return getFullDataByLinkedStyle(styleId);
     }
 
     @Override
-    public Data fromLayer(String layerAlias, String providerId) {
+    public List<Data> getCswLinkedData(int cswId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -283,14 +359,16 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             byFullName.put(nim, data);
 
             if (!byProvider.containsKey(data.getProviderId())) {
-                List<Data> datas = Arrays.asList(data);
+                List<Data> datas = new ArrayList<>();
+                datas.add(data);
                 byProvider.put(data.getProviderId(), datas);
             } else {
                 byProvider.get(data.getProviderId()).add(data);
             }
 
             if (!byDataset.containsKey(data.getDatasetId())) {
-                List<Data> datas = Arrays.asList(data);
+                List<Data> datas = new ArrayList<>();
+                datas.add(data);
                 byDataset.put(data.getDatasetId(), datas);
             } else {
                 byDataset.get(data.getDatasetId()).add(data);
@@ -325,14 +403,16 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             byFullName.put(nim, data);
 
             if (!byProvider.containsKey(data.getProviderId())) {
-                List<Data> datas = Arrays.asList(data);
+                List<Data> datas = new ArrayList<>();
+                datas.add(data);
                 byProvider.put(data.getProviderId(), datas);
             } else {
                 byProvider.get(data.getProviderId()).add(data);
             }
 
             if (!byDataset.containsKey(data.getDatasetId())) {
-                List<Data> datas = Arrays.asList(data);
+                List<Data> datas = new ArrayList<>();
+                datas.add(data);
                 byDataset.put(data.getDatasetId(), datas);
             } else {
                 byDataset.get(data.getDatasetId()).add(data);
@@ -373,6 +453,26 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             }
             invisibleData.remove(id);
             visibleData.remove(id);
+
+            removeLinkedData(id);
+
+            // update linked data
+            Path dataDataDir = getDirectory(DATA_X_DATA_DIR);
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dataDataDir)) {
+                for (Path dataDataFile : directoryStream) {
+                    String fileName = dataDataFile.getFileName().toString();
+                    Integer dataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                    unlinkDataToData(id, dataId);
+                }
+
+            } catch (IOException ex) {
+                LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
+            }
+
+            styleRepository.unlinkAllStylesFromData(id);
+
+
             return 1;
         }
         return 0;
@@ -398,6 +498,14 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         }
     }
 
+    @Override
+    public void updateOwner(int dataId, int newOwner) {
+        Data d = findById(dataId);
+        if (d != null) {
+            d.setOwnerId(newOwner);
+            update(d);
+        }
+    }
 
     ////--------------------------------------------------------------------///
     ////------------------------    LINKS          -------------------------///
@@ -424,18 +532,107 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
+    public List<Data> findByServiceId(Integer id) {
+        List<Data> results = new ArrayList<>();
+        List<Layer> layers = layerRepository.findByServiceId(id);
+        for (Layer layer : layers) {
+            results.add(byId.get(layer.getDataId()));
+        }
+        return results;
+    }
+
+    @Override
     public void linkDataToData(int dataId, int childId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Path dataDataDir = getDirectory(DATA_X_DATA_DIR);
+        boolean found = false;
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dataDataDir)) {
+            for (Path dataDataFile : directoryStream) {
+                String fileName = dataDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId == dataId) {
+                    found = true;
+                    StringList dataList = (StringList) getObjectFromPath(dataDataFile, pool);
+                    List<Integer> dataIds = getIntegerList(dataList);
+                    if (!dataIds.contains(childId)) {
+                        dataIds.add(childId);
+
+                        // update fs
+                        writeObjectInPath(dataList, dataDataFile, pool);
+
+                        // update memory
+                        List<Data> datas = linkedData.get(dataId);
+                        datas.add(byId.get(dataId));
+                    }
+                }
+            }
+
+            // create new file
+            if (found) {
+                // update fs
+                StringList dataList = new StringList(Arrays.asList(dataId + ""));
+                Path dataDataFile = dataDataDir.resolve(dataId + ".xml");
+                writeObjectInPath(dataList, dataDataFile, pool);
+
+                // update memory
+                List<Data> datas = new ArrayList<>();
+                datas.add(byId.get(childId));
+                linkedData.put(dataId, datas);
+            }
+
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void unlinkDataToData(int dataId, int childId) {
+
+        Path dataDataDir = getDirectory(DATA_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dataDataDir)) {
+            for (Path dataDataFile : directoryStream) {
+                String fileName = dataDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+
+                // update file
+                if (currentDataId == dataId) {
+                    StringList dataList = (StringList) getObjectFromPath(dataDataFile, pool);
+                    List<Integer> dataIds = getIntegerList(dataList);
+                    if (dataIds.contains(childId)) {
+                        dataIds.remove(childId);
+
+                        // update fs
+                        writeObjectInPath(dataList, dataDataFile, pool);
+
+                        // update memory
+                        List<Data> datas = linkedData.get(dataId);
+                        datas.remove(byId.get(dataId));
+                    }
+                }
+            }
+
+        } catch (IOException | JAXBException ex) {
+            LOGGER.log(Level.WARNING, "Error while unlinking style and data", ex);
+        }
     }
 
     @Override
     public void removeLinkedData(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+        Path DataDataDir = getDirectory(DATA_X_DATA_DIR);
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(DataDataDir)) {
+            for (Path dataDataFile : directoryStream) {
+                String fileName = dataDataFile.getFileName().toString();
+                Integer currentDataId = Integer.parseInt(fileName.substring(0, fileName.length() - 4));
+                if (currentDataId == dataId) {
+                    IOUtilities.deleteSilently(dataDataFile);
+                    linkedData.remove(dataId);
+                }
+            }
 
-    @Override
-    public void updateOwner(int dataId, int newOwner) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     ////--------------------------------------------------------------------///

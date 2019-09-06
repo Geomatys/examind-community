@@ -31,8 +31,6 @@ public interface DataRepository {
 
     Integer countAll(boolean includeInvisibleData);
 
-    Data fromLayer(String layerAlias, String providerId);
-
     Data findById(int dataId);
 
     Data create(Data data);
@@ -49,11 +47,19 @@ public interface DataRepository {
 
     List<Data> findByProviderId(Integer id);
 
+    List<Integer> findIdsByProviderId(Integer id);
+
+    List<Data> findByProviderId(Integer id, String dataType, boolean included, boolean hidden);
+
+    List<Integer> findIdsByProviderId(Integer id, String dataType, boolean included, boolean hidden);
+
     List<Data> findByDatasetId(Integer id);
 
     List<Data> findByDatasetId(Integer datasetId, boolean included, boolean hidden);
 
     List<Data> findAllByDatasetId(Integer id);
+
+    List<Data> findByServiceId(Integer id);
 
     List<Data> findStatisticLess();
 

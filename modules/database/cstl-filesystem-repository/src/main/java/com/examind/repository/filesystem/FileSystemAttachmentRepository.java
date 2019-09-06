@@ -58,14 +58,15 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                     Attachment attachment = (Attachment) getObjectFromPath(attachmentFile, pool);
                     byId.put(attachment.getId(), attachment);
 
-                    if (!byFileName.containsKey(attachment.getFilename())) {
-                        List<Attachment> atts = new ArrayList<>();
-                        atts.add(attachment);
-                        byFileName.put(attachment.getFilename(), atts);
-                    } else {
-                        byFileName.get(attachment.getFilename()).add(attachment);
+                    if (attachment.getFilename() != null) {
+                        if (!byFileName.containsKey(attachment.getFilename())) {
+                            List<Attachment> atts = new ArrayList<>();
+                            atts.add(attachment);
+                            byFileName.put(attachment.getFilename(), atts);
+                        } else {
+                            byFileName.get(attachment.getFilename()).add(attachment);
+                        }
                     }
-
                     if (attachment.getId() >= currentId) {
                         currentId = attachment.getId() +1;
                     }
@@ -115,12 +116,14 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
 
             byId.put(att.getId(), att);
 
-            if (!byFileName.containsKey(att.getFilename())) {
-                List<Attachment> atts = new ArrayList<>();
-                atts.add(att);
-                byFileName.put(att.getFilename(), atts);
-            } else {
-                byFileName.get(att.getFilename()).add(att);
+            if (att.getFilename() != null) {
+                if (!byFileName.containsKey(att.getFilename())) {
+                    List<Attachment> atts = new ArrayList<>();
+                    atts.add(att);
+                    byFileName.put(att.getFilename(), atts);
+                } else {
+                    byFileName.get(att.getFilename()).add(att);
+                }
             }
 
             currentId++;
@@ -137,17 +140,26 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
             byFileName.get(previous.getFilename()).remove(att);
 
 
+            Attachment old = byId.get(att.getId());
+            if (old.getFilename() != null) {
+                if (byFileName.containsKey(old.getFilename())) {
+                    byFileName.get(old.getFilename()).remove(old);
+                }
+            }
+
             Path attachmentDir = getDirectory(ATTACHMENT_DIR);
             Path attachmentFile = attachmentDir.resolve(att.getId() + ".xml");
             writeObjectInPath(att, attachmentFile, pool);
 
             byId.put(att.getId(), att);
-            if (!byFileName.containsKey(att.getFilename())) {
-                List<Attachment> atts = new ArrayList<>();
-                atts.add(att);
-                byFileName.put(att.getFilename(), atts);
-            } else {
-                byFileName.get(att.getFilename()).add(att);
+            if (att.getFilename() != null) {
+                if (!byFileName.containsKey(att.getFilename())) {
+                    List<Attachment> atts = new ArrayList<>();
+                    atts.add(att);
+                    byFileName.put(att.getFilename(), atts);
+                } else {
+                    byFileName.get(att.getFilename()).add(att);
+                }
             }
         }
     }
@@ -166,7 +178,9 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
             }
 
             byId.remove(att.getId());
-            byFileName.get(att.getFilename()).remove(att);
+            if (att.getFilename() != null) {
+                byFileName.get(att.getFilename()).remove(att);
+            }
             return 1;
         }
         return 0;

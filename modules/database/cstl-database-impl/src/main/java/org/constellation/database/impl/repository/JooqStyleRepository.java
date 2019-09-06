@@ -3,7 +3,6 @@ package org.constellation.database.impl.repository;
 import org.constellation.database.api.jooq.tables.records.StyleRecord;
 import org.constellation.database.api.jooq.tables.records.StyledDataRecord;
 import org.constellation.database.api.jooq.tables.records.StyledLayerRecord;
-import org.constellation.dto.Data;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.repository.StyleRepository;
@@ -17,7 +16,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static org.constellation.database.api.jooq.Tables.*;
-import static org.constellation.database.impl.repository.JooqDataRepository.convertDataListToDto;
 
 @Component
 @DependsOn("database-initer")
@@ -146,11 +144,6 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     public void delete(int providerId, String name) {
         dsl.delete(STYLE).where(STYLE.PROVIDER.eq(providerId).and(STYLE.NAME.eq(name))).execute();
 
-    }
-
-    @Override
-    public List<Data> getLinkedData(int styleId) {
-        return convertDataListToDto(dsl.select().from(STYLED_DATA).where(STYLED_DATA.STYLE.eq(styleId)).fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override

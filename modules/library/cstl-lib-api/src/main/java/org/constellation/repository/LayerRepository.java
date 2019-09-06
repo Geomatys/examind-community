@@ -65,10 +65,6 @@ public interface LayerRepository {
 
     Layer findByServiceIdAndDataId(int serviceId, int dataId);
 
-    Data findDatasFromLayerAlias(String layerAlias, String dataProviderIdentifier);
-
-    Data findDataFromLayer(int layerId);
-
     void updateLayerTitle(int layerID, String newTitle);
 
     /**

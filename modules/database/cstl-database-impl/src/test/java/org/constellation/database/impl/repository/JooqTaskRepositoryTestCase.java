@@ -32,12 +32,4 @@ public class JooqTaskRepositoryTestCase extends TaskRepositoryTest {
         super.crude();
 
     }
-
-    @Test
-    @Transactional()
-    @Override
-    public void findDayTask() throws Throwable {
-        super.findDayTask();
-    }
-
 }

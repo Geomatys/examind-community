@@ -35,12 +35,14 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.constellation.api.ServiceDef;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.Data;
+import org.constellation.dto.Layer;
 import org.constellation.dto.ServiceReference;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationPersistenceException;
+import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ServiceRepository;
 import org.geotoolkit.nio.IOUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,10 +53,14 @@ import org.springframework.stereotype.Component;
 public class FileSystemServiceRepository extends AbstractFileSystemRepository implements ServiceRepository {
 
     private final Map<String, Service> byMetadataService = new HashMap<>();
-    private final Map<Integer, Service> loadedService = new HashMap<>();
+    private final Map<Integer, Service> byId = new HashMap<>();
     private final Map<Integer, Map<String, String>> loadedServiceDetails = new HashMap<>();
     private final Map<String, Map<String, Service>> byTypeNameService = new HashMap<>();
     private final Map<Integer, Map<String, String>> extraConfigs = new HashMap<>();
+
+    @Autowired
+    private LayerRepository layerRepository;
+
 
     public FileSystemServiceRepository() {
         super(Service.class);
@@ -73,7 +79,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
                     Path servFile = p.resolve("service.xml");
                     Service serObj = (Service) getObjectFromPath(servFile, pool);
-                    loadedService.put(serObj.getId(), serObj);
+                    byId.put(serObj.getId(), serObj);
                     nameService.put(serObj.getIdentifier(), serObj);
 
                     if (serObj.getId() >= currentId) {
@@ -118,12 +124,12 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public List<Service> findAll() {
-        return new ArrayList<>(loadedService.values());
+        return new ArrayList<>(byId.values());
     }
 
     @Override
     public Service findById(int id) {
-        return loadedService.get(id);
+        return byId.get(id);
     }
 
     @Override
@@ -190,7 +196,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public Map<String, String> getExtraConfig(int id) {
-        return extraConfigs.get(id);
+        return new HashMap<>(extraConfigs.get(id));
     }
 
     @Override
@@ -204,7 +210,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public boolean exist(Integer id) {
-        return loadedService.containsKey(id);
+        return byId.containsKey(id);
     }
 
 
@@ -221,7 +227,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
         Path servFile = servDir.resolve("service.xml");
 
         writeObjectInPath(service, servFile, pool);
-        loadedService.put(service.getId(), service);
+        byId.put(service.getId(), service);
 
         Map<String, Service> nameService = byTypeNameService.get(service.getType());
         if (nameService == null) {
@@ -235,7 +241,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public void delete(Integer id) {
-        Service service = loadedService.get(id);
+        Service service = byId.get(id);
         if (service != null) {
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             try {
@@ -243,7 +249,7 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
             } catch (IOException ex) {
                 Logger.getLogger(FileSystemServiceRepository.class.getName()).log(Level.SEVERE, null, ex);
             }
-            loadedService.remove(id);
+            byId.remove(id);
             loadedServiceDetails.remove(id);
             Map<String, Service> byType = byTypeNameService.get(service.getType());
             if (byType != null) {
@@ -255,8 +261,8 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public void createOrUpdateServiceDetails(Integer id, String lang, String content, Boolean defaultLang) {
-        if (loadedService.containsKey(id)) {
-            Service service = loadedService.get(id);
+        if (byId.containsKey(id)) {
+            Service service = byId.get(id);
 
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             Path detailFiles = servDir.resolve("i18n");
@@ -282,12 +288,12 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public Service update(Service service) {
-        if (loadedService.containsKey(service.getId())) {
+        if (byId.containsKey(service.getId())) {
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             Path servFile = servDir.resolve("service.xml");
 
             writeObjectInPath(service, servFile, pool);
-            loadedService.put(service.getId(), service);
+            byId.put(service.getId(), service);
 
             Map<String, Service> nameService = byTypeNameService.get(service.getType());
             if (nameService == null) {
@@ -301,15 +307,15 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public void updateStatus(int id, String status) {
-        if (loadedService.containsKey(id)) {
-            Service service = loadedService.get(id);
+        if (byId.containsKey(id)) {
+            Service service = byId.get(id);
             service.setStatus(status);
 
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             Path servFile = servDir.resolve("service.xml");
 
             writeObjectInPath(service, servFile, pool);
-            loadedService.put(service.getId(), service);
+            byId.put(service.getId(), service);
 
             Map<String, Service> nameService = byTypeNameService.get(service.getType());
             if (nameService == null) {
@@ -322,8 +328,8 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public void updateExtraFile(Integer serviceID, String fileName, String config) {
-        if (loadedService.containsKey(serviceID)) {
-            Service service = loadedService.get(serviceID);
+        if (byId.containsKey(serviceID)) {
+            Service service = byId.get(serviceID);
 
             Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
             Path extraFiles = servDir.resolve("extras");
@@ -350,17 +356,25 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public List<Service> findByDataId(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<Data> findDataByServiceId(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<Service> results = new ArrayList<>();
+        List<Integer> layerIds = layerRepository.findByDataId(dataId);
+        for (Integer layerId : layerIds) {
+            Layer l = layerRepository.findById(layerId);
+            results.add(byId.get(l.getService()));
+        }
+        return results;
     }
 
     @Override
     public List<ServiceReference> fetchByDataId(int dataId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<ServiceReference> results = new ArrayList<>();
+        List<Integer> layerIds = layerRepository.findByDataId(dataId);
+        for (Integer layerId : layerIds) {
+            Layer l = layerRepository.findById(layerId);
+            Service s = byId.get(l.getService());
+            results.add(new ServiceReference(s.getId(), s.getIdentifier(), s.getType()));
+        }
+        return results;
     }
 
     ////--------------------------------------------------------------------///

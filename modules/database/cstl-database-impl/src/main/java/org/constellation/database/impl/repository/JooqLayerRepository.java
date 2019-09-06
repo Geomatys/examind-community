@@ -20,16 +20,13 @@ package org.constellation.database.impl.repository;
 
 import java.util.ArrayList;
 import java.util.Date;
-import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.LAYER;
-import static org.constellation.database.api.jooq.Tables.PROVIDER;
 import static org.constellation.database.api.jooq.Tables.STYLED_LAYER;
 
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.database.api.jooq.tables.records.LayerRecord;
 import org.constellation.repository.LayerRepository;
@@ -39,7 +36,6 @@ import org.jooq.UpdateConditionStep;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import static org.constellation.database.impl.repository.JooqDataRepository.convertDataIntoDto;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
@@ -168,18 +164,6 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
                 .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
 
-    }
-
-    @Override
-    public Data findDatasFromLayerAlias(String layerAlias, String dataProviderIdentifier) {
-        return convertDataIntoDto(dsl.select().from(DATA).join(PROVIDER).on(DATA.PROVIDER.eq(PROVIDER.ID)).join(LAYER).on(LAYER.DATA.eq(DATA.ID))
-                .where(PROVIDER.IDENTIFIER.eq(dataProviderIdentifier)).and(LAYER.ALIAS.eq(layerAlias)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
-    }
-
-    @Override
-    public Data findDataFromLayer(int layerId) {
-        return convertDataIntoDto(dsl.select(DATA.fields()).from(DATA).join(LAYER).on(LAYER.DATA.eq(DATA.ID))
-                .where(LAYER.ID.eq(layerId)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
 
     @Override
