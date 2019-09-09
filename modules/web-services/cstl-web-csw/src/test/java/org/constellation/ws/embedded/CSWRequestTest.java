@@ -144,9 +144,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
                 final Automatic config2 = new Automatic();
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
-                serviceBusiness.create("csw", "csw2", config2, null, null);
+                Integer csw2Id =serviceBusiness.create("csw", "csw2", config2, null, null);
                 serviceBusiness.linkCSWAndProvider("csw2", "metadataSrc2");
-                serviceBusiness.start("csw", "csw2");
+                serviceBusiness.start(csw2Id);
 
 
                 final File dataDirectory = new File(configDirectory, "dataCsw");
@@ -180,9 +180,9 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 fsStore2 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
                 final Automatic config = new Automatic();
-                serviceBusiness.create("csw", "default", config, null, null);
+                Integer defId = serviceBusiness.create("csw", "default", config, null, null);
                 serviceBusiness.linkCSWAndProvider("default", "CRmetadataSrc");
-                serviceBusiness.start("csw", "default");
+                serviceBusiness.start(defId);
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");
 

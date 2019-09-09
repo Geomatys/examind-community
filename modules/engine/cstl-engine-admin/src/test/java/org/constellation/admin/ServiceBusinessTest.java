@@ -70,8 +70,7 @@ public class ServiceBusinessTest {
     @Test
     public void createService() throws Exception {
         final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
-        Object conf = serviceBusiness.create("wms", "test", new LayerContext(), frDetails, null);
-        Assert.assertTrue(conf instanceof LayerContext);
+        Integer id = serviceBusiness.create("wms", "test", new LayerContext(), frDetails, null);
         Assert.assertTrue(serviceBusiness.getServiceIdentifiers("wms").contains("test"));
 
         final Details jpnDetails = new Details("nameJPN", "identifierJPN", Arrays.asList("keyword1JPN", "keyword2JPN"), "descriptionJPN", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "jpn");

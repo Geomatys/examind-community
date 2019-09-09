@@ -91,6 +91,7 @@ import org.apache.sis.metadata.iso.ImmutableIdentifier;
 import org.apache.sis.util.NullArgumentException;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
@@ -927,7 +928,10 @@ public class WPSUtils {
         //restart WMS worker
         try {
             IServiceBusiness serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
-            serviceBusiness.restart("WMS", wmsInstance, true);
+            ServiceComplete def = serviceBusiness.getServiceByIdentifierAndType("WMS", wmsInstance);
+            if (def != null) {
+                serviceBusiness.restart(def.getId(), true);
+            }
         } catch (ConfigurationException e) {
             LOGGER.log(Level.WARNING, "Error during WMS " + wmsInstance + " restart.", e);
         }

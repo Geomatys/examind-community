@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.ws.IWSEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -88,7 +89,8 @@ public abstract class ServiceProcessTest extends AbstractProcessTest {
 
     protected void deleteInstance(String identifier) {
         try {
-            serviceBusiness.delete(serviceName.toLowerCase(), identifier);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceName.toLowerCase(), identifier);
+            serviceBusiness.delete(s.getId());
             if (engine.getWorkersMap(serviceName) != null) {
                 engine.getWorkersMap(serviceName).remove(identifier);
             }

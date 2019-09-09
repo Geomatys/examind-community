@@ -173,10 +173,10 @@ public class SosHarvesterProcessTest {
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null, null);
+                Integer id = serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "omSrc");
 
-                serviceBusiness.start("sos", "default");
+                serviceBusiness.start(id);
 
                 initialized = true;
             }

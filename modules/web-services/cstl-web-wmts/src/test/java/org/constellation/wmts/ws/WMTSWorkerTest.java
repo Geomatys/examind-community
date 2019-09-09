@@ -49,6 +49,7 @@ import java.io.StringWriter;
 import java.util.logging.Level;
 
 import org.apache.sis.util.logging.Logging;
+import org.constellation.exception.ConstellationException;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
@@ -87,8 +88,8 @@ public class WMTSWorkerTest {
         try {
 
             try {
-                serviceBusiness.delete("wmts", "default");
-            } catch (ConfigurationException ex) {}
+                serviceBusiness.deleteAll();
+            } catch (ConstellationException ex) {}
 
             pool = WMTSMarshallerPool.getInstance();
 

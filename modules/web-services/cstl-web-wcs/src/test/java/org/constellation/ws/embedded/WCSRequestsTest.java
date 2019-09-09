@@ -163,10 +163,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
                 final LayerContext config = new LayerContext();
 
-                serviceBusiness.create("wcs", "default", config, null, null);
+                Integer defId = serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "default", "wcs", null);
 
-                serviceBusiness.create("wcs", "test", config, null, null);
+                Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
                 layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "test",    "wcs", null);
 
 
@@ -184,8 +184,8 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                     Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
                 }
 
-                serviceBusiness.start("wcs", "default");
-                serviceBusiness.start("wcs", "test");
+                serviceBusiness.start(defId);
+                serviceBusiness.start(testId);
                 waitForRestStart("wcs","default");
                 waitForRestStart("wcs","test");
 

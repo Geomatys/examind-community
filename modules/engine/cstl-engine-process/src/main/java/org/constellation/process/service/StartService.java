@@ -19,6 +19,7 @@
 package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -46,7 +47,11 @@ public final class StartService extends AbstractCstlProcess {
         final String identifier = inputParameters.getValue(IDENTIFIER);
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
         try {
-            serviceBusiness.start(serviceType.toLowerCase(), identifier);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
+            if (s == null) {
+                throw new ProcessException("Unexisting service", this);
+            }
+            serviceBusiness.start(s.getId());
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

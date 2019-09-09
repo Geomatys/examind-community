@@ -31,6 +31,7 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.exception.ConstellationException;
@@ -172,7 +173,8 @@ public class OGCRestAPI {
     public ResponseEntity start(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            serviceBusiness.start(serviceType, id);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
+            serviceBusiness.start(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully started."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
@@ -190,7 +192,8 @@ public class OGCRestAPI {
     public ResponseEntity stop(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            serviceBusiness.stop(serviceType, id);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
+            serviceBusiness.stop(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully stopped."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
@@ -210,7 +213,8 @@ public class OGCRestAPI {
             final @RequestParam(name = "stopFirst", required = false, defaultValue = "false") boolean stopFirst) {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            serviceBusiness.restart(serviceType, id, stopFirst);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
+            serviceBusiness.restart(s.getId(), stopFirst);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully restarted."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
@@ -229,7 +233,8 @@ public class OGCRestAPI {
     public ResponseEntity rename(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id, final @RequestParam String newId) {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            serviceBusiness.rename(serviceType, id, newId);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
+            serviceBusiness.rename(s.getId(), newId);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully renamed."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
@@ -248,7 +253,8 @@ public class OGCRestAPI {
         try {
             layerBusiness.removeForService(serviceType, id);
             serviceBusiness.ensureExistingInstance(serviceType, id);
-            serviceBusiness.delete(serviceType, id);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
+            serviceBusiness.delete(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully deleted."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();

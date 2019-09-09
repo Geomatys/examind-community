@@ -116,7 +116,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public Object create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner)
+    public Integer create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner)
             throws ConfigurationException {
 
         if (identifier == null || identifier.isEmpty()) {
@@ -177,7 +177,7 @@ public class ServiceBusiness implements IServiceBusiness {
         int serviceId = serviceRepository.create(service);
         setInstanceDetails(serviceType, identifier, details, details.getLang(), true);
 
-        return configuration;
+        return serviceId;
     }
 
     /**
@@ -185,22 +185,22 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void start(final String serviceType, final String identifier) throws ConfigurationException {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new ConfigurationException("Service instance identifier can't be null or empty.");
+    public void start(final Integer id) throws ConfigurationException {
+        if (id == null) {
+            throw new ConfigurationException("Service instance identifier can't be null.");
         }
-        final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
+        final Service service = serviceRepository.findById(id);
         if (service != null) {
             service.setStatus(ServiceStatus.STARTED.toString());
             serviceRepository.update(service);
 
             final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
             request.put(KEY_ACTION, SRV_VALUE_ACTION_START);
-            request.put(SRV_KEY_TYPE, serviceType);
-            request.put(KEY_IDENTIFIER, identifier);
+            request.put(SRV_KEY_TYPE, service.getType());
+            request.put(KEY_IDENTIFIER, service.getIdentifier());
             clusterBusiness.publish(request);
         } else {
-            throw new TargetNotFoundException(serviceType + " service instance with identifier \"" + identifier
+            throw new TargetNotFoundException("Service instance with identifier \"" + id
                     + "\" not found. There is not configuration in the database.");
         }
     }
@@ -210,23 +210,23 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void stop(final String serviceType, final String identifier) throws ConfigurationException {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new ConfigurationException("Service instance identifier can't be null or empty.");
+    public void stop(final Integer id) throws ConfigurationException {
+        if (id == null) {
+            throw new ConfigurationException("Service instance identifier can't be null.");
         }
 
-        final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
+        final Service service = serviceRepository.findById(id);
         if (service != null) {
             service.setStatus(ServiceStatus.STOPPED.toString());
             serviceRepository.update(service);
 
             final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
             request.put(KEY_ACTION, SRV_VALUE_ACTION_STOP);
-            request.put(SRV_KEY_TYPE, serviceType);
-            request.put(KEY_IDENTIFIER, identifier);
+            request.put(SRV_KEY_TYPE, service.getType());
+            request.put(KEY_IDENTIFIER, service.getIdentifier());
             clusterBusiness.publish(request);
         } else {
-            throw new TargetNotFoundException(serviceType + " service instance with identifier \"" + identifier
+            throw new TargetNotFoundException("Service instance with identifier \"" + id
                     + "\" not found. There is not configuration in the database.");
         }
     }
@@ -236,12 +236,12 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Transactional
     @Override
-    public void restart(final String serviceType, final String identifier, final boolean closeFirst) throws ConfigurationException {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new ConfigurationException("Service instance identifier can't be null or empty.");
+    public void restart(final Integer id, final boolean closeFirst) throws ConfigurationException {
+        if (id == null) {
+            throw new ConfigurationException("Service instance identifier can't be null.");
         }
-        stop(serviceType, identifier);
-        start(serviceType, identifier);
+        stop(id);
+        start(id);
     }
 
     /**
@@ -249,23 +249,23 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void rename(final String serviceType, final String identifier, final String newIdentifier) throws ConfigurationException {
+    public void rename(final Integer id, final String newIdentifier) throws ConfigurationException {
 
-        final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
-        if(service==null) throw new ConfigurationException("no existing instance:" + identifier);
+        final Service service = serviceRepository.findById(id);
+        if(service==null) throw new ConfigurationException("no existing instance:" + id);
 
-        final Service newService = serviceRepository.findByIdentifierAndType(newIdentifier, serviceType);
+        final Service newService = serviceRepository.findByIdentifierAndType(newIdentifier, service.getType());
         if(newService!=null) throw new ConfigurationException("already existing instance:" + newIdentifier);
 
         //stop service
-        stop(serviceType, identifier);
+        stop(id);
 
         //rename it
         service.setIdentifier(newIdentifier);
         serviceRepository.update(service);
 
         //start service
-        start(serviceType, newIdentifier);
+        start(id);
     }
 
     /**
@@ -273,34 +273,34 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void delete(final String serviceType, final String identifier) throws ConfigurationException {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new ConfigurationException("Service instance identifier can't be null or empty.");
+    public void delete(final Integer id) throws ConfigurationException {
+        if (id == null) {
+            throw new ConfigurationException("Service instance identifier can't be null.");
         }
 
-        final Integer serviceId = serviceRepository.findIdByIdentifierAndType(identifier, serviceType);
-        if(serviceId==null) throw new ConfigurationException("There is no instance:" + identifier + " to delete");
+        final Service service = serviceRepository.findById(id);
+        if (service == null) throw new ConfigurationException("There is no instance:" + id + " to delete");
 
         // stop services
-        stop(serviceType, identifier);
+        stop(id);
 
-        if (serviceType.equalsIgnoreCase("csw")) {
-            dataRepository.removeAllDataFromCSW(serviceId);
-            datasetRepository.removeAllDatasetFromCSW(serviceId);
-            serviceRepository.removelinkedMetadataProvider(serviceId);
-        } else if (serviceType.equalsIgnoreCase("sos")) {
-            List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(serviceId);
-            serviceRepository.removelinkedSensorProviders(serviceId);
-            serviceRepository.removelinkedSensors(serviceId);
+        if (service.getType().equalsIgnoreCase("csw")) {
+            dataRepository.removeAllDataFromCSW(id);
+            datasetRepository.removeAllDatasetFromCSW(id);
+            serviceRepository.removelinkedMetadataProvider(id);
+        } else if (service.getType().equalsIgnoreCase("sos")) {
+            List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id);
+            serviceRepository.removelinkedSensorProviders(id);
+            serviceRepository.removelinkedSensors(id);
             for (Integer linkedProviderID : linkedProviders) {
                 providerBusiness.removeProvider(linkedProviderID);
             }
         }
 
         // delete from database
-        serviceRepository.delete(serviceId);
+        serviceRepository.delete(id);
         // delete folder
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory(serviceType, identifier);
+        final Path instanceDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
         if (Files.isDirectory(instanceDir)) {
             //FIXME use deleteRecursively instead and handle exception
             IOUtilities.deleteSilently(instanceDir);
@@ -315,7 +315,7 @@ public class ServiceBusiness implements IServiceBusiness {
     public void deleteAll() throws ConfigurationException {
         final List<Service> services = serviceRepository.findAll();
         for (Service service : services) {
-            delete(service.getType(), service.getIdentifier());
+            delete(service.getId());
         }
     }
 

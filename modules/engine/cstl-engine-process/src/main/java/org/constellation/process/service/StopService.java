@@ -19,6 +19,7 @@
 package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -44,10 +45,14 @@ public class StopService extends AbstractCstlProcess {
 
     @Override
     protected void execute() throws ProcessException {
-        final String service = inputParameters.getValue(SERVICE_TYPE);
+        final String serviceType = inputParameters.getValue(SERVICE_TYPE);
         final String identifier = inputParameters.getValue(IDENTIFIER);
         try {
-            serviceBusiness.stop(service, identifier);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
+            if (s == null) {
+                throw new ProcessException("Unexisting service", this);
+            }
+            serviceBusiness.stop(s.getId());
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

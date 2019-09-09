@@ -57,6 +57,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.test.utils.TestRunner;
 
 import org.constellation.sos.ws.SOSUtils;
@@ -159,22 +160,22 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sosconf.setProfile("transactional");
                 sosconf.setVerifySynchronization(false);
 
-                serviceBusiness.create("sos", "default", sosconf, null, null);
+                Integer defId = serviceBusiness.create("sos", "default", sosconf, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "sensor-default");
                 serviceBusiness.linkSOSAndProvider("default", "om-default");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626");
                 sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:2");
 
-                serviceBusiness.create("sos", "test", sosconf, null, null);
+                Integer testId =serviceBusiness.create("sos", "test", sosconf, null, null);
                 serviceBusiness.linkSOSAndProvider("test", "sensor-test");
                 serviceBusiness.linkSOSAndProvider("test", "om-test");
                 sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");
                 sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626");
                 sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:2");
 
-                serviceBusiness.start("sos", "default");
-                serviceBusiness.start("sos", "test");
+                serviceBusiness.start(defId);
+                serviceBusiness.start(testId);
 
                 // Get the list of layers
                 pool = SOSMarshallerPool.getInstance();

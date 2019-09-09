@@ -35,6 +35,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
@@ -111,11 +112,11 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
                 final Processes processes = new Processes(process);
                 final ProcessContext config = new ProcessContext(processes);
 
-                serviceBusiness.create("wps", "default", config, null, null);
-                serviceBusiness.create("wps", "test",    config, null, null);
+                Integer defId = serviceBusiness.create("wps", "default", config, null, null);
+                Integer testId = serviceBusiness.create("wps", "test",    config, null, null);
 
-                serviceBusiness.start("wps", "default");
-                serviceBusiness.start("wps", "test");
+                serviceBusiness.start(defId);
+                serviceBusiness.start(testId);
 
                 pool = WPSMarshallerPool.getInstance();
 
@@ -130,8 +131,10 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
     public static void shutDown() throws Exception {
         final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
         if (service != null) {
-            service.delete("wps", "default");
-            service.delete("wps", "test");
+            ServiceComplete def = service.getServiceByIdentifierAndType("wps", "default");
+            service.delete(def.getId());
+            ServiceComplete test = service.getServiceByIdentifierAndType("wps", "test");
+            service.delete(test.getId());
         }
         ConfigDirectory.shutdownTestEnvironement("WPSRequestTest");
         stopServer();

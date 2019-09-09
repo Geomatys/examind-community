@@ -38,12 +38,11 @@ public interface IServiceBusiness {
     /**
      * Stops a service instance.
      *
-     * @param serviceType The service type (WMS, WFS, ...)
-     * @param identifier The service identifier.
+     * @param serviceId The service identifier.
      *
      * @throws ConfigurationException if the operation has failed for any reason
      */
-    void stop(String serviceType, String identifier) throws ConfigurationException;
+    void stop(Integer serviceId) throws ConfigurationException;
 
     /**
      * Configures a service instance.
@@ -60,53 +59,44 @@ public interface IServiceBusiness {
     /**
      * Starts a service instance.
      *
-     * @param serviceType
-     *            The service type (WMS, WFS, ...)
-     * @param identifier
-     *            the service identifier
+     * @param serviceId the service identifier
+     *
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void start(String serviceType, String identifier) throws ConfigurationException;
+    void start(Integer serviceId) throws ConfigurationException;
 
     /**
      * Restarts a service instance.
      *
-     * @param serviceType
-     *            The service type (WMS, WFS, ...)
-     * @param identifier
-     *            the service identifier
+     * @param serviceId the service identifier
      * @param closeFirst @deprecated not used anymore
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void restart(String serviceType, String identifier, boolean closeFirst) throws ConfigurationException;
+    void restart(Integer serviceId, boolean closeFirst) throws ConfigurationException;
 
     /**
      * Renames a service instance.
      *
-     * @param serviceType
-     *            The service type (WMS, WFS, ...)
-     * @param identifier
-     *            the current service identifier
+     * @param serviceId
+     *            The service identifier.
      * @param newIdentifier
      *            the new service identifier
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void rename(String serviceType, String identifier, String newIdentifier) throws ConfigurationException;
+    void rename(Integer serviceId, String newIdentifier) throws ConfigurationException;
 
     /**
      * Deletes a service instance.
      *
-     * @param serviceType
-     *            The service type (WMS, WFS, ...)
-     * @param identifier
-     *            the service identifier
+     * @param serviceId
+     *            The service identifier.
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void delete(String serviceType, String identifier) throws ConfigurationException;
+    void delete(Integer serviceId) throws ConfigurationException;
 
     /**
      * Ensure that a service instance really exists.
@@ -171,7 +161,7 @@ public interface IServiceBusiness {
      * @return The configuration object of this service (can be auto generated).
      * @throws ConfigurationException
      */
-    Object create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;
+    Integer create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;
 
     List<String> getServiceIdentifiers(String type);
 

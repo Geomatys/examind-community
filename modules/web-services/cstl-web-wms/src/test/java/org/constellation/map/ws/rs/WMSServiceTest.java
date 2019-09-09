@@ -48,6 +48,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.core.QueryContext;
 import org.constellation.provider.DataProviders;
@@ -169,7 +170,7 @@ public class WMSServiceTest {
 
                 final LayerContext config = new LayerContext();
 
-                serviceBusiness.create("wms", "default", config, null, null);
+                Integer defId = serviceBusiness.create("wms", "default", config, null, null);
                 layerBusiness.add("SSTMDE200305",                      null,          "coverageTestSrc",        null, "default", "wms", null);
                 layerBusiness.add("BuildingCenters",     "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
                 layerBusiness.add("BasicPolygons",       "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
@@ -183,7 +184,7 @@ public class WMSServiceTest {
                 layerBusiness.add("Forests",             "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
                 layerBusiness.add("MapNeatline",         "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
                 layerBusiness.add("Ponds",               "http://www.opengis.net/gml",       "shapeSrc",        null, "default", "wms", null);
-                serviceBusiness.start("wms", "default");
+                serviceBusiness.start(defId);
 
                 // let the worker start
                 Thread.sleep(2000);

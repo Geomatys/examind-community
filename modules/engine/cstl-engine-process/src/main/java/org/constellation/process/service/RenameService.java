@@ -20,6 +20,7 @@
 package org.constellation.process.service;
 
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -49,7 +50,11 @@ public class RenameService extends AbstractCstlProcess {
         final String identifier    = inputParameters.getValue(IDENTIFIER);
         final String newIdentifier = inputParameters.getValue(NEW_NAME);
         try {
-            serviceBusiness.rename(serviceType, identifier, newIdentifier);
+            ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, identifier);
+            if (s == null) {
+                throw new ProcessException("Unexisting service", this);
+            }
+            serviceBusiness.rename(s.getId(), newIdentifier);
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

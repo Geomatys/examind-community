@@ -343,7 +343,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
             }
             if (reload) {
-                serviceBusiness.restart("sos", sosServ.getName(), true);
+                serviceBusiness.restart(sosServ.getId(), true);
             }
 
         } catch (ConfigurationException | DataStoreException | SQLException ex) {

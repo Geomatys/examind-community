@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.constellation.dto.metadata.MetadataBrief;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.nio.IOUtilities;
 import static org.springframework.http.HttpStatus.OK;
@@ -105,7 +106,10 @@ public class CSWRestAPI {
             final CSWConfigurer conf = getConfigurer();
             final AcknowlegementType ack = conf.refreshIndex(id, asynchrone, forced);
             if (!asynchrone && ack.getStatus().equals("Success")) {
-                serviceBusiness.restart("CSW", id, true);
+                ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType("csw", id);
+                if (s != null) {
+                    serviceBusiness.restart(s.getId(), true);
+                }
             }
             return new ResponseEntity(ack, OK);
         } catch (Throwable ex) {

@@ -65,7 +65,8 @@ public class CreateService extends AbstractCstlProcess {
         final Details serviceMetadata  = inputParameters.getValue(SERVICE_METADATA);
 
         try {
-            configuration = serviceBusiness.create(serviceType.toLowerCase(), identifier, configuration, serviceMetadata, null);
+            Integer sid = serviceBusiness.create(serviceType.toLowerCase(), identifier, configuration, serviceMetadata, null);
+            configuration = serviceBusiness.getConfiguration(sid);
 
         } catch (ConfigurationException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
