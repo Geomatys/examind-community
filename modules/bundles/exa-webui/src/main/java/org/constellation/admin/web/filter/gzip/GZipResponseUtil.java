@@ -18,15 +18,15 @@
  */
 package org.constellation.admin.web.filter.gzip;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.sis.util.logging.Logging;
 
 public final class GZipResponseUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GZipResponseUtil.class);
+    private static final Logger LOG = Logging.getLogger("org.constellation.admin.web.filter.gzip");
 
     /**
      * Gzipping an empty file or stream always results in a 20 byte output
@@ -58,8 +58,8 @@ public final class GZipResponseUtil {
 
         //Check for 0 length body
         if (compressedBytes.length == EMPTY_GZIPPED_CONTENT_SIZE) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("{} resulted in an empty response.", request.getRequestURL());
+            if (LOG.isLoggable(Level.FINEST)) {
+                LOG.finest(request.getRequestURL() + " resulted in an empty response.");
             }
             return true;
         } else {
@@ -84,18 +84,18 @@ public final class GZipResponseUtil {
 
         //Check for NO_CONTENT
         if (responseStatus == HttpServletResponse.SC_NO_CONTENT) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resulted in a {} response. Removing message body in accordance with RFC2616.",
-                    request.getRequestURL(), HttpServletResponse.SC_NO_CONTENT);
+            if (LOG.isLoggable(Level.FINER)) {
+                LOG.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
+                        new Object[]{request.getRequestURL(), HttpServletResponse.SC_NO_CONTENT});
             }
             return true;
         }
 
         //Check for NOT_MODIFIED
         if (responseStatus == HttpServletResponse.SC_NOT_MODIFIED) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resulted in a {} response. Removing message body in accordance with RFC2616.",
-                        request.getRequestURL(), HttpServletResponse.SC_NOT_MODIFIED);
+            if (LOG.isLoggable(Level.FINER)) {
+                LOG.log(Level.FINER, "{0} resulted in a {1} response. Removing message body in accordance with RFC2616.",
+                        new Object[]{request.getRequestURL(), HttpServletResponse.SC_NOT_MODIFIED});
             }
             return true;
         }
@@ -104,7 +104,7 @@ public final class GZipResponseUtil {
 
     /**
      * Adds the gzip HTTP header to the response. This is need when a gzipped body is returned so that browsers can properly decompress it.
-     * 
+     *
      * @param response the response which will have a header added to it. I.e this method changes its parameter
      * @throws GzipResponseHeadersNotModifiableException Either the response is committed or we were called using the include method
      * from a {@link javax.servlet.RequestDispatcher#include(javax.servlet.ServletRequest, javax.servlet.ServletResponse)}

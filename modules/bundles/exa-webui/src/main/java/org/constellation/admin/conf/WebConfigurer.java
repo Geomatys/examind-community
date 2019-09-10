@@ -21,8 +21,6 @@ package org.constellation.admin.conf;
 import org.constellation.admin.web.filter.CachingHttpHeadersFilter;
 import org.constellation.admin.web.filter.StaticResourcesProductionFilter;
 import org.constellation.admin.web.filter.gzip.GZipServletFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
@@ -39,13 +37,15 @@ import javax.servlet.ServletRegistration;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
  */
 public class WebConfigurer implements ServletContextListener {
 
-    private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
+    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
 
 
     @Override
@@ -53,7 +53,7 @@ public class WebConfigurer implements ServletContextListener {
         ServletContext servletContext = sce.getServletContext();
         log.info("Web application configuration");
 
-        log.debug("Configuring Spring root application context");
+        log.finer("Configuring Spring root application context");
 
         Object rootContextObject = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         AbstractRefreshableWebApplicationContext rootContext;
@@ -63,7 +63,7 @@ public class WebConfigurer implements ServletContextListener {
             annotationRootContext.refresh();
             servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, annotationRootContext);
             rootContext = annotationRootContext;
-            
+
         } else {
             if (rootContextObject instanceof AbstractRefreshableWebApplicationContext) {
                 rootContext = (AbstractRefreshableWebApplicationContext) rootContextObject;
@@ -77,8 +77,8 @@ public class WebConfigurer implements ServletContextListener {
 
         initSpring(servletContext, rootContext);
        // initSpringSecurity(servletContext, disps);
-      
-        
+
+
 
         if (WebApplicationContextUtils
                 .getRequiredWebApplicationContext(servletContext)
@@ -91,16 +91,16 @@ public class WebConfigurer implements ServletContextListener {
 
         initGzipFilter(servletContext, disps);
 
-        log.debug("Web application fully configured");
+        log.finer("Web application fully configured");
     }
 
-    
+
 
     /**
      * Initializes the GZip filter.
      */
     private void initGzipFilter(ServletContext servletContext, EnumSet<DispatcherType> disps) {
-        log.debug("Registering GZip Filter");
+        log.finer("Registering GZip Filter");
 
         FilterRegistration.Dynamic compressingFilter = servletContext.addFilter("gzipFilter", new GZipServletFilter());
         Map<String, String> parameters = new HashMap<String, String>();
@@ -125,7 +125,7 @@ public class WebConfigurer implements ServletContextListener {
     private void initStaticResourcesProductionFilter(ServletContext servletContext,
                                                      EnumSet<DispatcherType> disps) {
 
-        log.debug("Registering static resources production Filter");
+        log.finer("Registering static resources production Filter");
         FilterRegistration.Dynamic staticResourcesProductionFilter =
                 servletContext.addFilter("staticResourcesProductionFilter",
                         new StaticResourcesProductionFilter());
@@ -146,7 +146,7 @@ public class WebConfigurer implements ServletContextListener {
     private void initCachingHttpHeadersFilter(ServletContext servletContext,
                                               EnumSet<DispatcherType> disps) {
 
-        log.debug("Registering Cachig HTTP Headers Filter");
+        log.finer("Registering Cachig HTTP Headers Filter");
         FilterRegistration.Dynamic cachingHttpHeadersFilter =
                 servletContext.addFilter("cachingHttpHeadersFilter",
                         new CachingHttpHeadersFilter());
@@ -163,12 +163,12 @@ public class WebConfigurer implements ServletContextListener {
      * Initializes Spring and Spring MVC.
      */
     private ServletRegistration.Dynamic initSpring(ServletContext servletContext, AbstractRefreshableWebApplicationContext rootContext) {
-        log.debug("Configuring Spring Web application context");
+        log.finer("Configuring Spring Web application context");
         AnnotationConfigWebApplicationContext dispatcherServletConfiguration = new AnnotationConfigWebApplicationContext();
         dispatcherServletConfiguration.setParent(rootContext);
         dispatcherServletConfiguration.register(DispatcherServletConfiguration.class);
 
-        log.debug("Registering Spring MVC Servlet");
+        log.finer("Registering Spring MVC Servlet");
         ServletRegistration.Dynamic dispatcherServlet = servletContext.addServlet("dispatcher", new DispatcherServlet(
                 dispatcherServletConfiguration));
         dispatcherServlet.addMapping("/app/*");
@@ -177,15 +177,15 @@ public class WebConfigurer implements ServletContextListener {
         return dispatcherServlet;
     }
 
-  
 
-   
+
+
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.info("Destroying Web application");
         WebApplicationContext ac = WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext());
         AbstractRefreshableWebApplicationContext gwac = (AbstractRefreshableWebApplicationContext) ac;
         gwac.close();
-        log.debug("Web application destroyed");
+        log.finer("Web application destroyed");
     }
 }

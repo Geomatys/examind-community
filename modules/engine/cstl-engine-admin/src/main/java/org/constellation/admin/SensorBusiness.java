@@ -166,13 +166,18 @@ public class SensorBusiness implements ISensorBusiness {
     @Transactional
     public boolean delete(final Integer sensorID) throws ConfigurationException {
         final Sensor sensor = sensorRepository.findById(sensorID);
-        boolean result = false;
         if (sensor != null) {
-            final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
-            result = provider.remove(NamesExt.create(sensor.getIdentifier()));
-            if (result) sensorRepository.delete(sensor.getIdentifier());
+            boolean rmFromDb = true;
+            if (sensor.getProviderId() != null) {
+                final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
+                rmFromDb = provider.remove(NamesExt.create(sensor.getIdentifier()));
+            }
+            if (rmFromDb) {
+                sensorRepository.delete(sensor.getIdentifier());
+                return true;
+            }
         }
-        return result;
+        return false;
     }
 
     @Override
@@ -257,7 +262,7 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     @Transactional
-    public Sensor create(final String identifier, final String type, final String parent, final Object metadata, final Long date, final Integer providerID) throws ConfigurationException {
+    public Integer create(final String identifier, final String type, final String parent, final Object metadata, final Long date, Integer providerID) throws ConfigurationException {
         // look for already existing sensor
         if (sensorRepository.existsByIdentifier(identifier)) {
             throw new ConfigurationException("the Sensor is already registered in the system");
@@ -274,14 +279,17 @@ public class SensorBusiness implements ISensorBusiness {
         if (date != null) {
             sensor.setDate(new Date(date));
         }
+        if (providerID == null) {
+            providerID = getDefaultInternalProviderID();
+        }
         sensor.setProviderId(providerID);
         sensor.setProfile(getTemplateFromType(type));
 
-        sensor = sensorRepository.create(sensor);
+        Integer sid= sensorRepository.create(sensor);
         if (metadata != null) {
             updateSensorMetadata(identifier, metadata);
         }
-        return sensor;
+        return sid;
     }
 
     @Override
@@ -364,18 +372,22 @@ public class SensorBusiness implements ISensorBusiness {
     public void updateSensorMetadata(Integer sensorID, Object sensorMetadata) throws ConfigurationException {
         final Sensor sensor = sensorRepository.findById(sensorID);
         if (sensor != null) {
-            final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
-            if (provider instanceof SensorProvider) {
-                try {
-                    if (sensorMetadata instanceof String) {
-                        sensorMetadata =  unmarshallSensor((String) sensorMetadata);
+            if (sensor.getProviderId() != null) {
+                final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
+                if (provider instanceof SensorProvider) {
+                    try {
+                        if (sensorMetadata instanceof String) {
+                            sensorMetadata =  unmarshallSensor((String) sensorMetadata);
+                        }
+                        ((SensorProvider)provider).writeSensor(sensor.getIdentifier(), sensorMetadata);
+                    } catch (ConstellationStoreException | JAXBException | IOException ex) {
+                        throw new ConfigurationException(ex);
                     }
-                    ((SensorProvider)provider).writeSensor(sensor.getIdentifier(), sensorMetadata);
-                } catch (ConstellationStoreException | JAXBException | IOException ex) {
-                    throw new ConfigurationException(ex);
+                } else {
+                    throw new ConfigurationException("the provider" + sensor.getProviderId() + " is not a sensor Provider");
                 }
             } else {
-                throw new ConfigurationException("the provider" + sensor.getProviderId() + " is not a sensor Provider");
+                throw new ConfigurationException("the sensor " + sensor.getIdentifier()+ " has no assigned provider");
             }
         }
     }

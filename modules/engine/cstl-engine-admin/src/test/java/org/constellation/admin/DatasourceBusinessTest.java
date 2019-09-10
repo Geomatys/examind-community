@@ -54,7 +54,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 @RunWith(SpringTestRunner.class)
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
@@ -82,7 +82,7 @@ public class DatasourceBusinessTest {
             }
             ConfigDirectory.shutdownTestEnvironement("DatasourceBusinessTest");
         } catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 

@@ -19,17 +19,12 @@
 package org.constellation.admin.conf;
 
 import org.apache.commons.lang.CharEncoding;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
-import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -49,13 +44,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 @Configuration
 @ComponentScan("org.constellation.admin.web")
 @EnableWebMvc
 public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(DispatcherServletConfiguration.class);
+    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
 
     // 10 Mo max file size
     private static final int MAX_UPLOAD_SIZE = 10 * 1000 * 1000;
@@ -65,7 +63,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public ViewResolver contentNegotiatingViewResolver() {
-        log.debug("Configuring the ContentNegotiatingViewResolver");
+        log.warning("Configuring the ContentNegotiatingViewResolver");
         ContentNegotiatingViewResolver viewResolver = new ContentNegotiatingViewResolver();
         List<ViewResolver> viewResolvers = new ArrayList<ViewResolver>();
 
@@ -91,7 +89,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
-        log.debug("Configuring localeChangeInterceptor");
+        log.finer("Configuring localeChangeInterceptor");
         LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
         localeChangeInterceptor.setParamName("language");
         return localeChangeInterceptor;
@@ -99,7 +97,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public MessageSource messageSource() {
-        log.debug("Loading MessageSources");
+        log.finer("Loading MessageSources");
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.setBasename("/WEB-INF/messages/messages");
         messageSource.setDefaultEncoding(CharEncoding.UTF_8);
@@ -112,7 +110,7 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public RequestMappingHandlerMapping requestMappingHandlerMapping() {
-        log.debug("Creating requestMappingHandlerMapping");
+        log.finer("Creating requestMappingHandlerMapping");
         RequestMappingHandlerMapping requestMappingHandlerMapping = new RequestMappingHandlerMapping();
         requestMappingHandlerMapping.setUseSuffixPatternMatch(false);
         Object[] interceptors = {localeChangeInterceptor()};
@@ -130,11 +128,11 @@ public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
                                                  Object handler,
                                                  Exception ex) {
                 try {
-                    log.error("An error has occured: {}", ex.getMessage(),ex);
+                    log.log(Level.SEVERE, "An error has occured: " + ex.getMessage(),ex);
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     return new ModelAndView();
                 } catch (Exception handlerException) {
-                    log.warn("Handling of [{}] resulted in Exception", ex.getClass().getName(), handlerException);
+                    log.log(Level.WARNING, "Handling of [" + ex.getClass().getName() + "] resulted in Exception", handlerException);
                 }
                 return null;
             }

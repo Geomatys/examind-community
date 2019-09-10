@@ -22,8 +22,6 @@ import java.util.HashMap;
 import org.constellation.admin.security.CstlAdminLoginConfigurationService;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,11 +34,13 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 @Controller
 public class ConfigController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigController.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.web.controller");
 
     private static final long TOKEN_LIFE = Application.getLongProperty(AppProperty.CSTL_TOKEN_LIFE, 60L);
 
@@ -48,7 +48,7 @@ public class ConfigController {
     private CstlAdminLoginConfigurationService cstlAdminLoginConfigurationService;
 
     public ConfigController() {
-        LOGGER.debug("ConfigController construct");
+        LOGGER.finer("ConfigController construct");
     }
 
     @Inject

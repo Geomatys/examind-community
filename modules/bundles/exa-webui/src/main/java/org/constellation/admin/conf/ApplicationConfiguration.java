@@ -18,8 +18,6 @@
  */
 package org.constellation.admin.conf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +28,9 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -37,7 +38,7 @@ import java.util.Properties;
         "org.constellation.admin.security"})
 public class ApplicationConfiguration {
 
-    private final Logger log = LoggerFactory.getLogger(ApplicationConfiguration.class);
+    private final Logger log = Logging.getLogger("org.constellation.admin.conf");
 
     @Inject
     private Environment env;
@@ -49,12 +50,12 @@ public class ApplicationConfiguration {
      */
     @PostConstruct
     public void initApplication() throws IOException {
-        log.debug("Looking for Spring profiles...");
+        log.finer("Looking for Spring profiles...");
         if (env.getActiveProfiles().length == 0) {
-            log.debug("No Spring profile configured, running with default configuration");
+            log.finer("No Spring profile configured, running with default configuration");
         } else {
             for (String profile : env.getActiveProfiles()) {
-                log.debug("Detected Spring profile : {}", profile);
+                log.log(Level.FINER, "Detected Spring profile : {0}", profile);
             }
         }
     }

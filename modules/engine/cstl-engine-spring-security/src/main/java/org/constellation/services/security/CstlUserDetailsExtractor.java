@@ -1,12 +1,31 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2019 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.services.security;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.sis.util.logging.Logging;
 
 import org.constellation.engine.security.UserDetailsExtractor;
 import org.constellation.services.component.TokenService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,7 +34,7 @@ import org.springframework.util.StringUtils;
 
 public class CstlUserDetailsExtractor implements UserDetailsExtractor{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CstlUserDetailsExtractor.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.services.security");
 
 
     private UserDetailsService userDetailsService;
@@ -59,7 +78,7 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
         try {
             return userDetailsService.loadUserByUsername(userName);
         } catch (UsernameNotFoundException ex) {
-            LOGGER.debug("Unable to find the user "+userName, ex);
+            LOGGER.log(Level.FINER, "Unable to find the user "+userName, ex);
             return null;
         }
 
@@ -84,7 +103,7 @@ public class CstlUserDetailsExtractor implements UserDetailsExtractor{
             int indexOf = basicAuthAsString.indexOf(':');
             if (indexOf != -1) {
                 String username = basicAuthAsString.substring(0, indexOf);
-                LOGGER.debug("Basic auth: " + username);
+                LOGGER.finer("Basic auth: " + username);
                 return username;
             }
         }

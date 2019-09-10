@@ -161,7 +161,7 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
     ////--------------------------------------------------------------------///
 
     @Override
-    public Sensor create(Sensor sensor) {
+    public Integer create(Sensor sensor) {
         if (sensor != null) {
             sensor.setId(currentId);
 
@@ -189,7 +189,7 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
             }
 
             currentId++;
-            return sensor;
+            return sensor.getId();
         }
         return null;
     }

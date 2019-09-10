@@ -56,10 +56,10 @@ public class SensorRepositoryTest extends AbstractRepositoryTest {
         /**
          * sensor insertion
          */
-        Sensor s = sensorRepository.create(TestSamples.newSensor(owner.getId(), "sensor1"));
-        Assert.assertNotNull(s);
+        Integer sid = sensorRepository.create(TestSamples.newSensor(owner.getId(), "sensor1"));
+        Assert.assertNotNull(sid);
 
-        s = sensorRepository.findById(s.getId());
+        Sensor s = sensorRepository.findById(sid);
         Assert.assertNotNull(s);
 
         /**

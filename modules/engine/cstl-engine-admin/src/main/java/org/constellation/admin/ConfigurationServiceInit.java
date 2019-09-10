@@ -19,9 +19,8 @@
 package org.constellation.admin;
 
 import org.constellation.configuration.ConfigDirectory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.lang.invoke.MethodHandles;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 /**
  * This class wires spring managed beans with legacy code.
@@ -32,7 +31,7 @@ import java.lang.invoke.MethodHandles;
  */
 public class ConfigurationServiceInit {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger LOGGER = Logging.getLogger("org.constellation.admin");
 
     public void init() {
         LOGGER.info("=== Configure directory ===");

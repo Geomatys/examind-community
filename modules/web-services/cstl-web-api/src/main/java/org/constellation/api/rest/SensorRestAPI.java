@@ -333,10 +333,12 @@ public class SensorRestAPI extends AbstractRestAPI {
         prop.put("phenomenon", process.fields);
 
         Sensor sensor = sensorBusiness.getSensor(process.id);
+        Integer sid;
         if (sensor == null) {
             Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sensor = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
-
+            sid = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
+        } else {
+            sid = sensor.getId();
         }
 
         final List<String> component = new ArrayList<>();
@@ -348,8 +350,8 @@ public class SensorRestAPI extends AbstractRestAPI {
         final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.type);
 
         // update sml
-        sensorBusiness.updateSensorMetadata(sensor.getId(), sml);
-        sensorBusiness.linkDataToSensor(dataID, sensor.getId());
+        sensorBusiness.updateSensorMetadata(sid, sml);
+        sensorBusiness.linkDataToSensor(dataID, sid);
     }
 
     /**
@@ -436,8 +438,8 @@ public class SensorRestAPI extends AbstractRestAPI {
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
                             final List<String> children = SensorMLUtilities.getChildrenIdentifiers(sml);
 
-                            final Sensor sensor = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
-                            sensorsImported.add(sensor);
+                            final Integer sid = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
+                            sensorsImported.add(sensorBusiness.getSensor(sid));
                             parents.put(sensorID, children);
                         }
                     } catch (ConfigurationException | JAXBException e) {
@@ -463,8 +465,8 @@ public class SensorRestAPI extends AbstractRestAPI {
                 final AbstractSensorML sml = (AbstractSensorML) objsml;
                 final String type          = SensorMLUtilities.getSensorMLType(sml);
                 final String sensorID      = SensorMLUtilities.getSmlID(sml);
-                final Sensor sensor = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
-                sensorsImported.add(sensor);
+                final Integer sid          = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
+                sensorsImported.add(sensorBusiness.getSensor(sid));
             }
         }
         return sensorsImported;

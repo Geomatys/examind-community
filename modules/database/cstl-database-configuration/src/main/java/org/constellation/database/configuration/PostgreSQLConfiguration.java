@@ -20,17 +20,18 @@ package org.constellation.database.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
+import org.apache.sis.util.logging.Logging;
 
 /**
  * Default DatabaseConfiguration using PostgreSQL.
@@ -38,7 +39,7 @@ import javax.sql.DataSource;
 @Configuration(value = "database-conf")
 public class PostgreSQLConfiguration implements IDatabaseConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLConfiguration.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
 
     @Override
     public Settings getJOOQSettings() {
@@ -57,7 +58,7 @@ public class PostgreSQLConfiguration implements IDatabaseConfiguration {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            LOGGER.warn(ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
 
         final String databaseURL = Application.getProperty(AppProperty.CSTL_DATABASE_URL);
@@ -75,7 +76,7 @@ public class PostgreSQLConfiguration implements IDatabaseConfiguration {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            LOGGER.warn(ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
 
         final String databaseURL = Application.getProperty(AppProperty.EPSG_DATABASE_URL);

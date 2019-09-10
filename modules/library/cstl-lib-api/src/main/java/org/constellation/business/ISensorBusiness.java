@@ -80,7 +80,7 @@ public interface ISensorBusiness {
 
     void updateSensorMetadata(String sensorID, Object sensorMetadata) throws ConfigurationException;
 
-    Sensor create(String id, String type, String parentID, Object sml, final Long date, Integer providerID) throws ConfigurationException;
+    Integer create(String id, String type, String parentID, Object sml, final Long date, Integer providerID) throws ConfigurationException;
 
     void update(Sensor childRecord);
 

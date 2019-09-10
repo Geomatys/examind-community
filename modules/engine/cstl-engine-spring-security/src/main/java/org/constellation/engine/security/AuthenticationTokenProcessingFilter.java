@@ -1,6 +1,26 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2019 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.engine.security;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -9,9 +29,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.sis.util.logging.Logging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +40,7 @@ import org.springframework.web.filter.GenericFilterBean;
 public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
 
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenProcessingFilter.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.engine.security");
 
     private UnauthorizedHandler unauthorizedHandler = new UnauthorizedHandler() {
 
@@ -71,7 +90,7 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
                 }
 
                 if(!unauthorizedHandler.onUnauthorized(httpRequest, getAsHttpResponse(response))) {
-                    LOGGER.warn("ATPF: unauthorized for URI:" + httpRequest.getRequestURI());
+                    LOGGER.warning("ATPF: unauthorized for URI:" + httpRequest.getRequestURI());
                     getAsHttpResponse(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 }
@@ -79,8 +98,8 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
                 return;
             }
 
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug(userDetails.getUsername() + ": " + userDetails.getAuthorities());
+            if(LOGGER.isLoggable(Level.FINER)) {
+                LOGGER.finer(userDetails.getUsername() + ": " + userDetails.getAuthorities());
             }
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());

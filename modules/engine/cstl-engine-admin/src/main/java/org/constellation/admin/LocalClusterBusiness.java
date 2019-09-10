@@ -27,8 +27,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.WeakValueHashMap;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.MessageListener;
@@ -36,8 +39,6 @@ import org.constellation.business.MessageResponse;
 import org.constellation.dto.cluster.Cluster;
 import org.constellation.dto.cluster.ClusterMember;
 import org.constellation.dto.service.ServiceComplete;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static org.constellation.business.ClusterMessageConstant.*;
 
 /**
@@ -47,7 +48,7 @@ import static org.constellation.business.ClusterMessageConstant.*;
  */
 public class LocalClusterBusiness implements IClusterBusiness{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
 
     private final String memberUID = UUID.randomUUID().toString();
     private final AtomicLong messageInc = new AtomicLong();
@@ -87,7 +88,7 @@ public class LocalClusterBusiness implements IClusterBusiness{
                 listener.receive(message);
             } catch(Exception ex) {
                 //we catch anything, the message must be send to all listeners
-                LOGGER.warn(ex.getMessage(), ex);
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -105,7 +106,7 @@ public class LocalClusterBusiness implements IClusterBusiness{
         try {
             response.await(time, timeUnit);
         } catch (InterruptedException ex) {
-            LOGGER.warn(ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         response.release();
     }

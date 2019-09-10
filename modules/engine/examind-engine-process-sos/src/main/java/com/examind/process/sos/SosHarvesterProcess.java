@@ -397,10 +397,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         prop.put("phenomenon", process.fields);
 
         Sensor sensor = sensorBusiness.getSensor(process.id);
+        Integer sid;
         if (sensor == null) {
             Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sensor = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
-
+            sid = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
+        } else {
+            sid = sensor.getId();
         }
 
         final List<String> component = new ArrayList<>();
@@ -412,8 +414,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.type);
 
         // update sml
-        sensorBusiness.updateSensorMetadata(sensor.getId(), sml);
-        sensorBusiness.linkDataToSensor(dataID, sensor.getId());
+        sensorBusiness.updateSensorMetadata(sid, sml);
+        sensorBusiness.linkDataToSensor(dataID, sid);
     }
 
     private int importSensor(final String sosId, final String sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{

@@ -44,8 +44,6 @@ import org.geotoolkit.xml.parameter.ParameterValueReader;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
@@ -70,6 +68,9 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CstlJobListener;
 import org.constellation.api.CstlScheduler;
 import org.constellation.business.IUserBusiness;
@@ -98,7 +99,7 @@ public class ProcessBusiness implements IProcessBusiness {
     public static final String BEAN_NAME = "processBusiness";
 
     private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    private static final Logger LOGGER = LoggerFactory.getLogger("org.constellation.admin");
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
 
     @Inject
     private TaskParameterRepository taskParameterRepository;
@@ -144,7 +145,7 @@ public class ProcessBusiness implements IProcessBusiness {
             quartzScheduler.addJobListener(new QuartzJobListener());
 
         } catch (ConstellationSchedulerException ex) {
-            LOGGER.error("Failed to start quartz scheduler\n"+ex.getLocalizedMessage(), ex);
+            LOGGER.log(Level.SEVERE, "Failed to start quartz scheduler\n"+ex.getLocalizedMessage(), ex);
             return;
         }
         LOGGER.info("Constellation Scheduler successfully started");
@@ -169,7 +170,7 @@ public class ProcessBusiness implements IProcessBusiness {
                                 try {
                                     executeTaskParameter(taskParameter, null, taskParameter.getOwner());
                                 } catch (ConstellationException ex) {
-                                    LOGGER.warn(ex.getMessage(), ex);
+                                    LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                                 }
                             }
                         }
@@ -180,7 +181,7 @@ public class ProcessBusiness implements IProcessBusiness {
             directoryWatcher.start();
 
         } catch (IOException ex) {
-            LOGGER.error("Failed to start directory watcher\n"+ex.getLocalizedMessage(), ex);
+            LOGGER.log(Level.SEVERE, "Failed to start directory watcher\n"+ex.getLocalizedMessage(), ex);
             return;
         }
         LOGGER.info("Directory watcher successfully started");
@@ -193,7 +194,7 @@ public class ProcessBusiness implements IProcessBusiness {
             try {
                 scheduleTaskParameter(taskParameter, taskParameter.getName(), taskParameter.getOwner(), false);
             } catch (ConstellationException ex) {
-                LOGGER.warn(ex.getMessage(), ex);
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -341,7 +342,7 @@ public class ProcessBusiness implements IProcessBusiness {
         if(removed){
             LOGGER.info("Scheduler task removed : "+key);
         }else{
-            LOGGER.warn("Scheduler failed to remove task : "+key);
+            LOGGER.warning("Scheduler failed to remove task : "+key);
         }
 
     }
@@ -583,7 +584,7 @@ public class ProcessBusiness implements IProcessBusiness {
             quartzScheduler.shutdown(false);
             quartzScheduler = null;
         } catch (ConstellationSchedulerException ex) {
-            LOGGER.error("=== Failed to stop quartz scheduler ===", ex);
+            LOGGER.log(Level.SEVERE, "=== Failed to stop quartz scheduler ===", ex);
         }
         LOGGER.info("=== Scheduler successfully stopped ===");
 
@@ -591,7 +592,7 @@ public class ProcessBusiness implements IProcessBusiness {
         try {
             directoryWatcher.close();
         } catch (IOException ex) {
-            LOGGER.error("=== Failed to stop directory watcher ===", ex);
+            LOGGER.log(Level.SEVERE, "=== Failed to stop directory watcher ===", ex);
         }
         LOGGER.info("=== Directory watcher successfully stopped ===");
         cleanTasksStates();

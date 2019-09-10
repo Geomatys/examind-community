@@ -21,11 +21,12 @@ package org.constellation.database.impl.repository;
 import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 import static org.constellation.database.api.jooq.Tables.USER_X_ROLE;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
@@ -35,8 +36,6 @@ import org.constellation.database.api.jooq.tables.records.CstlUserRecord;
 import org.constellation.database.api.jooq.tables.records.UserXRoleRecord;
 import org.constellation.repository.UserRepository;
 import org.jooq.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -48,8 +47,7 @@ public class JooqUserRepository extends
         AbstractJooqRespository<CstlUserRecord, org.constellation.database.api.jooq.tables.pojos.CstlUser> implements
         UserRepository {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles
-            .lookup().lookupClass());
+    private final static Logger LOGGER = Logging.getLogger("org.constellation.database.impl.repository");
 
     public JooqUserRepository() {
         super(org.constellation.database.api.jooq.tables.pojos.CstlUser.class, CSTL_USER);
@@ -97,7 +95,7 @@ public class JooqUserRepository extends
     public int delete(int userId) {
         int deleteRole = deleteRole(userId);
 
-        LOGGER.debug("Delete " + deleteRole + " role references");
+        LOGGER.finer("Delete " + deleteRole + " role references");
 
         return dsl.delete(CSTL_USER).where(CSTL_USER.ID.eq(userId)).execute();
 
@@ -231,10 +229,10 @@ public class JooqUserRepository extends
                 if (field != null) {
                     sortField = field.sort(SortOrder.valueOf(order));
                 } else {
-                    LOGGER.warn("Sort on " + sortFieldName + " is not supported.");
+                    LOGGER.warning("Sort on " + sortFieldName + " is not supported.");
                 }
             } else {
-                LOGGER.warn("Wrong sort value : " + sortFieldName + ", expected 'TABLE.ATTRIBUTE'");
+                LOGGER.warning("Wrong sort value : " + sortFieldName + ", expected 'TABLE.ATTRIBUTE'");
             }
         }
 

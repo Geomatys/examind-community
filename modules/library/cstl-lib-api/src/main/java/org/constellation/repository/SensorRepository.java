@@ -7,58 +7,58 @@ import org.constellation.dto.SensorReference;
 
 public interface SensorRepository {
 
-    public Sensor findByIdentifier(String identifier);
+    Sensor findByIdentifier(String identifier);
 
-    public Integer findIdByIdentifier(String identifier);
+    Integer findIdByIdentifier(String identifier);
 
-    public Sensor findById(Integer id);
+    Sensor findById(Integer id);
 
-    public List<String> getLinkedSensors(Integer dataID);
+    List<String> getLinkedSensors(Integer dataID);
 
-    public List<Integer> getLinkedDatas(Integer sensorID);
+    List<Integer> getLinkedDatas(Integer sensorID);
 
-    public List<Integer> getLinkedDataProviders(Integer sensorID);
+    List<Integer> getLinkedDataProviders(Integer sensorID);
 
-    public List<Integer> getLinkedServices(Integer sensorID);
+    List<Integer> getLinkedServices(Integer sensorID);
 
-    public List<Sensor> getChildren(String parent);
+    List<Sensor> getChildren(String parent);
 
-    public List<Sensor> findAll();
+    List<Sensor> findAll();
 
-    public List<Sensor> findByProviderId(int providerId);
+    List<Sensor> findByProviderId(int providerId);
 
-    public List<Sensor> findByServiceId(Integer id);
+    List<Sensor> findByServiceId(Integer id);
 
-    public void deleteAll();
+    void deleteAll();
 
-    public void delete(String identifier);
+    void delete(String identifier);
 
-    public void delete(String sensorid, Integer providerId);
+    void delete(String sensorid, Integer providerId);
 
-    public void deleteFromProvider(Integer providerId);
+    void deleteFromProvider(Integer providerId);
 
-    public void linkDataToSensor(Integer dataId, Integer sensorId);
+    void linkDataToSensor(Integer dataId, Integer sensorId);
 
-    public void unlinkDataToSensor(Integer dataId, Integer sensorId);
+    void unlinkDataToSensor(Integer dataId, Integer sensorId);
 
-    public Sensor create(Sensor sensor);
+    Integer create(Sensor sensor);
 
-    public void update(Sensor sensor);
+    void update(Sensor sensor);
 
-    public boolean existsById(int sensorId);
+    boolean existsById(int sensorId);
 
-    public boolean existsByIdentifier(String sensorIdentifier);
+    boolean existsByIdentifier(String sensorIdentifier);
 
-    public List<SensorReference> fetchByDataId(int dataId);
+    List<SensorReference> fetchByDataId(int dataId);
 
-    public void linkSensorToSOS(int sensorID, int sosID);
+    void linkSensorToSOS(int sensorID, int sosID);
 
-    public void unlinkSensorFromSOS(int sensorID, int sosID);
+    void unlinkSensorFromSOS(int sensorID, int sosID);
 
-    public boolean isLinkedSensorToSOS(int sensorID, int sosID);
+    boolean isLinkedSensorToSOS(int sensorID, int sosID);
 
-    public int getLinkedSensorCount(int serviceId);
+    int getLinkedSensorCount(int serviceId);
 
-    public List<String> getLinkedSensorIdentifiers(int serviceId, String sensorType);
+    List<String> getLinkedSensorIdentifiers(int serviceId, String sensorType);
 
 }

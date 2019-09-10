@@ -1,3 +1,21 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2019 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.database.configuration;
 
 import org.constellation.exception.ConfigurationRuntimeException;
@@ -5,8 +23,6 @@ import org.constellation.database.model.FlywayUtils;
 import org.constellation.business.IClusterBusiness;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +31,8 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.concurrent.locks.Lock;
+import java.util.logging.Logger;
+import org.apache.sis.util.logging.Logging;
 
 /**
  * Bean used to initialize/migrate database in Spring context.
@@ -24,12 +42,12 @@ import java.util.concurrent.locks.Lock;
 @Configuration
 public class FlywaySpring {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlywaySpring.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
 
     @Autowired
     @Qualifier(value = "dataSource")
     private DataSource dataSource;
-    
+
     @Autowired
     private IClusterBusiness clusterBusiness;
 
@@ -43,7 +61,7 @@ public class FlywaySpring {
 
         Lock lock = clusterBusiness.acquireLock("database-creation");
         lock.lock();
-        LOGGER.debug("LOCK Acquired on cluster: database-creation");
+        LOGGER.finer("LOCK Acquired on cluster: database-creation");
         try {
             //search for previous installation using liquibase
             try (Connection conn = dataSource.getConnection()) {
@@ -101,7 +119,7 @@ public class FlywaySpring {
                 }
             }
         } finally {
-            LOGGER.debug("UNLOCK on cluster: database-creation");
+            LOGGER.finer("UNLOCK on cluster: database-creation");
             lock.unlock();
         }
     }

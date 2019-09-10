@@ -18,9 +18,6 @@
  */
 package org.constellation.database.configuration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -29,11 +26,14 @@ import java.sql.*;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.spi.ObjectFactory;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IClusterBusiness;
 import org.geotoolkit.lang.Setup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class EPSGDatabaseIniter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EPSGDatabaseIniter.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
 
     @Autowired
     private IClusterBusiness clusterBusiness;
@@ -65,7 +65,7 @@ public class EPSGDatabaseIniter {
     public void init() {
         Lock lock = clusterBusiness.acquireLock("epsg-database-creation");
         lock.lock();
-        LOGGER.debug("LOCK Acquired on cluster: epsg-database-creation");
+        LOGGER.finer("LOCK Acquired on cluster: epsg-database-creation");
         try {
             //set datasource used by geotoolkit EPSG database
             final DataSource dataSource = DATASOURCE.get();
@@ -79,9 +79,9 @@ public class EPSGDatabaseIniter {
                 CRS.forCode("EPSG:3395");
             }
         } catch (Exception e) {
-            LOGGER.error("Unable to connect to database " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Unable to connect to database " + e.getMessage(), e);
         } finally {
-            LOGGER.debug("UNLOCK on cluster: epsg-database-creation");
+            LOGGER.finer("UNLOCK on cluster: epsg-database-creation");
             lock.unlock();
         }
 

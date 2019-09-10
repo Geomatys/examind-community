@@ -1,25 +1,44 @@
+/*
+ *    Constellation - An open source and standard compliant SDI
+ *    http://www.constellation-sdi.org
+ *
+ * Copyright 2019 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.database.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import org.apache.sis.util.logging.Logging;
 
 /**
  * @author Quentin Boileau (Geomatys)
  */
 public class TestingDBConfiguration implements IDatabaseConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestingDBConfiguration.class);
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.database.configuration");
     private static final String DEFAULT_TEST_DATABASE_URL = "postgres://cstl:admin@localhost:5432/cstl-test";
 
     private DataSource testDatasource;
@@ -31,7 +50,7 @@ public class TestingDBConfiguration implements IDatabaseConfiguration {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            LOGGER.warn(ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
 
         String testDBURL = Application.getProperty(AppProperty.TEST_DATABASE_URL);

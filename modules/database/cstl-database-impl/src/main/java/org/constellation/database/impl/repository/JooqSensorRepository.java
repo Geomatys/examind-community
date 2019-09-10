@@ -129,11 +129,11 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public Sensor create(Sensor sensor) {
+    public Integer create(Sensor sensor) {
         SensorRecord sensorRecord = dsl.newRecord(SENSOR);
         sensorRecord.from(sensor);
         sensorRecord.store();
-        return sensorRecord.into(Sensor.class);
+        return sensorRecord.getId();
     }
 
     @Override
