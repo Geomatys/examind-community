@@ -286,4 +286,6 @@ public interface IServiceBusiness {
     void linkCSWAndProvider(String serviceID, String providerID);
 
     List<String> getLinkedThesaurusUri(Integer id) throws ConfigurationException;
+
+    Object getDefaultConfiguration(final String serviceType);
 }

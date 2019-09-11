@@ -1,10 +1,10 @@
-package org.constellation.admin.listener;
+package org.constellation.business.listener;
 
 import org.constellation.dto.Data;
 
 /**
- * Listener that make extension point for project based on Constellation that want to
- * add/change some behavior in Constellation DataBusiness.
+ * Listener that make extension point for project based on Examind that want to
+ * add/change some behavior in Examind DataBusiness.
  *
  * @author Quentin Boileau (Geomatys)
  */

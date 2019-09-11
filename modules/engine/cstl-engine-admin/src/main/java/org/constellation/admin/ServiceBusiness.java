@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;
-import org.constellation.admin.util.DefaultServiceConfiguration;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConstellationPersistenceException;
@@ -74,6 +73,14 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IUserBusiness;
+import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.dto.service.config.webdav.WebdavContext;
+import org.constellation.dto.service.config.wps.ProcessContext;
+import org.constellation.dto.service.config.wps.Processes;
+import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
+import org.constellation.dto.service.config.wxs.LayerContext;
+import org.constellation.ws.MimeType;
 
 @Component
 @Primary
@@ -124,7 +131,7 @@ public class ServiceBusiness implements IServiceBusiness {
         }
 
         if (configuration == null) {
-            configuration = DefaultServiceConfiguration.getDefaultConfiguration(serviceType);
+            configuration = getDefaultConfiguration(serviceType);
         }
         if (owner == null) {
             Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
@@ -331,7 +338,7 @@ public class ServiceBusiness implements IServiceBusiness {
         }
 
         if (configuration == null) {
-            configuration = DefaultServiceConfiguration.getDefaultConfiguration(serviceType);
+            configuration = getDefaultConfiguration(serviceType);
         }
 
         // write configuration file.
@@ -711,5 +718,54 @@ public class ServiceBusiness implements IServiceBusiness {
     @Override
     public List<String> getLinkedThesaurusUri(Integer serviceId) throws ConfigurationException {
         return thesaurusRepository.getLinkedThesaurusUri(serviceId);
+    }
+
+    @Override
+    public Object getDefaultConfiguration(final String serviceType) {
+        switch(serviceType.toLowerCase()) {
+            case "csw": return new Automatic();
+            case "wps": return new ProcessContext(new Processes(true));
+            case "sos": return new SOSConfiguration();
+            case "webdav": return new WebdavContext();
+            // other case assume WXS
+            default: final LayerContext configuration = new LayerContext();
+                    configuration.setGetFeatureInfoCfgs(createGenericConfiguration());
+                    return configuration;
+        }
+    }
+
+    /**
+     * Create the default {@link GetFeatureInfoCfg} list to configure a LayerContext.
+     * This list is build from generic {@link FeatureInfoFormat} and there supported mimetype.
+     * HTMLFeatureInfoFormat, CSVFeatureInfoFormat, GMLFeatureInfoFormat
+     *
+     * @return a list of {@link GetFeatureInfoCfg}
+     */
+    private static List<GetFeatureInfoCfg> createGenericConfiguration () {
+        //Default featureInfo configuration
+        final List<GetFeatureInfoCfg> featureInfos = new ArrayList<>();
+
+        //HTML
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.TEXT_HTML, "org.constellation.map.featureinfo.HTMLFeatureInfoFormat"));
+
+        //CSV
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.TEXT_PLAIN, "org.constellation.map.featureinfo.CSVFeatureInfoFormat"));
+
+        //GML
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_GML, "org.constellation.map.featureinfo.GMLFeatureInfoFormat"));//will return map server GML
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_GML_XML, "org.constellation.map.featureinfo.GMLFeatureInfoFormat"));//will return GML 3
+
+        //XML
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_XML, "org.constellation.map.featureinfo.XMLFeatureInfoFormat"));
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.TEXT_XML, "org.constellation.map.featureinfo.XMLFeatureInfoFormat"));
+
+        //JSON
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON_UTF8, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
+
+        //Examind specific for coverages
+        featureInfos.add(new GetFeatureInfoCfg("application/json; subtype=profile", "org.constellation.map.featureinfo.CoverageProfileInfoFormat"));
+
+        return featureInfos;
     }
 }

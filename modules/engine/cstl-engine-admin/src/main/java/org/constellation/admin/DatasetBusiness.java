@@ -23,8 +23,6 @@ import java.util.AbstractMap;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConstellationException;
-import org.constellation.admin.listener.DefaultDataBusinessListener;
-import org.constellation.admin.listener.IDataBusinessListener;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -42,7 +40,6 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.metadata.utils.CstlMetadatas;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +54,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.constellation.admin.DataBusiness.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -120,9 +116,6 @@ public class DatasetBusiness implements IDatasetBusiness {
      */
     @Inject
     protected IMetadataBusiness metadataBusiness;
-
-    @Autowired(required = false)
-    private IDataBusinessListener dataBusinessListener = new DefaultDataBusinessListener();
 
     /**
      * Creates a new instance of {@link DatasetBusiness}.

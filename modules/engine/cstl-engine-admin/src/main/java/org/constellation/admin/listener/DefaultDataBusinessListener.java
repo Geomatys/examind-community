@@ -1,5 +1,6 @@
 package org.constellation.admin.listener;
 
+import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.dto.Data;
 
 /**

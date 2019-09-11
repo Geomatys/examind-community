@@ -19,12 +19,12 @@
 package org.constellation.admin;
 
 import java.util.List;
-import javax.inject.Inject;
 import org.constellation.business.IInternalMetadataBusiness;
 import org.constellation.dto.metadata.InternalMetadata;
 import org.constellation.dto.metadata.Metadata;
 import org.constellation.repository.InternalMetadataRepository;
 import org.constellation.repository.MetadataRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +38,10 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     protected InternalMetadataRepository intMetadataRepository;
 
-    @Inject
+    @Autowired
     protected MetadataRepository metadataRepository;
 
     @Override

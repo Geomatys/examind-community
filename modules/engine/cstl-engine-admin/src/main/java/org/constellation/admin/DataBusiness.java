@@ -39,7 +39,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
-import org.constellation.admin.listener.IDataBusinessListener;
+import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;

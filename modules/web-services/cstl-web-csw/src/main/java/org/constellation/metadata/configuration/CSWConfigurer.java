@@ -35,15 +35,12 @@ import org.geotoolkit.lucene.index.AbstractIndexer;
 import org.geotoolkit.nio.ZipUtilities;
 import org.constellation.metadata.index.Indexer;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -58,7 +55,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ICSWConfigurer;
-import org.constellation.business.IInternalMetadataBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.metadata.core.IndexConfigHandler;
@@ -73,7 +69,6 @@ import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 import org.geotoolkit.lucene.index.IndexLucene;
 import org.geotoolkit.metadata.RecordInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.xml.sax.InputSource;
 
 /**
  * {@link OGCConfigurer} implementation for CSW service.
@@ -110,9 +105,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
     @Autowired
     protected IProviderBusiness providerBusiness;
-
-    @Autowired
-    protected IInternalMetadataBusiness internalMetadataBusiness;
 
     /**
      * Create a new {@link CSWConfigurer} instance.
@@ -385,35 +377,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         metadataBusiness.updateMetadata(metadataID, n, null, null, null, null, providerID, "DOC");
 
         return new AcknowlegementType("Success", "The specified record have been imported in the CSW");
-    }
-
-    public AcknowlegementType importInternalData(String id, String metadataID) throws ConfigurationException {
-        LOGGER.fine("Importing internal data");
-        final MetadataStore store = getMetadataStore(id);
-        String requestUUID = UUID.randomUUID().toString();
-        final Indexer indexer = getIndexer(id, store, requestUUID);
-        try {
-            final String metadataXML = internalMetadataBusiness.getMetadata(metadataID);
-            if (metadataXML != null) {
-                metadataBusiness.linkMetadataIDToCSW(metadataID, id);
-                final InputSource source = new InputSource(new StringReader(metadataXML));
-                final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
-                final Document document = docBuilder.parse(source);
-                final Node n =  document.getDocumentElement();
-                store.storeMetadata(n);
-                synchronized(indexer) {
-                    indexer.indexDocument(n);
-                }
-            }
-            final String msg = "The specified internal metadata have been imported in the CSW";
-            return new AcknowlegementType("Success", msg);
-        } catch (MetadataIoException | ParserConfigurationException | SAXException | IOException ex) {
-            throw new ConfigurationException(ex);
-        } finally {
-            if (indexer != null) {
-                destroyIndexer(id, requestUUID);
-            }
-        }
     }
 
     public boolean canImportInternalData(String id) throws ConfigurationException {

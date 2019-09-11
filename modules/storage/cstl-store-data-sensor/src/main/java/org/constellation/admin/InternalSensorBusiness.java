@@ -19,11 +19,11 @@
 package org.constellation.admin;
 
 import java.util.List;
-import javax.inject.Inject;
 import org.constellation.business.IInternalSensorBusiness;
 import org.constellation.dto.InternalSensor;
 import org.constellation.repository.InternalSensorRepository;
 import org.constellation.repository.SensorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,10 +37,10 @@ public class InternalSensorBusiness implements IInternalSensorBusiness{
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     protected InternalSensorRepository intSensorRepository;
 
-    @Inject
+    @Autowired
     protected SensorRepository sensorRepository;
 
     @Override

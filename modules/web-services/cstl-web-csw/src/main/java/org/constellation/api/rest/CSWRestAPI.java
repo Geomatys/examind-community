@@ -163,16 +163,6 @@ public class CSWRestAPI {
         }
     }
 
-    @RequestMapping(value="/CSW/{id}/records/data/{dataID}",method=PUT,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity importInternalData(final @PathVariable("id") String id, final @PathVariable("dataID") String metadataID) {
-        try {
-            return new ResponseEntity(getConfigurer().importInternalData(id, metadataID), OK);
-        } catch (Throwable ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            return new ErrorMessage(ex).build();
-        }
-    }
-
     @RequestMapping(value="/CSW/{id}/importInternaldata",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity canImportInternalData(final @PathVariable("id") String id) {
         try {
