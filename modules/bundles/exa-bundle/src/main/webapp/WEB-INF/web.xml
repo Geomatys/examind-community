@@ -28,14 +28,6 @@
         <listener-class>org.constellation.setup.CstlInstaller</listener-class>
     </listener>
 
-    <!--<listener>
-        <listener-class>org.constellation.scheduler.CstlSchedulerSetup</listener-class>
-    </listener>-->
-
-    <listener>
-        <listener-class>org.constellation.admin.SessionListener</listener-class>
-    </listener>
-
     <context-param>
         <description>Constellation run in a single webapp</description>
         <param-name>cstl-uberwar</param-name>

@@ -20,6 +20,7 @@ package org.constellation.util;
 
 import java.util.Map;
 import java.util.Properties;
+import org.constellation.util.json.JsonUtils;
 import org.junit.Test;
 
 /**
@@ -27,7 +28,7 @@ import org.junit.Test;
  * @author Guilhem Legal (Geomatys)
  */
 public class JSonUtilsTest {
-    
+
     @Test
     public void testToJSon() {
         Properties list = new Properties();
@@ -35,10 +36,10 @@ public class JSonUtilsTest {
         list.put("ab.c", "de");
         list.put("ab.d", "de");
 
-        Map<String, Object> p2h = JSonUtils.toJSon(list);
+        Map<String, Object> p2h = JsonUtils.toJSon(list);
         System.out.println(p2h);
 
-        Properties properties = JSonUtils.toProperties(p2h);
+        Properties properties = JsonUtils.toProperties(p2h);
 
         System.out.println(properties);
     }

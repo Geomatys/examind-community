@@ -49,7 +49,7 @@ import org.constellation.exception.ConfigurationRuntimeException;
 /**
  * Temporary copy of static methods from the WebService class (in module
  * web-base), in order to retrieve the configuration directory of Constellation.
- * 
+ *
  * TODO: this implementation should probably been handled by the server
  * registry, so move it there.
  *
@@ -236,25 +236,12 @@ public final class ConfigDirectory {
         return pyramidDirectory;
     }
 
-    /**
-     * remove upload directory for the sessionId {@link java.nio.file.Path} by default
-     * on .constellation-data/upload/sessionId from user home directory
-     *
-     * @param sessionId
-     */
-    public static void removeUploadDirectory(String sessionId) {
-
-        Path sessionFolder = resolveUserUploads(sessionId);
-
-        deleteDir(sessionFolder);
-    }
-
-    private static void deleteDir(Path sessionFolder) {
-        if (Files.exists(sessionFolder)) {
+    private static void deleteDir(Path folder) {
+        if (Files.exists(folder)) {
 
             try {
-                deleteRecursively(sessionFolder);
-                LOGGER.log(Level.INFO, "{0} deleted.", sessionFolder.toString());
+                deleteRecursively(folder);
+                LOGGER.log(Level.INFO, "{0} deleted.", folder.toString());
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, e.getMessage(), e);
             }

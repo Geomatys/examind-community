@@ -32,7 +32,7 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.SimpleValue;
-import org.constellation.util.JSonUtils;
+import org.constellation.util.json.JsonUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -120,7 +120,7 @@ public class AdminRestAPI extends AbstractRestAPI {
                 javaProperties.put(property.getKey(), property.getValue());
             }
 
-            return new ResponseEntity(JSonUtils.toJSon(javaProperties),OK);
+            return new ResponseEntity(JsonUtils.toJSon(javaProperties),OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -131,7 +131,7 @@ public class AdminRestAPI extends AbstractRestAPI {
     @Transactional
     public ResponseEntity updateContact(@RequestBody HashMap<String, Object> contact) {
         try {
-            final Properties properties = JSonUtils.toProperties(contact);
+            final Properties properties = JsonUtils.toProperties(contact);
             final Map<String, String> propertiesDB = propertyRepository.startWith("contact.%");
 
             for (Entry<String, String> entry : propertiesDB.entrySet()) {

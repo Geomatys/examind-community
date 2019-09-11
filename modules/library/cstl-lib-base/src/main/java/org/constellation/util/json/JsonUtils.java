@@ -16,11 +16,15 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
 
 /**
  * @author Quentin Boileau (Geomatys)
  */
-class JsonUtils extends Static {
+public class JsonUtils extends Static {
 
     /**
      * Jackson JsonFactory used to create temporary JsonGenerators.
@@ -130,6 +134,59 @@ class JsonUtils extends Static {
             }
 
             throw new IOException("Can't convert JSON node ("+node.getNodeType().name()+") for parameter "+parameterName+" in Java type "+binding.getName(), ex);
+        }
+    }
+
+    public static Properties toProperties(Map<String, Object> map) {
+        return addValue(new Properties(), new Stack<>(), map);
+    }
+
+    private static Properties addValue(Properties properties, Stack<String> path, Object o) {
+        if (o instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) o;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                path.push(entry.getKey());
+
+                addValue(properties, path, entry.getValue());
+
+                path.pop();
+            }
+        } else {
+            StringBuilder builder = new StringBuilder();
+            for (String string : path) {
+                if (builder.length() > 0) {
+                    builder.append('.');
+                }
+                builder.append(string);
+            }
+            properties.put(builder.toString(), String.valueOf(o));
+        }
+        return properties;
+    }
+
+    public static Map<String, Object> toJSon(Properties list) {
+        Map<String, Object> map = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : list.entrySet()) {
+            String key = (String) entry.getKey();
+            String[] tokens = key.split("\\.");
+            addValue(map, tokens, 0, (String) entry.getValue());
+        }
+        return map;
+
+    }
+
+    public static void addValue(Map<String, Object> map, String[] tokens,
+            int i, String value) {
+        String token = tokens[i];
+        if (i == tokens.length - 1) {
+            map.put(token, value);
+        } else {
+            Map<String, Object> o = (Map<String, Object>) map.get(token);
+            if (o == null) {
+                o = new HashMap<>();
+                map.put(token, o);
+            }
+            addValue(o, tokens, i + 1, value);
         }
     }
 

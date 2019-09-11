@@ -18,12 +18,8 @@
  */
 package org.constellation.webservice.map.component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.RenderingHints;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -40,7 +36,6 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.constellation.admin.util.ImageStatisticDeserializer;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -55,6 +50,7 @@ import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
+import org.constellation.admin.util.DataCoverageUtilities;
 import org.geotoolkit.coverage.amended.AmendedCoverageResource;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -262,18 +258,7 @@ public class MapBusiness {
                     //We could check for a RasterSymbolizer with a palette, but requires to check also filters, properties ... and so on.
 
                     //parse statistics
-                    final ImageStatistics stats;
-                    try {
-                        final String result = data.getStatsResult();
-                        final ObjectMapper mapper = new ObjectMapper();
-                        final SimpleModule module = new SimpleModule();
-                        module.addDeserializer(ImageStatistics.class, new ImageStatisticDeserializer()); //custom deserializer
-                        mapper.registerModule(module);
-                        stats = mapper.readValue(result, ImageStatistics.class);
-                    } catch (IOException ex) {
-                        //stats bad formatting.
-                        throw new ConfigurationException("Coverage statistics for data "+dataId+" are incorrect, "+ex.getMessage(), ex);
-                    }
+                    final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
 
                     if (stats.getBands() == null || stats.getBands().length == 0) {
                         //if stats are not complete don't replace

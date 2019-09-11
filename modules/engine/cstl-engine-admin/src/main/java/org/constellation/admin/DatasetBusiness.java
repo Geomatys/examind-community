@@ -39,7 +39,6 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.security.SecurityManagerHolder;
-import org.constellation.metadata.utils.CstlMetadatas;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -262,7 +261,7 @@ public class DatasetBusiness implements IDatasetBusiness {
         if (dataset == null) {
             throw new ConstellationException("Unable to find the dataset");
         }
-        final String metadataID = CstlMetadatas.getMetadataIdForDataset(dataset.getIdentifier());
+        final String metadataID = MetadataUtilities.getMetadataIdForDataset(dataset.getIdentifier());
 
         // find unused title
         String cleanTitle = clearTitleOrdinal(dataset.getIdentifier());

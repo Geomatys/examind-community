@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import org.apache.sis.util.logging.Logging;
-import org.constellation.admin.util.IOUtilities;
 import org.constellation.api.StyleType;
 import org.constellation.business.*;
 import org.constellation.dto.CstlUser;
@@ -64,6 +63,7 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.apache.sis.internal.system.DefaultFactories;
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.opengis.style.StyleFactory;
 
 /**
@@ -450,7 +450,7 @@ public class StyleBusiness implements IStyleBusiness {
     public void linkToLayer(int styleId, int layerId) throws ConfigurationException {
         styleRepository.linkStyleToLayer(styleId, layerId);
     }
-    
+
     @Override
     @Transactional
     public void unlinkToLayer(int styleId, int layerId) throws ConfigurationException {
@@ -676,7 +676,7 @@ public class StyleBusiness implements IStyleBusiness {
     public void writeStyle(final String name, final Integer providerId, final StyleType type, final org.opengis.style.Style body) throws IOException {
         final String login = securityManager.getCurrentUserLogin();
         Style style = new Style();
-        style.setBody(IOUtilities.writeStyle((MutableStyle) body));
+        style.setBody(writeStyle((MutableStyle) body));
         style.setDate(new Date(System.currentTimeMillis()));
         style.setName(name);
         Optional<CstlUser> optionalUser = userBusiness.findOne(login);
@@ -719,6 +719,27 @@ public class StyleBusiness implements IStyleBusiness {
     public void updateSharedProperty(final List<Integer> ids, final boolean shared) throws ConfigurationException {
         for (Integer id : ids) {
             updateSharedProperty(id, shared);
+        }
+    }
+
+    /**
+     * Transform a {@link MutableStyle} instance into a {@link String} instance.
+     *
+     * @param style
+     *            the style to be written
+     * @return a {@link String} instance
+     * @throws IOException
+     *             on error while writing {@link MutableStyle} XML
+     */
+    private static String writeStyle(final MutableStyle style) throws IOException {
+        ensureNonNull("style", style);
+        final StyleXmlIO util = new StyleXmlIO();
+        try {
+            final StringWriter sw = new StringWriter();
+            util.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
+            return sw.toString();
+        } catch (JAXBException ex) {
+            throw new IOException("An error occurred while writing MutableStyle XML.", ex);
         }
     }
 

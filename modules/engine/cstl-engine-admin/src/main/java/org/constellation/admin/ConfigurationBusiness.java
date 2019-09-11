@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.configuration.AppProperty;
@@ -16,7 +17,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Service;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.metadata.utils.CstlMetadatas;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -72,7 +72,7 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
                 final Object metadata = metadatabusiness.getIsoMetadataForService(record.getId());
                 if (metadata instanceof DefaultMetadata) {
                     final DefaultMetadata servMeta = (DefaultMetadata) metadata;
-                    CstlMetadatas.updateServiceMetadataURL(record.getIdentifier(), record.getType(), url, servMeta);
+                    MetadataUtilities.updateServiceMetadataURL(record.getIdentifier(), record.getType(), url, servMeta);
                     metadatabusiness.updateMetadata(servMeta.getFileIdentifier(), servMeta, null, null, null, null, null, "DOC");
                 } else {
                     LOGGER.info("Service metadata is not a ISO 19139 object");

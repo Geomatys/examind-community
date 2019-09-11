@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.citation.DefaultOnlineResource;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
+import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.constellation.dto.metadata.MetadataBbox;
 import org.opengis.metadata.extent.Extent;
@@ -43,11 +44,14 @@ import org.opengis.metadata.identification.Identification;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.CstlUser;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.geotoolkit.util.NamesExt;
 import org.opengis.metadata.citation.OnlineResource;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
+import org.opengis.util.GenericName;
 
 
 /**
@@ -143,6 +147,27 @@ public final class MetadataUtilities {
             return metadata.getParentIdentifier();
         }
         return null;
+    }
+
+    public static String getMetadataIdForData(final String providerId, final GenericName dataName){
+        ArgumentChecks.ensureNonNull("dataName", dataName);
+        ArgumentChecks.ensureNonNull("providerId", providerId);
+        String nmsp = NamesExt.getNamespace(dataName);
+        if (nmsp == null) {
+            nmsp = "";
+        }
+        return  providerId + '_' + nmsp + dataName.tip().toString();
+    }
+
+    public static String getMetadataIdForDataset(final String providerId){
+        ArgumentChecks.ensureNonNull("providerId", providerId);
+        return  providerId;
+    }
+
+    public static void updateServiceMetadataURL(final String serviceIdentifier, final String serviceType, final String cstlURL, final DefaultMetadata metadata) {
+        final MetadataFeeder feeder = new MetadataFeeder(metadata);
+        final String serviceURL = cstlURL + "/WS/" + serviceType.toLowerCase() + '/' + serviceIdentifier;
+        feeder.updateServiceURL(serviceURL);
     }
 
     public static String fillMetadataFromProperties(final String dataType, final String metadataID, final String title, final String crsName,

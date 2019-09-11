@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.DispatcherType;
 import javax.servlet.MultipartConfigElement;
 import org.apache.catalina.Context;
-import org.constellation.admin.SessionListener;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.filter.CorsFilter;
@@ -204,11 +203,6 @@ public class Examind extends SpringBootServletInitializer {
     @Bean
     public CstlInstaller cstlInstaller() {
         return new CstlInstaller();
-    }
-
-    @Bean
-    public SessionListener sessionListener() {
-        return new SessionListener();
     }
 
     /**

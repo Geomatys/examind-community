@@ -72,7 +72,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
-import org.constellation.metadata.utils.CstlMetadatas;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -1226,7 +1225,7 @@ public class DataBusiness implements IDataBusiness {
         }
 
         //initialize metadata from the template and fill it with properties file
-        final String metadataID = CstlMetadatas.getMetadataIdForData(provider.getIdentifier(), name);
+        final String metadataID = MetadataUtilities.getMetadataIdForData(provider.getIdentifier(), name);
 
         // get current user name and email and store into metadata contact.
         final String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();

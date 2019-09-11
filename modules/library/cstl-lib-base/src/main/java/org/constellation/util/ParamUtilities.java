@@ -21,7 +21,6 @@ package org.constellation.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.commons.io.IOUtils;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.logging.Logging;
@@ -45,7 +44,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
@@ -92,22 +90,21 @@ public final class ParamUtilities extends Static {
 
     /**
      * FIXME this is a temporary fix for Geotk migration of Examind for backward compatibility of namespace.
-     * 
+     *
      *
      * Convenient method to acquire a DOM document from an input.
      * This is provided as a convenient method, use the default JRE classes so it may
      * not be the faster parsing method.
      */
     private static Document read(final Object input) throws ParserConfigurationException, SAXException, IOException {
-        final InputStream stream = toInputStream(input);
-        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
-        //This is the fix to treat namespace backward compatibility
-        factory.setNamespaceAware(true);
-
-        final DocumentBuilder constructeur = factory.newDocumentBuilder();
-        final Document document = constructeur.parse(stream);
-        stream.close();
+        final Document document;
+        try (InputStream stream = toInputStream(input)) {
+            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            //This is the fix to treat namespace backward compatibility
+            factory.setNamespaceAware(true);
+            final DocumentBuilder constructeur = factory.newDocumentBuilder();
+            document = constructeur.parse(stream);
+        }
         return document;
     }
 
@@ -158,28 +155,6 @@ public final class ParamUtilities extends Static {
             }
 
             throw new IOException("An error occurred while parsing ParameterDescriptorGroup XML.", ex);
-        }
-    }
-
-    /**
-     * Reads a {@link String} instance from the specified {@link InputStream}.
-     *
-     * @return a {@link String} instance
-     * @throws IOException
-     *             if an I/O error occurs
-     */
-    public static String readString(final InputStream stream) throws IOException {
-        ensureNonNull("stream", stream);
-        try {
-            final StringWriter writer = new StringWriter();
-            IOUtils.copy(stream, writer);
-            return writer.toString();
-        } finally {
-            try {
-                stream.close();
-            } catch (IOException ex) {
-                LOGGER.log(Level.WARNING, "Error while closing stream", ex);
-            }
         }
     }
 

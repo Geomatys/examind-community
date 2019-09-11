@@ -49,7 +49,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.admin.util.IOUtilities;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
@@ -393,7 +392,7 @@ public class ProviderBusiness implements IProviderBusiness {
         provider.setParent(parent);
         provider.setType(type.name());
         try {
-            provider.setConfig(IOUtilities.writeParameter(config));
+            provider.setConfig(ParamUtilities.writeParameter(config));
         } catch (IOException ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }
@@ -424,7 +423,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         String config;
         try {
-            config = IOUtilities.writeParameter(providerConfig);
+            config = ParamUtilities.writeParameter(providerConfig);
         } catch (IOException ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }
@@ -447,7 +446,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
         final String newConfig;
         try {
-            newConfig = IOUtilities.writeParameter(sources);
+            newConfig = ParamUtilities.writeParameter(sources);
         } catch (IOException ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }

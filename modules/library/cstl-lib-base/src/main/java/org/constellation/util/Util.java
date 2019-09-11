@@ -21,12 +21,7 @@ package org.constellation.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -37,12 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -110,48 +101,6 @@ public final class Util {
         return dst;
     }
 
-
-    /**
-     * Return an marshallable Object from an url
-     */
-    public static Object getUrlContent(final String url, final Unmarshaller unmarshaller) throws MalformedURLException, IOException {
-        final URL source         = new URL(url);
-        final URLConnection conec = source.openConnection();
-        Object response = null;
-
-        try {
-
-            // we get the response document
-            final InputStream in   = conec.getInputStream();
-            final StringWriter out = new StringWriter();
-            final byte[] buffer    = new byte[1024];
-            int size;
-
-            while ((size = in.read(buffer, 0, 1024)) > 0) {
-                out.write(new String(buffer, 0, size));
-            }
-
-            //we convert the brut String value into UTF-8 encoding
-            String brutString = out.toString();
-
-            //we need to replace % character by "percent because they are reserved char for url encoding
-            brutString = brutString.replaceAll("%", "percent");
-            final String decodedString = java.net.URLDecoder.decode(brutString, "UTF-8");
-
-            try {
-                response = unmarshaller.unmarshal(new StringReader(decodedString));
-                if (response instanceof JAXBElement) {
-                    response = ((JAXBElement<?>) response).getValue();
-                }
-            } catch (JAXBException ex) {
-                LOGGER.log(Level.SEVERE, "The distant service does not respond correctly: unable to unmarshall response document.\ncause: {0}", ex.getMessage());
-            }
-        } catch (IOException ex) {
-            LOGGER.severe("The Distant service have made an error");
-            return null;
-        }
-        return response;
-    }
 
     /**
      * Obtain the Thread Context ClassLoader.

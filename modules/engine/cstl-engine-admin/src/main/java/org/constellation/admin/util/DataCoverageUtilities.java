@@ -79,7 +79,7 @@ public class DataCoverageUtilities {
                 }
 
             } catch (IOException e) {
-                throw new ConfigurationException("Invalid statistic JSON format.", e);
+                throw new ConfigurationException("Invalid statistic JSON format for data: " + d.getName(), e);
             }
         }
         return null;
