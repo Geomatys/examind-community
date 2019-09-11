@@ -34,12 +34,12 @@ import org.constellation.dto.NameInProvider;
 public interface ILayerBusiness {
     void removeAll() throws ConfigurationException;
 
-    void add(AddLayer layer) throws ConfigurationException;
+    Integer add(AddLayer layer) throws ConfigurationException;
 
-    void add(String name, String namespace, String providerId, String alias,
+    Integer add(String name, String namespace, String providerId, String alias,
              String serviceId, String serviceType, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException;
 
-    void add(int dataId, String alias,
+    Integer add(int dataId, String alias,
              int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException;
 
     /**

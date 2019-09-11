@@ -19,12 +19,11 @@
 package org.constellation.dto;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MapContextLayersDTO extends MapContextDTO {
 
-
     private List<MapContextStyledLayerDTO> layers;
-
 
     public MapContextLayersDTO() {
         super();
@@ -40,8 +39,9 @@ public class MapContextLayersDTO extends MapContextDTO {
 		Double  east,
 		Double  south,
 		String  keywords,
+                String userOwner,
                 final List<MapContextStyledLayerDTO> layers) {
-        super(id, name, owner, description, crs, west, north, east, south, keywords);
+        super(id, name, owner, description, crs, west, north, east, south, keywords, userOwner);
         this.layers = layers;
     }
 
@@ -51,5 +51,36 @@ public class MapContextLayersDTO extends MapContextDTO {
 
     public void setLayers(List<MapContextStyledLayerDTO> layers) {
         this.layers = layers;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        if (layers != null) {
+            sb.append("layers:\n");
+            for (MapContextStyledLayerDTO layer : layers) {
+                sb.append(layer).append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof MapContextLayersDTO && super.equals(obj)) {
+            MapContextLayersDTO that = (MapContextLayersDTO) obj;
+            return Objects.equals(this.layers, that.layers);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        hash = 79 * hash + Objects.hashCode(this.layers);
+        return hash;
     }
 }

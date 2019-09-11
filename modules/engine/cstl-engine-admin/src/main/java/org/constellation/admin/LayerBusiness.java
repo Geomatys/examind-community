@@ -102,7 +102,7 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void add(final AddLayer addLayerData) throws ConfigurationException {
+    public Integer add(final AddLayer addLayerData) throws ConfigurationException {
         final String name        = addLayerData.getLayerId();
         // Prevents adding empty layer namespace, put null instead
         final String namespace   = (addLayerData.getLayerNamespace() != null && addLayerData.getLayerNamespace().isEmpty()) ? null : addLayerData.getLayerNamespace();
@@ -110,12 +110,12 @@ public class LayerBusiness implements ILayerBusiness {
         final String alias       = addLayerData.getLayerAlias();
         final String serviceId   = addLayerData.getServiceId();
         final String serviceType = addLayerData.getServiceType();
-        add(name, namespace, providerId, alias, serviceId, serviceType, null);
+        return add(name, namespace, providerId, alias, serviceId, serviceType, null);
     }
 
     @Override
     @Transactional
-    public void add(final String name, String namespace, final String providerId, final String alias,
+    public Integer add(final String name, String namespace, final String providerId, final String alias,
             final String serviceId, final String serviceType, final org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException {
 
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(serviceType.toLowerCase(), serviceId);
@@ -140,7 +140,7 @@ public class LayerBusiness implements ILayerBusiness {
             if(data == null) {
                 throw new TargetNotFoundException("Unable to find data for namespace:" + namespace+" name:"+name+" provider:"+providerId);
             }
-            add(data, alias, service, config);
+            return add(data, alias, service, config);
 
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
@@ -149,7 +149,7 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void add(int dataId, String alias,
+    public Integer add(int dataId, String alias,
              int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException {
 
         final org.constellation.dto.service.ServiceComplete service = serviceBusiness.getServiceById(serviceId);
@@ -204,6 +204,8 @@ public class LayerBusiness implements ILayerBusiness {
             request.put(SRV_KEY_TYPE, service.getType());
             request.put(KEY_IDENTIFIER, service.getIdentifier());
             clusterBusiness.publish(request);
+
+            return layerID;
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
         }

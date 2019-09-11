@@ -340,7 +340,8 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
                     mctx.getNorth(),
                     mctx.getEast(),
                     mctx.getSouth(),
-                    mctx.getKeywords());
+                    mctx.getKeywords(),
+                    null);
         }
         return null;
     }

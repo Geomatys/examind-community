@@ -5,6 +5,7 @@ import org.constellation.dto.service.config.wxs.LayerSummary;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class MapContextStyledLayerDTO extends LayerSummary implements Comparable<MapContextStyledLayerDTO> {
     private Integer mapcontextId;
@@ -254,5 +255,52 @@ public class MapContextStyledLayerDTO extends LayerSummary implements Comparable
     @Override
     public int compareTo(MapContextStyledLayerDTO o) {
         return getOrder() - o.getOrder();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof MapContextStyledLayerDTO && super.equals(obj)) {
+            MapContextStyledLayerDTO that = (MapContextStyledLayerDTO) obj;
+            return Objects.equals(this.externalLayer, that.externalLayer) &&
+                   Objects.equals(this.externalLayerExtent, that.externalLayerExtent) &&
+                   Objects.equals(this.externalServiceUrl, that.externalServiceUrl) &&
+                   Objects.equals(this.externalServiceVersion, that.externalServiceVersion) &&
+                   Objects.equals(this.externalStyle, that.externalStyle) &&
+                   Objects.equals(this.iswms, that.iswms) &&
+                   Objects.equals(this.layerId, that.layerId) &&
+                   Objects.equals(this.mapcontextId, that.mapcontextId) &&
+                   Objects.equals(this.opacity, that.opacity) &&
+                   Objects.equals(this.order, that.order) &&
+                   Objects.equals(this.serviceIdentifier, that.serviceIdentifier) &&
+                   Objects.equals(this.serviceVersions, that.serviceVersions) &&
+                   Objects.equals(this.styleId, that.styleId) &&
+                   Objects.equals(this.styleName, that.styleName) &&
+                   Objects.equals(this.visible, that.visible);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        hash = 79 * hash + Objects.hashCode(this.mapcontextId);
+        hash = 79 * hash + Objects.hashCode(this.layerId);
+        hash = 79 * hash + Objects.hashCode(this.serviceIdentifier);
+        hash = 79 * hash + Objects.hashCode(this.serviceVersions);
+        hash = 79 * hash + Objects.hashCode(this.styleId);
+        hash = 79 * hash + Objects.hashCode(this.styleName);
+        hash = 79 * hash + this.order;
+        hash = 79 * hash + this.opacity;
+        hash = 79 * hash + (this.visible ? 1 : 0);
+        hash = 79 * hash + (this.iswms ? 1 : 0);
+        hash = 79 * hash + Objects.hashCode(this.externalStyle);
+        hash = 79 * hash + Objects.hashCode(this.externalServiceUrl);
+        hash = 79 * hash + Objects.hashCode(this.externalServiceVersion);
+        hash = 79 * hash + Objects.hashCode(this.externalLayer);
+        hash = 79 * hash + Objects.hashCode(this.externalLayerExtent);
+        return hash;
     }
 }

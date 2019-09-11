@@ -41,8 +41,6 @@ public interface IMapContextBusiness {
 
     MapContextLayersDTO findMapContextLayers(int contextId) throws ConstellationException;
 
-    String findStyleName(Integer styleId);
-
     ParameterValues getExtent(int contextId) throws FactoryException,ConstellationException;
 
     ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws FactoryException,ConstellationException;
@@ -55,7 +53,7 @@ public interface IMapContextBusiness {
 
     void delete(int contextId) throws ConstellationException;
 
-    void deleteAllContexts()throws ConstellationException;
+    void deleteAll()throws ConstellationException;
 
     MapContextDTO getContextById(int id);
 

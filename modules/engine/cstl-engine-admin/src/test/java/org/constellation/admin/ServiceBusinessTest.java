@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import org.constellation.business.IServiceBusiness;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;

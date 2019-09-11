@@ -19,6 +19,7 @@
 package org.constellation.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -52,7 +53,8 @@ public class MapContextDTO implements Serializable{
 		Double  north,
 		Double  east,
 		Double  south,
-		String  keywords) {
+		String  keywords,
+                String userOwner) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -63,6 +65,7 @@ public class MapContextDTO implements Serializable{
         this.east = east;
         this.south = south;
         this.keywords = keywords;
+        this.userOwner = userOwner;
     }
 
     public String getUserOwner() {
@@ -215,5 +218,62 @@ public class MapContextDTO implements Serializable{
 
     public boolean hasEnvelope() {
         return west != null &&  north != null && east != null && south != null && crs != null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[").append(this.getClass().getSimpleName()).append("]\n");
+        sb.append("id=").append(this.id).append('\n');
+        sb.append("name=").append(this.name).append('\n');
+        sb.append("owner=").append(this.owner).append('\n');
+        sb.append("description=").append(this.description).append('\n');
+        sb.append("crs=").append(this.crs).append('\n');
+        sb.append("west=").append(this.west).append('\n');
+        sb.append("north=").append(this.north).append('\n');
+        sb.append("east=").append(this.east).append('\n');
+        sb.append("south=").append(this.south).append('\n');
+        sb.append("keywords=").append(this.keywords).append('\n');
+        sb.append("userOwner=").append(this.userOwner).append('\n');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof MapContextDTO) {
+            MapContextDTO that = (MapContextDTO) obj;
+            return Objects.equals(this.id, that.id)
+                    && Objects.equals(this.crs, that.crs)
+                    && Objects.equals(this.description, that.description)
+                    && Objects.equals(this.owner, that.owner)
+                    && Objects.equals(this.east, that.east)
+                    && Objects.equals(this.id, that.id)
+                    && Objects.equals(this.keywords, that.keywords)
+                    && Objects.equals(this.name, that.name)
+                    && Objects.equals(this.north, that.north)
+                    && Objects.equals(this.south, that.south)
+                    && Objects.equals(this.userOwner, that.userOwner)
+                    && Objects.equals(this.west, that.west);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 11 * hash + Objects.hashCode(this.id);
+        hash = 11 * hash + Objects.hashCode(this.name);
+        hash = 11 * hash + Objects.hashCode(this.owner);
+        hash = 11 * hash + Objects.hashCode(this.description);
+        hash = 11 * hash + Objects.hashCode(this.crs);
+        hash = 11 * hash + Objects.hashCode(this.west);
+        hash = 11 * hash + Objects.hashCode(this.north);
+        hash = 11 * hash + Objects.hashCode(this.east);
+        hash = 11 * hash + Objects.hashCode(this.south);
+        hash = 11 * hash + Objects.hashCode(this.keywords);
+        hash = 11 * hash + Objects.hashCode(this.userOwner);
+        return hash;
     }
 }

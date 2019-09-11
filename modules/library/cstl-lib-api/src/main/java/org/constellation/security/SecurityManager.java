@@ -18,12 +18,6 @@
  */
 package org.constellation.security;
 
-import org.constellation.security.IncorrectCredentialsException;
-import org.constellation.security.NoSecurityManagerException;
-import org.constellation.security.UnknownAccountException;
-
-
-
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -39,7 +33,7 @@ public interface SecurityManager {
     String getCurrentUserLogin() throws NoSecurityManagerException;
 
     boolean isAuthenticated();
-    
+
     boolean isAllowed(final String action);
 
     boolean hasRole(final String role);
@@ -47,9 +41,9 @@ public interface SecurityManager {
     void login(final String login, final String pass) throws UnknownAccountException, IncorrectCredentialsException;
 
     void logout();
-    
+
     void runAs(String login);
-    
+
     void reset();
 }
-    
+

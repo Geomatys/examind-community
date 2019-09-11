@@ -20,7 +20,6 @@ package org.constellation.admin;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,6 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.logging.Logging;
@@ -40,7 +38,6 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextLayersDTO;
@@ -48,7 +45,6 @@ import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.Style;
 import org.constellation.dto.service.Service;
-import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.ProviderRepository;
@@ -56,10 +52,7 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
 import org.constellation.util.DataReference;
-import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.metadata.identification.DataIdentification;
-import org.opengis.metadata.identification.Identification;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.springframework.context.annotation.Primary;
@@ -68,14 +61,13 @@ import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleBrief;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.util.Util;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component("cstlMapContextBusiness")
@@ -89,9 +81,6 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     @Inject
     private LayerRepository layerRepository;
-
-    @Inject
-    private DataRepository dataRepository;
 
     @Inject
     private IMetadataBusiness metadataBusiness;
@@ -117,12 +106,6 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Inject
     private IUserBusiness userBusiness;
 
-    @Inject
-    private IProcessBusiness processBusiness;
-
-    @Inject
-    private PlatformTransactionManager platformTransactionManager;
-
     @Override
     @Transactional
     public void setMapItems(final int contextId, final List<MapContextStyledLayerDTO> layers) {
@@ -143,16 +126,15 @@ public class MapContextBusiness implements IMapContextBusiness {
             final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
 
             final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-            final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, styledLayersDto);
 
-            //getOwner and set userName to pojo.
+            //get owner login.
+            String userLogin = null;
             final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
-            if (user != null && user.isPresent()) {
-                final CstlUser cstlUser = user.get();
-                if(cstlUser!=null){
-                    mapcontext.setUserOwner(cstlUser.getLogin());
-                }
+            if (user.isPresent()) {
+                userLogin = user.get().getLogin();
             }
+
+            final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, userLogin, styledLayersDto);
             ctxtLayers.add(mapcontext);
         }
         return ctxtLayers;
@@ -161,16 +143,15 @@ public class MapContextBusiness implements IMapContextBusiness {
     private MapContextLayersDTO convertToMapContextLayer(final MapContextDTO ctxt) throws ConstellationException {
         final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(ctxt.getId());
         final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-        final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, styledLayersDto);
 
-        //getOwner and set userName to pojo.
+        //get owner login.
+        String userLogin = null;
         final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
-        if (user != null && user.isPresent()) {
-            final CstlUser cstlUser = user.get();
-            if (cstlUser != null) {
-                mapcontext.setUserOwner(cstlUser.getLogin());
-            }
+        if (user.isPresent()) {
+            userLogin = user.get().getLogin();
         }
+
+        final MapContextLayersDTO mapcontext = buildMapContextLayers(ctxt, userLogin, styledLayersDto);
         return mapcontext;
     }
 
@@ -179,12 +160,13 @@ public class MapContextBusiness implements IMapContextBusiness {
         final MapContextDTO ctxt = mapContextRepository.findById(contextId);
         final List<MapContextStyledLayerDTO> styledLayers = mapContextRepository.getLinkedLayers(contextId);
         final List<MapContextStyledLayerDTO> styledLayersDto = generateLayerDto(styledLayers);
-        return buildMapContextLayers(ctxt, styledLayersDto);
-    }
-
-    @Override
-    public String findStyleName(Integer styleId) {
-        return styleRepository.findById(styleId).getName();
+        //get owner login.
+        String userLogin = null;
+        final Optional<CstlUser> user = userBusiness.findById(ctxt.getOwner());
+        if (user.isPresent()) {
+            userLogin = user.get().getLogin();
+        }
+        return buildMapContextLayers(ctxt, userLogin, styledLayersDto);
     }
 
     /**
@@ -233,11 +215,9 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Override
     public ParameterValues getExtentForLayers(final List<MapContextStyledLayerDTO> styledLayers) throws FactoryException,ConstellationException {
         final GeneralEnvelope env = getEnvelopeForLayers(styledLayers, null);
-
         if (env == null) {
             return null;
         }
-
         final ParameterValues values = new ParameterValues();
         final HashMap<String,String> vals = new HashMap<>();
         vals.put("crs", "CRS:84");
@@ -273,33 +253,24 @@ public class MapContextBusiness implements IMapContextBusiness {
                 }
                 if(metadata == null && dataID != null) {
                     //try to get dataset metadata.
-                    final Data data = dataRepository.findById(dataID);
-                    if (data.getDatasetId() != null) {
-                        try{
-                            metadata = (DefaultMetadata) datasetBusiness.getMetadata(data.getDatasetId());
-                        }catch(Exception ex){
+                    final Integer datasetId = dataBusiness.getDataDataset(dataID);
+                    if (datasetId != null) {
+                        try {
+                            metadata = (DefaultMetadata) datasetBusiness.getMetadata(datasetId);
+                        } catch(Exception ex) {
                             //skip for this layer
                             continue;
                         }
                     }
                 }
-                if (metadata == null || metadata.getIdentificationInfo() == null || metadata.getIdentificationInfo().isEmpty()) {
+                if (metadata == null) {
                     continue;
                 }
-                final Identification identification = metadata.getIdentificationInfo().iterator().next();
-                if (!(identification instanceof DataIdentification)) {
+                final MetadataFeeder feeder = new MetadataFeeder(metadata);
+                final GeographicBoundingBox geoBBox = feeder.getGeographicBoundingBox();
+                if (geoBBox == null) {
                     continue;
                 }
-                final Collection<? extends Extent> extents = ((DataIdentification) identification).getExtents();
-                if (extents == null || extents.isEmpty()) {
-                    continue;
-                }
-                final DefaultExtent extent = (DefaultExtent) extents.iterator().next();
-                if (extent.getGeographicElements() == null || extent.getGeographicElements().isEmpty()) {
-                    continue;
-                }
-                final GeographicBoundingBox geoBBox = (GeographicBoundingBox) extent.getGeographicElements().iterator().next();
-
                 final GeneralEnvelope tempEnv = new GeneralEnvelope(CommonCRS.defaultGeographic());
                 tempEnv.setRange(0, geoBBox.getWestBoundLongitude(), geoBBox.getEastBoundLongitude());
                 tempEnv.setRange(1, geoBBox.getSouthBoundLatitude(), geoBBox.getNorthBoundLatitude());
@@ -346,7 +317,7 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     @Override
     @Transactional
-    public void deleteAllContexts() throws ConfigurationException {
+    public void deleteAll() throws ConfigurationException {
         List<Integer> ids = mapContextRepository.findAllId();
         for (Integer id : ids) {
             delete(id);
@@ -383,7 +354,7 @@ public class MapContextBusiness implements IMapContextBusiness {
     }
 
 
-    private static MapContextLayersDTO buildMapContextLayers(MapContextDTO mctx, List<MapContextStyledLayerDTO> layers) {
+    private static MapContextLayersDTO buildMapContextLayers(MapContextDTO mctx, String userOwner, List<MapContextStyledLayerDTO> layers) {
         return new MapContextLayersDTO(mctx.getId(),
                 mctx.getName(),
                 mctx.getOwner(),
@@ -394,6 +365,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 mctx.getEast(),
                 mctx.getSouth(),
                 mctx.getKeywords(),
+                userOwner,
                 layers);
     }
 
@@ -405,8 +377,9 @@ public class MapContextBusiness implements IMapContextBusiness {
             final Integer dataID = styledLayer.getDataId();
             if (layerID != null) {
                 final Layer layer = layerRepository.findById(layerID);
-                final Data data = dataRepository.findById(layer.getDataId());
-                final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
+                final DataBrief db = dataBusiness.getDataBrief(layer.getDataId());
+
+                final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
                 final QName name = new QName(layer.getNamespace(), layer.getName());
 
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(layer.getId(), name);
@@ -429,8 +402,6 @@ public class MapContextBusiness implements IMapContextBusiness {
                 }
                 layerConfig.setStyles(drs);
 
-                final QName dataName = new QName(data.getNamespace(), data.getName());
-                final DataBrief db = dataBusiness.getDataBrief(dataName, provider.getId());
                 dto = buildMapContextStyledLayer(styledLayer, layerConfig, db);
 
                 if (styledLayer.getStyleId() != null) {
@@ -447,14 +418,13 @@ public class MapContextBusiness implements IMapContextBusiness {
                 dto.setServiceIdentifier(serviceRecord.getIdentifier());
                 dto.setServiceVersions(serviceRecord.getVersions());
             } else if (dataID != null) {
-                final Data data = dataRepository.findById(dataID);
-                final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
-                final QName dataName = new QName(data.getNamespace(), data.getName());
-                final DataBrief db = dataBusiness.getDataBrief(dataName, provider.getId());
+                final DataBrief db = dataBusiness.getDataBrief(dataID);
+                final QName dataName = new QName(db.getNamespace(), db.getName());
+                final ProviderBrief provider = providerRepository.findOne(db.getProviderId());
                 final org.constellation.dto.service.config.wxs.Layer layerConfig = new org.constellation.dto.service.config.wxs.Layer(styledLayer.getLayerId(), dataName);
-                layerConfig.setAlias(data.getName());
-                layerConfig.setDate(data.getDate());
-                layerConfig.setOwner(data.getOwnerId());
+                layerConfig.setAlias(db.getName());
+                layerConfig.setDate(db.getDate());
+                layerConfig.setOwner(db.getOwnerId());
                 layerConfig.setProviderID(provider.getIdentifier());
                 layerConfig.setProviderType(provider.getType());
                 layerConfig.setDataId(dataID);
@@ -482,7 +452,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                     }
                 }
 
-            } else{
+            } else {
                 dto = styledLayer;
             }
 
