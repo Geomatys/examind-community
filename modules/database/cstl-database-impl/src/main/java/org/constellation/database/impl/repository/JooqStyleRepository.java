@@ -330,7 +330,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
             Style p = new Style();
             p.setBody(dao.getBody());
             p.setId(dao.getId());
-            p.setDate(dao.getDate() != null ? new Date(dao.getDate()) : null);
+            p.setDate(new Date(dao.getDate()));
             p.setIsShared(dao.getIsShared());
             p.setOwnerId(dao.getOwner());
             p.setName(dao.getName());

@@ -294,18 +294,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
-            final List<ObservationResult> results = new ArrayList<>();
-            final Connection connection           = acquireConnection();
-            final Statement currentStatement      = connection.createStatement();
-            final ResultSet result                = currentStatement.executeQuery(request);
-            while (result.next()) {
-                results.add(new ObservationResult(result.getString(1),
-                                                  result.getTimestamp(2),
-                                                  result.getTimestamp(3)));
+            final List<ObservationResult> results     = new ArrayList<>();
+            try (Connection connection                = acquireConnection();
+                final Statement currentStatement      = connection.createStatement();
+                final ResultSet result                = currentStatement.executeQuery(request)) {
+                while (result.next()) {
+                    results.add(new ObservationResult(result.getString(1),
+                            result.getTimestamp(2),
+                            result.getTimestamp(3)));
+                }
             }
-            result.close();
-            currentStatement.close();
-            connection.close();
             return results;
 
         } catch (SQLException ex) {
@@ -323,16 +321,14 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
-            final Set<String> results        = new LinkedHashSet<>();
-            final Connection connection      = acquireConnection();
-            final Statement currentStatement = connection.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(request);
-            while (result.next()) {
-                results.add(result.getString(1));
+            final Set<String> results            = new LinkedHashSet<>();
+            try (Connection connection           = acquireConnection();
+                final Statement currentStatement = connection.createStatement();
+                final ResultSet result           = currentStatement.executeQuery(request)) {
+                while (result.next()) {
+                    results.add(result.getString(1));
+                }
             }
-            result.close();
-            currentStatement.close();
-            connection.close();
             return results;
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQLException while executing the query: {0} \nmsg:{1}", new Object[]{request, ex.getMessage()});

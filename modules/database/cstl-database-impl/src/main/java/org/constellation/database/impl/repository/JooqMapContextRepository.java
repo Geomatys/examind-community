@@ -29,11 +29,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 
 import org.constellation.database.api.jooq.tables.pojos.Mapcontext;
 import org.constellation.database.api.jooq.tables.pojos.MapcontextStyledLayer;
 import org.constellation.database.api.jooq.tables.records.MapcontextRecord;
+import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.repository.MapContextRepository;
@@ -280,8 +282,9 @@ public class JooqMapContextRepository extends AbstractJooqRespository<Mapcontext
             if (data != null) {
                 dataType = data.getType();
                 dataSubType = data.getSubtype();
-                if (userRepository.findById(data.getId()).isPresent()) {
-                    dataOwner = userRepository.findById(data.getId()).get().getLogin();
+                Optional<CstlUser> user = userRepository.findById(data.getOwnerId());
+                if (user.isPresent()) {
+                    dataOwner = user.get().getLogin();
                 }
                 dataProvider = providerRepository.findOne(data.getProviderId()).getIdentifier();
                 dataProviderID = data.getProviderId();

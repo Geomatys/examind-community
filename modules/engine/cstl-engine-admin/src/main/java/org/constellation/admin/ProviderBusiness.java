@@ -432,6 +432,7 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
+    @Transactional
     public void update(final String id, final ProviderConfiguration config) throws ConfigurationException {
         final String type = config.getType();
         final String subType = config.getSubType();
@@ -621,6 +622,7 @@ public class ProviderBusiness implements IProviderBusiness {
      * {@inheritDoc}
      */
     @Override
+    @Transactional
     public void createAllPyramidConformForProvider(final int providerId) throws ConstellationException {
         final List<org.constellation.dto.Data> dataList = dataRepository.findByProviderId(providerId);
         for(final org.constellation.dto.Data d : dataList) {
@@ -635,6 +637,7 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
     @Override
+    @Transactional
     public int createZXYPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException {
         try {
             //create the output folder for pyramid

@@ -345,14 +345,15 @@ public class ServiceBusiness implements IServiceBusiness {
         final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
         if (service == null) throw new ConfigurationException("Service " + serviceType + ':' + identifier + " not found.");
 
-
         service.setConfig(getStringFromObject(configuration, GenericDatabaseMarshallerPool.getInstance()));
         if (details != null) {
             setInstanceDetails(serviceType, identifier, details, details.getLang(), true);
         } else {
             details = getInstanceDetails(service.getId(), null);
         }
-        service.setVersions(StringUtils.join(details.getVersions(), "µ"));
+        if (details != null) {
+            service.setVersions(StringUtils.join(details.getVersions(), "µ"));
+        }
         serviceRepository.update(service);
     }
 

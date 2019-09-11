@@ -200,14 +200,12 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
     */
     @Override
     public void indexDocuments(List<A> documents) {
-        try {
-            final IndexWriterConfig config = new IndexWriterConfig(analyzer);
-            final IndexWriter writer = new IndexWriter(LuceneUtils.getAppropriateDirectory(getFileDirectory()), config);
+        final IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        try (final IndexWriter writer = new IndexWriter(LuceneUtils.getAppropriateDirectory(getFileDirectory()), config)) {
 
             for (A doc : documents) {
                 indexDocument(writer, doc);
             }
-            writer.close();
             if (rTree != null) {
                 rTree.getTreeElementMapper().flush();
                 rTree.flush();
@@ -336,7 +334,9 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
             numField     = new StringField(fieldName,           String.valueOf(numValue), Field.Store.NO);
             numSortField = new StringField(fieldName + "_sort", String.valueOf(numValue), Field.Store.NO);
             fieldType = 'u';
-            LOGGER.log(Level.WARNING, "Unexpected Number type:{0}", numValue.getClass().getName());
+            if (numValue != null) {
+                LOGGER.log(Level.WARNING, "Unexpected Number type:{0}", numValue.getClass().getName());
+            }
         }
         addNumericField(fieldName, fieldType);
         addNumericField(fieldName + "_sort", fieldType);

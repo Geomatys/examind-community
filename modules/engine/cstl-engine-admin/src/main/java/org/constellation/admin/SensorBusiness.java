@@ -569,7 +569,7 @@ public class SensorBusiness implements ISensorBusiness {
         for (final Sensor sensor : sensors) {
             final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
             String owner = null;
-            if(optUser!=null && optUser.isPresent()){
+            if(optUser.isPresent()){
                 final CstlUser user = optUser.get();
                 if(user != null){
                     owner = user.getLogin();
@@ -581,7 +581,7 @@ public class SensorBusiness implements ISensorBusiness {
             for (final Sensor record : records) {
                 final Optional<CstlUser> optUserChild = userBusiness.findById(sensor.getOwner());
                 String ownerChild = null;
-                if(optUserChild!=null && optUserChild.isPresent()){
+                if(optUserChild.isPresent()){
                     final CstlUser user = optUserChild.get();
                     if(user != null){
                         ownerChild = user.getLogin();

@@ -43,9 +43,8 @@ public class TemplateEngineFactory {
                     final InputStream stream = Util.getResourceAsStream("org/constellation/engine/template/TemplateEngine.groovy");
                     Path templateFile = Files.createTempFile("TemplateEngine", ".groovy");
                     IOUtilities.writeStream(stream, templateFile);
-                    final GroovyClassLoader gcl = new GroovyClassLoader();
-
-                    try (BufferedReader reader = Files.newBufferedReader(templateFile, Charset.forName("UTF-8"))) {
+                    try (final GroovyClassLoader gcl = new GroovyClassLoader();
+                         final BufferedReader reader = Files.newBufferedReader(templateFile, Charset.forName("UTF-8"))) {
                         final Class clazz = gcl.parseClass(new GroovyCodeSource(reader, templateFile.getFileName().toString(), ""));
                         final Object aScript = clazz.newInstance();
                         return (TemplateEngine) aScript;

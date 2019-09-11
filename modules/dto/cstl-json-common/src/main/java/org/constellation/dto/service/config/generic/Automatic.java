@@ -629,7 +629,6 @@ public class Automatic extends AbstractConfigurationObject {
                    Objects.equals(this.thesaurus,        that.thesaurus)        &&
                    Objects.equals(this.noIndexation,     that.noIndexation)     &&
                    Objects.equals(this.harvester,        that.harvester)        &&
-                   Objects.equals(this.noIndexation,     that.noIndexation)     &&
                    Objects.equals(this.customparameters, that.customparameters) &&
                    Objects.equals(this.filterQueries,    that.filterQueries)    &&
                    Objects.equals(this.queries,          that.queries);

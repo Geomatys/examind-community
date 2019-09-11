@@ -328,76 +328,78 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     @Override
     public List<String> findMetadataID(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type) {
         SelectJoinStep<Record1<String>> query =  dsl.select(METADATA.METADATA_ID).from(METADATA);
-        if (includeService && !onlyPublished && providerId == null) {
+        if (includeService && !onlyPublished && providerId == null && type == null) {
             return query.fetchInto(String.class);
-        }
-        SelectConditionStep<Record1<String>> filterQuery = null;
-        if (!includeService) {
-            filterQuery = query.where(METADATA.SERVICE_ID.isNull());
-        }
-        if (onlyPublished) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-            } else {
-                filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+        } else {
+            SelectConditionStep<Record1<String>> filterQuery = null;
+            if (!includeService) {
+                filterQuery = query.where(METADATA.SERVICE_ID.isNull());
             }
-        }
-        if (providerId != null) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
-            } else {
-                filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
+            if (onlyPublished) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+                }
             }
-        }
-        if (type != null) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.TYPE.eq(type));
-            } else {
-                filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+            if (providerId != null) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
+                }
             }
+            if (type != null) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.TYPE.eq(type));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+                }
+            }
+            return filterQuery.fetchInto(String.class);
         }
-        return filterQuery.fetchInto(String.class);
     }
 
     @Override
     public int countMetadata(final boolean includeService, final boolean onlyPublished, final Integer providerId, final String type) {
         SelectJoinStep<Record1<String>> query =  dsl.select(METADATA.METADATA_ID).from(METADATA);
-        if (includeService && !onlyPublished && providerId == null) {
+        if (includeService && !onlyPublished && providerId == null && type == null) {
             return query.fetchCount();
-        }
-        SelectConditionStep<Record1<String>> filterQuery = null;
-        if (!includeService) {
-            filterQuery = query.where(METADATA.SERVICE_ID.isNull());
-        }
-        if (onlyPublished) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
-            } else {
-                filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+        } else {
+            SelectConditionStep<Record1<String>> filterQuery = null;
+            if (!includeService) {
+                filterQuery = query.where(METADATA.SERVICE_ID.isNull());
             }
-        }
-        if (providerId != null) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
-            } else {
-                filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
+            if (onlyPublished) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.IS_PUBLISHED.eq(Boolean.TRUE));
+                }
             }
-        }
-        if (type != null) {
-            if (filterQuery == null) {
-                filterQuery = query.where(METADATA.TYPE.eq(type));
-            } else {
-                filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+            if (providerId != null) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.PROVIDER_ID.eq(providerId));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.PROVIDER_ID.eq(providerId));
+                }
             }
+            if (type != null) {
+                if (filterQuery == null) {
+                    filterQuery = query.where(METADATA.TYPE.eq(type));
+                } else {
+                    filterQuery = filterQuery.and(METADATA.TYPE.eq(type));
+                }
+            }
+            return filterQuery.fetchCount();
         }
-        return filterQuery.fetchCount();
     }
 
     @Override
     public List<Metadata> findAll(final boolean includeService, final boolean onlyPublished) {
         SelectJoinStep<Record> query =  dsl.select(METADATA.fields()).from(METADATA);
         if (includeService && !onlyPublished) {
-            return query.fetchInto(Metadata.class);
+            return convertListToDto(query.fetchInto(org.constellation.database.api.jooq.tables.pojos.Metadata.class));
         }
         SelectConditionStep<Record> filterQuery = null;
         if (!includeService) {

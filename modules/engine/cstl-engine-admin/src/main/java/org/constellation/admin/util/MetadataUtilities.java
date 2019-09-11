@@ -189,12 +189,10 @@ public final class MetadataUtilities {
             prop.put("srs", crsName);
         }
 
-        if (optUser!=null && optUser.isPresent()) {
+        if (optUser.isPresent()) {
             final CstlUser user = optUser.get();
-            if (user != null) {
-                prop.put("contactName", user.getFirstname()+" "+user.getLastname());
-                prop.put("contactEmail", user.getEmail());
-            }
+            prop.put("contactName", user.getFirstname()+" "+user.getLastname());
+            prop.put("contactEmail", user.getEmail());
         }
         if (keywords != null && !keywords.isEmpty()) {
             prop.put("keywords",keywords);

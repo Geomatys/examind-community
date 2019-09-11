@@ -787,7 +787,7 @@ public class MetadataFeeder {
         servIdent.setContainsOperations(getOperation(serviceType, url));
 
         try {
-            Distribution dist = null;
+            Distribution dist;
             Collection<? extends Distribution> dists = eater.getDistributionInfo();
             if (dists.isEmpty()) {
                 dist = new DefaultDistribution();
@@ -938,7 +938,7 @@ public class MetadataFeeder {
         final Collection<DataIdentification> resources = servIdent.getOperatesOn();
         for (DataIdentification did : resources) {
             final DefaultDataIdentification dataIdent = (DefaultDataIdentification) did;
-            if (dataIdent.getIdentifierMap().getSpecialized(IdentifierSpace.HREF).equals(layerId)) {
+            if (layerId.equals(dataIdent.getIdentifierMap().getSpecialized(IdentifierSpace.HREF).toString())) {
                 return;
             }
         }

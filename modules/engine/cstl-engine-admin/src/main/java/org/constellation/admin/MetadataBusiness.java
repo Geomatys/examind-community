@@ -894,6 +894,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     @Override
+    @Transactional
     public void deleteMapContextMetadata(int mapContextId) throws ConfigurationException {
         final Metadata meta = metadataRepository.findByMapContextId(mapContextId);
         if (meta != null) {
@@ -936,6 +937,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     @Override
+    @Transactional
     public void deleteFromProvider(int identifier) throws ConfigurationException {
         List<Metadata> metas = metadataRepository.findByProviderId(identifier, null);
         for (Metadata meta : metas) {
@@ -1484,6 +1486,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     }
 
     @Override
+    @Transactional
     public void askForValidation(final List<Integer> ids, final String metadataLink, final boolean sendEmails) throws ConfigurationException {
         if(ids != null) {
             for(final Integer id : ids) {

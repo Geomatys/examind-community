@@ -251,11 +251,9 @@ public class StyleBusiness implements IStyleBusiness {
         bean.setProvider(idToName(style.getProviderId()));
         bean.setType(style.getType());
         final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
-        if (userStyle!=null && userStyle.isPresent()) {
+        if (userStyle.isPresent()) {
             final CstlUser cstlUser = userStyle.get();
-            if(cstlUser!=null){
-                bean.setOwner(cstlUser.getLogin());
-            }
+            bean.setOwner(cstlUser.getLogin());
         }
         bean.setDate(style.getDate());
         //get linked data references

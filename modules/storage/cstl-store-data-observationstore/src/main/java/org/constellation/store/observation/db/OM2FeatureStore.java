@@ -274,21 +274,22 @@ public class OM2FeatureStore extends AbstractFeatureStore {
         try {
             cnx = getConnection();
             stmtLastId = cnx.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" ORDER BY \"id\" ASC");
-            final ResultSet result = stmtLastId.executeQuery();
-            // keep the last
-            String id = null;
-            while (result.next()) {
-                id = result.getString(1);
-            }
-            if (id != null) {
-                try {
-                    final int i = Integer.parseInt(id.substring(sensorIdBase.length()));
-                    return new DefaultFeatureId(sensorIdBase + i);
-                } catch (NumberFormatException ex) {
-                    getLogger().warning("a snesor ID is malformed in procedures tables");
+            try(final ResultSet result = stmtLastId.executeQuery()) {
+                // keep the last
+                String id = null;
+                while (result.next()) {
+                    id = result.getString(1);
                 }
-            } else {
-                return new DefaultFeatureId(sensorIdBase + 1);
+                if (id != null) {
+                    try {
+                        final int i = Integer.parseInt(id.substring(sensorIdBase.length()));
+                        return new DefaultFeatureId(sensorIdBase + i);
+                    } catch (NumberFormatException ex) {
+                        getLogger().warning("a snesor ID is malformed in procedures tables");
+                    }
+                } else {
+                    return new DefaultFeatureId(sensorIdBase + 1);
+                }
             }
 
         } catch (SQLException ex) {
@@ -495,24 +496,14 @@ public class OM2FeatureStore extends AbstractFeatureStore {
                 return;
             }
 
-            PreparedStatement stmtDelete = null;
-            try {
-                stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?");
+            try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")){
+
                 stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
                 stmtDelete.executeUpdate();
 
             } catch (SQLException ex) {
                 getLogger().log(Level.WARNING, "Error while deleting procedure features", ex);
-            } finally {
-                if (stmtDelete != null) {
-                    try {
-                        stmtDelete.close();
-                    } catch (SQLException ex) {
-                        getLogger().log(Level.WARNING, null, ex);
-                    }
-                }
             }
-
         }
 
         @Override
