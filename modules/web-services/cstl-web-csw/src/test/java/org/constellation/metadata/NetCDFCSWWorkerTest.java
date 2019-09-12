@@ -181,7 +181,7 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
         if (obj instanceof DefaultMetadata) {
             DefaultMetadata isoResult = (DefaultMetadata) obj;
             DefaultMetadata ExpResult1 = (DefaultMetadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml"));
-            metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATIVE);
+            metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATE);
         } else if (obj instanceof Node) {
             Node resultNode = (Node) obj;
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");

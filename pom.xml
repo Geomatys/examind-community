@@ -271,6 +271,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.locationtech.jts</groupId>
+                <artifactId>jts-core</artifactId>
+                <optional>false</optional>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.sis.storage</groupId>
                 <artifactId>sis-earth-observation</artifactId>
                 <version>${sis.version}</version>

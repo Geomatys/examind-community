@@ -59,7 +59,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.lang.Setup;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -191,7 +190,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
         if (obj instanceof DefaultMetadata) {
             DefaultMetadata isoResult = (DefaultMetadata) obj;
             DefaultMetadata ExpResult1 = (DefaultMetadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml"));
-            metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATIVE);
+            metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATE);
         } else if (obj instanceof Node) {
             Node resultNode = (Node) obj;
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");

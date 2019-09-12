@@ -416,7 +416,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         domCompare(result, expected, new ArrayList<>(), Arrays.asList("http://www.opengis.net/wps/2.0:JobID"));
 
         String jobId = result.substring(result.indexOf("JobID>") + 6);
-        jobId = jobId.substring(0, jobId.indexOf("JobID>") - 6);
+        jobId = jobId.substring(0, jobId.indexOf("<"));
 
 
         LOGGER.info("TEST: waiting for the process execution to complete");
@@ -480,7 +480,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         domCompare(result, expected, new ArrayList<>(), Arrays.asList("http://www.opengis.net/wps/2.0:JobID"));
 
         String jobId = result.substring(result.indexOf("JobID>") + 6);
-        jobId = jobId.substring(0, jobId.indexOf("JobID>") - 6);
+        jobId = jobId.substring(0, jobId.indexOf("<"));
 
         Thread.sleep(2000);
 

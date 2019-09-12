@@ -87,7 +87,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.sis.metadata.iso.citation.Citations;
-import org.apache.sis.metadata.iso.ImmutableIdentifier;
+import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.NullArgumentException;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;

@@ -26,14 +26,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.event.ChangeEvent;
-import org.apache.sis.storage.event.ChangeListener;
+import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.sos.io.filesystem.FileObservationReader;
@@ -62,7 +62,6 @@ import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.geometry.Geometry;
@@ -113,8 +112,8 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(SOSLuceneObservationStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(SOSLuceneObservationStoreFactory.NAME);
     }
 
     @Override
@@ -127,7 +126,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         citation.setIdentifiers(Collections.singleton(identifier));
         identification.setCitation(citation);
         metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.freeze();
+        metadata.transitionTo(ModifiableMetadata.State.FINAL);
         return metadata;
     }
 
@@ -341,15 +340,4 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     public Optional<GenericName> getIdentifier() {
         return Optional.empty();
     }
-
-    @Override
-    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
 }

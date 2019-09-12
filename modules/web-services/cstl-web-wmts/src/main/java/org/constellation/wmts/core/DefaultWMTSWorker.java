@@ -49,8 +49,8 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.event.ChangeEvent;
-import org.apache.sis.storage.event.ChangeListener;
+import org.apache.sis.storage.event.StoreEvent;
+import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
@@ -441,7 +441,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                 if (entry.getValue() instanceof TemporalCRS) {
                                     timeIndex = entry.getKey();
                                     double value = upperLeft.getOrdinate(entry.getKey());
-                                    if (!Utilities.equalsApproximatively(JAVA_TIME, entry.getValue())) {
+                                    if (!Utilities.equalsApproximately(JAVA_TIME, entry.getValue())) {
                                         final double[] tmpArray = new double[]{value};
                                         toJavaTime = CRS.findOperation(entry.getValue(), JAVA_TIME, null).getMathTransform();
                                         toJavaTime.transform(tmpArray, 0, tmpArray, 0, 1);
@@ -863,11 +863,11 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             @Override
-            public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
+            public <T extends StoreEvent> void addListener(Class<T> type, StoreListener<? super T> cl) {
             }
 
             @Override
-            public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
+            public <T extends StoreEvent> void removeListener(Class<T> type, StoreListener<? super T> cl) {
             }
 
             @Override
@@ -905,7 +905,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         final long timestamp = TimeParser.toDate(dim.getValue()).getTime();
                         // We don't know what is the CRS of our envelope, but WMTS exposes times as ISO 8601, so a
                         // conversion may be needed.
-                        if (Utilities.equalsApproximatively(currentCRS, JAVA_TIME)) {
+                        if (Utilities.equalsApproximately(currentCRS, JAVA_TIME)) {
                             // put a minimal epsilon.
                             result.setRange(entry.getKey(), timestamp - 1, timestamp + 1);
                         } else {

@@ -23,20 +23,19 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.storage.event.ChangeEvent;
-import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.internal.InternalSensorReader;
 import org.constellation.sos.io.internal.InternalSensorWriter;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -61,8 +60,8 @@ public class InternalSensorStore extends AbstractSensorStore implements Resource
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(InternalSensorStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(InternalSensorStoreFactory.NAME);
     }
 
     @Override
@@ -75,7 +74,7 @@ public class InternalSensorStore extends AbstractSensorStore implements Resource
         citation.setIdentifiers(Collections.singleton(identifier));
         identification.setCitation(citation);
         metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.freeze();
+        metadata.transitionTo(ModifiableMetadata.State.FINAL);
         return metadata;
     }
 
@@ -83,15 +82,4 @@ public class InternalSensorStore extends AbstractSensorStore implements Resource
     public Optional<GenericName> getIdentifier() {
         return Optional.empty();
     }
-
-    @Override
-    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
 }

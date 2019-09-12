@@ -24,21 +24,20 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.storage.event.ChangeEvent;
-import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.filesystem.FileSensorReader;
 import org.constellation.sos.io.filesystem.FileSensorWriter;
 import org.opengis.parameter.ParameterValueGroup;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
@@ -55,16 +54,16 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
         super(source);
         try {
             final Path dataDirectory = (Path) source.parameter(FileSystemSensorStoreFactory.DATA_DIRECTORY_DESCRIPTOR.getName().getCode()).getValue();
-            this.reader = new FileSensorReader(dataDirectory, new HashMap<String, Object>());
-            this.writer = new FileSensorWriter(dataDirectory, new HashMap<String, Object>());
+            this.reader = new FileSensorReader(dataDirectory, new HashMap<>());
+            this.writer = new FileSensorWriter(dataDirectory, new HashMap<>());
         } catch (DataStoreException ex) {
             LOGGER.log(Level.WARNING, "Unable to initalize the filesystem sensor reader", ex);
         }
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(FileSystemSensorStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(FileSystemSensorStoreFactory.NAME);
     }
 
     @Override
@@ -77,22 +76,12 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
         citation.setIdentifiers(Collections.singleton(identifier));
         identification.setCitation(citation);
         metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.freeze();
+        metadata.transitionTo(ModifiableMetadata.State.FINAL);
         return metadata;
     }
 
     @Override
     public Optional<GenericName> getIdentifier() {
         return Optional.empty();
-    }
-
-    @Override
-    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> cl, Class<T> type) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

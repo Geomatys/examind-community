@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
+import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
@@ -35,8 +36,6 @@ import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.storage.event.ChangeEvent;
-import org.apache.sis.storage.event.ChangeListener;
 import org.constellation.admin.SpringHelper;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.geotoolkit.metadata.MetadataIoException;
@@ -102,7 +101,7 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
         citation.setIdentifiers(Collections.singleton(identifier));
         identification.setCitation(citation);
         metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.freeze();
+        metadata.transitionTo(ModifiableMetadata.State.FINAL);
         return metadata;
     }
 
@@ -199,15 +198,5 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
         } catch (SQLException ex) {
             throw new MetadataIoException(ex);
         }
-    }
-
-    @Override
-    public <T extends ChangeEvent> void addListener(ChangeListener<? super T> listener, Class<T> eventType) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> listener, Class<T> eventType) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

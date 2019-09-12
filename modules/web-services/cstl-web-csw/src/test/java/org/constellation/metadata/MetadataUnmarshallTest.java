@@ -24,7 +24,7 @@ import org.apache.sis.internal.jaxb.metadata.replace.ReferenceSystemMetadata;
 import org.apache.sis.metadata.iso.DefaultExtendedElementInformation;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadataExtensionInformation;
-import org.apache.sis.metadata.iso.ImmutableIdentifier;
+import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.metadata.iso.citation.DefaultAddress;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
@@ -127,7 +127,7 @@ import org.junit.Ignore;
  *
  * @author Guilhem Legal
  */
-public class MetadataUnmarshallTest extends MetadataTest {
+public class MetadataUnmarshallTest { //extends MetadataTest {
     private static MarshallerPool testPool;
     private static Unmarshaller unmarshaller;
     private static Marshaller marshaller;
@@ -163,12 +163,12 @@ public class MetadataUnmarshallTest extends MetadataTest {
      * @param extent    The extent to set.
      * @param startTime The start time in the {@code "yyy-mm-dd"} format.
      * @param endTime   The end time in the {@code "yyy-mm-dd"} format.
-     */
+
     @Override
     protected void setTemporalBounds(final DefaultTemporalExtent extent, final String startTime, final String endTime) {
         assumeTrue(TimeZone.getDefault().equals(TimeZone.getTimeZone("CET")));
         extent.setExtent(new TimePeriodType(null, startTime, endTime));
-    }
+    }*/
 
     /**
      * Tests the unmarshall of a metadata.

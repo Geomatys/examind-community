@@ -19,7 +19,6 @@
 package org.constellation.scheduler;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
@@ -169,26 +168,20 @@ public class QuartzScheduler implements CstlScheduler {
 
     @Override
     public String scheduleCronJob(String title, Integer taskParameterId, Integer userId, String cronExp, Date endDate, TaskParameter taskParameter) throws ConstellationSchedulerException {
-        try {
-            final ProcessJobDetail jobDetail = createJobDetailFromTaskParameter(taskParameter, false);
-            final JobKey key = jobDetail.getKey();
+        final ProcessJobDetail jobDetail = createJobDetailFromTaskParameter(taskParameter, false);
+        final JobKey key = jobDetail.getKey();
 
-            final TriggerBuilder tb = TriggerBuilder.newTrigger();
-            final CronScheduleBuilder cronSchedule = CronScheduleBuilder.cronSchedule(cronExp);
-            final Trigger cronTrigger;
-            if (endDate != null) {
-                cronTrigger = tb.withSchedule(cronSchedule).forJob(key).endAt(endDate).build();
-            } else {
-                cronTrigger = tb.withSchedule(cronSchedule).forJob(key).build();
-            }
-
-            registerJobInScheduler(title, taskParameterId, userId, cronTrigger, jobDetail);
-
-            return key.getName();
-        } catch (ParseException ex) {
-            throw new ConstellationSchedulerException(ex);
+        final TriggerBuilder tb = TriggerBuilder.newTrigger();
+        final CronScheduleBuilder cronSchedule = CronScheduleBuilder.cronSchedule(cronExp);
+        final Trigger cronTrigger;
+        if (endDate != null) {
+            cronTrigger = tb.withSchedule(cronSchedule).forJob(key).endAt(endDate).build();
+        } else {
+            cronTrigger = tb.withSchedule(cronSchedule).forJob(key).build();
         }
+        registerJobInScheduler(title, taskParameterId, userId, cronTrigger, jobDetail);
 
+        return key.getName();
     }
 
     private void registerJobInScheduler(String title, Integer taskParameterId, Integer userId,
