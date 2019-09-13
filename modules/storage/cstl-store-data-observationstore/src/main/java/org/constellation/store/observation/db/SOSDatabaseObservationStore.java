@@ -276,19 +276,14 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
         final FeatureType featureType = getFeatureType(groupName); //raise an error if type doesn't exist
         final List<FeatureId> result = new ArrayList<>();
 
-
-        Connection cnx = null;
-        PreparedStatement stmtWrite = null;
-        try {
-            cnx = getConnection();
-            stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT);
+        try (Connection cnx = getConnection();
+             PreparedStatement stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT)) {
 
             for(final Feature feature : newFeatures) {
                 FeatureId identifier = FeatureExt.getId(feature);
                 if (identifier == null || identifier.getID().isEmpty()) {
                     identifier = getNewFeatureId();
                 }
-
 
                 stmtWrite.setString(1, identifier.getID());
                 Collection<String> names = ((Collection)feature.getPropertyValue(ATT_NAME.toString()));
@@ -314,24 +309,7 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
             }
         } catch (SQLException ex) {
             getLogger().log(Level.WARNING, SQL_WRITE_SAMPLING_POINT, ex);
-        }finally{
-            if(stmtWrite != null){
-                try {
-                    stmtWrite.close();
-                } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
-                }
-            }
-
-            if(cnx != null){
-                try {
-                    cnx.close();
-                } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
-                }
-            }
         }
-
         return result;
     }
 

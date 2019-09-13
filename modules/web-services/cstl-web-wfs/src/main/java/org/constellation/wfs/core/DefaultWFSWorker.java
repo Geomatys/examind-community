@@ -94,6 +94,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.data.FeatureStore;
+import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.FeatureWriter;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
@@ -1813,7 +1814,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         }
                     }
 
-                } catch (ConstellationStoreException | DataStoreException ex) {
+                } catch (ConstellationStoreException | DataStoreException | FeatureStoreRuntimeException ex) {
                     throw new CstlServiceException(ex);
                 }
 

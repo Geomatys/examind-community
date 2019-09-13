@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<wfs:WFS_Capabilities version="1.1.0" xmlns:fes="http://www.opengis.net/fes/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wfs="http://www.opengis.net/wfs" xmlns:ins="http://www.inspire.org" xmlns:ows="http://www.opengis.net/ows" xmlns:ows1="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:{gmlPrefix}="http://www.opengis.net/gml">
+<wfs:WFS_Capabilities version="1.1.0" xmlns:fes="http://www.opengis.net/fes/2.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wfs="http://www.opengis.net/wfs" xmlns:ins="http://www.inspire.org" xmlns:ows="http://www.opengis.net/ows" xmlns:ows1="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmlPrefix="http://www.opengis.net/gml">
     <wfs:FeatureTypeList>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:BasicPolygons</wfs:Name>
+            <wfs:Name>gml1:BasicPolygons</wfs:Name>
             <wfs:Title>BasicPolygons</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
@@ -13,7 +13,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Bridges</wfs:Name>
+            <wfs:Name>gml1:Bridges</wfs:Name>
             <wfs:Title>Bridges</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -24,7 +24,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:BuildingCenters</wfs:Name>
+            <wfs:Name>gml1:BuildingCenters</wfs:Name>
             <wfs:Title>BuildingCenters</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -35,7 +35,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Buildings</wfs:Name>
+            <wfs:Name>gml1:Buildings</wfs:Name>
             <wfs:Title>Buildings</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -46,7 +46,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:DividedRoutes</wfs:Name>
+            <wfs:Name>gml1:DividedRoutes</wfs:Name>
             <wfs:Title>DividedRoutes</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -57,7 +57,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Forests</wfs:Name>
+            <wfs:Name>gml1:Forests</wfs:Name>
             <wfs:Title>Forests</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -68,7 +68,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Lakes</wfs:Name>
+            <wfs:Name>gml1:Lakes</wfs:Name>
             <wfs:Title>Lakes</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
@@ -79,7 +79,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:MapNeatline</wfs:Name>
+            <wfs:Name>gml1:MapNeatline</wfs:Name>
             <wfs:Title>MapNeatline</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -90,7 +90,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:NamedPlaces</wfs:Name>
+            <wfs:Name>gml1:NamedPlaces</wfs:Name>
             <wfs:Title>NamedPlaces</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -101,7 +101,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Ponds</wfs:Name>
+            <wfs:Name>gml1:Ponds</wfs:Name>
             <wfs:Title>Ponds</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -112,7 +112,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:RoadSegments</wfs:Name>
+            <wfs:Name>gml1:RoadSegments</wfs:Name>
             <wfs:Title>RoadSegments</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -135,7 +135,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:Streams</wfs:Name>
+            <wfs:Name>gml1:Streams</wfs:Name>
             <wfs:Title>Streams</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
@@ -146,7 +146,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:feature</wfs:Name>
+            <wfs:Name>gml1:feature</wfs:Name>
             <wfs:Title>feature</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
@@ -157,7 +157,7 @@
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>
-            <wfs:Name>{gmlPrefix}:featureCollection</wfs:Name>
+            <wfs:Name>gml1:featureCollection</wfs:Name>
             <wfs:Title>featureCollection</wfs:Title>
             <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
             <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
@@ -171,10 +171,10 @@
     <ogc:Filter_Capabilities>
         <ogc:Spatial_Capabilities>
             <ogc:GeometryOperands>
-                <ogc:GeometryOperand>{gmlPrefix}:Envelope</ogc:GeometryOperand>
-                <ogc:GeometryOperand>{gmlPrefix}:Point</ogc:GeometryOperand>
-                <ogc:GeometryOperand>{gmlPrefix}:LineString</ogc:GeometryOperand>
-                <ogc:GeometryOperand>{gmlPrefix}:Polygon</ogc:GeometryOperand>
+                <ogc:GeometryOperand>gml1:Envelope</ogc:GeometryOperand>
+                <ogc:GeometryOperand>gml1:Point</ogc:GeometryOperand>
+                <ogc:GeometryOperand>gml1:LineString</ogc:GeometryOperand>
+                <ogc:GeometryOperand>gml1:Polygon</ogc:GeometryOperand>
             </ogc:GeometryOperands>
             <ogc:SpatialOperators>
                 <ogc:SpatialOperator name="Disjoint"/>

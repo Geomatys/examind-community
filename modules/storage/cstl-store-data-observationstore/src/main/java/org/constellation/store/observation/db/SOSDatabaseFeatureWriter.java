@@ -14,7 +14,7 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 
 /**
- * 
+ *
  * @author Guilhem Legal (Geomatys)
  */
 class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements FeatureWriter {
@@ -22,7 +22,7 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
     protected static final Logger LOGGER = Logging.getLogger("org.geotoolkit.data.om");
     // TODO WRITE private static final String SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
 
-    
+
     Feature candidate = null;
 
     SOSDatabaseFeatureWriter(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException {
@@ -46,21 +46,12 @@ class SOSDatabaseFeatureWriter extends SOSDatabaseFeatureReader implements Featu
         if (candidate == null) {
             return;
         }
-        PreparedStatement stmtDelete = null;
-        try {
-            stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\" = ?");
+
+        try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\" = ?")) {
             stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
             stmtDelete.executeUpdate();
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "Error while removing features", ex);
-        } finally {
-            if (stmtDelete != null) {
-                try {
-                    stmtDelete.close();
-                } catch (SQLException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
-            }
         }
     }
 

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
@@ -350,8 +351,16 @@ public class WFS2WorkerTest {
         StringWriter sw = new StringWriter();
         marshaller.marshal(result, sw);
 
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0-ftl.xml"),
-        sw.toString());
+        String resultCapa   = sw.toString();
+        String smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
+        String fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        String expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-ftl.xml");
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa, resultCapa);
 
 
 
@@ -362,8 +371,16 @@ public class WFS2WorkerTest {
         sw = new StringWriter();
         marshaller.marshal(result, sw);
 
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml"),
-        sw.toString());
+        resultCapa   = sw.toString();
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
+        fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml");
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa,resultCapa);
 
         acceptVersion = new org.geotoolkit.ows.xml.v110.AcceptVersionsType("2.3.0");
         request = new  org.geotoolkit.wfs.xml.v200.GetCapabilitiesType(acceptVersion, null, null, null, "WFS");
@@ -407,8 +424,14 @@ public class WFS2WorkerTest {
 
         sw = new StringWriter();
         marshaller.marshal(result, sw);
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0-om.xml"),
-                sw.toString());
+
+        resultCapa   = sw.toString();
+        fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-om.xml");
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa, resultCapa);
 
         acceptVersion = new org.geotoolkit.ows.xml.v110.AcceptVersionsType("2.0.0");
         sections      = new org.geotoolkit.ows.xml.v110.SectionsType("serviceIdentification");
@@ -419,8 +442,14 @@ public class WFS2WorkerTest {
 
         sw = new StringWriter();
         marshaller.marshal(result, sw);
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0-si.xml"),
-                sw.toString());
+
+        resultCapa   = sw.toString();
+        fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-si.xml");
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa,resultCapa);
 
         acceptVersion = new org.geotoolkit.ows.xml.v110.AcceptVersionsType("2.0.0");
         sections      = new org.geotoolkit.ows.xml.v110.SectionsType("serviceProvider");
@@ -431,8 +460,14 @@ public class WFS2WorkerTest {
 
         sw = new StringWriter();
         marshaller.marshal(result, sw);
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0-sp.xml"),
-                sw.toString());
+
+        resultCapa   = sw.toString();
+        fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-sp.xml");
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa,resultCapa);
 
         acceptVersion = new org.geotoolkit.ows.xml.v110.AcceptVersionsType("10.0.0","2.0.0","1.1.0");
         request       = new  org.geotoolkit.wfs.xml.v200.GetCapabilitiesType(acceptVersion, null, null, null, "WFS");
@@ -442,8 +477,17 @@ public class WFS2WorkerTest {
 
         sw = new StringWriter();
         marshaller.marshal(result, sw);
-        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml"),
-                sw.toString());
+
+        resultCapa   = sw.toString();
+        fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
+        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml");
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
+        expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
+
+        domCompare(expectedCapa,resultCapa);
 
         pool.recycle(marshaller);
     }
@@ -1931,5 +1975,19 @@ public class WFS2WorkerTest {
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
         comparator.compare();
+    }
+
+    private static String getAssociatedPrefix(final String xml, final String namespace) {
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("xmlns:([^=]+)=\"" + namespace+ "\"");
+        Matcher matcher = p.matcher(xml);
+        if (matcher.find())
+        {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    private String getResourceString(String resource) throws IOException, URISyntaxException {
+        return IOUtilities.toString(IOUtilities.getResourceAsPath(resource));
     }
 }

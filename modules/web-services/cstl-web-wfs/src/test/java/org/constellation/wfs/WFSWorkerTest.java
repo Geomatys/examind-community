@@ -374,9 +374,13 @@ public class WFSWorkerTest {
 
         // try to fix an issue with variant generated prefix
         String resultCapa   = sw.toString();
-        String gmlPrefix    = getGmlPrefix(resultCapa);
+        String gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
+        String smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         String expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-ftl.xml");
-        expectedCapa = expectedCapa.replace("{gmlPrefix}", gmlPrefix);
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
+        expectedCapa = expectedCapa.replace("gml1:", gmlPrefix + ':');
         domCompare(sw.toString(), expectedCapa);
 
         request = new GetCapabilitiesType("WFS");
@@ -386,9 +390,13 @@ public class WFSWorkerTest {
         marshaller.marshal(result, sw);
 
         resultCapa   = sw.toString();
-        gmlPrefix    = getGmlPrefix(resultCapa);
+        gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0.xml");
-        expectedCapa = expectedCapa.replace("{gmlPrefix}", gmlPrefix);
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
+        expectedCapa = expectedCapa.replace("gml1:", gmlPrefix + ':');
         domCompare(sw.toString(),expectedCapa);
 
         acceptVersion = new AcceptVersionsType("2.3.0");
@@ -432,9 +440,13 @@ public class WFSWorkerTest {
         sw = new StringWriter();
         marshaller.marshal(result, sw);
         resultCapa   = sw.toString();
-        gmlPrefix    = getGmlPrefix(resultCapa);
+        gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         expectedCapa   = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-om.xml");
-        expectedCapa = expectedCapa.replace("{gmlPrefix}", gmlPrefix);
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
+        expectedCapa = expectedCapa.replace("gml1:", gmlPrefix + ':');
         domCompare(sw.toString(),expectedCapa);
 
         acceptVersion = new AcceptVersionsType("1.1.0");
@@ -447,9 +459,13 @@ public class WFSWorkerTest {
         sw = new StringWriter();
         marshaller.marshal(result, sw);
         resultCapa   = sw.toString();
-        gmlPrefix    = getGmlPrefix(resultCapa);
+        gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-si.xml");
-        expectedCapa = expectedCapa.replace("{gmlPrefix}", gmlPrefix);
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
+        expectedCapa = expectedCapa.replace("gml1:", gmlPrefix + ':');
         domCompare(sw.toString(),expectedCapa);
 
         acceptVersion = new AcceptVersionsType("1.1.0");
@@ -462,9 +478,13 @@ public class WFSWorkerTest {
         sw = new StringWriter();
         marshaller.marshal(result, sw);
         resultCapa   = sw.toString();
-        gmlPrefix    = getGmlPrefix(resultCapa);
+        gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
+        smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-sp.xml");
-        expectedCapa = expectedCapa.replace("{gmlPrefix}", gmlPrefix);
+        expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
+        expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
+        expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
+        expectedCapa = expectedCapa.replace("gml1:", gmlPrefix + ':');
         domCompare(sw.toString(),expectedCapa);
 
         pool.recycle(marshaller);
@@ -1320,8 +1340,8 @@ public class WFSWorkerTest {
         comparator.compare();
     }
 
-    private static String getGmlPrefix(final String xml) {
-        Pattern p = Pattern.compile("xmlns:([^=]+)=\"http://www.opengis.net/gml\"");
+    private static String getAssociatedPrefix(final String xml, final String namespace) {
+        Pattern p = Pattern.compile("xmlns:([^=]+)=\"" + namespace+ "\"");
         Matcher matcher = p.matcher(xml);
         if (matcher.find())
         {
