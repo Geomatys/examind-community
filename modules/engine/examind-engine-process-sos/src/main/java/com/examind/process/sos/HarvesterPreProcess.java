@@ -21,10 +21,11 @@ import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +44,8 @@ import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
+import org.geotoolkit.data.dbf.DbaseFileHeader;
+import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.chain.model.Chain;
@@ -76,6 +79,11 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final String observationType = inputParameters.getValue(HarvesterPreProcessDescriptor.OBS_TYPE);
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
+        String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
+        if (format == null) {
+            format = "csv";
+        }
+        final String ext = '.' + format;
 
         String processId;
         if (taskName != null) {
@@ -110,7 +118,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             if (Files.isDirectory(sourceFolder)) {
                  try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceFolder)) {
                     for (Path child : stream) {
-                        if (child.getFileName().toString().endsWith(".csv")) {
+                        if (child.getFileName().toString().endsWith(ext) ||
+                            child.getFileName().toString().endsWith(ext.toUpperCase())) {
                             children.add(child);
                         }
                     }
@@ -119,9 +128,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                 }
 
                 for (Path child : children) {
-                    String[] currentHeaders = extractHeaders(child);
+                    String[] currentHeaders = extractHeaders(child, format);
                     if (headers != null && !Arrays.equals(headers, currentHeaders)) {
-                        throw new ProcessException("Inconsistent dataset, the diferent CSV files does not have the same headers", this);
+                        throw new ProcessException("Inconsistent dataset, the different files does not have the same headers", this);
                     }
                     headers = currentHeaders;
                 }
@@ -193,6 +202,21 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
         inputs.add(RPparam);
 
+        if ("csv".equals(format)) {
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationCsvFile");
+            inputs.add(SIparam);
+
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "text/csv; subtype=\"om\"");
+            inputs.add(FOparam);
+
+        } else if ("dbf".equals(format)) {
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationDbfFile");
+            inputs.add(SIparam);
+
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "application/dbase; subtype=\"om\"");
+            inputs.add(FOparam);
+        }
+
         chain.setInputs(inputs);
 
 
@@ -239,30 +263,49 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     }
 
 
-    private String[] extractHeaders(Path csvFile) throws ProcessException {
-        LOGGER.log(Level.INFO, "Extracting headers from : {0}", csvFile.getFileName().toString());
-        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(csvFile))) {
+    private String[] extractHeaders(Path dataFile, String format) throws ProcessException {
+        LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
+        if ("csv".equals(format)) {
+            try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
-            final Iterator<String[]> it = reader.iterator();
+                final Iterator<String[]> it = reader.iterator();
 
-            // at least one line is expected to contain headers information
-            if (it.hasNext()) {
+                // at least one line is expected to contain headers information
+                if (it.hasNext()) {
 
-                // read headers
-                final String[] headers = it.next();
-                return headers;
+                    // read headers
+                    final String[] headers = it.next();
+                    return headers;
+                }
+                throw new ProcessException("csv headers not found", this);
+            } catch (IOException  ex) {
+                throw new ProcessException("problem reading csv file", this, ex);
             }
-            throw new ProcessException("csv headers not found", this);
-        } catch (IOException  ex) {
-            throw new ProcessException("problem reading csv file", this, ex);
+        } else {
+            try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
+
+                final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
+                final DbaseFileHeader headers = reader.getHeader();
+
+                final String[] results = new String[headers.getNumFields()];
+                for (int i = 0; i < headers.getNumFields(); i++) {
+                    results[i] = headers.getFieldName(i);
+                }
+                return results;
+
+            } catch (IOException ex) {
+                throw new ProcessException("problem reading dbf file", this, ex);
+            }
         }
     }
 
     private String guessColumn(String[] headers, List<String> findValues) {
-        for (String header : headers) {
-            for (String findValue : findValues) {
-                if (StringUtils.containsIgnoreCase(header, findValue)) {
-                    return header;
+        if (headers != null) {
+            for (String header : headers) {
+                for (String findValue : findValues) {
+                    if (StringUtils.containsIgnoreCase(header, findValue)) {
+                        return header;
+                    }
                 }
             }
         }

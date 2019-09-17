@@ -80,8 +80,16 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String FORMAT_NAME = "Format";
+    public static final String FORMAT_DESC = "Format";
+    public static final ParameterDescriptor<String> FORMAT = PARAM_BUILDER
+            .addName(FORMAT_NAME)
+            .setRemarks(FORMAT_DESC)
+            .setRequired(false)
+            .createEnumerated(String.class, new String[]{"csv", "dbf"}, "csv");
+
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";
