@@ -75,6 +75,7 @@ import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
+import javax.xml.XMLConstants;
 import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.Settable;
 
@@ -867,6 +868,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         try {
             final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
             final Document document = docBuilder.newDocument();
             final Marshaller marshaller = EBRIMMarshallerPool.getInstance().acquireMarshaller();

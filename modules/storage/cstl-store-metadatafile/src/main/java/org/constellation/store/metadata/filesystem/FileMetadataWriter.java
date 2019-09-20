@@ -52,7 +52,7 @@ import javax.xml.stream.XMLInputFactory;
 import org.constellation.admin.SpringHelper;
 
 import static java.nio.file.StandardOpenOption.*;
-import org.constellation.metadata.CSWQueryable;
+import javax.xml.XMLConstants;
 import static org.constellation.metadata.CSWQueryable.ALL_PREFIX_MAPPING;
 
 import static org.constellation.util.NodeUtilities.updateObjects;
@@ -97,6 +97,11 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
         }
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (ParserConfigurationException ex) {
+            throw new MetadataIoException(ex);
+        }
     }
 
     /**
@@ -130,6 +135,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             }
 
             TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");

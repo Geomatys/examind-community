@@ -21,6 +21,7 @@ package org.constellation.wfs.ws.rs;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,7 +41,7 @@ import org.xml.sax.SAXException;
  */
 public class NodeReader implements HttpMessageConverter<Node>{
 
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return Node.class.isAssignableFrom(clazz);
@@ -60,6 +61,7 @@ public class NodeReader implements HttpMessageConverter<Node>{
     public Node read(Class<? extends Node> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(him.getBody());
             return doc.getDocumentElement();
@@ -67,7 +69,7 @@ public class NodeReader implements HttpMessageConverter<Node>{
             throw new IOException(ex);
         }
     }
-    
+
     @Override
     public void write(Node r, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         throw new HttpMessageNotReadableException("Node message converter do not support writing.");

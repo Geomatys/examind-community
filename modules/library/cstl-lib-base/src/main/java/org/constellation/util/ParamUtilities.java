@@ -45,6 +45,7 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
 
@@ -100,6 +101,7 @@ public final class ParamUtilities extends Static {
         final Document document;
         try (InputStream stream = toInputStream(input)) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             //This is the fix to treat namespace backward compatibility
             factory.setNamespaceAware(true);
             final DocumentBuilder constructeur = factory.newDocumentBuilder();

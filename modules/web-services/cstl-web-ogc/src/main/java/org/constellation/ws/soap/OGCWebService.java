@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_REQUEST;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
@@ -285,6 +286,7 @@ public abstract class OGCWebService<W extends Worker> implements Provider<SOAPMe
 
             final Marshaller m = marshallerPool.acquireMarshaller();
             final DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
+            dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             final Document resultNode             = dfactory.newDocumentBuilder().newDocument();
             m.marshal(result, resultNode);
             marshallerPool.recycle(m);
@@ -337,7 +339,9 @@ public abstract class OGCWebService<W extends Worker> implements Provider<SOAPMe
     protected Object unmarshallRequestWithMapping(final Unmarshaller unmarshaller, final Node is, final Map<String, String> prefixMapping) throws JAXBException {
         try {
             final DOMSource source = new DOMSource(is);
-            final XMLEventReader rootEventReader    = XMLInputFactory.newInstance().createXMLEventReader(source);
+            final XMLInputFactory factory           = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            final XMLEventReader rootEventReader    = factory.createXMLEventReader(source);
             final XMLEventReader eventReader        = (XMLEventReader) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class[]{XMLEventReader.class}, new PrefixMappingInvocationHandler(rootEventReader, prefixMapping));
 

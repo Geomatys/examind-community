@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import org.apache.commons.io.IOUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -683,6 +684,7 @@ public abstract class AbstractGrizzlyServer {
      */
     protected static String getStringFromNode(final Node n) throws Exception {
         TransformerFactory tf = TransformerFactory.newInstance();
+        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StringWriter writer = new StringWriter();

@@ -29,6 +29,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.XMLConstants;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -57,7 +58,7 @@ public class NodeWriter implements HttpMessageConverter<Node> {
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_XML);
     }
-    
+
     @Override
     public Node read(Class<? extends Node> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("CSWResponse message converter do not support reading.");
@@ -67,6 +68,7 @@ public class NodeWriter implements HttpMessageConverter<Node> {
     public void write(Node t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(t), new StreamResult(outputMessage.getBody()));

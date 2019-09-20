@@ -393,7 +393,9 @@ public class WFSService extends GridWebService<WFSWorker> {
         final JAXBEventHandler handler          = new JAXBEventHandler();
          unmarshaller.setEventHandler(handler);
         try {
-            final XMLEventReader rootEventReader    = XMLInputFactory.newInstance().createXMLEventReader(is);
+            final XMLInputFactory factory           = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            final XMLEventReader rootEventReader    = factory.createXMLEventReader(is);
             final XMLEventReader eventReader        = (XMLEventReader) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class[]{XMLEventReader.class}, new PrefixMappingInvocationHandler(rootEventReader, prefixMapping));
 
@@ -1019,7 +1021,9 @@ public class WFSService extends GridWebService<WFSWorker> {
             }
             final StringReader sr                   = new StringReader(list[0]);
             final Map<String, String> prefixMapping = new LinkedHashMap<>();
-            final XMLEventReader rootEventReader    = XMLInputFactory.newInstance().createXMLEventReader(sr);
+            final XMLInputFactory factory           = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            final XMLEventReader rootEventReader    = factory.createXMLEventReader(sr);
             final XMLEventReader eventReader        = (XMLEventReader) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class[]{XMLEventReader.class}, new PrefixMappingInvocationHandler(rootEventReader, prefixMapping));
             final Unmarshaller unmarshaller = getMarshallerPool().acquireUnmarshaller();

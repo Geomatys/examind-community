@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
@@ -99,10 +101,15 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
     protected final Map<String, PathType> additionalQueryable;
 
-    public DomMetadataReader(final boolean isCacheEnabled, final boolean isThreadEnabled, final Map<String, PathType> additionalQueryable) {
+    public DomMetadataReader(final boolean isCacheEnabled, final boolean isThreadEnabled, final Map<String, PathType> additionalQueryable) throws MetadataIoException {
         super(isCacheEnabled, isThreadEnabled);
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (ParserConfigurationException ex) {
+            throw new MetadataIoException(ex);
+        }
         if (additionalQueryable != null) {
             this.additionalQueryable = additionalQueryable;
         } else {

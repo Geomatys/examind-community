@@ -44,7 +44,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,11 +75,6 @@ public class DatasetBusiness implements IDatasetBusiness {
      * Used for debugging purposes.
      */
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
-
-    /**
-     * w3c document builder factory.
-     */
-    protected final DocumentBuilderFactory dbf;
 
     /**
      * Injected user business.
@@ -120,8 +114,7 @@ public class DatasetBusiness implements IDatasetBusiness {
      * Creates a new instance of {@link DatasetBusiness}.
      */
     public DatasetBusiness() {
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
+
     }
 
     @Override

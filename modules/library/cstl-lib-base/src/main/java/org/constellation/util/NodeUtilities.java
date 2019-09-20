@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -50,6 +51,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -663,6 +665,7 @@ public class NodeUtilities {
     public static Node getNodeFromObject(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException  {
 
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         dbf.setNamespaceAware(true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.newDocument();
@@ -680,6 +683,7 @@ public class NodeUtilities {
     public static Node getNodeFromString(final String string) throws ParserConfigurationException, SAXException, IOException  {
         final InputSource source = new InputSource(new StringReader(string));
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         dbf.setNamespaceAware(true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(source);
@@ -712,6 +716,7 @@ public class NodeUtilities {
     public static Node getNodeFromStream(final InputStream stream) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(stream);
         return document.getDocumentElement();
@@ -721,6 +726,7 @@ public class NodeUtilities {
         final InputSource source = new InputSource(reader);
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(source);
         return document.getDocumentElement();
@@ -735,6 +741,7 @@ public class NodeUtilities {
     public static Document getDocumentFromStream(InputStream metadataStream) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         return docBuilder.parse(metadataStream);
     }
@@ -742,6 +749,7 @@ public class NodeUtilities {
     public static Document getDocumentFromString(String xml) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final InputSource source = new InputSource(new StringReader(xml));
         return docBuilder.parse(source);
@@ -758,6 +766,7 @@ public class NodeUtilities {
     public static Node getNodeFromGeotkMetadata(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.newDocument();
         final Marshaller marshaller = pool.acquireMarshaller();
@@ -774,6 +783,7 @@ public class NodeUtilities {
 
     public static void writerNode(Node n, Writer writer) throws TransformerConfigurationException, TransformerException {
         TransformerFactory tf = TransformerFactory.newInstance();
+        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -784,6 +794,7 @@ public class NodeUtilities {
 
     public static String getStringFromNode(final Node n) throws TransformerException  {
         TransformerFactory tf = TransformerFactory.newInstance();
+        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StringWriter writer = new StringWriter();

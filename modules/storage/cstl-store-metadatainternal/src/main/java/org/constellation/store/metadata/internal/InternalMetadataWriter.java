@@ -23,6 +23,9 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
@@ -66,6 +69,11 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
         SpringHelper.injectDependencies(this);
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (ParserConfigurationException ex) {
+            throw new MetadataIoException(ex);
+        }
     }
 
     @Override
@@ -88,6 +96,7 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
     public boolean replaceMetadata(String metadataID, Node original) throws MetadataIoException {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");

@@ -411,7 +411,9 @@ public abstract class AbstractWebService implements WebService{
 
     protected Object unmarshallRequestWithMapping(final Unmarshaller unmarshaller, final InputStream is, final Map<String, String> prefixMapping) throws JAXBException {
         try {
-            final XMLEventReader rootEventReader    = XMLInputFactory.newInstance().createXMLEventReader(is);
+            final XMLInputFactory factory           = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            final XMLEventReader rootEventReader    = factory.createXMLEventReader(is);
             final XMLEventReader eventReader        = (XMLEventReader) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class[]{XMLEventReader.class}, new PrefixMappingInvocationHandler(rootEventReader, prefixMapping));
 

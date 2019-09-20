@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.ws.CstlServiceException;
@@ -82,10 +80,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
 
-    protected final DocumentBuilderFactory dbf;
-
-    private static final TimeZone TZ = TimeZone.getTimeZone("GMT+2:00");
-
     /**
      * A flag indicating if an indexation is going on.
      */
@@ -111,8 +105,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
      */
     public CSWConfigurer() {
         indexing = false;
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
     }
 
     @Override
