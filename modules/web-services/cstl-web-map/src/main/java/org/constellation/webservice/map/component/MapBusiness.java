@@ -51,6 +51,8 @@ import org.constellation.ws.CstlServiceException;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.constellation.admin.util.DataCoverageUtilities;
+import org.constellation.dto.StatInfo;
+import org.constellation.provider.DefaultCoverageData;
 import org.geotoolkit.coverage.amended.AmendedCoverageResource;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -258,7 +260,7 @@ public class MapBusiness {
                     //We could check for a RasterSymbolizer with a palette, but requires to check also filters, properties ... and so on.
 
                     //parse statistics
-                    final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
+                    final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
 
                     if (stats.getBands() == null || stats.getBands().length == 0) {
                         //if stats are not complete don't replace

@@ -37,7 +37,6 @@ import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.internal.system.DefaultFactories;
 
-import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.util.iso.DefaultInternationalString;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -62,14 +61,14 @@ import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
-import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.business.IStyleConverterBusiness;
+import org.constellation.dto.StatInfo;
 import org.constellation.dto.StyleBrief;
 import org.constellation.json.util.StyleUtilities;
-import org.constellation.util.StoreUtilities;
+import org.constellation.provider.Data;
+import org.constellation.provider.DefaultCoverageData;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.style.DefaultLineSymbolizer;
 import org.geotoolkit.style.DefaultPointSymbolizer;
@@ -113,12 +112,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RestController;
 import static org.geotoolkit.style.StyleConstants.*;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.FilterFactory;
 import org.opengis.style.StyleFactory;
-import org.opengis.util.GenericName;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -234,16 +231,10 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             /*
              * I - Get feature type and feature data.
              */
-            final DataBrief data = dataBusiness.getDataBrief(dataId);
-            final DataProvider dataprovider = DataProviders.getProvider(data.getProviderId());
-            final DataStore dataStore = dataprovider.getMainStore();
-            final GenericName typeName = NamesExt.create(data.getNamespace(),data.getName());
-            Resource rs;
-            try {
-                rs  = StoreUtilities.findResource(dataStore, typeName.toString());
-            } catch(IllegalNameException e) {
-                rs  = StoreUtilities.findResource(dataStore, data.getName());
-            }
+            final DataBrief data  = dataBusiness.getDataBrief(dataId);
+            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
+            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {
                 final FeatureSet fs = (FeatureSet) rs;
@@ -261,7 +252,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final PropertyName property = FF.property(attribute);
 
                 final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(typeName);
+                queryBuilder.setTypeName(fs.getType().getName());
                 queryBuilder.setProperties(new String[]{attribute});
 
                 try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
@@ -475,15 +466,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             /*
              * I - Get feature type and feature data.
              */
-            final DataProvider dataprovider = DataProviders.getProvider(data.getProviderId());
-            final DataStore dataStore = dataprovider.getMainStore();
-            final GenericName typeName = NamesExt.create(data.getNamespace(),data.getName());
-            Resource rs;
-            try {
-                rs  = StoreUtilities.findResource(dataStore, typeName.toString());
-            } catch(IllegalNameException e) {
-                rs  = StoreUtilities.findResource(dataStore, data.getName());
-            }
+            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
+            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {
                 final FeatureSet fs = (FeatureSet) rs;
@@ -497,7 +482,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final List<Object> differentValues = new ArrayList<>();
 
                 final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(typeName);
+                queryBuilder.setTypeName(fs.getType().getName());
                 queryBuilder.setProperties(new String[]{attribute});
 
                 try (final Stream<Feature> featureSet = fs.subset(queryBuilder.buildQuery()).features(false)) {
@@ -592,18 +577,10 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
             final ChartDataModel result = new ChartDataModel();
 
-            final DataBrief brief = dataBusiness.getDataBrief(dataId);
-            int providerId = brief.getProviderId();
-
-            final DataProvider dataprovider = DataProviders.getProvider(providerId);
-            final DataStore dataStore = dataprovider.getMainStore();
-            final GenericName typeName = NamesExt.create(brief.getNamespace(),brief.getName());
-            Resource rs;
-            try {
-                rs  = StoreUtilities.findResource(dataStore, typeName.toString());
-            } catch(IllegalNameException e) {
-                rs  = StoreUtilities.findResource(dataStore, brief.getName());
-            }
+            final DataBrief data  = dataBusiness.getDataBrief(dataId);
+            final DataProvider dp = DataProviders.getProvider(data.getProviderId());
+            final Data dataP      = dp.get(data.getNamespace(),data.getName());
+            final Resource rs     = dataP.getOrigin();
 
             if (rs instanceof FeatureSet) {
                 FeatureSet fs = (FeatureSet) rs;
@@ -613,7 +590,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final PropertyName property = FF.property(attribute);
 
                 final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.setTypeName(typeName);
+                queryBuilder.setTypeName(fs.getType().getName());
                 queryBuilder.setProperties(new String[]{attribute});
                 fs = fs.subset(queryBuilder.buildQuery());
 
@@ -724,14 +701,12 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     }
 
     @RequestMapping(value="/internal/styles/histogram/{dataId}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getHistogram(
-            @PathVariable("dataId") int dataId) {
+    public ResponseEntity getHistogram(@PathVariable("dataId") int dataId) {
 
         try {
             final DataBrief data = dataBusiness.getDataBrief(dataId);
-
             if ("COVERAGE".equals(data.getType())) {
-                final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
+                final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
                 if (stats != null) {
                     return new ResponseEntity(stats,OK);
                 }

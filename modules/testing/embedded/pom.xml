@@ -95,6 +95,11 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
+            <artifactId>cstl-json-style</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>

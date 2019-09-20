@@ -18,6 +18,8 @@
  */
 package org.constellation.provider;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +55,11 @@ import org.constellation.api.DataType;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
+import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.util.DataStatisticsListener;
+import org.constellation.provider.util.ImageStatisticDeserializer;
+import org.constellation.repository.DataRepository;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
@@ -72,6 +78,7 @@ import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
+import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.DefaultStyleFactory;
@@ -90,6 +97,7 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
+import static org.constellation.api.StatisticState.*;
 
 /**
  * Regroups information about a {@linkplain Data data}.
@@ -124,7 +132,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     }
 
     @Override
-    public Object getOrigin() {
+    public GridCoverageResource getOrigin() {
         return ref;
     }
 
@@ -450,19 +458,22 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     }
 
     @Override
-    public CoverageDataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
+    public CoverageDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
         final CoverageDataDescription description = new CoverageDataDescription();
         try {
-            if (stats != null) {
-                // Bands description.
-                for (int i = 0; i < stats.getBands().length; i++) {
-                    final ImageStatistics.Band band = stats.getBand(i);
-                    final String bandName = band.getName();
-                    String indice = String.valueOf(i);
-                    final double min = band.getMin();
-                    final double max = band.getMax();
-                    double[] noData = band.getNoData();
-                    description.getBands().add(new BandDescription(indice, bandName, min, max, noData));
+            if (statInfo != null) {
+                ImageStatistics stats = getDataStatistics(statInfo);
+                if (stats != null) {
+                    // Bands description.
+                    for (int i = 0; i < stats.getBands().length; i++) {
+                        final ImageStatistics.Band band = stats.getBand(i);
+                        final String bandName = band.getName();
+                        String indice = String.valueOf(i);
+                        final double min = band.getMin();
+                        final double max = band.getMax();
+                        double[] noData = band.getNoData();
+                        description.getBands().add(new BandDescription(indice, bandName, min, max, noData));
+                    }
                 }
             }
 
@@ -646,5 +657,78 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             LOGGER.finer(ex.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public void computeStatistic(int dataId, DataRepository dataRepository) {
+        // Hack compute statistic from 5% of the first slice
+        try {
+            GridGeometry gg = ref.getGridGeometry();
+            GridExtent extent = gg.getExtent();
+            int[] subSample = new int[extent.getDimension()];
+            subSample[0] = Math.round(extent.getSize(0) * 0.05f);
+            subSample[1] = Math.round(extent.getSize(1) * 0.05f);
+            for (int i = 2; i < extent.getDimension(); i++) {
+                subSample[i] = Math.toIntExact(extent.getSize(i));
+            }
+            gg = gg.derive().subsample(subSample).build();
+
+            final GridCoverage cov = ref.read(gg);
+            final org.geotoolkit.process.Process process = new Statistics(cov, false);
+            process.addListener(new DataStatisticsListener(dataId, dataRepository));
+            process.call();
+
+        } catch(Throwable ex) {
+            //we tryed
+        }
+    }
+
+
+
+    /**
+     * Get and parse data statistics.
+     *
+     * @param d
+     *
+     * @return ImageStatistics object or null if data is not a coverage or if Statistics were not computed.
+     * @throws org.constellation.exception.ConfigurationException
+     */
+    public static ImageStatistics getDataStatistics(StatInfo s) throws ConstellationStoreException {
+        final String state = s.getState();
+        final String result = s.getResult();
+        try {
+            if (state != null) {
+                switch (state) {
+                    case STATE_PARTIAL : //fall through
+                    case STATE_COMPLETED :
+                        if (result != null && result.startsWith("{")) {
+                            return deserializeImageStatistics(result);
+                        } else {
+                            LOGGER.log(Level.WARNING, "Unreadable statistics flagged as {0}", state);
+                            return null;
+                        }
+                    case STATE_PENDING : return null;
+                    case STATE_ERROR :
+                        //can have partial statistics even if an error occurs.
+                        if (result != null && result.startsWith("{")) {
+                            return deserializeImageStatistics(result);
+                        } else {
+                            return null;
+                        }
+                }
+            }
+
+        } catch (IOException e) {
+            throw new ConstellationStoreException("Invalid statistic JSON format for data. ", e);
+        }
+        return null;
+    }
+
+    private static ImageStatistics deserializeImageStatistics(String state) throws IOException {
+        final ObjectMapper mapper = new ObjectMapper();
+        final SimpleModule module = new SimpleModule();
+        module.addDeserializer(ImageStatistics.class, new ImageStatisticDeserializer()); //custom deserializer
+        mapper.registerModule(module);
+        return mapper.readValue(state, ImageStatistics.class);
     }
 }

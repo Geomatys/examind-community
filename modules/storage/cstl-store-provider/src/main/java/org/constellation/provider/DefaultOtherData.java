@@ -6,14 +6,11 @@
 package org.constellation.provider;
 
 import java.util.Collections;
-import java.util.List;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
-import org.constellation.dto.DataDescription;
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.metadata.ImageStatistics;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
@@ -51,11 +48,6 @@ public class DefaultOtherData extends AbstractData {
     @Override
     public DataStore getStore() {
         return store;
-    }
-
-    @Override
-    public DataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
-        return null;
     }
 
     @Override

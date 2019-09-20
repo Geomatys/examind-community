@@ -68,6 +68,16 @@ public interface DataProvider{
     Data get(GenericName key);
 
     /**
+     * Get the data related to the given key built from the namespace and name.
+     *
+     * @param namespace
+     * @param name
+     *
+     * @return V object if it is in the data provider, or null if not.
+     */
+    Data get(String namespace, String name);
+
+    /**
      * Reload data provider. this may be useful if new entries on disk have been
      * added after creation.
      */

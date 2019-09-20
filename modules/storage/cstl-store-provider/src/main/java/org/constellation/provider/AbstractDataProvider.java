@@ -48,13 +48,27 @@ public abstract class AbstractDataProvider implements DataProvider{
     //configuration
     protected final DataProviderFactory service;
     protected final String id;
-    private ParameterValueGroup source;
+    private final ParameterValueGroup source;
 
     protected AbstractDataProvider(final String id, final DataProviderFactory service,
             final ParameterValueGroup config){
         this.id = id;
         this.service = service;
         this.source = config;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Data get(String namespace, String name) {
+        GenericName gname;
+        if (namespace == null || namespace.isEmpty()) {
+            gname = NamesExt.create(name);
+        } else {
+            gname = NamesExt.create(namespace, name);
+        }
+        return get(gname);
     }
 
     /**

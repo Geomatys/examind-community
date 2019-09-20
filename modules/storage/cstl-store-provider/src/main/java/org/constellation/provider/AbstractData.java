@@ -39,8 +39,12 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.storage.Resource;
+import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
+import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.repository.DataRepository;
 import org.opengis.util.GenericName;
 
 
@@ -85,7 +89,7 @@ public abstract class AbstractData implements Data{
     }
 
     @Override
-    public Object getOrigin(){
+    public Resource getOrigin(){
         return null;
     }
 
@@ -195,6 +199,16 @@ public abstract class AbstractData implements Data{
     @Override
     public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
         return null;
+    }
+
+    @Override
+    public DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
+        return null;
+    }
+
+    @Override
+    public void computeStatistic(int dataId, DataRepository dataRepository) {
+        //do nothing
     }
 
 }

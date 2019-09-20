@@ -1,4 +1,4 @@
-package org.constellation.admin.util;
+package org.constellation.provider.util;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +35,7 @@ public class ImageStatisticDeserializer extends JsonDeserializer<ImageStatistics
                 JsonNode bandNode = bandIte.next();
                 if (bandNode.isObject()) {
 
-                    int idx = ((IntNode) bandNode.get("index")).intValue();
+                    //int idx = ((IntNode) bandNode.get("index")).intValue();
 
                     JsonNode nameNode = bandNode.get("name");
                     if (nameNode != null) {

@@ -29,11 +29,13 @@ import java.util.Date;
 import java.util.SortedSet;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.exception.ConstellationStoreException;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.constellation.dto.StatInfo;
+import org.constellation.repository.DataRepository;
 import org.opengis.util.GenericName;
 
 
@@ -102,14 +104,14 @@ public interface Data {
      * Origin source of this data can be :
      * FeatureSet, GridCoverageResource, ... or null.
      */
-    Object getOrigin();
+    Resource getOrigin();
 
     /**
      * Get the source of resource used by this layer.
      */
     DataStore getStore();
 
-    DataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException;
+    DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException;
 
     DataType getDataType();
 
@@ -144,4 +146,5 @@ public interface Data {
 
     String getResourceCRSName() throws ConstellationStoreException;
 
+    void computeStatistic(int dataId, DataRepository dataRepository);
 }

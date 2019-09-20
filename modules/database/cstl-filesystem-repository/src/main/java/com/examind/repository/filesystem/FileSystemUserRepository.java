@@ -221,12 +221,13 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
             Path userDir = getDirectory(USER_DIR);
             Path userFile = userDir.resolve(userR.getId() + ".xml");
-            try {
-                Files.delete(userFile);
-            } catch (IOException ex) {
-                throw new ConstellationPersistenceException(ex);
+            if (Files.exists(userFile)) { // possible desync between fs and memory
+                try {
+                    Files.delete(userFile);
+                } catch (IOException ex) {
+                    throw new ConstellationPersistenceException(ex);
+                }
             }
-
             byId.remove(userR.getId());
             bylogin.remove(userR.getLogin());
             byEmail.remove(userR.getEmail());

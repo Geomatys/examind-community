@@ -62,6 +62,7 @@ import org.constellation.dto.Layer;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ServiceReference;
+import org.constellation.dto.StatInfo;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.importdata.FileBean;
@@ -86,7 +87,6 @@ import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.token.TokenUtils;
 import org.constellation.util.StoreUtilities;
-import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.geotoolkit.util.NamesExt;
@@ -469,9 +469,12 @@ public class DataBusiness implements IDataBusiness {
             if (fetchDataDescription) {
                 try {
                     final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-                    final org.constellation.provider.Data layer = provider.get(NamesExt.create(data.getNamespace(), data.getName()));
-                    final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
+                    final org.constellation.provider.Data layer = provider.get(data.getNamespace(), data.getName());
                     if (layer != null) {
+                        StatInfo stats = null;
+                        if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
+                            stats = new StatInfo(data.getStatsState(), data.getStatsResult());
+                        }
                         final DataDescription dataDescription = layer.getDataDescription(stats);
                         db.setDataDescription(dataDescription);
                     } else {
@@ -633,14 +636,17 @@ public class DataBusiness implements IDataBusiness {
 
             try {
                 final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-                layer = provider.get(NamesExt.create(data.getNamespace(), data.getName()));
+                layer = provider.get(data.getNamespace(), data.getName());
             } catch (ConstellationException ex) {
                 LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
             }
 
             try {
                 if (layer != null) {
-                    final ImageStatistics stats = DataCoverageUtilities.getDataStatistics(data);
+                    StatInfo stats = null;
+                    if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
+                        stats = new StatInfo(data.getStatsState(), data.getStatsResult());
+                    }
                     final DataDescription dataDescription = layer.getDataDescription(stats);
                     db.setDataDescription(dataDescription);
                 }

@@ -20,7 +20,6 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.util.StoreUtilities;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
@@ -65,14 +64,13 @@ public class ISO19110Builder {
 
     public static FeatureCatalogue createCatalogueForData(final int providerID, final QName dataName) throws ConfigurationException {
         DataProvider provider = DataProviders.getProvider(providerID);
-        DataStore store = provider.getMainStore();
-        GenericName name = NamesExt.create(dataName.getNamespaceURI(), dataName.getLocalPart());
+        Data data = provider.get(dataName.getNamespaceURI(), dataName.getLocalPart());
         try {
-            Resource rs = StoreUtilities.findResource(store, name.toString());
+            Resource rs = data.getOrigin();
             if (rs != null) {
                 return createCatalogueFromResources(Arrays.asList(rs));
             } else {
-                LOGGER.log(Level.WARNING, "Unable to generate a ISO 19110 metadata for resource: {0}", name);
+                LOGGER.log(Level.WARNING, "Unable to generate a ISO 19110 metadata for resource: {0}", data.getName());
             }
         } catch (DataStoreException ex) {
             LOGGER.log(Level.WARNING, "error while generating featureCatalogue from feature Store", ex);

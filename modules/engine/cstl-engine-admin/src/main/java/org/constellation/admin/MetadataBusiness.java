@@ -139,7 +139,6 @@ import static org.constellation.util.NodeUtilities.getNodeFromObject;
 import org.constellation.util.Util;
 import org.constellation.ws.IWSEngine;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.business.ClusterMessageConstant.*;
 
@@ -630,7 +629,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final Metadata metadata = metadataRepository.findByMetadataId(metadataId);
         if (metadata != null) {
             final DataProvider provider = DataProviders.getProvider(metadata.getProviderId());
-            final MetadataData md = (MetadataData) provider.get(NamesExt.create(metadataId));
+            final MetadataData md = (MetadataData) provider.get(null, metadataId);
             return md.getMetadata();
         }
         return null;
@@ -1320,7 +1319,7 @@ public class MetadataBusiness implements IMetadataBusiness {
             final DataProvider provider = DataProviders.getProvider(meta.getProviderId());
             if (provider instanceof MetadataProvider) {
                 final MetadataProvider mdProvider = (MetadataProvider) provider;
-                final MetadataData md = (MetadataData) provider.get(NamesExt.create(meta.getMetadataId()));
+                final MetadataData md = (MetadataData) provider.get(null, meta.getMetadataId());
 
                 final Node metaNode = md.getMetadata();
                 final Object metaObj = unmarshallMetadata(metaNode);
@@ -1721,7 +1720,7 @@ public class MetadataBusiness implements IMetadataBusiness {
 
     private String getMetadataXMLFromStore(final int providerId, final String metadataId) throws ConfigurationException {
         final DataProvider provider = DataProviders.getProvider(providerId);
-        final org.constellation.provider.Data data = provider.get(NamesExt.create(metadataId));
+        final org.constellation.provider.Data data = provider.get(null, metadataId);
         if (data instanceof MetadataData) {
             final MetadataData md = (MetadataData) data;
             try {

@@ -18,20 +18,13 @@
  */
 package org.constellation.admin.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.api.DataType;
-import org.constellation.dto.Data;
-import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.data.FileFeatureStoreFactory;
-import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.storage.DataStores;
 
 /**
@@ -39,59 +32,6 @@ import org.geotoolkit.storage.DataStores;
  * @author Guilhem Legal (Geomatys)
  */
 public class DataCoverageUtilities {
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
-
-    /**
-     * Get and parse data statistics.
-     *
-     * @param d
-     *
-     * @return ImageStatistics object or null if data is not a coverage or if Statistics were not computed.
-     * @throws org.constellation.exception.ConfigurationException
-     */
-    public static ImageStatistics getDataStatistics(Data d) throws ConfigurationException {
-        final String type = d.getType();
-        final Boolean rendered = d.getRendered();
-        final String state = d.getStatsState();
-        final String result = d.getStatsResult();
-        if (DataType.COVERAGE.name().equals(type) && (rendered == null || !rendered)) {
-            try {
-                if (state != null) {
-                    switch (state) {
-                        case "PARTIAL" : //fall through
-                        case "COMPLETED" :
-                            if (result != null && result.startsWith("{")) {
-                                return deserializeImageStatistics(result);
-                            } else {
-                                LOGGER.warning("Unreadable statistics flagged as " + state);
-                                return null;
-                            }
-                        case "PENDING" : return null;
-                        case "ERROR" :
-                            //can have partial statistics even if an error occurs.
-                            if (result != null && result.startsWith("{")) {
-                                return deserializeImageStatistics(result);
-                            } else {
-                                return null;
-                            }
-                    }
-                }
-
-            } catch (IOException e) {
-                throw new ConfigurationException("Invalid statistic JSON format for data: " + d.getName(), e);
-            }
-        }
-        return null;
-    }
-
-    private static ImageStatistics deserializeImageStatistics(String state) throws IOException {
-        final ObjectMapper mapper = new ObjectMapper();
-        final SimpleModule module = new SimpleModule();
-        module.addDeserializer(ImageStatistics.class, new ImageStatisticDeserializer()); //custom deserializer
-        mapper.registerModule(module);
-        return mapper.readValue(state, ImageStatistics.class);
-    }
 
     /**
      * Return an extension list managed by geotoolkit.

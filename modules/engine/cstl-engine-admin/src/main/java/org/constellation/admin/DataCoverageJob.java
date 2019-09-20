@@ -18,22 +18,13 @@
  */
 package org.constellation.admin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.coverage.grid.GridExtent;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.parameter.Parameters;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.admin.util.ImageStatisticSerializer;
 import org.constellation.api.DataType;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.dto.Data;
@@ -43,20 +34,12 @@ import org.constellation.provider.DataProviders;
 import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
-import org.constellation.util.StoreUtilities;
-import org.geotoolkit.metadata.ImageStatistics;
-import org.geotoolkit.process.ProcessEvent;
-import org.geotoolkit.processing.ProcessListenerAdapter;
-import org.geotoolkit.processing.coverage.statistics.Statistics;
-import static org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor.OUTCOVERAGE;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import static org.constellation.api.StatisticState.*;
 
 /**
  *
@@ -70,11 +53,6 @@ public class DataCoverageJob implements IDataCoverageJob {
      * Used for debugging purposes.
      */
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
-
-    public static final String STATE_PENDING    = "PENDING";
-    public static final String STATE_ERROR      = "ERROR";
-    public static final String STATE_COMPLETED  = "COMPLETED";
-    public static final String STATE_PARTIAL    = "PARTIAL";
 
     /**
      * Injected data repository.
@@ -113,13 +91,8 @@ public class DataCoverageJob implements IDataCoverageJob {
 
                 if (providerRepository.existById(data.getProviderId())) {
                     final DataProvider dataProvider = DataProviders.getProvider(data.getProviderId());
-                    final DataStore store = dataProvider.getMainStore();
-
-                    GenericName name = NamesExt.create(data.getNamespace(), data.getName());
-                    if (data.getNamespace() == null || data.getNamespace().isEmpty()) {
-                        name = NamesExt.create(data.getName());
-                    }
-                    final Resource res = StoreUtilities.findResource(store, name.toString());
+                    final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
+                    final Resource res = dataP.getOrigin();
 
                     if (res instanceof MultiResolutionResource) {
                         //pyramid, too large to compute statistics
@@ -129,28 +102,7 @@ public class DataCoverageJob implements IDataCoverageJob {
                     }
 
                     if (res instanceof GridCoverageResource) {
-                        final GridCoverageResource covRef = (GridCoverageResource) res;
-
-                        // Hack compute statistic from 5% of the first slice
-                        try {
-                            GridGeometry gg = covRef.getGridGeometry();
-                            GridExtent extent = gg.getExtent();
-                            int[] subSample = new int[extent.getDimension()];
-                            subSample[0] = Math.round(extent.getSize(0) * 0.05f);
-                            subSample[1] = Math.round(extent.getSize(1) * 0.05f);
-                            for (int i = 2; i < extent.getDimension(); i++) {
-                                subSample[i] = Math.toIntExact(extent.getSize(i));
-                            }
-                            gg = gg.derive().subsample(subSample).build();
-
-                            final GridCoverage cov = covRef.read(gg);
-                            final org.geotoolkit.process.Process process = new Statistics(cov, false);
-                            process.addListener(new DataStatisticsListener(dataId));
-                            process.call();
-
-                        } catch(Throwable ex) {
-                            //we tryed
-                        }
+                        dataP.computeStatistic(dataId, dataRepository);
                     }
 
                 } else {
@@ -185,91 +137,5 @@ public class DataCoverageJob implements IDataCoverageJob {
                 }
             }
         });
-    }
-
-    /**
-     * ProcessListener that will update data record in database.
-     */
-    private class DataStatisticsListener extends ProcessListenerAdapter {
-
-        private int dataId;
-
-        public DataStatisticsListener(int dataId) {
-            this.dataId = dataId;
-        }
-
-        @Override
-        public void progressing(ProcessEvent event) {
-            if (event.getOutput() != null) {
-                final Data data = getData();
-                if (data != null) {
-                    try {
-                        data.setStatsState(STATE_PARTIAL);
-                        data.setStatsResult(statisticsAsString(event));
-                        updateData(data);
-                    } catch (JsonProcessingException e) {
-                        data.setStatsState(STATE_ERROR);
-                        data.setStatsResult("Error during statistic serializing.");
-                        updateData(data);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void completed(ProcessEvent event) {
-            final Data data = getData();
-            if (data != null) {
-                try {
-                    data.setStatsState(STATE_COMPLETED);
-                    data.setStatsResult(statisticsAsString(event));
-                    updateData(data);
-                    LOGGER.log(Level.INFO, "Data " + dataId + " " + data.getName() + " coverage statistics completed.");
-                } catch (JsonProcessingException e) {
-                    data.setStatsState(STATE_ERROR);
-                    data.setStatsResult("Error during statistic serializing.");
-                    updateData(data);
-                }
-            }
-        }
-
-        @Override
-        public void failed(ProcessEvent event) {
-            final Data data = getData();
-            if (data != null) {
-                data.setStatsState(STATE_ERROR);
-                //data.setStatsResult(Exceptions.formatStackTrace(event.getException()));
-                updateData(data);
-                Exception exception = event.getException();
-                LOGGER.log(Level.WARNING, "Error during coverage statistic update for data " + dataId +
-                        " " + data.getName() + " : " + exception.getMessage(), exception);
-            }
-
-        }
-
-        private Data getData() {
-            return dataRepository.findById(dataId);
-        }
-
-        /**
-         * Serialize Statistic in JSON
-         * @param event
-         * @return JSON String or null if event output is null.
-         * @throws JsonProcessingException
-         */
-        private String statisticsAsString(ProcessEvent event) throws JsonProcessingException {
-            final ParameterValueGroup out = event.getOutput();
-            if (out != null) {
-                final ImageStatistics statistics = Parameters.castOrWrap(out).getMandatoryValue(OUTCOVERAGE);
-
-                final ObjectMapper mapper = new ObjectMapper();
-                final SimpleModule module = new SimpleModule();
-                module.addSerializer(ImageStatistics.class, new ImageStatisticSerializer()); //custom serializer
-                mapper.registerModule(module);
-                //mapper.enable(SerializationFeature.INDENT_OUTPUT); //json pretty print
-                return mapper.writeValueAsString(statistics);
-            }
-            return null;
-        }
     }
 }

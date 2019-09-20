@@ -1,4 +1,4 @@
-package org.constellation.admin.util;
+package org.constellation.provider.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;

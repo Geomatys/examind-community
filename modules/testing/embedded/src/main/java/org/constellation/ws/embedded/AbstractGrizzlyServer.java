@@ -95,7 +95,7 @@ import org.w3c.dom.Node;
  * @since 0.3
  */
 @Configuration
-@ImportResource({"classpath:/cstl/spring/test-context.xml"})
+@ImportResource({"classpath:/cstl/spring/test-context-complete.xml"})
 public abstract class AbstractGrizzlyServer {
 
     public static String REST_JERSEY_PACKAGE =

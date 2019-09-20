@@ -24,7 +24,7 @@ import org.constellation.dto.DataDescription;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.MetadataData;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.constellation.dto.StatInfo;
 import org.geotoolkit.metadata.MetadataStore;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
@@ -62,7 +62,7 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     }
 
     @Override
-    public DataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
+    public DataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
         return null;
     }
 

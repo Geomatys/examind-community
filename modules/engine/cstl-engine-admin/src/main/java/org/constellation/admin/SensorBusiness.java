@@ -340,7 +340,7 @@ public class SensorBusiness implements ISensorBusiness {
         final Sensor sensor = sensorRepository.findById(sensorID);
         if (sensor != null) {
             final DataProvider provider = DataProviders.getProvider(sensor.getProviderId());
-            Data data = provider.get(NamesExt.create(sensor.getIdentifier()));
+            Data data = provider.get(null, sensor.getIdentifier());
             if (data instanceof SensorData) {
                 return ((SensorData)data).getSensorMetadata();
             }

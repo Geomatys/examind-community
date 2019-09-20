@@ -20,11 +20,9 @@ import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.constellation.api.DataType;
-import org.constellation.dto.DataDescription;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.SensorData;
-import org.geotoolkit.metadata.ImageStatistics;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -65,11 +63,6 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     @Override
     public DataStore getStore() {
         return store;
-    }
-
-    @Override
-    public DataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
-        return null;
     }
 
     @Override

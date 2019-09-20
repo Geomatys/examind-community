@@ -73,7 +73,7 @@ import static org.constellation.provider.AbstractData.LOGGER;
 import org.constellation.util.StoreUtilities;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import static org.geotoolkit.feature.FeatureExt.IS_NOT_CONVENTION;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.constellation.dto.StatInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.util.NamesExt;
@@ -409,7 +409,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
      * Returns a {@linkplain FeatureSet feature set} containing all the data.
      */
     @Override
-    public Object getOrigin() {
+    public FeatureSet getOrigin() {
         /*final QueryBuilder builder = new QueryBuilder();
         builder.setTypeName(name);
 
@@ -435,7 +435,7 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
      * data source.
      */
     @Override
-    public FeatureDataDescription getDataDescription(ImageStatistics stats) throws ConstellationStoreException {
+    public FeatureDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
         final FeatureDataDescription description = new FeatureDataDescription();
         try {
 

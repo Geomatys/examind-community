@@ -1,6 +1,6 @@
-export CSTL_HOME="$HOME/.constellation-boot";
+export CSTL_HOME="$HOME/.exa-boot";
 
-export DATABASE_URL="postgres://cstl:admin@localhost:5432/cstl-boot"
+export DATABASE_URL="postgres://cstl:admin@localhost:5432/exa-boot"
 export EPSG_DATABASE_URL="$DATABASE_URL"
 
 export CSTL_URL="http://localhost:9000"
