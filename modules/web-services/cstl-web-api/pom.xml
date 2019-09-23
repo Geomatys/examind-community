@@ -184,6 +184,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-data-sensor</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jvnet.jax-ws-commons.spring</groupId>
             <artifactId>jaxws-spring</artifactId>
             <exclusions>

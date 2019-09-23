@@ -42,16 +42,17 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.junit.BeforeClass;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.DataBrief;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import static org.constellation.api.StatisticState.*;
+import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
 import org.geotoolkit.metadata.ImageStatistics;
@@ -69,6 +70,10 @@ import org.junit.Assert;
 public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
+
+    private static final String COVERAGE_PROVIDER = "coverageTestSrc";
+    private static final String SHAPEFILE_PROVIDER = "shapeSrc";
+    private static final String OM_PROVIDER = "omTestSrc";
 
     @BeforeClass
     public static void startup() {
@@ -92,38 +97,30 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                     providerBusiness.removeAll();
                 } catch (Exception ex) {}
 
-                // coverage-file datastore
-                final File rootDir                   = AbstractGrizzlyServer.initDataDirectory();
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
+                // initialize resource file
+                final File rootDir = AbstractGrizzlyServer.initDataDirectory();
+                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
 
-                final ParameterValueGroup sourceCF   = covFilefactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
+                // coverage-file datastore
+                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
+                sourceCF.parameter("id").setValue(COVERAGE_PROVIDER);
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/SSTMDE200305.png"));
+                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
                 srcCFConfig.parameter("type").setValue("AUTO");
 
-                providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
+                providerBusiness.storeProvider(COVERAGE_PROVIDER, null, ProviderType.LAYER, "data-store", sourceCF);
                 Integer dataId = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
 
 
-
-                final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final File outputDir = initDataDirectory();
-                final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
-
+                // shapefilefile datastore
+                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
+                sourcef.parameter("id").setValue(SHAPEFILE_PROVIDER);
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                String path;
-                if (outputDir.getAbsolutePath().endsWith("org/constellation/ws/embedded/wms111/styles")) {
-                    path = outputDir.getAbsolutePath().substring(0, outputDir.getAbsolutePath().indexOf("org/constellation/ws/embedded/wms111/styles"));
-                } else {
-                    path = outputDir.getAbsolutePath();
-                }
-                shpconfig.parameter("path").setValue(URI.create("file:"+path + "/org/constellation/ws/embedded/wms111/shapefiles"));
+                shpconfig.parameter("path").setValue(URI.create("file:"+ rootDir.getAbsolutePath() + "/org/constellation/ws/embedded/wms111/shapefiles"));
 
-                providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
+                providerBusiness.storeProvider(SHAPEFILE_PROVIDER, null, ProviderType.LAYER, "data-store", sourcef);
 
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, null, null);
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, null, null);
@@ -138,6 +135,15 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, null, null);
                 dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, null, null);
 
+                // observation-file datastore
+                final ParameterValueGroup sourceOM = dataStorefactory.getProviderDescriptor().createValue();
+                sourceOM.parameter("id").setValue(OM_PROVIDER);
+                final ParameterValueGroup choiceOM = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceOM);
+                final ParameterValueGroup srcOMConfig = choiceOM.addGroup("observationXmlFile");
+                srcOMConfig.parameter("path").setValue(new URL("file:"+ rootDir.getAbsolutePath() + "/org/constellation/xml/sos/single-observations.xml"));
+
+                Integer omPID = providerBusiness.storeProvider(OM_PROVIDER, null, ProviderType.LAYER, "data-store", sourceOM);
+                providerBusiness.createOrUpdateData(omPID, null, false);
 
                 WorldFileImageReader.Spi.registerDefaults(null);
 
@@ -199,31 +205,48 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         stopServer();
     }
 
-    /**
-     * Ensure that a wrong value given in the request parameter for the WMS server
-     * returned an error report for the user.
-     */
     @Test
     @Order(order=1)
     public void getHistogramRequest() throws Exception {
 
         init();
-        Integer pid = providerBusiness.getIDFromIdentifier("coverageTestSrc");
-        Integer dataId = dataBusiness.getDataId(new QName("SSTMDE200305"), pid);
+        Integer pid = getProviderBusiness().getIDFromIdentifier(COVERAGE_PROVIDER);
+        Assert.assertNotNull("no coverage file provider found", pid);
+        Integer dataId = getDataBusiness().getDataId(new QName("SSTMDE200305"), pid);
+        Assert.assertNotNull("no SSTMDE200305 data found", dataId);
 
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/internal/styles/histogram/" + dataId);
 
-        // Try to marshall something from the response returned by the server.
-        // The response should be a ServiceExceptionReport.
+        // get the statistics return by the server
         String s = getStringResponse(request);
         Assert.assertNotNull(s);
 
         ImageStatistics is = DefaultCoverageData.getDataStatistics(new StatInfo(STATE_COMPLETED, s));
         Assert.assertNotNull(is.getBands());
         Assert.assertEquals(1, is.getBands().length);
-
     }
 
+    @Test
+    @Order(order=2)
+    public void generateSensorRequest() throws Exception {
+
+        init();
+        Integer pid = getProviderBusiness().getIDFromIdentifier(OM_PROVIDER);
+        Assert.assertNotNull("no OM provider found", pid);
+        Integer dataId = getDataBusiness().getDataId(new QName("single-observations"), pid);
+        Assert.assertNotNull("no single-observations data found", dataId);
+
+        final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/sensors/generate/" + dataId);
+
+        String s = putStringResponse(request);
+        Assert.assertEquals("The sensors has been succesfully generated", s);
+
+        List<SensorReference> sensors = getSensorBusiness().getByDataId(dataId);
+        Assert.assertNotNull(sensors);
+        Assert.assertEquals(1, sensors.size());
+
+        Assert.assertEquals("urn:ogc:object:sensor:GEOM:1", sensors.get(0).getIdentifier());
+    }
 
 
 }

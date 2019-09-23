@@ -73,7 +73,7 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -280,74 +280,78 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return An Acknowledgement describing how the operation went.
      */
     @RequestMapping(value="/sensors/generate/{dataId}",method=PUT,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId) {
-        final DataProvider provider;
+    public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId, HttpServletResponse response) {
         try {
-            final Integer providerId = dataBusiness.getDataProvider(dataId);
-            provider = DataProviders.getProvider(providerId);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
-            return new ErrorMessage(ex).message("Error while accessing provider.").build();
-        }
-        final List<ExtractionResult.ProcedureTree> procedures;
-        try {
-            final ObservationStore store = SOSUtils.getObservationStore(provider);
-            if (store != null) {
-                procedures = store.getProcedures();
-            } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
+            final DataProvider provider;
+            try {
+                final Integer providerId = dataBusiness.getDataProvider(dataId);
+                provider = DataProviders.getProvider(providerId);
+            } catch (ConfigurationException ex) {
+                LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
+                return new ErrorMessage(ex).message("Error while accessing provider.").build();
             }
-        } catch (DataStoreException ex) {
-            LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
-            return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
-        }
+            final List<ProcedureTree> procedures;
+            try {
+                procedures = SOSUtils.getProcedures(provider);
+                if (procedures == null) {
+                    return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
+                }
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
+                return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
+            }
 
-        // SensorML generation
-        try {
-            for (ExtractionResult.ProcedureTree process : procedures) {
-                generateSensorML(dataId, process, null);
+            // SensorML generation
+            try {
+                for (ProcedureTree process : procedures) {
+                    generateSensorML(dataId, process, null);
+                }
+            } catch (SQLException | ConfigurationException ex) {
+                LOGGER.log(Level.WARNING, "Error while writng sensorML", ex);
+                return new ResponseEntity(new AcknowlegementType("Failure", "SQLException while writing sensorML"),OK);
             }
-        } catch (SQLException | ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while writng sensorML", ex);
-            return new ResponseEntity(new AcknowlegementType("Failure", "SQLException while writing sensorML"),OK);
+            IOUtils.write("The sensors has been succesfully generated", response.getOutputStream());
+            return new ResponseEntity(OK);
+        } catch(Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
         }
-        return new ResponseEntity("The sensors has been succesfully generated",OK);
     }
 
-    private void generateSensorML(final int dataID, final ExtractionResult.ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
+    private void generateSensorML(final int dataID, final ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
 
         final Properties prop = new Properties();
-        prop.put("id",         process.id);
-        if (process.spatialBound.dateStart != null) {
-            prop.put("beginTime",  process.spatialBound.dateStart);
+        prop.put("id",         process.getId());
+        if (process.getDateStart() != null) {
+            prop.put("beginTime",  process.getDateStart());
         }
-        if (process.spatialBound.dateEnd != null) {
-            prop.put("endTime",    process.spatialBound.dateEnd);
+        if (process.getDateEnd() != null) {
+            prop.put("endTime",    process.getDateEnd());
         }
-        if (process.spatialBound.minx != null) {
-            prop.put("longitude",  process.spatialBound.minx);
+        if (process.getMinx() != null) {
+            prop.put("longitude",  process.getMinx());
         }
-        if (process.spatialBound.miny != null) {
-            prop.put("latitude",   process.spatialBound.miny);
+        if (process.getMiny() != null) {
+            prop.put("latitude",   process.getMiny());
         }
-        prop.put("phenomenon", process.fields);
+        prop.put("phenomenon", process.getFields());
 
-        Sensor sensor = sensorBusiness.getSensor(process.id);
+        Sensor sensor = sensorBusiness.getSensor(process.getId());
         Integer sid;
         if (sensor == null) {
             Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sid = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
+            sid = sensorBusiness.create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
         } else {
             sid = sensor.getId();
         }
 
         final List<String> component = new ArrayList<>();
-        for (ExtractionResult.ProcedureTree child : process.children) {
-            component.add(child.id);
-            generateSensorML(dataID, child, process.id);
+        for (ProcedureTree child : process.getChildren()) {
+            component.add(child.getId());
+            generateSensorML(dataID, child, process.getId());
         }
         prop.put("component", component);
-        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.type);
+        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.getType());
 
         // update sml
         sensorBusiness.updateSensorMetadata(sid, sml);

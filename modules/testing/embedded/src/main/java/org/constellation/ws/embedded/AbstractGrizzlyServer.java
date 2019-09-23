@@ -306,6 +306,12 @@ public abstract class AbstractGrizzlyServer {
         return getStringResponse(conn);
     }
 
+    protected static String putStringResponse(final URL url) throws UnsupportedEncodingException, IOException {
+        final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("PUT");
+        return getStringResponse(conn);
+    }
+
     protected static String getStringFromFile(String filePath) throws UnsupportedEncodingException, IOException {
         String xmlExpResult = IOUtilities.toString(Util.getResourceAsStream(filePath), Charset.forName("UTF-8"));
         //we unformat the expected result
@@ -692,4 +698,38 @@ public abstract class AbstractGrizzlyServer {
         String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
         return output;
     }
+
+    /**
+     * I don't know why but the bean seems to be emptyed between 2 tests
+     * @return
+     */
+    protected IProviderBusiness getProviderBusiness() {
+        if (providerBusiness == null) {
+            providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
+        }
+        return providerBusiness;
+    }
+
+    /**
+     * I don't know why but the bean seems to be emptyed between 2 tests
+     * @return
+     */
+    protected IDataBusiness getDataBusiness() {
+        if (dataBusiness == null) {
+            dataBusiness = SpringHelper.getBean(IDataBusiness.class);
+        }
+        return dataBusiness;
+    }
+
+    /**
+     * I don't know why but the bean seems to be emptyed between 2 tests
+     * @return
+     */
+    protected ISensorBusiness getSensorBusiness() {
+        if (sensorBusiness == null) {
+            sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
+        }
+        return sensorBusiness;
+    }
+
 }

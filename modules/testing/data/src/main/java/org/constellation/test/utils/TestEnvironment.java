@@ -27,7 +27,7 @@ public final class TestEnvironment {
     public enum TestResources{
 
         //image
-        DATA("org/constellation/data"),
+        DATA("org/constellation/data/image"),
 
         NETCDF("org/constellation/netcdf"),
 

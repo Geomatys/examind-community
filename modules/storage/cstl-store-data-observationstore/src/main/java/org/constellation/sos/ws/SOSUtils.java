@@ -90,7 +90,10 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.apache.sis.storage.DataStore;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
+import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 
 /**
  *
@@ -617,5 +620,42 @@ public final class SOSUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Temporary until branch on observation provider will be merged
+     */
+    public static List<ProcedureTree> getProcedures(final DataProvider omProvider) throws DataStoreException {
+        final ObservationStore store = SOSUtils.getObservationStore(omProvider);
+        if (store != null) {
+            List<ExtractionResult.ProcedureTree> storeProcedures = store.getProcedures();
+            List<ProcedureTree> results = new ArrayList<>();
+            for (ExtractionResult.ProcedureTree pt : storeProcedures) {
+                results.add(toDto(pt));
+            }
+            return results;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Temporary until branch on observation provider will be merged
+     */
+    private static ProcedureTree toDto(ExtractionResult.ProcedureTree pt) {
+        GeoSpatialBound bound = pt.spatialBound;
+        ProcedureTree result  = new ProcedureTree(pt.id,
+                                                  pt.type,
+                                                  bound.dateStart,
+                                                  bound.dateEnd,
+                                                  bound.minx,
+                                                  bound.maxx,
+                                                  bound.miny,
+                                                  bound.maxy,
+                                                  pt.fields);
+        for (ExtractionResult.ProcedureTree child: pt.children) {
+            result.getChildren().add(toDto(child));
+        }
+        return result;
     }
 }

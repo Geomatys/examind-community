@@ -221,7 +221,7 @@ public final class GrizzlyServer {
 
         final ParameterValueGroup srcCFConfig = getOrCreateGroup(choice3, "FileCoverageStoreParameters");
 
-        getOrCreateValue(srcCFConfig, "path").setValue(new URL("file:" + outputDir.getAbsolutePath() + "/org/constellation/data/SSTMDE200305.png"));
+        getOrCreateValue(srcCFConfig, "path").setValue(new URL("file:" + outputDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
         getOrCreateValue(srcCFConfig, "type").setValue("AUTO");
         getOrCreateValue(srcCFConfig, NAMESPACE_DESCRIPTOR.getName().getCode()).setValue("no namespace");
 
