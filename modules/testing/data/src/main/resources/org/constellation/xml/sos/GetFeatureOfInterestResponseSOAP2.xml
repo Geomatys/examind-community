@@ -12,14 +12,8 @@
             </ns16:boundedBy>
             <sampling:sampledFeature/>
             <sampling:shape>
-                <ns16:LineString ns16:id="line-station-006" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">
-                    <ns16:pos>-30.711 134.205</ns16:pos>
-                    <ns16:pos>-30.71 134.204</ns16:pos>
-                    <ns16:pos>-30.709 134.203</ns16:pos>
-                    <ns16:pos>-30.708 134.201</ns16:pos>
-                    <ns16:pos>-30.706 134.196</ns16:pos>
-                    <ns16:pos>-30.703 134.197</ns16:pos>
-                    <ns16:pos>-30.702 134.199</ns16:pos>
+                <ns16:LineString ns16:id="line-station-006" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">
+                    <ns16:posList>-30.711 134.205 -30.71 134.204 -30.709 134.203 -30.708 134.201 -30.706 134.196 -30.703 134.197 -30.702 134.199</ns16:posList>
                 </ns16:LineString>
             </sampling:shape>
         </sampling:SamplingCurve>

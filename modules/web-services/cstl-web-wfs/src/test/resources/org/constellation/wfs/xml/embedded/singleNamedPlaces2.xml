@@ -9,9 +9,9 @@
     <wfs:member>
         <gml:NamedPlaces gml:id="NamedPlaces.1">
             <the_geom>
-                <gml:MultiSurface xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:gco="http://www.isotc211.org/2005/gco" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" gml:id="NamedPlaces.1_g0">
+                <gml:MultiSurface xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:gco="http://www.isotc211.org/2005/gco" srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" gml:id="NamedPlaces.1_g0">
                     <gml:surfaceMember>
-                        <gml:Polygon srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" gml:id="NamedPlaces.1_g1">
+                        <gml:Polygon gml:id="NamedPlaces.1_g1">
                             <gml:exterior>
                                 <gml:LinearRing>
                                     <gml:posList>0.002 0.0024 0.0042 0.0024 0.0042 6.0E-4 0.0014 6.0E-4 0.0014 0.001 0.002 0.0024</gml:posList>

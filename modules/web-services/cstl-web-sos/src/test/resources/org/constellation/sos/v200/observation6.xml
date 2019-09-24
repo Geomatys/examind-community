@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <om:OM_Observation xmlns:sos="http://www.opengis.net/sos/2.0"
-                   xmlns:swe="http://www.opengis.net/swe/2.0" 
-                   xmlns:gml="http://www.opengis.net/gml/3.2" 
-                   xmlns:om="http://www.opengis.net/om/2.0" 
+                   xmlns:swe="http://www.opengis.net/swe/2.0"
+                   xmlns:gml="http://www.opengis.net/gml/3.2"
+                   xmlns:om="http://www.opengis.net/om/2.0"
                    xmlns:sams="http://www.opengis.net/samplingSpatial/2.0"
-                   xmlns:sf="http://www.opengis.net/sampling/2.0" 
+                   xmlns:sf="http://www.opengis.net/sampling/2.0"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xlink="http://www.w3.org/1999/xlink"
                    gml:id="obs-801">
@@ -32,14 +32,8 @@
             <sf:type xlink:href="http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingCurve"/>
             <sf:sampledFeature/>
             <sams:shape>
-                <gml:LineString gml:id="pr1_ls1" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">
-                    <gml:pos>-30.711 134.205</gml:pos>
-                    <gml:pos>-30.710 134.204</gml:pos>
-                    <gml:pos>-30.709 134.203</gml:pos>
-                    <gml:pos>-30.708 134.201</gml:pos>
-                    <gml:pos>-30.706 134.196</gml:pos>
-                    <gml:pos>-30.703 134.197</gml:pos>
-                    <gml:pos>-30.702 134.199</gml:pos>
+                <gml:LineString gml:id="pr1_ls1" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">
+                    <gml:posList>-30.711 134.205 -30.710 134.204 -30.709 134.203 -30.708 134.201 -30.706 134.196 -30.703 134.197 -30.702 134.199</gml:posList>
                 </gml:LineString>
             </sams:shape>
         </sams:SF_SpatialSamplingFeature>

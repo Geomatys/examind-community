@@ -19,10 +19,11 @@
       <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersection:output:result_geom</ows:Identifier>
       <ows:Title>Result_geom</ows:Title>
       <ows:Abstract>The intersection geometry result</ows:Abstract>
-      <wps:Data><wps:ComplexData mimeType="application/gml+xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"><gml:Polygon srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+      <wps:Data><wps:ComplexData mimeType="application/gml+xml" encoding="UTF-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd">
+          <gml:Polygon srsDimension="2" srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
             <gml:exterior>
-              <gml:LinearRing srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-<gml:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</gml:posList>
+              <gml:LinearRing>
+                <gml:posList>3.0 3.0 3.0 4.0 4.0 4.0 4.0 3.0 3.0 3.0</gml:posList>
               </gml:LinearRing>
             </gml:exterior>
           </gml:Polygon></wps:ComplexData></wps:Data>

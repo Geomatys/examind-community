@@ -16,8 +16,8 @@
             <gml:name>10972X0137-PONT</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-001_g0">
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">65400.0 1731368.0</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-001_g0">
+                    <gml:pos>65400.0 1731368.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>
@@ -28,8 +28,8 @@
             <gml:name>10972X0137-PLOUF</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-002_g0">
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">65400.0 1731368.0</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-002_g0">
+                    <gml:pos>65400.0 1731368.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>
@@ -40,8 +40,8 @@
             <gml:name>66685X4587-WARP</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-003_g0">
-                     <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">70800.0 1891659.0</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-003_g0">
+                     <gml:pos>70800.0 1891659.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>
@@ -52,8 +52,8 @@
             <gml:name>99917X9856-FRAG</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-004_g0">
-                     <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">41945.0 2567987.0</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-004_g0">
+                     <gml:pos>41945.0 2567987.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>
@@ -64,8 +64,8 @@
             <gml:name>44499X4517-TRUC</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-005_g0">
-                     <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">62500.0 1625236.0</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-005_g0">
+                     <gml:pos>62500.0 1625236.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>
@@ -76,14 +76,8 @@
             <gml:name>cycle1</gml:name>
             <sampling:sampledFeature xsi:nil="1"/>
             <sampling:position>
-                <gml:LineString srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-006_g0">
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.711 134.205</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.71 134.204</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.709 134.203</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.708 134.201</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.706 134.196</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.703 134.197</gml:pos>
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">-30.702 134.199</gml:pos>
+                <gml:LineString srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" gml:id="station-006_g0">
+                    <gml:posList>-30.711 134.205 -30.71 134.204 -30.709 134.203 -30.708 134.201 -30.706 134.196 -30.703 134.197 -30.702 134.199</gml:posList>
                 </gml:LineString>
             </sampling:position>
         </sampling:SamplingPoint>

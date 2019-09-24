@@ -11,8 +11,8 @@
             <wfs:member>
                 <gml:Bridges gml:id="Bridges.1">
                     <the_geom>
-                        <gml:Point srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="Bridges.1_g0">
-                            <gml:pos srsName="urn:ogc:def:crs:EPSG:9.4:4326" srsDimension="2">2.0E-4 7.0E-4</gml:pos>
+                        <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="Bridges.1_g0">
+                            <gml:pos>2.0E-4 7.0E-4</gml:pos>
                         </gml:Point>
                     </the_geom>
                     <FID>110</FID>
@@ -32,12 +32,12 @@
             <wfs:member>
                 <gml:NamedPlaces gml:id="NamedPlaces.1">
                     <the_geom>
-                        <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.1_g0">
+                        <gml:MultiSurface srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.1_g0">
                             <gml:surfaceMember>
-                                <gml:Polygon srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.1_g1">
+                                <gml:Polygon gml:id="NamedPlaces.1_g1">
                                     <gml:exterior>
-                                        <gml:LinearRing srsName="urn:ogc:def:crs:EPSG:9.4:4326">
-                                            <gml:posList srsName="urn:ogc:def:crs:EPSG:9.4:4326">0.002 0.0024 0.0042 0.0024 0.0042 6.0E-4 0.0014 6.0E-4 0.0014 0.001 0.002 0.0024</gml:posList>
+                                        <gml:LinearRing>
+                                            <gml:posList>0.002 0.0024 0.0042 0.0024 0.0042 6.0E-4 0.0014 6.0E-4 0.0014 0.001 0.002 0.0024</gml:posList>
                                         </gml:LinearRing>
                                     </gml:exterior>
                                 </gml:Polygon>
@@ -51,12 +51,12 @@
             <wfs:member>
                 <gml:NamedPlaces gml:id="NamedPlaces.2">
                     <the_geom>
-                        <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.2_g0">
+                        <gml:MultiSurface srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.2_g0">
                             <gml:surfaceMember>
-                                <gml:Polygon srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.2_g1">
+                                <gml:Polygon gml:id="NamedPlaces.2_g1">
                                     <gml:exterior>
-                                        <gml:LinearRing srsName="urn:ogc:def:crs:EPSG:9.4:4326">
-                                            <gml:posList srsName="urn:ogc:def:crs:EPSG:9.4:4326">0.0017 -0.0011 0.0017 -6.0E-4 0.0025 -6.0E-4 0.0025 -0.0011 0.0017 -0.0011</gml:posList>
+                                        <gml:LinearRing>
+                                            <gml:posList>0.0017 -0.0011 0.0017 -6.0E-4 0.0025 -6.0E-4 0.0025 -0.0011 0.0017 -0.0011</gml:posList>
                                         </gml:LinearRing>
                                     </gml:exterior>
                                 </gml:Polygon>

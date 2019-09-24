@@ -25,14 +25,8 @@
             </gml:boundedBy>
             <sa:sampledFeature/>
             <sa:shape>
-                <gml:LineString gml:id="pr1_ls1" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">
-                    <gml:pos>-30.711 134.205</gml:pos>
-                    <gml:pos>-30.710 134.204</gml:pos>
-                    <gml:pos>-30.709 134.203</gml:pos>
-                    <gml:pos>-30.708 134.201</gml:pos>
-                    <gml:pos>-30.706 134.196</gml:pos>
-                    <gml:pos>-30.703 134.197</gml:pos>
-                    <gml:pos>-30.702 134.199</gml:pos>
+                <gml:LineString gml:id="pr1_ls1" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">
+                    <gml:posList>-30.711 134.205 -30.710 134.204 -30.709 134.203 -30.708 134.201 -30.706 134.196 -30.703 134.197 -30.702 134.199</gml:posList>
                 </gml:LineString>
             </sa:shape>
         </sa:SamplingCurve>

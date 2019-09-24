@@ -9,8 +9,8 @@
     <wfs:member>
         <gml:featureCollection gml:id="fc-gs-002">
             <geometry>
-                <gml:Point srsName="urn:ogc:def:crs:OGC:1.3:CRS84" gml:id="fc-gs-002_g0">
-                    <gml:pos srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2">-80.83775386582222 35.24980190252168</gml:pos>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:OGC:1.3:CRS84" gml:id="fc-gs-002_g0">
+                    <gml:pos>-80.83775386582222 35.24980190252168</gml:pos>
                 </gml:Point>
             </geometry>
             <gml:name>DOUBLE OAKS CENTER</gml:name>

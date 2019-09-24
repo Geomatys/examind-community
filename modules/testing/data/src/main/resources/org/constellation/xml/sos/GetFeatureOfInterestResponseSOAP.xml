@@ -9,7 +9,7 @@
             </ns16:boundedBy>
             <sampling:sampledFeature xlink:href="urn:-sandre:object:bdrhf:123X"/>
             <sampling:position>
-                <ns16:Point ns16:id="pt-station-001">
+                <ns16:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" ns16:id="pt-station-001">
                     <ns16:pos srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">65400.0 1731368.0</ns16:pos>
                 </ns16:Point>
             </sampling:position>
