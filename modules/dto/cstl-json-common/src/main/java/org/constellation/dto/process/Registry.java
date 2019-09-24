@@ -32,13 +32,13 @@ public class Registry {
     private List<Process> processes;
 
     public Registry() {
-        
+
     }
-    
+
     public Registry(String name) {
         this.name = name;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -50,7 +50,7 @@ public class Registry {
     public List<Process> getProcesses() {
         return processes;
     }
-    
+
     public int getSize() {
         return processes.size();
     }
@@ -70,7 +70,7 @@ public class Registry {
         }
         return  sb.toString();
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -79,8 +79,16 @@ public class Registry {
         if (obj instanceof Registry) {
             final Registry that = (Registry) obj;
             return Objects.equals(this.name, that.name) &&
-                   Objects.equals(this.processes, that.processes); 
+                   Objects.equals(this.processes, that.processes);
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + Objects.hashCode(this.name);
+        hash = 31 * hash + Objects.hashCode(this.processes);
+        return hash;
     }
 }

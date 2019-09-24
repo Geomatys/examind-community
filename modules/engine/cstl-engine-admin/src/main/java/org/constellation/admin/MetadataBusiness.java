@@ -1589,14 +1589,11 @@ public class MetadataBusiness implements IMetadataBusiness {
     @Override
     public User getUser(final int id) {
         final Optional<CstlUser> optUser = userBusiness.findById(id);
-        User owner = null;
-        if (optUser != null && optUser.isPresent()) {
-            final CstlUser user = optUser.get();
-            if (user != null) {
-                owner = Util.copy(user, new User());
-            }
+        if (optUser.isPresent()) {
+            return Util.copy(optUser.get(), new User());
+
         }
-        return owner;
+        return null;
     }
 
     @Override

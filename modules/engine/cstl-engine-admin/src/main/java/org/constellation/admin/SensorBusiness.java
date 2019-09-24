@@ -570,10 +570,7 @@ public class SensorBusiness implements ISensorBusiness {
             final Optional<CstlUser> optUser = userBusiness.findById(sensor.getOwner());
             String owner = null;
             if(optUser.isPresent()){
-                final CstlUser user = optUser.get();
-                if(user != null){
-                    owner = user.getLogin();
-                }
+                owner = optUser.get().getLogin();
             }
             final SensorMLTree t = new SensorMLTree(sensor.getId(), sensor.getIdentifier(), sensor.getType(), owner, sensor.getDate());
             final List<SensorMLTree> children = new ArrayList<>();
@@ -582,10 +579,7 @@ public class SensorBusiness implements ISensorBusiness {
                 final Optional<CstlUser> optUserChild = userBusiness.findById(sensor.getOwner());
                 String ownerChild = null;
                 if(optUserChild.isPresent()){
-                    final CstlUser user = optUserChild.get();
-                    if(user != null){
-                        ownerChild = user.getLogin();
-                    }
+                    ownerChild = optUserChild.get().getLogin();
                 }
                 children.add(new SensorMLTree(record.getId(), record.getIdentifier(), record.getType(), ownerChild, record.getDate()));
             }

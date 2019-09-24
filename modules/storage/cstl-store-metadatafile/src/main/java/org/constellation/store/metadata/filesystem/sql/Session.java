@@ -54,17 +54,13 @@ public class Session implements Closeable {
 
     public boolean needAnalyze() {
         boolean result  = true;
-        try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT count(\"identifier\") FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT count(\"identifier\") FROM \"" + schema + "\".\"records\"");
+             final ResultSet rs = stmt.executeQuery()) {
             int count = 0;
             if (rs.next()) {
                 count = rs.getInt(1);
             }
             result = (count == 0);
-            rs.close();
-            stmt.close();
-
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
         }
@@ -112,12 +108,9 @@ public class Session implements Closeable {
     }
 
     public void removeRecord(final String identifier) throws SQLException {
-        try {
-            final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?");
+        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
             stmt.setString(1, identifier);
             stmt.executeUpdate();
-            stmt.close();
-
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while inserting in csw database schema.", unexpected);
         }
@@ -125,14 +118,11 @@ public class Session implements Closeable {
 
     public int getCount() throws SQLException {
         int count = 0;
-        try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM \"" + schema + "\".\"records\"");
+             final ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
                 count = rs.getInt(1);
             }
-            rs.close();
-            stmt.close();
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while looking for metadata count.", unexpected);
         }
@@ -141,16 +131,13 @@ public class Session implements Closeable {
 
     public String getPathForRecord(final String identifier) throws SQLException {
         String result  = null;
-        try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?");
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
             stmt.setString(1, identifier);
-            final ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                result = rs.getString(1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    result = rs.getString(1);
+                }
             }
-            rs.close();
-            stmt.close();
-
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
         }
@@ -159,13 +146,11 @@ public class Session implements Closeable {
 
     public boolean existRecord(final String identifier) throws SQLException {
         boolean result  = false;
-        try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?");
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\" WHERE \"identifier\"=?")) {
             stmt.setString(1, identifier);
-            final ResultSet rs = stmt.executeQuery();
-            result = rs.next();
-            rs.close();
-            stmt.close();
+            try (ResultSet rs = stmt.executeQuery()) {
+                result = rs.next();
+            }
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
         }
@@ -174,14 +159,11 @@ public class Session implements Closeable {
 
     public List<String> getRecordList() throws SQLException {
         final List<String> results  = new ArrayList<>();
-        try {
-            final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
+        try (final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");
+             final ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 results.add(rs.getString(1));
             }
-            rs.close();
-            stmt.close();
 
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);

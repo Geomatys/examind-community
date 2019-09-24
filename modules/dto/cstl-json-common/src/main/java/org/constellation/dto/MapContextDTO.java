@@ -249,7 +249,6 @@ public class MapContextDTO implements Serializable{
                     && Objects.equals(this.description, that.description)
                     && Objects.equals(this.owner, that.owner)
                     && Objects.equals(this.east, that.east)
-                    && Objects.equals(this.id, that.id)
                     && Objects.equals(this.keywords, that.keywords)
                     && Objects.equals(this.name, that.name)
                     && Objects.equals(this.north, that.north)

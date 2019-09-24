@@ -98,7 +98,7 @@ public class ProcessBusiness implements IProcessBusiness {
 
     public static final String BEAN_NAME = "processBusiness";
 
-    private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+    private final DateFormat taskDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
 
     @Inject
@@ -447,7 +447,9 @@ public class ProcessBusiness implements IProcessBusiness {
             throws ConstellationException, ConfigurationException {
 
         if (title == null) {
-            title = taskParameter.getName()+TASK_DATE.format(new Date());
+            synchronized(taskDateFormat){
+                title = taskParameter.getName() + taskDateFormat.format(new Date());
+            }
         }
         if (taskParameter.getId() == null) {
             throw new ConstellationException("Task parameter id should no be null");

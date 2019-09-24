@@ -494,7 +494,6 @@ public class Metadata {
                     && Objects.equals(this.metadataId, that.metadataId)
                     && Objects.equals(this.owner, that.owner)
                     && Objects.equals(this.parentIdentifier, that.parentIdentifier)
-                    && Objects.equals(this.profile, that.profile)
                     && Objects.equals(this.providerId, that.providerId)
                     && Objects.equals(this.resume, that.resume)
                     && Objects.equals(this.serviceId, that.serviceId)

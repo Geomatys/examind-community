@@ -144,34 +144,38 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                                       final Date time) throws ConstellationStoreException, IOException
     {
         double[] res = null;
-        if (envelope != null) {
-            if (dimension!=null) {
-                //compute resolution
-                res = new double[envelope.getDimension()];
-                for (int i = 0 ; i < envelope.getDimension(); i++) {
-                    switch (i) {
-                        case 0: res[i] = envelope.getSpan(i) / dimension.width; break;
-                        case 1: res[i] = envelope.getSpan(i) / dimension.height; break;
-                        default : res[i] = envelope.getSpan(i); break;
-                    }
+        if (envelope != null && dimension != null) {
+            //compute resolution
+            res = new double[envelope.getDimension()];
+            for (int i = 0 ; i < envelope.getDimension(); i++) {
+                switch (i) {
+                    case 0: res[i] = envelope.getSpan(i) / dimension.width; break;
+                    case 1: res[i] = envelope.getSpan(i) / dimension.height; break;
+                    default : res[i] = envelope.getSpan(i); break;
                 }
             }
         }
 
-
         try {
-
-            final CoordinateReferenceSystem crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
-
-            final GridGeometry gridGeom = ref.getGridGeometry();
-            GridDerivation gd;
-            if (res != null) {
-                gd = gridGeom.derive().subgrid(envelope, res);
+            final GridGeometry refGrid = ref.getGridGeometry();
+            final CoordinateReferenceSystem crs2D;
+            final GridGeometry grid;
+            if (envelope != null) {
+                crs2D = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+                GridDerivation gd;
+                if (res != null) {
+                    gd = refGrid.derive().subgrid(envelope, res);
+                } else {
+                    gd = refGrid.derive().subgrid(envelope);
+                }
+                gd = gd.sliceByRatio(0.5, 0, 1);
+                grid = gd.build();
             } else {
-                gd = gridGeom.derive().subgrid(envelope);
+                crs2D = CRS.getHorizontalComponent(refGrid.getCoordinateReferenceSystem());
+                grid = refGrid;
             }
-            gd = gd.sliceByRatio(0.5, 0, 1);
-            final GridCoverage cov = ref.read(gd.build());
+
+            final GridCoverage cov = ref.read(grid);
             return new ResampleProcess(cov, crs2D, null, null, null).executeNow();
 
         } catch (DataStoreException ex) {

@@ -57,12 +57,15 @@ public interface DataProvider{
      * If you want to intend to get the related data, you should use the
      * get method directly and test if the result is not null.
      *
+     * @param key Data name to be removed from this provider.
      * @return true if the given key data is in this data provider .
      */
     boolean contains(GenericName key);
 
     /**
      * Get the data related to the given key.
+     * 
+     * @param key Data name to be removed from this provider.
      * @return V object if it is in the data provider, or null if not.
      */
     Data get(GenericName key);
@@ -70,8 +73,8 @@ public interface DataProvider{
     /**
      * Get the data related to the given key built from the namespace and name.
      *
-     * @param namespace
-     * @param name
+     * @param namespace Namespace or {@code null}
+     * @param name Name of the data in the provider
      *
      * @return V object if it is in the data provider, or null if not.
      */
@@ -106,6 +109,14 @@ public interface DataProvider{
      * @param key Data name to be removed from this provider.
      */
     boolean remove(GenericName key);
+
+    /**
+     * Remove a data from this provider.
+     *
+     * @param namespace Namespace or {@code null}
+     * @param name Name of the data in the provider
+     */
+    boolean remove(String namespace, String name);
 
     ProviderType getProviderType();
 

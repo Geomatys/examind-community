@@ -75,6 +75,20 @@ public abstract class AbstractDataProvider implements DataProvider{
      * {@inheritDoc}
      */
     @Override
+    public boolean remove(String namespace, String name) {
+        GenericName gname;
+        if (namespace == null || namespace.isEmpty()) {
+            gname = NamesExt.create(name);
+        } else {
+            gname = NamesExt.create(namespace, name);
+        }
+        return remove(gname);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String getId(){
         return id;
     }

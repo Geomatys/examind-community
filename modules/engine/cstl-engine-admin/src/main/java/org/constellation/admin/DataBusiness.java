@@ -89,11 +89,9 @@ import org.constellation.token.TokenUtils;
 import org.constellation.util.StoreUtilities;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
-import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.PropertyType;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.metadata.Metadata;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -459,11 +457,8 @@ public class DataBusiness implements IDataBusiness {
             final DataBrief db = new DataBrief();
             db.setId(data.getId());
             final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
-            if (user != null && user.isPresent()) {
-                final CstlUser cstlUser = user.get();
-                if(cstlUser!=null){
-                    db.setOwner(cstlUser.getLogin());
-                }
+            if (user.isPresent()) {
+                db.setOwner(user.get().getLogin());
             }
 
             if (fetchDataDescription) {
@@ -529,11 +524,8 @@ public class DataBusiness implements IDataBusiness {
                 sb.setName(style.getName());
 
                 final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
-                if (userStyle!=null && userStyle.isPresent()) {
-                    final CstlUser cstlUser = userStyle.get();
-                    if(cstlUser!=null){
-                        sb.setOwner(cstlUser.getLogin());
-                    }
+                if (userStyle.isPresent()) {
+                    sb.setOwner(userStyle.get().getLogin());
                 }
                 styleBriefs.add(sb);
             }
@@ -602,11 +594,8 @@ public class DataBusiness implements IDataBusiness {
             final DataSummary db = new DataSummary();
             db.setId(data.getId());
             final Optional<CstlUser> user = userBusiness.findById(data.getOwnerId());
-            if (user != null && user.isPresent()) {
-                final CstlUser cstlUser = user.get();
-                if(cstlUser != null){
-                    db.setOwner(cstlUser.getLogin());
-                }
+            if (user.isPresent()) {
+                db.setOwner(user.get().getLogin());
             }
 
             final int providerId = data.getProviderId();
@@ -786,9 +775,6 @@ public class DataBusiness implements IDataBusiness {
                 final Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
                 if (user.isPresent()) {
                     data.setOwnerId(user.get().getId());
-                    if (user.isPresent()) {
-                        data.setOwnerId(user.get().getId());
-                    }
                 }
             } else {
                 data.setOwnerId(owner);
@@ -822,7 +808,6 @@ public class DataBusiness implements IDataBusiness {
 
             final int providerID = data.getProviderId();
             final int dataID = data.getId();
-            final GenericName dataName = NamesExt.create(data.getNamespace(), data.getName());
             if (!included) {
                 // 1. remove layers involving the data
                 for (Integer layerID : layerRepository.findByDataId(dataID)) {
@@ -843,7 +828,7 @@ public class DataBusiness implements IDataBusiness {
                 // 5. remove data files
                 if (removeFiles) {
                     final DataProvider dataProvider = DataProviders.getProvider(providerID);
-                    dataProvider.remove(dataName);
+                    dataProvider.remove(data.getNamespace(), data.getName());
                 }
 
                 // 6. cleanup provider if empty
@@ -1207,9 +1192,8 @@ public class DataBusiness implements IDataBusiness {
         final Data data         = dataRepository.findById(dataId);
         final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
         final String dataType   = data.getType();
-        final GenericName name  = NamesExt.create(data.getNamespace(), data.getName());
         final DataProvider dataProvider = DataProviders.getProvider(provider.getId());
-        final org.constellation.provider.Data dataP = dataProvider.get(name);
+        final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
 
         DefaultMetadata extractedMetadata;
         String crsName = null;
@@ -1231,7 +1215,7 @@ public class DataBusiness implements IDataBusiness {
         }
 
         //initialize metadata from the template and fill it with properties file
-        final String metadataID = MetadataUtilities.getMetadataIdForData(provider.getIdentifier(), name);
+        final String metadataID = MetadataUtilities.getMetadataIdForData(provider.getIdentifier(), data.getNamespace(), data.getName());
 
         // get current user name and email and store into metadata contact.
         final String login = SecurityManagerHolder.getInstance().getCurrentUserLogin();

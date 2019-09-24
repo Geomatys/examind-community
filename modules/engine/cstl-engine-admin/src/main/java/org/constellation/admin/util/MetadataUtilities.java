@@ -149,14 +149,14 @@ public final class MetadataUtilities {
         return null;
     }
 
-    public static String getMetadataIdForData(final String providerId, final GenericName dataName){
-        ArgumentChecks.ensureNonNull("dataName", dataName);
+    public static String getMetadataIdForData(final String providerId, final String namespace, final String name){
+        ArgumentChecks.ensureNonNull("dataName", name);
         ArgumentChecks.ensureNonNull("providerId", providerId);
-        String nmsp = NamesExt.getNamespace(dataName);
+        String nmsp = namespace;
         if (nmsp == null) {
             nmsp = "";
         }
-        return  providerId + '_' + nmsp + dataName.tip().toString();
+        return  providerId + '_' + nmsp + name;
     }
 
     public static String getMetadataIdForDataset(final String providerId){

@@ -389,12 +389,10 @@ public class DatasetBusiness implements IDatasetBusiness {
         final Optional<CstlUser> optUser = userBusiness.findById(dataset.getOwnerId());
         Integer ownerId = null;
         String owner = null;
-        if(optUser!=null && optUser.isPresent()){
+        if(optUser.isPresent()){
             final CstlUser user = optUser.get();
-            if(user != null){
-                ownerId = user.getId();
-                owner = user.getLogin();
-            }
+            ownerId = user.getId();
+            owner = user.getLogin();
         }
         final List<MetadataLightBrief> metadatas = metadataBusiness.getMetadataBriefForDataset(dataset.getId());
 
