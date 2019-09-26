@@ -22,7 +22,7 @@ import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef.Query;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.cql.CQLException;
+import org.apache.sis.cql.CQLException;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.opengis.filter.FilterFactory;
 import org.geotoolkit.util.DateRange;

@@ -21,14 +21,14 @@ package org.constellation.json.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.LinearRing;
-import org.locationtech.jts.geom.MultiLineString;
-import org.locationtech.jts.geom.MultiPoint;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+import java.awt.Color;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.cql.CQLException;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.binding.ChannelSelection;
@@ -40,22 +40,20 @@ import org.constellation.json.binding.RasterSymbolizer;
 import org.constellation.json.binding.SelectedChannelType;
 import org.constellation.json.binding.StyleElement;
 import org.constellation.json.binding.Symbolizer;
+import static org.constellation.json.util.StyleFactories.FF;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.cql.CQLException;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiPoint;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.NilExpression;
-
-import java.awt.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.constellation.json.util.StyleFactories.FF;
 
 /**
  * @author Fabien Bernard (Geomatys).

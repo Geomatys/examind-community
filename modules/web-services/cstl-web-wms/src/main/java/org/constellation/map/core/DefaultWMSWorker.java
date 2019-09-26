@@ -56,7 +56,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.cql.CQLException;
+import org.apache.sis.cql.CQLException;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
 import org.geotoolkit.display2d.service.CanvasDef;

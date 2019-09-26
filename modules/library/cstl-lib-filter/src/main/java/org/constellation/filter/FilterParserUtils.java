@@ -20,10 +20,10 @@ package org.constellation.filter;
 
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.cql.CQLException;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import static org.constellation.filter.AbstractFilterParser.LOGGER;
 import org.geotoolkit.cql.CQL;
-import org.geotoolkit.cql.CQLException;
 import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import org.geotoolkit.ogc.xml.XMLFilter;
