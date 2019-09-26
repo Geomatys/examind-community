@@ -233,7 +233,15 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
         init();
         Integer pid = getProviderBusiness().getIDFromIdentifier(OM_PROVIDER);
         Assert.assertNotNull("no OM provider found", pid);
-        Integer dataId = getDataBusiness().getDataId(new QName("single-observations"), pid);
+        List<DataBrief> datas = getDataBusiness().getDataBriefsFromProviderId(pid, null, true, false, null, null, false);
+        StringBuilder sb = new StringBuilder();
+        if (datas.isEmpty()) {
+            sb.append("No data in this provider.");
+        } else {
+            datas.stream().forEach(d ->sb.append('{').append(d.getNamespace()).append('}').append(d.getName()).append(" "));
+        }
+        System.out.println(sb.toString());
+        Integer dataId = getDataBusiness().getDataId(new QName("http://www.opengis.net/sampling/1.0","single-observations"), pid);
         Assert.assertNotNull("no single-observations data found", dataId);
 
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/sensors/generate/" + dataId);
