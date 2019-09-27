@@ -19,14 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.geom.Geometry;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
-import org.geotoolkit.data.AbstractReadingTests;
-import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.ScriptRunner;
-
 import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -37,16 +29,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.geotoolkit.storage.DataStores;
 import javax.annotation.PostConstruct;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.constellation.store.observation.db.OM2FeatureStoreFactory;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataStore;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
+import org.geotoolkit.data.AbstractReadingTests;
+import org.geotoolkit.internal.sql.DefaultDataSource;
+import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.junit.runner.RunWith;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.util.GenericName;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,7 +61,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class OM2DataStoreTest extends AbstractReadingTests{
 
     private static DefaultDataSource ds;
-    private static FeatureStore store;
+    private static DataStore store;
     private static Set<GenericName> names = new HashSet<>();
     private static List<ExpectedResult> expecteds = new ArrayList<>();
     private static boolean configured = false;
@@ -89,7 +87,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
                 params.put(OM2FeatureStoreFactory.SGBDTYPE.getName().toString(), "derby");
                 params.put(OM2FeatureStoreFactory.DERBYURL.getName().toString(), url);
 
-                store = (FeatureStore) DataStores.open(params);
+                store = DataStores.open(params);
 
                 final String nsCstl = "http://constellation.org/om2";
                 final String nsGML = "http://www.opengis.net/gml";
@@ -119,7 +117,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
 
 
     @Override
-    protected FeatureStore getDataStore() {
+    protected DataStore getDataStore() {
         return store;
     }
 

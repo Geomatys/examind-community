@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -58,6 +59,7 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.logging.Logging;
@@ -94,6 +96,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.data.FeatureStore;
+import org.geotoolkit.data.FeatureStoreContentEvent;
 import org.geotoolkit.data.FeatureStoreRuntimeException;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.FeatureWriter;
@@ -209,6 +212,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.capability.FilterCapabilities;
 import org.opengis.filter.identity.FeatureId;
+import org.opengis.filter.identity.Identifier;
 import org.opengis.filter.sort.SortBy;
 import org.opengis.filter.spatial.BinarySpatialOperator;
 import org.opengis.geometry.Envelope;
@@ -1510,18 +1514,46 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     try {
                         final FeatureType type = layer.getType();
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
-                        if(trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))){
+                        if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))) {
                             final FeatureSet collection = new ArrayFeatureSet(type, featureCollection, null);
                             final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
                             featureCollection = collection.subset(reproject).features(false).collect(Collectors.toList());
                         }
 
-                        final List<FeatureId> features = ((FeatureStore)layer.getStore()).addFeatures(typeName.toString(), featureCollection);
+                        DataStore store = layer.getStore();
+                        if (store instanceof FeatureStore) {
+                            final List<FeatureId> features = ((FeatureStore)store).addFeatures(typeName.toString(), featureCollection);
 
-                        for (FeatureId fid : features) {
-                            inserted.put(fid.getID(), handle);// get the id of the inserted feature
-                            totalInserted++;
-                            LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
+                            for (FeatureId fid : features) {
+                                inserted.put(fid.getID(), handle);// get the id of the inserted feature
+                                totalInserted++;
+                                LOGGER.log(Level.FINER, "fid inserted: {0} total:{1}", new Object[]{fid, totalInserted});
+                            }
+                        } else {
+                            FeatureSet origin = layer.getOrigin();
+                            if (origin instanceof WritableFeatureSet) {
+
+                                //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
+                                final AtomicInteger acc = new AtomicInteger();
+                                final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<FeatureStoreContentEvent>() {
+                                    @Override
+                                    public void eventOccured(FeatureStoreContentEvent event) {
+                                        if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
+                                            Set<Identifier> identifiers = event.getIds().getIdentifiers();
+                                            for (Identifier id : identifiers) {
+                                                inserted.put(id.getID().toString(), handle);
+                                            }
+                                            acc.addAndGet(identifiers.size());
+                                        }
+                                    }
+                                };
+                                origin.addListener(FeatureStoreContentEvent.class, listener);
+                                ((WritableFeatureSet) origin).add(featureCollection.iterator());
+                                origin.removeListener(FeatureStoreContentEvent.class, listener);
+                                totalInserted += acc.get();
+                            } else {
+                                throw new CstlServiceException("The specified FeatureSet does not suport the write operations.");
+                            }
                         }
                     } catch (ConstellationStoreException | DataStoreException ex) {
                         Logging.unexpectedException(LOGGER,DefaultWFSWorker.class,"transaction", ex);
@@ -1808,10 +1840,26 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             }
                         }
                     } else {
-                        //TODO this approach to not return the created ID
+
+                        //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
+                        final AtomicInteger acc = new AtomicInteger();
+                        final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<FeatureStoreContentEvent>() {
+                            @Override
+                            public void eventOccured(FeatureStoreContentEvent event) {
+                                if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
+                                    Set<Identifier> identifiers = event.getIds().getIdentifiers();
+                                    for (Identifier id : identifiers) {
+                                        replaced.put(id.getID().toString(), handle);// get the id of the replaced feature
+                                    }
+                                    acc.addAndGet(identifiers.size());
+                                }
+                            }
+                        };
+                        fs.addListener(FeatureStoreContentEvent.class, listener);
                         try (Stream<Feature> stream = featureCollection.features(false)) {
                             fs.add(stream.iterator());
                         }
+                        fs.removeListener(FeatureStoreContentEvent.class, listener);
                     }
 
                 } catch (ConstellationStoreException | DataStoreException | FeatureStoreRuntimeException ex) {

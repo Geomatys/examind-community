@@ -16,7 +16,6 @@
  */
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.io.WKBWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,34 +25,43 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.geotoolkit.feature.FeatureExt;
+import org.apache.sis.internal.storage.AbstractFeatureSet;
+import org.apache.sis.internal.storage.StoreResource;
+import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.parameter.Parameters;
+import org.apache.sis.storage.Aggregate;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.Query;
-import org.apache.sis.storage.UnsupportedQueryException;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.storage.event.StoreEvent;
+import org.apache.sis.storage.event.StoreListener;
+import org.apache.sis.storage.event.StoreListeners;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CommonConstants;
-import org.geotoolkit.data.AbstractFeatureStore;
-import org.geotoolkit.data.FeatureReader;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
-import org.geotoolkit.data.FeatureStreams;
-import org.geotoolkit.data.FeatureWriter;
-import org.geotoolkit.internal.data.GenericNameIndex;
+import org.geotoolkit.data.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
-import org.geotoolkit.data.query.DefaultQueryCapabilities;
-import org.geotoolkit.data.query.QueryBuilder;
-import org.geotoolkit.data.query.QueryCapabilities;
-import org.geotoolkit.factory.Hints;
+import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.gml.GMLUtilities;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.AbstractRing;
@@ -62,6 +70,7 @@ import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
+import org.geotoolkit.internal.data.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.observation.ObservationFilter;
@@ -73,14 +82,17 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
+import org.geotoolkit.util.NamesExt;
+import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.geometry.Geometry;
+import org.opengis.metadata.Metadata;
 import org.opengis.observation.AnyFeature;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -96,11 +108,13 @@ import org.opengis.util.GenericName;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SOSDatabaseObservationStore extends AbstractFeatureStore implements ObservationStore {
+public class SOSDatabaseObservationStore extends DataStore implements Aggregate, ObservationStore {
 
-    private static final QueryCapabilities capabilities = new DefaultQueryCapabilities(false);
-    private final String SQL_WRITE_SAMPLING_POINT;;
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
+
+    private final String SQL_WRITE_SAMPLING_POINT;
     private final String SQL_GET_LAST_ID;
+    private final Parameters parameters;
 
     private ObservationReader reader;
     private ObservationWriter writer;
@@ -110,11 +124,12 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
 
     private final boolean isPostgres;
     protected final GenericNameIndex<FeatureType> types;
+    private final List<Resource> components = new ArrayList<>();
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
 
     public SOSDatabaseObservationStore(final ParameterValueGroup params) throws DataStoreException {
-        super(params);
+        this.parameters = Parameters.castOrWrap(params);
+
         try {
             //create a datasource
             final BasicDataSource dataSource = new BasicDataSource();
@@ -171,6 +186,11 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
 
         SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
         SQL_GET_LAST_ID = "SELECT COUNT(*) FROM \"" + schemaPrefix + "om\".\"sampling_features\"";
+
+        for (GenericName name : types.getNames()) {
+            components.add(new FeatureView(name));
+        }
+
     }
 
     private void extractParameter(final ParameterValueGroup params, String key, ParameterDescriptor<String> param, final Map<String,Object> properties) {
@@ -181,136 +201,27 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(SOSDatabaseObservationStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(SOSDatabaseObservationStoreFactory.NAME);
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // FEATURE STORE ///////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
+    @Override
+    public Metadata getMetadata() throws DataStoreException {
+        return new DefaultMetadata();
+    }
 
+    @Override
+    public Optional<ParameterValueGroup> getOpenParameters() {
+        return Optional.of(parameters);
+    }
+
+    @Override
+    public Collection<? extends Resource> components() throws DataStoreException {
+        return components;
+    }
 
     private Connection getConnection() throws SQLException{
         return source.getConnection();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public QueryCapabilities getQueryCapabilities() {
-        return capabilities;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public Set<GenericName> getNames() throws DataStoreException {
-        return types.getNames();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public FeatureType getFeatureType(final String typeName) throws DataStoreException {
-        typeCheck(typeName);
-
-        FeatureType type = types.get(typeName);
-        if (FeatureExt.getCRS(type)==null) {
-            //read a first feature to find the crs
-            try (FeatureReader r = getFeatureReader(QueryBuilder.all(typeName))){
-                if (r.hasNext()) {
-                    type = r.next().getType();
-                    types.remove(type.getName());
-                    types.add(type.getName(), type);
-                }
-            } catch (FeatureStoreRuntimeException ex) {
-                throw new DataStoreException("Error while building feature type from first record", ex);
-            }
-        }
-
-        return types.get(typeName);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public FeatureReader getFeatureReader(final Query query) throws DataStoreException {
-        if (!(query instanceof org.geotoolkit.data.query.Query)) throw new UnsupportedQueryException();
-
-        final org.geotoolkit.data.query.Query gquery = (org.geotoolkit.data.query.Query) query;
-        final FeatureType sft = types.get(gquery.getTypeName());
-        try {
-            return FeatureStreams.subset(new SOSDatabaseFeatureReader(getConnection(),isPostgres,sft, schemaPrefix), gquery);
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public FeatureWriter getFeatureWriter(Query query) throws DataStoreException {
-        if (!(query instanceof org.geotoolkit.data.query.Query)) throw new UnsupportedQueryException();
-
-        final org.geotoolkit.data.query.Query gquery = (org.geotoolkit.data.query.Query) query;
-        final FeatureType ft = types.get(gquery.getTypeName());
-        final Filter filter = gquery.getFilter();
-        try {
-            return FeatureStreams.filter((FeatureWriter)new SOSDatabaseFeatureWriter(getConnection(),isPostgres,ft, schemaPrefix), filter);
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public List<FeatureId> addFeatures(final String groupName, final Collection<? extends Feature> newFeatures,
-            final Hints hints) throws DataStoreException {
-        final FeatureType featureType = getFeatureType(groupName); //raise an error if type doesn't exist
-        final List<FeatureId> result = new ArrayList<>();
-
-        try (Connection cnx = getConnection();
-             PreparedStatement stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT)) {
-
-            for(final Feature feature : newFeatures) {
-                FeatureId identifier = FeatureExt.getId(feature);
-                if (identifier == null || identifier.getID().isEmpty()) {
-                    identifier = getNewFeatureId();
-                }
-
-                stmtWrite.setString(1, identifier.getID());
-                Collection<String> names = ((Collection)feature.getPropertyValue(ATT_NAME.toString()));
-                Collection<String> sampleds = ((Collection)feature.getPropertyValue(ATT_SAMPLED.toString()));
-                stmtWrite.setString(2, (String) names.iterator().next());
-                stmtWrite.setString(3, (String)feature.getPropertyValue(ATT_DESC.toString()));
-                stmtWrite.setString(4, sampleds.isEmpty() ? null : sampleds.iterator().next());
-                final Optional<org.locationtech.jts.geom.Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
-                        .filter(org.locationtech.jts.geom.Geometry.class::isInstance)
-                        .map(org.locationtech.jts.geom.Geometry.class::cast);
-                if (geometry.isPresent()) {
-                    final org.locationtech.jts.geom.Geometry geom = geometry.get();
-                    WKBWriter writer = new WKBWriter();
-                    final int SRID = geom.getSRID();
-                    stmtWrite.setBytes(5, writer.write(geom));
-                    stmtWrite.setInt(6, SRID);
-                } else {
-                    stmtWrite.setNull(5, java.sql.Types.VARBINARY);
-                    stmtWrite.setNull(6, java.sql.Types.INTEGER);
-                }
-                stmtWrite.executeUpdate();
-                result.add(identifier);
-            }
-        } catch (SQLException ex) {
-            getLogger().log(Level.WARNING, SQL_WRITE_SAMPLING_POINT, ex);
-        }
-        return result;
     }
 
     public FeatureId getNewFeatureId() {
@@ -325,76 +236,26 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
                 return new DefaultFeatureId("sampling-point-"+nb);
             }
         } catch (SQLException ex) {
-            getLogger().log(Level.WARNING, null, ex);
-        }finally{
-            if(stmtLastId != null){
+            LOGGER.log(Level.WARNING, null, ex);
+        } finally {
+            if (stmtLastId != null) {
                 try {
                     stmtLastId.close();
                 } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
+                    LOGGER.log(Level.WARNING, null, ex);
                 }
             }
 
-            if(cnx != null){
+            if (cnx != null) {
                 try {
                     cnx.close();
                 } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
+                    LOGGER.log(Level.WARNING, null, ex);
                 }
             }
         }
         return null;
     }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void removeFeatures(final String groupName, final Filter filter) throws DataStoreException {
-        handleRemoveWithFeatureWriter(groupName, filter);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void refreshMetaModel() {
-        return;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void createFeatureType(final FeatureType featureType) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void updateFeatureType(final FeatureType featureType) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void deleteFeatureType(final String typeName) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void updateFeatures(final String groupName, final Filter filter, final Map<String, ? extends Object> values) throws DataStoreException {
-        throw new DataStoreException("Not supported.");
-    }
-
-
 
     ////////////////////////////////////////////////////////////////////////////
     // OBSERVATION STORE ///////////////////////////////////////////////////////
@@ -409,7 +270,7 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
             }
 
         } catch (DataStoreException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         return names;
     }
@@ -567,7 +428,7 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
         try {
             return new HashSet(reader.getPhenomenonNames());
         } catch (DataStoreException ex) {
-            getLogger().log(Level.WARNING, "Error while retrieving phenomenons", ex);
+            LOGGER.log(Level.WARNING, "Error while retrieving phenomenons", ex);
         }
         return new HashSet<>();
     }
@@ -613,14 +474,14 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
                         OM2DatabaseCreator.createObservationDatabase(source, true, null, schemaPrefix);
                         return true;
                     } else {
-                        getLogger().info("OM2 structure already present");
+                        LOGGER.info("OM2 structure already present");
                     }
                     return true;
                 } else {
-                    getLogger().warning("Missing Postgis extension.");
+                    LOGGER.warning("Missing Postgis extension.");
                 }
             } else {
-                getLogger().warning("unable to connect OM datasource");
+                LOGGER.warning("unable to connect OM datasource");
             }
             return false;
         } catch (SQLException | IOException ex) {
@@ -628,4 +489,135 @@ public class SOSDatabaseObservationStore extends AbstractFeatureStore implements
         }
     }
 
+    private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
+
+        private final StoreListeners listeners;
+        private final GenericName name;
+
+        FeatureView(GenericName name) {
+            super(null);
+            listeners = new StoreListeners(null, this);
+            this.name = name;
+        }
+
+        @Override
+        public synchronized FeatureType getType() throws DataStoreException {
+            FeatureType type = types.get(name.toString());
+            if (FeatureExt.getCRS(type) == null) {
+                //read a first feature to find the crs
+                try (final SOSDatabaseFeatureReader r = new SOSDatabaseFeatureReader(getConnection(), isPostgres, type, schemaPrefix)){
+                    if (r.hasNext()) {
+                        type = r.next().getType();
+                        types.remove(type.getName());
+                        types.add(type.getName(), type);
+                    }
+                } catch (SQLException ex) {
+                    throw new DataStoreException("Error while building feature type from first record", ex);
+                }
+            }
+
+            return types.get(name.toString());
+        }
+
+        @Override
+        public DataStore getOriginator() {
+            return SOSDatabaseObservationStore.this;
+        }
+
+        @Override
+        public Stream<Feature> features(boolean parallel) throws DataStoreException {
+            final FeatureType sft = getType();
+            try {
+                final SOSDatabaseFeatureReader reader = new SOSDatabaseFeatureReader(getConnection(), isPostgres, sft, schemaPrefix);
+                final Spliterator<Feature> spliterator = Spliterators.spliteratorUnknownSize(reader, Spliterator.ORDERED);
+                final Stream<Feature> stream = StreamSupport.stream(spliterator, false);
+                return stream.onClose(reader::close);
+            } catch (SQLException ex) {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        @Override
+        public void add(Iterator<? extends Feature> features) throws DataStoreException {
+            final Set<FeatureId> result = new LinkedHashSet<>();
+
+            try (Connection cnx = getConnection();
+                 PreparedStatement stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT)) {
+
+                while (features.hasNext()) {
+                    final Feature feature = features.next();
+                    FeatureId identifier = FeatureExt.getId(feature);
+                    if (identifier == null || identifier.getID().isEmpty()) {
+                        identifier = getNewFeatureId();
+                    }
+
+                    stmtWrite.setString(1, identifier.getID());
+                    Collection<String> names = ((Collection)feature.getPropertyValue(ATT_NAME.toString()));
+                    Collection<String> sampleds = ((Collection)feature.getPropertyValue(ATT_SAMPLED.toString()));
+                    stmtWrite.setString(2, (String) names.iterator().next());
+                    stmtWrite.setString(3, (String)feature.getPropertyValue(ATT_DESC.toString()));
+                    stmtWrite.setString(4, sampleds.isEmpty() ? null : sampleds.iterator().next());
+                    final Optional<org.locationtech.jts.geom.Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
+                            .filter(org.locationtech.jts.geom.Geometry.class::isInstance)
+                            .map(org.locationtech.jts.geom.Geometry.class::cast);
+                    if (geometry.isPresent()) {
+                        final org.locationtech.jts.geom.Geometry geom = geometry.get();
+                        WKBWriter writer = new WKBWriter();
+                        final int SRID = geom.getSRID();
+                        stmtWrite.setBytes(5, writer.write(geom));
+                        stmtWrite.setInt(6, SRID);
+                    } else {
+                        stmtWrite.setNull(5, java.sql.Types.VARBINARY);
+                        stmtWrite.setNull(6, java.sql.Types.INTEGER);
+                    }
+                    stmtWrite.executeUpdate();
+                    result.add(identifier);
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.WARNING, SQL_WRITE_SAMPLING_POINT, ex);
+            }
+            //todo return created ids
+            //return result;
+            Id id = DefaultFactories.forBuildin(FilterFactory.class).id(result);
+            listeners.fire(new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), id), FeatureStoreContentEvent.class);
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Feature> filter) throws DataStoreException {
+            boolean match = false;
+            try (SOSDatabaseFeatureWriter writer = new SOSDatabaseFeatureWriter(getConnection(),isPostgres,getType(), schemaPrefix)) {
+                while (writer.hasNext()) {
+                    Feature feature = writer.next();
+                    if (filter.test(feature)) {
+                        writer.remove();
+                        match = true;
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(OM2FeatureStore.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return match;
+        }
+
+        @Override
+        public void updateType(FeatureType newType) throws DataStoreException {
+            throw new DataStoreException("Not supported.");
+        }
+
+        @Override
+        public void replaceIf(Predicate<? super Feature> filter, UnaryOperator<Feature> updater) throws DataStoreException {
+            throw new DataStoreException("Not supported.");
+        }
+
+        @Override
+        public <T extends StoreEvent> void addListener(Class<T> eventType, StoreListener<? super T> listener) {
+            listeners.addListener(eventType, listener);
+        }
+
+        @Override
+        public synchronized <T extends StoreEvent> void removeListener(Class<T> eventType, StoreListener<? super T> listener) {
+            listeners.removeListener(eventType, listener);
+        }
+
+    }
 }

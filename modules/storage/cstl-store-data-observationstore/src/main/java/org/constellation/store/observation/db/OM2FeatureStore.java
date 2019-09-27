@@ -19,27 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.WKBReader;
-import org.locationtech.jts.io.WKBWriter;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.data.AbstractFeatureStore;
-import org.geotoolkit.data.FeatureReader;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
-import org.geotoolkit.data.FeatureWriter;
-import org.geotoolkit.data.query.DefaultQueryCapabilities;
-import org.geotoolkit.data.query.QueryCapabilities;
-import org.geotoolkit.factory.Hints;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
-import org.geotoolkit.jdbc.ManageableDataSource;
-import org.opengis.filter.Filter;
-import org.opengis.filter.identity.FeatureId;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -48,28 +27,56 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
-import org.geotoolkit.feature.FeatureExt;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.AbstractFeatureSet;
+import org.apache.sis.internal.storage.StoreResource;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.parameter.Parameters;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.Aggregate;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.IllegalNameException;
-import org.apache.sis.storage.Query;
-import org.apache.sis.storage.UnsupportedQueryException;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.util.logging.Logging;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SCHEMA_PREFIX;
 import static org.constellation.store.observation.db.OM2FeatureStoreFactory.SGBDTYPE;
-import org.geotoolkit.data.FeatureStreams;
+import org.geotoolkit.data.FeatureReader;
+import org.geotoolkit.data.FeatureStoreRuntimeException;
+import org.geotoolkit.data.FeatureWriter;
+import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.internal.data.GenericNameIndex;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
+import org.opengis.filter.identity.FeatureId;
+import org.opengis.metadata.Metadata;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
 /**
@@ -79,15 +86,16 @@ import org.opengis.util.GenericName;
  * @author Johann Sorel (Geomatys)
  *
  */
-public class OM2FeatureStore extends AbstractFeatureStore {
+public class OM2FeatureStore extends DataStore implements Aggregate {
+
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation");
 
     private static final String CSTL_NAMESPACE = "http://constellation.org/om2";
     private static final GenericName CSTL_TN_SENSOR = NamesExt.create(CSTL_NAMESPACE, "Sensor");
     protected static final GenericName ATT_ID = NamesExt.create(CSTL_NAMESPACE,  "id");
     protected static final GenericName ATT_POSITION = NamesExt.create(CSTL_NAMESPACE,  "position");
 
-    private static final QueryCapabilities capabilities = new DefaultQueryCapabilities(false);
-
+    private final Parameters parameters;
     private final GenericNameIndex<FeatureType> types = new GenericNameIndex<>();
 
     private final ManageableDataSource source;
@@ -98,8 +106,10 @@ public class OM2FeatureStore extends AbstractFeatureStore {
 
     protected final String schemaPrefix;
 
+    private final List<Resource> components = new ArrayList<>();
+
     public OM2FeatureStore(final ParameterValueGroup params, final ManageableDataSource source) {
-        super(params);
+        this.parameters = Parameters.castOrWrap(params);
         this.source = source;
         Object sgbdtype = parameters.getMandatoryValue(SGBDTYPE);
         isPostgres = !("derby".equals(sgbdtype));
@@ -113,8 +123,23 @@ public class OM2FeatureStore extends AbstractFeatureStore {
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(OM2FeatureStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(OM2FeatureStoreFactory.NAME);
+    }
+
+    @Override
+    public Metadata getMetadata() throws DataStoreException {
+        return new DefaultMetadata();
+    }
+
+    @Override
+    public Optional<ParameterValueGroup> getOpenParameters() {
+        return Optional.of(parameters);
+    }
+
+    @Override
+    public Collection<? extends Resource> components() throws DataStoreException {
+        return components;
     }
 
     private Connection getConnection() throws SQLException{
@@ -127,10 +152,13 @@ public class OM2FeatureStore extends AbstractFeatureStore {
         featureTypeBuilder.addAttribute(String.class).setName(ATT_ID).addRole(AttributeRole.IDENTIFIER_COMPONENT);
         featureTypeBuilder.addAttribute(Geometry.class).setName(ATT_POSITION).addRole(AttributeRole.DEFAULT_GEOMETRY);
         try {
-            types.add(CSTL_TN_SENSOR, featureTypeBuilder.build());
+            final FeatureType type = featureTypeBuilder.build();
+            types.add(CSTL_TN_SENSOR, type);
+
+            components.add(new FeatureView(type.getName()));
         } catch (IllegalNameException ex) {
             //won't happen
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -138,134 +166,12 @@ public class OM2FeatureStore extends AbstractFeatureStore {
      * {@inheritDoc }
      */
     @Override
-    public FeatureReader getFeatureReader(final Query query) throws DataStoreException {
-        if (!(query instanceof org.geotoolkit.data.query.Query)) throw new UnsupportedQueryException();
-
-        final org.geotoolkit.data.query.Query gquery = (org.geotoolkit.data.query.Query) query;
-        final FeatureType sft = getFeatureType(gquery.getTypeName());
-        try {
-            return FeatureStreams.subset(new OMReader(sft), gquery);
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public FeatureWriter getFeatureWriter(Query query) throws DataStoreException {
-        if (!(query instanceof org.geotoolkit.data.query.Query)) throw new UnsupportedQueryException();
-
-        final org.geotoolkit.data.query.Query gquery = (org.geotoolkit.data.query.Query) query;
-        final FeatureType sft = getFeatureType(gquery.getTypeName());
-        try {
-            return FeatureStreams.filter((FeatureWriter)new OMWriter(sft), gquery.getFilter());
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void close() throws DataStoreException {
-        super.close();
+    public void close() {
         try {
             source.close();
         } catch (SQLException ex) {
-            getLogger().info("SQL Exception while closing O&M2 datastore");
+            LOGGER.info("SQL Exception while closing O&M2 datastore");
         }
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public Set<GenericName> getNames() throws DataStoreException {
-        return types.getNames();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public FeatureType getFeatureType(final String typeName) throws DataStoreException {
-        return types.get(typeName);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public QueryCapabilities getQueryCapabilities() {
-        return capabilities;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public List<FeatureId> addFeatures(final String groupName, final Collection<? extends Feature> newFeatures,
-            final Hints hints) throws DataStoreException {
-        final FeatureType featureType = getFeatureType(groupName); //raise an error if type doesn't exist
-        final List<FeatureId> result = new ArrayList<>();
-
-
-        Connection cnx = null;
-        PreparedStatement stmtWrite = null;
-        try {
-            cnx = getConnection();
-            stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?)");
-
-            for(final Feature feature : newFeatures) {
-                FeatureId identifier = FeatureExt.getId(feature);
-                if (identifier == null || identifier.getID().isEmpty()) {
-                    identifier = getNewFeatureId();
-                }
-
-
-                stmtWrite.setString(1, identifier.getID());
-                final Optional<Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
-                        .filter(Geometry.class::isInstance)
-                        .map(Geometry.class::cast);
-                if (geometry.isPresent()) {
-                    final Geometry geom = geometry.get();
-                    final WKBWriter writer = new WKBWriter();
-                    final int SRID = geom.getSRID();
-                    stmtWrite.setBytes(2, writer.write(geom));
-                    stmtWrite.setInt(3, SRID);
-
-                } else {
-                    stmtWrite.setNull(2, Types.VARCHAR);
-                    stmtWrite.setNull(3, Types.INTEGER);
-
-                }
-                stmtWrite.executeUpdate();
-                result.add(identifier);
-            }
-        } catch (SQLException ex) {
-            getLogger().log(Level.WARNING, "Error while writing procedure feature", ex);
-        }finally{
-            if(stmtWrite != null){
-                try {
-                    stmtWrite.close();
-                } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
-                }
-            }
-
-            if(cnx != null){
-                try {
-                    cnx.close();
-                } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
-                }
-            }
-        }
-
-        return result;
     }
 
     public FeatureId getNewFeatureId() {
@@ -285,7 +191,7 @@ public class OM2FeatureStore extends AbstractFeatureStore {
                         final int i = Integer.parseInt(id.substring(sensorIdBase.length()));
                         return new DefaultFeatureId(sensorIdBase + i);
                     } catch (NumberFormatException ex) {
-                        getLogger().warning("a snesor ID is malformed in procedures tables");
+                        LOGGER.warning("a snesor ID is malformed in procedures tables");
                     }
                 } else {
                     return new DefaultFeatureId(sensorIdBase + 1);
@@ -293,13 +199,13 @@ public class OM2FeatureStore extends AbstractFeatureStore {
             }
 
         } catch (SQLException ex) {
-            getLogger().log(Level.WARNING, null, ex);
+            LOGGER.log(Level.WARNING, null, ex);
         }finally{
             if(stmtLastId != null){
                 try {
                     stmtLastId.close();
                 } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
+                    LOGGER.log(Level.WARNING, null, ex);
                 }
             }
 
@@ -307,56 +213,11 @@ public class OM2FeatureStore extends AbstractFeatureStore {
                 try {
                     cnx.close();
                 } catch (SQLException ex) {
-                    getLogger().log(Level.WARNING, null, ex);
+                    LOGGER.log(Level.WARNING, null, ex);
                 }
             }
         }
         return null;
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////
-    // No supported stuffs /////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void createFeatureType(final FeatureType featureType) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void updateFeatureType(final FeatureType featureType) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void deleteFeatureType(final String typeName) throws DataStoreException {
-        throw new DataStoreException("Not Supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void updateFeatures(final String groupName, final Filter filter, final Map<String, ? extends Object> values) throws DataStoreException {
-        throw new DataStoreException("Not supported.");
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void removeFeatures(final String groupName, final Filter filter) throws DataStoreException {
-        handleRemoveWithFeatureWriter(groupName, filter);
     }
 
 
@@ -412,9 +273,9 @@ public class OM2FeatureStore extends AbstractFeatureStore {
         }
 
         protected void read() throws Exception{
-            if(current != null) return;
+            if (current != null) return;
 
-            if(!result.next()){
+            if (!result.next()) {
                 return;
             }
 
@@ -502,7 +363,7 @@ public class OM2FeatureStore extends AbstractFeatureStore {
                 stmtDelete.executeUpdate();
 
             } catch (SQLException ex) {
-                getLogger().log(Level.WARNING, "Error while deleting procedure features", ex);
+                LOGGER.log(Level.WARNING, "Error while deleting procedure features", ex);
             }
         }
 
@@ -512,8 +373,123 @@ public class OM2FeatureStore extends AbstractFeatureStore {
         }
     }
 
-	@Override
-	public void refreshMetaModel() {
 
-	}
+    private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
+
+        private final GenericName name;
+
+        FeatureView(GenericName name) {
+            super(null);
+            this.name = name;
+        }
+
+        @Override
+        public FeatureType getType() throws DataStoreException {
+            return types.get(name.toString());
+        }
+
+        @Override
+        public DataStore getOriginator() {
+            return OM2FeatureStore.this;
+        }
+
+        @Override
+        public Stream<Feature> features(boolean parallel) throws DataStoreException {
+            final FeatureType sft = getType();
+            try {
+                final OMReader reader = new OMReader(sft);
+                final Spliterator<Feature> spliterator = Spliterators.spliteratorUnknownSize(reader, Spliterator.ORDERED);
+                final Stream<Feature> stream = StreamSupport.stream(spliterator, false);
+                return stream.onClose(reader::close);
+            } catch (SQLException ex) {
+                throw new DataStoreException(ex);
+            }
+        }
+
+        @Override
+        public void add(Iterator<? extends Feature> features) throws DataStoreException {
+            final List<FeatureId> result = new ArrayList<>();
+
+            Connection cnx = null;
+            PreparedStatement stmtWrite = null;
+            try {
+                cnx = getConnection();
+                stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?)");
+
+                while (features.hasNext()) {
+                    final Feature feature = features.next();
+                    FeatureId identifier = FeatureExt.getId(feature);
+                    if (identifier == null || identifier.getID().isEmpty()) {
+                        identifier = getNewFeatureId();
+                    }
+
+                    stmtWrite.setString(1, identifier.getID());
+                    final Optional<Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
+                            .filter(Geometry.class::isInstance)
+                            .map(Geometry.class::cast);
+                    if (geometry.isPresent()) {
+                        final Geometry geom = geometry.get();
+                        final WKBWriter writer = new WKBWriter();
+                        final int SRID = geom.getSRID();
+                        stmtWrite.setBytes(2, writer.write(geom));
+                        stmtWrite.setInt(3, SRID);
+
+                    } else {
+                        stmtWrite.setNull(2, Types.VARCHAR);
+                        stmtWrite.setNull(3, Types.INTEGER);
+
+                    }
+                    stmtWrite.executeUpdate();
+                    result.add(identifier);
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.WARNING, "Error while writing procedure feature", ex);
+            } finally {
+                if (stmtWrite != null) {
+                    try {
+                        stmtWrite.close();
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.WARNING, null, ex);
+                    }
+                }
+
+                if (cnx != null) {
+                    try {
+                        cnx.close();
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.WARNING, null, ex);
+                    }
+                }
+            }
+            //todo find a way to return created feature ids
+            //return result;
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Feature> filter) throws DataStoreException {
+            boolean match = false;
+            try (OMWriter writer = new OMWriter(getType())) {
+                while (writer.hasNext()) {
+                    Feature feature = writer.next();
+                    if (filter.test(feature)) {
+                        writer.remove();
+                        match = true;
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(OM2FeatureStore.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return match;
+        }
+
+        @Override
+        public void updateType(FeatureType newType) throws DataStoreException {
+            throw new DataStoreException("Not supported.");
+        }
+
+        @Override
+        public void replaceIf(Predicate<? super Feature> filter, UnaryOperator<Feature> updater) throws DataStoreException {
+            throw new DataStoreException("Not supported.");
+        }
+    }
 }

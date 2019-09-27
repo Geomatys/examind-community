@@ -17,11 +17,9 @@
 
 package org.constellation.sos;
 
-import org.locationtech.jts.geom.Geometry;
 import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,20 +29,19 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-
-import org.apache.sis.referencing.CRS;
-import org.geotoolkit.data.AbstractReadingTests;
-import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.util.NamesExt;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.ScriptRunner;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import org.constellation.util.Util;
+import org.geotoolkit.data.AbstractReadingTests;
 import org.geotoolkit.feature.xml.GMLConvention;
+import org.geotoolkit.internal.sql.DefaultDataSource;
+import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
-
+import org.geotoolkit.util.NamesExt;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.util.GenericName;
 
 
@@ -56,7 +53,7 @@ import org.opengis.util.GenericName;
 public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
     private static DefaultDataSource ds;
-    private static FeatureStore store;
+    private static DataStore store;
     private static final Set<GenericName> names = new HashSet<>();
     private static final List<ExpectedResult> expecteds = new ArrayList<>();
     static{
@@ -77,7 +74,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             params.put(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString(), "derby");
             params.put(SOSDatabaseObservationStoreFactory.DERBYURL.getName().toString(), url);
 
-            store = (FeatureStore) DataStores.open(params);
+            store = DataStores.open(params);
 
             final String nsOM = "http://www.opengis.net/sampling/1.0";
             final String nsGML = "http://www.opengis.net/gml";
@@ -108,7 +105,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
     }
 
     @Override
-    protected FeatureStore getDataStore() {
+    protected DataStore getDataStore() {
         return store;
     }
 
