@@ -365,11 +365,13 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final Band[] bands = new Band[numSampleDimensions];
         for (int i=0;i<numSampleDimensions;i++) {
             SampleDimension sampleDimension = coverage.getSampleDimensions().get(0);
-            Unit<?> unit = sampleDimension.getUnits().get();
             final Band band = new Band();
-            band.realUnit = unit;
             band.name = String.valueOf(sampleDimension.getName());
-            if (unit != null) band.unit = unit.getSymbol();
+            if (sampleDimension.getUnits().isPresent()) {
+                Unit<?> unit = sampleDimension.getUnits().get();
+                band.realUnit = unit;
+                band.unit = unit.getSymbol();
+            }
             bands[i] = band;
 
             //limit to first band, request by david/mehdi
