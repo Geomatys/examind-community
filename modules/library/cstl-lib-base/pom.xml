@@ -87,11 +87,6 @@
             <artifactId>geotk-xml-ebrim</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.geotoolkit.project</groupId>
-            <artifactId>geotk-provided</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
 </project>

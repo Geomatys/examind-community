@@ -88,11 +88,6 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-opensearch</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.geotoolkit.project</groupId>
-            <artifactId>geotk-provided</artifactId>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- Mailing API -->
         <dependency>
