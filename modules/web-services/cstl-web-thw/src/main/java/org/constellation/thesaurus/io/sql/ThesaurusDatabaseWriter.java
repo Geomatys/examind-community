@@ -61,7 +61,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     /**
      * This constructor is used when the thesaurus is not yet stored in the database.
-     * 
+     *
      * @param datasource The datasource whiwh will store the thesaurus
      * @param schema The database schema for this thesaurus
      * @param derby A flag indicating if the datasource ids a derby implementation.
@@ -112,7 +112,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     private void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
         final boolean update;
-        try (Statement stmt = connection.createStatement(); 
+        try (Statement stmt = connection.createStatement();
              ResultSet result = stmt.executeQuery(
                 "SELECT \"uri_concept\" FROM  \"" + schema + "\".\"" + TABLE_NAME + "\" " +
                 "WHERE \"uri_concept\"='" + uriconcept +"' " +
@@ -181,7 +181,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     }
 
     private void deleteLanguage(final ISOLanguageCode language) throws SQLException {
-        try (Connection connection = datasource.getConnection(); 
+        try (Connection connection = datasource.getConnection();
              PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"language\" "
                 + "WHERE  \"language_iso\"=?")) {
             deleteStmt.setString(1, language.getTwoLetterCode().toLowerCase());
@@ -200,7 +200,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     @Override
     public void addLanguage(final ISOLanguageCode currentLanguage) throws SQLException {
         if (!languages.contains(currentLanguage)) {
-            try (Connection connection = datasource.getConnection(); 
+            try (Connection connection = datasource.getConnection();
                  Statement stmt = connection.createStatement()) {
                 stmt.executeUpdate("INSERT INTO \"" + schema + "\".\"language\" VALUES ('" + currentLanguage.getTwoLetterCode().toLowerCase() + "', 1)");
             }
@@ -235,7 +235,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             for (Value value : values) {
                 //we verify that the language is already registred otherwise we record it
                 lookForLanguageRegistration(value.getLang());
-                
+
                 stmt.setString(1, uriconcept);
                 stmt.setString(2, value.getValue());
                 stmt.setString(3, theme);
@@ -266,17 +266,16 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     }
 
     private void deleteAllTermForLanguage(final ISOLanguageCode language) throws SQLException {
-        try (Connection connection = datasource.getConnection()) {
-            PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_completion\" "
+        try (Connection connection = datasource.getConnection();
+             PreparedStatement deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_completion\" "
                     + "WHERE  \"langage_iso\"=?");
+             PreparedStatement deleteStmt2 = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_localisation\" "
+                    + "WHERE  \"langage_iso\"=?");) {
+
             deleteStmt.setString(1, language.getTwoLetterCode().toLowerCase());
             deleteStmt.executeUpdate();
-            
-            deleteStmt = connection.prepareStatement("DELETE FROM \"" + schema + "\".\"terme_localisation\" "
-                    + "WHERE  \"langage_iso\"=?");
-            deleteStmt.setString(1, language.getTwoLetterCode().toLowerCase());
-            deleteStmt.executeUpdate();
-            deleteStmt.close();
+            deleteStmt2.setString(1, language.getTwoLetterCode().toLowerCase());
+            deleteStmt2.executeUpdate();
         }
     }
 
@@ -321,7 +320,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             writeProperty(uriConcept, NARROWER_TRANS_PREDICATE,     concept.getNarrowerTransitive(), c);
             writeProperty(uriConcept, HIERARCHY_ROOT_TY_PREDICATE,  Arrays.asList(concept.getHierarchyRootType()), c);
             writeProperty(uriConcept, HIERARCHY_ROOT_PREDICATE,     Arrays.asList(concept.getHierarchyRoot()), c);
-            
+
             final String theme;
             if (concept.getInScheme() != null && !concept.getInScheme().isEmpty()) {
                 theme = concept.getInScheme().get(0).getResource();
@@ -365,7 +364,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             updateProperty(uriConcept, NARROWER_PREDICATE,          concept.getNarrower(), c);
             updateProperty(uriConcept, NARROWER_TRANS_PREDICATE,    concept.getNarrowerTransitive(), c);
             updateProperty(uriConcept, HAS_TOP_CONCEPT_PREDICATE,   concept.getHasTopConcept(), c);
-            
+
             final String theme;
             if (concept.getInScheme() != null && !concept.getInScheme().isEmpty()) {
                 theme = concept.getInScheme().get(0).getResource();
@@ -388,10 +387,10 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         final String uriConcept = concept.getAbout();
         try (Connection c = datasource.getConnection()) {
             deleteAllProperty(uriConcept, c);
-            
+
             deleteAllTerm(uriConcept, COMPLETION, c);
             deleteAllTerm(uriConcept, LOCALISATION, c);
-            
+
             deleteReference(uriConcept, c);
         }
     }
@@ -439,7 +438,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
         deleteConcept(concept);
     }
-    
+
     /**
      * Deletes the concepts with the specified {@code URI}.
      *
@@ -468,7 +467,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     /**
      * Inserts the specified concept in database.
-     * 
+     *
      * @param fullConcept the concept value
      */
     public void insertConcept(FullConcept fullConcept) {
@@ -627,7 +626,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     @Override
     public void updateThesaurusProperties() throws SQLException {
-        try (Connection connection = datasource.getConnection(); 
+        try (Connection connection = datasource.getConnection();
              PreparedStatement upStmt = connection.prepareStatement("UPDATE \"" + schema + "\".\"propriete_thesaurus\" "
                 + "SET \"uri\"=?, \"name\"=?, \"description\"=?, \"enable\"=?, \"defaultLang\"=?")) {
             final int enable;
@@ -752,7 +751,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     /**
      * Return an input stream of the specified resource.
      * @param url The urel of the specified resource.
-     * 
+     *
      * @return A stream on the specified resource.
      */
     private static InputStream getResourceAsStream(final String url) {

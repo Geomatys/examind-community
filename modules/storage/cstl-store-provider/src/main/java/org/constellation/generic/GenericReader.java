@@ -473,15 +473,12 @@ public abstract class GenericReader  {
         for (String sql : subStmts) {
             String phase = "connecting";
             final List<String> varList = varStatements.get(sql);
-            try (final Connection connection  = datasource.getConnection();){
-
-                phase = "preparing";
-                final PreparedStatement stmt = connection.prepareStatement(sql);
+            try (final Connection connection  = datasource.getConnection();
+                final PreparedStatement stmt = connection.prepareStatement(sql)){
                 phase = "filling params";
                 fillStatement(stmt, parameters);
                 phase = "executing";
                 fillValues(stmt, sql, varList, values);
-                stmt.close();
             } catch (SQLException ex) {
                 /*
                  * If we get the error code 17008 (oracle),
@@ -541,22 +538,25 @@ public abstract class GenericReader  {
                     advancedJdbcDriver = false;
                 }
             }
-            if (type == java.sql.Types.INTEGER || type == java.sql.Types.SMALLINT) {
-                try {
-                    final int id = Integer.parseInt(parameter);
-                    stmt.setInt(i, id);
-                } catch(NumberFormatException ex) {
-                    LOGGER.log(Level.SEVERE, "unable to parse the int parameter:{0}", parameter);
-                }
-            } else if (type == java.sql.Types.TIMESTAMP) {
-                try {
-                    final Timestamp ts = Timestamp.valueOf(parameter);
-                    stmt.setTimestamp(i, ts);
-                } catch(IllegalArgumentException ex) {
-                    LOGGER.log(Level.SEVERE, "unable to parse the timestamp parameter:{0}", parameter);
-                }
-            } else  {
-                stmt.setString(i, parameter);
+            switch (type) {
+                case java.sql.Types.INTEGER:
+                case java.sql.Types.SMALLINT:
+                    try {
+                        final int id = Integer.parseInt(parameter);
+                        stmt.setInt(i, id);
+                    } catch(NumberFormatException ex) {
+                        LOGGER.log(Level.SEVERE, "unable to parse the int parameter:{0}", parameter);
+                    }   break;
+                case java.sql.Types.TIMESTAMP:
+                    try {
+                        final Timestamp ts = Timestamp.valueOf(parameter);
+                        stmt.setTimestamp(i, ts);
+                    } catch(IllegalArgumentException ex) {
+                        LOGGER.log(Level.SEVERE, "unable to parse the timestamp parameter:{0}", parameter);
+                    }   break;
+                default:
+                    stmt.setString(i, parameter);
+                    break;
             }
             i++;
         }
@@ -571,25 +571,30 @@ public abstract class GenericReader  {
      * @throws SQLException
      */
     private void fillValues(final PreparedStatement stmt, final String sql, final List<String> varNames, final Values values) throws SQLException {
-
         LOGGER.log(Level.FINER, "ExecuteQuery:{0}", sql);
-        final ResultSet result = stmt.executeQuery();
-        while (result.next()) {
-            for (String varName : varNames) {
-                final int columnIndex = result.findColumn(varName);
-                final int type        = result.getMetaData().getColumnType(columnIndex);
-                if (type == java.sql.Types.INTEGER || type == java.sql.Types.SMALLINT) {
-                    values.addToValue(varName, result.getInt(varName));
-                } else if (type == java.sql.Types.DOUBLE) {
-                    values.addToValue(varName, result.getDouble(varName));
-                } else if (type == java.sql.Types.TIMESTAMP) {
-                    values.addToValue(varName, result.getTimestamp(varName));
-                } else {
-                    values.addToValue(varName, result.getString(varName));
+        try (ResultSet result = stmt.executeQuery()) {
+            while (result.next()) {
+                for (String varName : varNames) {
+                    final int columnIndex = result.findColumn(varName);
+                    final int type        = result.getMetaData().getColumnType(columnIndex);
+                    switch (type) {
+                        case java.sql.Types.INTEGER:
+                        case java.sql.Types.SMALLINT:
+                            values.addToValue(varName, result.getInt(varName));
+                            break;
+                        case java.sql.Types.DOUBLE:
+                            values.addToValue(varName, result.getDouble(varName));
+                            break;
+                        case java.sql.Types.TIMESTAMP:
+                            values.addToValue(varName, result.getTimestamp(varName));
+                            break;
+                        default:
+                            values.addToValue(varName, result.getString(varName));
+                            break;
+                    }
                 }
             }
         }
-        result.close();
     }
 
     /**

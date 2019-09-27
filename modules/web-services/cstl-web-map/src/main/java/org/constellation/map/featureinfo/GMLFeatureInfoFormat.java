@@ -550,29 +550,14 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@linkplain CoordinateReferenceSystem crs} defined in the request.
      */
     private GeneralDirectPosition getPixelCoordinates(final GetFeatureInfo gfi) {
-        if (gfi != null) {
+        if (gfi instanceof org.geotoolkit.wms.xml.GetFeatureInfo) {
 
-            JTSEnvelope2D objEnv = new JTSEnvelope2D();
-            int width  = 0;
-            int height = 0;
-            int pixelX = 0;
-            int pixelY = 0;
-
-            if(gfi instanceof org.geotoolkit.wms.xml.GetFeatureInfo) {
-                org.geotoolkit.wms.xml.GetFeatureInfo wmsGFI = (org.geotoolkit.wms.xml.GetFeatureInfo) gfi;
-                objEnv = new JTSEnvelope2D(wmsGFI.getEnvelope2D());
-                width = wmsGFI.getSize().width;
-                height = wmsGFI.getSize().height;
-                pixelX = wmsGFI.getX();
-                pixelY = wmsGFI.getY();
-            } else if (gfi instanceof org.geotoolkit.wmts.xml.v100.GetFeatureInfo) {
-                org.geotoolkit.wmts.xml.v100.GetFeatureInfo wmtsGFI = (org.geotoolkit.wmts.xml.v100.GetFeatureInfo) gfi;
-                objEnv = new JTSEnvelope2D(); //gfi.getEnvelope());
-                width  = 0; // gfi.getSize().width;
-                height = 0; // gfi.getSize().height;
-                pixelX = wmtsGFI.getI();
-                pixelY = wmtsGFI.getJ();
-            }
+            final org.geotoolkit.wms.xml.GetFeatureInfo wmsGFI = (org.geotoolkit.wms.xml.GetFeatureInfo) gfi;
+            final JTSEnvelope2D objEnv = new JTSEnvelope2D(wmsGFI.getEnvelope2D());
+            int width  = wmsGFI.getSize().width;
+            int height = wmsGFI.getSize().height;
+            int pixelX = wmsGFI.getX();
+            int pixelY = wmsGFI.getY();
 
             final double widthEnv = objEnv.getSpan(0);
             final double heightEnv = objEnv.getSpan(1);
@@ -583,7 +568,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             final GeneralDirectPosition position = new GeneralDirectPosition(geoX, geoY);
             position.setCoordinateReferenceSystem(objEnv.getCoordinateReferenceSystem());
             return position;
+        } else {
+            throw new IllegalArgumentException("getPixelCoordinates only support WMS GetFeatureInfo");
         }
-        return null;
     }
 }

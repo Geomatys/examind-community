@@ -141,37 +141,36 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
     }
 
     private void processStatiqueQuery(final Query query) throws SQLException {
-        final Connection connection = acquireConnection();
-        final Statement stmt        = connection.createStatement();
         final List<String> varNames = query.getVarNames();
         final String textQuery      = query.buildSQLQuery(staticParameters);
-        try {
-            final ResultSet res = stmt.executeQuery(textQuery);
-            final Map<String, StringBuilder> parameterValue = new HashMap<>();
-            for (String varName : varNames) {
-                parameterValue.put(varName, new StringBuilder());
-            }
+        final Map<String, StringBuilder> parameterValue = new HashMap<>();
+        for (String varName : varNames) {
+            parameterValue.put(varName, new StringBuilder());
+        }
+
+        try (final Connection connection = acquireConnection();
+             final Statement stmt        = connection.createStatement();
+             final ResultSet res         = stmt.executeQuery(textQuery)) {
             while (res.next()) {
                 for (String varName : varNames) {
                     final StringBuilder builder = parameterValue.get(varName);
                     builder.append("'").append(res.getString(varName)).append("',");
                 }
             }
-            res.close();
-            //we remove the last ','
-            for (String varName : varNames) {
-                final StringBuilder builder = parameterValue.get(varName);
-                final String pValue;
-                if (builder.length() > 0) {
-                    pValue = builder.substring(0, builder.length() - 1);
-                } else {
-                    pValue = "";
-                }
-                staticParameters.put(varName, pValue);
-            }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQL exception while executing static query :{0}", textQuery);
             throw ex;
+        }
+        //we remove the last ','
+        for (String varName : varNames) {
+            final StringBuilder builder = parameterValue.get(varName);
+            final String pValue;
+            if (builder.length() > 0) {
+                pValue = builder.substring(0, builder.length() - 1);
+            } else {
+                pValue = "";
+            }
+            staticParameters.put(varName, pValue);
         }
     }
 

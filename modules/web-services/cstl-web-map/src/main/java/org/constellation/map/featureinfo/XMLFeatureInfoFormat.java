@@ -32,7 +32,6 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
@@ -49,7 +48,6 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.util.DateRange;
@@ -59,7 +57,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
 import org.opengis.geometry.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 /**
@@ -449,47 +446,5 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         mimes.add(MimeType.APP_XML);
         mimes.add(MimeType.TEXT_XML);
         return mimes;
-    }
-
-    /**
-     * Returns the coordinates of the requested pixel in the image, expressed in the
-     * {@linkplain CoordinateReferenceSystem crs} defined in the request.
-     */
-    private GeneralDirectPosition getPixelCoordinates(final GetFeatureInfo gfi) {
-        if (gfi != null) {
-
-            JTSEnvelope2D objEnv = new JTSEnvelope2D();
-            int width  = 0;
-            int height = 0;
-            int pixelX = 0;
-            int pixelY = 0;
-
-            if(gfi instanceof org.geotoolkit.wms.xml.GetFeatureInfo) {
-                org.geotoolkit.wms.xml.GetFeatureInfo wmsGFI = (org.geotoolkit.wms.xml.GetFeatureInfo) gfi;
-                objEnv = new JTSEnvelope2D(wmsGFI.getEnvelope2D());
-                width = wmsGFI.getSize().width;
-                height = wmsGFI.getSize().height;
-                pixelX = wmsGFI.getX();
-                pixelY = wmsGFI.getY();
-            } else if (gfi instanceof org.geotoolkit.wmts.xml.v100.GetFeatureInfo) {
-                org.geotoolkit.wmts.xml.v100.GetFeatureInfo wmtsGFI = (org.geotoolkit.wmts.xml.v100.GetFeatureInfo) gfi;
-                objEnv = new JTSEnvelope2D(); //gfi.getEnvelope());
-                width  = 0; // gfi.getSize().width;
-                height = 0; // gfi.getSize().height;
-                pixelX = wmtsGFI.getI();
-                pixelY = wmtsGFI.getJ();
-            }
-
-            final double widthEnv = objEnv.getSpan(0);
-            final double heightEnv = objEnv.getSpan(1);
-            final double resX = widthEnv / width;
-            final double resY = -1 * heightEnv / height;
-            final double geoX = (pixelX + 0.5) * resX + objEnv.getMinimum(0);
-            final double geoY = (pixelY + 0.5) * resY + objEnv.getMaximum(1);
-            final GeneralDirectPosition position = new GeneralDirectPosition(geoX, geoY);
-            position.setCoordinateReferenceSystem(objEnv.getCoordinateReferenceSystem());
-            return position;
-        }
-        return null;
     }
 }
