@@ -19,6 +19,7 @@ build:examind-community:
   stage: build-examind-community
   script:
     - mvn clean install -DskipTests $MAVEN_CLI_OPTS -s $SETTINGS_MAVEN
+    - ls -l ./modules/bundles/exa-bundle/target/
   artifacts:
     paths:
       - modules/bundles/exa-bundle/target/
@@ -30,11 +31,13 @@ docker:push:
     refs:
       - master
   script:
+    - ls -l ./modules/bundles/exa-bundle/target/
     # Login to Docker repository
     - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     # Move Examind .war next to Dockerfile
     - cp ./modules/bundles/exa-bundle/target/examind.war ./docker/.
     # Build and push
+    - ls -l ./modules/bundles/exa-bundle/target/
     - docker build -t images.geomatys.com/examind/examind-community:latest ./docker/
     - docker push images.geomatys.com/examind/examind-community:latest
   artifacts:
