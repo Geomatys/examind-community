@@ -17,8 +17,6 @@ build:examind-community:
       - master
   image: maven:3-jdk-8
   stage: build-examind-community
-  variables:
-    GIT_STRATEGY: none
   script:
     - mvn clean install -DskipTests $MAVEN_CLI_OPTS -s $SETTINGS_MAVEN
 
