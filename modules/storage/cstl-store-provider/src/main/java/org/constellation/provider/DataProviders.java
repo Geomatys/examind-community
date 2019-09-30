@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.SortedSet;
@@ -193,7 +194,10 @@ public final class DataProviders extends Static{
             final DataStore ds = provider.getMainStore();
             Collection<? extends Resource> resources = DataStores.flatten(ds, false);
             for (Resource rs : resources) {
-                names.add(getResourceIdentifier(rs));
+                Optional<GenericName> rid = rs.getIdentifier();
+                if (rid.isPresent()) {
+                    names.add(rid.get());
+                }
             }
             provider.dispose();
         }
@@ -212,20 +216,22 @@ public final class DataProviders extends Static{
         final DataStore store = provider.getMainStore();
 
         for (final Resource rs : DataStores.flatten(store, false)) {
-            GenericName name = getResourceIdentifier(rs);
-             if (rs instanceof GridCoverageResource) {
-                final GridCoverageResource coverageReference = (GridCoverageResource) rs;
-                final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
-                if (crs != null) {
-                    nameCoordinateReferenceSystemHashMap.put(name,crs);
-                }
-            } else if (rs instanceof FeatureSet) {
-                FeatureSet fs = (FeatureSet) rs;
-                final FeatureType ft = fs.getType();
-                final CoordinateReferenceSystem crs = FeatureExt.getCRS(ft);
-                if(crs!=null) {
-                    nameCoordinateReferenceSystemHashMap.put(name,crs);
-                }
+            Optional<GenericName> name = rs.getIdentifier();
+            if (name.isPresent()) {
+                if (rs instanceof GridCoverageResource) {
+                   final GridCoverageResource coverageReference = (GridCoverageResource) rs;
+                   final CoordinateReferenceSystem crs = coverageReference.getGridGeometry().getCoordinateReferenceSystem();
+                   if (crs != null) {
+                       nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
+                   }
+               } else if (rs instanceof FeatureSet) {
+                   FeatureSet fs = (FeatureSet) rs;
+                   final FeatureType ft = fs.getType();
+                   final CoordinateReferenceSystem crs = FeatureExt.getCRS(ft);
+                   if(crs!=null) {
+                       nameCoordinateReferenceSystemHashMap.put(name.get(),crs);
+                   }
+               }
             }
         }
         return nameCoordinateReferenceSystemHashMap;
@@ -532,8 +538,7 @@ public final class DataProviders extends Static{
             sb.append(provider.getClass());
             i++;
 
-            try {
-                DataStore store = provider.open(sc);
+            try (DataStore store = provider.open(sc)){
                 if (store instanceof ResourceOnFileSystem) {
                     ResourceOnFileSystem df = (ResourceOnFileSystem) store;
                     for (Path rp : df.getComponentFiles()) {
@@ -548,9 +553,9 @@ public final class DataProviders extends Static{
 
                 Collection<? extends Resource> resources = org.geotoolkit.storage.DataStores.flatten(store, false);
                 for (Resource resource : resources) {
-                    GenericName resName = getResourceIdentifier(resource);
-                    if (resName != null) {
-                        String resId = resName.tip().toString();
+                    Optional<GenericName> resName = resource.getIdentifier();
+                    if (resName.isPresent()) {
+                        String resId = resName.get().tip().toString();
                         if (resource instanceof Aggregate) {
                             Aggregate a = (Aggregate) resource;
                             sb.append(margin).append("Aggregate: ").append(resId).append('\n');
@@ -569,7 +574,7 @@ public final class DataProviders extends Static{
                                result.put(d, stores);
                             }
                         } else {
-                            sb.append(margin).append("Unknow resource:").append(resource);
+                            sb.append(margin).append("Unknown resource:").append(resource);
                         }
                     } else {
                         sb.append(margin).append("Unnamed resource:").append(resource);
@@ -665,9 +670,9 @@ public final class DataProviders extends Static{
 
                 Collection<? extends Resource> resources = org.geotoolkit.storage.DataStores.flatten(store, false);
                 for (Resource resource : resources) {
-                    GenericName resName = getResourceIdentifier(resource);
-                    if (resName != null) {
-                        String resId = resName.tip().toString();
+                    Optional<GenericName> resName = resource.getIdentifier();
+                    if (resName.isPresent()) {
+                        String resId = resName.get().tip().toString();
                         if (resource instanceof Aggregate) {
                             Aggregate a = (Aggregate) resource;
                             sb.append(margin).append("Aggregate: ").append(resId).append('\n');
@@ -712,13 +717,6 @@ public final class DataProviders extends Static{
                 throw new DataStoreException(ex);
             }
         }
-    }
-
-    public static GenericName getResourceIdentifier(Resource r) throws DataStoreException {
-        if (r.getIdentifier().isPresent()) {
-            return r.getIdentifier().get();
-        }
-        return null;
     }
 
     private static String getType(Resource r) throws DataStoreException {

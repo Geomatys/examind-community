@@ -124,10 +124,9 @@ public class ResponseObject {
                 throw new RuntimeException("HttpServletResponse is missing, it is required to set multi part headers");
             }
             MultiPart mp = (MultiPart) entity;
-            try {
-                String boundaryTxt = "--AMZ90RFX875LKMFasdf09DDFF3";
-                response.setContentType("multipart/mixed;boundary=" + boundaryTxt.substring(2));
-                ServletOutputStream out = response.getOutputStream();
+            String boundaryTxt = "--AMZ90RFX875LKMFasdf09DDFF3";
+            response.setContentType("multipart/mixed;boundary=" + boundaryTxt.substring(2));
+            try (ServletOutputStream out = response.getOutputStream()) {
 
                 for (Part part : mp.parts()) {
                     out.write(("\r\n" + boundaryTxt + "\r\n").getBytes());
@@ -137,20 +136,19 @@ public class ResponseObject {
                         out.write(((String)part.obj).getBytes());
                     } else if (part.obj instanceof File) {
                         response.flushBuffer();
-                        FileInputStream is = new FileInputStream((File)part.obj);
-                        byte[] buffer = new byte[9000]; // max 8kB for http get
-                        int data;
-                        while ((data = is.read(buffer)) != -1) {
-                            out.write(buffer, 0, data);
+                        try (FileInputStream is = new FileInputStream((File)part.obj)) {
+                            byte[] buffer = new byte[9000]; // max 8kB for http get
+                            int data;
+                            while ((data = is.read(buffer)) != -1) {
+                                out.write(buffer, 0, data);
+                            }
                         }
-                        is.close();
                     }
                 }
 
                 // write the ending boundary
                 out.write((boundaryTxt + "--\r\n").getBytes());
                 response.flushBuffer();
-                out.close();
 
                 BodyBuilder builder = ResponseEntity.ok();
                 if (Application.getBooleanProperty(AppProperty.CSTL_URL, false)) {

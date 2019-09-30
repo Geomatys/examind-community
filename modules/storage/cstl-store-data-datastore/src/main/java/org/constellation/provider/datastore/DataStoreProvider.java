@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
@@ -32,7 +33,6 @@ import org.constellation.api.DataType;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DataProviders;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.geotoolkit.coverage.postgresql.PGCoverageStore;
@@ -182,15 +182,16 @@ public class DataStoreProvider extends AbstractDataProvider{
         try {
 
             for (final Resource rs : DataStores.flatten(store, true)) {
-                if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
-                    GenericName name = DataProviders.getResourceIdentifier(rs);
-                    if (name != null && !index.contains(name)) {
-                        index.add(name);
-                    }
-                } else if (!(rs instanceof Aggregate)) {
-                    GenericName name = DataProviders.getResourceIdentifier(rs);
-                    if (name != null && !index.contains(name)) {
-                        index.add(name);
+                Optional<GenericName> name = rs.getIdentifier();
+                if (name.isPresent()) {
+                    if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
+                        if (!index.contains(name.get())) {
+                            index.add(name.get());
+                        }
+                    } else if (!(rs instanceof Aggregate)) {
+                        if (!index.contains(name.get())) {
+                            index.add(name.get());
+                        }
                     }
                 }
             }
@@ -279,8 +280,8 @@ public class DataStoreProvider extends AbstractDataProvider{
     private boolean remove(Aggregate aggregate, GenericName key) throws DataStoreException {
 
         for (Resource r : aggregate.components()) {
-            final GenericName identifier = DataProviders.getResourceIdentifier(r);
-            if (identifier.equals(key)) {
+            final Optional<GenericName> identifier = r.getIdentifier();
+            if (identifier.isPresent() && identifier.get().equals(key)) {
                 if (aggregate instanceof WritableAggregate) {
                     ((WritableAggregate)aggregate).remove(r);
                     return true;

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -157,8 +158,11 @@ public class ISO19110Builder {
         }
 
         final FeatureTypeImpl featureType = new FeatureTypeImpl();
-        final LocalName localName         = cr.getIdentifier().get().tip();
-        featureType.setTypeName(localName);
+        Optional<GenericName> resId = cr.getIdentifier();
+        if (resId.isPresent()) {
+            final LocalName localName         = resId.get().tip();
+            featureType.setTypeName(localName);
+        }
         if (!meta.getIdentificationInfo().isEmpty()) {
             final Identification ident = meta.getIdentificationInfo().iterator().next();
             if (ident.getAbstract() != null) {

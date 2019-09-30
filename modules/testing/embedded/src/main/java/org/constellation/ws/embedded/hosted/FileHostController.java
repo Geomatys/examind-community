@@ -18,19 +18,12 @@
  */
 package org.constellation.ws.embedded.hosted;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.logging.Level;
 import javax.servlet.http.HttpServletResponse;
-import org.constellation.api.rest.ErrorMessage;
 import org.constellation.configuration.ConfigDirectory;
 import org.geotoolkit.nio.IOUtilities;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -50,12 +43,12 @@ public class FileHostController {
         Path HostedDirectory = configDirectory.resolve("hosted");
         Path requestFile     = HostedDirectory.resolve(fileName);
 
-        InputStream inputStream = new FileInputStream(requestFile.toFile());
-        response.setContentType("application/xml");
-        response.setHeader("Content-Disposition", "attachment; filename="+fileName+".xml");
-        IOUtilities.copy(inputStream, response.getOutputStream());
-        response.flushBuffer();
-        inputStream.close();
+        try (InputStream inputStream = new FileInputStream(requestFile.toFile())) {
+            response.setContentType("application/xml");
+            response.setHeader("Content-Disposition", "attachment; filename="+fileName+".xml");
+            IOUtilities.copy(inputStream, response.getOutputStream());
+            response.flushBuffer();
+        }
 
     }
 }

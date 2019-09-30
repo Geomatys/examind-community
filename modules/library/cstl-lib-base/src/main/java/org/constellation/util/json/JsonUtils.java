@@ -93,10 +93,9 @@ public class JsonUtils extends Static {
             writer.writeString(String.valueOf(value));
         } else {
             //fallback
-            try {
+            try (final JsonGenerator tempGenerator = JSON_FACTORY.createGenerator(new ByteArrayOutputStream(), JsonEncoding.UTF8)){
                 //HACK : create a temporary writer to write object.
                 //In case of writeObject(value) fail input writer will not be in illegal state.
-                final JsonGenerator tempGenerator = JSON_FACTORY.createGenerator(new ByteArrayOutputStream(), JsonEncoding.UTF8);
                 tempGenerator.setCodec(new ObjectMapper());
                 tempGenerator.writeObject(value);
 

@@ -21,7 +21,6 @@ package org.constellation.api.rest;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.sql.SQLException;
@@ -68,7 +67,6 @@ import org.geotoolkit.skos.xml.SkosMarshallerPool;
 import org.geotoolkit.thw.model.ISOLanguageCode;
 import org.geotoolkit.thw.model.WriteableThesaurus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
@@ -122,13 +120,14 @@ public class THWRestAPI {
                             final Thesaurus model = new Thesaurus();
                             model.setName(name);
 
-                            final WriteableThesaurus thesaurus = thesaurusBusiness.createNewThesaurus(model);
-                            thesaurus.writeRdf(rdf);
+                            try (final WriteableThesaurus thesaurus = thesaurusBusiness.createNewThesaurus(model)) {
+                                thesaurus.writeRdf(rdf);
 
-                            //update defaultLanguage
-                            if (!thesaurus.getLanguage().isEmpty()) {
-                                thesaurus.setDefaultLanguage(thesaurus.getLanguage().get(0));
-                                thesaurus.updateThesaurusProperties();
+                                //update defaultLanguage
+                                if (!thesaurus.getLanguage().isEmpty()) {
+                                    thesaurus.setDefaultLanguage(thesaurus.getLanguage().get(0));
+                                    thesaurus.updateThesaurusProperties();
+                                }
                             }
                         } else {
                             throw new Exception("the specified XML file does not contains a RDF object");

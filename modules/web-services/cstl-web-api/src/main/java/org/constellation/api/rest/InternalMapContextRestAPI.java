@@ -83,9 +83,9 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
             @PathVariable("version") final String version,
             @RequestBody final String url) {
 
-        try {
-            final WebMapClient client = (version != null && !version.isEmpty()) ?
-                    new WebMapClient(new URL(url), version) : new WebMapClient(new URL(url));
+        try (final WebMapClient client = (version != null && !version.isEmpty()) ?
+                    new WebMapClient(new URL(url), version) : new WebMapClient(new URL(url))) {
+            
             AbstractWMSCapabilities capa = client.getServiceCapabilities();
 
             final List<AbstractLayer> layers = capa.getLayers();
