@@ -1,0 +1,41 @@
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+  - .m2
+variables:
+  MAVEN_USER: 'deployment'
+  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_OPTS: '-Dmaven.repo.local=$CI_PROJECT_DIR/.m2'
+
+stages:
+  - build-examind-community
+  - push
+
+build:examind-community:
+  only:
+    refs:
+      - master
+  image: maven:3-jdk-8
+  stage: build-examind-community
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - mvn clean install -DskipTests $MAVEN_CLI_OPTS -s $SETTINGS_MAVEN
+
+docker:push:
+  image: docker:latest
+  stage: push
+  only:
+    refs:
+      - master
+  script:
+    # Login to Docker repository
+    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    # Move Examind .war next to Dockerfile
+    - cp ./modules/bundles/exa-bundle/target/examind.war ./docker/.
+    # Build and push
+    - docker build -t images.geomatys.com/examind/examind-community:latest ./docker/
+    - docker push images.geomatys.com/examind/examind-community:latest
+  artifacts:
+    paths:
+      - modules/bundles/exa-bundle/target/
