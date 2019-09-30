@@ -141,7 +141,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      */
     @Override
     public GridCoverage getCoverage(final Envelope envelope, final Dimension dimension, final Double elevation,
-                                      final Date time) throws ConstellationStoreException, IOException
+                                      final Date time) throws ConstellationStoreException
     {
         double[] res = null;
         if (envelope != null && dimension != null) {
@@ -157,7 +157,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         }
 
         try {
-            final GridGeometry refGrid = ref.getGridGeometry();
+            final GridGeometry refGrid = getGeometry();
             final CoordinateReferenceSystem crs2D;
             final GridGeometry grid;
             if (envelope != null) {
@@ -182,7 +182,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             throw new ConstellationStoreException(ex);
 
         } catch (CancellationException | ProcessException ex) {
-            throw new IOException(ex.getMessage(), ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -291,7 +291,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         final TreeSet<Number> result = new TreeSet<>();
         try {
-            GridGeometry ggg = getGeometry();
+            final GridGeometry ggg = getGeometry();
             if (ggg != null) {
                 final CoordinateReferenceSystem crs = ggg.getCoordinateReferenceSystem();
                 final VerticalCRS verticalCrs = CRS.getVerticalComponent(crs, true);
@@ -320,16 +320,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
-        try {
-            GridGeometry ggg = getGeometry();
-            if (ggg != null) {
-                return ggg.getEnvelope();
-            } else {
-                LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
-            }
-        } catch (CoverageStoreException ex) {
-            throw new ConstellationStoreException(ex);
+        GridGeometry ggg = getGeometry();
+        if (ggg != null) {
+            return ggg.getEnvelope();
         }
+        LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
         return null;
     }
 
@@ -388,11 +383,11 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      * from the resource.
      */
     @Override
-    public GridGeometry getGeometry() throws CoverageStoreException {
+    public GridGeometry getGeometry() throws ConstellationStoreException {
         try {
             return ref.getGridGeometry();
         } catch (DataStoreException e) {
-            throw new CoverageStoreException(e.getMessage(), e);
+            throw new ConstellationStoreException(e.getMessage(), e);
         }
     }
 
@@ -464,33 +459,29 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public CoverageDataDescription getDataDescription(StatInfo statInfo) throws ConstellationStoreException {
         final CoverageDataDescription description = new CoverageDataDescription();
-        try {
-            if (statInfo != null) {
-                ImageStatistics stats = getDataStatistics(statInfo);
-                if (stats != null) {
-                    // Bands description.
-                    for (int i = 0; i < stats.getBands().length; i++) {
-                        final ImageStatistics.Band band = stats.getBand(i);
-                        final String bandName = band.getName();
-                        String indice = String.valueOf(i);
-                        final double min = band.getMin();
-                        final double max = band.getMax();
-                        double[] noData = band.getNoData();
-                        description.getBands().add(new BandDescription(indice, bandName, min, max, noData));
-                    }
+        if (statInfo != null) {
+            ImageStatistics stats = getDataStatistics(statInfo);
+            if (stats != null) {
+                // Bands description.
+                for (int i = 0; i < stats.getBands().length; i++) {
+                    final ImageStatistics.Band band = stats.getBand(i);
+                    final String bandName = band.getName();
+                    String indice = String.valueOf(i);
+                    final double min = band.getMin();
+                    final double max = band.getMax();
+                    double[] noData = band.getNoData();
+                    description.getBands().add(new BandDescription(indice, bandName, min, max, noData));
                 }
             }
+        }
 
-            // Geographic extent description.
-            final GridGeometry ggg = ref.getGridGeometry();
-            if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
-                final Envelope envelope = ggg.getEnvelope();
-                DataProviders.fillGeographicDescription(envelope, description);
-            } else {
-                LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
-            }
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+        // Geographic extent description.
+        final GridGeometry ggg = getGeometry();
+        if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
+            final Envelope envelope = ggg.getEnvelope();
+            DataProviders.fillGeographicDescription(envelope, description);
+        } else {
+            LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
         }
         return description;
     }
@@ -572,14 +563,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException {
         final List<org.constellation.dto.Dimension> dimensions = new ArrayList<>();
 
-        GridGeometry gridGeom = null;
-        //-- try to open coverage
-        try {
-            gridGeom = ref.getGridGeometry();
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-
+        final GridGeometry gridGeom = getGeometry();
         final CoordinateReferenceSystem crsLayer                       = gridGeom.getCoordinateReferenceSystem();
         final Map<Integer, CoordinateReferenceSystem> indexedDecompose = ReferencingUtilities.indexedDecompose(crsLayer);
 
@@ -667,21 +651,22 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public void computeStatistic(int dataId, DataRepository dataRepository) {
         // Hack compute statistic from 5% of the first slice
         try {
-            GridGeometry gg = ref.getGridGeometry();
-            GridExtent extent = gg.getExtent();
-            int[] subSample = new int[extent.getDimension()];
-            subSample[0] = Math.round(extent.getSize(0) * 0.05f);
-            subSample[1] = Math.round(extent.getSize(1) * 0.05f);
-            for (int i = 2; i < extent.getDimension(); i++) {
-                subSample[i] = Math.toIntExact(extent.getSize(i));
+            GridGeometry gg = getGeometry();
+            if (gg != null) {
+                GridExtent extent = gg.getExtent();
+                int[] subSample = new int[extent.getDimension()];
+                subSample[0] = Math.round(extent.getSize(0) * 0.05f);
+                subSample[1] = Math.round(extent.getSize(1) * 0.05f);
+                for (int i = 2; i < extent.getDimension(); i++) {
+                    subSample[i] = Math.toIntExact(extent.getSize(i));
+                }
+                gg = gg.derive().subsample(subSample).build();
+
+                final GridCoverage cov = ref.read(gg);
+                final org.geotoolkit.process.Process process = new Statistics(cov, false);
+                process.addListener(new DataStatisticsListener(dataId, dataRepository));
+                process.call();
             }
-            gg = gg.derive().subsample(subSample).build();
-
-            final GridCoverage cov = ref.read(gg);
-            final org.geotoolkit.process.Process process = new Statistics(cov, false);
-            process.addListener(new DataStatisticsListener(dataId, dataRepository));
-            process.call();
-
         } catch(Throwable ex) {
             //we tryed
         }

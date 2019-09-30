@@ -60,9 +60,9 @@ public interface CoverageData extends GeoData {
      * @throws java.io.IOException
      */
     GridCoverage getCoverage(final Envelope envelope, final Dimension dimension,
-            final Double elevation, final Date time) throws ConstellationStoreException, IOException;
+            final Double elevation, final Date time) throws ConstellationStoreException;
 
-    GridGeometry getGeometry() throws DataStoreException;
+    GridGeometry getGeometry() throws ConstellationStoreException;
 
     /**
      * Return the special dimensions that are not Temporal or elevation

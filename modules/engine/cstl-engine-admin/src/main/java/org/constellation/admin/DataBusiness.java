@@ -665,6 +665,9 @@ public class DataBusiness implements IDataBusiness {
                 dim.setValue(periodFormatter.getDatesRespresentation(dates));
                 dimensions.add(dim);
             }
+
+            // what about elevations?
+            
             db.setDimensions(dimensions);
             dataSummaries.add(db);
         }

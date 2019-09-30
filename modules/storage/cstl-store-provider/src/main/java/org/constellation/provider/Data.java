@@ -65,15 +65,20 @@ public interface Data {
     DateRange getDateRange() throws ConstellationStoreException;
 
     /**
-     * Returns the set of dates when a coverage is available. Note that this method may
+     * Returns the set of dates when such dimension is available. Note that this method may
      * be slow and should be invoked only when the set of all dates is really needed.
      * If only the first or last date is needed, consider using {@link #getDateRange()}
      * instead.
      *
+     * @return A not {@code null} set of dates.
      */
     SortedSet<Date> getAvailableTimes() throws ConstellationStoreException;
 
     /**
+     * Returns the set of elevations when such dimension is available. Note that this method may
+     * be slow and should be invoked only when the set of all dates is really needed.
+     *
+     * @return A not {@code null} set of elevations.
      */
     SortedSet<Number> getAvailableElevations() throws ConstellationStoreException;
 

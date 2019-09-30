@@ -488,7 +488,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 if (brutGrid != null) {
                     grid = new GridCrsType(brutGrid);
                 }
-            } catch (DataStoreException|ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
             }
 
@@ -567,7 +567,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     }
                 }
 
-            } catch (DataStoreException|ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
             }
 
@@ -1020,7 +1020,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             try {
                 final GridCoverage gridCov = layerRef.getCoverage(refEnvel, size, elevation, date);
                 image = gridCov.render(null);
-            } catch (IOException | ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 
@@ -1038,7 +1038,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 response.metadata = layerRef.getSpatialMetadata();
                 response.coverage = layerRef.getCoverage(refEnvel, size, elevation, date);
                 return response;
-            } catch (IOException | ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 
@@ -1204,7 +1204,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             try {
                 final GridCoverage coverage = layerRef.getCoverage(readEnv, null, null, null);
                 image = coverage.render(null);
-            } catch (IOException | ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 

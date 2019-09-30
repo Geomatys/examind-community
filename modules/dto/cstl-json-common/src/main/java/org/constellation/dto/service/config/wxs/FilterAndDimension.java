@@ -21,7 +21,6 @@ package org.constellation.dto.service.config.wxs;
 import java.util.ArrayList;
 import java.util.List;
 import org.constellation.dto.Filter;
-import org.constellation.dto.service.config.wxs.DimensionDefinition;
 
 /**
  *

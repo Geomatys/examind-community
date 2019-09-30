@@ -166,11 +166,17 @@ public abstract class AbstractData implements Data{
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SortedSet<Date> getAvailableTimes() throws ConstellationStoreException {
         return new TreeSet<>();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         return new TreeSet<>();
