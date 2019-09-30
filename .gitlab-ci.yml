@@ -19,6 +19,9 @@ build:examind-community:
   stage: build-examind-community
   script:
     - mvn clean install -DskipTests $MAVEN_CLI_OPTS -s $SETTINGS_MAVEN
+  artifacts:
+    paths:
+      - modules/bundles/exa-bundle/target/
 
 docker:push:
   image: docker:latest

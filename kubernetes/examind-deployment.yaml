@@ -17,7 +17,8 @@ spec:
       - name: docker-registry-geomatys-private
       containers:
         - name: examind
-          image: docker.geomatys.com/tomcat-gdal:7-jre8-debian
+          #image: docker.geomatys.com/tomcat-gdal:7-jre8-debian
+          image: images.geomatys.com/examind/examind-community:latest
           restartPolicy: Always
           command:
             - catalina.sh jpda run
