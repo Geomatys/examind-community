@@ -29,6 +29,7 @@ import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.event.ChangeEvent;
 import org.apache.sis.storage.event.ChangeListener;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
@@ -37,7 +38,6 @@ import org.geotoolkit.metadata.MetadataWriter;
 import org.constellation.store.metadata.CSWMetadataReader;
 import static org.constellation.store.metadata.internal.InternalMetadataStoreFactory.CONFIG_PARAMS;
 import org.geotoolkit.csw.xml.DomainValues;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -61,8 +61,8 @@ public class InternalMetadataStore extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(InternalMetadataStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(InternalMetadataStoreFactory.NAME);
     }
 
     @Override

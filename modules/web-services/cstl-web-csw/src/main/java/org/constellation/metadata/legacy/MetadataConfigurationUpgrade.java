@@ -38,7 +38,7 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.TransactionStatus;
@@ -113,7 +113,7 @@ public class MetadataConfigurationUpgrade {
 
                         if (candidatePID == null) {
                             providerID = UUID.randomUUID().toString();
-                            final DataStoreFactory factory = DataStores.getFactoryById("FilesystemMetadata");
+                            final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                             final ParameterValueGroup params = factory.getOpenParameters().createValue();
                             params.parameter("folder").setValue(config.getDataDirectory());
                             params.parameter("store-id").setValue(providerID);

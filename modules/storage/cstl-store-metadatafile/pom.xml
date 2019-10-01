@@ -21,6 +21,12 @@
             <artifactId>cstl-store-metadata</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-test-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

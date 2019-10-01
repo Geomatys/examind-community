@@ -33,6 +33,7 @@ import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.event.ChangeEvent;
 import org.apache.sis.storage.event.ChangeListener;
@@ -46,7 +47,6 @@ import static org.constellation.store.metadata.filesystem.FileSystemMetadataStor
 import static org.constellation.store.metadata.filesystem.FileSystemMetadataStoreFactory.STORE_ID;
 import org.constellation.store.metadata.filesystem.sql.MetadataDatasource;
 import org.geotoolkit.csw.xml.DomainValues;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -88,8 +88,8 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(FileSystemMetadataStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(FileSystemMetadataStoreFactory.NAME);
     }
 
     @Override
@@ -208,6 +208,6 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
 
     @Override
     public <T extends ChangeEvent> void removeListener(ChangeListener<? super T> listener, Class<T> eventType) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

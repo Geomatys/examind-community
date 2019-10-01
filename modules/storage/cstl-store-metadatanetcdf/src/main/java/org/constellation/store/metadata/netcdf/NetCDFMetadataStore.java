@@ -31,6 +31,7 @@ import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.event.ChangeEvent;
 import org.apache.sis.storage.event.ChangeListener;
@@ -41,7 +42,6 @@ import org.constellation.store.metadata.CSWMetadataReader;
 import static org.constellation.store.metadata.netcdf.NetCDFMetadataStoreFactory.CONFIG_PARAMS;
 import static org.constellation.store.metadata.netcdf.NetCDFMetadataStoreFactory.FOLDER;
 import org.geotoolkit.csw.xml.DomainValues;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -67,8 +67,8 @@ public class NetCDFMetadataStore extends AbstractCstlMetadataStore implements Re
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(NetCDFMetadataStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(NetCDFMetadataStoreFactory.NAME);
     }
 
     @Override
