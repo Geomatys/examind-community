@@ -5,6 +5,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.LineString;
 import java.awt.geom.Point2D;
+import java.awt.image.RenderedImage;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,7 +154,8 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
                 c = cs.coverageAtIndex(crd[cs.zDimension-2]);
             }
 
-            extractors.add(new Extractor(crd, PixelIterator.create(((GridCoverage2D)c).view(ViewType.GEOPHYSICS).getRenderedImage())));
+            RenderedImage im = c.forConvertedValues(true).render(null);
+            extractors.add(new Extractor(crd, PixelIterator.create(im)));
         }
     }
 
