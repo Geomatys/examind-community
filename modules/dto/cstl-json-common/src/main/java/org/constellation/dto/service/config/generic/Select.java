@@ -53,7 +53,7 @@ public class Select {
 
     public Select(final Select select) {
         if (select != null) {
-            this.col = new ArrayList<Column>();
+            this.col = new ArrayList<>();
             for (Column c : select.getCol()) {
                 this.col.add(new Column(c));
             }
@@ -71,7 +71,7 @@ public class Select {
      * @param sql the column itself
      */
     public Select(final String var, final String sql) {
-        this.col = new ArrayList<Column>();
+        this.col = new ArrayList<>();
         this.col.add(new Column(var, sql));
     }
 
@@ -81,7 +81,7 @@ public class Select {
      * @param col the column to add to the select CLAUSE.
      */
     public Select(final Column col) {
-        this.col = new ArrayList<Column>();
+        this.col = new ArrayList<>();
         this.col.add(col);
     }
 
@@ -99,7 +99,7 @@ public class Select {
      */
     public List<Column> getCol() {
         if (col == null) {
-            col = new ArrayList<Column>();
+            col = new ArrayList<>();
         }
         return col;
     }
@@ -117,7 +117,7 @@ public class Select {
     public void addCol(final Column column) {
         if (column != null) {
             if (col == null) {
-                col = new ArrayList<Column>();
+                col = new ArrayList<>();
             }
             col.add(column);
         }
@@ -128,7 +128,7 @@ public class Select {
      */
     public void addCol(final String var, final String sql) {
         if (col == null) {
-            col = new ArrayList<Column>();
+            col = new ArrayList<>();
         }
         col.add(new Column(var, sql));
     }

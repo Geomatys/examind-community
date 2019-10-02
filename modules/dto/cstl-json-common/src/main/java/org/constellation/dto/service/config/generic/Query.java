@@ -194,11 +194,10 @@ public class Query {
      * @return
      */
     public String getFirstVarName() {
-        if (select != null) {
-            for (Select s : select) {
-                for (Column col : s.getCol()) {
-                    return col.getVar();
-                }
+        if (select != null && !select.isEmpty()) {
+            final Select s = select.get(0);
+            if (!s.getCol().isEmpty()) {
+                return s.getCol().get(0).getVar();
             }
         }
         return null;

@@ -734,9 +734,9 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
                 final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
                 if (condFilter != null) {
-                    if (select == null) {
+                    if (cond != null) {
                         cond = cond.and(condFilter);
-                    } else {
+                    } else if (select != null){
                         cond = select.where(condFilter);
                         select = null;
                     }
@@ -746,8 +746,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
         if (select != null) {
             return select.groupBy(METADATA.PROFILE).orderBy(count.desc()).fetchMap(METADATA.PROFILE, count);
-        } else {
+        } else if (cond != null){
             return cond.groupBy(METADATA.PROFILE).orderBy(count.desc()).fetchMap(METADATA.PROFILE, count);
+        // should never happen
+        } else {
+            throw new IllegalStateException("SQL error");
         }
     }
 
@@ -774,9 +777,9 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
             for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
                 final Condition condFilter = buidCondition(entry.getKey(), entry.getValue());
                 if (condFilter != null) {
-                    if (select == null) {
+                    if (cond != null) {
                         cond = cond.and(condFilter);
-                    } else {
+                    } else if (select != null){
                         cond = select.where(condFilter);
                         select = null;
                     }
@@ -786,8 +789,11 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
 
         if (select != null) {
             return dsl.fetchCount(select);
-        } else {
+        } else if (cond != null) {
             return dsl.fetchCount(cond);
+        // should never happen
+        } else {
+            throw new IllegalStateException("SQL error");
         }
     }
 

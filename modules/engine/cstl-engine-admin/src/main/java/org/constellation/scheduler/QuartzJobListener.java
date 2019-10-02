@@ -337,7 +337,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
          */
         private void roundProgression(ProcessEvent event) {
             if (!Float.isNaN(event.getProgress()) && !Float.isInfinite(event.getProgress())) {
-                BigDecimal progress = new BigDecimal(event.getProgress());
+                BigDecimal progress = BigDecimal.valueOf(event.getProgress());
                 progress = progress.setScale(ROUND_SCALE, BigDecimal.ROUND_HALF_UP);
                 taskEntity.setProgress(progress.doubleValue());
             }

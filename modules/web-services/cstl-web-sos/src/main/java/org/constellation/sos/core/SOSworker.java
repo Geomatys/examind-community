@@ -78,7 +78,6 @@ import static org.constellation.sos.ws.SOSUtils.BoundMatchEnvelope;
 import static org.constellation.sos.ws.SOSUtils.extractTimeBounds;
 import static org.constellation.sos.ws.SOSUtils.getCollectionBound;
 import static org.constellation.sos.ws.SOSUtils.getIDFromObject;
-import static org.constellation.sos.ws.SOSUtils.getSensorPosition;
 import static org.constellation.sos.ws.SOSUtils.isCompleteEnvelope3D;
 import static org.constellation.sos.ws.SOSUtils.samplingPointMatchEnvelope;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
@@ -179,6 +178,7 @@ import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.apache.sis.storage.DataStore;
 import org.constellation.provider.DataProvider;
 import org.constellation.sos.ws.SOSUtils;
+import org.geotoolkit.observation.Utils;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
@@ -2001,7 +2001,7 @@ public class SOSworker extends AbstractWorker {
             sensorBusiness.addSensorToSOS(getId(), id);
 
             // and we record the position of the piezometer
-            final AbstractGeometry position = getSensorPosition(process);
+            final AbstractGeometry position = Utils.getSensorPosition(process);
             if (omStore != null && omStore.getWriter() != null) {
 
                 //we assign the new capteur id to the observation template

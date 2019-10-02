@@ -34,12 +34,7 @@ import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sml.xml.AbstractClassification;
-import org.geotoolkit.sml.xml.AbstractClassifier;
 import org.geotoolkit.sml.xml.AbstractComponents;
-import org.geotoolkit.sml.xml.AbstractDerivableComponent;
-import org.geotoolkit.sml.xml.AbstractIdentification;
-import org.geotoolkit.sml.xml.AbstractIdentifier;
 import org.geotoolkit.sml.xml.AbstractProcess;
 import org.geotoolkit.sml.xml.AbstractProcessChain;
 import org.geotoolkit.sml.xml.AbstractSensorML;
@@ -50,7 +45,6 @@ import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.TextBlock;
-import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Observation;
 import org.opengis.referencing.operation.MathTransform;
@@ -63,12 +57,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,13 +76,12 @@ import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.xml.AbstractObservation;
 
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.apache.sis.storage.DataStore;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
+import org.geotoolkit.observation.Utils;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 
@@ -108,110 +98,8 @@ public final class SOSUtils {
 
     private SOSUtils() {}
 
-    /**
-     * depracted by org.geotoolkit.observation.Utils.getPhysicalID
-     */
-    @Deprecated
-    public static String getPhysicalID(final AbstractSensorML sensor) {
-        if (sensor != null && sensor.getMember().size() > 0) {
-            final AbstractProcess process = sensor.getMember().get(0).getRealProcess();
-            final List<? extends AbstractIdentification> idents = process.getIdentification();
-
-            for(AbstractIdentification ident : idents) {
-                if (ident.getIdentifierList() != null) {
-                    for (AbstractIdentifier identifier: ident.getIdentifierList().getIdentifier()) {
-                        if ("supervisorCode".equals(identifier.getName()) && identifier.getTerm() != null) {
-                            return identifier.getTerm().getValue();
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Return the networks names binded to this sensor.
-     *
-     * * Those names are found into "Classifier" marks with the name 'network'
-     * @param sensor
-     * @return
-     */
-    @Deprecated
-    public static List<String> getNetworkNames(final AbstractSensorML sensor) {
-        final List<String> results = new ArrayList<>();
-        if (sensor != null && sensor.getMember().size() == 1) {
-            final AbstractProcess component = sensor.getMember().get(0).getRealProcess();
-            if (component != null) {
-                for (AbstractClassification cl : component.getClassification()) {
-                    if (cl.getClassifierList() != null) {
-                        for (AbstractClassifier classifier : cl.getClassifierList().getClassifier()) {
-                            if (classifier.getName().equals("network") && classifier.getTerm() != null) {
-                                results.add(classifier.getTerm().getValue());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return results;
-    }
-
-    /**
-     * depracted by org.geotoolkit.observation.Utils.getSensorPosition
-     */
-    @Deprecated
-    public static AbstractGeometry getSensorPosition(final AbstractSensorML sensor) {
-        if (sensor.getMember().size() == 1) {
-            if (sensor.getMember().get(0).getRealProcess() instanceof AbstractDerivableComponent) {
-                final AbstractDerivableComponent component = (AbstractDerivableComponent) sensor.getMember().get(0).getRealProcess();
-                if (component.getSMLLocation() != null && component.getSMLLocation().getGeometry()!= null) {
-                    return component.getSMLLocation().getGeometry();
-                } else if (component.getPosition() != null && component.getPosition().getPosition() != null &&
-                           component.getPosition().getPosition().getLocation() != null && component.getPosition().getPosition().getLocation().getVector() != null) {
-                    final URI crs = component.getPosition().getPosition().getReferenceFrame();
-                    return component.getPosition().getPosition().getLocation().getVector().getGeometry(crs);
-                }
-            }
-        }
-        LOGGER.severe("there is no piezo location");
-        return null;
-    }
-
-    /**
-     * depracted by org.geotoolkit.observation.Utils.getTimeValue
-     */
-    public static String getTimeValue(final Date time) throws ObservationStoreException {
-        if (time != null) {
-             try {
-                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS");
-                 final String value = df.format(time);
-
-                 //here t is not used but it allow to verify the syntax of the timestamp
-                 final ISODateParser parser = new ISODateParser();
-                 final Date d = parser.parseToDate(value);
-                 final Timestamp t = new Timestamp(d.getTime());
-                 return t.toString();
-
-             } catch(IllegalArgumentException e) {
-                throw new ObservationStoreException("Unable to parse the value: " + time.toString() + '\n' +
-                                               "Bad format of timestamp:\n" + e.getMessage(),
-                                               INVALID_PARAMETER_VALUE, "eventTime");
-             }
-          } else {
-            String locator;
-            if (time == null) {
-                locator = "Timeposition";
-            } else {
-                locator = "TimePosition value";
-            }
-            throw new  ObservationStoreException("bad format of time, " + locator + " mustn't be null",
-                                              MISSING_PARAMETER_VALUE, "eventTime");
-          }
-    }
-
     public static Timestamp getTimestampValue(final Date time) throws ObservationStoreException {
-        return Timestamp.valueOf(getTimeValue(time));
+        return Timestamp.valueOf(Utils.getTimeValue(time));
     }
 
     /**
@@ -442,12 +330,11 @@ public final class SOSUtils {
     }
 
     public static List<SensorMLTree> getChildren(final AbstractSensorML sml) {
-        if (sml.getMember() != null)  {
+        if (sml.getMember() != null && !sml.getMember().isEmpty())  {
             //assume only one member
-            for (SMLMember member : sml.getMember()) {
-                final AbstractProcess process = member.getRealProcess();
-                return getChildren(process);
-            }
+            SMLMember member = sml.getMember().get(0);
+            final AbstractProcess process = member.getRealProcess();
+            return getChildren(process);
         }
         return new ArrayList<>();
     }

@@ -34,9 +34,7 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.geotoolkit.swe.xml.v101.PhenomenonType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.geotoolkit.observation.Utils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.observation.Observation;
@@ -86,38 +84,16 @@ public class UtilsTest {
     public void getPhysicalIDTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
-        String phyID = SOSUtils.getPhysicalID(sensor);
+        String phyID = Utils.getPhysicalID(sensor);
         assertEquals("00ARGLELES", phyID);
 
         sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
-        phyID  = SOSUtils.getPhysicalID(sensor);
+        phyID  = Utils.getPhysicalID(sensor);
         assertEquals("00ARGLELES_2000", phyID);
 
         sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component2.xml"));
-        phyID  = SOSUtils.getPhysicalID(sensor);
+        phyID  = Utils.getPhysicalID(sensor);
         assertEquals(null, phyID);
-
-        marshallerPool.recycle(unmarshaller);
-    }
-
-    /**
-     *
-     * @throws java.lang.Exception
-     */
-    @Test
-    public void getNetworkNamesTest() throws Exception {
-        Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
-        List<String> names      = SOSUtils.getNetworkNames(sensor);
-        List<String> expNames   = new ArrayList<>();
-        expNames.add("600000221");
-        expNames.add("600000025");
-        assertEquals(expNames, names);
-
-        sensor   = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
-        names    = SOSUtils.getNetworkNames(sensor);
-        expNames = new ArrayList<>();
-        assertEquals(expNames, names);
 
         marshallerPool.recycle(unmarshaller);
     }
@@ -130,14 +106,14 @@ public class UtilsTest {
     public void getSensorPositionTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
-        AbstractGeometry result = SOSUtils.getSensorPosition(sensor);
+        AbstractGeometry result = Utils.getSensorPosition(sensor);
         DirectPositionType posExpResult = new DirectPositionType("urn:ogc:crs:EPSG:27582", 2, Arrays.asList(65400.0,1731368.0));
         PointType expResult = new PointType(posExpResult);
 
         assertEquals(expResult, result);
 
         sensor    = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
-        result    = SOSUtils.getSensorPosition(sensor);
+        result    = Utils.getSensorPosition(sensor);
         expResult = null;
 
         assertEquals(expResult, result);
@@ -153,7 +129,7 @@ public class UtilsTest {
     public void getTimeValueTest() throws Exception {
 
         TimePositionType position = new TimePositionType("2007-05-01T07:59:00.0");
-        String result             = SOSUtils.getTimeValue(position.getDate());
+        String result             = Utils.getTimeValue(position.getDate());
         String expResult          = "2007-05-01 07:59:00.0";
 
         assertEquals(expResult, result);
@@ -162,7 +138,7 @@ public class UtilsTest {
 
         boolean exLaunched = false;
         try {
-            SOSUtils.getTimeValue(position.getDate());
+            Utils.getTimeValue(position.getDate());
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), INVALID_PARAMETER_VALUE);
@@ -176,7 +152,7 @@ public class UtilsTest {
 
         exLaunched = false;
         try {
-            SOSUtils.getTimeValue(position.getDate());
+            Utils.getTimeValue(position.getDate());
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), MISSING_PARAMETER_VALUE);
@@ -187,7 +163,7 @@ public class UtilsTest {
 
         exLaunched = false;
         try {
-            SOSUtils.getTimeValue(null);
+            Utils.getTimeValue(null);
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), MISSING_PARAMETER_VALUE);
@@ -246,7 +222,7 @@ public class UtilsTest {
         expResult = new EnvelopeType(null, new DirectPositionType(-10.0, -10.0), new DirectPositionType(20.0, 15.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
         expResult.setAxisLabels("Y X");
-        
+
         assertEquals(expResult, result);
 
     }

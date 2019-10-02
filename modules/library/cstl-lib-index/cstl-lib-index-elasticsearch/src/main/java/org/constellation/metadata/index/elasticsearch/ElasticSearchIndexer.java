@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.NullArgumentException;
 import org.apache.sis.util.logging.Logging;
+import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_FC_QUERYABLE;
@@ -482,8 +483,10 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
     private List<Double> extractPositions(E metadata, PathType paths) throws IndexingException {
         final List<Object> coord     = getValues(metadata, paths);
         final List<Double> coordinate = new ArrayList<>();
+        Object current = null;
         try {
             for (Object obj : coord) {
+                current = obj;
                 if (obj instanceof Double) {
                     coordinate.add((Double)obj);
                 } else if (obj instanceof Integer) {
@@ -493,9 +496,9 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
                 }
             }
         } catch (NumberFormatException e) {
-            if (!coord.equals("null")) {
+            if (current != null && !NULL_VALUE.equals(String.valueOf(current))) {
                 LOGGER.warning("Unable to spatially index metadata: " + getIdentifier(metadata) +
-                               "\ncause: unable to parse double: " + coord);
+                               "\ncause: unable to parse double: " + current);
             }
         }
         return coordinate;

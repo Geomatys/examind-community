@@ -62,9 +62,10 @@ public class LuceneFilterParser extends AbstractFilterParser {
 
     private static final String DEFAULT_FIELD = "metafile:doc";
 
-    private static final DateFormat LUCENE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    static {
-        LUCENE_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    private final DateFormat luceneDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+
+    public LuceneFilterParser() {
+        luceneDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     /**
@@ -376,15 +377,15 @@ public class LuceneFilterParser extends AbstractFilterParser {
     protected String extractDateValue(final Object literal) throws FilterParserException {
         if (literal != null) {
             try {
-                synchronized(LUCENE_DATE_FORMAT) {
+                synchronized(luceneDateFormat) {
                     if (literal instanceof Instant) {
-                        return LUCENE_DATE_FORMAT.format(((Instant)literal).getDate());
+                        return luceneDateFormat.format(((Instant)literal).getDate());
                     } else if (literal instanceof Date) {
-                        return LUCENE_DATE_FORMAT.format((Date)literal);
+                        return luceneDateFormat.format((Date)literal);
                     } else {
                         Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
                         c.setTimeZone(TimeZone.getTimeZone("UTC"));
-                        return LUCENE_DATE_FORMAT.format(c.getTime());
+                        return luceneDateFormat.format(c.getTime());
                     }
                 }
             } catch (ParseException ex) {

@@ -127,7 +127,7 @@ public class Examind extends SpringBootServletInitializer {
         return tomcat;
     }
 
-    private static final long MAX_UPLOAD_SIZE = 2000 * 1024 * 1024;
+    private static final long MAX_UPLOAD_SIZE = 2000L * 1024L * 1024L;
 
     /**
      * Manually register a dispatcher servlet with the selected controllers

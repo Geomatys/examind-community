@@ -414,8 +414,10 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
     private List<Double> extractPositions(A metadata, PathType paths) throws IndexingException {
         final List<Object> coord = getValues(metadata, paths);
         final List<Double> coordinate = new ArrayList<>();
+        Object current = null;
         try {
             for (Object obj : coord) {
+                current = obj;
                 if (obj instanceof Double) {
                     coordinate.add((Double)obj);
                 } else if (obj instanceof Integer) {
@@ -425,9 +427,9 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
                 }
             }
         } catch (NumberFormatException e) {
-            if (!coord.equals(NULL_VALUE)) {
+            if (current != null && !NULL_VALUE.equals(String.valueOf(current))) {
                 LOGGER.warning(NOT_SPATIALLY_INDEXABLE + getIdentifier(metadata) +
-                        "\ncause: unable to parse double: " + coord);
+                        "\ncause: unable to parse double: " + current);
             }
         }
         return coordinate;

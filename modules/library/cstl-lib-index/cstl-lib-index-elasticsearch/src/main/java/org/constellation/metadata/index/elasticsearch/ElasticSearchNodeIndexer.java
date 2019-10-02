@@ -41,7 +41,7 @@ import org.w3c.dom.Node;
  */
 public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
 
-    private static final DateFormat FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private final DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public ElasticSearchNodeIndexer(final MetadataStore store, final String host, final String clusterName, final String indexName,
                                     final Map<String, PathType> additionalQueryable, final boolean create, final boolean remoteES) throws IndexingException {
@@ -169,8 +169,8 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
                 if (value instanceof String) {
                     String stringValue = (String) value;
                     Date d = parser.parseToDate(stringValue);
-                    synchronized (FORMATTER) {
-                        value = FORMATTER.format(d);
+                    synchronized (formatter) {
+                        value = formatter.format(d);
                     }
                 }
                 newValues.add(value);

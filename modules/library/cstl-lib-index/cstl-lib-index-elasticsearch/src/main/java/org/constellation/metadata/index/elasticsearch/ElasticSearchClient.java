@@ -62,10 +62,10 @@ public class ElasticSearchClient {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
 
     private final Properties _configuration;
-    
+
     private Node _server;
     private Client client;
-    
+
     private final String id;
 
     // Constructors ----------------------------------------------------------------
@@ -77,7 +77,7 @@ public class ElasticSearchClient {
     protected ClusterHealthStatus getHealthStatus() {
         return getClient().admin().cluster().prepareHealth().execute().actionGet().getStatus();
     }
-    
+
     protected void checkServerStatus() {
         ClusterHealthStatus status = getHealthStatus();
 
@@ -138,7 +138,7 @@ public class ElasticSearchClient {
         }
         return _server.client();
     }
-    
+
     public boolean setLogLevel() {
         Map map = new HashMap();
         map.put("logger._root", "TRACE");
@@ -157,7 +157,7 @@ public class ElasticSearchClient {
         }
         return false;
     }
-    
+
     public boolean indexExist(final String indexName) throws ElasticsearchException {
         final IndicesExistsResponse response = getClient().admin().indices().exists(new IndicesExistsRequest(indexName)).actionGet();
         return response.isExists();
@@ -177,7 +177,7 @@ public class ElasticSearchClient {
         IndexResponse response = getClient().prepareIndex(indexName, "metadata", id).setSource(values).setRefresh(true).execute().actionGet();
         return response.getVersion() > 1;
     }
-    
+
     public boolean indexDoc(final String indexName,   final String id,
                             final String SpatialType, final String CRSNameCode,
                             final int spaceDim,       final double ...coordinates) {
@@ -189,7 +189,7 @@ public class ElasticSearchClient {
         final DeleteResponse response = getClient().prepareDelete(indexName, "metadata", id).setRefresh(true).execute().actionGet();
         return response.getVersion() > 1;
     }
-    
+
     public void removeDocAll(final String indexName) throws IOException {
         final SearchHit[] hits = searchAll(indexName, Integer.MAX_VALUE);
         for (SearchHit hit : hits) {
@@ -226,7 +226,7 @@ public class ElasticSearchClient {
 
         return map;
     }
-    
+
     public Map generateMapEnvelopes(final String SpatialType, final String CRSNameCode, final List<Double> minx, final List<Double> maxx, final List<Double> miny, final List<Double> maxy) {
 
         final int nbEnv = minx.size();
@@ -235,7 +235,7 @@ public class ElasticSearchClient {
         final List<Map> envelopeList = new ArrayList<>();
 
         for (int e = 0; e < nbEnv; e++) {
-            if (!Double.isNaN(minx.get(e)) && !Double.isNaN(minx.get(e)) && !Double.isNaN(minx.get(e)) && !Double.isNaN(minx.get(e))) {
+            if (!Double.isNaN(minx.get(e)) && !Double.isNaN(maxx.get(e)) && !Double.isNaN(miny.get(e)) && !Double.isNaN(maxy.get(e))) {
                 Map boxMap = new HashMap();
                 boxMap.put("minx", ""+ minx.get(e));
                 boxMap.put("maxx", ""+ maxx.get(e));
@@ -254,51 +254,51 @@ public class ElasticSearchClient {
     }
 
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double minx, final double miny, 
+                                  final double minx, final double miny,
                                   final double maxx, final double maxy,
                                   final int limit, final String filterType) throws IOException {
         return spatialSearch(index, spatialType, crsName, minx, miny, maxx, maxy, limit, filterType, null, null);
     }
-    
+
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double minx, final double miny, 
+                                  final double minx, final double miny,
                                   final double maxx, final double maxy,
                                   final int limit, final String filterType, final Double distance, final String unit) throws IOException {
 
         final XContentBuilder filter = addSpatialFilter(filterType, spatialType, crsName, minx, maxx, miny, maxy, distance, unit);
         return search(index, null, null, filter, -1, limit, null, null);
     }
-    
+
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String filterType, final String crsName,
                                   final int limit, final Double ...coord) throws IOException {
         return spatialSearch(index, spatialType, filterType, crsName, limit, null, null, coord);
     }
-    
+
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String filterType, final String crsName,
                                   final int limit, final Double distance, final String unit, final Double ...coord) throws IOException {
 
         final XContentBuilder filter = addSpatialFilter(filterType, spatialType, crsName, distance, unit, coord);
         return search(index, null, null, filter, -1, limit, null, null);
     }
-    
+
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double x, final double y, 
+                                  final double x, final double y,
                                   final int limit, final String filterType) throws IOException {
         return spatialSearch(index, spatialType, crsName, x, y, limit, filterType, null, null);
     }
-    
+
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double x, final double y, 
+                                  final double x, final double y,
                                   final int limit, final String filterType, final Double distance, final String unit) throws IOException {
 
         final XContentBuilder filter = addSpatialFilter(filterType, spatialType, x, y, crsName, distance, unit);
         return search(index, null, null, filter, -1, limit, null, null);
     }
-    
+
     public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final XContentBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
         SearchRequestBuilder builder = client.prepareSearch(index)
                                              .setSearchType(SearchType.DEFAULT);
-        
+
         if (queryJson != null) {
             builder = builder.setQuery(queryJson);
         } else if (query != null) {
@@ -316,37 +316,37 @@ public class ElasticSearchClient {
         if (sort != null) {
             builder = builder.addSort(sort.getField(), SortOrder.valueOf(sort.getOrder()));
         }
-        
+
         if (limit < 10000) {
             final SearchResponse response = builder.setSize(limit).execute().actionGet();
             return response.getHits().getHits();
         } else {
             List<SearchHit> results = new ArrayList<>();
-            
+
             //Scroll until no hits are returned
             builder.setScroll(new TimeValue(60000));
             SearchResponse response = builder.setSize(10000).execute().actionGet();
-            
+
             boolean more;
             do {
                 for (SearchHit hit : response.getHits().getHits()) {
                     results.add(hit);
                 }
-                
+
                 response = client.prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(60000)).execute().actionGet();
                 //Break condition: No hits are returned
                 more = response.getHits().getHits().length != 0;
-                
+
             } while (more);
 
             return results.toArray(new SearchHit[results.size()]);
-        }   
+        }
     }
-    
+
     public SearchHit[] StringSearch(final String index, final String term, final String value, final int limit) throws IOException {
         return search(index, null, QueryBuilders.termQuery(term, value), null, -1, limit, null, null);
     }
-    
+
     public SearchHit[] search(final String index, final String query, final XContentBuilder filter, final Sort sort, final int limit) throws IOException {
         QueryBuilder queryBuilder = null;
         if (query != null) {
@@ -354,7 +354,7 @@ public class ElasticSearchClient {
         }
         return search(index, null, queryBuilder, filter, -1, limit, null, sort);
     }
-    
+
     public SearchHit[] searchAll(final String index, final int limit) throws IOException {
         return search(index, null, QueryBuilders.matchAllQuery(), null, -1, limit, null, null);
     }
@@ -373,7 +373,7 @@ public class ElasticSearchClient {
                     .endObject()
                 .endObject().string());
     }
-    
+
     /**
      *
      * @return
@@ -425,16 +425,16 @@ public class ElasticSearchClient {
             }
         }
 // TODO
-//        
-//        
+//
+//
 //        builder.startObject("lac")
 //               .field("type", "bbox")
 //               .endObject();
-        
+
         builder.endObject()
                .endObject()
                .endObject();
-        
+
         LOGGER.log(Level.FINER, "MAPPING:{0}", builder.string());
         return builder;
     }
@@ -443,7 +443,7 @@ public class ElasticSearchClient {
     private static final Map<String, AtomicInteger> SERVER_COUNTER = new HashMap<>();
     private static final Map<String, ElasticSearchClient> CLIENT_INSTANCE = new HashMap<>();
     private static final Map<String, AtomicInteger> CLIENT_COUNTER = new HashMap<>();
-    
+
     private void close() {
         LOGGER.info("--- CLOSING ES CLIENT " + id + " ---");
         if (_server != null && !_server.isClosed()) {
@@ -455,7 +455,7 @@ public class ElasticSearchClient {
             client = null;
         }
     }
-    
+
     public static synchronized ElasticSearchClient getServerInstance(String clusterName) {
         ElasticSearchClient instance = SERVER_INSTANCE.get(clusterName);
         if (instance == null) {
@@ -487,7 +487,7 @@ public class ElasticSearchClient {
         SERVER_COUNTER.get(clusterName).incrementAndGet();
         return instance;
     }
-    
+
     public static synchronized void releaseServerInstance(String clusterName) {
         if (SERVER_INSTANCE.containsKey(clusterName)) {
             ElasticSearchClient client = SERVER_INSTANCE.get(clusterName);
@@ -497,7 +497,7 @@ public class ElasticSearchClient {
             }
         }
     }
-    
+
     public static synchronized ElasticSearchClient getClientInstance(String host, String clusterName) throws UnknownHostException, ElasticsearchException {
         final String key = host + clusterName;
         ElasticSearchClient instance = CLIENT_INSTANCE.get(key);
@@ -513,7 +513,7 @@ public class ElasticSearchClient {
         CLIENT_COUNTER.get(key).incrementAndGet();
         return instance;
     }
-    
+
     public static synchronized void releaseClientInstance(String host, String clusterName) {
         final String key = host + clusterName;
         if (CLIENT_INSTANCE.containsKey(key)) {
@@ -524,7 +524,7 @@ public class ElasticSearchClient {
             }
         }
     }
-    
+
     public static Map<String, Object> getServerInfo(String sourceURL) throws ConfigurationException {
 
         try {
@@ -533,16 +533,16 @@ public class ElasticSearchClient {
             conec.setReadTimeout(20000);
             InputStream in = conec.getInputStream();
             InputStreamReader conv = new InputStreamReader(in, "UTF8");
-            
-            
+
+
             final StringWriter out = new StringWriter();
             char[] buffer          = new char[1024];
             int size;
-            
+
             while ((size = conv.read(buffer, 0, 1024)) > 0) {
                 out.write(new String(buffer, 0, size));
             }
-            
+
             //we convert the brut String value into UTF-8 encoding
             String response = out.toString();
             return new ObjectMapper().readValue(response, HashMap.class);
