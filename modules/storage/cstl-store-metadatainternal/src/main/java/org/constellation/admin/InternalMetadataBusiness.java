@@ -22,6 +22,7 @@ import java.util.List;
 import org.constellation.business.IInternalMetadataBusiness;
 import org.constellation.dto.metadata.InternalMetadata;
 import org.constellation.dto.metadata.Metadata;
+import org.constellation.dto.metadata.MetadataComplete;
 import org.constellation.repository.InternalMetadataRepository;
 import org.constellation.repository.MetadataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,21 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
             return meta.getMetadataIso();
         }
         return null;
+    }
+
+    @Override
+    @Transactional
+    public void storeMetadata(String metadataID, String metadataXMl) {
+        MetadataComplete meta = new MetadataComplete();
+        meta.setMetadataId(metadataID);
+        // default values
+        meta.setLevel("NONE");
+        meta.setType("DOC");
+        InternalMetadata metadata = new InternalMetadata();
+        metadata.setMetadataIso(metadataXMl);
+        metadata.setMetadataId(metadataID);
+        metadata.setId(metadataRepository.create(meta));
+        intMetadataRepository.create(metadata);
     }
 
     @Override
@@ -89,5 +105,11 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
     @Override
     public boolean deleteMetadata(String metadataID) {
         return intMetadataRepository.delete(metadataID) > 0;
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllMetadata() {
+        intMetadataRepository.deleteAll();
     }
 }

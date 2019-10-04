@@ -40,7 +40,7 @@ public class DummyClusterBusiness implements IClusterBusiness {
     public String getMemberUID() {
         return "this";
     }
-    
+
     @Override
     public Lock acquireLock(String lockName) {
         return new ReentrantLock();
@@ -74,17 +74,17 @@ public class DummyClusterBusiness implements IClusterBusiness {
 
     @Override
     public ClusterMessage createRequest(String typeId, boolean expectResponse) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return null;
     }
 
     @Override
     public MessageResponse publish(ClusterMessage message, Consumer<ClusterMessage> callback) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return null;
     }
 
     @Override
     public void publishAndWait(ClusterMessage message, long time, TimeUnit timeUnit, Consumer<ClusterMessage> callback) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // do nothing
     }
 
 }

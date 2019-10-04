@@ -247,9 +247,11 @@ public class ProviderBusiness implements IProviderBusiness {
 
         //send message to nodes
         final ClusterMessage message = clusterBusiness.createRequest(PRV_MESSAGE_TYPE_ID,false);
-        message.put(KEY_ACTION, PRV_VALUE_ACTION_DELETE);
-        message.put(KEY_IDENTIFIER, provider.getId());
-        clusterBusiness.publish(message);
+        if (message != null) {
+            message.put(KEY_ACTION, PRV_VALUE_ACTION_DELETE);
+            message.put(KEY_IDENTIFIER, provider.getId());
+            clusterBusiness.publish(message);
+        }
 
         //delete provider folder
         //TODO : not hazelcast compatible
@@ -361,7 +363,7 @@ public class ProviderBusiness implements IProviderBusiness {
         final String type = config.getType();
         final String subType = config.getSubType();
         final Map<String,String> inParams = config.getParameters();
-        
+
         final DataProviderFactory providerService = DataProviders.getFactory(type);
         if (providerService != null) {
             final ParameterDescriptorGroup sourceDesc = providerService.getProviderDescriptor();

@@ -38,7 +38,6 @@ import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
@@ -120,7 +119,7 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 

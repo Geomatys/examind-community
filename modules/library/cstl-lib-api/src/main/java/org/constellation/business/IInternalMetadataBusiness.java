@@ -25,16 +25,20 @@ import java.util.List;
  * @author Guilhem Legal (geomatys)
  */
 public interface IInternalMetadataBusiness {
-    
+
     String getMetadata(String metadataID);
-    
+
+    void storeMetadata(String metadataID, String metadataXMl);
+
     void updateMetadata(String metadataID, String newMetadataID, String metadataXMl);
-    
+
     boolean existMetadata(String metadataID);
-    
+
     List<String> getInternalMetadataIds();
-    
+
     int getInternalMetadataCount();
-     
-    boolean deleteMetadata(String metadataID);  
+
+    boolean deleteMetadata(String metadataID);
+
+    void deleteAllMetadata();
 }

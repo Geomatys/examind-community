@@ -911,7 +911,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<MetadataWithState> toDelete = new ArrayList<>();
         for (Integer id : ids) {
             final Metadata metadata = metadataRepository.findById(id);
-            if (metadata != null) {
+            if (metadata != null && metadata.getProviderId() != null) {
                 final DataProvider provider = DataProviders.getProvider(metadata.getProviderId());
                 if (provider instanceof MetadataProvider) {
                     final MetadataProvider mdStore = (MetadataProvider) provider;
