@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.CstlUser;
+import org.constellation.repository.UserRepository;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -42,6 +44,9 @@ public abstract class AbstractRepositoryTest {
     @Autowired
     DSLContext create;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @BeforeClass
     public static void beforeClass() {
         ConfigDirectory.setupTestEnvironement("RepositoryTest");
@@ -50,6 +55,13 @@ public abstract class AbstractRepositoryTest {
     @AfterClass
     public static void shutDown() {
         ConfigDirectory.shutdownTestEnvironement("RepositoryTest");
+    }
+
+    protected CstlUser getOrCreateUser() {
+
+        return userRepository.findByEmail(TestSamples.newAdminUser().getEmail())
+                                       .orElse(userRepository.create(TestSamples.newAdminUser()));
+
     }
 
     protected void dump(List<?> findAll) {

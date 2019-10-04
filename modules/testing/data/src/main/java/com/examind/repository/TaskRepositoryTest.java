@@ -22,23 +22,16 @@ import java.util.List;
 import org.constellation.repository.TaskRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.process.Task;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 public class TaskRepositoryTest extends AbstractRepositoryTest {
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private TaskRepository taskRepository;
 
     @Test
-    @Transactional()
     public void crude() {
         // no removeAll method
         List<? extends Task> all = taskRepository.findAll();
@@ -48,7 +41,7 @@ public class TaskRepositoryTest extends AbstractRepositoryTest {
         all = taskRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

@@ -26,11 +26,9 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 public class LayerRepositoryTest extends AbstractRepositoryTest {
 
@@ -39,9 +37,6 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private LayerRepository layerRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private ProviderRepository providerRepository;
@@ -58,7 +53,6 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    @Transactional()
     public void crud() {
 
         // no removeAll method
@@ -69,7 +63,7 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         all = layerRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

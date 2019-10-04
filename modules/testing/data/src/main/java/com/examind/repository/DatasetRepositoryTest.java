@@ -22,11 +22,9 @@ import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataSet;
 import org.constellation.repository.DatasetRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -35,13 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DatasetRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private DatasetRepository datasetRepository;
 
     @Test
-    @Transactional()
     public void crude() {
 
         // no removeAll method
@@ -52,7 +46,7 @@ public class DatasetRepositoryTest extends AbstractRepositoryTest {
         all = datasetRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

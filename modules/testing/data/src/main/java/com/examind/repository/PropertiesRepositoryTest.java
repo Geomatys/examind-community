@@ -25,10 +25,8 @@ import org.constellation.repository.PropertyRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 public class PropertiesRepositoryTest extends AbstractRepositoryTest {
-
 
     @Autowired
     private PropertyRepository propertyRepository;
@@ -41,8 +39,6 @@ public class PropertiesRepositoryTest extends AbstractRepositoryTest {
         keys.add("test");
 
         dump(propertyRepository.findIn(keys));
-
-
     }
 
     @Test
@@ -52,13 +48,11 @@ public class PropertiesRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    @Transactional()
     public void save() {
         propertyRepository.update("test", "value");
     }
 
     @Test
-    @Transactional()
     public void delete() {
         propertyRepository.delete("test");
     }

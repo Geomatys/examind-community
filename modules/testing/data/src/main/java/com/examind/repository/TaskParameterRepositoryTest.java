@@ -22,7 +22,6 @@ import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.process.TaskParameter;
 import org.constellation.repository.TaskParameterRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,16 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskParameterRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private TaskParameterRepository taskParamRepository;
 
     @Test
-    @Transactional()
     public void crude() {
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

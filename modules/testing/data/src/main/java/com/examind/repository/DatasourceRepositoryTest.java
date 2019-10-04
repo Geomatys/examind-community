@@ -37,7 +37,6 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
     private DatasourceRepository datasourceRepository;
 
     @Test
-    @Transactional()
     public void crude() {
 
         // no removeAll method

@@ -29,6 +29,7 @@ import static org.constellation.database.api.jooq.Tables.THESAURUS;
 import static org.constellation.database.api.jooq.Tables.THESAURUS_LANGUAGE;
 import static org.constellation.database.api.jooq.Tables.THESAURUS_X_SERVICE;
 import org.constellation.database.api.jooq.tables.records.ThesaurusLanguageRecord;
+import org.constellation.database.api.jooq.tables.records.ThesaurusXServiceRecord;
 import org.jooq.Record;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.annotation.Propagation;
@@ -138,6 +139,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(final int id) {
+        dsl.delete(THESAURUS_X_SERVICE).where(THESAURUS_X_SERVICE.THESAURUS_ID.eq(id)).execute();
         dsl.delete(THESAURUS_LANGUAGE).where(THESAURUS_LANGUAGE.THESAURUS_ID.eq(id)).execute();
         return dsl.delete(THESAURUS).where(THESAURUS.ID.eq(id)).execute();
     }
@@ -158,7 +160,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
     @Override
     public List<String> getLinkedThesaurusUri(int id) {
         return dsl.select(THESAURUS.URI)
-                  .from(THESAURUS_X_SERVICE)
+                  .from(THESAURUS_X_SERVICE, THESAURUS)
                   .where(THESAURUS_X_SERVICE.SERVICE_ID.eq(id))
                   .and(THESAURUS_X_SERVICE.THESAURUS_ID.eq(THESAURUS.ID))
                   .fetchInto(String.class);
@@ -207,5 +209,14 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
                     dto.getSchemaName());
         }
         return null;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void linkThesaurusAndService(int thesaurusId, int serviceId) {
+        dsl.insertInto(THESAURUS_X_SERVICE)
+           .set(THESAURUS_X_SERVICE.SERVICE_ID, serviceId)
+           .set(THESAURUS_X_SERVICE.THESAURUS_ID, thesaurusId)
+           .execute();
     }
 }

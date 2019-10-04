@@ -166,4 +166,9 @@ public class FilesystemThesaurusRepository extends AbstractFileSystemRepository 
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void linkThesaurusAndService(int thesaurusId, int serviceId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

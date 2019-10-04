@@ -21,12 +21,11 @@ package com.examind.repository;
 import java.util.List;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.thesaurus.Thesaurus;
+import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.ThesaurusRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -35,16 +34,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class ThesaurusRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private ThesaurusRepository thesaurusRepository;
 
+    @Autowired
+    private ServiceRepository serviceRepository;
+
     @Test
-    @Transactional()
     public void crude() {
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 
@@ -56,7 +54,7 @@ public class ThesaurusRepositoryTest extends AbstractRepositoryTest {
         all = thesaurusRepository.getAll();
         Assert.assertTrue(all.isEmpty());
 
-        int sid = thesaurusRepository.create(TestSamples.newThesaurus());
+        Integer sid = thesaurusRepository.create(TestSamples.newThesaurus());
         Assert.assertNotNull(sid);
 
         Thesaurus s = thesaurusRepository.get(sid);
@@ -66,6 +64,34 @@ public class ThesaurusRepositoryTest extends AbstractRepositoryTest {
 
         s = thesaurusRepository.get(s.getId());
         Assert.assertNull(s);
+    }
+
+    @Test
+    public void thesaurusLinkTest() {
+        CstlUser owner = getOrCreateUser();
+        Assert.assertNotNull(owner);
+        Assert.assertNotNull(owner.getId());
+
+        Integer sid = serviceRepository.create(TestSamples.newService(owner.getId()));
+        Assert.assertNotNull(sid);
+
+        Integer tid = thesaurusRepository.create(TestSamples.newThesaurus());
+        Assert.assertNotNull(tid);
+
+        thesaurusRepository.linkThesaurusAndService(tid, sid);
+
+        List<String> linkedUris = thesaurusRepository.getLinkedThesaurusUri(sid);
+        Assert.assertEquals(1, linkedUris.size());
+
+        Assert.assertEquals(TestSamples.newThesaurus().getUri(), linkedUris.get(0));
+
+        List<Thesaurus> linkedthws = thesaurusRepository.getLinkedThesaurus(sid);
+        Assert.assertEquals(1, linkedthws.size());
+
+        Assert.assertEquals(TestSamples.newThesaurus().getUri(), linkedthws.get(0).getUri());
+
+        thesaurusRepository.delete(tid);
+        serviceRepository.delete(tid);
     }
 
 }

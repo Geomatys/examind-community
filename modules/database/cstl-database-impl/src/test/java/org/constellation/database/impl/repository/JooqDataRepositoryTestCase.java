@@ -20,7 +20,6 @@ package org.constellation.database.impl.repository;
 
 import com.examind.repository.DataRepositoryTest;
 import org.junit.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 public class JooqDataRepositoryTestCase extends DataRepositoryTest {
 
@@ -32,7 +31,6 @@ public class JooqDataRepositoryTestCase extends DataRepositoryTest {
     }
 
     @Test
-    @Transactional()
     @Override
     public void crud() {
         super.crud();

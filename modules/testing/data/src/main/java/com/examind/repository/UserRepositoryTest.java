@@ -20,8 +20,6 @@ package com.examind.repository;
 
 import org.constellation.dto.CstlUser;
 import org.constellation.repository.UserRepository;
-import com.examind.repository.AbstractRepositoryTest;
-import com.examind.repository.TestSamples;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

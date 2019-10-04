@@ -26,21 +26,15 @@ import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.MetadataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Transactional
 public class MetadataRepositoryTest extends AbstractRepositoryTest {
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private MetadataRepository metadataRepository;
@@ -58,14 +52,13 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
     private ServiceRepository serviceRepository;
 
     @Test
-    @Transactional()
     public void crude() {
 
         metadataRepository.deleteAll();
         List<Metadata> all = metadataRepository.findAll();
         Assert.assertTrue(all.isEmpty());
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

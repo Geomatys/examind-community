@@ -20,7 +20,6 @@ package com.examind.respository.filesystem;
 
 import com.examind.repository.ThesaurusRepositoryTest;
 import org.junit.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -29,9 +28,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class FSThesaurusRepositoryTest extends ThesaurusRepositoryTest {
 
     @Test
-    @Transactional()
     @Override
     public void crude() {
         super.crude();
     }
+
+    @Test
+    @Override
+    public void thesaurusLinkTest() {
+        // not supported yet
+    }
+
 }

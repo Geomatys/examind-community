@@ -24,7 +24,6 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
-import org.constellation.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +36,6 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private DatasetRepository datasetRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private ProviderRepository providerRepository;
@@ -62,7 +58,7 @@ public class DataRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(all.isEmpty());
 
 
-        CstlUser owner = userRepository.create(TestSamples.newAdminUser());
+        CstlUser owner = getOrCreateUser();
         Assert.assertNotNull(owner);
         Assert.assertNotNull(owner.getId());
 

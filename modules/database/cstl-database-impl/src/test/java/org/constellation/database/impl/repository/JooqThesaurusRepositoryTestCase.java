@@ -34,4 +34,11 @@ public class JooqThesaurusRepositoryTestCase extends ThesaurusRepositoryTest {
     public void crude() {
         super.crude();
     }
+
+    @Test
+    @Transactional()
+    @Override
+    public void thesaurusLinkTest() {
+        super.thesaurusLinkTest();
+    }
 }

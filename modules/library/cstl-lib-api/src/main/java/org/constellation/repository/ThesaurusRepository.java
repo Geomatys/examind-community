@@ -27,22 +27,52 @@ import org.constellation.dto.thesaurus.Thesaurus;
  */
 public interface ThesaurusRepository {
 
+    /**
+     * Return all the available thesaurus
+     * @return
+     */
     List<Thesaurus> getAll();
 
+    /**
+     * Store a new thesaurus into the datasource.
+     *
+     * @param thesaurus
+     * @return
+     */
     Integer create(Thesaurus thesaurus);
 
+    /**
+     * Find a thesaurus identified by its URI.
+     *
+     * @param uri
+     * @return
+     */
     Thesaurus getByUri(String uri);
 
+    /**
+     * Find a thesaurus identified by its name.
+     *
+     * @param name
+     * @return
+     */
     Thesaurus getByName(String name);
 
+    /**
+     * Find a thesaurus with the specified id.
+     *
+     * @param id
+     * @return
+     */
     Thesaurus get(int id);
 
     void update(Thesaurus thesaurus);
 
     int delete(int id);
 
-    List<Thesaurus> getLinkedThesaurus(int id);
+    List<Thesaurus> getLinkedThesaurus(int serviceId);
 
-    List<String> getLinkedThesaurusUri(int id);
+    List<String> getLinkedThesaurusUri(int serviceId);
+
+    void linkThesaurusAndService(int thesaurusId, int serviceId);
 
 }
