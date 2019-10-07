@@ -70,11 +70,10 @@ public interface IServiceBusiness {
      * Restarts a service instance.
      *
      * @param serviceId the service identifier
-     * @param closeFirst @deprecated not used anymore
      * @throws ConfigurationException
      *             if the operation has failed for any reason
      */
-    void restart(Integer serviceId, boolean closeFirst) throws ConfigurationException;
+    void restart(Integer serviceId) throws ConfigurationException;
 
     /**
      * Renames a service instance.

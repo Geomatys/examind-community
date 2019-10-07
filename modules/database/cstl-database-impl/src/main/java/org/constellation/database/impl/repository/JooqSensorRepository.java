@@ -25,7 +25,7 @@ import org.springframework.context.annotation.DependsOn;
 @DependsOn("database-initer")
 public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, org.constellation.database.api.jooq.tables.pojos.Sensor> implements SensorRepository {
 
-    public static final Field[] REFERENCE_FIELDS = new Field[]{
+    private static final Field[] REFERENCE_FIELDS = new Field[]{
             SENSOR.ID.as("id"),
             SENSOR.IDENTIFIER.as("identifier")};
 

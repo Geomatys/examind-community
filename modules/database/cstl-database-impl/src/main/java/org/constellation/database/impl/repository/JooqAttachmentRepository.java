@@ -5,7 +5,6 @@ import java.util.List;
 import org.constellation.dto.metadata.Attachment;
 import org.constellation.database.api.jooq.tables.records.AttachmentRecord;
 import org.constellation.database.api.jooq.tables.records.MetadataXAttachmentRecord;
-import org.jooq.Field;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +17,6 @@ import org.springframework.context.annotation.DependsOn;
 @Component
 @DependsOn("database-initer")
 public class JooqAttachmentRepository extends AbstractJooqRespository<AttachmentRecord, org.constellation.database.api.jooq.tables.pojos.Attachment> implements AttachmentRepository {
-
-    public static final Field[] REFERENCE_FIELDS = new Field[]{
-            ATTACHMENT.ID.as("id")};
 
     public JooqAttachmentRepository() {
         super(org.constellation.database.api.jooq.tables.pojos.Attachment.class, ATTACHMENT);

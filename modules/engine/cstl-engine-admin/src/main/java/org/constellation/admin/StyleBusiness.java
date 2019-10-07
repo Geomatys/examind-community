@@ -530,23 +530,6 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
 
-    @Override
-    @Transactional
-    public void createOrUpdateStyleFromLayer(String serviceType, String serviceIdentifier, String layerName, String styleProviderId,
-            String styleName) throws TargetNotFoundException {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceIdentifier, serviceType);
-        final Integer layer = layerRepository.findIdByServiceIdAndLayerName(service, layerName);
-        final Style style = ensureExistingStyle(styleProviderId, styleName);
-        styleRepository.linkStyleToLayer(style.getId(), layer);
-
-        //clear cache event
-        final ClusterMessage request = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
-        request.put(KEY_ACTION, SRV_VALUE_ACTION_CLEAR_CACHE);
-        request.put(SRV_KEY_TYPE, serviceType);
-        request.put(KEY_IDENTIFIER, serviceIdentifier);
-        clusterBusiness.publish(request);
-    }
-
     protected MutableStyle parseStyle(final String name, final String xml) {
         MutableStyle value = null;
         StringReader sr = new StringReader(xml);

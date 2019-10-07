@@ -54,8 +54,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.index.elasticsearch.ElasticSearchIndexer");
 
-    private Level logLevel = Level.INFO;
-
     protected final ElasticSearchClient client;
 
     private final boolean remoteES;
@@ -140,7 +138,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
      * @throws IndexingException
      */
     public void createIndex(final List<E> toIndex) throws IndexingException {
-        LOGGER.log(logLevel, "Creating ElasticSearch index for please wait...");
+        LOGGER.log(Level.INFO, "Creating ElasticSearch index for please wait...");
 
         final long time     = System.currentTimeMillis();
         final int nbEntries = toIndex.size();
@@ -160,18 +158,17 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
             LOGGER.log(Level.SEVERE,"error while indexing: ", ex.getMessage());
             throw new IndexingException("IOException while indexing documents:" + ex.getMessage(), ex);
         }
-        LOGGER.log(logLevel, "Index creation process in " + (System.currentTimeMillis() - time) + " ms\n" +
+        LOGGER.log(Level.INFO, "Index creation process in " + (System.currentTimeMillis() - time) + " ms\n" +
                 " documents indexed: " + nbEntries);
     }
 
     @Override
     public void createIndex() throws IndexingException {
-        LOGGER.log(logLevel, "(light memory) Creating ElasticSearch index please wait...");
-
+        LOGGER.log(Level.INFO, "(light memory) Creating ElasticSearch index please wait...");
         final long time  = System.currentTimeMillis();
         int nbEntries      = 0;
         try {
-            LOGGER.log(logLevel, "starting indexing...");
+            LOGGER.log(Level.INFO, "starting indexing...");
             createMapping();
 
             if (store.getReader().useEntryIterator()) {
@@ -219,7 +216,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
             LOGGER.log(Level.SEVERE,"error while indexing: ", ex.getMessage());
             throw new IndexingException("IOException while indexing documents:" + ex.getMessage(), ex);
         }
-        LOGGER.log(logLevel, "Index creation process in " + (System.currentTimeMillis() - time) + " ms\n documents indexed: " + nbEntries + ".");
+        LOGGER.log(Level.INFO, "Index creation process in " + (System.currentTimeMillis() - time) + " ms\n documents indexed: " + nbEntries + ".");
     }
 
     @Override
@@ -517,11 +514,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
     @Override
     public void setFileDirectory(Path aFileDirectory) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void setLogLevel(Level logLevel) {
-        this.logLevel = logLevel;
     }
 
     public void removeIndex() {

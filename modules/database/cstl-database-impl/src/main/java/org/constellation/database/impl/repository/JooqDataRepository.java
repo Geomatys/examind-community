@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.constellation.database.api.jooq.Tables.CSTL_USER;
 import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.DATA_X_DATA;
 import static org.constellation.database.api.jooq.Tables.LAYER;
@@ -60,25 +59,6 @@ import org.springframework.context.annotation.DependsOn;
 @Component
 @DependsOn("database-initer")
 public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.constellation.database.api.jooq.tables.pojos.Data> implements DataRepository {
-
-    public static final Field[] ITEM_FIELDS = new Field[]{
-            DATA.ID.as("id"),
-            DATA.NAMESPACE.as("namespace"),
-            DATA.NAME.as("name"),
-            DATA.TYPE.as("type"),
-            DATA.SUBTYPE.as("subtype"),
-            DATA.DATE.as("creation_date"),
-            DATA.SENSORABLE.as("sensorable"),
-            DATA.DATASET_ID.as("dataset_id"),
-            DATA.PROVIDER.as("provider_id"),
-            DATA.OWNER.as("owner_id"),
-            PROVIDER.IDENTIFIER.as("provider_identifier"),
-            CSTL_USER.LOGIN.as("owner_login"),
-            countStyles(DATA.ID).as("style_count"),
-            countLayers(DATA.ID).as("layer_count"),
-            countServices(DATA.ID).as("service_count"),
-            countSensors(DATA.ID).as("sensor_count"),
-            selectConformPyramidProviderIdentifier(DATA.ID).as("pyramid_provider_identifier")};
 
     /**
      * Field list use to return a lighten reference to Data object

@@ -62,13 +62,10 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.SimpleInternationalString;
-import org.constellation.admin.SpringHelper;
 import org.constellation.api.DataType;
-import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.exception.TargetNotFoundException;
 import static org.constellation.provider.AbstractData.LOGGER;
 import org.constellation.util.StoreUtilities;
 import org.geotoolkit.data.FeatureStoreUtilities;
@@ -142,11 +139,9 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
      * @param elevationEnd elevation filter end
      * @param versionDate data version date of the layer (can be null)
      */
-    public DefaultFeatureData(GenericName name, DataStore store, FeatureSet fs, List<String> favorites,
+    public DefaultFeatureData(GenericName name, DataStore store, FeatureSet fs,
                                         String dateStart, String dateEnd, String elevationStart, String elevationEnd, Date versionDate){
-
-        super(name,favorites);
-
+        super(name);
         if(store == null){
             throw new IllegalArgumentException("FeatureSource can not be null.");
         }
@@ -179,19 +174,6 @@ public class DefaultFeatureData extends AbstractData implements FeatureData {
     }
 
     protected MapLayer createMapLayer(MutableStyle style, final Map<String, Object> params) throws DataStoreException, ConstellationStoreException {
-        if(style == null && favorites.size() > 0){
-            //no style provided, try to get the favorite one
-            //there are some favorites styles
-            final String namedStyle = favorites.get(0);
-            final IStyleBusiness business = SpringHelper.getBean(IStyleBusiness.class);
-            try {
-                style = (MutableStyle) business.getStyle("sld", namedStyle);
-            } catch (TargetNotFoundException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-        }
-
-
         final FeatureType featureType = getType();
         if(style == null){
             //no favorites defined, create a default one

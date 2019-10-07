@@ -22,40 +22,36 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.index.tree.manager.NamedEnvelope;
 
 /**
  * TODO move to cstl-lib-api when there will be no more dependency to geotk-index-lucene
- * 
+ *
  * @author Guilhem Legal (Geomatys)
  * @param <E>
  */
 public interface Indexer<E extends Object> {
 
     boolean needCreation();
-    
+
     void createIndex() throws IndexingException;
-    
+
     boolean destroyIndex() throws IndexingException;
-    
+
     void indexDocument(E document);
 
     void indexDocuments(List<E> documents);
 
     void removeDocument(String id);
-            
+
     String getTreeRepresentation();
-    
+
     Map<Integer, NamedEnvelope> getMapperContent() throws IOException;
-    
+
     @Deprecated
     void setFileDirectory(Path aFileDirectory);
 
-    @Deprecated
-    void setLogLevel(Level logLevel);
-    
     void destroy();
 }

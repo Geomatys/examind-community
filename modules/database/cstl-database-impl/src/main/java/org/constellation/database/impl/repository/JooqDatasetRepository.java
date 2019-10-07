@@ -62,15 +62,6 @@ import org.springframework.context.annotation.DependsOn;
 public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord, Dataset> implements
         DatasetRepository {
 
-    private static final Field[] ITEM_FIELDS = new Field[]{
-            DATASET.ID.as("id"),
-            DATASET.IDENTIFIER.as("name"),
-            DATASET.DATE.as("creation_date"),
-            DATASET.OWNER.as("owner_id"),
-            CSTL_USER.LOGIN.as("owner_login")
-    };
-
-
     public JooqDatasetRepository() {
         super(Dataset.class, DATASET);
     }

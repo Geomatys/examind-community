@@ -5,7 +5,6 @@
  */
 package org.constellation.provider;
 
-import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.Resource;
@@ -24,7 +23,7 @@ public class DefaultOtherData extends AbstractData {
     protected final DataStore store;
 
     public DefaultOtherData(GenericName name, final Resource ref, final DataStore store) {
-        super(name, Collections.EMPTY_LIST);
+        super(name);
         this.ref = ref;
         this.store = store;
 

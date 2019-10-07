@@ -329,14 +329,6 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     }
 
     @Override
-    public void delete(int providerId, String name) {
-        Style s = findByNameAndProvider(providerId, name);
-        if (s != null) {
-            delete(s.getId());
-        }
-    }
-
-    @Override
     public void changeSharedProperty(int id, boolean shared) {
         if (byId.containsKey(id)) {
             Style s = byId.get(id);

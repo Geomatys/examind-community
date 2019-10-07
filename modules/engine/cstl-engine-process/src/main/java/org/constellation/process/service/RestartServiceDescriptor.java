@@ -51,23 +51,15 @@ public class RestartServiceDescriptor  extends AbstractCstlProcessDescriptor {
 
     public static final String IDENTIFIER_NAME = "identifier";
     private static final String IDENTIFIER_REMARKS = "Identifier of the service instance to restart. If empty, all service instance will be restarted.";
-    public static final ParameterDescriptor<String> IDENTIFIER =BUILDER
+    public static final ParameterDescriptor<String> IDENTIFIER = BUILDER
             .addName(IDENTIFIER_NAME)
             .setRemarks(IDENTIFIER_REMARKS)
             .setRequired(false)
             .create(String.class, null);
 
-    public static final String CLOSE_NAME = "close";
-    private static final String CLOSE_REMARKS = "Close instance(s) before restart.";
-    public static final ParameterDescriptor<Boolean> CLOSE = BUILDER
-            .addName(CLOSE_NAME)
-            .setRemarks(CLOSE_REMARKS)
-            .setRequired(true)
-            .create(Boolean.class, Boolean.TRUE);
-
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(SERVICE_TYPE, IDENTIFIER, CLOSE);
+            .createGroup(SERVICE_TYPE, IDENTIFIER);
 
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)

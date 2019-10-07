@@ -650,7 +650,6 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
                             store = getMetadataStore(serviceID);
                         }
                         indexer = indexHandler.getIndexer(config, store, serviceID);
-                        indexer.setLogLevel(Level.FINE);
                         if (indexer.needCreation()) {
                             indexer.createIndex();
                         }

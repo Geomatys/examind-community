@@ -60,9 +60,6 @@ public interface StyleRepository {
 
     void delete(int id);
 
-    @Deprecated
-    void delete(int providerId, String name);
-
     void update(Style s);
 
     public boolean existsById(int styleId);

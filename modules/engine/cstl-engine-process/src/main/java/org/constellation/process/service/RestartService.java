@@ -27,7 +27,6 @@ import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.constellation.process.service.RestartServiceDescriptor.CLOSE;
 import static org.constellation.process.service.RestartServiceDescriptor.IDENTIFIER;
 import static org.constellation.process.service.RestartServiceDescriptor.SERVICE_TYPE;
 
@@ -48,13 +47,11 @@ public final class RestartService extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         final String serviceType = inputParameters.getValue(SERVICE_TYPE);
         final String identifier = inputParameters.getValue(IDENTIFIER);
-        final Boolean closeFirst = inputParameters.getValue(CLOSE);
-
         if (identifier == null) {
             for(String id : serviceBusiness.getServiceIdentifiers(serviceType)){
                 try {
                     ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
-                    serviceBusiness.restart(s.getId(), closeFirst);
+                    serviceBusiness.restart(s.getId());
                 } catch (ConfigurationException ex) {
                     throw new ProcessException(ex.getMessage(), this, ex);
                 }
@@ -65,7 +62,7 @@ public final class RestartService extends AbstractCstlProcess {
                 if (s == null) {
                     throw new ProcessException("Unexisting service", this);
                 }
-                serviceBusiness.restart(s.getId(), closeFirst);
+                serviceBusiness.restart(s.getId());
             } catch (ConfigurationException ex) {
                 throw new ProcessException(ex.getMessage(), this, ex);
             }

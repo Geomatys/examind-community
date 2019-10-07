@@ -21,7 +21,7 @@ import static org.constellation.database.api.jooq.Tables.*;
 @DependsOn("database-initer")
 public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, org.constellation.database.api.jooq.tables.pojos.Style> implements StyleRepository {
 
-    public static final Field[] REFERENCE_FIELDS = new Field[]{
+    private static final Field[] REFERENCE_FIELDS = new Field[]{
             STYLE.ID.as("id"),
             STYLE.NAME.as("name"),
             STYLE.PROVIDER.as("provider_id")};
@@ -136,13 +136,6 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     @Transactional(propagation = Propagation.MANDATORY)
     public void delete(int styleId) {
         dsl.delete(STYLE).where(STYLE.ID.eq(styleId)).execute();
-
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void delete(int providerId, String name) {
-        dsl.delete(STYLE).where(STYLE.PROVIDER.eq(providerId).and(STYLE.NAME.eq(name))).execute();
 
     }
 

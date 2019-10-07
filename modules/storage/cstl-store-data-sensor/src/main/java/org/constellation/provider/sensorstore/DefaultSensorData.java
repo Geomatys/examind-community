@@ -16,7 +16,6 @@
  */
 package org.constellation.provider.sensorstore;
 
-import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.constellation.api.DataType;
@@ -40,7 +39,7 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     private final AbstractSensorML metadata;
 
     public DefaultSensorData(GenericName name, AbstractSensorStore store, final AbstractSensorML metadata) {
-        super(name, Collections.EMPTY_LIST);
+        super(name);
         this.store = store;
         this.metadata = metadata;
     }

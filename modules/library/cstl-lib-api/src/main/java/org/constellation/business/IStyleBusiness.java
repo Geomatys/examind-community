@@ -50,21 +50,6 @@ public interface IStyleBusiness {
 
     boolean existsStyle(final int styleId);
 
-    /**
-     *
-     * @param serviceType
-     * @param serviceIdentifier
-     * @param layerName
-     * @param styleProviderId
-     * @param styleName
-     * @throws TargetNotFoundException
-     * @deprecated Do not use it anymore ! It uses layer name to find one in database, but name has not any unique
-     * constraint. Please prefer {@link #linkToLayer(int, int)} instead.
-     */
-    @Deprecated
-    void createOrUpdateStyleFromLayer(String serviceType, String serviceIdentifier, String layerName, String styleProviderId,
-                                      String styleName) throws TargetNotFoundException;
-
     void linkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
     void unlinkToLayer(final int styleId, final int layerId) throws ConfigurationException;

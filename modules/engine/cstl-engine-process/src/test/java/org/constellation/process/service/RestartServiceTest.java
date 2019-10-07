@@ -72,7 +72,6 @@ public abstract class RestartServiceTest extends ServiceProcessTest {
             final ParameterValueGroup in = desc.getInputDescriptor().createValue();
             in.parameter(RestartServiceDescriptor.SERVICE_TYPE_NAME).setValue(serviceName);
             in.parameter(RestartServiceDescriptor.IDENTIFIER_NAME).setValue("restartInstance1");
-            in.parameter(RestartServiceDescriptor.CLOSE_NAME).setValue(false);
             org.geotoolkit.process.Process proc = desc.createProcess(in);
             proc.call();
 
@@ -99,7 +98,6 @@ public abstract class RestartServiceTest extends ServiceProcessTest {
             final ParameterValueGroup in = desc.getInputDescriptor().createValue();
             in.parameter(RestartServiceDescriptor.SERVICE_TYPE_NAME).setValue(serviceName);
             in.parameter(RestartServiceDescriptor.IDENTIFIER_NAME).setValue("restartInstance2");
-            in.parameter(RestartServiceDescriptor.CLOSE_NAME).setValue(true);
             org.geotoolkit.process.Process proc = desc.createProcess(in);
             proc.call();
             Thread.sleep(1000);
@@ -133,7 +131,6 @@ public abstract class RestartServiceTest extends ServiceProcessTest {
             final ParameterValueGroup in = desc.getInputDescriptor().createValue();
             in.parameter(RestartServiceDescriptor.SERVICE_TYPE_NAME).setValue(serviceName);
             in.parameter(RestartServiceDescriptor.IDENTIFIER_NAME).setValue(null);
-            in.parameter(RestartServiceDescriptor.CLOSE_NAME).setValue(false);
             org.geotoolkit.process.Process proc = desc.createProcess(in);
             proc.call();
             Thread.sleep(1000);
@@ -169,7 +166,6 @@ public abstract class RestartServiceTest extends ServiceProcessTest {
             final ParameterValueGroup in = desc.getInputDescriptor().createValue();
             in.parameter(RestartServiceDescriptor.SERVICE_TYPE_NAME).setValue(serviceName);
             in.parameter(RestartServiceDescriptor.IDENTIFIER_NAME).setValue(null);
-            in.parameter(RestartServiceDescriptor.CLOSE_NAME).setValue(true);
 
             org.geotoolkit.process.Process proc = desc.createProcess(in);
             proc.call();

@@ -108,7 +108,7 @@ public class CSWRestAPI {
             if (!asynchrone && ack.getStatus().equals("Success")) {
                 ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType("csw", id);
                 if (s != null) {
-                    serviceBusiness.restart(s.getId(), true);
+                    serviceBusiness.restart(s.getId());
                 }
             }
             return new ResponseEntity(ack, OK);

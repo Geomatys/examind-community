@@ -39,7 +39,6 @@ import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.dto.service.config.generic.Automatic;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
@@ -80,12 +79,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
         super(omFilter);
-    }
-
-
-    @Deprecated
-    public OM2ObservationFilterReader(final Automatic configuration, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(configuration, schemaPrefix, properties);
     }
 
     public OM2ObservationFilterReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {

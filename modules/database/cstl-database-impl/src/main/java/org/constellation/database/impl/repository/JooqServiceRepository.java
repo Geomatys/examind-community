@@ -53,7 +53,7 @@ import org.springframework.context.annotation.DependsOn;
 @DependsOn("database-initer")
 public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord, org.constellation.database.api.jooq.tables.pojos.Service> implements ServiceRepository {
 
-    public static final Field[] REFERENCE_FIELDS = new Field[]{
+    private static final Field[] REFERENCE_FIELDS = new Field[]{
             SERVICE.ID.as("id"),
             SERVICE.IDENTIFIER.as("identifier"),
             SERVICE.TYPE.as("type")};

@@ -45,7 +45,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     /**
      * Fields use to select a lighten Layer reference objects
      */
-    public static final Field[] REF_FIELDS = new Field[]{
+    private static final Field[] REF_FIELDS = new Field[]{
             LAYER.ID,
             LAYER.NAME};
 
@@ -136,7 +136,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
     }
-    
+
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
@@ -167,7 +167,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias))
                     .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
-    
+
     @Override
     public Integer findIdByServiceIdAndAlias(int serviceId, String alias) {
         return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.ALIAS.eq(alias)).fetchOneInto(Integer.class);

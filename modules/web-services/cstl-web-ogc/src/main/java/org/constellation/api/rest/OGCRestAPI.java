@@ -205,16 +205,14 @@ public class OGCRestAPI {
      *
      * @param serviceType The type of the service.
      * @param id          The service identifier
-     * @param stopFirst   Indicates if the service should be closed before trying to restart it
      *
      */
     @RequestMapping(value="/OGC/{spec}/{id}/restart", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity restart(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id,
-            final @RequestParam(name = "stopFirst", required = false, defaultValue = "false") boolean stopFirst) {
+    public ResponseEntity restart(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
-            serviceBusiness.restart(s.getId(), stopFirst);
+            serviceBusiness.restart(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully restarted."), OK);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();

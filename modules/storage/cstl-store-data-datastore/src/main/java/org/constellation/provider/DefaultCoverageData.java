@@ -24,7 +24,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -126,7 +125,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
 
     public DefaultCoverageData(final GenericName name, final GridCoverageResource ref, final DataStore store){
-        super(name, Collections.EMPTY_LIST);
+        super(name);
         this.ref = ref;
         this.store = store;
     }
@@ -631,9 +630,9 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public String getResourceCRSName() throws ConstellationStoreException {
         try {
-            Envelope env = FeatureStoreUtilities.getEnvelope(ref);
-            if (env != null) {
-                final CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+            final GridGeometry ggg = getGeometry();
+            if (ggg != null) {
+                final CoordinateReferenceSystem crs = ggg.getCoordinateReferenceSystem();
                 if (crs != null) {
                     final String crsIdentifier = ReferencingUtilities.lookupIdentifier(crs, true);
                     if (crsIdentifier != null) {

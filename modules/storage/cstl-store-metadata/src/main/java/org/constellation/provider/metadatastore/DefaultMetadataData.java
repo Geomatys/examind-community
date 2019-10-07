@@ -16,7 +16,6 @@
  */
 package org.constellation.provider.metadatastore;
 
-import java.util.Collections;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.constellation.api.DataType;
@@ -41,7 +40,7 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     private final Node metadata;
 
     public DefaultMetadataData(GenericName name, MetadataStore store, final Node metadata) {
-        super(name, Collections.EMPTY_LIST);
+        super(name);
         this.store = store;
         this.metadata = metadata;
     }

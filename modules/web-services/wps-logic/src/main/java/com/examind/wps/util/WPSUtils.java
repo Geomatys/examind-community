@@ -930,7 +930,7 @@ public class WPSUtils {
             IServiceBusiness serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
             ServiceComplete def = serviceBusiness.getServiceByIdentifierAndType("WMS", wmsInstance);
             if (def != null) {
-                serviceBusiness.restart(def.getId(), true);
+                serviceBusiness.restart(def.getId());
             }
         } catch (ConfigurationException e) {
             LOGGER.log(Level.WARNING, "Error during WMS " + wmsInstance + " restart.", e);

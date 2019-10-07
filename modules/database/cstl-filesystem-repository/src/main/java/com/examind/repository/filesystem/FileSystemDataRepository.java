@@ -28,11 +28,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
-import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StringList;
 import org.constellation.exception.ConstellationPersistenceException;
@@ -42,6 +42,7 @@ import org.constellation.repository.StyleRepository;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.opengis.util.GenericName;
 import org.springframework.stereotype.Component;
 
 /**
@@ -639,10 +640,40 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
     ////------------------------    SEARCH         -------------------------///
     ////--------------------------------------------------------------------///
-
     @Override
     public Map.Entry<Integer, List<Data>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private class NameInProvider {
+
+        private final GenericName name;
+        private final String providerID;
+
+        public NameInProvider(final GenericName name, final String providerID) {
+            this.name = name;
+            this.providerID = providerID;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 83 * hash + Objects.hashCode(this.name);
+            hash = 83 * hash + Objects.hashCode(this.providerID);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o instanceof NameInProvider) {
+                NameInProvider that = (NameInProvider) o;
+                return Objects.equals(this.name, that.name)
+                    && Objects.equals(this.providerID, that.providerID);
+            }
+            return false;
+        }
+    }
 }

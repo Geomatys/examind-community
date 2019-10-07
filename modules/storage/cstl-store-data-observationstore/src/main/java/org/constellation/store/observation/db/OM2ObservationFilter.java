@@ -20,8 +20,6 @@
 package org.constellation.store.observation.db;
 
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.generic.BDD;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationResult;
@@ -48,7 +46,6 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import org.constellation.generic.BDDUtils;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 
@@ -92,31 +89,6 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         resultModel                    = null;
 
     }
-
-    @Deprecated
-    public OM2ObservationFilter(final Automatic configuration, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix);
-
-        if (configuration == null) {
-            throw new DataStoreException("The configuration object is null");
-        }
-        // we get the database informations
-        final BDD db = configuration.getBdd();
-        if (db == null) {
-            throw new DataStoreException("The configuration file does not contains a BDD object");
-        }
-        isPostgres  = db.getClassName() != null && db.getClassName().equals("org.postgresql.Driver");
-        resultModel = null;
-        try {
-            this.source = BDDUtils.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
-            // try if the connection is valid
-            try (final Connection c = this.source.getConnection()) {}
-        } catch (SQLException ex) {
-            throw new DataStoreException("SQLException while initializing the observation filter:" +'\n'+
-                                           "cause:" + ex.getMessage());
-        }
-    }
-
 
     public OM2ObservationFilter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
         super(properties, schemaPrefix);

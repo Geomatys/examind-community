@@ -243,7 +243,7 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Transactional
     @Override
-    public void restart(final Integer id, final boolean closeFirst) throws ConfigurationException {
+    public void restart(final Integer id) throws ConfigurationException {
         if (id == null) {
             throw new ConfigurationException("Service instance identifier can't be null.");
         }

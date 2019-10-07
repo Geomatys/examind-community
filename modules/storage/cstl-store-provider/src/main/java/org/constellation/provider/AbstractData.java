@@ -31,9 +31,7 @@ import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.operation.TransformException;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -59,25 +57,12 @@ public abstract class AbstractData implements Data{
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
 
     /**
-     * Favorites styles associated with this layer.
-     */
-    @Deprecated
-    protected final List<String> favorites;
-
-    /**
      * Layer name
      */
     protected final GenericName name;
 
-    public AbstractData(GenericName name, List<String> favorites){
+    public AbstractData(GenericName name){
         this.name = name;
-
-        if(favorites == null){
-            this.favorites = Collections.emptyList();
-        }else{
-            this.favorites = Collections.unmodifiableList(favorites);
-        }
-
     }
 
     /**

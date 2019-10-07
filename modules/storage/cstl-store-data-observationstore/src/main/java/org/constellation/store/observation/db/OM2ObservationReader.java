@@ -26,8 +26,6 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.generic.BDD;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.FeatureProperty;
@@ -76,7 +74,6 @@ import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
-import org.constellation.generic.BDDUtils;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
@@ -108,48 +105,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     private final Map<String, List<String>> acceptedSensorMLFormats = new HashMap<>();
-
-    /**
-     *
-     * @param configuration
-     * @param properties
-     * @throws org.apache.sis.storage.DataStoreException
-     */
-    @Deprecated
-    public OM2ObservationReader(final Automatic configuration, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix);
-        if (configuration == null) {
-            throw new DataStoreException("The configuration object is null");
-        }
-        // we get the database informations
-        final BDD db = configuration.getBdd();
-        if (db == null) {
-            throw new DataStoreException("The configuration file does not contains a BDD object (DefaultObservationReader)");
-        }
-        isPostgres = db.getClassName() != null && db.getClassName().equals("org.postgresql.Driver");
-        try {
-            this.source = BDDUtils.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
-            // try if the connection is valid
-            try(final Connection c = this.source.getConnection()) {}
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-        final String smlFormats100 = (String) properties.get("smlFormats100");
-        if (smlFormats100 != null) {
-            acceptedSensorMLFormats.put("1.0.0", StringUtilities.toStringList(smlFormats100));
-        } else {
-            acceptedSensorMLFormats.put("1.0.0", Arrays.asList(SENSORML_100_FORMAT_V100,
-                                                               SENSORML_101_FORMAT_V100));
-        }
-
-        final String smlFormats200 = (String) properties.get("smlFormats200");
-        if (smlFormats200 != null) {
-            acceptedSensorMLFormats.put("2.0.0", StringUtilities.toStringList(smlFormats200));
-        } else {
-            acceptedSensorMLFormats.put("2.0.0", Arrays.asList(SENSORML_100_FORMAT_V200,
-                                                               SENSORML_101_FORMAT_V200));
-        }
-    }
 
     public OM2ObservationReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
         super(properties, schemaPrefix);

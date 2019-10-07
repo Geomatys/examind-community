@@ -23,8 +23,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.admin.SpringHelper;
-import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.generic.BDD;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.ObservationWriter;
@@ -69,7 +67,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
-import org.constellation.generic.BDDUtils;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
 import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
 import org.geotoolkit.gml.xml.v321.ReferenceType;
@@ -89,33 +86,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     protected final DataSource source;
 
     private boolean allowSensorStructureUpdate = true;
-
-    /**
-     * Build a new Observation writer for postgrid dataSource.
-     *
-     * @param configuration
-     * @param properties
-     *
-     * @throws org.apache.sis.storage.DataStoreException
-     */
-    @Deprecated
-    public OM2ObservationWriter(final Automatic configuration, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix);
-        if (configuration == null) {
-            throw new DataStoreException("The configuration object is null");
-        }
-        // we get the database informations
-        final BDD db = configuration.getBdd();
-        if (db == null) {
-            throw new DataStoreException("The configuration file does not contains a BDD object");
-        }
-        isPostgres = db.getClassName() != null && db.getClassName().equals("org.postgresql.Driver");
-        try {
-            this.source = BDDUtils.getDataSource(db.getClassName(), db.getConnectURL(), db.getUser(), db.getPassword());
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
 
     /**
      * Build a new Observation writer for the given data source.
