@@ -6,21 +6,11 @@
     <gmd:hierarchyLevel>
         <gmd:MD_ScopeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">Dataset</gmd:MD_ScopeCode>
     </gmd:hierarchyLevel>
-    <gmd:contact>
-        <gmd:CI_ResponsibleParty>
-            <gmd:individualName>
-                <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
-            </gmd:individualName>
-            <gmd:role>
-                <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">Point of contact</gmd:CI_RoleCode>
-            </gmd:role>
-        </gmd:CI_ResponsibleParty>
-    </gmd:contact>
     <gmd:metadataStandardName>
-        <gcol:CharacterString>ISO 19115-2 Geographic Information - Metadata Part 2 Extensions for imagery and gridded data</gcol:CharacterString>
+        <gcol:CharacterString>Geographic Information — Metadata Part 1: Fundamentals</gcol:CharacterString>
     </gmd:metadataStandardName>
     <gmd:metadataStandardVersion>
-        <gcol:CharacterString>ISO 19115-2:2009(E)</gcol:CharacterString>
+        <gcol:CharacterString>ISO 19115-1:2014(E)</gcol:CharacterString>
     </gmd:metadataStandardVersion>
     <gmd:spatialRepresentationInfo>
         <gmd:MD_GridSpatialRepresentation>
@@ -65,6 +55,28 @@
             </gmd:transformationParameterAvailability>
         </gmd:MD_GridSpatialRepresentation>
     </gmd:spatialRepresentationInfo>
+    <gmd:referenceSystemInfo>
+        <gmd:MD_ReferenceSystem>
+            <gmd:referenceSystemIdentifier>
+                <gmd:RS_Identifier>
+                    <gmd:code>
+                        <gcol:CharacterString>hours since 1992-1-1</gcol:CharacterString>
+                    </gmd:code>
+                </gmd:RS_Identifier>
+            </gmd:referenceSystemIdentifier>
+        </gmd:MD_ReferenceSystem>
+    </gmd:referenceSystemInfo>
+    <gmd:referenceSystemInfo>
+        <gmd:MD_ReferenceSystem>
+            <gmd:referenceSystemIdentifier>
+                <gmd:RS_Identifier>
+                    <gmd:code>
+                        <gcol:CharacterString>lon lat valtime</gcol:CharacterString>
+                    </gmd:code>
+                </gmd:RS_Identifier>
+            </gmd:referenceSystemIdentifier>
+        </gmd:MD_ReferenceSystem>
+    </gmd:referenceSystemInfo>
     <gmd:identificationInfo>
         <gmd:MD_DataIdentification>
             <gmd:citation>
@@ -124,6 +136,16 @@
             <gmd:spatialRepresentationType>
                 <gmd:MD_SpatialRepresentationTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">Grid</gmd:MD_SpatialRepresentationTypeCode>
             </gmd:spatialRepresentationType>
+            <gmd:resourceFormat>
+                <gmd:MD_Format>
+                    <gmd:name>
+                        <gcol:CharacterString>NetCDF</gcol:CharacterString>
+                    </gmd:name>
+                    <gmd:specification>
+                        <gcol:CharacterString>NetCDF Classic and 64-bit Offset Format</gcol:CharacterString>
+                    </gmd:specification>
+                </gmd:MD_Format>
+            </gmd:resourceFormat>
             <gmd:descriptiveKeywords>
                 <gmd:MD_Keywords>
                     <gmd:keyword>
@@ -186,92 +208,6 @@
                             <gmd:maximumValue>
                                 <gcol:Real>0.0</gcol:Real>
                             </gmd:maximumValue>
-                            <gmd:verticalCRS>
-                                <gml:VerticalCRS gml:id="epsg-crs-5714">
-                                    <gml:identifier codeSpace="IOGP">urn:ogc:def:crs:EPSG:9.4:5714</gml:identifier>
-                                    <gml:name codeSpace="EPSG:9.4">MSL height</gml:name>
-                                    <gml:remarks>Not specific to any location or epoch.</gml:remarks>
-                                    <gml:domainOfValidity>
-                                        <gmd:EX_Extent>
-                                            <gmd:description>
-                                                <gcol:CharacterString>World.</gcol:CharacterString>
-                                            </gmd:description>
-                                            <gmd:geographicElement>
-                                                <gmd:EX_GeographicBoundingBox>
-                                                    <gmd:extentTypeCode>
-                                                        <gcol:Boolean>true</gcol:Boolean>
-                                                    </gmd:extentTypeCode>
-                                                    <gmd:westBoundLongitude>
-                                                        <gcol:Decimal>-180.0</gcol:Decimal>
-                                                    </gmd:westBoundLongitude>
-                                                    <gmd:eastBoundLongitude>
-                                                        <gcol:Decimal>180.0</gcol:Decimal>
-                                                    </gmd:eastBoundLongitude>
-                                                    <gmd:southBoundLatitude>
-                                                        <gcol:Decimal>-90.0</gcol:Decimal>
-                                                    </gmd:southBoundLatitude>
-                                                    <gmd:northBoundLatitude>
-                                                        <gcol:Decimal>90.0</gcol:Decimal>
-                                                    </gmd:northBoundLatitude>
-                                                </gmd:EX_GeographicBoundingBox>
-                                            </gmd:geographicElement>
-                                        </gmd:EX_Extent>
-                                    </gml:domainOfValidity>
-                                    <gml:scope>Hydrography.</gml:scope>
-                                    <gml:verticalCS>
-                                        <gml:VerticalCS gml:id="epsg-cs-6499">
-                                            <gml:identifier codeSpace="IOGP">urn:ogc:def:cs:EPSG:9.4:6499</gml:identifier>
-                                            <gml:name codeSpace="EPSG:9.4">Vertical CS. Axis: height (H). Orientation: up. UoM: m.</gml:name>
-                                            <gml:remarks>Used in vertical coordinate reference systems.</gml:remarks>
-                                            <gml:axis>
-                                                <gml:CoordinateSystemAxis gml:id="epsg-axis-114" uom="urn:ogc:def:uom:EPSG::9001">
-                                                    <gml:identifier codeSpace="IOGP">urn:ogc:def:axis:EPSG:9.4:114</gml:identifier>
-                                                    <gml:name codeSpace="EPSG:9.4">Gravity-related height</gml:name>
-                                                    <gml:remarks>Height influenced by the Earth's gravity field. In particular, orthometric height or normal height which are both approximations of the distance of a point above sea level. Positive upwards.
-Used in a 1D vertical coordinate system.</gml:remarks>
-                                                    <gml:axisAbbrev>H</gml:axisAbbrev>
-                                                    <gml:axisDirection codeSpace="EPSG">up</gml:axisDirection>
-                                                </gml:CoordinateSystemAxis>
-                                            </gml:axis>
-                                        </gml:VerticalCS>
-                                    </gml:verticalCS>
-                                    <gml:verticalDatum>
-                                        <gml:VerticalDatum gml:id="epsg-datum-5100">
-                                            <gml:identifier codeSpace="IOGP">urn:ogc:def:datum:EPSG:9.4:5100</gml:identifier>
-                                            <gml:name codeSpace="EPSG:9.4">Mean Sea Level</gml:name>
-                                            <gml:remarks>Approximates geoid. Users are advised to not use this generic vertical datum but to define explicit realizations of MSL by specifying location and epoch, for instance "MSL at xxx during yyyy-yyyy".</gml:remarks>
-                                            <gml:domainOfValidity>
-                                                <gmd:EX_Extent>
-                                                    <gmd:description>
-                                                        <gcol:CharacterString>World.</gcol:CharacterString>
-                                                    </gmd:description>
-                                                    <gmd:geographicElement>
-                                                        <gmd:EX_GeographicBoundingBox>
-                                                            <gmd:extentTypeCode>
-                                                                <gcol:Boolean>true</gcol:Boolean>
-                                                            </gmd:extentTypeCode>
-                                                            <gmd:westBoundLongitude>
-                                                                <gcol:Decimal>-180.0</gcol:Decimal>
-                                                            </gmd:westBoundLongitude>
-                                                            <gmd:eastBoundLongitude>
-                                                                <gcol:Decimal>180.0</gcol:Decimal>
-                                                            </gmd:eastBoundLongitude>
-                                                            <gmd:southBoundLatitude>
-                                                                <gcol:Decimal>-90.0</gcol:Decimal>
-                                                            </gmd:southBoundLatitude>
-                                                            <gmd:northBoundLatitude>
-                                                                <gcol:Decimal>90.0</gcol:Decimal>
-                                                            </gmd:northBoundLatitude>
-                                                        </gmd:EX_GeographicBoundingBox>
-                                                    </gmd:geographicElement>
-                                                </gmd:EX_Extent>
-                                            </gml:domainOfValidity>
-                                            <gml:scope>Hydrography.</gml:scope>
-                                            <gml:anchorDefinition>The average height of the surface of the sea at a tide station for all stages of the tide over a 19-year period, usually determined from hourly height readings measured from a fixed predetermined reference level.</gml:anchorDefinition>
-                                        </gml:VerticalDatum>
-                                    </gml:verticalDatum>
-                                </gml:VerticalCRS>
-                            </gmd:verticalCRS>
                         </gmd:EX_VerticalExtent>
                     </gmd:verticalElement>
                 </gmd:EX_Extent>
@@ -281,7 +217,7 @@ Used in a 1D vertical coordinate system.</gml:remarks>
     <gmd:contentInfo>
         <gmd:MD_CoverageDescription>
             <gmd:dimension>
-                <gmd:MD_Band>
+                <gmd:MD_SampleDimension>
                     <gmd:sequenceIdentifier>
                         <gcol:MemberName>
                             <gcol:aName>
@@ -290,7 +226,7 @@ Used in a 1D vertical coordinate system.</gml:remarks>
                             <gcol:attributeType>
                                 <gcol:TypeName>
                                     <gcol:aName>
-                                        <gcol:CharacterString>float[][][]</gcol:CharacterString>
+                                        <gcol:CharacterString>float[73][73][1]</gcol:CharacterString>
                                     </gcol:aName>
                                 </gcol:TypeName>
                             </gcol:attributeType>
@@ -299,19 +235,9 @@ Used in a 1D vertical coordinate system.</gml:remarks>
                     <gmd:descriptor>
                         <gcol:CharacterString>Sea temperature</gcol:CharacterString>
                     </gmd:descriptor>
-                </gmd:MD_Band>
+                    <gmd:units>K</gmd:units>
+                </gmd:MD_SampleDimension>
             </gmd:dimension>
         </gmd:MD_CoverageDescription>
     </gmd:contentInfo>
-    <gmd:dataQualityInfo>
-        <gmd:DQ_DataQuality>
-            <gmd:lineage>
-                <gmd:LI_Lineage>
-                    <gmd:statement>
-                        <gcol:CharacterString>2003-04-07 12:12:50 - created by gribtocdl              2005-09-26T21:50:00 - edavis - add attributes for dataset discovery</gcol:CharacterString>
-                    </gmd:statement>
-                </gmd:LI_Lineage>
-            </gmd:lineage>
-        </gmd:DQ_DataQuality>
-    </gmd:dataQualityInfo>
 </gmd:MD_Metadata>

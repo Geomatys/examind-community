@@ -161,7 +161,6 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
      * @throws java.lang.Exception
      */
     @Test
-    @Ignore
     @Override
     @Order(order=1)
     public void getRecordByIdTest() throws Exception {

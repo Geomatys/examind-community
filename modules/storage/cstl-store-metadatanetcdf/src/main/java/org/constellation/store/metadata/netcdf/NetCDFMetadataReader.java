@@ -31,7 +31,6 @@ import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.store.metadata.CSWMetadataReader;
 import org.constellation.util.ReflectionUtilities;
-import org.geotoolkit.coverage.io.ImageCoverageReader;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.v202.*;
 import static org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory.*;
@@ -76,6 +75,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import javax.xml.XMLConstants;
+import org.apache.sis.metadata.MetadataCopier;
+import org.apache.sis.metadata.MetadataStandard;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.StorageConnector;
+import org.constellation.util.XpathUtils;
+import org.geotoolkit.csw.xml.AbstractRecord;
 import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.Settable;
 
@@ -84,6 +91,8 @@ import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Abstract_QNA
 import static org.geotoolkit.dublincore.xml.v2.terms.ObjectFactory._Modified_QNAME;
 import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
+import org.geotoolkit.storage.DataStores;
+import org.opengis.metadata.Metadata;
 
 /**
  *
@@ -183,15 +192,21 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
             obj = getObjectFromFile(identifier);
         }
         MetadataType metadataMode;
-        if (obj instanceof DefaultMetadata && mode == MetadataType.DUBLINCORE_CSW202) {
+        if (obj instanceof DefaultMetadata) {
             metadataMode = MetadataType.ISO_19115;
-            obj = translateISOtoDC((DefaultMetadata)obj, type, elementName);
-        } else if (obj instanceof RecordType && mode == MetadataType.DUBLINCORE_CSW202) {
+             if (mode == MetadataType.DUBLINCORE_CSW202 || mode == MetadataType.DUBLINCORE_CSW300) {
+                obj = translateISOtoDC((DefaultMetadata)obj, type, elementName, mode);
+             }
+        } else if (obj instanceof RecordType) {
             metadataMode = MetadataType.DUBLINCORE_CSW202;
-            obj = applyElementSet((RecordType)obj, type, elementName);
-        } else if (obj instanceof org.geotoolkit.csw.xml.v300.RecordType && mode == MetadataType.DUBLINCORE_CSW300) {
+             if (mode == MetadataType.DUBLINCORE_CSW202) {
+                obj = applyElementSet((RecordType)obj, type, elementName);
+             }
+        } else if (obj instanceof org.geotoolkit.csw.xml.v300.RecordType) {
             metadataMode = MetadataType.DUBLINCORE_CSW300;
-            obj = applyElementSet((RecordType)obj, type, elementName);
+            if (mode == MetadataType.DUBLINCORE_CSW300) {
+                obj = applyElementSet((RecordType)obj, type, elementName);
+            }
         } else {
             metadataMode = MetadataType.NATIVE;
         }
@@ -315,23 +330,26 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
             metadataFile = getFileFromIdentifier(identifier, dataDirectory, CURRENT_EXT);
         }
         if (metadataFile != null && Files.exists(metadataFile)) {
-            final ImageCoverageReader reader = new ImageCoverageReader();
-            if (locale != null) {
-                reader.setLocale(locale);
-            }
-            try {
-                reader.setInput(metadataFile);
-                final Object obj = reader.getMetadata();
-                Utils.setIdentifier(identifier, obj);
-                return obj;
+
+            final DataStoreProvider factory = DataStores.getProviderById("NetCDF");
+            LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
+            final StorageConnector sc = new StorageConnector(metadataFile);
+            try (DataStore store = factory.open(sc)){
+                Object obj = store.getMetadata();
+
+
+
+                    if (obj instanceof DefaultMetadata) {
+                        MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
+                        obj = (DefaultMetadata) copier.copy(Metadata.class, (DefaultMetadata)obj);
+                        ((DefaultMetadata)obj).setFileIdentifier(identifier);
+                    } else {
+                        Utils.setIdentifier(identifier, obj);
+                    }
+                    return obj;
+
             } catch (DataStoreException | IllegalArgumentException ex) {
                 throw new MetadataIoException("The netcdf file : " + metadataFile.getFileName().toString() + " can not be read\ncause: " + ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
-            } finally {
-                try {
-                    reader.dispose();
-                } catch (DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
             }
         }
         throw new MetadataIoException("The netcdf file : " + identifier + ".nc is not present", INVALID_PARAMETER_VALUE);
@@ -396,11 +414,19 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
             throw new MetadataIoException("No ElementSet or Element name specified");
         }
     }
+
+    private AbstractRecord translateISOtoDC(final DefaultMetadata metadata, final ElementSetType type, final List<QName> elementName, MetadataType mode) {
+        switch(mode) {
+            case DUBLINCORE_CSW202: return translateISOtoDC200(metadata, type, elementName);
+            case DUBLINCORE_CSW300: return translateISOtoDC300(metadata, type, elementName);
+            default: throw new IllegalArgumentException("Unexpected dublincore version");
+        }
+    }
     /**
      * Translate A ISO 19139 object into a DublinCore representation.
      * The elementSet (Brief, Summary or full) or the custom elementSetName is applied.
      */
-    private AbstractRecordType translateISOtoDC(final DefaultMetadata metadata, final ElementSetType type, final List<QName> elementName) {
+    private AbstractRecordType translateISOtoDC200(final DefaultMetadata metadata, final ElementSetType type, final List<QName> elementName) {
         if (metadata != null) {
 
             final RecordType customRecord = new RecordType();
@@ -588,6 +614,215 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         return null;
     }
 
+    private org.geotoolkit.csw.xml.v300.AbstractRecordType translateISOtoDC300(final DefaultMetadata metadata, final ElementSetType type, final List<QName> elementName) {
+        if (metadata != null) {
+
+            final org.geotoolkit.csw.xml.v300.RecordType customRecord = new org.geotoolkit.csw.xml.v300.RecordType();
+
+            /*
+             * BRIEF part
+             */
+            final SimpleLiteral identifier = new SimpleLiteral(metadata.getFileIdentifier());
+            if (elementName != null && elementName.contains(_Identifier_QNAME)) {
+                customRecord.setIdentifier(identifier);
+            }
+
+            SimpleLiteral title = null;
+            //TODO see for multiple identification
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                if (identification.getCitation() != null && identification.getCitation().getTitle() != null) {
+                    title = new SimpleLiteral(identification.getCitation().getTitle().toString());
+                }
+            }
+            if (elementName != null && elementName.contains(_Title_QNAME)) {
+                customRecord.setTitle(title);
+            }
+
+            SimpleLiteral dataType = null;
+            //TODO see for multiple hierarchyLevel
+            for (ScopeCode code: metadata.getHierarchyLevels()) {
+                dataType = new SimpleLiteral(code.identifier());
+            }
+            if (elementName != null && elementName.contains(_Type_QNAME)) {
+                customRecord.setType(dataType);
+            }
+
+            final List<org.geotoolkit.ows.xml.v200.BoundingBoxType> bboxes = new ArrayList<>();
+
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                if (identification instanceof DataIdentification) {
+                    final DataIdentification dataIdentification = (DataIdentification) identification;
+                    for (Extent extent : dataIdentification.getExtents()) {
+                        for (GeographicExtent geoExtent :extent.getGeographicElements()) {
+                            if (geoExtent instanceof GeographicBoundingBox) {
+                                final GeographicBoundingBox bbox = (GeographicBoundingBox) geoExtent;
+                                // TODO find CRS
+                                bboxes.add(new org.geotoolkit.ows.xml.v200.BoundingBoxType("EPSG:4326",
+                                                                bbox.getWestBoundLongitude(),
+                                                                bbox.getSouthBoundLatitude(),
+                                                                bbox.getEastBoundLongitude(),
+                                                                bbox.getNorthBoundLatitude()));
+                            }
+                        }
+                    }
+                }
+            }
+            if (elementName != null && elementName.contains(_BoundingBox_QNAME)) {
+                final org.geotoolkit.ows.xml.v200.ObjectFactory owsFactory = new org.geotoolkit.ows.xml.v200.ObjectFactory();
+                for(org.geotoolkit.ows.xml.v200.BoundingBoxType bb : bboxes) {
+                    customRecord.getBoundingBox().add(owsFactory.createBoundingBox(bb));
+                }
+            }
+
+            if (type != null && type.equals(ElementSetType.BRIEF)) {
+                return new org.geotoolkit.csw.xml.v300.BriefRecordType(identifier, title, dataType, bboxes);
+            }
+            /*
+             *  SUMMARY part
+             */
+            final List<SimpleLiteral> abstractt = new ArrayList<>();
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                if (identification.getAbstract() != null) {
+                    abstractt.add(new SimpleLiteral(identification.getAbstract().toString()));
+                }
+            }
+            if (elementName != null && elementName.contains(_Abstract_QNAME)) {
+                customRecord.setAbstract(abstractt);
+            }
+
+            final List<SimpleLiteral> subjects = new ArrayList<>();
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                for (Keywords kw :identification.getDescriptiveKeywords()) {
+                    for (InternationalString str : kw.getKeywords()) {
+                        subjects.add(new SimpleLiteral(str.toString()));
+                    }
+                }
+                if (identification instanceof DataIdentification) {
+                    final DataIdentification dataIdentification = (DataIdentification) identification;
+                    for (TopicCategory tc : dataIdentification.getTopicCategories()) {
+                        subjects.add(new SimpleLiteral(tc.identifier()));
+                    }
+                }
+            }
+            if (elementName != null && elementName.contains(_Subject_QNAME)) {
+                customRecord.setSubject(subjects);
+            }
+
+
+            List<SimpleLiteral> formats = new ArrayList<>();
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                for (Format f :identification.getResourceFormats()) {
+                    if (f == null || f.getName() == null) {
+                        continue;
+                    }
+                    formats.add(new SimpleLiteral(f.getName().toString()));
+                }
+            }
+            if (formats.isEmpty()) {
+                formats = null;
+            }
+            if (elementName != null && elementName.contains(_Format_QNAME)) {
+                customRecord.setFormat(formats);
+            }
+
+            final SimpleLiteral modified;
+            if (metadata.getDateStamp() != null) {
+                String dateValue;
+                synchronized (FORMATTER) {
+                    dateValue = FORMATTER.format(metadata.getDateStamp());
+                }
+                dateValue = dateValue.substring(0, dateValue.length() - 2);
+                dateValue = dateValue + ":00";
+                modified = new SimpleLiteral(dateValue);
+                if (elementName != null && elementName.contains(_Modified_QNAME)) {
+                    customRecord.setModified(modified);
+                }
+            } else {
+                modified = null;
+            }
+
+
+            if (type != null && type.equals(ElementSetType.SUMMARY))
+                return new org.geotoolkit.csw.xml.v300.SummaryRecordType(identifier, title, dataType, bboxes, subjects, formats, modified, abstractt);
+
+            final SimpleLiteral date    = modified;
+            if (elementName != null && elementName.contains(_Date_QNAME)) {
+                customRecord.setDate(date);
+            }
+
+
+            List<SimpleLiteral> creator = new ArrayList<>();
+            for (Identification identification: metadata.getIdentificationInfo()) {
+                for (Responsibility rp :identification.getPointOfContacts()) {
+                    if (Role.ORIGINATOR.equals(rp.getRole())) {
+                        creator.add(new SimpleLiteral(((ResponsibleParty) rp).getOrganisationName().toString()));
+                    }
+                }
+            }
+            if (creator.isEmpty()) creator = null;
+
+            if (elementName != null && elementName.contains(_Creator_QNAME)) {
+                customRecord.setCreator(creator);
+            }
+
+
+            // TODO multiple
+            SimpleLiteral distributor = null;
+            for (final Distribution distribution : metadata.getDistributionInfo()) {
+                for (Distributor dis :distribution.getDistributors()) {
+                    final ResponsibleParty disRP = (ResponsibleParty) dis.getDistributorContact();
+                    if (disRP != null) {
+                        InternationalString name = disRP.getOrganisationName();
+                        if (name != null) {
+                            distributor = new SimpleLiteral(name.toString());
+                            break;
+                        }
+                    }
+                }
+            }
+            if (elementName != null && elementName.contains(_Publisher_QNAME)) {
+                customRecord.setPublisher(distributor);
+            }
+
+            final SimpleLiteral language;
+            if (metadata.getLanguage() != null) {
+                language = new SimpleLiteral(metadata.getLanguage().getISO3Language());
+                if (elementName != null && elementName.contains(_Language_QNAME)) {
+                    customRecord.setLanguage(language);
+                }
+            } else {
+                language = null;
+            }
+
+            // TODO
+            final SimpleLiteral spatial = null;
+            final SimpleLiteral references = null;
+            if (type != null && type.equals(ElementSetType.FULL)) {
+                org.geotoolkit.csw.xml.v300.RecordType record = new org.geotoolkit.csw.xml.v300.RecordType();
+                record.setIdentifier(identifier);
+                record.setTitle(title);
+                record.setType(dataType);
+                record.setSubject(subjects);
+                record.setFormat(formats);
+                record.setModified(modified);
+                record.setDate(date);
+                record.setAbstract(abstractt);
+                record.setCreator(creator);
+                record.setPublisher(distributor);
+                record.setLanguage(language);
+                record.setSpatial(spatial);
+                record.setReferences(references);
+                final org.geotoolkit.ows.xml.v200.ObjectFactory owsFactory = new org.geotoolkit.ows.xml.v200.ObjectFactory();
+                for(org.geotoolkit.ows.xml.v200.BoundingBoxType bb : bboxes) {
+                    customRecord.getBoundingBox().add(owsFactory.createBoundingBox(bb));
+                }
+            }
+
+            return customRecord;
+        }
+        return null;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -639,7 +874,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
             throw new MetadataIoException("The property " + token + " is not queryable",
                     INVALID_PARAMETER_VALUE, "propertyName");
         }
-        return paths;
+        return XpathUtils.xpathToMDPath(paths);
     }
 
     /**
@@ -648,10 +883,6 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
     private List<String> getAllValuesFromPaths(final List<String> paths, final Path directory, final String parentIdentifierPrefix) throws MetadataIoException {
         final String identifierPrefix    = computeIdentifierPrefix(directory, parentIdentifierPrefix);
         final List<String> result        = new ArrayList<>();
-        final ImageCoverageReader reader = new ImageCoverageReader();
-        if (locale != null) {
-            reader.setLocale(locale);
-        }
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path metadataFile : stream) {
@@ -660,8 +891,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                 if (fileName.endsWith(CURRENT_EXT)) {
                     try {
                         final String identifier = computeIdentifier(fileName, identifierPrefix);
-                        reader.setInput(metadataFile);
-                        final Object metadata = reader.getMetadata();
+                        final Object metadata = getObjectFromFile(identifier);
                         Utils.setIdentifier(identifier, metadata);
 
                         final List<Object> value = Utils.extractValues(metadata, paths);
@@ -671,7 +901,7 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
                             }
                         }
                         //continue to the next file
-                    } catch (DataStoreException | IllegalArgumentException ex) {
+                    } catch (MetadataIoException ex) {
                         LOGGER.log(Level.WARNING, "The netcdf file : {0} can not be read\ncause: {1}", new Object[]{fileName, ex.getMessage()});
                     }
 
@@ -685,21 +915,14 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         } catch (IOException e) {
             //TODO should we rise a MetadataIoException instead ?
             LOGGER.log(Level.WARNING, "An error occurs during directory scanning", e);
-        } finally {
-            try {
-                reader.dispose();
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
         }
-
         Collections.sort(result);
         return result;
     }
 
     protected List<String> getAllValuesFromPaths(final String metadataID, final List<String> paths) throws MetadataIoException {
         final List<String> result = new ArrayList<>();
-        final Object metadata = getMetadata(metadataID, MetadataType.ISO_19115);
+        final Object metadata = getObjectFromFile(metadataID);
         final List<Object> value = Utils.extractValues(metadata, paths);
         if (value != null && !value.equals(Arrays.asList("null"))) {
             for (Object obj : value) {
@@ -737,10 +960,9 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
     private List<RecordInfo> getAllEntries(final Path directory, final String parentIdentifierPrefix) throws MetadataIoException {
         final String identifierPrefix = computeIdentifierPrefix(directory, parentIdentifierPrefix);
         final List<RecordInfo> results = new ArrayList<>();
-        final ImageCoverageReader reader = new ImageCoverageReader();
-        if (locale != null) {
-            reader.setLocale(locale);
-        }
+        //if (locale != null) {
+        //    reader.setLocale(locale);
+        //}
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path metadataFile : stream) {
@@ -758,13 +980,6 @@ public class NetCDFMetadataReader extends AbstractMetadataReader implements CSWM
         } catch (IOException e) {
             //TODO should we rise a MetadataIoException instead ?
             LOGGER.log(Level.WARNING, "An error occurs during directory scanning", e);
-        } finally {
-            try {
-                reader.dispose();
-            } catch (DataStoreException ex) {
-                // throw or continue to the next file?
-                LOGGER.log(Level.WARNING, "Unable to close the imageCoverageReader", ex);
-            }
         }
         return results;
     }

@@ -49,7 +49,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import org.apache.sis.test.xml.DocumentComparator;
 
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -59,6 +58,7 @@ import org.constellation.dto.contact.Details;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.apache.sis.storage.DataStoreProvider;
+import org.constellation.util.NodeUtilities;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -137,7 +137,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata.io.netcdf").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
     }
@@ -170,7 +170,6 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
      * @throws java.lang.Exception
      */
     @Test
-    @Ignore
     @Override
     @Order(order=1)
     public void getRecordByIdTest() throws Exception {
@@ -193,6 +192,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
             metadataEquals(ExpResult1, isoResult, ComparisonMode.APPROXIMATE);
         } else if (obj instanceof Node) {
             Node resultNode = (Node) obj;
+            System.out.println(NodeUtilities.getStringFromNode(resultNode));
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
