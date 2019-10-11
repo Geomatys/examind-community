@@ -64,14 +64,12 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,8 +92,11 @@ import org.constellation.dto.SimpleValue;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
+import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.TestRunner;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getImageFromURL;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.test.Commons;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -123,6 +124,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * Checksum value on the returned image expressed in a geographic CRS for the SST_tests layer.
      */
     private Long sstChecksumGeo = null;
+
+    private static final String EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
     /**
      * URLs which will be tested on the server.
@@ -184,6 +187,25 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                                                     + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.gml&"
                                                     + "X=60&StYlEs=&LaYeRs=Lakes&"
                                                     + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO5 ="QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+                                                    + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+                                                    + "VeRsIoN=1.1.1&InFo_fOrMaT=text/html&"
+                                                    + "X=60&StYlEs=&LaYeRs=Lakes&"
+                                                    + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO6 ="QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+                                                    + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+                                                    + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
+                                                    + "X=60&StYlEs=&LaYeRs=Lakes&"
+                                                    + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO7 ="QuErY_LaYeRs="+ LAYER_TEST +"&BbOx=0,-0.0020,0.0040,0&"
+                                                    + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+                                                    + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
+                                                    + "X=60&StYlEs=&LaYeRs="+ LAYER_TEST +"&"
+                                                    + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
+
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&" +
             "width=200&height=40&layer="+ LAYER_TEST +"&format=image/png&version=1.1.0";
@@ -942,26 +964,16 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String value = null;
+        String expResult = "SSTMDE200305\n" +
+                           "Sans titre [1];\n"+
+                           "0.0;\n\n";
 
-        final InputStream inGfi = gfi.openStream();
-        final InputStreamReader isr = new InputStreamReader(inGfi);
-        final BufferedReader reader = new BufferedReader(isr);
-        String fullResponse = "";
-        String line;
-        while ((line = reader.readLine()) != null) {
-            // Verify that the line starts with a number, only the one with the value
-            // should begin like this.
-            if (line.matches("[0-9]+.*")) {
-                // keep the line with the value
-                value = line;
-            }
-            fullResponse = fullResponse + line + '\n';
-        }
-        reader.close();
+        String result = getStringResponse(gfi);
 
-        // Tests on the returned value
-        assertNotNull(fullResponse, value);
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
+
+        // the result here is probably false
         // now i get 0.0 here ? assertTrue   (value.startsWith("210.0")); // I d'ont know why but before the test was => (value.startsWith("28.5"));
     }
 
@@ -970,10 +982,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * @throws Exception
      */
     @Test
-    @Ignore
     @Order(order=14)
     public void testWMSGetFeatureInfoPlainShapePng() throws Exception {
-
+        initLayerList();
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
@@ -983,34 +994,21 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String value = null;
+        String expResult =
+                "Lakes\n" +
+                "sis:envelope:Operation;sis:geometry:Operation;sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n" +
+                "BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4);MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));Lakes.1;MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;\n\n";
 
-        final InputStream inGfi = gfi.openStream();
-        final InputStreamReader isr = new InputStreamReader(inGfi);
-        final BufferedReader reader = new BufferedReader(isr);
-        String fullResponse = "";
-        String line;
-        while ((line = reader.readLine()) != null) {
-            // Verify that the line starts with a number, only the one with the value
-            // should begin like this.
-            if (line.matches("[0-9]+.*")) {
-                // keep the line with the value
-                value = line;
-            }
-            fullResponse = fullResponse + line + '\n';
-        }
-        reader.close();
+        String result = getStringResponse(gfi);
 
-        // Tests on the returned value
-        assertNotNull(fullResponse, value);
-        assertTrue   (value.startsWith("28.5"));
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
     }
 
     @Test
-    @Ignore
     @Order(order=15)
     public void testWMSGetFeatureInfoPlainShapeGif() throws Exception {
-
+        initLayerList();
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
@@ -1020,34 +1018,21 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String value = null;
-        final InputStream inGfi = gfi.openStream();
-        final InputStreamReader isr = new InputStreamReader(inGfi);
-        final BufferedReader reader = new BufferedReader(isr);
-        String fullResponse = "";
-        String line;
-        while ((line = reader.readLine()) != null) {
-            // Verify that the line starts with a number, only the one with the value
-            // should begin like this.
-            if (line.matches("[0-9]+.*")) {
-                // keep the line with the value
-                value = line;
-            }
-            fullResponse = fullResponse + line + '\n';
-        }
-        System.out.println("FULLRESPONSE: " + fullResponse);
-        reader.close();
+        String expResult =
+                "BasicPolygons\n" +
+                "sis:envelope:Operation;sis:geometry:Operation;sis:identifier:String;the_geom:MultiPolygon;ID:String;\n" +
+                "BOX(-2 3, 1 6);MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));BasicPolygons.2;MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));;\n\n";
 
-        // Tests on the returned value
-        assertNotNull(fullResponse, value);
-        assertTrue   (value.startsWith("28.5"));
+        String result = getStringResponse(gfi);
+
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
     }
 
     @Test
-    @Ignore
     @Order(order=16)
     public void testWMSGetFeatureInfoGMLShapeGif() throws Exception {
-
+        initLayerList();
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
@@ -1057,40 +1042,35 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String value = null;
-        final InputStream inGfi = gfi.openStream();
-        final InputStreamReader isr = new InputStreamReader(inGfi);
-        final BufferedReader reader = new BufferedReader(isr);
-        String fullResponse = "";
-        String line;
-        while ((line = reader.readLine()) != null) {
-            // Verify that the line starts with a number, only the one with the value
-            // should begin like this.
-            if (line.matches("[0-9]+.*")) {
-                // keep the line with the value
-                value = line;
-            }
-            fullResponse = fullResponse + line + '\n';
-        }
-        System.out.println("FULLRESPONSE: " + fullResponse);
-        reader.close();
+        String expResult =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+                "<Lakes_layer>\n" +
+                "	<Lakes_feature>\n" +
+                "		<ID>Lakes.1</ID>\n" +
+                "		<identifier>Lakes.1</identifier>\n" +
+                "		<the_geom>\n" +
+                "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))		</the_geom>\n" +
+                "		<FID>101</FID>\n" +
+                "		<NAME>Blue Lake</NAME>\n" +
+                "	</Lakes_feature>\n" +
+                "</Lakes_layer>\n" +
+                "</msGMLOutput>";
 
-        // Tests on the returned value
-        assertNotNull(fullResponse, value);
-        assertTrue   (value.startsWith("28.5"));
+        String result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
     }
 
     /**
      * Ensures that a valid GetLegendGraphic request returns indeed a {@link BufferedImage}.
      *
-     * TODO : ignore until the getlegendgraphic method is done into the new
-     *        postgrid implementation.
      * @throws java.io.Exception
      */
     @Test
-    @Ignore
     public void testWMSGetLegendGraphic() throws Exception {
-
+        initLayerList();
         // Creates a valid GetLegendGraphic url.
         final URL getLegendUrl;
         try {
@@ -1370,6 +1350,114 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=26)
+    public void testWMSGetFeatureInfoHTMLShape() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        final URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO5);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult =
+                "<html>\n" +
+                "    <head>\n" +
+                "        <title>GetFeatureInfo HTML output</title>\n" +
+                "    </head>\n" +
+                "    <style>\n" +
+                "ul{\n" +
+                "               margin-top: 0;\n" +
+                "               margin-bottom: 0px;\n" +
+                "           }\n" +
+                "           .left-part{\n" +
+                "               display:inline-block;\n" +
+                "               width:350px;\n" +
+                "               overflow:auto;\n" +
+                "               white-space:nowrap;\n" +
+                "           }\n" +
+                "           .right-part{\n" +
+                "               display:inline-block;\n" +
+                "               width:600px;\n" +
+                "               overflow: hidden;\n" +
+                "           }\n" +
+                "           .values{\n" +
+                "               text-overflow: ellipsis;\n" +
+                "               white-space:nowrap;\n" +
+                "               display:block;\n" +
+                "               overflow: hidden;\n" +
+                "           }    </style>\n" +
+                "    <body>\n" +
+                "<h2>Lakes</h2><br/><h2>Lakes.1</h2></br><div><div class=\"left-part\"><ul>\n" +
+                "<li>\n" +
+                "envelope</li>\n" +
+                "<li>\n" +
+                "geometry</li>\n" +
+                "<li>\n" +
+                "identifier</li>\n" +
+                "<li>\n" +
+                "the_geom</li>\n" +
+                "<li>\n" +
+                "FID</li>\n" +
+                "<li>\n" +
+                "NAME</li>\n" +
+                "</ul>\n" +
+                "</div><div class=\"right-part\"><a class=\"values\" title=\"BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4)\">BOX(6.0E-4 -0.0018, 0.0031 -1.0E-4)</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"Lakes.1\">Lakes.1</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"101\">101</a><a class=\"values\" title=\"Blue Lake\">Blue Lake</a></div></div><br/>    </body>\n" +
+                "</html>";
+
+        String result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=27)
+    public void testWMSGetFeatureInfoJSONShape() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        final URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO6);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult =
+                "{\"Layer\":\"Lakes\",\"Name\":\"Lakes\",\"ID\":\"Lakes.1\",\"feature\":{\"identifier\":\"Lakes.1\",\"the_geom\":\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\",\"FID\":\"101\",\"NAME\":\"Blue Lake\"}}";
+
+        String result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=28)
+    public void testWMSGetFeatureInfoJSONProfileShape() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        final URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO7);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult =
+                "{\"layers\":[{\"name\":\"SSTMDE200305\",\"data\":[{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[{\"x\":3.8516484760372463E-13,\"y\":0.0},{\"x\":22.915557595600948,\"y\":0.0},{\"x\":22.915557595601836,\"y\":0.0},{\"x\":27.611269657740863,\"y\":0.0},{\"x\":27.611269657741225,\"y\":0.0},{\"x\":38.734410245335305,\"y\":0.0},{\"x\":38.73441024533549,\"y\":0.0},{\"x\":51.33753842087088,\"y\":0.0},{\"x\":53.45249659867336,\"y\":0.0}]}],\"message\":null}]}";
+
+        String result = getStringResponse(gfi);
+        System.out.println(result);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=29)
     public void testNewInstance() throws Exception {
         initLayerList();
 
@@ -1436,7 +1524,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=27)
+    @Order(order=30)
     public void testStartInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1481,7 +1569,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Ignore
-    @Order(order=28)
+    @Order(order=31)
     public void testConfigureInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1530,7 +1618,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=29)
+    @Order(order=32)
     public void testStopInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1575,7 +1663,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=30)
+    @Order(order=33)
     public void testDeleteInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1618,4 +1706,19 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(expResult2, obj);
     }
 
+    public static void domCompare(final Object expected, String actual) throws Exception {
+
+        String expectedStr;
+        if (expected instanceof Path) {
+            expectedStr = IOUtilities.toString((Path)expected);
+        } else {
+            expectedStr = (String) expected;
+        }
+        expectedStr = expectedStr.replace("EPSG_VERSION", EPSG_VERSION);
+
+        final CstlDOMComparator comparator = new CstlDOMComparator(expectedStr, actual);
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.compare();
+    }
 }

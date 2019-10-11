@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
@@ -154,11 +155,31 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             str = "null";
         }else if(value.getClass().isArray()){
             //convert to an object array
-            final Object[] array = new Object[Array.getLength(value)];
-            for(int i=0;i<array.length;i++){
-                array[i] = toString(Array.get(value, i));
+            int length = Array.getLength(value);
+            if (length == 1) {
+                str = toString(Array.get(value, 0));
+            } else {
+                final Object[] array = new Object[length];
+                for(int i=0;i<array.length;i++){
+                    array[i] = toString(Array.get(value, i));
+                }
+                str = Arrays.toString(array);
             }
-            str = Arrays.toString(array);
+        } else if(value instanceof Collection) {
+            //convert to an object list
+            Collection coll = (Collection) value;
+            if (coll.size() == 1) {
+                str = toString(coll.iterator().next());
+            } else {
+                final Object[] array = new Object[coll.size()];
+                int i = 0;
+                Iterator it = coll.iterator();
+                while(it.hasNext()){
+                    array[i] = toString(it.next());
+                    i++;
+                }
+                str = Arrays.toString(array);
+            }
         }else{
             str = String.valueOf(value);
         }
@@ -282,7 +303,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             for (final String record : result.values) {
                 response.append(record);
                 cpt++;
-                if (cpt >= maxValue) break;
+                if (cpt >= maxValue*2) break;
             }
             response.append("<br/>");
         }

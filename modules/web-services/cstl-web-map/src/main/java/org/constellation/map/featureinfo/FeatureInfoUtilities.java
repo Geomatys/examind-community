@@ -326,6 +326,18 @@ public final class FeatureInfoUtilities extends Static {
         for (String mime : infoFormat.getSupportedMimeTypes()) {
             featureInfos.add(new GetFeatureInfoCfg(mime, infoFormat.getClass().getCanonicalName()));
         }
+
+        //JSON
+        infoFormat = new JSONFeatureInfoFormat();
+        for (String mime : infoFormat.getSupportedMimeTypes()) {
+            featureInfos.add(new GetFeatureInfoCfg(mime, infoFormat.getClass().getCanonicalName()));
+        }
+
+        //Coverage Profile
+        infoFormat = new CoverageProfileInfoFormat();
+        for (String mime : infoFormat.getSupportedMimeTypes()) {
+            featureInfos.add(new GetFeatureInfoCfg(mime, infoFormat.getClass().getCanonicalName()));
+        }
         return featureInfos;
     }
 
