@@ -51,6 +51,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.api.DataType;
+import static org.constellation.api.StatisticState.*;
 import org.constellation.dto.BandDescription;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
@@ -62,11 +63,10 @@ import org.constellation.repository.DataRepository;
 import org.geotoolkit.coverage.filestore.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.io.CoverageStoreException;
 import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.coverage.io.ImageCoverageReader;
-import org.geotoolkit.data.FeatureStoreUtilities;
+import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.data.query.QueryBuilder;
@@ -79,7 +79,6 @@ import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
@@ -96,7 +95,6 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
-import static org.constellation.api.StatisticState.*;
 
 /**
  * Regroups information about a {@linkplain Data data}.
@@ -493,7 +491,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public String getSubType() throws ConstellationStoreException {
         Object origin = getOrigin();
-        if (origin instanceof PyramidalCoverageResource) {
+        if (origin instanceof MultiResolutionResource) {
             return "pyramid";
         }
         return null;
@@ -502,15 +500,15 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public Boolean isRendered() {
         Object origin = getOrigin();
-        if (origin instanceof PyramidalCoverageResource) {
-            try {
-                ViewType packMode = ((PyramidalCoverageResource) origin).getPackMode();
-                if (ViewType.RENDERED.equals(packMode)) {
+        if (origin instanceof MultiResolutionResource) {
+//            try {
+//                ViewType packMode = ((MultiResolutionResource) origin).getPackMode();
+//                if (ViewType.RENDERED.equals(packMode)) {
                     return Boolean.TRUE;
-                }
-            } catch (DataStoreException e) {
-                LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
-            }
+//                }
+//            } catch (DataStoreException e) {
+//                LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
+//            }
         }
         return Boolean.FALSE;
     }
@@ -519,8 +517,8 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     public ProviderPyramidChoiceList.CachePyramid getPyramid() throws ConstellationStoreException {
          try {
             final Object origin = getOrigin();
-            if (origin instanceof PyramidalCoverageResource) {
-                final PyramidalCoverageResource cacheRef = (PyramidalCoverageResource) getOrigin();
+            if (origin instanceof MultiResolutionResource) {
+                final MultiResolutionResource cacheRef = (MultiResolutionResource) getOrigin();
                 final Collection<Pyramid> pyramids = Pyramids.getPyramids(cacheRef);
                 if(pyramids.isEmpty()) return null;
 

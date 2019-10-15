@@ -52,6 +52,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
+import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
@@ -76,14 +77,17 @@ import org.constellation.provider.MetadataProvider;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
+import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.data.multires.DefiningPyramid;
+import org.geotoolkit.data.multires.MultiResolutionResource;
 import org.geotoolkit.data.multires.Pyramid;
 import org.geotoolkit.data.multires.Pyramids;
 import org.geotoolkit.image.interpolation.InterpolationCase;
@@ -93,7 +97,6 @@ import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
@@ -108,9 +111,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Node;
-import static org.constellation.business.ClusterMessageConstant.*;
-import org.constellation.repository.DataRepository;
-import org.constellation.repository.StyleRepository;
 
 @Component("providerBusiness")
 @Primary
@@ -597,7 +597,7 @@ public class ProviderBusiness implements IProviderBusiness {
             final GenericName gname = NamesExt.create(ProviderParameters.getNamespace(provider), dataName);
             final Data cacheData = provider.get(gname);
             if (cacheData != null) {
-                final PyramidalCoverageResource cacheRef = (PyramidalCoverageResource) cacheData.getOrigin();
+                final MultiResolutionResource cacheRef = (MultiResolutionResource) cacheData.getOrigin();
                 final Collection<Pyramid> pyramids;
                 try {
                     pyramids = Pyramids.getPyramids(cacheRef);
@@ -843,7 +843,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
 
         //create the output folder for pyramid
-        PyramidalCoverageResource outRef;
+        XMLCoverageResource outRef;
         final String pyramidProviderId = CONFORM_PREFIX + UUID.randomUUID().toString();
         //create the output provider
         final DataProvider outProvider;

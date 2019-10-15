@@ -100,7 +100,6 @@ import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
-import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
@@ -783,7 +782,7 @@ public class DataRestAPI extends AbstractRestAPI{
             final String dataName = layerName;
             context.setName("Styled pyramid " + crs + " for " + providerId + ":" + dataName);
 
-            PyramidalCoverageResource outRef;
+            XMLCoverageResource outRef;
             String pyramidProviderId = RENDERED_PREFIX + uuid;
 
             //create the output provider

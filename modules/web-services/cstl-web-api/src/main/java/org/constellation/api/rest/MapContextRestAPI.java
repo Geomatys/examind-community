@@ -84,11 +84,10 @@ import org.geotoolkit.owc.xml.v10.OperationType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
-import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.wms.WMSResource;
 import org.geotoolkit.wms.WebMapClient;
-import org.geotoolkit.wms.map.WMSMapLayer;
 import org.geotoolkit.wms.xml.WMSVersion;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -568,8 +567,8 @@ public class MapContextRestAPI extends AbstractRestAPI {
                 //it is a wms layer
                 final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
                 final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
-                final WMSMapLayer wmsLayer = new WMSMapLayer(wmsServer, dataName);
-                context.items().add(wmsLayer);
+                final WMSResource wmsLayer = new WMSResource(wmsServer, dataName);
+                context.items().add(MapBuilder.createCoverageLayer(wmsLayer));
                 continue;
             }
             //get data
@@ -613,7 +612,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
          context.setName("Styled pyramid " + crs + " for " + providerId + ":" + dataName);
 
         //create the output folder for pyramid
-        PyramidalCoverageResource outRef;
+        XMLCoverageResource outRef;
         String pyramidProviderId = RENDERED_PREFIX + uuid;
 
 

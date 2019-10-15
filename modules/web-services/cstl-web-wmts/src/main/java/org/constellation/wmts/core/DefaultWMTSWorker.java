@@ -95,7 +95,6 @@ import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.CoverageUtilities;
 import org.geotoolkit.storage.coverage.ImageTile;
-import org.geotoolkit.storage.coverage.PyramidalCoverageResource;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
@@ -298,14 +297,14 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                 }
 
                 final Object origin = details.getOrigin();
-                if (!(origin instanceof PyramidalCoverageResource)) {
+                if (!(origin instanceof MultiResolutionResource)) {
                     //WMTS only handle PyramidalModel
                     LOGGER.log(Level.WARNING, "Layer {0} has not a PyramidalModel origin. It will not be included in capabilities", name);
                     continue;
                 }
 
                 try {
-                    final PyramidalCoverageResource pmodel = (PyramidalCoverageResource) origin;
+                    final MultiResolutionResource pmodel = (MultiResolutionResource) origin;
                     final List<Pyramid> pyramids = Pyramids.getPyramids(pmodel);
                     if (pyramids.isEmpty()) {
                         throw new CstlServiceException("No valid extent for layer " + name);
@@ -755,7 +754,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             }
 
             final Object origin = details.getOrigin();
-            if (!(origin instanceof PyramidalCoverageResource)) {
+            if (!(origin instanceof MultiResolutionResource)) {
                 //WMTS only handle PyramidalCoverageReference
                 throw new CstlServiceException("Operation request contains an invalid parameter value, "
                         + "invalid layer : " + layerName + " , layer is not a pyramid model " + layerName,
