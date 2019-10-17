@@ -60,7 +60,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.util.DataStatisticsListener;
 import org.constellation.provider.util.ImageStatisticDeserializer;
 import org.constellation.repository.DataRepository;
-import org.geotoolkit.coverage.filestore.FileCoverageResource;
+import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.io.CoverageStoreException;

@@ -640,7 +640,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-store</artifactId>
+                <artifactId>geotk-storage</artifactId>
                 <type>test-jar</type>
                 <version>${geotoolkit.version}</version>
             </dependency>
@@ -716,7 +716,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-store</artifactId>
+                <artifactId>geotk-storage</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>
@@ -916,11 +916,6 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-feature-store</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-observation-store</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
@@ -967,12 +962,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-timed</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-postgresql</artifactId>
+                <artifactId>geotk-coverage-worldfile</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
 

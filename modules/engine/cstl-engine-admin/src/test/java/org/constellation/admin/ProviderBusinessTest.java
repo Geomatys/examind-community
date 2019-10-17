@@ -32,7 +32,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.coverage.filestore.FileCoverageProvider;
+import org.geotoolkit.coverage.worldfile.FileCoverageProvider;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;

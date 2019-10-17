@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-store</artifactId>
+            <artifactId>geotk-storage</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

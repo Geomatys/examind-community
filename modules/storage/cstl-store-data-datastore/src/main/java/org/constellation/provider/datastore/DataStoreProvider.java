@@ -26,25 +26,6 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
-import org.constellation.api.DataType;
-import org.constellation.provider.AbstractDataProvider;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DefaultCoverageData;
-import org.constellation.provider.DefaultFeatureData;
-import org.geotoolkit.coverage.postgresql.PGCoverageStore;
-import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.data.memory.MemoryFeatureStore;
-import org.geotoolkit.db.postgres.PostgresFeatureStore;
-import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.storage.DataStoreFactory;
-import org.geotoolkit.storage.DataStores;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
@@ -53,23 +34,41 @@ import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.ArraysExt;
+import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.metadata.utils.Utils;
+import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DefaultCoverageData;
+import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
 import org.constellation.util.StoreUtilities;
 import org.geotoolkit.coverage.io.GridCoverageReader;
+import org.geotoolkit.data.FeatureStore;
 import org.geotoolkit.data.FeatureStoreUtilities;
 import org.geotoolkit.data.memory.ExtendedFeatureStore;
+import org.geotoolkit.data.memory.InMemoryStore;
+import org.geotoolkit.db.postgres.PostgresFeatureStore;
+import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
+import org.opengis.parameter.GeneralParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.GenericName;
 
 /**
  *
@@ -176,7 +175,7 @@ public class DataStoreProvider extends AbstractDataProvider{
         store = createBaseStore();
         if (store == null) {
             //use an empty datastore in case of the store is temporarly unavailable
-            store = new MemoryFeatureStore();
+            store = new InMemoryStore();
         }
 
         try {
@@ -314,12 +313,6 @@ public class DataStoreProvider extends AbstractDataProvider{
                     if (dbSchema != null && !dbSchema.isEmpty()) {
                         pgStore.dropPostgresSchema(dbSchema);
                     }
-            }else if (store instanceof PGCoverageStore) {
-                final PGCoverageStore pgStore = (PGCoverageStore)store;
-                final String dbSchema = pgStore.getDatabaseSchema();
-                if (dbSchema != null && !dbSchema.isEmpty()) {
-                    pgStore.dropPostgresSchema(dbSchema);
-                }
             }
         } catch (DataStoreException e) {
             getLogger().log(Level.WARNING, e.getMessage(), e);

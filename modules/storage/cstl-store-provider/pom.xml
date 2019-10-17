@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-coverage-store</artifactId>
+            <artifactId>geotk-storage</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
