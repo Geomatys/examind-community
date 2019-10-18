@@ -63,6 +63,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBContext;
@@ -162,6 +163,8 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 writeDataFile(dataDirectory, "urn-uuid-94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
                 writeDataFile(dataDirectory, "urn-uuid-9a669547-b69b-469f-a11f-2d875366bbdc");
                 writeDataFile(dataDirectory, "urn-uuid-e9330592-0932-474b-be34-c3a3bb67c7db");
+                writeDataFile(dataDirectory, "L2-LST");
+                writeDataFile(dataDirectory, "cat-1");
 
                 final File subDataDirectory = new File(dataDirectory, "sub1");
                 subDataDirectory.mkdir();
@@ -377,8 +380,17 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(result instanceof GetDomainResponseType);
 
         values = new ArrayList<>();
-        list = new ListOfValuesType(Arrays.asList("Aliquam fermentum purus quis arcu","Fuscé vitae ligulä","Lorem ipsum","Lorem ipsum dolor sit amet",
-                "Maecenas enim","Mauris sed neque","Ut facilisis justo ut lacus","Vestibulum massa purus","Ñunç elementum"));
+        list = new ListOfValuesType(Arrays.asList(
+                "Aliquam fermentum purus quis arcu",
+                "Fuscé vitae ligulä",
+                "GCOM-C/SGLI L2 Land surface temperature",
+                "Lorem ipsum",
+                "Lorem ipsum dolor sit amet",
+                "Maecenas enim",
+                "Mauris sed neque",
+                "Ut facilisis justo ut lacus",
+                "Vestibulum massa purus",
+                "Ñunç elementum"));
         values.add(new DomainValuesType(null, "title", list, new QName("http://www.isotc211.org/2005/gmd", "MD_Metadata")));
         expResult = new GetDomainResponseType(values);
 
@@ -482,7 +494,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
         grResult = (GetRecordsResponseType) result;
 
-        assertEquals(12, grResult.getSearchResults().getAny().size());
+        assertEquals(13, grResult.getSearchResults().getAny().size());
 
     }
 
@@ -511,7 +523,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(result instanceof GetRecordsResponseType);
 
         GetRecordsResponseType grResult = (GetRecordsResponseType) result;
-        assertEquals(13, grResult.getSearchResults().getAny().size());
+        assertEquals(14, grResult.getSearchResults().getAny().size());
 
 
 
@@ -684,7 +696,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // build 2 new metadata file
         RecordType record = new RecordType();
@@ -741,7 +753,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(15, response.getSearchResults().getNumberOfRecordsMatched());
 
         // remove data
          // add a metadata to the index
@@ -782,7 +794,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
@@ -801,7 +813,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // build a new metadata file
         RecordType record = new RecordType();
@@ -841,7 +853,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
         f.delete();
@@ -865,7 +877,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
     }
 
     @Test
@@ -884,7 +896,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
         // remove metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/index/urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
@@ -915,7 +927,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(11, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/index/refresh");
@@ -938,7 +950,40 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
+
+        // test getMetadataList
+
+        niUrl = new URL("http://localhost:" + getCurrentPort() +  "/API/CSW/default/records/100/0");
+
+        conec = niUrl.openConnection();
+
+        obj = unmarshallJsonResponse(conec, List.class);
+
+        assertTrue(obj instanceof List);
+        final List result = (List) obj;
+
+        assertEquals(14, result.size());
+
+        boolean fcFound = false;
+        boolean difFound = false;
+
+        for (Object o : result ) {
+            Map m = (Map) o;
+            if (m.containsKey("identifier")) {
+                String id = (String) m.get("identifier");
+                if ("L2-LST".equals(id)) {
+                    difFound = true;
+                } else if ("cat-1".equals(id)) {
+                    fcFound = true;
+                }
+            } else {
+               throw new AssertionError("A brief node is missing identifier");
+            }
+        }
+
+        assertTrue("diff record not found", difFound);
+        assertTrue("feature catalogue record not found", fcFound);
     }
 
     @Test
@@ -957,7 +1002,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof GetRecordsResponseType);
         GetRecordsResponseType response = (GetRecordsResponseType) obj;
 
-        assertEquals(12, response.getSearchResults().getNumberOfRecordsMatched());
+        assertEquals(13, response.getSearchResults().getNumberOfRecordsMatched());
 
          // remove  all metadata from the index
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/records");

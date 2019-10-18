@@ -503,10 +503,12 @@ public abstract class CSWConstants {
     static {
         ISO_BRIEF_FIELDS.put("identifier", Arrays.asList("/gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString",
                                                          "/csw:Record/dc:identifier",
-                                                         "/dif:DIF/dif:Entry_ID/dif:Short_Name"));
+                                                         "/dif:DIF/dif:Entry_ID/dif:Short_Name",
+                                                         "/gfc:FC_FeatureCatalogue/@id"));
         ISO_BRIEF_FIELDS.put("title",      Arrays.asList("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString",
                                                          "/csw:Record/dc:title",
-                                                         "/dif:DIF/dif:Summary/dif:Abstract"));
+                                                         "/dif:DIF/dif:Summary/dif:Abstract",
+                                                         "/gfc:FC_FeatureCatalogue/gfc:featureType/gfc:FC_FeatureType/gfc:typeName/gco:LocalName"));
         ISO_BRIEF_FIELDS.put("date",       Arrays.asList("/gmd:MD_Metadata/gmd:dateStamp/gco:DateTime", "/gmd:MD_Metadata/gmd:dateStamp/gco:Date",
                                                          "/csw:Record/dc:modified",
                                                          "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision"));

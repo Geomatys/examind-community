@@ -739,6 +739,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         if (!identifiers.isEmpty()) {
             brief.setIdentifier(identifiers.get(0));
         }
+        // what to do if we don't find an identifier?
 
         final List<String> titles = new ArrayList<>();
         for (String path : fieldMapping.get("title")) {
@@ -746,7 +747,11 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         }
         if (!titles.isEmpty()) {
             brief.setTitle(titles.get(0));
+        } else {
+            brief.setTitle("unknwown title");
         }
+
+        // optional
         List<String> dates = new ArrayList<>();
         for (String path : fieldMapping.get("date")) {
             dates.addAll(NodeUtilities.getValuesFromPath(node, path));
