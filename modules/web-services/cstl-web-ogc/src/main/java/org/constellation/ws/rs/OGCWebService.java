@@ -18,14 +18,19 @@
  */
 package org.constellation.ws.rs;
 
-// J2SE dependencies
-
-import net.iharder.Base64;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.logging.Level;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+import javax.xml.bind.JAXBElement;
+import javax.xml.validation.Schema;
 import org.apache.sis.util.iso.Types;
 import org.apache.sis.xml.MarshallerPool;
+import org.constellation.admin.SpringHelper;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
-import org.constellation.admin.SpringHelper;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.security.IncorrectCredentialsException;
 import org.constellation.security.SecurityManagerHolder;
@@ -34,24 +39,11 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
-import org.geotoolkit.util.StringUtilities;
-import org.opengis.util.CodeList;
-
-import javax.annotation.PreDestroy;
-import javax.inject.Inject;
-import javax.xml.bind.JAXBElement;
-import javax.xml.validation.Schema;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import org.springframework.http.HttpStatus;
-
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_REQUEST;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_VALUE;
@@ -60,6 +52,9 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+import org.geotoolkit.util.StringUtilities;
+import org.opengis.util.CodeList;
+import org.springframework.http.HttpStatus;
 
 
 /**
@@ -207,7 +202,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
             if (authorization.startsWith("Basic ")) {
                 final String toDecode = authorization.substring(6);
                 try {
-                    final String logPass = new String(Base64.decode(toDecode));
+                    final String logPass = new String(Base64.getDecoder().decode(toDecode));
                     final int separatorIndex = logPass.indexOf(":");
                     if (separatorIndex != -1) {
                         final String login = logPass.substring(0, separatorIndex);
@@ -216,7 +211,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
                     } else {
                         LOGGER.warning("separator missing in authorization header");
                     }
-                } catch (IOException ex) {
+                } catch (IllegalArgumentException ex) {
                     LOGGER.log(Level.WARNING, "IO exception while cdecoding basic authentication", ex);
                 }
             } else {

@@ -40,10 +40,6 @@
             <artifactId>jaxws-rt</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.iharder</groupId>
-            <artifactId>base64</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax.xml.ws</groupId>
             <artifactId>jaxws-api</artifactId>
         </dependency>
