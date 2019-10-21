@@ -19,28 +19,26 @@
 
 package org.constellation.sos.ws;
 
-import org.constellation.sos.core.SOSworker;
-import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.test.utils.Order;
-import org.constellation.util.Util;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import javax.annotation.PostConstruct;
-
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
+import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
+import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.sos.core.SOSworker;
+import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.constellation.util.Util;
 import org.geotoolkit.storage.DataStores;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -69,7 +67,7 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("cstlsensor");
+                final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 

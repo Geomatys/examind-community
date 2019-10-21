@@ -29,25 +29,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.exception.ConfigurationException;
-import org.geotoolkit.metadata.ElementSetType;
-import org.geotoolkit.metadata.MetadataIoException;
-import org.geotoolkit.metadata.MetadataType;
-import org.geotoolkit.metadata.MetadataWriter;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.store.metadata.AbstractCstlMetadataStore;
 import org.constellation.store.metadata.CSWMetadataReader;
-import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.csw.xml.DomainValues;
-import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.geotoolkit.csw.xml.v202.DomainValuesType;
+import org.geotoolkit.metadata.ElementSetType;
+import org.geotoolkit.metadata.MetadataIoException;
+import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.metadata.MetadataType;
+import org.geotoolkit.metadata.MetadataWriter;
 import org.geotoolkit.metadata.RecordInfo;
-import org.geotoolkit.storage.DataStoreFactory;
+import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import org.opengis.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
@@ -237,7 +237,7 @@ public class MetadataStoreWrapper extends AbstractCstlMetadataStore {
     }
 
     @Override
-    public DataStoreFactory getProvider() {
+    public DataStoreProvider getProvider() {
         throw new UnsupportedOperationException("Not supported on wrapper.");
     }
 

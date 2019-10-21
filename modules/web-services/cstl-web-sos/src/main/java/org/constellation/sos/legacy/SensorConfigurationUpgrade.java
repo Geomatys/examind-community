@@ -27,24 +27,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
-import org.constellation.exception.ConstellationException;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.exception.ConfigurationException;
-import static org.constellation.dto.service.config.DataSourceType.FILESYSTEM;
-import static org.constellation.dto.service.config.DataSourceType.OM2;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.data.sensor.FileSystemSensorStore;
 import org.constellation.dto.ProviderBrief;
+import static org.constellation.dto.service.config.DataSourceType.FILESYSTEM;
+import static org.constellation.dto.service.config.DataSourceType.OM2;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.TransactionStatus;
@@ -118,7 +118,7 @@ public class SensorConfigurationUpgrade {
                         }
 
                         if (providerID == null) {
-                            final DataStoreFactory factory = DataStores.getFactoryById("filesensor");
+                            final DataStoreProvider factory = DataStores.getProviderById("filesensor");
                             final ParameterValueGroup params = factory.getOpenParameters().createValue();
                             params.parameter("data_directory").setValue(smlConf.getDataDirectory());
 
@@ -180,7 +180,7 @@ public class SensorConfigurationUpgrade {
                         }
 
                         if (providerID == null) {
-                            final DataStoreFactory factory = DataStores.getFactoryById("observationSOSDatabase");
+                            final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
                             final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
 
                             dbConfig.parameter("sgbdtype").setValue("postgres");

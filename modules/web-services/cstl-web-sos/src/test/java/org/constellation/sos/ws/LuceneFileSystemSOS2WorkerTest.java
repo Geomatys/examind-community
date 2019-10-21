@@ -19,35 +19,29 @@
 
 package org.constellation.sos.ws;
 
-// JUnit dependencies
-
-import org.constellation.sos.core.SOSworker;
+import java.io.File;
+import java.util.logging.Level;
+import javax.annotation.PostConstruct;
+import javax.xml.bind.Marshaller;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
+import org.constellation.sos.core.SOSworker;
+import org.constellation.sos.io.lucene.LuceneObservationIndexer;
+import static org.constellation.sos.ws.FileSystemSOSWorkerTestUtils.writeDataFile;
 import org.constellation.test.utils.Order;
+import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
+import org.geotoolkit.index.tree.manager.SQLRtreeManager;
+import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
-import java.io.File;
-import java.util.logging.Level;
-import org.constellation.sos.io.lucene.LuceneObservationIndexer;
-import org.constellation.test.utils.SpringTestRunner;
-import org.geotoolkit.storage.DataStoreFactory;
-import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.index.tree.manager.SQLRtreeManager;
-
-import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
-
 import org.opengis.parameter.ParameterValueGroup;
-
-import static org.constellation.sos.ws.FileSystemSOSWorkerTestUtils.writeDataFile;
 
 /**
  *
@@ -160,7 +154,7 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory omfactory = DataStores.getFactoryById("observationSOSLucene");
+                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSLucene");
                 final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
                 dbConfig.parameter("data-directory").setValue(instDirectory);
                 dbConfig.parameter("config-directory").setValue(configDir);

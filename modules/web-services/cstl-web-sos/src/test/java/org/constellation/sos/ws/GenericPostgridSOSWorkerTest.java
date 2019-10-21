@@ -20,26 +20,25 @@
 package org.constellation.sos.ws;
 
 
-import org.constellation.sos.core.SOSworker;
 import java.io.File;
 import java.sql.Connection;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Unmarshaller;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
+import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -92,7 +91,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 OMConfiguration.getBdd().setConnectURL(url);
                 pool.recycle(unmarshaller);
 
-                final DataStoreFactory omfactory = DataStores.getFactoryById("observationSOSGeneric");
+                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSGeneric");
                 final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
                 dbConfig.parameter("Configuration").setValue(OMConfiguration);
                 dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");

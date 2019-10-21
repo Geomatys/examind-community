@@ -19,31 +19,29 @@
 
 package org.constellation.sos.ws;
 
-import org.constellation.sos.core.SOSworker;
+import java.io.File;
+import java.sql.Connection;
+import java.util.logging.Level;
+import javax.annotation.PostConstruct;
+import javax.xml.bind.Marshaller;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
+import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
+import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
-import java.io.File;
-import java.sql.Connection;
-import java.util.logging.Level;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.test.utils.SpringTestRunner;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
-import org.geotoolkit.storage.DataStores;
-
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -91,7 +89,7 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreFactory factory = DataStores.getFactoryById("observationSOSDatabase");
+                final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
                 final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
                 dbConfig.parameter("sgbdtype").setValue("derby");
                 dbConfig.parameter("derbyurl").setValue(url);

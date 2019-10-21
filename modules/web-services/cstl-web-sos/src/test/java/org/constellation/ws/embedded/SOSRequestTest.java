@@ -19,14 +19,32 @@
 
 package org.constellation.ws.embedded;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.sql.Connection;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.sis.storage.DataStoreProvider;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.admin.SpringHelper;
+import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
+import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
+import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestFile;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.xml.v100.ObservationCollectionType;
 import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.ows.xml.v110.Operation;
@@ -41,36 +59,14 @@ import org.geotoolkit.sos.xml.v100.GetFeatureOfInterest;
 import org.geotoolkit.sos.xml.v100.GetObservation;
 import org.geotoolkit.sos.xml.v200.CapabilitiesType;
 import org.geotoolkit.sos.xml.v200.GetCapabilitiesType;
-import org.junit.AfterClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.sql.Connection;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.dto.service.config.sos.ObservationFilter;
-import org.constellation.test.utils.TestRunner;
-
-import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestFile;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
-
-
+import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.api.ServiceConstants.*;
 
@@ -128,7 +124,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 con.close();
 
 
-                final DataStoreFactory factory = DataStores.getFactoryById("cstlsensor");
+                final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
                 Integer providerD = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
@@ -144,7 +140,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, sml, Long.MIN_VALUE, provider);
 
 
-                final DataStoreFactory omfactory = DataStores.getFactoryById("observationSOSDatabase");
+                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSDatabase");
                 final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
                 dbConfig.parameter("sgbdtype").setValue("derby");
                 dbConfig.parameter("derbyurl").setValue(url);

@@ -280,7 +280,7 @@ public final class DataProviders extends Static{
         Collections.sort(factories, factoryComparator);
 
         //find factory which can support the given file
-        DataStoreFactory validFactory = null;
+        DataStoreProvider validFactory = null;
         search:
         for (FileFeatureStoreFactory f : factories) {
             final Collection<String> exts = f.getSuffix();
@@ -290,7 +290,7 @@ public final class DataProviders extends Static{
 
                 if (extensions.keySet().contains(ext)) {
 
-                    validFactory = (DataStoreFactory) f;
+                    validFactory = (DataStoreProvider) f;
 
                     if (importFromDirectory) {
                         //check if we have a folder factory available

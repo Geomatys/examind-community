@@ -17,6 +17,7 @@
 
 package com.examind.process.sos.csv;
 
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIByGeom;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -38,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -54,7 +56,6 @@ import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.netcdf.OMUtils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -63,14 +64,13 @@ import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
-import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIByGeom;
 
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
  *
  * @author Samuel Andrés (Geomatys)
  * @author Guilhem Legal (Geomatys)
- * 
+ *
  */
 public class CsvObservationStore extends CSVStore implements ObservationStore {
 
@@ -132,8 +132,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     }
 
     @Override
-    public DataStoreFactory getProvider() {
-        return DataStores.getFactoryById(CsvObservationStoreFactory.NAME);
+    public DataStoreProvider getProvider() {
+        return DataStores.getProviderById(CsvObservationStoreFactory.NAME);
     }
 
     ////////////////////////////////////////////////////////////////////////////
