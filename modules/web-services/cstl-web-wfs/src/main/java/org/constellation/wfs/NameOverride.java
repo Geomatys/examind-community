@@ -15,7 +15,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.Static;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.feature.Property;

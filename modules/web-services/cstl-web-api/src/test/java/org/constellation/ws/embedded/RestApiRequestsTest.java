@@ -55,7 +55,7 @@ import static org.constellation.api.StatisticState.*;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.junit.Assert;
 
 /**

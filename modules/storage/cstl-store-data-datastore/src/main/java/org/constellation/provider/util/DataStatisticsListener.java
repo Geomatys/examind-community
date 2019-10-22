@@ -27,7 +27,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.dto.Data;
 import org.constellation.repository.DataRepository;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.process.ProcessEvent;
 import org.geotoolkit.processing.ProcessListenerAdapter;
 import static org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor.OUTCOVERAGE;

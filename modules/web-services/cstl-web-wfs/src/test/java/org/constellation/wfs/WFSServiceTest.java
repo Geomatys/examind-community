@@ -58,7 +58,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
-import org.geotoolkit.data.FeatureStoreUtilities;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;

@@ -41,7 +41,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.data.FileFeatureStoreFactory;
+import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.storage.ProviderOnFileSystem;

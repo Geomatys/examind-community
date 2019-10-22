@@ -37,7 +37,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
-import org.geotoolkit.data.AbstractReadingTests;
+import org.geotoolkit.storage.AbstractReadingTests;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;

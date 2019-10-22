@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import org.geotoolkit.image.internal.SampleType;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.storage.coverage.ImageStatistics;
 
 import java.io.IOException;
 import java.util.Iterator;

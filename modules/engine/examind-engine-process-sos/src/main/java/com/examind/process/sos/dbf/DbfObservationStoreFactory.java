@@ -33,7 +33,7 @@ import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.data.FileFeatureStoreFactory;
+import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.dbf.DbaseFeatureStoreFactory;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;

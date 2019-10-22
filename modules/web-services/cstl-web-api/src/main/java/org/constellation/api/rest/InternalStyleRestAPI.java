@@ -55,7 +55,7 @@ import org.constellation.json.view.JsonView;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.display2d.GO2Utilities;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;

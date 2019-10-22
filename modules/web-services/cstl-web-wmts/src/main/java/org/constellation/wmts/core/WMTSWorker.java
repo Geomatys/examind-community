@@ -29,7 +29,7 @@ import org.geotoolkit.wmts.xml.v100.GetTile;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;
-import org.geotoolkit.data.multires.Tile;
+import org.geotoolkit.storage.multires.Tile;
 
 
 /**

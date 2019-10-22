@@ -34,7 +34,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import org.constellation.util.Util;
-import org.geotoolkit.data.AbstractReadingTests;
+import org.geotoolkit.storage.AbstractReadingTests;
 import org.geotoolkit.feature.xml.GMLConvention;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;

@@ -42,7 +42,7 @@ import org.constellation.dto.Filter;
 import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.Util;
-import org.geotoolkit.data.FileFeatureStoreFactory;
+import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.data.dbf.DbaseFeatureStoreFactory;
 import org.geotoolkit.data.shapefile.ShapefileFeatureStoreFactory;
 import org.springframework.security.core.context.SecurityContextHolder;

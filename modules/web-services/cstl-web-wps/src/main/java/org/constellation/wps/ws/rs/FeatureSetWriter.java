@@ -21,7 +21,7 @@ package org.constellation.wps.ws.rs;
 
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 

@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.data.geojson.utils.FeatureTypeUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;

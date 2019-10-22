@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
-import org.geotoolkit.metadata.ImageStatistics;
+import org.geotoolkit.storage.coverage.ImageStatistics;
 
 /**
  * @author Quentin Boileau (Geomatys)

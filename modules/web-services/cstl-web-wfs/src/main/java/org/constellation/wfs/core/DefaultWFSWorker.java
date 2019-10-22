@@ -95,13 +95,13 @@ import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.UnauthorizedException;
-import org.geotoolkit.data.FeatureStore;
-import org.geotoolkit.data.FeatureStoreContentEvent;
-import org.geotoolkit.data.FeatureStoreRuntimeException;
-import org.geotoolkit.data.FeatureStoreUtilities;
-import org.geotoolkit.data.FeatureWriter;
-import org.geotoolkit.data.memory.ExtendedFeatureStore;
-import org.geotoolkit.data.query.QueryBuilder;
+import org.geotoolkit.storage.feature.FeatureStore;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.geotoolkit.storage.feature.FeatureWriter;
+import org.geotoolkit.storage.memory.ExtendedFeatureStore;
+import org.geotoolkit.storage.memory.InMemoryFeatureSet;
+import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.FeatureTypeExt;
 import org.geotoolkit.feature.xml.Utils;
@@ -119,7 +119,6 @@ import org.geotoolkit.gml.xml.AbstractGML;
 import org.geotoolkit.gml.xml.DirectPosition;
 import org.geotoolkit.gml.xml.v311.AbstractGeometryType;
 import org.geotoolkit.gml.xml.v311.FeaturePropertyType;
-import org.geotoolkit.internal.data.ArrayFeatureSet;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.XMLLiteral;
 import org.geotoolkit.ogc.xml.v200.BBOXType;
@@ -139,6 +138,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.geotoolkit.ows.xml.RequestBase;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.sld.xml.StyleXmlIO;
+import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wfs.xml.CreateStoredQuery;
 import org.geotoolkit.wfs.xml.CreateStoredQueryResponse;
@@ -1515,7 +1515,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         final FeatureType type = layer.getType();
                         final CoordinateReferenceSystem trueCrs = FeatureExt.getCRS(type);
                         if (trueCrs != null && !Utilities.equalsIgnoreMetadata(trueCrs, FeatureExt.getCRS(ft))) {
-                            final FeatureSet collection = new ArrayFeatureSet(type, featureCollection, null);
+                            final FeatureSet collection = new InMemoryFeatureSet(type, featureCollection);
                             final SimpleQuery reproject = QueryBuilder.reproject(collection.getType(), trueCrs);
                             featureCollection = collection.subset(reproject).features(false).collect(Collectors.toList());
                         }
@@ -1763,7 +1763,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             ft = feat.getType();
                             features.add(feat);
                         }
-                        featureObject = new ArrayFeatureSet(NamesExt.create(id), ft, features, null);
+                        featureObject = new InMemoryFeatureSet(NamesExt.create(id), ft, features);
                     }
                 } catch (IllegalArgumentException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
@@ -1784,7 +1784,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             throw new CstlServiceException(UNKNOW_TYPENAME + typeName);
                         }
                         final FeatureData layer = (FeatureData) getLayerReference(userLogin, typeName);
-                        featureCollection = new org.geotoolkit.data.FeatureSetWrapper((FeatureSet) featureObject, layer.getStore());
+                        featureCollection = new org.geotoolkit.storage.feature.FeatureSetWrapper((FeatureSet) featureObject, layer.getStore());
                     } catch (DataStoreException ex) {
                         throw new CstlServiceException(ex);
                     }

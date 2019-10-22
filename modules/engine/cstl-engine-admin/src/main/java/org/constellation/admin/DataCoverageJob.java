@@ -31,7 +31,7 @@ import org.constellation.dto.Data;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.data.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.springframework.context.annotation.Primary;

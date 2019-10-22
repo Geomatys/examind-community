@@ -52,7 +52,7 @@ import org.constellation.test.utils.TestEnvironment;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
-import org.geotoolkit.data.FeatureStoreUtilities;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.gml.xml.v311.MultiPointType;
