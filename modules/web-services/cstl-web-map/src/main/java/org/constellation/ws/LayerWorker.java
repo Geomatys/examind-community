@@ -226,6 +226,15 @@ public abstract class LayerWorker extends AbstractWorker {
         return new FilterAndDimension();
     }
 
+    protected FilterAndDimension getLayerFilterDimensions(final Integer layerId) {
+        try {
+            return layerBusiness.getLayerFilterDimension(layerId);
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, "Error while getting filter and dimension for layer", ex);
+        }
+        return new FilterAndDimension();
+    }
+
     /**
      * @param login
      *
@@ -258,7 +267,7 @@ public abstract class LayerWorker extends AbstractWorker {
     }
 
     protected Data getLayerReference(final Layer layer) throws CstlServiceException {
-        return getData(new NameInProvider(NamesExt.create(layer.getName()), layer.getProviderID(), null, layer.getAlias()));
+        return getData(new NameInProvider(layer.getId(), NamesExt.create(layer.getName()), layer.getProviderID(), null, layer.getAlias()));
     }
 
     protected Data getLayerReference(final String login, final QName layerName) throws CstlServiceException {
@@ -322,6 +331,17 @@ public abstract class LayerWorker extends AbstractWorker {
         List<StyleReference> results = new ArrayList<>();
         try {
             results.addAll(layerBusiness.getLayerStyles(getServiceId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login));
+        } catch (ConstellationException ex) {
+             LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
+        }
+        return results;
+    }
+
+
+    protected List<StyleReference> getLayerStyles(final Integer layerId) {
+        List<StyleReference> results = new ArrayList<>();
+        try {
+            results.addAll(layerBusiness.getLayerStyles(layerId));
         } catch (ConstellationException ex) {
              LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
         }

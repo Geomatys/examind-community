@@ -27,7 +27,6 @@ import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.NameInProvider;
-import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 
 /**
@@ -66,6 +65,8 @@ public interface ILayerBusiness {
 
     FilterAndDimension getLayerFilterDimension(Integer serviceId, String name, String namespace, String login) throws ConfigurationException;
 
+    FilterAndDimension getLayerFilterDimension(Integer layerId) throws ConfigurationException;
+
     NameInProvider getFullLayerName(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException;
 
     NameInProvider getFullLayerName(Integer serviceId, Integer layerId, String login) throws ConfigurationException;
@@ -99,5 +100,7 @@ public interface ILayerBusiness {
     List<LayerSummary> getLayerRefFromStyleId(final Integer styleId);
 
     List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConstellationException;
+
+    List<StyleReference> getLayerStyles(Integer layerId) throws ConstellationException;
 
 }

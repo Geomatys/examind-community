@@ -363,7 +363,7 @@ public class LayerBusiness implements ILayerBusiness {
                 version = new Date(layer.getVersion());
             }*/
             if (securityFilter.allowed(login, layer.getId())) {
-                response.add(new NameInProvider(name, provider.getIdentifier(), version, layer.getAlias()));
+                response.add(new NameInProvider(layer.getId(), name, provider.getIdentifier(), version, layer.getAlias()));
             }
         }
         return response;
@@ -455,7 +455,7 @@ public class LayerBusiness implements ILayerBusiness {
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layerName, provider.getIdentifier(), version, layer.getAlias());
+                return new NameInProvider(layer.getId(), layerName, provider.getIdentifier(), version, layer.getAlias());
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
@@ -481,7 +481,7 @@ public class LayerBusiness implements ILayerBusiness {
                   if (layer.getVersion() != null) {
                     version = new Date(layer.getVersion());
                 }*/
-                return new NameInProvider(layerName, provider.getIdentifier(), version, layer.getAlias());
+                return new NameInProvider(layerId, layerName, provider.getIdentifier(), version, layer.getAlias());
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
@@ -526,6 +526,21 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     @Override
+    public FilterAndDimension getLayerFilterDimension(final Integer layerId) throws ConfigurationException {
+
+        Layer layer = layerRepository.findById(layerId);
+        if (layer != null) {
+            org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
+            if (layerConfig != null) {
+                return new FilterAndDimension(layerConfig.getFilter(), layerConfig.getDimensions());
+            }
+        } else {
+             throw new TargetNotFoundException("Unable to find a layer:" + layerId);
+        }
+        return new FilterAndDimension();
+    }
+
+    @Override
     public List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException {
 
 
@@ -556,7 +571,15 @@ public class LayerBusiness implements ILayerBusiness {
             throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
         }
     }
-    
+
+    @Override
+    public List<StyleReference> getLayerStyles(Integer layerId) throws ConfigurationException {
+        if (layerId != null) {
+            return styleRepository.fetchByLayerId(layerId);
+        }
+        return new ArrayList<>();
+    }
+
     /**
      *
      * @param login

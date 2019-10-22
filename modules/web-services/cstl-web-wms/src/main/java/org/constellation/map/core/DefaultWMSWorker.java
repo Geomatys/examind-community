@@ -160,7 +160,6 @@ import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
 import static org.constellation.map.core.WMSConstant.KEY_TIME;
-import org.geotoolkit.util.NamesExt;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
@@ -179,7 +178,6 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.opengis.util.GenericName;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.StyleReference;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.util.DtoToOGCFilterTransformer;
@@ -430,45 +428,42 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             /*
              * Dimension: the available date
              */
-            AbstractDimension dim;
-            SortedSet<Date> dates;
             try {
-                dates = layer.getAvailableTimes();
+                final SortedSet<Date> dates = layer.getAvailableTimes();
+                if (!dates.isEmpty()) {
+                    final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
+                    final String defaut = ISO8601_FORMAT.format(dates.last());
+                    AbstractDimension dim = createDimension(queryVersion, "time", "ISO8601", defaut, null);
+                    dim.setValue(periodFormatter.getDatesRespresentation(dates));
+                    dimensions.add(dim);
+                }
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :"+ layer.getName(), ex);
-                dates = null;
-            }
-            if (dates != null && !(dates.isEmpty())) {
-                final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
-                final String defaut = ISO8601_FORMAT.format(dates.last());
-                dim = createDimension(queryVersion, "time", "ISO8601", defaut, null);
-                dim.setValue(periodFormatter.getDatesRespresentation(dates));
-                dimensions.add(dim);
             }
 
             /*
              * Dimension: the available elevation
              */
             try {
-                final SortedSet<Number> elevations = layer.getAvailableElevations();
-                if (elevations != null && !elevations.isEmpty()) {
-                    // Define elevation unit as a CRS identifier. See Annex C.2
-                    String unit = null;
-                    try {
-                        final VerticalCRS vCrs = CRS.getVerticalComponent(layerNativeEnv.getCoordinateReferenceSystem(), true);
-                        unit = ReferencingUtilities.lookupIdentifier(vCrs, true);
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Cannot find any valid identifier for vertical CRS.", e);
-                    }
-                    final String values = elevations.stream()
-                            .map(Number::toString)
-                            .collect(Collectors.joining(","));
-                    dim = createDimension(queryVersion, "elevation", unit, elevations.first().toString(), values);
-                    dimensions.add(dim);
-                }
-            } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :"+ layer.getName(), ex);
-            }
+               final SortedSet<Number> elevations = layer.getAvailableElevations();
+               if (!elevations.isEmpty()) {
+                   // Define elevation unit as a CRS identifier. See Annex C.2
+                   String unit = null;
+                   try {
+                       final VerticalCRS vCrs = CRS.getVerticalComponent(layerNativeEnv.getCoordinateReferenceSystem(), true);
+                       unit = ReferencingUtilities.lookupIdentifier(vCrs, true);
+                   } catch (Exception e) {
+                       LOGGER.log(Level.WARNING, "Cannot find any valid identifier for vertical CRS.", e);
+                   }
+                   final String values = elevations.stream()
+                           .map(Number::toString)
+                           .collect(Collectors.joining(","));
+                   AbstractDimension dim = createDimension(queryVersion, "elevation", unit, elevations.first().toString(), values);
+                   dimensions.add(dim);
+               }
+           } catch (ConstellationStoreException ex) {
+               LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :" + layer.getName(), ex);
+           }
 
             /*
              * Dimension: the dimension range
@@ -492,7 +487,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     // Workaround for one more bug in javax.measure...
                     unitSymbol = unit;
                 }
-                dim = createDimension(queryVersion, minRange + "," + maxRange, "dim_range", unit,unitSymbol, defaut, null, null, null);
+                AbstractDimension dim = createDimension(queryVersion, minRange + "," + maxRange, "dim_range", unit,unitSymbol, defaut, null, null, null);
                 dimensions.add(dim);
             }
 
@@ -1623,7 +1618,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     fml.getExtraDimensions().add(fdef);
 
                 } catch (CQLException ex) {
-                    Logging.getLogger("org.constellation.map.ws").log(Level.WARNING, null, ex);
+                    LOGGER.log(Level.WARNING, null, ex);
                 }
             }
 

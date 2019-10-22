@@ -28,16 +28,14 @@ import org.opengis.util.GenericName;
  */
 public class NameInProvider {
 
+    public Integer layerId;
     public GenericName name;
     public String providerID;
     public String alias;
     public Date dataVersion;
 
-    public NameInProvider(final GenericName name, final String providerID) {
-        this(name, providerID, null, null);
-    }
-
-    public NameInProvider(final GenericName name, final String providerID, final Date dataVersion, final String alias) {
+    public NameInProvider(final Integer layerId, final GenericName name, final String providerID, final Date dataVersion, final String alias) {
+        this.layerId = layerId;
         this.name = name;
         this.providerID = providerID;
         this.dataVersion= dataVersion;
@@ -47,6 +45,7 @@ public class NameInProvider {
     @Override
     public int hashCode() {
         int hash = 7;
+        hash = 83 * hash + Objects.hashCode(this.layerId);
         hash = 83 * hash + Objects.hashCode(this.name);
         hash = 83 * hash + Objects.hashCode(this.providerID);
         hash = 83 * hash + Objects.hashCode(this.alias);
@@ -61,7 +60,8 @@ public class NameInProvider {
         }
         if (o instanceof NameInProvider) {
             NameInProvider that = (NameInProvider) o;
-            return Objects.equals(this.alias,       that.alias) &&
+            return Objects.equals(this.layerId,     that.layerId) &&
+                   Objects.equals(this.alias,       that.alias) &&
                    Objects.equals(this.dataVersion, that.dataVersion) &&
                    Objects.equals(this.name,        that.name) &&
                    Objects.equals(this.providerID,  that.providerID);
