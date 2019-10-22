@@ -69,12 +69,6 @@ import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
-import org.geotoolkit.storage.multires.Mosaic;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
-import org.geotoolkit.storage.multires.Tile;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -95,6 +89,12 @@ import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.CoverageUtilities;
 import org.geotoolkit.storage.coverage.ImageTile;
+import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
+import org.geotoolkit.storage.multires.Mosaic;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.Pyramids;
+import org.geotoolkit.storage.multires.Tile;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
@@ -411,7 +411,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         final List<TileMatrix> tm = new ArrayList<>();
                         final double[] scales = pr.getScales();
                         for (int i = 0; i < scales.length; i++) {
-                            final Iterator<? extends Mosaic> mosaicIt = pr.getMosaics(i).iterator();
+                            final Iterator<? extends Mosaic> mosaicIt = pr.getMosaics(scales[i]).iterator();
                             if (!mosaicIt.hasNext()) {
                                 continue;
                             }
