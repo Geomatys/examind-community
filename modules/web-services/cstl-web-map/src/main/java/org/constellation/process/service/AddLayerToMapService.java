@@ -25,10 +25,8 @@ import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.util.DataReference;
-import org.geotoolkit.ogc.xml.v110.FilterType;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import org.constellation.dto.StyleReference;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
 import org.constellation.util.OGCFilterToDTOTransformer;
@@ -96,7 +94,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
 
         final DataReference layerRef        = inputParameters.getValue(LAYER_REF);
         final String layerAlias             = inputParameters.getValue(LAYER_ALIAS);
-        final DataReference layerStyleRef   = inputParameters.getValue(LAYER_STYLE);
+        final StyleReference layerStyleRef  = inputParameters.getValue(LAYER_STYLE);
         final Object layerFilter            = inputParameters.getValue(LAYER_FILTER);
         final String layerDimension         = inputParameters.getValue(LAYER_DIMENSION);
         final GetFeatureInfoCfg[] customGFI = inputParameters.getValue(LAYER_CUSTOM_GFI);
@@ -107,11 +105,6 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         final String dataType = layerRef.getDataType();
         if (dataType.equals(DataReference.PROVIDER_STYLE_TYPE) || dataType.equals(DataReference.SERVICE_TYPE)) {
             throw new ProcessException("Layer Reference must be a from a layer provider.", this, null);
-        }
-
-        //check style from a style provider
-        if (layerStyleRef != null && !layerStyleRef.getDataType().equals(DataReference.PROVIDER_STYLE_TYPE)) {
-            throw new ProcessException("Layer Style reference must be a from a style provider.", this, null);
         }
 
         //test alias
@@ -151,7 +144,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
 
         //add style if exist
         if (layerStyleRef != null) {
-            final List<DataReference> styles = new ArrayList<>();
+            final List<StyleReference> styles = new ArrayList<>();
             styles.add(layerStyleRef);
             newLayer.setStyles(styles);
         }

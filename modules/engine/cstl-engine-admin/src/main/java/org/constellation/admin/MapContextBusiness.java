@@ -51,7 +51,6 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
-import org.constellation.util.DataReference;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
@@ -65,6 +64,7 @@ import org.constellation.business.IUserBusiness;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleBrief;
+import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.util.Util;
@@ -391,13 +391,13 @@ public class MapContextBusiness implements IMapContextBusiness {
                 layerConfig.setDataId(layer.getDataId());
 
                 final List<Integer> styledLays = styledLayerRepository.findByLayer(layer.getId());
-                final List<DataReference> drs = new ArrayList<>();
+                final List<StyleReference> drs = new ArrayList<>();
                 for (final Integer styledLay : styledLays) {
                     final Style s = styleRepository.findById(styledLay);
                     if (s == null) {
                         continue;
                     }
-                    final DataReference dr = DataReference.createProviderDataReference(DataReference.PROVIDER_STYLE_TYPE, "sld", s.getName());
+                    final StyleReference dr = new StyleReference(s.getId(), s.getName(), s.getProviderId(), "sld");
                     drs.add(dr);
                 }
                 layerConfig.setStyles(drs);
@@ -431,13 +431,13 @@ public class MapContextBusiness implements IMapContextBusiness {
 
                 // Fill styles
                 final List<Integer> stylesIds = styleRepository.getStyleIdsForData(dataID);
-                final List<DataReference> drs = new ArrayList<>();
+                final List<StyleReference> drs = new ArrayList<>();
                 for (final Integer styleId : stylesIds) {
                     final Style s = styleRepository.findById(styleId);
                     if (s == null) {
                         continue;
                     }
-                    final DataReference dr = DataReference.createProviderDataReference(DataReference.PROVIDER_STYLE_TYPE, "sld", s.getName());
+                    final StyleReference dr = new StyleReference(s.getId(), s.getName(), s.getProviderId(), "sld");
                     drs.add(dr);
                 }
                 layerConfig.setStyles(drs);
@@ -467,7 +467,7 @@ public class MapContextBusiness implements IMapContextBusiness {
                 final DataBrief db) {
         List<StyleBrief> layerStyleBrief = null;
         if (layer != null) {
-            layerStyleBrief = Util.convertIntoStylesBrief(layer.getStyles());
+            layerStyleBrief = Util.convertRefIntoStylesBrief(layer.getStyles());
         }
         return new MapContextStyledLayerDTO(mcSl.getId(),
                 mcSl.getMapcontextId(),

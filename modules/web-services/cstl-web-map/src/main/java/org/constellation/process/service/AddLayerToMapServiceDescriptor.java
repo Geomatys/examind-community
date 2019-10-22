@@ -33,6 +33,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
 import static org.constellation.api.CommonConstants.SUPPORTED_SERVICE_TYPE;
+import org.constellation.dto.StyleReference;
 
 /**
  * Add a layer to a map service. If service instance doesn't exist, process will create it.
@@ -102,11 +103,11 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      */
     public static final String LAYER_STYLE_PARAM_NAME = "layer_style_reference";
     public static final InternationalString LAYER_STYLE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_STYLE_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<DataReference> LAYER_STYLE = BUILDER
+    public static final ParameterDescriptor<StyleReference> LAYER_STYLE = BUILDER
             .addName(LAYER_STYLE_PARAM_NAME)
             .setRemarks(LAYER_STYLE_PARAM_REMARKS)
             .setRequired(false)
-            .create(DataReference.class, null);
+            .create(StyleReference.class, null);
 
     /*
      * Layer filter

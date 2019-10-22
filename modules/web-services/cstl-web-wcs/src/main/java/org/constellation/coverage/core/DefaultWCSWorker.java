@@ -30,7 +30,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
-import org.constellation.util.DataReference;
 import org.constellation.util.WCSUtils;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
@@ -175,6 +174,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
 import org.apache.sis.storage.GridCoverageResource;
+import org.constellation.dto.StyleReference;
 import org.geotoolkit.swe.xml.v200.AllowedValuesPropertyType;
 import org.geotoolkit.swe.xml.v200.AllowedValuesType;
 import org.geotoolkit.swe.xml.v200.DataRecordPropertyType;
@@ -865,12 +865,12 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
         }
         final CoverageData layerRef = (CoverageData) tmplayerRef;
-        final Layer configLayer = getConfigurationLayer(tmpName, userLogin);
+        final List<StyleReference> layerStyles = getLayerStyles(userLogin, tmpName);
 
         // TODO : if no subsetting is done, and queried output format is the same as queried data, we could directly
         // send back original data file. It would be far less complex, and far more optimized.
         if ("2.0.1".equals(inputVersion)) {
-            return getCoverage200(request, layerRef, configLayer);
+            return getCoverage200(request, layerRef, layerStyles);
         }
 
         Date date = null;
@@ -1051,10 +1051,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             renderParameters.put("ELEVATION", elevation);
             final SceneDef sdef = new SceneDef();
 
-            final List<DataReference> styles = configLayer.getStyles();
             final MutableStyle style;
-            if (!styles.isEmpty()) {
-                final DataReference styleName = styles.get(0);
+            if (!layerStyles.isEmpty()) {
+                final StyleReference styleName = layerStyles.get(0);
                 final MutableStyle incomingStyle = getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {
@@ -1099,7 +1098,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
     }
 
-    private Object getCoverage200(final GetCoverage request, final CoverageData layerRef, final Layer configLayer) throws CstlServiceException {
+    private Object getCoverage200(final GetCoverage request, final CoverageData layerRef, final List<StyleReference> styles) throws CstlServiceException {
         boolean isMultiPart = false;
         if (request.getMediaType() != null) {
             if (request.getMediaType().equals("multipart/mixed")) {
@@ -1291,10 +1290,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // SCENE
             final SceneDef sdef = new SceneDef();
 
-            final List<DataReference> styles = configLayer.getStyles();
             final MutableStyle style;
             if (!styles.isEmpty()) {
-                final DataReference styleName = styles.get(0);
+                final StyleReference styleName = styles.get(0);
                 final MutableStyle incomingStyle = getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {

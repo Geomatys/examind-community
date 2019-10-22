@@ -38,6 +38,7 @@ import java.util.Objects;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Reference;
 import org.constellation.dto.StringList;
+import org.constellation.dto.StyleReference;
 
 /**
  *
@@ -65,7 +66,7 @@ public class Layer {
     private Long version;
 
     @XmlElement(name="style")
-    private List<DataReference> styles;
+    private List<StyleReference> styles;
 
     @XmlElement(name="filter")
     private Filter filter;
@@ -143,7 +144,7 @@ public class Layer {
         this.name = name;
     }
 
-    public Layer(final Integer id, final QName name, final List<DataReference> styles) {
+    public Layer(final Integer id, final QName name, final List<StyleReference> styles) {
         this.id = id;
         this.name = name;
         this.styles = styles;
@@ -156,20 +157,20 @@ public class Layer {
         this(id, name, null, null, null, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs);
     }
 
-    public Layer(final Integer id, final QName name, final List<DataReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
             final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
             final List<String> crs)
     {
         this(id, name, styles, filter, alias, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs, null);
     }
 
-    public Layer(final Integer id, final QName name, final List<DataReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
             final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
             final List<String> crs, final List<DimensionDefinition> dimensions) {
         this(id, name, styles, filter, alias, title, abstrac, keywords, metadataURL, dataURL, authorityURL, identifier, attribution, opaque, crs, dimensions, null);
     }
 
-    public Layer(final Integer id, final QName name, final List<DataReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
+    public Layer(final Integer id, final QName name, final List<StyleReference> styles, final Filter filter, final String alias, final String title, final String abstrac, final List<String> keywords, final FormatURL metadataURL,
                  final FormatURL dataURL, final FormatURL authorityURL, final Reference identifier, final AttributionType attribution, final Boolean opaque,
                  final List<String> crs, final List<DimensionDefinition> dimensions, final Date version) {
         this.id           = id;
@@ -187,7 +188,7 @@ public class Layer {
         this.opaque       = opaque;
         this.crs          = crs;
         this.dimensions   = dimensions;
-        this.version      = version != null ? Long.valueOf(version.getTime()): null;
+        this.version      = version != null ? version.getTime(): null;
         this.alias        = alias;
         this.getFeatureInfoCfgs = null;
     }
@@ -222,14 +223,14 @@ public class Layer {
         this.name = name;
     }
 
-    public List<DataReference> getStyles() {
+    public List<StyleReference> getStyles() {
         if (styles == null) {
             styles = new ArrayList<>();
         }
         return styles;
     }
 
-    public void setStyles(final List<DataReference> styles) {
+    public void setStyles(final List<StyleReference> styles) {
         this.styles = styles;
     }
 
@@ -490,7 +491,7 @@ public class Layer {
             sb.append("name:\n").append(name).append('\n');
         }
         if (styles != null && !styles.isEmpty()) {
-            for (DataReference style : styles) {
+            for (StyleReference style : styles) {
                 sb.append("style:\n").append(style).append('\n');
             }
         }

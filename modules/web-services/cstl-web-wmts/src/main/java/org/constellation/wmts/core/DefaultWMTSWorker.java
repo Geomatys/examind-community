@@ -54,6 +54,7 @@ import org.apache.sis.storage.event.ChangeListener;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
+import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.exception.ConfigurationException;
@@ -610,9 +611,9 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final Layer configLayer     = getConfigurationLayer(layerName, userLogin);
 
         // build an equivalent style List
-        final String styleName       = getTile.getStyle();
-        final DataReference styleRef = Util.getStyleReference(styleName, configLayer.getStyles());
-        final MutableStyle style     = getStyle(styleRef);
+        final String styleName        = getTile.getStyle();
+        final StyleReference styleRef = Util.findStyleReference(styleName, configLayer.getStyles());
+        final MutableStyle style      = getStyle(styleRef);
 
 
         GridCoverage c = null;

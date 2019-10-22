@@ -31,7 +31,6 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
-import org.constellation.util.DataReference;
 import org.constellation.ws.security.SimplePDP;
 import org.geotoolkit.factory.FactoryNotFoundException;
 import org.geotoolkit.style.MutableStyle;
@@ -52,7 +51,6 @@ import org.constellation.business.MessageException;
 import org.constellation.business.MessageListener;
 import org.constellation.dto.NameInProvider;
 import org.constellation.provider.DataProvider;
-import org.constellation.util.Util;
 import org.geotoolkit.util.NamesExt;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
@@ -276,6 +274,7 @@ public abstract class LayerWorker extends AbstractWorker {
 
     /**
      * Search layer real name and return the LayerDetails from LayerProvider.
+     *
      * @param login
      * @param layerName
      * @return a LayerDetails
@@ -346,25 +345,6 @@ public abstract class LayerWorker extends AbstractWorker {
              LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
         }
         return results;
-    }
-
-    /**
-     * @deprecated use directly {@link #getStyle(org.constellation.dto.StyleReference)
-     */
-    @Deprecated
-    protected MutableStyle getStyle(final DataReference styleReference) throws CstlServiceException {
-        MutableStyle style;
-        if (styleReference != null) {
-            try {
-                style = (MutableStyle) styleBusiness.getStyle(styleReference.getProviderId(), Util.getLayerId(styleReference).tip().toString());
-            } catch (TargetNotFoundException e) {
-                throw new CstlServiceException("Style provided: " + styleReference.getReference() + " not found.", STYLE_NOT_DEFINED);
-            }
-        } else {
-            //no defined styles, use the favorite one, let the layer get it himself.
-            style = null;
-        }
-        return style;
     }
 
     protected MutableStyle getStyle(final StyleReference styleReference) throws CstlServiceException {

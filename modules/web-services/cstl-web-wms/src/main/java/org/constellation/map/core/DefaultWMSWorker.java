@@ -638,14 +638,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             }
             // we build a Style Object
-            final List<DataReference> stylesName = configLayer.getStyles();
+            final List<StyleReference> stylesName = configLayer.getStyles();
             final List<org.geotoolkit.wms.xml.Style> styles = new ArrayList<>();
             if (stylesName != null && !stylesName.isEmpty()) {
                 // For each styles defined for the layer, get the dimension of the getLegendGraphic response.
-                for (DataReference styleName : stylesName) {
+                for (StyleReference styleName : stylesName) {
                     final MutableStyle ms = getStyle(styleName);
-                    String legendUrlPng2 =  legendUrlPng+"&STYLE="+ Util.getLayerId(styleName).tip().toString();
-                    String legendUrlGif2 =  legendUrlGif+"&STYLE="+ Util.getLayerId(styleName).tip().toString();
+                    String legendUrlPng2 =  legendUrlPng+"&STYLE="+ styleName.getName();
+                    String legendUrlGif2 =  legendUrlGif+"&STYLE="+ styleName.getName();
                     final org.geotoolkit.wms.xml.Style style = convertMutableStyleToWmsStyle(queryVersion, ms, layer, legendUrlPng2, legendUrlGif2);
                     styles.add(style);
                 }
@@ -1113,7 +1113,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         isWorking();
         final String userLogin   = getUserLogin();
         final Data data = getLayerReference(userLogin, getLegend.getLayer());
-        final Layer layerConf = getConfigurationLayer(getLegend.getLayer(), userLogin);
+        final List<StyleReference> layerStyles = getLayerStyles(userLogin, getLegend.getLayer());
         final String layerName = data.getName().toString();
         if (!data.isQueryable(ServiceDef.Query.WMS_ALL)) {
             throw new CstlServiceException("You are not allowed to request the layer \""+
@@ -1180,27 +1180,17 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = (MutableStyle) emptyNameMutableLayers.get(0).styles().get(0);
                 }
             } else if (style != null && !style.isEmpty()) {
-                final List<DataReference> defaultStyleRefs = layerConf.getStyles();
-                if (defaultStyleRefs != null) {
-                    for (DataReference ref : defaultStyleRefs) {
-                        final String sn = Util.getLayerId(ref).tip().toString();
-                        if(sn.equals(style)) {
-                            ms = getStyle(ref);
-                            break;
-                        }
+                for (StyleReference ref : layerStyles) {
+                    if(style.equals(ref.getName())) {
+                        ms = getStyle(ref);
+                        break;
                     }
-                } else {
-                    ms = null;
                 }
             } else {
                 // No sld given, we use the style.
-
-                final List<DataReference> defaultStyleRefs = layerConf.getStyles();
-                if (defaultStyleRefs != null && !defaultStyleRefs.isEmpty()) {
-                    final DataReference styleRef = defaultStyleRefs.get(0);
-                    ms = (Util.getLayerId(styleRef) == null) ? null : getStyle(styleRef);
-                } else {
-                    ms = null;
+                if (!layerStyles.isEmpty()) {
+                    final StyleReference styleRef = layerStyles.get(0);
+                    ms = getStyle(styleRef);
                 }
             }
             image = WMSUtilities.getLegendGraphic(layer.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);

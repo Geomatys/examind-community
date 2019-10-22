@@ -248,4 +248,19 @@ public final class Util {
         }
         return briefs;
     }
+
+    public static List<StyleBrief> convertRefIntoStylesBrief(final List<StyleReference> refs) {
+        final List<StyleBrief> briefs = new ArrayList<>();
+        if (refs != null) {
+            for (final StyleReference ref: refs) {
+                final StyleBrief styleToAdd = new StyleBrief();
+                styleToAdd.setProvider(ref.getProviderIdentifier());
+                final String styleName = ref.getName();
+                styleToAdd.setName(styleName);
+                styleToAdd.setTitle(styleName);
+                briefs.add(styleToAdd);
+            }
+        }
+        return briefs;
+    }
 }

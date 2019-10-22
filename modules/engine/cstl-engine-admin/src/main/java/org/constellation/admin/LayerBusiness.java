@@ -62,7 +62,6 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.StyleRepository;
-import org.constellation.util.DataReference;
 import org.constellation.ws.LayerSecurityFilter;
 import org.constellation.ws.MapFactory;
 import org.geotoolkit.util.NamesExt;
@@ -621,7 +620,7 @@ public class LayerBusiness implements ILayerBusiness {
 
 
         for (Style style : styles) {
-            DataReference styleProviderReference = DataReference.createProviderDataReference(DataReference.PROVIDER_STYLE_TYPE, "sld", style.getName());
+            StyleReference styleProviderReference = new StyleReference(style.getId(),  style.getName(), style.getProviderId(), "sld");
             layerConfig.getStyles().add(styleProviderReference);
         }
 

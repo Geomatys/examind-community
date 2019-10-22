@@ -51,6 +51,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.constellation.dto.StyleReference;
 import org.geotoolkit.util.NamesExt;
 import org.constellation.exception.ConstellationException;
 import static org.junit.Assert.assertEquals;
@@ -67,7 +68,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
     private static final String PROCESS_NAME = "service.add_layer";
     private static final DataReference COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, "shapeProvider", "Countries");
-    private static final DataReference STYLE_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_STYLE_TYPE, "styleProvider", "redBlue");
+    private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
     private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
     @Before
