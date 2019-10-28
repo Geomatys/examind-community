@@ -975,6 +975,33 @@ public class WFSWorkerTest {
                 );
 
 
+        /**
+         * Test 8 : query on typeName Bridges with FID == 110
+         */
+        queries = new ArrayList<>();
+        ComparisonOpsType pe     = new PropertyIsEqualToType(new LiteralType("110"), new PropertyNameType("FID"), Boolean.TRUE);
+        FilterType filter        = new FilterType(pe);
+        query = new QueryType(filter, Arrays.asList(new QName("http://www.opengis.net/gml", "Bridges")), null);
+        queries.add(query);
+        request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+
+        result = worker.getFeature(request);
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+
+        writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(sresult,
+                IOUtilities.getResourceAsPath("org.constellation.wfs.xml.bridgeCollection-2.xml")
+                );
+
+
+
     }
 
     @Test

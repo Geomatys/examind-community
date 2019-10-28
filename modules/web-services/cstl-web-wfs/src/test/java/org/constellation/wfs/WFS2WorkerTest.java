@@ -1187,6 +1187,34 @@ public class WFS2WorkerTest {
         domCompare(
                 IOUtilities.getResourceAsPath("org.constellation.wfs.xml.namedPlacesCollection-1v2.xml"),
                 sresult);
+
+
+        /*
+         * Test 7 : query on typeName NamedPlaces with ASC sortBy on NAME property (not supported)
+         */
+        queries = new ArrayList<>();
+        PropertyIsEqualToType pe = new PropertyIsEqualToType(new LiteralType("110"), "FID", Boolean.TRUE);
+        FilterType filter = new FilterType(pe);
+        query = new QueryType(filter, Arrays.asList(new QName("http://www.opengis.net/gml/3.2", "Bridges")), null);
+        queries.add(query);
+        request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+        assertEquals("3.2.1", wrapper.getGmlVersion());
+
+        writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(
+                IOUtilities.getResourceAsPath("org.constellation.wfs.xml.bridgeCollectionv2.xml"),
+                sresult);
     }
 
     /**

@@ -2050,7 +2050,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             filter = (Filter) filter.accept(new UnprefixerFilterVisitor(ft), null);
             filter = (Filter) filter.accept(new DefaultGeomPropertyVisitor(ft), null);
             filter = (Filter) filter.accept(new GMLNamespaceVisitor(), null);
-            filter = (Filter) filter.accept(new BooleanVisitor(ft), null);
+            filter = (Filter) filter.accept(new LiteralCorrectionVisitor(ft), null);
 
             final String defaultCRS = getCRSCode(ft);
             final CoordinateReferenceSystem exposedCrs = CRS.forCode(defaultCRS);

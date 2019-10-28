@@ -32,11 +32,11 @@ import org.opengis.filter.expression.PropertyName;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class BooleanVisitor extends DuplicatingFilterVisitor {
+public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
 
     private final FeatureType ft;
 
-    public BooleanVisitor(final FeatureType ft) {
+    public LiteralCorrectionVisitor(final FeatureType ft) {
         this.ft = ft;
     }
 
@@ -62,6 +62,9 @@ public class BooleanVisitor extends DuplicatingFilterVisitor {
                                 booleanLit = getFactory(extraData).literal(false);
                             }
                             return getFactory(extraData).equals(exp1, booleanLit);
+                        } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
+                            final Literal stringLit = getFactory(extraData).literal(String.valueOf(literal.getValue()));
+                            return getFactory(extraData).equals(exp1, stringLit);
                         }
                     }
                 }
@@ -90,7 +93,10 @@ public class BooleanVisitor extends DuplicatingFilterVisitor {
                             } else {
                                 booleanLit = getFactory(extraData).literal(false);
                             }
-                            return getFactory(extraData).equals(exp1, booleanLit);
+                            return getFactory(extraData).notEqual(exp1, booleanLit);
+                        } else if (descriptor.getValueClass().equals(String.class) && literal.getValue() instanceof Number) {
+                            final Literal stringLit = getFactory(extraData).literal(String.valueOf(literal.getValue()));
+                            return getFactory(extraData).notEqual(exp1, stringLit);
                         }
                     }
                 }
