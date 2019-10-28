@@ -162,6 +162,20 @@ public interface IServiceBusiness {
      */
     Integer create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner) throws ConfigurationException;
 
+    /**
+     * Create a new service instance from input information.
+     * @param serviceType Type of service to instantiate (CSW, WMS, etc.)
+     * @param identifier The name to give to the service.
+     * @param configuration An optional configuration specific to the queried type of service (WPS -- ProcessContext, etc.).
+     * @param serviceMetadata An ISO 19115-2 metadata file to describe the service. If null a default empty metadata will be created.
+     * @param owner the owner id, or {@code null} if you want to use the current logged user.
+     * @param impl
+     *
+     * @return The configuration object of this service (can be auto generated).
+     * @throws ConfigurationException
+     */
+    Integer create(String serviceType, String identifier, Object configuration, Details serviceMetadata, Integer owner, String impl) throws ConfigurationException;
+
     List<String> getServiceIdentifiers(String type);
 
     /**

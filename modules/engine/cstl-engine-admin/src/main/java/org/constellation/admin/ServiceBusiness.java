@@ -125,6 +125,16 @@ public class ServiceBusiness implements IServiceBusiness {
     @Transactional
     public Integer create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner)
             throws ConfigurationException {
+        return create(serviceType, identifier, configuration, details, owner, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public Integer create(final String serviceType, final String identifier, Object configuration, Details details, Integer owner, String impl)
+            throws ConfigurationException {
 
         if (identifier == null || identifier.isEmpty()) {
             throw new ConfigurationException("Service instance identifier can't be null or empty.");
@@ -150,6 +160,8 @@ public class ServiceBusiness implements IServiceBusiness {
         }
         service.setIdentifier(identifier);
         service.setStatus(ServiceStatus.STOPPED.toString());
+        service.setImpl(impl);
+
         // TODO metadata-Iso
 
         if (details == null) {
