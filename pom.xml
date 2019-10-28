@@ -676,11 +676,6 @@
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
-                <artifactId>geotk-coverage-landsat</artifactId>
-                <version>${geotoolkit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-feature-om</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
