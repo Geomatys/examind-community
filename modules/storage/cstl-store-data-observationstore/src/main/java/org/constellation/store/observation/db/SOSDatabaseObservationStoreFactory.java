@@ -17,6 +17,8 @@
 
 package org.constellation.store.observation.db;
 
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
@@ -31,7 +33,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR,canCreate = true,canWrite = true)
+@StoreMetadata(
+        formatName = SOSDatabaseObservationStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.CREATE, Capability.WRITE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class SOSDatabaseObservationStoreFactory extends AbstractObservationStoreFactory {
 
     /** factory identification **/

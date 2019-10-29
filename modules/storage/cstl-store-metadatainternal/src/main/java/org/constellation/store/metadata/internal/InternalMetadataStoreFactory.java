@@ -19,6 +19,8 @@
 package org.constellation.store.metadata.internal;
 
 import java.util.Map;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -40,7 +42,10 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Johann Sorel (Geomatys)
  */
 
-@StoreMetadataExt(resourceTypes = ResourceType.METADATA, canWrite = true)
+@StoreMetadata(
+        formatName = InternalMetadataStoreFactory.NAME,
+        capabilities = {Capability.WRITE})
+@StoreMetadataExt(resourceTypes = ResourceType.METADATA)
 public class InternalMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();

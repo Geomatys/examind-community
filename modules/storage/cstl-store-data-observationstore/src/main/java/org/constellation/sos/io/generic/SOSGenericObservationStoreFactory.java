@@ -17,6 +17,8 @@
 
 package org.constellation.sos.io.generic;
 
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
@@ -32,7 +34,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR,canCreate = true,canWrite = true)
+@StoreMetadata(
+        formatName = SOSGenericObservationStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.CREATE, Capability.WRITE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class SOSGenericObservationStoreFactory extends AbstractObservationStoreFactory {
 
     /** factory identification **/

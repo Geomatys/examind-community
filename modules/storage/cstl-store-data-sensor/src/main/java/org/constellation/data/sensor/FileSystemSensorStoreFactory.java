@@ -19,6 +19,8 @@
 package org.constellation.data.sensor;
 
 import java.nio.file.Path;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -32,7 +34,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  *  @author Guilhem Legal (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR,canWrite = true)
+@StoreMetadata(
+        formatName = FileSystemSensorStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.WRITE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class FileSystemSensorStoreFactory extends DataStoreFactory {
 
      /** factory identification **/
@@ -51,7 +57,7 @@ public class FileSystemSensorStoreFactory extends DataStoreFactory {
     public String getShortName() {
         return NAME;
     }
-    
+
     public CharSequence getDescription() {
         return "File system sensor store";
     }

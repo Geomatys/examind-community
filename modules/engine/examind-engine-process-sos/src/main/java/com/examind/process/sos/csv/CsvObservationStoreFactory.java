@@ -35,6 +35,8 @@ import org.apache.sis.feature.DefaultAttributeType;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.referencing.CommonCRS;
@@ -68,6 +70,9 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Samuel Andrés (Geomatys)
  */
+@StoreMetadata(
+        formatName = CsvObservationStoreFactory.NAME,
+        capabilities = Capability.READ)
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class CsvObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
 

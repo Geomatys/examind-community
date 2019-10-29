@@ -18,6 +18,8 @@
 package org.constellation.sos.io.lucene;
 
 import java.nio.file.Path;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
@@ -32,7 +34,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR,canCreate = true,canWrite = true)
+@StoreMetadata(
+        formatName = SOSLuceneObservationStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.WRITE, Capability.CREATE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class SOSLuceneObservationStoreFactory extends AbstractObservationStoreFactory {
 
     /** factory identification **/
@@ -70,7 +76,7 @@ public class SOSLuceneObservationStoreFactory extends AbstractObservationStoreFa
     public String getShortName() {
         return NAME;
     }
-    
+
     @Override
     public ParameterDescriptorGroup getOpenParameters() {
         return PARAMETERS_DESCRIPTOR;

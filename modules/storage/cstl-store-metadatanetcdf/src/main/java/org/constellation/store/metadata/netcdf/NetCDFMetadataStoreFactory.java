@@ -20,6 +20,8 @@ package org.constellation.store.metadata.netcdf;
 
 import java.nio.file.Path;
 import java.util.Map;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -40,7 +42,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Johann Sorel (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.METADATA, canWrite = true)
+@StoreMetadata(
+        formatName = NetCDFMetadataStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.WRITE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.METADATA)
 public class NetCDFMetadataStoreFactory extends DataStoreProvider {
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();

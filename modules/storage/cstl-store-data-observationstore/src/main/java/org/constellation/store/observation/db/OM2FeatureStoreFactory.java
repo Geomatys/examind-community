@@ -37,6 +37,9 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import java.io.IOException;
 import java.util.logging.Level;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.storage.FeatureSet;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.ResourceType;
@@ -48,6 +51,10 @@ import org.opengis.parameter.ParameterNotFoundException;
  * @author Guilhem Legal (Geomatys)
  * @author Johann Sorel (Geomatys)
  */
+@StoreMetadata(
+        formatName = OM2FeatureStoreFactory.NAME,
+        capabilities = {Capability.READ},
+        resourceTypes = {FeatureSet.class})
 @StoreMetadataExt(
         resourceTypes = ResourceType.VECTOR,
         geometryTypes ={Geometry.class,

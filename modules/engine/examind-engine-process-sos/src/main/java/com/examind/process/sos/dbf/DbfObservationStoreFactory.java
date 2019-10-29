@@ -28,9 +28,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
@@ -49,6 +52,10 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Samuel Andrés (Geomatys)
  * @author Guilhem Legal (Geomatys)
  */
+@StoreMetadata(
+        formatName = DbfObservationStoreFactory.NAME,
+        capabilities = Capability.READ,
+        resourceTypes = {FeatureSet.class})
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class DbfObservationStoreFactory extends FileParsingObservationStoreFactory implements ProviderOnFileSystem {
 

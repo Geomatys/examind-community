@@ -18,6 +18,8 @@
  */
 package org.constellation.data.sensor;
 
+import org.apache.sis.internal.storage.Capability;
+import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -31,7 +33,11 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@StoreMetadataExt(resourceTypes = ResourceType.SENSOR,canWrite = true)
+@StoreMetadata(
+        formatName = InternalSensorStoreFactory.NAME,
+        capabilities = {Capability.READ, Capability.WRITE},
+        resourceTypes = {})
+@StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class InternalSensorStoreFactory extends DataStoreFactory {
 
      /** factory identification **/
@@ -47,7 +53,7 @@ public class InternalSensorStoreFactory extends DataStoreFactory {
     public String getShortName() {
         return NAME;
     }
-    
+
     public CharSequence getDescription() {
         return "Constellation internal sensor store";
     }
