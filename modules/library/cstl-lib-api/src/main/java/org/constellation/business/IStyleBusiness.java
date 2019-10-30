@@ -38,6 +38,8 @@ public interface IStyleBusiness {
 
     void deleteStyle(int id) throws ConfigurationException;
 
+    void deleteAll() throws ConfigurationException;
+
     void writeStyle(String key, Integer id, StyleType styleType, org.opengis.style.Style style) throws IOException;
 
     org.opengis.style.Style getStyle(String providerID, String styleName) throws TargetNotFoundException;

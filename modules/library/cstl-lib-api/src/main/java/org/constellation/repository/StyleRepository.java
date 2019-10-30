@@ -60,6 +60,8 @@ public interface StyleRepository {
 
     void delete(int id);
 
+    void deleteAll();
+
     void update(Style s);
 
     public boolean existsById(int styleId);

@@ -460,6 +460,11 @@ public class StyleBusiness implements IStyleBusiness {
         styleRepository.delete(id);
     }
 
+    @Override
+    @Transactional
+    public void deleteAll() throws ConfigurationException {
+        styleRepository.deleteAll();
+    }
     /**
      * Links a style resource to an existing data resource.
      *

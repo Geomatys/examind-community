@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -325,6 +326,13 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
 
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Error while linking style and data", ex);
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        for (Integer sid : new HashSet<Integer>(byId.keySet())) {
+            delete(sid);
         }
     }
 

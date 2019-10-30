@@ -136,7 +136,12 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
     @Transactional(propagation = Propagation.MANDATORY)
     public void delete(int styleId) {
         dsl.delete(STYLE).where(STYLE.ID.eq(styleId)).execute();
+    }
 
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteAll() {
+        dsl.delete(STYLE).execute();
     }
 
     @Override
