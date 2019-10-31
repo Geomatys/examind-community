@@ -58,6 +58,7 @@
         <module>cstl-web-wfs</module>
         <module>cstl-web-wps</module>
         <module>cstl-web-thw</module>
+        <module>cstl-web-sts</module>
         <module>wps-logic</module>
     </modules>
 

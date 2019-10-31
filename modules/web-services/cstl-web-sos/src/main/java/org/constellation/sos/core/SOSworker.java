@@ -242,10 +242,6 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class SOSworker extends AbstractWorker {
 
-    public static final int DISCOVERY     = 0;
-    public static final int TRANSACTIONAL = 1;
-
-
     /**
      * A list of temporary ObservationTemplate
      */
@@ -274,7 +270,7 @@ public class SOSworker extends AbstractWorker {
     /**
      * The profile of the SOS service (transational/discovery).
      */
-    private int profile;
+    private boolean isTransactionnal;
 
     /**
      * The Observation provider
@@ -348,7 +344,7 @@ public class SOSworker extends AbstractWorker {
             SensorConfigurationUpgrade upgrader = new SensorConfigurationUpgrade();
             upgrader.upgradeConfiguration(id);
 
-            this.profile               = configuration.getProfile();
+            this.isTransactionnal      = configuration.getProfile() == 1;
             this.verifySynchronization = configuration.isVerifySynchronization();
             this.keepCapabilities      = configuration.isKeepCapabilities();
 
@@ -451,7 +447,7 @@ public class SOSworker extends AbstractWorker {
     private void logInfos() {
         final StringBuilder infos = new StringBuilder();
 
-        if (this.profile == DISCOVERY) {
+        if (!isTransactionnal) {
             infos.append("Discovery profile loaded.\n");
         } else {
             infos.append("Transactional profile loaded.\n");
@@ -565,7 +561,7 @@ public class SOSworker extends AbstractWorker {
         }
 
         //we remove the operation not supported in this profile (transactional/discovery)
-        if (profile == DISCOVERY) {
+        if (!isTransactionnal) {
             om.removeOperation(INSERT_OBSERVATION);
             om.removeOperation(REGISTER_SENSOR);
             om.removeOperation(INSERT_SENSOR);
@@ -758,6 +754,8 @@ public class SOSworker extends AbstractWorker {
     }
 
     public DeleteSensorResponse deleteSensor(final DeleteSensor request) throws CstlServiceException  {
+        assertTransactionnal(DELETE_SENSOR);
+
         LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
@@ -1729,6 +1727,8 @@ public class SOSworker extends AbstractWorker {
     }
 
     public InsertResultResponse insertResult(final InsertResult request) throws CstlServiceException {
+        assertTransactionnal(INSERT_RESULT);
+
         LOGGER.log(Level.INFO, "InsertResult request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
@@ -1903,13 +1903,8 @@ public class SOSworker extends AbstractWorker {
      * @throws org.constellation.ws.CstlServiceException
      */
     public InsertSensorResponse registerSensor(final InsertSensor request) throws CstlServiceException {
-        if (profile == DISCOVERY) {
-            throw new CstlServiceException("The operation registerSensor is not supported by the service",
-                     INVALID_PARAMETER_VALUE, "request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform an registerSensor request.");
-        }
+        assertTransactionnal(REGISTER_SENSOR);
+
         LOGGER.log(Level.INFO, "registerSensor request processing\n");
         final long start = System.currentTimeMillis();
 
@@ -2036,13 +2031,7 @@ public class SOSworker extends AbstractWorker {
      * @throws CstlServiceException
      */
     public InsertObservationResponse insertObservation(final InsertObservation request) throws CstlServiceException {
-        if (profile == DISCOVERY) {
-            throw new CstlServiceException("The operation insertObservation is not supported by the service",
-                     INVALID_PARAMETER_VALUE, "request");
-        }
-        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
-            throw new UnauthorizedException("You must be authentified to perform an insertObservation request.");
-        }
+        assertTransactionnal(INSERT_OBSERVATION);
 
         LOGGER.log(Level.INFO, "InsertObservation request processing\n");
         final long start = System.currentTimeMillis();
@@ -2477,6 +2466,16 @@ public class SOSworker extends AbstractWorker {
         });
         startError = "The service has been shutdown";
         isStarted = false;
+    }
+
+    private void assertTransactionnal(final String requestName) throws CstlServiceException {
+        if (!isTransactionnal) {
+            throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
+                     INVALID_PARAMETER_VALUE, "request");
+        }
+        if (isTransactionSecurized() && !SecurityManagerHolder.getInstance().isAuthenticated()) {
+            throw new UnauthorizedException("You must be authentified to perform an " + requestName + " request.");
+        }
     }
 
    /**

@@ -218,6 +218,7 @@ public enum ServiceDef {
         PDP("Policy Decision Point"),
         THW("Thesaurus"),
         TMS("Tile Map Service"),
+        STS("Sensor Things Service"),
         WEBDAV("Webdav");
 
         public final String fullName;
