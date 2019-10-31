@@ -72,9 +72,6 @@ import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import static org.geotoolkit.storage.ResourceType.*;
 import org.opengis.feature.catalog.FeatureCatalogue;
-import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ImageCRS;
 import org.opengis.util.GenericName;
@@ -513,7 +510,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
     public ResponseEntity getDataStoreConfiguration(@PathVariable(name="storeId") String storeId){
         DataStoreProvider factory = DataStores.getProviderById(storeId);
         if (factory != null) {
-            final DataCustomConfiguration.Type type = buildDatastoreConfiguration(factory, "data-store", null);
+            final DataCustomConfiguration.Type type = DataProviders.buildDatastoreConfiguration(factory, "data-store", null);
             type.setSelected(true);
             return new ResponseEntity(type, OK);
         }
@@ -586,7 +583,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
             // add a tag vector/raster on the pojo for ui purpose
             final String tag = contains(resourceTypes, VECTOR) ? "vector" : "raster";
-            final DataCustomConfiguration.Type type = buildDatastoreConfiguration(p, "data-store", tag);
+            final DataCustomConfiguration.Type type = DataProviders.buildDatastoreConfiguration(p, "data-store", tag);
             if(all.getTypes().isEmpty()){
                 //select the first type found
                 type.setSelected(true);
@@ -785,38 +782,6 @@ public class InternalDataRestAPI extends AbstractRestAPI {
         }
     }
 
-    private static DataCustomConfiguration.Type buildDatastoreConfiguration(DataStoreProvider factory, String category, String tag) {
-        final String id    = factory.getOpenParameters().getName().getCode();
-        final String title = String.valueOf(factory.getShortName());
-        String description = null;
-        if (factory.getOpenParameters().getDescription() != null) {
-            description = String.valueOf(factory.getOpenParameters().getDescription());
-        }
-        final  DataCustomConfiguration.Property property = toDataStorePojo(factory.getOpenParameters());
-        return new DataCustomConfiguration.Type(id, title, category, tag, description, property);
-    }
 
-    private static DataCustomConfiguration.Property toDataStorePojo(GeneralParameterDescriptor desc){
-        final DataCustomConfiguration.Property prop = new DataCustomConfiguration.Property();
-        prop.setId(desc.getName().getCode());
-        if(desc.getDescription()!=null) prop.setDescription(String.valueOf(desc.getDescription()));
-        prop.setOptional(desc.getMinimumOccurs()==0);
-
-        if(desc instanceof ParameterDescriptorGroup){
-            final ParameterDescriptorGroup d = (ParameterDescriptorGroup)desc;
-            for(GeneralParameterDescriptor child : d.descriptors()){
-                prop.getProperties().add(toDataStorePojo(child));
-            }
-        }else if(desc instanceof ParameterDescriptor){
-            final ParameterDescriptor d = (ParameterDescriptor)desc;
-            final Object defaut = d.getDefaultValue();
-            if(defaut!=null && DataCustomConfiguration.MARSHALLABLE.contains(defaut.getClass())){
-                prop.setValue(defaut);
-            }
-            prop.setType(d.getValueClass().getSimpleName());
-        }
-
-        return prop;
-    }
 
 }

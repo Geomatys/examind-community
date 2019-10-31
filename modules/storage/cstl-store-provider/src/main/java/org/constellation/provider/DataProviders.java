@@ -58,6 +58,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.importdata.ResourceData;
 import org.constellation.dto.importdata.ResourceStore;
 import org.constellation.exception.ConstellationException;
@@ -74,6 +75,9 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
+import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -935,5 +939,39 @@ public final class DataProviders extends Static{
             upper = new double[]{180, 90};
         }
         description.setBoundingBox(new double[]{lower[0], lower[1], upper[0], upper[1]});
+    }
+
+    public static DataCustomConfiguration.Type buildDatastoreConfiguration(DataStoreProvider factory, String category, String tag) {
+        final String id    = factory.getOpenParameters().getName().getCode();
+        final String title = String.valueOf(factory.getShortName());
+        String description = null;
+        if (factory.getOpenParameters().getDescription() != null) {
+            description = String.valueOf(factory.getOpenParameters().getDescription());
+        }
+        final  DataCustomConfiguration.Property property = toDataStorePojo(factory.getOpenParameters());
+        return new DataCustomConfiguration.Type(id, title, category, tag, description, property);
+    }
+
+    private static DataCustomConfiguration.Property toDataStorePojo(GeneralParameterDescriptor desc){
+        final DataCustomConfiguration.Property prop = new DataCustomConfiguration.Property();
+        prop.setId(desc.getName().getCode());
+        if(desc.getDescription()!=null) prop.setDescription(String.valueOf(desc.getDescription()));
+        prop.setOptional(desc.getMinimumOccurs()==0);
+
+        if(desc instanceof ParameterDescriptorGroup){
+            final ParameterDescriptorGroup d = (ParameterDescriptorGroup)desc;
+            for(GeneralParameterDescriptor child : d.descriptors()){
+                prop.getProperties().add(toDataStorePojo(child));
+            }
+        }else if(desc instanceof ParameterDescriptor){
+            final ParameterDescriptor d = (ParameterDescriptor)desc;
+            final Object defaut = d.getDefaultValue();
+            if(defaut!=null && DataCustomConfiguration.MARSHALLABLE.contains(defaut.getClass())){
+                prop.setValue(defaut);
+            }
+            prop.setType(d.getValueClass().getSimpleName());
+        }
+
+        return prop;
     }
 }
