@@ -53,21 +53,17 @@ import org.constellation.sos.core.DatablockParser.Values;
 import static org.constellation.sos.core.DatablockParser.getResultValues;
 import static org.constellation.sos.core.Normalizer.normalizeDocument;
 import static org.constellation.sos.core.Normalizer.regroupObservation;
-import static org.constellation.sos.core.SOSConstants.ACCEPTED_OUTPUT_FORMATS;
+import static org.constellation.sos.core.SOSConstants.*;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.sos.core.SOSConstants.INSERTION_CAPABILITIES;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.NOT_SUPPORTED;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_TEMPLATE;
 import static org.constellation.api.CommonConstants.OFFERING;
-import static org.constellation.sos.core.SOSConstants.OPERATIONS_METADATA_100;
-import static org.constellation.sos.core.SOSConstants.OPERATIONS_METADATA_200;
 import static org.constellation.api.CommonConstants.OUTPUT_FORMAT;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.PROCEDURE_DESCRIPTION_FORMAT;
-import static org.constellation.sos.core.SOSConstants.PROFILES_V200;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.SOS;
 import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V100;
@@ -345,23 +341,23 @@ public class SOSworker extends AbstractWorker {
             upgrader.upgradeConfiguration(id);
 
             this.isTransactionnal      = configuration.getProfile() == 1;
-            this.verifySynchronization = configuration.isVerifySynchronization();
-            this.keepCapabilities      = configuration.isKeepCapabilities();
+            this.verifySynchronization = getBooleanProperty(VERIFY_SYNCHRONIZATION, false);
+            this.keepCapabilities      = getBooleanProperty(KEEP_CAPABILITIES, false);
 
             if (keepCapabilities) {
                 loadCachedCapabilities();
             }
 
             //we initialize the properties attribute
-            alwaysFeatureCollection = configuration.getBooleanParameter(CommonConstants.ALWAYS_FEATURE_COLLECTION);
-            sensorTypeFilter        = configuration.getParameter(CommonConstants.SENSOR_TYPE_FILTER);
+            alwaysFeatureCollection = getBooleanProperty(CommonConstants.ALWAYS_FEATURE_COLLECTION, false);
+            sensorTypeFilter        = getProperty(CommonConstants.SENSOR_TYPE_FILTER);
 
             applySupportedVersion();
 
             // look for template life limit
             int h, m;
             try {
-                String validTime = configuration.getTemplateValidTime();
+                String validTime = getProperty(TEMPLATE_TIME);
                 if (validTime == null || validTime.isEmpty() || validTime.indexOf(':') == -1) {
                     validTime = "1:00";
                     LOGGER.info("using default template valid time: one hour.\n");
@@ -2492,6 +2488,13 @@ public class SOSworker extends AbstractWorker {
             return configuration.getParameter(propertyName);
         }
         return null;
+    }
+
+    private boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
+        if (configuration != null) {
+            return configuration.getBooleanParameter(propertyName, defaultValue);
+        }
+        return defaultValue;
     }
 
     /**

@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -488,6 +489,46 @@ public abstract class AbstractWebService implements WebService{
      */
     protected boolean getBooleanParameter(final String parameterName, final boolean mandatory) throws CstlServiceException {
         return Boolean.parseBoolean(getParameter(parameterName, mandatory));
+    }
+
+    /**
+     * Extracts the value, for a parameter specified, from a query.
+     * If it is a mandatory one, and if it is {@code null}, it throws an exception.
+     * Otherwise returns {@code null} in the case of an optional parameter not found.
+     * The parameter is then parsed as integer.
+     *
+     * @param parameterName The name of the parameter.
+     * @param mandatory true if this parameter is mandatory, false if its optional.
+      *
+     * @return the parameter, or {@code null} if not specified and not mandatory.
+     * @throws  CstlServiceException
+     */
+    protected Integer parseOptionalIntegerParam(String paramName) throws CstlServiceException {
+        Integer result = null;
+        final String value = getParameter(paramName, false);
+        if (value != null) {
+            try {
+                result = Integer.parseInt(value);
+            } catch (NumberFormatException ex) {
+                throw new CstlServiceException("Unable to parse the integer " + paramName + " parameter" + value,
+                                                  INVALID_PARAMETER_VALUE, paramName);
+            }
+
+        }
+        return result;
+    }
+
+    protected List<String> parseCommaSeparatedParameter(String paramName) throws CstlServiceException {
+        final String propertyNameParam = getParameter(paramName, false);
+        final List<String> results = new ArrayList<>();
+        if (propertyNameParam != null) {
+            final StringTokenizer tokens = new StringTokenizer(propertyNameParam, ",;");
+            while (tokens.hasMoreTokens()) {
+                final String token = tokens.nextToken().trim();
+                results.add(token);
+            }
+        }
+        return results;
     }
 
     /**

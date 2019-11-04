@@ -698,34 +698,6 @@ public class WFSService extends GridWebService<WFSWorker> {
         return sortBy;
     }
 
-    private Integer parseOptionalIntegerParam(String paramName) throws CstlServiceException {
-        Integer result = null;
-        final String max = getParameter(paramName, false);
-        if (max != null) {
-            try {
-                result = Integer.parseInt(max);
-            } catch (NumberFormatException ex) {
-                throw new CstlServiceException("Unable to parse the integer " + paramName + " parameter" + max,
-                                                  INVALID_PARAMETER_VALUE, paramName);
-            }
-
-        }
-        return result;
-    }
-
-    private List<String> parseCommaSeparatedParameter(String paramName) throws CstlServiceException {
-        final String propertyNameParam = getParameter(paramName, false);
-        final List<String> results = new ArrayList<>();
-        if (propertyNameParam != null) {
-            final StringTokenizer tokens = new StringTokenizer(propertyNameParam, ",;");
-            while (tokens.hasMoreTokens()) {
-                final String token = tokens.nextToken().trim();
-                results.add(token);
-            }
-        }
-        return results;
-    }
-
     private GetPropertyValue createNewGetPropertyValueRequest(final Worker worker) throws CstlServiceException {
         final Integer maxFeature = parseOptionalIntegerParam("maxfeatures");
         final Integer startIndex = parseOptionalIntegerParam("StartIndex");

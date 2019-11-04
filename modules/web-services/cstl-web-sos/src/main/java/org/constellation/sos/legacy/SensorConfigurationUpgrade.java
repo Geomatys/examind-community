@@ -132,8 +132,7 @@ public class SensorConfigurationUpgrade {
                         }
 
                         serviceBusiness.linkSOSAndProvider(id, providerID);
-                        config.setSMLConfiguration(null);
-                        config.setSMLType(null);
+                        config.clearSMLDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override
                             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
@@ -199,7 +198,7 @@ public class SensorConfigurationUpgrade {
                         }
 
                         serviceBusiness.linkSOSAndProvider(id, providerID);
-                        config.setOMConfiguration(null);
+                        config.clearOMDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override
                             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {

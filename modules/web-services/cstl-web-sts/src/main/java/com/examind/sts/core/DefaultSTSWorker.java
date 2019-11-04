@@ -31,6 +31,14 @@ import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.sts.GetDatastreams;
+import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetLocations;
+import org.geotoolkit.sts.GetObservations;
+import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetSensors;
+import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
@@ -100,7 +108,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public ThingsResponse getThings() throws CstlServiceException {
+    public ThingsResponse getThings(GetThings req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -111,7 +119,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public ObservationsResponse getObservations() throws CstlServiceException {
+    public ObservationsResponse getObservations(GetObservations req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -122,7 +130,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public DatastreamsResponse getDatastreams() throws CstlServiceException {
+    public DatastreamsResponse getDatastreams(GetDatastreams req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -133,7 +141,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public ObservedPropertiesResponse getObservedProperties() throws CstlServiceException {
+    public ObservedPropertiesResponse getObservedProperties(GetObservedProperties req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -144,7 +152,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public LocationsResponse getLocations() throws CstlServiceException {
+    public LocationsResponse getLocations(GetLocations req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -155,7 +163,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public SensorsResponse getSensors() throws CstlServiceException {
+    public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -166,7 +174,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public FeatureOfInterestsResponse getFeatureOfInterests() throws CstlServiceException {
+    public FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -177,7 +185,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     }
 
     @Override
-    public HistoricalLocationsResponse getHistoricalLocations() throws CstlServiceException {
+    public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -28,31 +28,22 @@ public final class STSConstants {
 
     private STSConstants() {}
 
-    public static final String HANDLE    = "handle";
-    public static final String NAMESPACE = "namespace";
-    public static final String FILTER    = "filter";
+    public static final String ORDERBY    = "$orderby";
+    public static final String SELECT    = "$select";
+    public static final String EXPAND    = "$expand";
+    public static final String TOP       = "$top";
+    public static final String SKIP      = "$skip";
+    public static final String COUNT     = "$count";
+    public static final String FILTER    = "$filter";
 
-    public static final String STR_GETCAPABILITIES         = "GetCapabilities";
-    public static final String STR_DESCRIBEFEATURETYPE     = "DescribeFeatureType";
-    public static final String STR_GETFEATURE              = "GetFeature";
-    public static final String STR_GETGMLOBJECT            = "getGMLObject";
-    public static final String STR_LOCKFEATURE             = "lockFeature";
-    public static final String STR_TRANSACTION             = "Transaction";
-    public static final String STR_DESCRIBE_STORED_QUERIES = "DescribeStoredQueries";
-    public static final String STR_LIST_STORED_QUERIES     = "ListStoredQueries";
-    public static final String STR_GET_PROPERTY_VALUE      = "GetPropertyValue";
-    public static final String STR_CREATE_STORED_QUERY     = "CreateStoredQuery";
-    public static final String STR_DROP_STORED_QUERY       = "DropStoredQuery";
-    public static final String STR_XSD                     = "xsd";
-
-    public static final String UNKNOW_TYPENAME= "The specified TypeNames does not exist:";
-
-    /**
-     * The Mime type for describe feature GML 3.1.1
-     */
-    public final static String GML_3_1_1_MIME = "text/xml; subtype=\"gml/3.1.1\"";
-
-    public final static String GML_3_2_1_MIME = "application/gml+xml; version=3.2";
+    public static final String STR_GETFEATUREOFINTEREST    = "GetFeatureOfInterests";
+    public static final String STR_GETTHINGS               = "GetThings";
+    public static final String STR_GETOBSERVATION          = "GetObservations";
+    public static final String STR_GETDATASTREAMS          = "getDatastreams";
+    public static final String STR_GETOBSERVEDPROPERTIES   = "GetObservedProperties";
+    public static final String STR_GETLOCATIONS            = "GetLocations";
+    public static final String STR_GETSENSORS              = "GetSensors";
+    public static final String STR_GETHISTORICALLOCATIONS  = "HistoricalLocations";
 
 
 }

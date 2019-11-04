@@ -22,6 +22,14 @@ package com.examind.sts.core;
 
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
+import org.geotoolkit.sts.GetDatastreams;
+import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetLocations;
+import org.geotoolkit.sts.GetObservations;
+import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetSensors;
+import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
@@ -46,35 +54,35 @@ import org.geotoolkit.sts.json.ThingsResponse;
  */
 public interface STSWorker extends Worker {
 
-    ThingsResponse getThings() throws CstlServiceException;
+    ThingsResponse getThings(GetThings gt) throws CstlServiceException;
 
     void addThing(Thing thing) throws CstlServiceException;
 
-    ObservationsResponse getObservations() throws CstlServiceException;
+    ObservationsResponse getObservations(GetObservations go) throws CstlServiceException;
 
     void addObservation(Observation observation) throws CstlServiceException;
 
-    DatastreamsResponse getDatastreams() throws CstlServiceException;
+    DatastreamsResponse getDatastreams(GetDatastreams gd) throws CstlServiceException;
 
     void addDatastream(Datastream datastream) throws CstlServiceException;
 
-    ObservedPropertiesResponse getObservedProperties() throws CstlServiceException;
+    ObservedPropertiesResponse getObservedProperties(GetObservedProperties gop) throws CstlServiceException;
 
     void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException;
 
-    LocationsResponse getLocations() throws CstlServiceException;
+    LocationsResponse getLocations(GetLocations gl) throws CstlServiceException;
 
     void addLocation(Location location) throws CstlServiceException;
 
-    SensorsResponse getSensors() throws CstlServiceException;
+    SensorsResponse getSensors(GetSensors gs) throws CstlServiceException;
 
     void addSensor(Sensor sensor) throws CstlServiceException;
 
-    FeatureOfInterestsResponse getFeatureOfInterests() throws CstlServiceException;
+    FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests gfi) throws CstlServiceException;
 
     void addFeatureOfInterest(FeatureOfInterest foi) throws CstlServiceException;
 
-    HistoricalLocationsResponse getHistoricalLocations() throws CstlServiceException;
+    HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations gh) throws CstlServiceException;
 
     void addHistoricalLocation(HistoricalLocation HistoricalLocation) throws CstlServiceException;
 }

@@ -154,7 +154,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");
-                sosconf.setVerifySynchronization(false);
 
                 Integer defId = serviceBusiness.create("sos", "default", sosconf, null, null);
                 serviceBusiness.linkSOSAndProvider("default", "sensor-default");

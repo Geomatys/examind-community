@@ -215,10 +215,7 @@ public class GenericConfigurationXMLBindingTest {
     public void sosConfigMarshalingTest() throws Exception {
         BDD bdd = new BDD("org.driver.test", "http://somehost/blablabla", "bobby", "juanito");
 
-
-        Automatic config = new Automatic("FILESYSTEM", bdd, null);
-
-        SOSConfiguration sosConfig = new SOSConfiguration(config, config);
+        SOSConfiguration sosConfig = new SOSConfiguration();
 
         Automatic config2 = new Automatic("FILESYSTEM", bdd, null);
         config2.setName("coriolis");
@@ -231,28 +228,6 @@ public class GenericConfigurationXMLBindingTest {
         String expResult =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"            + '\n' +
         "<ns2:SOSConfiguration xmlns:ns2=\"http://www.constellation.org/config\">" + '\n' +
-        "    <ns2:SMLConfiguration format=\"FILESYSTEM\">"                         + '\n' +
-        "        <bdd>"                                                            + '\n' +
-        "            <className>org.driver.test</className>"                       + '\n' +
-        "            <connectURL>http://somehost/blablabla</connectURL>"           + '\n' +
-        "            <user>bobby</user>"                                           + '\n' +
-        "            <password>juanito</password>"                                 + '\n' +
-        "            <sharedConnection>false</sharedConnection>"                   + '\n' +
-        "        </bdd>"                                                           + '\n' +
-        "        <customparameters/>"                                              + '\n' +
-        "        <indexType>lucene-node</indexType>"                               + '\n' +
-        "    </ns2:SMLConfiguration>"                                              + '\n' +
-        "    <ns2:OMConfiguration format=\"FILESYSTEM\">"                          + '\n' +
-        "        <bdd>"                                                            + '\n' +
-        "            <className>org.driver.test</className>"                       + '\n' +
-        "            <connectURL>http://somehost/blablabla</connectURL>"           + '\n' +
-        "            <user>bobby</user>"                                           + '\n' +
-        "            <password>juanito</password>"                                 + '\n' +
-        "            <sharedConnection>false</sharedConnection>"                   + '\n' +
-        "        </bdd>"                                                           + '\n' +
-        "        <customparameters/>"                                              + '\n' +
-        "        <indexType>lucene-node</indexType>"                               + '\n' +
-        "    </ns2:OMConfiguration>"                                               + '\n' +
         "    <ns2:extensions format=\"FILESYSTEM\" name=\"coriolis\">"             + '\n' +
         "        <bdd>"                                                            + '\n' +
         "            <className>org.driver.test</className>"                       + '\n' +
@@ -265,9 +240,6 @@ public class GenericConfigurationXMLBindingTest {
         "        <indexType>lucene-node</indexType>"                               + '\n' +
         "    </ns2:extensions>"                                                    + '\n' +
         "    <ns2:parameters/>"                                                    + '\n' +
-        "    <ns2:maxObservationByRequest>0</ns2:maxObservationByRequest>"         + '\n' +
-        "    <ns2:verifySynchronization>false</ns2:verifySynchronization>"         + '\n' +
-        "    <ns2:keepCapabilities>false</ns2:keepCapabilities>"                   + '\n' +
         "</ns2:SOSConfiguration>" + '\n';
 
         final DocumentComparator comparator = new DocumentComparator(expResult, result);

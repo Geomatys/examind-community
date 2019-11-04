@@ -76,6 +76,29 @@ public final class SOSConstants {
     private SOSConstants() {}
 
     /**
+     * A debug flag use to verify the synchronization in nearly real time insertion
+     * its not advised to set this flag to true.
+     */
+    public static final String VERIFY_SYNCHRONIZATION = "verifySynchronization";
+
+    /**
+     * if this flag is set to true, the response of the operation getCapabilities wil not be updated
+     * every request.
+     */
+    public static final String KEEP_CAPABILITIES = "keepCapabilities";
+
+    /**
+     * time of validity of a template obtain with a getObservation with resultTemplate.
+     * after this time the template will be destroy.
+     */
+    public static final String TEMPLATE_TIME = "templateTime";
+
+    /**
+     * maximal number of observations permit in the result of  a getObservation request.
+     */
+    public static final String MAX_OBSERVATIONS_BY_REQUEST = "maxObservationByRequest";
+
+    /**
      * A list of supported MIME type
      */
     public static final List<String> ACCEPTED_OUTPUT_FORMATS;

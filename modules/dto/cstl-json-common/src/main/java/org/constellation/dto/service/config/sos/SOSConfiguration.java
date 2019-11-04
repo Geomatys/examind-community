@@ -118,21 +118,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     private String sensorIdBase;
 
     /**
-     * maximal number of observations permit in the result of  a getObservation request.
-     * @deprecated move to parameters map
-     */
-    @Deprecated
-    private int maxObservationByRequest;
-
-    /**
-     * time of validity of a template obtain with a getObservation with resultTemplate.
-     * after this time the template will be destroy.
-     * @deprecated move to parameters map
-     */
-    @Deprecated
-    private String templateValidTime;
-
-    /**
      * profile of the SOS (discovery / transactional)
      * @deprecated move to parameters map
      */
@@ -140,36 +125,10 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     private String profile;
 
     /**
-     * A debug flag use to verify the synchronization in nearly real time insertion
-     * its not advised to set this flag to true.
-     * @deprecated move to parameters map
-     */
-    @Deprecated
-    private boolean verifySynchronization;
-
-    /**
-     * if this flag is set to true, the response of the operation getCapabilities wil not be updated
-     * every request.
-     * @deprecated move to parameters map
-     */
-    @Deprecated
-    private boolean keepCapabilities = false;
-
-    /**
      * Empty constructor used by JAXB.
      */
     public SOSConfiguration() {
 
-    }
-
-    /**
-     * Build a new SOS configuration with the specified SML dataSource and O&amp;M dataSource.
-     * @param smlConfiguration
-     * @param omConfiguration
-     */
-    public SOSConfiguration(final Automatic smlConfiguration, final Automatic omConfiguration) {
-        this.omConfiguration  = omConfiguration;
-        this.smlConfiguration = smlConfiguration;
     }
 
     /**
@@ -181,27 +140,11 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     }
 
     /**
-     * @param smlConfiguration the SMLConfiguration to set
-     */
-    @Deprecated
-    public void setSMLConfiguration(final Automatic smlConfiguration) {
-        this.smlConfiguration = smlConfiguration;
-    }
-
-    /**
      * @return the OMConfiguration
      */
     @Deprecated
     public Automatic getOMConfiguration() {
         return omConfiguration;
-    }
-
-    /**
-     * @param omConfiguration the OMConfiguration to set
-     */
-    @Deprecated
-    public void setOMConfiguration(final Automatic omConfiguration) {
-        this.omConfiguration = omConfiguration;
     }
 
     /**
@@ -213,14 +156,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     }
 
     /**
-     * @param observationReaderType the observationReaderType to set
-     */
-    @Deprecated
-    public void setObservationReaderType(final DataSourceType observationReaderType) {
-        this.observationReaderType = observationReaderType;
-    }
-
-    /**
      * @return the SMLType
      */
     @Deprecated
@@ -228,12 +163,15 @@ public class SOSConfiguration extends AbstractConfigurationObject {
         return smlType;
     }
 
-    /**
-     * @param smlType the SMLType to set
-     */
-    @Deprecated
-    public void setSMLType(final DataSourceType smlType) {
-        this.smlType = smlType;
+    public void clearSMLDeprecatedAttibute() {
+        this.smlType = null;
+        this.smlConfiguration = null;
+    }
+
+    public void clearOMDeprecatedAttibute() {
+        this.smlConfiguration = null;
+        this.observationReaderType = null;
+        this.observationWriterType = null;
     }
 
     /**
@@ -270,49 +208,10 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     }
 
     /**
-     * @return the maxObservationByRequest
-     */
-    @Deprecated
-    public int getMaxObservationByRequest() {
-        return maxObservationByRequest;
-    }
-
-    /**
-     * @param maxObservationByRequest the maxObservationByRequest to set
-     */
-    @Deprecated
-    public void setMaxObservationByRequest(final int maxObservationByRequest) {
-        this.maxObservationByRequest = maxObservationByRequest;
-    }
-
-    /**
-     * @return the templateValidTime
-     */
-    @Deprecated
-    public String getTemplateValidTime() {
-        return templateValidTime;
-    }
-
-    /**
-     * @param templateValidTime the templateValidTime to set
-     */
-    @Deprecated
-    public void setTemplateValidTime(final String templateValidTime) {
-        this.templateValidTime = templateValidTime;
-    }
-
-    /**
      * @return the observationWriterType
      */
     public DataSourceType getObservationWriterType() {
         return observationWriterType;
-    }
-
-    /**
-     * @param observationWriterType the observationWriterType to set
-     */
-    public void setObservationWriterType(final DataSourceType observationWriterType) {
-        this.observationWriterType = observationWriterType;
     }
 
     /**
@@ -342,22 +241,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     }
 
     /**
-     * @return the verifySynchronization
-     */
-    @Deprecated
-    public boolean isVerifySynchronization() {
-        return verifySynchronization;
-    }
-
-    /**
-     * @param verifySynchronization the verifySynchronization to set
-     */
-    @Deprecated
-    public void setVerifySynchronization(final boolean verifySynchronization) {
-        this.verifySynchronization = verifySynchronization;
-    }
-
-    /**
      * @return the extensions
      */
     public List<Automatic> getExtensions() {
@@ -372,22 +255,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
      */
     public void setExtensions(final List<Automatic> extensions) {
         this.extensions = extensions;
-    }
-
-    /**
-     * @return the keepCapabilities
-     */
-    @Deprecated
-    public boolean isKeepCapabilities() {
-        return keepCapabilities;
-    }
-
-    /**
-     * @param keepCapabilities the keepCapabilities to set
-     */
-    @Deprecated
-    public void setKeepCapabilities(final boolean keepCapabilities) {
-        this.keepCapabilities = keepCapabilities;
     }
 
     /**
@@ -422,14 +289,14 @@ public class SOSConfiguration extends AbstractConfigurationObject {
         return null;
     }
 
-    public boolean getBooleanParameter(final String name) {
+    public boolean getBooleanParameter(final String name, boolean defaultValue) {
         if (parameters != null) {
             final String value = parameters.get(name);
             if (value != null) {
                 return Boolean.parseBoolean(value);
             }
         }
-        return false;
+        return defaultValue;
     }
 
     /**
