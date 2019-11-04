@@ -188,6 +188,21 @@ public final class DataProviders extends Static{
         return provider;
     }
 
+    /**
+     * Returns a collection of all providers.
+     *
+     * @return collection of providers.
+     * @throws ConfigurationException
+     */
+    public static Collection<DataProvider> getProviders() throws ConfigurationException {
+        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class);
+        final List<DataProvider> providers = new ArrayList<>();
+        for (int id : repo.getAllIds()) {
+            providers.add(getProvider(id));
+        }
+        return providers;
+    }
+
     public static Set<GenericName> testProvider(String id, final DataProviderFactory factory,
                                   final ParameterValueGroup params) throws DataStoreException {
         final DataProvider provider = factory.createProvider(id, params);

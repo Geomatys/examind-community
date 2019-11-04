@@ -64,7 +64,7 @@ public interface DataProvider{
 
     /**
      * Get the data related to the given key.
-     * 
+     *
      * @param key Data name to be removed from this provider.
      * @return V object if it is in the data provider, or null if not.
      */
