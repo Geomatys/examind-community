@@ -65,7 +65,7 @@ public interface DataProvider{
     /**
      * Get the data related to the given key.
      *
-     * @param key Data name to be removed from this provider.
+     * @param key Data name to find in this provider.
      * @return V object if it is in the data provider, or null if not.
      */
     Data get(GenericName key);
