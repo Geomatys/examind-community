@@ -567,7 +567,8 @@ public class WFS2WorkerTest {
 
         FeatureCollectionType resultHits = (FeatureCollectionType) worker.getFeature(request);
 
-        assertTrue("results:" + resultHits, resultHits.getNumberReturned() == 6);
+        assertEquals("results:" + resultHits, "6", resultHits.getNumberMatched());
+        assertEquals("results:" + resultHits, 0, resultHits.getNumberReturned());
 
         /*
          * Test 3 : query on typeName samplingPoint with propertyName = {gml:name}
@@ -796,7 +797,8 @@ public class WFS2WorkerTest {
 
         resultHits = (FeatureCollectionType) worker.getFeature(request);
 
-        assertTrue(resultHits.getNumberReturned() == 6);
+        assertTrue(resultHits.getNumberReturned() == 0);
+        assertEquals("results:" + resultHits, "6", resultHits.getNumberMatched());
 
 
         /*
@@ -1109,7 +1111,8 @@ public class WFS2WorkerTest {
 
         FeatureCollectionType resultHits = (FeatureCollectionType)result;
 
-        assertTrue(resultHits.getNumberReturned() == 2);
+        assertTrue(resultHits.getNumberReturned() == 0);
+        assertEquals("2", resultHits.getNumberMatched());
 
         /*
          * Test 5 : query on typeName NamedPlaces with srsName = EPSG:27582

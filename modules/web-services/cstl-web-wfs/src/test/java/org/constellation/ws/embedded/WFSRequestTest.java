@@ -19,6 +19,7 @@
 
 package org.constellation.ws.embedded;
 
+import javax.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IDataBusiness;
@@ -35,6 +36,8 @@ import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.util.Util;
+import org.geotoolkit.gml.xml.AbstractFeature;
+import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -64,15 +67,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.AfterClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -81,7 +82,9 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -520,12 +523,14 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=2)
     public void testWFSGetFeaturePOST() throws Exception {
 
-        // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
 
-        final List<QueryType> queries = new ArrayList<>();
+       /*
+        * SamplingPoint GetFeature
+        */
+        List<QueryType> queries = new ArrayList<>();
         queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
-        final GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, 2, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
+        GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -533,6 +538,112 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         Object obj = unmarshallResponse(conec);
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        FeatureCollectionType result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(6, result.getFeatureMember().size());
+
+        /*
+        * BuildingCenters GetFeature
+        */
+        queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml", "BuildingCenters")), null));
+        request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(2), result.getNumberOfFeatures());
+        assertEquals(2, result.getFeatureMember().size());
+
+        /*
+        * PrimitiveGeoFeature GetFeature
+        */
+        queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature")), null));
+        request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(5), result.getNumberOfFeatures());
+        assertEquals(5, result.getFeatureMember().size());
+    }
+
+    @Test
+    @Order(order=2)
+    public void testWFSGetFeaturePOSTPagination() throws Exception {
+        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+
+       /*
+        * SamplingPoint GetFeature full request
+        */
+        List<QueryType> queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
+        GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
+
+        // for a POST request
+        URLConnection conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        Object obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        FeatureCollectionType result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(6, result.getFeatureMember().size());
+
+        Set expectedIds = new HashSet<>(Arrays.asList("station-001",
+                                                      "station-002",
+                                                      "station-003",
+                                                      "station-004",
+                                                      "station-005",
+                                                      "station-006"));
+        Set resultIds = new HashSet<>();
+        for (FeatureProperty prop : result.getFeatureMember()) {
+            AbstractFeature feat = prop.getAbstractFeature();
+            assertTrue(feat instanceof SamplingPointType);
+            resultIds.add(((SamplingPointType)feat).getId());
+        }
+        assertEquals(expectedIds, resultIds);
+
+        /*
+        * SamplingPoint GetFeature HITS request
+        */
+        request = new GetFeatureType("WFS", "1.1.0", null, null, queries, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.1.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(6), result.getNumberOfFeatures());
+        assertEquals(0, result.getFeatureMember().size());
+
+
+        /*
+        * SamplingPoint GetFeature request with max = 3
+        */
+        request = new GetFeatureType("WFS", "1.1.0", null, 3, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.1.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof FeatureCollectionType);
+        result = (FeatureCollectionType)obj;
+        assertEquals(new Integer(3), result.getNumberOfFeatures());
+        assertEquals(3, result.getFeatureMember().size());
+
 
     }
 
@@ -540,12 +651,14 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     @Order(order=3)
     public void testWFSGetFeaturePOSTV2() throws Exception {
 
-        // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
 
-        final List<org.geotoolkit.wfs.xml.v200.QueryType> queries = new ArrayList<>();
+        /*
+        * SamplingPoint GetFeature
+        */
+        List<org.geotoolkit.wfs.xml.v200.QueryType> queries = new ArrayList<>();
         queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
-        final org.geotoolkit.wfs.xml.v200.GetFeatureType request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, 2, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+        org.geotoolkit.wfs.xml.v200.GetFeatureType request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -554,6 +667,169 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
 
+        org.geotoolkit.wfs.xml.v200.FeatureCollectionType result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("6", result.getNumberMatched());
+        assertEquals(6, result.getNumberReturned());
+
+        /*
+        * BuildingCenters GetFeature
+        */
+        queries = new ArrayList<>();
+        queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://www.opengis.net/gml", "BuildingCenters")), null));
+        request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("2", result.getNumberMatched());
+        assertEquals(2, result.getNumberReturned());
+
+       /*
+        * PrimitiveGeoFeature GetFeature
+        */
+        queries = new ArrayList<>();
+        queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature")), null));
+        request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("5", result.getNumberMatched());
+        assertEquals(5, result.getNumberReturned());
+    }
+
+    @Test
+    @Order(order=3)
+    public void testWFSGetFeaturePOSTV2Pagination() throws Exception {
+
+        final URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?");
+
+        /*
+        * SamplingPoint GetFeature full request
+        */
+        List<org.geotoolkit.wfs.xml.v200.QueryType> queries = new ArrayList<>();
+        queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
+        org.geotoolkit.wfs.xml.v200.GetFeatureType request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, null, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        // for a POST request
+        URLConnection conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        Object obj = specialSamplingPointUnmarshall(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        org.geotoolkit.wfs.xml.v200.FeatureCollectionType result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("6", result.getNumberMatched());
+        assertEquals(6, result.getNumberReturned());
+
+        Set expectedIds = new HashSet<>(Arrays.asList("station-001",
+                                                      "station-002",
+                                                      "station-003",
+                                                      "station-004",
+                                                      "station-005",
+                                                      "station-006"));
+        Set resultIds = new HashSet<>();
+        for (MemberPropertyType prop : result.getMember()) {
+            assertEquals(1, prop.getContent().size());
+            Object feat = prop.getContent().get(0);
+            if (feat instanceof JAXBElement) {
+                feat = ((JAXBElement) feat).getValue();
+            }
+            assertTrue(feat instanceof SamplingPointType);
+            resultIds.add(((SamplingPointType)feat).getId());
+        }
+        assertEquals(expectedIds, resultIds);
+
+       /*
+        * SamplingPoint GetFeature HITS request
+        */
+       request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, null, null, queries, ResultTypeType.HITS, "text/xml; subtype=\"gml/3.2.1\"");
+       // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = unmarshallResponse(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("6", result.getNumberMatched());
+        assertEquals(0, result.getNumberReturned());
+
+        /*
+        * SamplingPoint GetFeature request 1 to 3
+        */
+        queries = new ArrayList<>();
+        queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
+        request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, 0, 3, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = specialSamplingPointUnmarshall(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("6", result.getNumberMatched());
+        assertEquals(3, result.getNumberReturned());
+
+        expectedIds = new HashSet<>(Arrays.asList("station-001",
+                                                  "station-002",
+                                                  "station-003"));
+        resultIds = new HashSet<>();
+        for (MemberPropertyType prop : result.getMember()) {
+            assertEquals(1, prop.getContent().size());
+            Object feat = prop.getContent().get(0);
+            if (feat instanceof JAXBElement) {
+                feat = ((JAXBElement) feat).getValue();
+            }
+            assertTrue(feat instanceof SamplingPointType);
+            resultIds.add(((SamplingPointType)feat).getId());
+        }
+        assertEquals(expectedIds, resultIds);
+
+        /*
+        * SamplingPoint GetFeature request 1 to 3
+        */
+        queries = new ArrayList<>();
+        queries.add(new org.geotoolkit.wfs.xml.v200.QueryType(null, Arrays.asList(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint")), null));
+        request = new org.geotoolkit.wfs.xml.v200.GetFeatureType("WFS", "2.0.0", null, 3, 3, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        // for a POST request
+        conec = getCapsUrl.openConnection();
+        postRequestObject(conec, request);
+        obj = specialSamplingPointUnmarshall(conec);
+
+        assertTrue("unexpected type: " + obj.getClass().getName() + "\n" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        result = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType)obj;
+        assertEquals("6", result.getNumberMatched());
+        assertEquals(3, result.getNumberReturned());
+
+        expectedIds = new HashSet<>(Arrays.asList("station-004",
+                                                  "station-005",
+                                                  "station-006"));
+        resultIds = new HashSet<>();
+        for (MemberPropertyType prop : result.getMember()) {
+            assertEquals(1, prop.getContent().size());
+            Object feat = prop.getContent().get(0);
+            if (feat instanceof JAXBElement) {
+                feat = ((JAXBElement) feat).getValue();
+            }
+            assertTrue(feat instanceof SamplingPointType);
+            resultIds.add(((SamplingPointType)feat).getId());
+        }
+        assertEquals(expectedIds, resultIds);
     }
 
     /**
@@ -1751,5 +2027,17 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     protected static void domCompare(final Object actual, String expected) throws Exception {
         expected = expected.replace("EPSG_VERSION", EPSG_VERSION);
         domCompare(actual, expected, new ArrayList<>());
+    }
+
+    protected Object specialSamplingPointUnmarshall(URLConnection conec) throws Exception {
+        String xml = getStringResponse(conec);
+        xml = xml.replace(":SamplingPoint gml:id", ":SamplingPoint xmlns:gml=\"http://www.opengis.net/gml\" gml:id");
+        Unmarshaller u = pool.acquireUnmarshaller();
+        Object o = u.unmarshal(new StringReader(xml));
+        pool.recycle(u);
+        if (o instanceof JAXBElement) {
+            o = ((JAXBElement)o).getValue();
+        }
+        return o;
     }
 }

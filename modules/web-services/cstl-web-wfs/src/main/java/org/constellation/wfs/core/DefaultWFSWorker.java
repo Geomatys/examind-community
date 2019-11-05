@@ -1080,12 +1080,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 if (!sortBys.isEmpty()) {
                     subquery.setSortBy(sortBys.toArray(new SortBy[sortBys.size()]));
                 }
-                if (startIndex != 0){
-                    subquery.setOffset(startIndex);
-                }
-                if (maxFeatures != 0){
-                    subquery.setLimit(maxFeatures);
-                }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
                 subquery.setFilter(cleanFilter);
 
@@ -1098,6 +1092,21 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             .map((String t) -> new SimpleQuery.Column(ff.property(t)))
                             .collect(Collectors.toList());
                     subquery.setColumns(columns.toArray(new SimpleQuery.Column[0]));
+                }
+
+                // look for matching count before pagination
+                try {
+                    Long colMatch = FeatureStoreUtilities.getCount(origin.subset(subquery));
+                    nbMatched = nbMatched + colMatch;
+                } catch (DataStoreException ex) {
+                    throw new CstlServiceException(ex);
+                }
+
+                if (startIndex != 0){
+                    subquery.setOffset(startIndex);
+                }
+                if (maxFeatures != 0){
+                    subquery.setLimit(maxFeatures);
                 }
 
                 FeatureSet collection;
@@ -1117,11 +1126,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 verifyFilterProperty(NameOverride.wrap(ft, layerName), cleanFilter, aliases);
 
                 long colSize = 0;
-
-                // look for matching count
                 try {
                     colSize = FeatureStoreUtilities.getCount(collection);
-                    nbMatched = nbMatched + colSize;
                 } catch (DataStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
