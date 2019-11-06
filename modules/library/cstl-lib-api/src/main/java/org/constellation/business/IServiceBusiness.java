@@ -150,6 +150,16 @@ public interface IServiceBusiness {
     void setConfiguration(String serviceType, String identifier, Object configuration) throws ConfigurationException;
 
     /**
+     * Update the configuration object of a service instance.
+     *
+     * @param serviceId The service identifier.
+     * @param configuration The configuration Object of the service.
+     *
+     * @throws ConfigurationException if the operation has failed for any reason
+     */
+    void setConfiguration(Integer serviceId, Object configuration) throws ConfigurationException;
+
+    /**
      * Create a new service instance from input information.
      * @param serviceType Type of service to instantiate (CSW, WMS, etc.)
      * @param identifier The name to give to the service.
@@ -297,11 +307,24 @@ public interface IServiceBusiness {
     void setInstanceDetails(String serviceType, String identifier, Details details, String language,
                             boolean default_) throws ConfigurationException;
 
-    List<Integer> getSOSLinkedProviders(final String serviceID);
+
+    /**
+     * Return the provider identifiers linked to this service.
+     *
+     * @param serviceID
+     * @return
+     */
+    List<Integer> getLinkedProviders(final Integer serviceID);
 
     List<Service> getSensorLinkedServices(final Integer sensorID) throws ConfigurationException;
 
-    void linkSOSAndProvider(final String serviceID, final String providerID);
+    /**
+     * Link a service and a provider
+     *
+     * @param serviceID Service identifier.
+     * @param providerID Provider identifier
+     */
+    void linkServiceAndProvider(final Integer serviceID, final Integer providerID);
 
     Integer getCSWLinkedProviders(final String serviceID);
 

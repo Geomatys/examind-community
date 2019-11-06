@@ -27,6 +27,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -72,6 +73,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class SOSRestAPI {
 
     @Inject
+    private IProviderBusiness providerBusiness;
+
+    @Inject
     private IDataBusiness dataBusiness;
 
     @Inject
@@ -85,14 +89,17 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity linkSOSProvider(final @PathVariable("id") String id, final @PathVariable("providerID") String providerID) throws Exception {
-        serviceBusiness.linkSOSAndProvider(id, providerID);
+        final Integer providerId = providerBusiness.getIDFromIdentifier(providerID);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        serviceBusiness.linkServiceAndProvider(serviceId, providerId);
         return new ResponseEntity(AcknowlegementType.success("Provider correctly linked"), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/{schema}/build", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity buildDatasourceOM(final @PathVariable("id") String id, final @PathVariable("schema") String schema) throws Exception {
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
         final AcknowlegementType ack;
-        if (getConfigurer().buildDatasource(id, schema)) {
+        if (getConfigurer().buildDatasource(serviceId, schema)) {
             ack = AcknowlegementType.success("O&M datasource created");
         } else {
             ack = AcknowlegementType.failure("error while creating O&M datasource");
@@ -102,17 +109,20 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/sensors", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensorMetadata(final @PathVariable("id") String id, @RequestBody final File sensor) throws Exception {
-        return new ResponseEntity(getConfigurer().importSensor(id, sensor.toPath(), "xml"), OK);
+        Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType("sos", id);
+        return new ResponseEntity(getConfigurer().importSensor(serviceId, sensor.toPath(), "xml"), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensor/{sensorID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(getConfigurer().removeSensor(id, sensorID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().removeSensor(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeAllSensor(final @PathVariable("id") String id) throws Exception {
-        return new ResponseEntity(getConfigurer().removeAllSensors(id), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().removeAllSensors(serviceId), OK);
     }
 
     @RequestMapping(value="{id}/sensor/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -122,17 +132,20 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/sensors", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorTree(final @PathVariable("id") String id) throws Exception {
-        return new ResponseEntity(getConfigurer().getSensorTree(id), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getSensorTree(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorIds(final @PathVariable("id") String id) throws Exception {
-        return new ResponseEntity(getConfigurer().getSensorIds(id), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getSensorIds(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/identifiers/id", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorIdsForObservedProperty(final @PathVariable("id") String id, final @RequestParam("observedProperty") String observedProperty) throws Exception {
-        return new ResponseEntity(getConfigurer().getSensorIdsForObservedProperty(id, observedProperty), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getSensorIdsForObservedProperty(serviceId, observedProperty), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/count", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -142,57 +155,68 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity updateSensorLocation(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometryType location) throws Exception {
-        return new ResponseEntity(getConfigurer().updateSensorLocation(id, sensorID, location), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().updateSensorLocation(serviceId, sensorID, location), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensor/location/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getWKTSensorLocation(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(getConfigurer().getWKTSensorLocation(id, sensorID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getWKTSensorLocation(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observedProperty/identifiers/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesForSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(getConfigurer().getObservedPropertiesForSensorId(id, sensorID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getObservedPropertiesForSensorId(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/time/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getTimeForSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(getConfigurer().getTimeForSensorId(id, sensorID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getTimeForSensorId(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDecimatedObservations(final @PathVariable("id") String id, final @RequestBody ObservationFilter filter) throws Exception {
-        return new ResponseEntity(getConfigurer().getDecimatedObservationsCsv(id, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getDecimatedObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations/raw", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservations(final @PathVariable("id") String id, final @RequestBody ObservationFilter filter) throws Exception {
-        return new ResponseEntity(getConfigurer().getObservationsCsv(id, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd()), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importObservation(final @PathVariable("id") String id, final File obs) throws Exception {
-        return new ResponseEntity(getConfigurer().importObservations(id, obs.toPath()), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().importObservations(serviceId, obs.toPath()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observation/{observationID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservation(final @PathVariable("id") String id, final @PathVariable("observationID") String observationID) throws Exception {
-        return new ResponseEntity(getConfigurer().removeSingleObservation(id, observationID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().removeSingleObservation(serviceId, observationID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observation/procedure/{procedureID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservationForProcedure(final @PathVariable("id") String id, final @PathVariable("procedureID") String procedureID) throws Exception {
-        return new ResponseEntity(getConfigurer().removeObservationForProcedure(id, procedureID), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().removeObservationForProcedure(serviceId, procedureID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observedProperties/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesIds(final @PathVariable("id") String id) throws Exception {
-        return new ResponseEntity(getConfigurer().getObservedPropertiesIds(id), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(getConfigurer().getObservedPropertiesIds(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/data/{dataID}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensorFromData(final @PathVariable("id") String id, final @PathVariable("dataID") Integer dataID) throws Exception {
         final Integer providerId = dataBusiness.getDataProvider(dataID);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
 
         if (providerId != null) {
 
@@ -208,11 +232,11 @@ public class SOSRestAPI {
             final SOSConfigurer configurer = getConfigurer();
 
             // import in O&M database
-            configurer.importObservations(id, result.observations, result.phenomenons);
+            configurer.importObservations(serviceId, result.observations, result.phenomenons);
 
             // SensorML generation
             for (ProcedureTree process : result.procedures) {
-                generateSensorML(id, process, result, configurer, null);
+                generateSensorML(serviceId, process, result, configurer, null);
             }
 
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the SOS"), OK);
@@ -224,6 +248,7 @@ public class SOSRestAPI {
     @RequestMapping(value="/SOS/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeDataFromSOS(final @PathVariable("id") String id, final @PathVariable("dataID") Integer dataID) throws Exception {
         final Integer providerId = dataBusiness.getDataProvider(dataID);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
 
         if (providerId != null) {
             final DataProvider provider = DataProviders.getProvider(providerId);
@@ -240,7 +265,7 @@ public class SOSRestAPI {
             // remove from O&M database
             for (Observation obs : result.observations) {
                 if (obs.getName() != null) {
-                    configurer.removeSingleObservation(id, obs.getName().getCode());
+                    configurer.removeSingleObservation(serviceId, obs.getName().getCode());
                 }
             }
 
@@ -251,7 +276,7 @@ public class SOSRestAPI {
     }
 
 
-    private void generateSensorML(final String id, final ProcedureTree process, final ExtractionResult result, final SOSConfigurer configurer, String parentID) throws ConfigurationException {
+    private void generateSensorML(final Integer serviceId, final ProcedureTree process, final ExtractionResult result, final SOSConfigurer configurer, String parentID) throws ConfigurationException {
         final Properties prop = new Properties();
         prop.put("id",         process.id);
         if (process.spatialBound.dateStart != null) {
@@ -276,20 +301,20 @@ public class SOSRestAPI {
 
         final AbstractSensorML sml = SensorMLGenerator.getTemplateSensorML(prop, process.type);
 
-        sensorBusiness.create(process.id, process.type, parentID, sml, System.currentTimeMillis(), getSensorProviderId(id));
+        sensorBusiness.create(process.id, process.type, parentID, sml, System.currentTimeMillis(), getSensorProviderId(serviceId));
 
         for (ProcedureTree child : process.children) {
-            generateSensorML(id, child, result, configurer, process.id);
+            generateSensorML(serviceId, child, result, configurer, process.id);
         }
 
         //record location
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
         if (geom != null) {
-            configurer.updateSensorLocation(id, process.id, geom);
+            configurer.updateSensorLocation(serviceId, process.id, geom);
         }
     }
 
-    private void writeProcedures(final String id, final ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
+    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
         configurer.writeProcedure(id, process.id, geom, parent, process.type);
         for (ProcedureTree child : process.children) {
@@ -299,19 +324,20 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/sensor/import/{sensorID}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
+        final Integer sid                 = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getIdentifier());
         final List<Integer> dataProviders = sensorBusiness.getLinkedDataProviderIds(sensor.getId());
         final SOSConfigurer configurer    = getConfigurer();
         final List<String> sensorIds      = new ArrayList<>();
 
-        sensorBusiness.addSensorToSOS(id, sensorID);
+        sensorBusiness.addSensorToService(sid, sensor.getId());
         sensorIds.add(sensorID);
 
         //import sensor children
         for (Sensor child : sensorChildren) {
             dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
-            sensorBusiness.addSensorToSOS(id, child.getIdentifier());
+            sensorBusiness.addSensorToService(sid, child.getId());
             sensorIds.add(child.getIdentifier());
         }
 
@@ -335,11 +361,11 @@ public class SOSRestAPI {
 
                 // update sensor location
                 for (ProcedureTree process : result.procedures) {
-                    writeProcedures(id, process, null, configurer);
+                    writeProcedures(sid, process, null, configurer);
                 }
 
                 // import in O&M database
-                configurer.importObservations(id, result.observations, result.phenomenons);
+                configurer.importObservations(sid, result.observations, result.phenomenons);
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
@@ -349,8 +375,8 @@ public class SOSRestAPI {
         return new ResponseEntity(new AcknowlegementType("Success", "The specified sensor has been imported in the SOS"), OK);
     }
 
-    private Integer getSensorProviderId(final String serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
+    private Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
+        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
             if(p.getMainStore() instanceof SensorStore){

@@ -174,17 +174,17 @@ public class SosHarvesterProcessTest {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer pid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                Integer id = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "omSrc");
+                Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, pid);
 
-                serviceBusiness.start(id);
+                serviceBusiness.start(sid);
 
                 initialized = true;
             }

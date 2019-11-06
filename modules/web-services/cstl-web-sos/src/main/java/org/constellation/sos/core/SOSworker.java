@@ -173,6 +173,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.apache.sis.storage.DataStore;
+import org.constellation.dto.Sensor;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.ObservationProvider;
@@ -278,7 +279,7 @@ public class SOSworker extends AbstractWorker {
     private ObservationProvider omProvider;
 
     /**
-     * The sensorML provider
+     * The sensor business
      */
     @Autowired
     private ISensorBusiness sensorBusiness;
@@ -342,7 +343,7 @@ public class SOSworker extends AbstractWorker {
 
             // legacy
             SensorConfigurationUpgrade upgrader = new SensorConfigurationUpgrade();
-            upgrader.upgradeConfiguration(id);
+            upgrader.upgradeConfiguration(getServiceId());
 
             this.isTransactionnal      = configuration.getProfile() == 1;
             this.verifySynchronization = getBooleanProperty(VERIFY_SYNCHRONIZATION, false);
@@ -375,7 +376,7 @@ public class SOSworker extends AbstractWorker {
             }
             templateValidTime = (h * 3600000) + (m * 60000);
 
-            final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(id);
+            final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
             // we initialize the reader/writer
             for (Integer providerID: providers) {
@@ -412,19 +413,6 @@ public class SOSworker extends AbstractWorker {
             // we log some implementation informations
             logInfos();
 
-        } catch (JAXBException ex) {
-            LOGGER.log(Level.FINER, ex.getMessage(), ex);
-            String msg;
-            if (ex.getMessage() != null) {
-                msg = ex.getMessage();
-            } else {
-                if (ex.getLinkedException() != null) {
-                    msg = ex.getLinkedException().getMessage();
-                } else {
-                    msg = "no message";
-                }
-            }
-            startError("JAXBException:" + msg, ex);
         } catch (CstlServiceException | ConstellationStoreException ex) {
             startError(ex.getMessage(), ex);
         } catch (ConfigurationException ex) {
@@ -462,7 +450,7 @@ public class SOSworker extends AbstractWorker {
      * @param configurationDirectory
      * @throws JAXBException
      */
-    private void loadCachedCapabilities() throws JAXBException {
+    private void loadCachedCapabilities() {
         //we fill the cachedCapabilities if we have to
         LOGGER.info("adding capabilities document in cache");
         try {
@@ -631,7 +619,7 @@ public class SOSworker extends AbstractWorker {
                  * Because sometimes there is some sensor that are queryable in DescribeSensor but not in GetObservation
                  */
                 final AbstractOperation ds = om.getOperation(DESCRIBE_SENSOR);
-                List<String> sensorNames = new ArrayList<>(sensorBusiness.getLinkedSensorIdentifiers(getId(), sensorTypeFilter));
+                List<String> sensorNames = new ArrayList<>(sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), sensorTypeFilter));
                 if (!sensorNames.isEmpty()) {
                     Collections.sort(sensorNames);
                     ds.updateParameter(PROCEDURE, sensorNames);
@@ -762,10 +750,13 @@ public class SOSworker extends AbstractWorker {
         if (sensorId == null || sensorId.isEmpty()) {
             throw new CstlServiceException("You must specify the sensor ID!", MISSING_PARAMETER_VALUE, PROCEDURE);
         }
-        final boolean result;
+        boolean result = false;
         try {
-            sensorBusiness.removeSensorFromSOS(getId(), sensorId);
-            result =  true; // TODO
+            final Sensor sensor = sensorBusiness.getSensor(sensorId);
+            if (sensor != null) {
+                sensorBusiness.removeSensorFromService(getServiceId(), sensor.getId());
+                result =  true;
+            }
         } catch (Exception ex) {
             throw new CstlServiceException(ex);
         }
@@ -1987,8 +1978,8 @@ public class SOSworker extends AbstractWorker {
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
-            sensorBusiness.create(id, smlType, null, process, System.currentTimeMillis(), smlProviderID);
-            sensorBusiness.addSensorToSOS(getId(), id);
+            Integer sid = sensorBusiness.create(id, smlType, null, process, System.currentTimeMillis(), smlProviderID);
+            sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer
             final AbstractGeometry position = Utils.getSensorPosition(process);

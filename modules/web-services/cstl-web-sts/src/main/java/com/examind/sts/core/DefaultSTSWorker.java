@@ -19,18 +19,28 @@
 
 package com.examind.sts.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import javax.inject.Named;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
+import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
+import org.geotoolkit.observation.ObservationStore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.sensor.SensorStore;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
@@ -55,6 +65,7 @@ import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.sts.json.ThingsResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
@@ -67,30 +78,94 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
 
-    private final boolean isTransactionnal;
+    /**
+     * The sensor business
+     */
+    @Autowired
+    private ISensorBusiness sensorBusiness;
+
+    /**
+     * The sensorML provider identifier (to be removed)
+     */
+    private Integer smlProviderID;
+
+    private boolean isTransactionnal;
 
     private SOSConfiguration configuration;
 
+    /**
+     * The Observation provider
+     * TODO; find a way to remove the omStore calls
+     */
+    private ObservationStore omStore;
+    private ObservationProvider omProvider;
+
+
     public DefaultSTSWorker(final String id) {
         super(id, ServiceDef.Specification.STS);
+        isStarted = true;
+        try {
+
+            final Object object = serviceBusiness.getConfiguration("sts", id);
+            if (object instanceof SOSConfiguration) {
+                configuration = (SOSConfiguration) object;
+            } else {
+                startError("The configuration object is malformed or null.", null);
+                return;
+            }
+
+            final String isTransactionnalProp = getProperty("transactional");
+            if (isTransactionnalProp != null) {
+                isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
+            } else {
+                boolean t = false;
+                try {
+                    final Details details = serviceBusiness.getInstanceDetails("sts", id, null);
+                    t = details.isTransactional();
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, null, ex);
+                }
+                isTransactionnal = t;
+            }
+
+            final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
+
+            // we initialize the reader/writer
+            for (Integer providerID: providers) {
+                DataProvider p = DataProviders.getProvider(providerID);
+                if (p != null) {
+                    final DataStore store = p.getMainStore();
+                    // TODO for now we only take one provider by type
+                    if (store instanceof SensorStore) {
+                        smlProviderID  = providerID;
+                    }
+                    // store may implements the 2 interface
+                    if (store instanceof ObservationStore) {
+                        omStore     = (ObservationStore)store;
+                        omProvider  = (ObservationProvider) p;
+                    }
+                } else {
+                    throw new CstlServiceException("Unable to instanciate the provider:" + providerID);
+                }
+            }
+
+        } catch (CstlServiceException ex) {
+            startError(ex.getMessage(), ex);
+        } catch (ConfigurationException ex) {
+            startError("The configuration file can't be found.", ex);
+        }
         if (isStarted) {
             LOGGER.log(Level.INFO, "STS worker {0} running", id);
         }
+    }
 
-        final String isTransactionnalProp = getProperty("transactional");
-        if (isTransactionnalProp != null) {
-            isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
-        } else {
-            boolean t = false;
-            try {
-                final Details details = serviceBusiness.getInstanceDetails("sts", id, null);
-                t = details.isTransactional();
-            } catch (ConstellationException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-            isTransactionnal = t;
+    private void startError(final String msg, final Exception ex) {
+        startError    = msg;
+        isStarted     = false;
+        LOGGER.log(Level.WARNING, "\nThe STS worker is not running!\ncause: {0}", startError);
+        if (ex != null) {
+            LOGGER.log(Level.FINER, "\nThe STS worker is not running!", ex);
         }
-
     }
 
     @Override
@@ -164,7 +239,8 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
 
     @Override
     public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final List<Sensor> sensors = new ArrayList<>();
+        return new SensorsResponse(sensors);
     }
 
     @Override
@@ -175,7 +251,9 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
 
     @Override
     public FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests req) throws CstlServiceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<FeatureOfInterest> values = new ArrayList<>();
+        //omStore.getReader().getFeatureOfInterest(startError, startError)
+        return new FeatureOfInterestsResponse(values);
     }
 
     @Override

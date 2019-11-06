@@ -26,6 +26,6 @@ import org.constellation.exception.ConfigurationException;
  * @author Guilhem Legal (Geomatys)
  */
 public interface ISOSConfigurer {
- 
-    AcknowlegementType removeSensor(final String id, final String sensorID) throws ConfigurationException;
+
+    AcknowlegementType removeSensor(final Integer id, final String sensorID) throws ConfigurationException;
 }

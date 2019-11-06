@@ -126,18 +126,18 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
                 final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
-                Integer providerD = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
-                Integer providerT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                Integer providerSEN = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                Integer providerSEND = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
                 Object sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A");
-                sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, sml, Long.MIN_VALUE, provider);
+                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626");
-                sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, sml, Long.MIN_VALUE, provider);
+                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("urn-ogc-object-sensor-SunSpot-2");
-                sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, sml, Long.MIN_VALUE, provider);
+                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, sml, Long.MIN_VALUE, providerSEN);
 
 
                 final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSDatabase");
@@ -148,26 +148,26 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("om-default", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
-                providerBusiness.create("om-test",    IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer providerOMD = providerBusiness.create("om-default", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer providerOMT = providerBusiness.create("om-test",    IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");
 
                 Integer defId = serviceBusiness.create("sos", "default", sosconf, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "sensor-default");
-                serviceBusiness.linkSOSAndProvider("default", "om-default");
-                sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");
-                sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626");
-                sensorBusiness.addSensorToSOS("default", "urn:ogc:object:sensor:SunSpot:2");
+                serviceBusiness.linkServiceAndProvider(defId, providerSEND);
+                serviceBusiness.linkServiceAndProvider(defId, providerOMD);
+                sensorBusiness.addSensorToService(defId, senId1);
+                sensorBusiness.addSensorToService(defId, senId2);
+                sensorBusiness.addSensorToService(defId, senId3);
 
                 Integer testId =serviceBusiness.create("sos", "test", sosconf, null, null);
-                serviceBusiness.linkSOSAndProvider("test", "sensor-test");
-                serviceBusiness.linkSOSAndProvider("test", "om-test");
-                sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A");
-                sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626");
-                sensorBusiness.addSensorToSOS("test", "urn:ogc:object:sensor:SunSpot:2");
+                serviceBusiness.linkServiceAndProvider(testId, providerSENT);
+                serviceBusiness.linkServiceAndProvider(testId, providerOMT);
+                sensorBusiness.addSensorToService(testId, senId1);
+                sensorBusiness.addSensorToService(testId, senId2);
+                sensorBusiness.addSensorToService(testId, senId3);
 
                 serviceBusiness.start(defId);
                 serviceBusiness.start(testId);

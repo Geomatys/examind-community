@@ -27,6 +27,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
+import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -95,15 +96,15 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("omSrc", dbConfig);
+                Integer omPid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("discovery");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "omSrc");
+                Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, omPid);
 
                 init();
                 worker = new SOSworker("default");

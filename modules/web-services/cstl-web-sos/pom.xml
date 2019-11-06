@@ -41,22 +41,7 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-om-lucene</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
             <artifactId>cstl-store-data-sensor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-engine-templating</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -100,6 +85,12 @@
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-engine-spring-security</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-data-om-lucene</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

@@ -304,12 +304,8 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public List<Sensor> getByServiceId(String serviceID) {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (service != null) {
-            return sensorRepository.findByServiceId(service);
-        }
-        return new ArrayList<>();
+    public List<Sensor> getByServiceId(Integer serviceID) {
+        return sensorRepository.findByServiceId(serviceID);
     }
 
     @Override
@@ -467,40 +463,11 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     /**
-     * Return all the sensor identifiers for the specified SOS service.
-     *
-     * @param serviceID identifier of the SOS service.
-     *
-     * @return All the sensor identifiers for the specified SOS service.
-     * @throws ConfigurationException
+     * {@inheritDoc}
      */
     @Override
-    public List<String> getLinkedSensorIdentifiers(String serviceID) throws ConfigurationException {
-        List<String> results = new ArrayList<>();
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (service != null) {
-            results.addAll(sensorRepository.getLinkedSensorIdentifiers(service, null));
-        }
-        return results;
-    }
-
-    /**
-     * Return all the sensor identifiers for the specified SOS service.
-     *
-     * @param serviceID identifier of the SOS service.
-     * @param sensorType filter on the type of sensor.
-     *
-     * @return All the sensor identifiers for the specified SOS service.
-     * @throws ConfigurationException
-     */
-    @Override
-    public List<String> getLinkedSensorIdentifiers(String serviceID, String sensorType) throws ConfigurationException {
-        List<String> results = new ArrayList<>();
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (service != null) {
-            results.addAll(sensorRepository.getLinkedSensorIdentifiers(service, sensorType));
-        }
-        return results;
+    public List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException {
+        return sensorRepository.getLinkedSensorIdentifiers(serviceID, sensorType);
     }
 
     @Override
@@ -534,29 +501,34 @@ public class SensorBusiness implements ISensorBusiness {
         return results;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void addSensorToSOS(String serviceID, String sensorID) {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        final Integer sensor   = sensorRepository.findIdByIdentifier(sensorID);
-        if (service != null && sensor != null) {
-            sensorRepository.linkSensorToSOS(sensor, service);
-        } else if (service == null) {
-            LOGGER.log(Level.WARNING, "Unexisting service:{0}", serviceID);
-        } else if (sensor == null) {
-            LOGGER.log(Level.WARNING, "Unexisting sensor:{0}", sensorID);
+    public void addSensorToService(Integer serviceID, Integer sensorID) {
+        if (serviceID != null && sensorID != null) {
+            sensorRepository.linkSensorToSOS(sensorID, serviceID);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void removeSensorFromService(Integer serviceID, Integer sensorID) {
+        if (serviceID != null && sensorID != null) {
+            sensorRepository.unlinkSensorFromSOS(sensorID, serviceID);
         }
     }
 
     @Override
     @Transactional
-    public void removeSensorFromSOS(String serviceID, String sensorID) {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
+    public void removeSensorFromService(Integer serviceID, String sensorID) {
         final Integer sensor   = sensorRepository.findIdByIdentifier(sensorID);
-        if (service != null && sensor != null) {
-            sensorRepository.unlinkSensorFromSOS(sensor, service);
-        } else if (service == null) {
-            LOGGER.log(Level.WARNING, "Unexisting service:{0}", serviceID);
+        if (serviceID != null && sensor != null) {
+            sensorRepository.unlinkSensorFromSOS(sensor, serviceID);
         } else if (sensor == null) {
             LOGGER.log(Level.WARNING, "Unexisting sensor:{0}", sensorID);
         }

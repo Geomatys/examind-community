@@ -115,26 +115,26 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
                 dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
                 dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                providerBusiness.create("omSrc", SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer omPrId = providerBusiness.create("omSrc", SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
 
                 final DataStoreProvider factorySML = DataStores.getProviderById("filesensor");
                 final ParameterValueGroup params = factorySML.getOpenParameters().createValue();
                 params.parameter("data_directory").setValue(new File(instDirectory.getPath() + "/sensors"));
-                Integer pr = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
-                providerBusiness.createOrUpdateData(pr, null, false);
+                Integer senPrId = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                providerBusiness.createOrUpdateData(senPrId, null, false);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "omSrc");
-                serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
+                int sid = serviceBusiness.create("sos", "default", configuration, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, omPrId);
+                serviceBusiness.linkServiceAndProvider(sid, senPrId);
 
-                List<Sensor> sensors = sensorBusiness.getByProviderId(pr);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(senPrId);
                 sensors.stream().forEach((sensor) -> {
-                    sensorBusiness.addSensorToSOS("default", sensor.getIdentifier());
+                    sensorBusiness.addSensorToService(sid, sensor.getId());
                 });
 
                 initialized = true;

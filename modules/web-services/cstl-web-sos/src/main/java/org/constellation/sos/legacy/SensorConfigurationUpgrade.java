@@ -71,7 +71,7 @@ public class SensorConfigurationUpgrade {
         SpringHelper.injectDependencies(this);
     }
 
-    public void upgradeConfiguration(final String id) throws ConfigurationException {
+    public void upgradeConfiguration(final Integer id) throws ConfigurationException {
 
         Lock lock = clusterBusiness.acquireLock("upgrade-sos-confguration");
         lock.lock();
@@ -79,7 +79,7 @@ public class SensorConfigurationUpgrade {
 
         try {
 
-            final Object object = serviceBusiness.getConfiguration("sos", id);
+            final Object object = serviceBusiness.getConfiguration(id);
             if (object instanceof SOSConfiguration) {
                 final SOSConfiguration config = (SOSConfiguration) object;
 
@@ -87,7 +87,7 @@ public class SensorConfigurationUpgrade {
                     final Automatic smlConf               = config.getSMLConfiguration();
                     if (smlConf != null) {
                         LOGGER.info("-- UPGRADING SOS SML CONFIGURATION -- ");
-                        String providerID = null;
+                        Integer providerID = null;
 
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
@@ -109,7 +109,7 @@ public class SensorConfigurationUpgrade {
                                             throw new ConfigurationException("Unknown value for data_directory configuration");
                                         }
                                         if (dataDir != null && dataDir.equals(smlConf.getDataDirectory())) {
-                                            providerID = sp.getIdentifier();
+                                            providerID = sp.getId();
                                             LOGGER.info("Found a previous SML provider matching");
                                         }
                                     }
@@ -122,22 +122,21 @@ public class SensorConfigurationUpgrade {
                             final ParameterValueGroup params = factory.getOpenParameters().createValue();
                             params.parameter("data_directory").setValue(smlConf.getDataDirectory());
 
-                            providerID = UUID.randomUUID().toString();
-                            Integer pr = providerBusiness.create(providerID, SPI_NAMES.SENSOR_SPI_NAME, params);
+                            providerID = providerBusiness.create(UUID.randomUUID().toString(), SPI_NAMES.SENSOR_SPI_NAME, params);
                             try {
-                                providerBusiness.createOrUpdateData(pr, null, false);
+                                providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {
                                 throw new ConfigurationException(ex);
                             }
                         }
 
-                        serviceBusiness.linkSOSAndProvider(id, providerID);
+                        serviceBusiness.linkServiceAndProvider(id, providerID);
                         config.clearSMLDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override
                             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                                 try {
-                                    serviceBusiness.setConfiguration("sos", id, config);
+                                    serviceBusiness.setConfiguration(id, config);
                                 } catch (ConfigurationException ex) {
                                     LOGGER.log(Level.SEVERE, null, ex);
                                 }
@@ -152,7 +151,7 @@ public class SensorConfigurationUpgrade {
                         LOGGER.info("-- UPGRADING SOS O&M CONFIGURATION -- ");
                         String currentDBName = omConf.getBdd().getDatabaseName();
                         String currentHost   = omConf.getBdd().getHostName();
-                        String providerID    = null;
+                        Integer providerID    = null;
 
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
@@ -167,7 +166,7 @@ public class SensorConfigurationUpgrade {
                                             final Object database = fconfig.parameter("database").getValue();
                                             if (host != null && database != null && host.equals(currentHost) && database.equals(currentDBName)) {
                                                 LOGGER.info("Found a previous O&M provider matching");
-                                                return sp.getIdentifier();
+                                                return sp.getId();
                                             }
 
                                             return null;
@@ -193,17 +192,16 @@ public class SensorConfigurationUpgrade {
                             dbConfig.parameter("observation-id-base").setValue(config.getObservationIdBase());
                             dbConfig.parameter("sensor-id-base").setValue(config.getSensorIdBase());
 
-                           providerID = UUID.randomUUID().toString();
-                           providerBusiness.create(providerID, dbConfig);
+                           providerID = providerBusiness.create(UUID.randomUUID().toString(), dbConfig);
                         }
 
-                        serviceBusiness.linkSOSAndProvider(id, providerID);
+                        serviceBusiness.linkServiceAndProvider(id, providerID);
                         config.clearOMDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override
                             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                                 try {
-                                    serviceBusiness.setConfiguration("sos", id, config);
+                                    serviceBusiness.setConfiguration(id, config);
                                 } catch (ConfigurationException ex) {
                                     LOGGER.log(Level.SEVERE, null, ex);
                                 }

@@ -303,11 +303,12 @@ public class ServiceBusiness implements IServiceBusiness {
         // stop services
         stop(id);
 
+        // TODO remove special cases
         if (service.getType().equalsIgnoreCase("csw")) {
             dataRepository.removeAllDataFromCSW(id);
             datasetRepository.removeAllDatasetFromCSW(id);
             serviceRepository.removelinkedMetadataProvider(id);
-        } else if (service.getType().equalsIgnoreCase("sos")) {
+        } else if (service.getType().equalsIgnoreCase("sos") || service.getType().equalsIgnoreCase("sts")) {
             List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id);
             serviceRepository.removelinkedSensorProviders(id);
             serviceRepository.removelinkedSensors(id);
@@ -417,6 +418,27 @@ public class ServiceBusiness implements IServiceBusiness {
         }
         try {
             final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
+            if (service != null) {
+                final String confXml = getStringFromObject(config, GenericDatabaseMarshallerPool.getInstance());
+                service.setConfig(confXml);
+                serviceRepository.update(service);
+            }
+        } catch (ConstellationPersistenceException ex) {
+            throw new ConfigurationException(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void setConfiguration(final Integer id, final Object config) throws ConfigurationException {
+        if (id == null) {
+            throw new ConfigurationException("Service instance identifier can't be null or empty.");
+        }
+        try {
+            final Service service = serviceRepository.findById(id);
             if (service != null) {
                 final String confXml = getStringFromObject(config, GenericDatabaseMarshallerPool.getInstance());
                 service.setConfig(confXml);
@@ -675,26 +697,22 @@ public class ServiceBusiness implements IServiceBusiness {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<Integer> getSOSLinkedProviders(String integer) {
-        final Integer serviceID = serviceRepository.findIdByIdentifierAndType(integer, "sos");
-        if (serviceID != null) {
-            return serviceRepository.getLinkedSensorProviders(serviceID);
-        }
-        return new ArrayList<>();
+    public List<Integer> getLinkedProviders(Integer serviceID) {
+        return serviceRepository.getLinkedSensorProviders(serviceID);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void linkSOSAndProvider(String serviceID, String providerID) {
-        final Integer service   = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        final Integer provider = providerRepository.findIdForIdentifier(providerID);
-        if (service != null && provider != null) {
-            serviceRepository.linkSensorProvider(service, provider, true);
-        } else if (service == null) {
-            LOGGER.log(Level.WARNING, "Unexisting service:{0}", serviceID);
-        } else if (provider == null) {
-            LOGGER.log(Level.WARNING, "Unexisting provider:{0}", providerID);
+    public void linkServiceAndProvider(Integer serviceID, Integer providerID) {
+        if (serviceID != null && providerID != null) {
+            serviceRepository.linkSensorProvider(serviceID, providerID, true);
         }
     }
 

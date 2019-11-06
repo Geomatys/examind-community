@@ -36,6 +36,11 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-om</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-data-observationstore</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

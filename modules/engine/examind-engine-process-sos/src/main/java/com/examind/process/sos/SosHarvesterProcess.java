@@ -208,7 +208,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     // unlink from SOS
                     for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
                         ServiceComplete sc = serviceBusiness.getServiceById(service);
-                        configurer.removeSensor(sc.getIdentifier(), sid.getIdentifier());
+                        configurer.removeSensor(sc.getId(), sid.getIdentifier());
                     }
 
                     // remove sensor
@@ -327,15 +327,15 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ===========================================================================*/
 
         try {
-            final ObservationStore sosStore = getSOSObservationStore(sosServ.getName());
+            final ObservationStore sosStore = getSOSObservationStore(sosServ.getId());
             boolean reload = false;
             for (final Integer dataId : dataToIntegrate) {
 
-                List<String> ids = generateSensorML(dataId);
+                List<Integer> ids = generateSensorML(dataId);
 
                 // ajout d'un capteur au SOS
-                for (String sensorID : ids) {
-                    nbObsInserted = nbObsInserted + importSensor(sosServ.getName(), sensorID, dataId, configurer, sosStore);
+                for (Integer sensorID : ids) {
+                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, configurer, sosStore);
                     LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
                     reload = true;
                 }
@@ -352,12 +352,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
 
-    private List<String> generateSensorML(final int dataId) throws DataStoreException, ConfigurationException, SQLException, ProcessException {
+    private List<Integer> generateSensorML(final int dataId) throws DataStoreException, ConfigurationException, SQLException, ProcessException {
 
         final Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
         final List<ExtractionResult.ProcedureTree> procedures;
-        final List<String> ids = new ArrayList<>();
+        final List<Integer> ids = new ArrayList<>();
 
         final ObservationStore store = SOSUtils.getObservationStore(provider);
         if (store != null) {
@@ -365,8 +365,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // SensorML generation
             for (final ExtractionResult.ProcedureTree process : procedures) {
-                generateSensorML(dataId, process, null);
-                ids.add(process.id);
+                ids.add(generateSensorML(dataId, process, null));
             }
         } else {
             throw new ProcessException("none observation store found", this);
@@ -376,7 +375,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
 
 
-    private void generateSensorML(final int dataID, final ExtractionResult.ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
+    private Integer generateSensorML(final int dataID, final ExtractionResult.ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
 
         final Properties prop = new Properties();
         prop.put("id",         process.id);
@@ -414,15 +413,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // update sml
         sensorBusiness.updateSensorMetadata(sid, sml);
         sensorBusiness.linkDataToSensor(dataID, sid);
+        return sid;
     }
 
-    private int importSensor(final String sosId, final String sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
         int nbObservationInserted                 = 0;
         final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
-        final List<String> alreadyLinked          = sensorBusiness.getLinkedSensorIdentifiers(sosId);
+        final List<String> alreadyLinked          = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
         final Set<Phenomenon> existingPhenomenons = new HashSet<>(sosStore.getReader().getPhenomenons("1.0.0"));
-        final Set<SamplingFeature> existingFois   = new HashSet<>(sosStore.getReader().getFeatureOfInterestForProcedure(sensorID, "2.0.0"));
+        final Set<SamplingFeature> existingFois   = new HashSet<>(sosStore.getReader().getFeatureOfInterestForProcedure(sensor.getIdentifier(), "2.0.0"));
         final Set<Integer> providerIDs            = new HashSet<>();
         final List<String> sensorIds              = new ArrayList<>();
 
@@ -430,16 +430,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         providerIDs.add(dataBusiness.getDataProvider(dataId));
 
         // import main sensor
-        if (!alreadyLinked.contains(sensorID)) {
-            sensorBusiness.addSensorToSOS(sosId, sensorID);
+        if (!alreadyLinked.contains(sensor.getIdentifier())) {
+            sensorBusiness.addSensorToService(sosRef.getId(), sensorID);
         }
-        sensorIds.add(sensorID);
+        sensorIds.add(sensor.getIdentifier());
 
         //import sensor children
         for (Sensor child : sensorChildren) {
             providerIDs.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
-            if (!alreadyLinked.contains(sensorID)) {
-                sensorBusiness.addSensorToSOS(sosId, child.getIdentifier());
+            if (!alreadyLinked.contains(sensor.getId())) {
+                sensorBusiness.addSensorToService(sosRef.getId(), child.getId());
             }
             sensorIds.add(child.getIdentifier());
         }
@@ -452,18 +452,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 final ObservationStore store = SOSUtils.getObservationStore(provider);
                 final ExtractionResult result;
                 if (store != null) {
-                    result = store.getResults(sensorID, sensorIds, existingPhenomenons, existingFois);
+                    result = store.getResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
 
                     existingPhenomenons.addAll(result.phenomenons);
                     existingFois.addAll(result.featureOfInterest);
 
                     // update sensor location
                     for (ExtractionResult.ProcedureTree process : result.procedures) {
-                        writeProcedures(sosId, process, null, configurer);
+                        writeProcedures(sosRef.getId(), process, null, configurer);
                     }
 
                     // import in O&M database
-                    configurer.importObservations(sosId, result.observations, result.phenomenons);
+                    configurer.importObservations(sosRef.getId(), result.observations, result.phenomenons);
                     nbObservationInserted = nbObservationInserted + result.observations.size();
                 } else {
                     LOGGER.info("Failure : Available only on Observation provider (and netCDF coverage) for now");
@@ -476,7 +476,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     }
 
 
-    private static void writeProcedures(final String id, final ExtractionResult.ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
+    private static void writeProcedures(final Integer id, final ExtractionResult.ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
         configurer.writeProcedure(id, process.id, geom, parent, process.type);
         for (ExtractionResult.ProcedureTree child : process.children) {
@@ -484,8 +484,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
     }
 
-    protected DataProvider getOMProvider(final String serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
+    protected DataProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
+        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
             if(p.getMainStore() instanceof ObservationStore){
@@ -496,7 +496,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
     }
 
-    private ObservationStore getSOSObservationStore(final String serviceID) throws ConfigurationException {
+    private ObservationStore getSOSObservationStore(final Integer serviceID) throws ConfigurationException {
         final DataProvider omProvider = getOMProvider(serviceID);
         return SOSUtils.getObservationStore(omProvider);
     }

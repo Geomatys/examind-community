@@ -91,14 +91,14 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     public Instance getInstance(final Integer id) throws ConfigurationException {
         final Instance instance = super.getInstance(id);
         try {
-            instance.setLayersNumber(getSensorIds(instance.getIdentifier()).size());
+            instance.setLayersNumber(getSensorIds(id).size());
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Error while getting sensor count on SOS instance:" + id, ex);
         }
         return instance;
     }
 
-    public AcknowlegementType importSensor(final String id, final Path sensorFile, final String type) throws ConfigurationException {
+    public AcknowlegementType importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
         LOGGER.info("Importing sensor");
 
         final List<Path> files;
@@ -125,7 +125,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                     if (sensor instanceof AbstractSensorML) {
                         final String sensorID = getSmlID((AbstractSensorML)sensor);
                         final String smlType = SensorMLUtilities.getSensorMLType((AbstractSensorML)sensor);
-                        sensorBusiness.create(sensorID, smlType, null, sensor, System.currentTimeMillis(), getSensorProviderId(id));
+                        sensorBusiness.create(sensorID, smlType, null, sensor, System.currentTimeMillis(), getSensorProviderId(serviceID));
                     } else {
                         throw new ConfigurationException("Only handle SensorML for now");
                     }
@@ -143,7 +143,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     }
 
     @Override
-    public AcknowlegementType removeSensor(final String id, final String sensorID) throws ConfigurationException {
+    public AcknowlegementType removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree root = getSensorTree(id);
@@ -158,7 +158,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 toRemove.add(sensorID);
             }
             for (String sid : toRemove) {
-                sensorBusiness.removeSensorFromSOS(id, sid);
+                sensorBusiness.removeSensorFromService(id, sid);
                 pr.removeProcedure(sid);
             }
 
@@ -178,12 +178,12 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType removeAllSensors(final String id) throws ConfigurationException {
+    public AcknowlegementType removeAllSensors(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
             for (Sensor sensor : sensors) {
-                sensorBusiness.removeSensorFromSOS(id, sensor.getIdentifier());
+                sensorBusiness.removeSensorFromService(id, sensor.getId());
                 boolean sucess = true; // TODO
                 if (sucess) {
                     pr.removeProcedure(sensor.getIdentifier());
@@ -198,7 +198,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public SensorMLTree getSensorTree(String id) throws ConfigurationException {
+    public SensorMLTree getSensorTree(Integer id) throws ConfigurationException {
         final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
         final List<SensorMLTree> values = new ArrayList<>();
         for (Sensor sensor : sensors) {
@@ -219,7 +219,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         return SensorMLTree.buildTree(values);
     }
 
-    public Collection<String> getSensorIds(final String id) throws ConfigurationException {
+    public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             return pr.getProcedureNames();
@@ -228,7 +228,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public Collection<String> getSensorIdsForObservedProperty(final String id, final String observedProperty) throws ConfigurationException {
+    public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             return pr.getProceduresForPhenomenon(observedProperty);
@@ -237,7 +237,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public Collection<String> getObservedPropertiesForSensorId(final String id, final String sensorID) throws ConfigurationException {
+    public Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree root          = getSensorTree(id);
@@ -248,7 +248,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public TemporalGeometricPrimitive getTimeForSensorId(final String id, final String sensorID) throws ConfigurationException {
+    public TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             return pr.getTimeForProcedure("2.0.0", sensorID);
@@ -257,7 +257,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType importObservations(final String id, final Path observationFile) throws ConfigurationException {
+    public AcknowlegementType importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final Object objectFile = SOSUtils.unmarshallObservationFile(observationFile);
@@ -274,7 +274,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType importObservations(final String id, final ObservationCollection collection) throws ConfigurationException {
+    public AcknowlegementType importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final long start = System.currentTimeMillis();
@@ -286,7 +286,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType importObservations(final String id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
+    public AcknowlegementType importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final long start = System.currentTimeMillis();
@@ -299,7 +299,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType removeSingleObservation(final String id, final String observationID) throws ConfigurationException {
+    public AcknowlegementType removeSingleObservation(final Integer id, final String observationID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             pr.removeObservation(observationID);
@@ -309,7 +309,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType removeObservationForProcedure(final String id, final String procedureID) throws ConfigurationException {
+    public AcknowlegementType removeObservationForProcedure(final Integer id, final String procedureID) throws ConfigurationException {
         final ObservationProvider writer = getOMProvider(id);
         try {
             writer.removeObservationForProcedure(procedureID);
@@ -319,7 +319,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public Collection<String> getObservedPropertiesIds(String id) throws ConfigurationException {
+    public Collection<String> getObservedPropertiesIds(Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             return pr.getPhenomenonNames();
@@ -328,7 +328,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType writeProcedure(final String id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
+    public AcknowlegementType writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             pr.writeProcedure(sensorID, location, parent, type);
@@ -338,8 +338,8 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType updateSensorLocation(final String id, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+    public AcknowlegementType updateSensorLocation(final Integer serviceId, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
+        final ObservationProvider pr = getOMProvider(serviceId);
         try {
             pr.updateProcedureLocation(sensorID, location);
             return new AcknowlegementType("Success", "The sensor location have been updated in the SOS");
@@ -348,7 +348,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public String getWKTSensorLocation(final String id, final String sensorID) throws ConfigurationException {
+    public String getWKTSensorLocation(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider provider = getOMProvider(id);
         try {
             final SensorMLTree root          = getSensorTree(id);
@@ -371,25 +371,25 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public String getObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
+    public String getObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
         try {
-            final ObservationFilterReader filter = filterObservation(sensorID, sensorID, observedProperties, foi, start, end);
+            final ObservationFilterReader filter = filterObservation(id, sensorID, observedProperties, foi, start, end);
             return filter.getResults();
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public String getDecimatedObservationsCsv(final String id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
+    public String getDecimatedObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
         try {
-            final ObservationFilterReader filter = filterObservation(sensorID, sensorID, observedProperties, foi, start, end);
+            final ObservationFilterReader filter = filterObservation(id, sensorID, observedProperties, foi, start, end);
             return filter.getDecimatedResults(width);
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public boolean buildDatasource(final String serviceID, final String schemaPrefix) throws ConfigurationException {
+    public boolean buildDatasource(final Integer serviceID, final String schemaPrefix) throws ConfigurationException {
         final DataProvider omProvider = getOMProvider(serviceID);
         if (omProvider != null && omProvider.getMainStore() instanceof SOSDatabaseObservationStore) {
             return true;
@@ -397,8 +397,8 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         return false;
     }
 
-    protected Integer getSensorProviderId(final String serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
+    protected Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
+        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
             if(p instanceof SensorProvider){
@@ -409,8 +409,8 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
     }
 
-    protected ObservationProvider getOMProvider(final String serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getSOSLinkedProviders(serviceID);
+    protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
+        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
             if(p instanceof ObservationProvider){
@@ -429,7 +429,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
      * @return An observation Writer.
      * @throws ConfigurationException
      */
-    protected ObservationWriter getObservationWriter(final String serviceID) throws ConfigurationException {
+    protected ObservationWriter getObservationWriter(final Integer serviceID) throws ConfigurationException {
         final DataProvider omProvider = getOMProvider(serviceID);
         if (omProvider != null) {
             return getObservationStore(serviceID).getWriter();
@@ -446,7 +446,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
      * @return An observation Writer.
      * @throws ConfigurationException
      */
-    protected ObservationFilterReader filterObservation(final String serviceID, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException, DataStoreException {
+    protected ObservationFilterReader filterObservation(final Integer serviceID, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException, DataStoreException {
         final DataProvider omProvider = getOMProvider(serviceID);
         if (omProvider != null) {
             ObservationFilterReader filter = (ObservationFilterReader) getObservationStore(serviceID).getFilter();
@@ -474,7 +474,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    private ObservationStore getObservationStore(final String serviceID) throws ConfigurationException {
+    private ObservationStore getObservationStore(final Integer serviceID) throws ConfigurationException {
         final DataProvider omProvider = getOMProvider(serviceID);
         return SOSUtils.getObservationStore(omProvider);
     }

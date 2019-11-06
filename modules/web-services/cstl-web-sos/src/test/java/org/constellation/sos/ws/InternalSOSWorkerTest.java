@@ -80,12 +80,12 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
+                int sid = serviceBusiness.create("sos", "default", configuration, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, provider);
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(provider);
                 sensors.stream().forEach((sensor) -> {
-                    sensorBusiness.addSensorToSOS("default", sensor.getIdentifier());
+                    sensorBusiness.addSensorToService(sid, sensor.getId());
                 });
 
                 init();

@@ -47,7 +47,7 @@ public interface ISensorBusiness {
 
     List<Sensor> getByProviderId(int providerId);
 
-    List<Sensor> getByServiceId(String serviceId);
+    List<Sensor> getByServiceId(Integer serviceId);
 
     List<SensorReference> getByDataId(int dataId);
 
@@ -100,15 +100,37 @@ public interface ISensorBusiness {
 
     String getNewSensorId(final Integer providerID) throws ConfigurationException;
 
-    List<String> getLinkedSensorIdentifiers(String serviceID) throws ConfigurationException;
-
-    List<String> getLinkedSensorIdentifiers(String serviceID, String sensorType) throws ConfigurationException;
+    /**
+     * Return all the sensor identifiers for the specified service.
+     *
+     * @param serviceID identifier of the service.
+     * @param sensorType filter on the type of sensor.
+     *
+     * @return All the sensor identifiers for the specified service.
+     * @throws ConfigurationException
+     */
+    List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException;
 
     Map<String, List<String>> getAcceptedSensorMLFormats(String serviceID) throws ConfigurationException;
 
-    void addSensorToSOS(String serviceID, String sensorID);
+    /**
+     * Link a sensor to a service.
+     *
+     * @param serviceID Service identifier;
+     * @param sensorID Sensor identifier.
+     */
+    void addSensorToService(Integer serviceID, Integer sensorID);
 
-    void removeSensorFromSOS(String serviceID, String sensorID);
+
+    /**
+     * Remove a sensor from a service.
+     *
+     * @param serviceID Service identifier;
+     * @param sensorID Sensor identifier.
+     */
+    void removeSensorFromService(Integer serviceID, Integer sensorID);
+
+    void removeSensorFromService(Integer serviceID, String sensorID);
 
     SensorMLTree getFullSensorMLTree();
 

@@ -100,12 +100,12 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 configuration.setProfile("transactional");
                 configuration.getParameters().put("transactionSecurized", "false");
 
-                serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkSOSAndProvider("default", "sensorSrc");
+                Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
+                serviceBusiness.linkServiceAndProvider(sid, pr);
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(pr);
                 sensors.stream().forEach((sensor) -> {
-                    sensorBusiness.addSensorToSOS("default", sensor.getIdentifier());
+                    sensorBusiness.addSensorToService(sid, sensor.getId());
                 });
 
                 init();
