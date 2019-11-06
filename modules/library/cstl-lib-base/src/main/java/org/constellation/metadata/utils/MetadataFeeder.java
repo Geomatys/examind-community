@@ -80,6 +80,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.identification.DefaultBrowseGraphic;
+import static org.constellation.api.ServiceConstants.*;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.identification.BrowseGraphic;
 import org.opengis.metadata.identification.KeywordType;
@@ -848,7 +849,7 @@ public class MetadataFeeder {
             LOGGER.log(Level.WARNING, "unvalid URL:" + url, ex);  // TODO: NON!!!!!
             resource = null;
         }
-        operations.add(buildOperation("GetCapabilities", resource));
+        operations.add(buildOperation(GET_CAPABILITIES, resource));
 
         switch (serviceType) {
             case "WMS":
@@ -879,17 +880,17 @@ public class MetadataFeeder {
                 operations.add(buildOperation("Harvest", resource));
                 break;
             case "SOS":
-                operations.add(buildOperation("GetObservation", resource));
-                operations.add(buildOperation("GetObservationById", resource));
-                operations.add(buildOperation("DescribeSensor", resource));
-                operations.add(buildOperation("GetFeatureOfInterest", resource));
-                operations.add(buildOperation("InsertObservation", resource));
-                operations.add(buildOperation("InsertSensor", resource));
-                operations.add(buildOperation("DeleteSensor", resource));
-                operations.add(buildOperation("InsertResult", resource));
-                operations.add(buildOperation("InsertResultTemplate", resource));
-                operations.add(buildOperation("GetResultTemplate", resource));
-                operations.add(buildOperation("GetFeatureOfInterestTime", resource));
+                operations.add(buildOperation(GET_OBSERVATION, resource));
+                operations.add(buildOperation(GET_OBSERVATION_BY_ID, resource));
+                operations.add(buildOperation(DESCRIBE_SENSOR, resource));
+                operations.add(buildOperation(GET_FEATURE_OF_INTEREST, resource));
+                operations.add(buildOperation(INSERT_OBSERVATION, resource));
+                operations.add(buildOperation(INSERT_SENSOR, resource));
+                operations.add(buildOperation(DELETE_SENSOR, resource));
+                operations.add(buildOperation(INSERT_RESULT, resource));
+                operations.add(buildOperation(INSERT_RESULT_TEMPLATE, resource));
+                operations.add(buildOperation(GET_RESULT_TEMPLATE, resource));
+                operations.add(buildOperation(GET_FEATURE_OF_INTEREST_TIME, resource));
                 break;
         }
         // TODO other service

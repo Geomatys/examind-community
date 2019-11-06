@@ -72,6 +72,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import org.junit.BeforeClass;
 import org.opengis.parameter.ParameterValueGroup;
+import static org.constellation.api.ServiceConstants.*;
 
 /**
  *
@@ -248,7 +249,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue(c.getOperationsMetadata() != null);
 
-        Operation op = c.getOperationsMetadata().getOperation("GetObservation");
+        Operation op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertTrue(op != null);
         assertTrue(op.getDCP().size() > 0);
@@ -265,7 +266,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         c = (Capabilities) obj;
 
-        op = c.getOperationsMetadata().getOperation("GetObservation");
+        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getTestURL());
 
@@ -279,7 +280,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         c = (Capabilities) obj;
 
-        op = c.getOperationsMetadata().getOperation("GetObservation");
+        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
     }
@@ -305,7 +306,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         assertTrue(c.getOperationsMetadata() != null);
 
-        Operation op = c.getOperationsMetadata().getOperation("GetObservation");
+        Operation op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertTrue(op != null);
         assertTrue(op.getDCP().size() > 0);
@@ -322,7 +323,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         c = (CapabilitiesType) obj;
 
-        op = c.getOperationsMetadata().getOperation("GetObservation");
+        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getTestURL());
 
@@ -336,7 +337,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         c = (CapabilitiesType) obj;
 
-        op = c.getOperationsMetadata().getOperation("GetObservation");
+        op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
     }

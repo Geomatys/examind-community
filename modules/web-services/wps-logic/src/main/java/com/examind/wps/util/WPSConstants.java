@@ -32,6 +32,7 @@ import java.util.Map;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import static org.constellation.api.CommonConstants.DEFAULT_CRS;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 
 import org.geotoolkit.ows.xml.v200.Operation;
 import org.geotoolkit.ows.xml.v200.CodeType;
@@ -84,7 +85,6 @@ public final class WPSConstants {
      */
     public static final String GETSTATUS = "GetStatus";
     public static final String GETRESULT = "GetResult";
-    public static final String GETCAPABILITIES = "GetCapabilities";
     public static final String DESCRIBEPROCESS = "DescribeProcess";
     public static final String EXECUTE = "Execute";
     public static final String DISMISS = "Dismiss";
@@ -154,7 +154,7 @@ public final class WPSConstants {
         gcParameters.add(new DomainType("service", Arrays.asList(WPS_SERVICE)));
         gcParameters.add(new DomainType("Acceptversions", Arrays.asList(WPSVersion.v100.getCode())));
         gcParameters.add(new DomainType("AcceptFormats", Arrays.asList("text/xml")));
-        final Operation getCapabilities = new Operation(getAndPost, gcParameters, null, null, "GetCapabilities");
+        final Operation getCapabilities = new Operation(getAndPost, gcParameters, null, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<DomainType> dpParameters = new ArrayList<>();
@@ -188,7 +188,7 @@ public final class WPSConstants {
         gcParameters.add(new DomainType("service", Arrays.asList(WPS_SERVICE)));
         gcParameters.add(new DomainType("Acceptversions", Arrays.asList(WPSVersion.v200.getCode())));
         gcParameters.add(new DomainType("AcceptFormats", Arrays.asList("text/xml")));
-        final Operation getCapabilities = new Operation(getAndPost, gcParameters, null, null, "GetCapabilities");
+        final Operation getCapabilities = new Operation(getAndPost, gcParameters, null, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<DomainType> dpParameters = new ArrayList<>();

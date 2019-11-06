@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 
+import static org.constellation.api.ServiceConstants.*;
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
 import static org.constellation.api.QueryConstants.ACCEPT_VERSIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
@@ -321,28 +322,28 @@ public class SOService extends OGCWebService<SOSworker> {
      * @throws CstlServiceException
      */
     private RequestBase adaptQuery(String request, final Worker w) throws CstlServiceException {
-         if ("InsertObservation" .equalsIgnoreCase(request) ||
-             "RegisterSensor"    .equalsIgnoreCase(request)
+         if (INSERT_OBSERVATION .equalsIgnoreCase(request) ||
+             REGISTER_SENSOR    .equalsIgnoreCase(request)
          ){
              throwUnsupportedGetMethod(request);
 
-         } else if ("GetFeatureOfInterest".equalsIgnoreCase(request)) {
+         } else if (GET_FEATURE_OF_INTEREST.equalsIgnoreCase(request)) {
              return createGetFeatureOfInterest(w);
-         } else if ("GetFeatureOfInterestTime".equalsIgnoreCase(request)) {
+         } else if (GET_FEATURE_OF_INTEREST_TIME.equalsIgnoreCase(request)) {
              return createGetFeatureOfInterestTime(w);
-         } else if ("GetObservation".equalsIgnoreCase(request)) {
+         } else if (GET_OBSERVATION.equalsIgnoreCase(request)) {
              return createGetObservation(w);
-         } else if ("GetResult".equalsIgnoreCase(request)) {
+         } else if (GET_RESULT.equalsIgnoreCase(request)) {
              return createGetResult(w);
-         } else if ("DescribeSensor".equalsIgnoreCase(request)) {
+         } else if (DESCRIBE_SENSOR.equalsIgnoreCase(request)) {
              return createDescribeSensor(w);
-         } else if ("DeleteSensor".equalsIgnoreCase(request)) {
+         } else if (DELETE_SENSOR.equalsIgnoreCase(request)) {
              return createDeleteSensor(w);
-         } else if ("GetResultTemplate".equalsIgnoreCase(request)) {
+         } else if (GET_RESULT_TEMPLATE.equalsIgnoreCase(request)) {
              return createGetResultTemplate(w);
-         } else if ("GetObservationById".equalsIgnoreCase(request)) {
+         } else if (GET_OBSERVATION_BY_ID.equalsIgnoreCase(request)) {
              return createGetObservationById(w);
-         } else if ("GetCapabilities".equalsIgnoreCase(request)) {
+         } else if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
              return createNewGetCapabilities(w);
          }
          throw new CstlServiceException("The operation " + request + " is not supported by the service",
@@ -527,7 +528,7 @@ public class SOService extends OGCWebService<SOSworker> {
             return new org.geotoolkit.sos.xml.v100.GetFeatureOfInterestTime(getParameter(VERSION_PARAMETER, true), getParameter("FeatureOfInterestId", true));
         } else {
             throw new CstlServiceException("The operation GetFeatureOfInterestTime is only requestable in 1.0.0 version",
-                                                  OPERATION_NOT_SUPPORTED, "GetFeatureOfInterestTime");
+                                                  OPERATION_NOT_SUPPORTED, GET_FEATURE_OF_INTEREST_TIME);
         }
     }
 
@@ -599,7 +600,7 @@ public class SOService extends OGCWebService<SOSworker> {
             }
             return buildGetResult(currentVersion, service, offering, observedProperty, foids, spatialFilter, temporalFilters, extensions);
         } else {
-            throwUnsupportedGetMethod("GetResult");
+            throwUnsupportedGetMethod(GET_RESULT);
             return null;
         }
     }
@@ -750,7 +751,7 @@ public class SOService extends OGCWebService<SOSworker> {
             return buildGetObservation(currentVersion, service, offering, observedProperties, procedures, foids, responseFormat, temporalFilters, spatialFilter, null, null, null, null);
         } else {
             throw new CstlServiceException("The operation GetObservation is only requestable in XML via POST method for 1.0.0 version",
-                                                  OPERATION_NOT_SUPPORTED, "GetObservation");
+                                                  OPERATION_NOT_SUPPORTED, GET_OBSERVATION);
         }
     }
 

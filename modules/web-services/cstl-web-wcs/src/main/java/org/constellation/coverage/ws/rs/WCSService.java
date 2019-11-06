@@ -74,11 +74,11 @@ import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
 import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
 import static org.constellation.coverage.core.WCSConstant.BMP;
 import static org.constellation.coverage.core.WCSConstant.DESCRIBECOVERAGE;
 import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
-import static org.constellation.coverage.core.WCSConstant.GETCAPABILITIES;
 import static org.constellation.coverage.core.WCSConstant.GETCOVERAGE;
 import static org.constellation.coverage.core.WCSConstant.GIF;
 import static org.constellation.coverage.core.WCSConstant.JPEG;
@@ -343,7 +343,7 @@ public class WCSService extends GridWebService<WCSWorker> {
     }
 
     public RequestBase adaptQuery(final String request, final Worker w) throws CstlServiceException {
-        if (GETCAPABILITIES.equalsIgnoreCase(request)) {
+        if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return adaptKvpGetCapabilitiesRequest(w);
         } else if (GETCOVERAGE.equalsIgnoreCase(request)) {
             return adaptKvpGetCoverageRequest(w);

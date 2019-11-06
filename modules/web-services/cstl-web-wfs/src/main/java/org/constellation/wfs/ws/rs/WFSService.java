@@ -103,7 +103,7 @@ import static org.constellation.wfs.core.WFSConstants.STR_CREATE_STORED_QUERY;
 import static org.constellation.wfs.core.WFSConstants.STR_DESCRIBEFEATURETYPE;
 import static org.constellation.wfs.core.WFSConstants.STR_DESCRIBE_STORED_QUERIES;
 import static org.constellation.wfs.core.WFSConstants.STR_DROP_STORED_QUERY;
-import static org.constellation.wfs.core.WFSConstants.STR_GETCAPABILITIES;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.constellation.wfs.core.WFSConstants.STR_GETFEATURE;
 import static org.constellation.wfs.core.WFSConstants.STR_GETGMLOBJECT;
 import static org.constellation.wfs.core.WFSConstants.STR_GET_PROPERTY_VALUE;
@@ -413,7 +413,7 @@ public class WFSService extends GridWebService<WFSWorker> {
     }
 
     private RequestBase adaptQuery(final String request, final WFSWorker worker) throws CstlServiceException {
-        if (STR_GETCAPABILITIES.equalsIgnoreCase(request)) {
+        if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return createNewGetCapabilitiesRequest(worker);
         } else if (STR_DESCRIBEFEATURETYPE.equalsIgnoreCase(request)) {
             return createNewDescribeFeatureTypeRequest(worker);

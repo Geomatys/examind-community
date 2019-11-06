@@ -123,6 +123,7 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IMetadataBusiness;
 import static org.constellation.metadata.core.CSWConstants.ALL;
@@ -1253,7 +1254,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                     if (o != null) {
                         final AbstractDomain param = o.getParameterIgnoreCase(parameter);
                         QName type;
-                        if ("GetCapabilities".equals(operationName)) {
+                        if (GET_CAPABILITIES.equals(operationName)) {
                             if ("2.0.2".equals(currentVersion)) {
                                 type = CAPABILITIES_202_QNAME;
                             } else {

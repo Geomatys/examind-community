@@ -20,6 +20,7 @@
 package org.constellation.ws.embedded;
 
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -465,7 +466,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof WFSCapabilitiesType);
 
         WFSCapabilitiesType responseCaps = (WFSCapabilitiesType)obj;
-        String currentUrl =  responseCaps.getOperationsMetadata().getOperation("GetCapabilities").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
+        String currentUrl =  responseCaps.getOperationsMetadata().getOperation(GET_CAPABILITIES).getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?", currentUrl);
 
         getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_GETCAPABILITIES_URL);
@@ -473,7 +474,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof WFSCapabilitiesType);
 
         responseCaps = (WFSCapabilitiesType)obj;
-        currentUrl =  responseCaps.getOperationsMetadata().getOperation("GetCapabilities").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
+        currentUrl =  responseCaps.getOperationsMetadata().getOperation(GET_CAPABILITIES).getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?", currentUrl);
 
 
@@ -482,7 +483,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WFSCapabilitiesType);
         responseCaps = (WFSCapabilitiesType)obj;
-        currentUrl =  responseCaps.getOperationsMetadata().getOperation("GetCapabilities").getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
+        currentUrl =  responseCaps.getOperationsMetadata().getOperation(GET_CAPABILITIES).getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref();
         assertEquals("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?", currentUrl);
 
         getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETCAPABILITIES_ERROR_URL);

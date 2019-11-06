@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Envelope_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._LineString_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Point_QNAME;
@@ -134,7 +135,7 @@ public abstract class CSWConstants {
         gcParameters.add(OWSXmlFactory.buildDomain("1.0.0", "Version",  Arrays.asList("2.0.2")));
         gcParameters.add(OWSXmlFactory.buildDomain("1.0.0", "Service",  Arrays.asList("CSW")));
 
-        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("1.0.0", getAndPost, gcParameters, null, "GetCapabilities");
+        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("1.0.0", getAndPost, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> grParameters = new ArrayList<>();
@@ -250,7 +251,7 @@ public abstract class CSWConstants {
         gcParameters.add(OWSXmlFactory.buildDomain("2.0.0", "Version",  Arrays.asList("3.0.0")));
         gcParameters.add(OWSXmlFactory.buildDomain("2.0.0", "Service",  Arrays.asList("CSW")));
 
-        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("2.0.0", getAndPost, gcParameters, null, "GetCapabilities");
+        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("2.0.0", getAndPost, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> grParameters = new ArrayList<>();

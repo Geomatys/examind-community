@@ -42,6 +42,7 @@ import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.WritableAggregate;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
@@ -414,7 +415,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             if(styledLayer.isIswms()){
                 final StringBuilder capsUrl = new StringBuilder();
                 capsUrl.append(urlWms).append("?REQUEST=GetCapabilities&SERVICE=WMS");
-                final OperationType opCaps = new OperationType("GetCapabilities", capsUrl.toString(), null, null);
+                final OperationType opCaps = new OperationType(GET_CAPABILITIES, capsUrl.toString(), null, null);
                 opCaps.setMethod(MethodCodeType.GET);
                 offering.addOperation(opCaps);
             }

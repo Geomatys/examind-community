@@ -71,7 +71,6 @@ public final class WMSConstant {
     public static final String GETMAP           = "GetMap";
     public static final String MAP              = "Map";
     public static final String GETFEATUREINFO   = "GetFeatureInfo";
-    public static final String GETCAPABILITIES  = "GetCapabilities";
     public static final String DESCRIBELAYER    = "DescribeLayer";
     public static final String GETLEGENDGRAPHIC = "GetLegendGraphic";
     public static final String GETORIGFILE      = "GetOrigFile";

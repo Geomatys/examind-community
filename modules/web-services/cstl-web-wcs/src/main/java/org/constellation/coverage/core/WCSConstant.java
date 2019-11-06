@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.geotoolkit.wcs.xml.ServiceMetadata;
 import org.geotoolkit.wcs.xml.v200.ServiceMetadataType;
 
@@ -69,7 +70,6 @@ public final class WCSConstant {
      */
     public static final String DESCRIBECOVERAGE = "DescribeCoverage";
     public static final String GETCOVERAGE = "GetCoverage";
-    public static final String GETCAPABILITIES = "GetCapabilities";
 
     /** Parameter used in getCoverage 1.1.1 */
     public static final String KEY_IDENTIFIER = "IDENTIFIER";
@@ -242,7 +242,7 @@ public final class WCSConstant {
         gcParameters.add(WCSXmlFactory.buildDomain("1.1.1", "AcceptFormats",  Arrays.asList("text/xml","application/vnd.ogc.wcs_xml")));
         gcParameters.add(WCSXmlFactory.buildDomain("1.1.1", "Service",        Arrays.asList("WCS")));
         gcParameters.add(WCSXmlFactory.buildDomain("1.1.1", "Sections",       Arrays.asList("ServiceIdentification","ServiceProvider","OperationsMetadata","Contents")));
-        AbstractOperation getCapabilities = WCSXmlFactory.buildOperation("1.1.1", dcps, gcParameters, null, "GetCapabilities");
+        AbstractOperation getCapabilities = WCSXmlFactory.buildOperation("1.1.1", dcps, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> gcoParameters = new ArrayList<>();
@@ -281,7 +281,7 @@ public final class WCSConstant {
         gcParameters.add(WCSXmlFactory.buildDomain("2.0.1", "AcceptFormats",  Arrays.asList("text/xml","application/vnd.ogc.wcs_xml")));
         gcParameters.add(WCSXmlFactory.buildDomain("2.0.1", "Service",        Arrays.asList("WCS")));
         gcParameters.add(WCSXmlFactory.buildDomain("2.0.1", "Sections",       Arrays.asList("ServiceIdentification","ServiceProvider","OperationsMetadata","Contents")));
-        AbstractOperation getCapabilities = WCSXmlFactory.buildOperation("2.0.1", dcps, gcParameters, null, "GetCapabilities");
+        AbstractOperation getCapabilities = WCSXmlFactory.buildOperation("2.0.1", dcps, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> gcoParameters = new ArrayList<>();

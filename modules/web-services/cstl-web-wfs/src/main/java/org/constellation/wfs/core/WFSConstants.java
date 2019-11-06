@@ -65,6 +65,7 @@ import org.apache.sis.internal.feature.AttributeConvention;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.util.Version;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.geotoolkit.ows.xml.RequestBase;
 
 /**
@@ -80,7 +81,6 @@ public final class WFSConstants {
     public static final String NAMESPACE = "namespace";
     public static final String FILTER    = "filter";
 
-    public static final String STR_GETCAPABILITIES         = "GetCapabilities";
     public static final String STR_DESCRIBEFEATURETYPE     = "DescribeFeatureType";
     public static final String STR_GETFEATURE              = "GetFeature";
     public static final String STR_GETGMLOBJECT            = "getGMLObject";
@@ -219,7 +219,7 @@ public final class WFSConstants {
         gcParameters.add(WFSXmlFactory.buildDomain("1.1.0", "AcceptVersions", Arrays.asList("1.1.0")));
         gcParameters.add(WFSXmlFactory.buildDomain("1.1.0", "AcceptFormats",  Arrays.asList("text/xml")));
         gcParameters.add(WFSXmlFactory.buildDomain("1.1.0", "Service",        Arrays.asList("WFS")));
-        AbstractOperation getCapabilities = WFSXmlFactory.buildOperation("1.1.0", dcps, gcParameters, null, "GetCapabilities");
+        AbstractOperation getCapabilities = WFSXmlFactory.buildOperation("1.1.0", dcps, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> dfParameters = new ArrayList<>();
@@ -270,7 +270,7 @@ public final class WFSConstants {
         gcParameters.add(WFSXmlFactory.buildDomain("2.0.0", "AcceptVersions", Arrays.asList("2.0.0", "1.1.0")));
         gcParameters.add(WFSXmlFactory.buildDomain("2.0.0", "AcceptFormats",  Arrays.asList("text/xml")));
         gcParameters.add(serviceDomain);
-        AbstractOperation getCapabilities = WFSXmlFactory.buildOperation("2.0.0", dcps, gcParameters, null, "GetCapabilities");
+        AbstractOperation getCapabilities = WFSXmlFactory.buildOperation("2.0.0", dcps, gcParameters, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final List<AbstractDomain> dfParameters = new ArrayList<>();

@@ -73,6 +73,7 @@ import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.metadata.core.CSWConstants;
 import static org.constellation.metadata.core.CSWConstants.CONSTRAINT;
 import static org.constellation.metadata.core.CSWConstants.CONSTRAINT_LANGUAGE;
@@ -252,7 +253,7 @@ public class CSWService extends OGCWebService<CSWworker> {
      */
     private RequestBase adaptQuery(final String request, final Worker w) throws CstlServiceException {
 
-        if ("GetCapabilities".equalsIgnoreCase(request)) {
+        if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return createNewGetCapabilitiesRequest(w);
         } else if ("GetRecords".equalsIgnoreCase(request)) {
             return createNewGetRecordsRequest();

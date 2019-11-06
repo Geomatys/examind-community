@@ -90,6 +90,7 @@ import java.util.Set;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.apache.sis.coverage.grid.GridCoverage;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
@@ -315,7 +316,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
      */
     public RequestBase adaptQuery(final String request, final Worker w) throws CstlServiceException {
 
-        if (GETCAPABILITIES.equalsIgnoreCase(request)) {
+        if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return adaptKvpGetCapabilitiesRequest(w);
         } else if (DESCRIBEPROCESS.equalsIgnoreCase(request)) {
             return adaptKvpDescribeProcessRequest(w);

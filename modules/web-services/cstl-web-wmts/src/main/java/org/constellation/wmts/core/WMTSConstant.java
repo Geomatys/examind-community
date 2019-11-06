@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 
 /**
  *  WMTS Constants
@@ -74,7 +75,7 @@ public final class WMTSConstant {
 
         final List<AbstractOperation> operations = new ArrayList<>();
 
-        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("1.1.0", getAndPostKR, null, null, "GetCapabilities");
+        final AbstractOperation getCapabilities = OWSXmlFactory.buildOperation("1.1.0", getAndPostKR, null, null, GET_CAPABILITIES);
         operations.add(getCapabilities);
 
         final AbstractOperation getTile = OWSXmlFactory.buildOperation("1.1.0", getAndPostKR, null, null, "GetTile");

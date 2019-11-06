@@ -23,6 +23,7 @@ import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.ws.MimeType;
+import static org.constellation.api.ServiceConstants.*;
 import org.geotoolkit.ogc.xml.v110.ComparisonOperatorType;
 import org.geotoolkit.ogc.xml.v110.ComparisonOperatorsType;
 import org.geotoolkit.ogc.xml.v110.GeometryOperandsType;
@@ -199,7 +200,7 @@ public final class SOSConstants {
 
     private static final AbstractDomain SERVICE_PARAMETER = OWSXmlFactory.buildDomain("1.1.0", "service", Arrays.asList("SOS"));
 
-    private static final AbstractOperation GET_CAPABILITIES;
+    private static final AbstractOperation GET_CAPABILITIES_OP;
     static {
         final List<AbstractDomain> gcParameters = new ArrayList<>();
         gcParameters.add(SERVICE_PARAMETER);
@@ -207,7 +208,7 @@ public final class SOSConstants {
         gcParameters.add(OWSXmlFactory.buildDomain("1.1.0", "Sections", Arrays.asList("ServiceIdentification", "ServiceProvider", "OperationsMetadata", "Filter_Capabilities", "All")));
         gcParameters.add(OWSXmlFactory.buildDomain("1.1.0", "AcceptFormats", ACCEPTED_OUTPUT_FORMATS));
 
-        GET_CAPABILITIES = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gcParameters, null, "GetCapabilities");
+        GET_CAPABILITIES_OP = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gcParameters, null, GET_CAPABILITIES);
     }
 
     private static final AbstractOperation GETOBSERVATION_BY_ID;
@@ -217,27 +218,27 @@ public final class SOSConstants {
         gobidParameters.add(SERVICE_PARAMETER);
         gobidParameters.add(OWSXmlFactory.buildDomainAnyValue("1.1.0", "observation"));
 
-        GETOBSERVATION_BY_ID = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gobidParameters, null, "GetObservationById");
+        GETOBSERVATION_BY_ID = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gobidParameters, null, GET_OBSERVATION_BY_ID);
     }
 
     public static final AbstractOperationsMetadata OPERATIONS_METADATA_100;
     static {
 
         final List<AbstractOperation> operations = new ArrayList<>();
-        operations.add(GET_CAPABILITIES);
+        operations.add(GET_CAPABILITIES_OP);
 
         final List<AbstractDomain> rsParameters = new ArrayList<>();
         rsParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0")));
         rsParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation registerSensor = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, rsParameters, null, "RegisterSensor");
+        final AbstractOperation registerSensor = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, rsParameters, null, REGISTER_SENSOR);
         operations.add(registerSensor);
 
         final List<AbstractDomain> grParameters = new ArrayList<>();
         grParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         grParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getResult = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grParameters, null, "GetResult");
+        final AbstractOperation getResult = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grParameters, null, GET_RESULT);
         operations.add(getResult);
 
         final List<AbstractDomain> goParameters = new ArrayList<>();
@@ -254,7 +255,7 @@ public final class SOSConstants {
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "resultModel", Arrays.asList("om:Observation")));
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "responseMode", Arrays.asList("resultTemplate","inline")));
 
-        final AbstractOperation getObservation = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, goParameters, null, "GetObservation");
+        final AbstractOperation getObservation = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, goParameters, null, GET_OBSERVATION);
         operations.add(getObservation);
 
         operations.add(GETOBSERVATION_BY_ID);
@@ -263,7 +264,7 @@ public final class SOSConstants {
         ioParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         ioParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation insertObservation = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, ioParameters, null, "InsertObservation");
+        final AbstractOperation insertObservation = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, ioParameters, null, INSERT_OBSERVATION);
         operations.add(insertObservation);
 
         final List<AbstractDomain> gfParameters = new ArrayList<>();
@@ -271,7 +272,7 @@ public final class SOSConstants {
         gfParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         gfParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getFeatureOfInterest = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gfParameters, null, "GetFeatureOfInterest");
+        final AbstractOperation getFeatureOfInterest = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gfParameters, null, GET_FEATURE_OF_INTEREST);
         operations.add(getFeatureOfInterest);
 
         final List<AbstractDomain> gftParameters = new ArrayList<>();
@@ -279,7 +280,7 @@ public final class SOSConstants {
         gftParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0")));
         gftParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getFeatureOfInterestTime = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, gftParameters, null, "GetFeatureOfInterestTime");
+        final AbstractOperation getFeatureOfInterestTime = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, gftParameters, null, GET_FEATURE_OF_INTEREST_TIME);
         operations.add(getFeatureOfInterestTime);
 
         final List<AbstractDomain> dsParameters = new ArrayList<>();
@@ -288,7 +289,7 @@ public final class SOSConstants {
         dsParameters.add(OWSXmlFactory.buildDomain("1.1.0", "outputFormat", Arrays.asList("text/xml;subtype=\"sensorML/1.0.0\"")));
         dsParameters.add(OWSXmlFactory.buildDomain("1.1.0", "procedure", Arrays.asList("toUpdate")));
 
-        final AbstractOperation describeSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, dsParameters, null, "DescribeSensor");
+        final AbstractOperation describeSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, dsParameters, null, DESCRIBE_SENSOR);
         operations.add(describeSensor);
 
         final List<AbstractDomain> constraints = new ArrayList<>();
@@ -301,48 +302,48 @@ public final class SOSConstants {
     static {
 
         final List<AbstractOperation> operations = new ArrayList<>();
-        operations.add(GET_CAPABILITIES);
+        operations.add(GET_CAPABILITIES_OP);
 
         final List<AbstractDomain> rsParameters = new ArrayList<>();
         rsParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("2.0.0")));
         rsParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation insertSensor = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, rsParameters, null, "InsertSensor");
+        final AbstractOperation insertSensor = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, rsParameters, null, INSERT_SENSOR);
         operations.add(insertSensor);
 
         final List<AbstractDomain> irtParameters = new ArrayList<>();
         irtParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("2.0.0")));
         irtParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation insertResultTemplate = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, irtParameters, null, "InsertResultTemplate");
+        final AbstractOperation insertResultTemplate = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, irtParameters, null, INSERT_RESULT_TEMPLATE);
         operations.add(insertResultTemplate);
 
         final List<AbstractDomain> irParameters = new ArrayList<>();
         irParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("2.0.0")));
         irParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation insertResult = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, irParameters, null, "InsertResult");
+        final AbstractOperation insertResult = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, irParameters, null, INSERT_RESULT);
         operations.add(insertResult);
 
         final List<AbstractDomain> dsParameters = new ArrayList<>();
         dsParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("2.0.0")));
         dsParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation deleteSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, dsParameters, null,  "DeleteSensor");
+        final AbstractOperation deleteSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, dsParameters, null,  DELETE_SENSOR);
         operations.add(deleteSensor);
 
         final List<AbstractDomain> grtParameters = new ArrayList<>();
         grtParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("2.0.0")));
         grtParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getResultTemplate = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grtParameters, null, "GetResultTemplate");
+        final AbstractOperation getResultTemplate = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grtParameters, null, GET_RESULT_TEMPLATE);
         operations.add(getResultTemplate);
 
         final List<AbstractDomain> grParameters = new ArrayList<>();
         grParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         grParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getResult = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grParameters, null, "GetResult");
+        final AbstractOperation getResult = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, grParameters, null, GET_RESULT);
         operations.add(getResult);
 
         final List<AbstractDomain> goParameters = new ArrayList<>();
@@ -355,7 +356,7 @@ public final class SOSConstants {
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "featureOfInterest", Arrays.asList("toUpdate")));
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "responseFormat", Arrays.asList("http://www.opengis.net/om/2.0")));
 
-        final AbstractOperation getObservation = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, goParameters, null, "GetObservation");
+        final AbstractOperation getObservation = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, goParameters, null, GET_OBSERVATION);
         operations.add(getObservation);
 
         operations.add(GETOBSERVATION_BY_ID);
@@ -364,7 +365,7 @@ public final class SOSConstants {
         ioParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         ioParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation insertObservation = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, ioParameters, null, "InsertObservation");
+        final AbstractOperation insertObservation = OWSXmlFactory.buildOperation("1.1.0", ONLY_POST, ioParameters, null, INSERT_OBSERVATION);
         operations.add(insertObservation);
 
         final List<AbstractDomain> gfParameters = new ArrayList<>();
@@ -372,7 +373,7 @@ public final class SOSConstants {
         gfParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         gfParameters.add(SERVICE_PARAMETER);
 
-        final AbstractOperation getFeatureOfInterest = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gfParameters, null, "GetFeatureOfInterest");
+        final AbstractOperation getFeatureOfInterest = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, gfParameters, null, GET_FEATURE_OF_INTEREST);
         operations.add(getFeatureOfInterest);
 
         final List<AbstractDomain> desParameters = new ArrayList<>();
@@ -381,7 +382,7 @@ public final class SOSConstants {
         desParameters.add(OWSXmlFactory.buildDomain("1.1.0", "outputFormat", Arrays.asList("toupdate")));
         desParameters.add(OWSXmlFactory.buildDomain("1.1.0", "procedure", Arrays.asList("toUpdate")));
 
-        final AbstractOperation describeSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, desParameters, null, "DescribeSensor");
+        final AbstractOperation describeSensor = OWSXmlFactory.buildOperation("1.1.0", GET_AND_POST, desParameters, null, DESCRIBE_SENSOR);
         operations.add(describeSensor);
 
         final List<AbstractDomain> constraints = new ArrayList<>();

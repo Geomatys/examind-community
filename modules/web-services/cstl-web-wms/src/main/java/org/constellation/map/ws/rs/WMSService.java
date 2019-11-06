@@ -79,7 +79,7 @@ import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import static org.constellation.map.core.WMSConstant.CAPABILITIES;
 import static org.constellation.map.core.WMSConstant.DESCRIBELAYER;
-import static org.constellation.map.core.WMSConstant.GETCAPABILITIES;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.constellation.map.core.WMSConstant.GETFEATUREINFO;
 import static org.constellation.map.core.WMSConstant.GETLEGENDGRAPHIC;
 import static org.constellation.map.core.WMSConstant.GETMAP;
@@ -236,7 +236,7 @@ public class WMSService extends GridWebService<WMSWorker> {
 
          // For backward compatibility between WMS 1.1.1 and WMS 1.0.0, we handle the "Capabilities" request
          // as "GetCapabilities" request in version 1.1.1.
-         } else if (GETCAPABILITIES.equalsIgnoreCase(request) || CAPABILITIES.equalsIgnoreCase(request)) {
+         } else if (GET_CAPABILITIES.equalsIgnoreCase(request) || CAPABILITIES.equalsIgnoreCase(request)) {
              return adaptGetCapabilities(request, worker);
 
          } else  if (GETLEGENDGRAPHIC.equalsIgnoreCase(request)) {

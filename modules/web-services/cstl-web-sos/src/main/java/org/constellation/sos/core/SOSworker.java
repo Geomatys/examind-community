@@ -74,6 +74,7 @@ import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V1
 import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V200;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_FOI_TYPES;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_OBS_TYPES;
+import static org.constellation.api.ServiceConstants.*;
 import static org.constellation.sos.ws.SOSUtils.BoundMatchEnvelope;
 import static org.constellation.sos.ws.SOSUtils.extractTimeBounds;
 import static org.constellation.sos.ws.SOSUtils.getCollectionBound;
@@ -565,10 +566,10 @@ public class SOSworker extends AbstractWorker {
 
         //we remove the operation not supported in this profile (transactional/discovery)
         if (profile == DISCOVERY) {
-            om.removeOperation("InsertObservation");
-            om.removeOperation("RegisterSensor");
-            om.removeOperation("InsertSensor");
-            om.removeOperation("DeleteSensor");
+            om.removeOperation(INSERT_OBSERVATION);
+            om.removeOperation(REGISTER_SENSOR);
+            om.removeOperation(INSERT_SENSOR);
+            om.removeOperation(DELETE_SENSOR);
         }
         //we update the URL
         om.updateURL(getServiceUrl());
@@ -578,7 +579,7 @@ public class SOSworker extends AbstractWorker {
             if (!keepCapabilities) {
 
                 //we update the parameter in operation metadata.
-                final AbstractOperation go = om.getOperation("GetObservation");
+                final AbstractOperation go = om.getOperation(GET_OBSERVATION);
 
                 final Collection<String> foiNames  = new ArrayList<>();
                 final Collection<String> procNames = new ArrayList<>();
@@ -639,7 +640,7 @@ public class SOSworker extends AbstractWorker {
                 /**
                  * Because sometimes there is some sensor that are queryable in DescribeSensor but not in GetObservation
                  */
-                final AbstractOperation ds = om.getOperation("DescribeSensor");
+                final AbstractOperation ds = om.getOperation(DESCRIBE_SENSOR);
                 List<String> sensorNames = new ArrayList<>(sensorBusiness.getLinkedSensorIdentifiers(getId(), sensorTypeFilter));
                 if (!sensorNames.isEmpty()) {
                     Collections.sort(sensorNames);
@@ -653,13 +654,13 @@ public class SOSworker extends AbstractWorker {
                     ds.updateParameter("outputFormat", smlformats);
                 }
 
-                final AbstractOperation gfoi = om.getOperation("GetFeatureOfInterest");
+                final AbstractOperation gfoi = om.getOperation(GET_FEATURE_OF_INTEREST);
                 if (gfoi != null) {
                     //the feature of interest list
                     gfoi.updateParameter("featureOfInterestId", foiNames);
                 }
 
-                final AbstractOperation gfoit = om.getOperation("GetFeatureOfInterestTime");
+                final AbstractOperation gfoit = om.getOperation(GET_FEATURE_OF_INTEREST_TIME);
                 if (gfoit != null) {
                     //the feature of interest list
                     gfoit.updateParameter("featureOfInterestId", foiNames);

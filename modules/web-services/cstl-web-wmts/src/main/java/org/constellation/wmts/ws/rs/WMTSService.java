@@ -62,6 +62,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletResponse;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 
 // Jersey dependencies
 
@@ -143,7 +144,7 @@ public class WMTSService extends GridWebService<WMTSWorker> {
      */
     private RequestBase adaptQuery(final String request) throws CstlServiceException {
 
-        if ("GetCapabilities".equalsIgnoreCase(request)) {
+        if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return createNewGetCapabilitiesRequest();
         } else if ("GetTile".equalsIgnoreCase(request)) {
             return createNewGetTileRequest();
