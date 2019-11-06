@@ -42,7 +42,6 @@ import org.apache.sis.util.ArraysExt;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
@@ -50,7 +49,6 @@ import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
 import org.constellation.util.StoreUtilities;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
@@ -61,9 +59,7 @@ import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
-import org.geotoolkit.storage.coverage.GridCoverageResource;
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.Metadata;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -404,22 +400,7 @@ public class DataStoreProvider extends AbstractDataProvider{
 
 
             for (Resource resource : DataStores.flatten(store, true)) {
-                if (resource instanceof GridCoverageResource) {
-                    final GridCoverageResource cr = (GridCoverageResource) resource;
-                    final GridCoverageReader reader = (GridCoverageReader) cr.acquireReader();
-                    try {
-                        final Metadata meta = reader.getMetadata();
-                        //@FIXME
-                        // this merge is bad here to build a fully dataset
-                        // metadata that should contains all data children information
-                        //see issue JIRA CSTL-1151
-                        metadata = Utils.mergeMetadata(metadata,(DefaultMetadata)meta);
-                    } catch(Exception ex) {
-                        LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-                    } finally{
-                        cr.recycle(reader);
-                    }
-                } else if (resource instanceof DataSet) {
+                if (resource instanceof DataSet) {
                     DataSet ds = (DataSet) resource;
                     Envelope env = FeatureStoreUtilities.getEnvelope(ds);
                     if (env == null) {

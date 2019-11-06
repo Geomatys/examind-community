@@ -21,7 +21,6 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.exception.ConfigurationException;
-import org.geotoolkit.coverage.io.GridCoverageReader;
 import org.geotoolkit.feature.catalog.FeatureAttributeImpl;
 import org.geotoolkit.feature.catalog.FeatureCatalogueImpl;
 import org.geotoolkit.feature.catalog.FeatureTypeImpl;
@@ -151,11 +150,6 @@ public class ISO19110Builder {
     public static FeatureTypeImpl createCatalogueFeatureFromCoverageResource(final GridCoverageResource cr) throws DataStoreException {
 
         Metadata meta = cr.getMetadata();
-        if (cr instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
-            final GridCoverageReader gcr = (GridCoverageReader) ((org.geotoolkit.storage.coverage.GridCoverageResource) cr).acquireReader();
-            meta = gcr.getMetadata();
-            ((org.geotoolkit.storage.coverage.GridCoverageResource) cr).recycle(gcr);
-        }
 
         final FeatureTypeImpl featureType = new FeatureTypeImpl();
         Optional<GenericName> resId = cr.getIdentifier();

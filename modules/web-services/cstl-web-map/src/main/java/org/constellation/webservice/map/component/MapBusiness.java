@@ -64,6 +64,7 @@ import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapItem;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
@@ -315,13 +316,11 @@ public class MapBusiness {
 
                     //create amended resource
                     GridCoverageResource resource = res;
-                    if (res instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
-                        final AmendedCoverageResource r = new AmendedCoverageResource((org.geotoolkit.storage.coverage.GridCoverageResource) res, ((StoreResource) res).getOriginator());
-                        r.setOverrideDims(newSampleDimensions);
-                        resource = r;
-                    }
+                    final AmendedCoverageResource r = new AmendedCoverageResource(res, ((StoreResource) res).getOriginator());
+                    r.setOverrideDims(newSampleDimensions);
+                    resource = r;
 
-                    final CoverageMapLayer cml = MapBuilder.createCoverageLayer(resource, covStyle);
+                    final MapLayer cml = MapBuilder.createCoverageLayer(resource, covStyle);
                     cml.setDescription(cl.getDescription());
                     cml.setElevationModel(cl.getElevationModel());
                     cml.setOpacity(cl.getOpacity());

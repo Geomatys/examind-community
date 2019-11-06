@@ -64,8 +64,6 @@ import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.coverage.io.GridCoverageReader;
-import org.geotoolkit.coverage.io.ImageCoverageReader;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.Pyramid;
 import org.geotoolkit.storage.multires.Pyramids;
@@ -340,26 +338,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
 
     @Override
     public SpatialMetadata getSpatialMetadata() throws ConstellationStoreException {
-        if (ref instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
-            org.geotoolkit.storage.coverage.GridCoverageResource gref = (org.geotoolkit.storage.coverage.GridCoverageResource) ref;
-            GridCoverageReader reader = null;
-            try {
-                reader = gref.acquireReader();
-                if (reader instanceof ImageCoverageReader) {
-                    return ((ImageCoverageReader)reader).getCoverageMetadata();
-                } else {
-                    return null;
-                }
-            } catch (CancellationException | DataStoreException ex) {
-                throw new ConstellationStoreException(ex);
-            } finally {
-                if (reader != null) {
-                    gref.recycle(reader);
-                }
-            }
-        } else {
-            return null;
-        }
+        return null;
     }
 
     @Override
@@ -610,15 +589,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
     @Override
     public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
         try {
-            if (ref instanceof org.geotoolkit.storage.coverage.GridCoverageResource) {
-                org.geotoolkit.storage.coverage.GridCoverageResource reff = (org.geotoolkit.storage.coverage.GridCoverageResource) ref;
-                final GridCoverageReader coverageReader = (GridCoverageReader) reff.acquireReader();
-                try {
-                    return (DefaultMetadata) coverageReader.getMetadata();
-                } finally {
-                    reff.recycle(coverageReader);
-                }
-            } else if (ref instanceof GridCoverageResource) {
+            if (ref instanceof GridCoverageResource) {
                 return new DefaultMetadata(ref.getMetadata());
             }
         } catch (DataStoreException ex) {
