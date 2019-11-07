@@ -99,14 +99,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             sqlRequest.append("AND (");
             sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
             sqlRequest.append(" \"time_end\"='").append(end).append("') ");
-
+            foiObsJoin = true;
         // if the temporal object is a timeInstant
         } else if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
             //sqlRequest.append("AND (\"time_begin\"='").append(position).append("' AND \"time_end\"='").append(position).append("') ");
             sqlMeasureRequest.append("AND (\"$time\"='").append(position).append("') ");
-
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -124,7 +124,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             final String position = getTimeValue(ti.getDate());
             sqlRequest.append("AND (\"time_begin\"<='").append(position).append("')");
             sqlMeasureRequest.append("AND (\"$time\"<='").append(position).append("')");
-
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -142,6 +142,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             final String position = getTimeValue(ti.getDate());
             sqlRequest.append("AND (\"time_end\">='").append(position).append("')");
             sqlMeasureRequest.append("AND (\"$time\">='").append(position).append("')");
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -175,6 +176,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
 
             sqlMeasureRequest.append("AND (\"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -273,7 +275,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Observation> getObservations(final String version) throws DataStoreException {
-        if (resultModel.equals(MEASUREMENT_QNAME)) {
+        if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurements(version);
         }
         try(final Connection c               = source.getConnection();
@@ -854,10 +856,26 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<SamplingFeature> getFeatureOfInterests(final String version) throws DataStoreException {
+
+        String request = sqlRequest.toString();
+        if (foiObsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            request = request.replace("\"foi\"='", "sf.\"id\"='");
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
+        }
+
         try(final Connection c = source.getConnection()) {
             final List<SamplingFeature> features = new ArrayList<>();
             try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs = currentStatement.executeQuery(sqlRequest.toString())) {
+                final ResultSet rs = currentStatement.executeQuery(request)) {
                 while (rs.next()) {
                     final String id = rs.getString("id");
                     final String name = rs.getString("name");
@@ -883,14 +901,35 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
             return features;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         }catch (FactoryException ex) {
-            LOGGER.log(Level.SEVERE, "FactoryException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "FactoryException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a Factory Exception:" + ex.getMessage(), ex);
         }catch (ParseException ex) {
-            LOGGER.log(Level.SEVERE, "ParseException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "ParseException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a Parse Exception:" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public List<Phenomenon> getPhenomenons(String version) throws DataStoreException {
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+        try(final Connection c = source.getConnection()) {
+            final List<Phenomenon> phenomenons = new ArrayList<>();
+            try(final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
+                while (rs.next()) {
+                    phenomenons.add(getPhenomenon(version, rs.getString(1), c));
+                }
+            }
+            return phenomenons;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         }
     }
 

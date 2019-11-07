@@ -22,12 +22,16 @@ package com.examind.sts.core;
 
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
+import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
+import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocations;
+import org.geotoolkit.sts.GetObservationById;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThings;
@@ -61,13 +65,19 @@ public interface STSWorker extends Worker {
 
     ObservationsResponse getObservations(GetObservations go) throws CstlServiceException;
 
+    Observation getObservationById(GetObservationById goi) throws CstlServiceException;
+
     void addObservation(Observation observation) throws CstlServiceException;
 
     DatastreamsResponse getDatastreams(GetDatastreams gd) throws CstlServiceException;
 
+    Datastream getDatastreamById(GetDatastreamById gd) throws CstlServiceException;
+
     void addDatastream(Datastream datastream) throws CstlServiceException;
 
     ObservedPropertiesResponse getObservedProperties(GetObservedProperties gop) throws CstlServiceException;
+
+    ObservedProperty getObservedPropertyById(GetObservedPropertyById gop) throws CstlServiceException;
 
     void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException;
 
@@ -76,12 +86,14 @@ public interface STSWorker extends Worker {
     void addLocation(Location location) throws CstlServiceException;
 
     SensorsResponse getSensors(GetSensors gs) throws CstlServiceException;
-    
+
     Sensor getSensorById(GetSensorById gs) throws CstlServiceException;
 
     void addSensor(Sensor sensor) throws CstlServiceException;
 
     FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests gfi) throws CstlServiceException;
+
+    FeatureOfInterest getFeatureOfInterestById(GetFeatureOfInterestById gfi) throws CstlServiceException;
 
     void addFeatureOfInterest(FeatureOfInterest foi) throws CstlServiceException;
 

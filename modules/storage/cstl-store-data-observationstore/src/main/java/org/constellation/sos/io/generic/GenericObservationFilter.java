@@ -131,6 +131,19 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
+    public void initFilterGetPhenomenon() throws DataStoreException {
+        currentQuery              = new Query();
+        final Select select       = new Select(configurationQuery.getSelect("filterPhenomenon"));
+        final From from           = new From(configurationQuery.getFrom("observed_properties"));
+
+        currentQuery.addSelect(select);
+        currentQuery.addFrom(from);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
         // do nothing no implemented
     }
@@ -183,6 +196,18 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         for (String foi : fois) {
             final Where where = new Where(configurationQuery.getWhere("foi"));
             where.replaceVariable("foi", foi, true);
+            currentQuery.addWhere(where);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setObservationIds(List<String> ids) {
+        for (String oid : ids) {
+            final Where where = new Where(configurationQuery.getWhere("oid"));
+            where.replaceVariable("oid", oid, true);
             currentQuery.addWhere(where);
         }
     }
@@ -318,6 +343,26 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public Set<String> filterObservation() throws DataStoreException {
+        final String request = currentQuery.buildSQLQuery();
+        LOGGER.log(Level.INFO, "request:{0}", request);
+        try {
+            final Set<String> results            = new LinkedHashSet<>();
+            try (Connection connection           = acquireConnection();
+                final Statement currentStatement = connection.createStatement();
+                final ResultSet result           = currentStatement.executeQuery(request)) {
+                while (result.next()) {
+                    results.add(result.getString(1));
+                }
+            }
+            return results;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0} \nmsg:{1}", new Object[]{request, ex.getMessage()});
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public Set<String> filterPhenomenon() throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {

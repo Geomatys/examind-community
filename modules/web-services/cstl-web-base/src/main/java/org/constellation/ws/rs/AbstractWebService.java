@@ -260,6 +260,12 @@ public abstract class AbstractWebService implements WebService{
         kvpMap.put("serviceId", new String[]{serviceId});
         postKvpParameters.set(kvpMap);
     }
+    
+    protected void putParam(String name, String value) {
+        final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        kvpMap.put("name", new String[]{value});
+        postKvpParameters.set(kvpMap);
+    }
     /**
      * Treat the incoming GET request.
      *

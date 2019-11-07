@@ -36,15 +36,19 @@ public final class STSConstants {
     public static final String COUNT     = "$count";
     public static final String FILTER    = "$filter";
 
-    public static final String STR_GETFEATUREOFINTEREST    = "GetFeatureOfInterests";
-    public static final String STR_GETTHINGS               = "GetThings";
-    public static final String STR_GETOBSERVATION          = "GetObservations";
-    public static final String STR_GETDATASTREAMS          = "getDatastreams";
-    public static final String STR_GETOBSERVEDPROPERTIES   = "GetObservedProperties";
-    public static final String STR_GETLOCATIONS            = "GetLocations";
-    public static final String STR_GETSENSORS              = "GetSensors";
-    public static final String STR_GETSENSOR_BYID          = "GetSensorById";
-    public static final String STR_GETHISTORICALLOCATIONS  = "HistoricalLocations";
+    public static final String STR_GETFEATUREOFINTEREST      = "GetFeatureOfInterests";
+    public static final String STR_GETFEATUREOFINTEREST_BYID = "GetFeatureOfInterestById";
+    public static final String STR_GETTHINGS                 = "GetThings";
+    public static final String STR_GETOBSERVATION            = "GetObservations";
+    public static final String STR_GETOBSERVATION_BYID       = "GetObservationById";
+    public static final String STR_GETDATASTREAMS            = "getDatastreams";
+    public static final String STR_GETDATASTREAM_BYID        = "getDatastreamById";
+    public static final String STR_GETOBSERVEDPROPERTIES     = "GetObservedProperties";
+    public static final String STR_GETOBSERVEDPROPERTY_BYID  = "GetObservedPropertyById";
+    public static final String STR_GETLOCATIONS              = "GetLocations";
+    public static final String STR_GETSENSORS                = "GetSensors";
+    public static final String STR_GETSENSOR_BYID            = "GetSensorById";
+    public static final String STR_GETHISTORICALLOCATIONS    = "HistoricalLocations";
 
 
 }

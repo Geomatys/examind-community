@@ -171,6 +171,11 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         return results;
     }
 
+    @Override
+    public org.opengis.observation.Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
+        return getPhenomenon(identifier);
+    }
+
     /**
      * {@inheritDoc}
      */

@@ -116,12 +116,18 @@ public class LuceneObservationFilter implements ObservationFilter {
         }
     }
 
+    @Override
+    public void initFilterGetPhenomenon() throws DataStoreException {
+        // do nothing no implemented
+    }
+
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
-        // do nothing no implementes
+        // do nothing no implemented
     }
 
     /**
@@ -182,6 +188,19 @@ public class LuceneObservationFilter implements ObservationFilter {
         luceneRequest.append(" AND (");
         for (String foi : fois) {
             luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+        }
+        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+        luceneRequest.append(") ");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setObservationIds(List<String> ids) {
+        luceneRequest.append(" AND (");
+        for (String oid : ids) {
+            luceneRequest.append("id:").append(oid).append(" OR ");
         }
         luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
         luceneRequest.append(") ");
@@ -413,6 +432,11 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public Set<String> filterFeatureOfInterest() throws DataStoreException {
         throw new DataStoreException("filterFeatureOfInterest is not supported by this ObservationFilter implementation.");
+    }
+
+    @Override
+    public Set<String> filterPhenomenon() throws DataStoreException {
+        throw new DataStoreException("filterPhenomenon is not supported by this ObservationFilter implementation.");
     }
 
     @Override

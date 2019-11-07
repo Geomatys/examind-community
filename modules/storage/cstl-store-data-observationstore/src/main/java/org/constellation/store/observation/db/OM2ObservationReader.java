@@ -369,6 +369,15 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
+    @Override
+    public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
+        try(final Connection c = source.getConnection()) {
+            return getPhenomenon(version, identifier, c);
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving phenomenon.", ex);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */

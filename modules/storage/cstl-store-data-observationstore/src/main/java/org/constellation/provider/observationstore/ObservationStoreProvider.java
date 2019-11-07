@@ -28,11 +28,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArraysExt;
 import org.constellation.api.DataType;
@@ -46,12 +49,33 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.ObservationFilter;
+import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
+import org.opengis.filter.Id;
+import org.opengis.filter.And;
+import org.opengis.filter.Filter;
+import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.expression.Literal;
+import org.opengis.filter.temporal.After;
+import org.opengis.filter.temporal.Before;
+import org.opengis.filter.temporal.Begins;
+import org.opengis.filter.temporal.BegunBy;
+import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.EndedBy;
+import org.opengis.filter.temporal.Ends;
+import org.opengis.filter.temporal.Meets;
+import org.opengis.filter.temporal.OverlappedBy;
+import org.opengis.filter.temporal.TContains;
+import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.observation.Observation;
+import org.opengis.observation.Phenomenon;
+import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
@@ -65,6 +89,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     private final Set<GenericName> index = new LinkedHashSet<>();
     private ObservationStore store;
+
+    private static final int GET_OBS = 0;
+    private static final int GET_FEA = 1;
+    private static final int GET_PHEN = 2;
 
     public ObservationStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
@@ -245,6 +273,47 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
+    public Collection<Phenomenon> getPhenomenon(Query q, String version) throws ConstellationStoreException {
+        try {
+            // we clone the filter for this request
+            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            localOmFilter.initFilterGetPhenomenon();
+
+            List<String> observedProperties = new ArrayList<>();
+            List<String> procedures         = new ArrayList<>();
+            List<String> fois               = new ArrayList<>();
+
+            if (q instanceof SimpleQuery) {
+                SimpleQuery query = (SimpleQuery) q;
+                handleFilter(GET_PHEN, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+
+            } else if (q != null) {
+                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+            }
+
+            // TODO Spatial BBOX
+
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setProcedure(procedures, null);
+            localOmFilter.setFeatureOfInterest(fois);
+
+            if (localOmFilter instanceof ObservationFilterReader) {
+                return ((ObservationFilterReader)localOmFilter).getPhenomenons(version);
+            } else {
+                final List<Phenomenon> phenomenons = new ArrayList<>();
+                final Set<String> fid = localOmFilter.filterFeatureOfInterest();
+                for (String foid : fid) {
+                    final Phenomenon phen = store.getReader().getPhenomenon(foid, version);
+                    phenomenons.add(phen);
+                }
+                return phenomenons;
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
     public Collection<String> getProcedureNames() throws ConstellationStoreException {
         try {
             return store.getReader().getProcedureNames();
@@ -396,6 +465,169 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             return store.getWriter().writeObservation(observation);
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public List<SamplingFeature> getFeatureOfInterest(Query q, String version) throws ConstellationStoreException {
+        try {
+            // we clone the filter for this request
+            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            localOmFilter.initFilterGetFeatureOfInterest();
+
+            List<String> observedProperties = new ArrayList<>();
+            List<String> procedures = new ArrayList<>();
+
+            if (q instanceof SimpleQuery) {
+                SimpleQuery query = (SimpleQuery) q;
+                handleFilter(GET_FEA, query.getFilter(), localOmFilter, observedProperties, procedures, new ArrayList<>());
+
+            } else if (q != null) {
+                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+            }
+
+            // TODO Spatial BBOX
+
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setProcedure(procedures, null);
+
+            if (localOmFilter instanceof ObservationFilterReader) {
+                return ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(version);
+            } else {
+                final List<SamplingFeature> features = new ArrayList<>();
+                final Set<String> fid = localOmFilter.filterFeatureOfInterest();
+                for (String foid : fid) {
+                    final SamplingFeature feature = store.getReader().getFeatureOfInterest(foid, version);
+                    features.add(feature);
+                }
+                return features;
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public List<Observation> getObservations(Query q, String version) throws ConstellationStoreException {
+        try {
+            QName resultModel = null;// todo resultModel
+            ResponseModeType mode = ResponseModeType.INLINE;
+
+            // we clone the filter for this request
+            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            localOmFilter.initFilterObservation(mode, resultModel);
+
+            List<String> observedProperties = new ArrayList<>();
+            List<String> procedures         = new ArrayList<>();
+            List<String> fois               = new ArrayList<>();
+
+            if (q instanceof SimpleQuery) {
+                SimpleQuery query = (SimpleQuery) q;
+                handleFilter(GET_OBS, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+
+            } else if (q != null) {
+                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+            }
+
+            // TODO Spatial BBOX
+
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setProcedure(procedures, null);
+            localOmFilter.setFeatureOfInterest(fois);
+
+            if (localOmFilter instanceof ObservationFilterReader) {
+                return ((ObservationFilterReader)localOmFilter).getObservations(version);
+            } else {
+                final List<Observation> observations = new ArrayList<>();
+                final Set<String> oid = localOmFilter.filterObservation();
+                for (String foid : oid) {
+                    final Observation obs = store.getReader().getObservation(foid, resultModel, mode, version);
+                    observations.add(obs);
+                }
+                return observations;
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    private void handleFilter(int mode, Filter filter, final ObservationFilter localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
+        if (filter instanceof And) {
+            for (Filter f : ((And) filter).getChildren()) {
+                handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
+            }
+        }// The operation Time Equals
+        if (filter instanceof TEquals) {
+            final TEquals tf = (TEquals) filter;
+
+            // we get the property name (not used for now)
+            // String propertyName = time.getTBefore().getPropertyName();
+            final Object timeFilter = tf.getExpression2();
+            localOmFilter.setTimeEquals(timeFilter);
+
+            // The operation Time before
+        } else if (filter instanceof Before) {
+            final Before tf = (Before) filter;
+
+            // we get the property name (not used for now)
+            // String propertyName = time.getTBefore().getPropertyName();
+            final Object timeFilter = tf.getExpression2();
+            localOmFilter.setTimeBefore(timeFilter);
+
+            // The operation Time after
+        } else if (filter instanceof After) {
+            final After tf = (After) filter;
+
+            // we get the property name (not used for now)
+            //String propertyName = time.getTAfter().getPropertyName();
+            final Object timeFilter = tf.getExpression2();
+            localOmFilter.setTimeAfter(timeFilter);
+
+            // The time during operation
+        } else if (filter instanceof During) {
+            final During tf = (During) filter;
+
+            // we get the property name (not used for now)
+            //String propertyName = time.getTDuring().getPropertyName();
+            final Object timeFilter = tf.getExpression2();
+            localOmFilter.setTimeDuring(timeFilter);
+
+        } else if (filter instanceof Id) {
+            final Id idf = (Id) filter;
+            List<String> ids = new ArrayList<>();
+            idf.getIDs().stream().forEach(id -> ids.add((String) id));
+
+            switch (mode) {
+                case GET_FEA:
+                    localOmFilter.setFeatureOfInterest(ids);
+                    break;
+                case GET_OBS:
+                    localOmFilter.setObservationIds(ids);
+                    break;
+                case GET_PHEN:
+                    localOmFilter.setObservedProperties(ids);
+                    break;
+                default:
+                    break;
+            }
+
+        } else if (filter instanceof PropertyIsEqualTo) {
+            final PropertyIsEqualTo ef = (PropertyIsEqualTo) filter;
+            Literal name = (Literal) ef.getExpression1();
+            Literal value = (Literal) ef.getExpression2();
+            if (name.getValue().equals("observedProperty")) {
+                observedProperties.add((String) value.getValue());
+            } else if (name.getValue().equals("procedure")) {
+                procedures.add((String) value.getValue());
+            }  else if (name.getValue().equals("featureOfInterest")) {
+                fois.add((String) value.getValue());
+            }
+
+        } else if (filter instanceof Begins || filter instanceof BegunBy || filter instanceof TContains || filter instanceof EndedBy || filter instanceof Ends || filter instanceof Meets
+                || filter instanceof TOverlaps || filter instanceof OverlappedBy) {
+            throw new ConstellationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
+        } else {
+            throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
     }
 

@@ -70,7 +70,9 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
 
     protected QName resultModel;
 
+    protected boolean foiObsJoin = false;
     protected boolean getFOI = false;
+    protected boolean getPhen = false;
 
     protected String currentProcedure = null;
 
@@ -109,14 +111,15 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      */
     @Override
     public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel) {
-        firstFilter = true;
         if (ResponseModeType.RESULT_TEMPLATE.equals(requestMode)) {
              sqlRequest = new StringBuilder("SELECT distinct \"observed_property\", \"procedure\", \"foi\" "
                                           + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE");
             template = true;
+            firstFilter = true;
         } else {
             sqlRequest = new StringBuilder("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" "
-                                         + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE \"identifier\" NOT LIKE '"+ observationTemplateIdBase +"%' AND ");
+                                         + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE \"identifier\" NOT LIKE '"+ observationTemplateIdBase +"%' ");
+            firstFilter = false;
         }
         this.resultModel = resultModel;
     }
@@ -146,7 +149,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      */
     @Override
     public void initFilterGetFeatureOfInterest() {
-        firstFilter = false;
+        firstFilter = true;
         String geomColum;
         if (isPostgres) {
             geomColum = "st_asBinary(\"shape\") as \"shape\"";
@@ -154,9 +157,20 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             geomColum = "\"shape\"";
         }
         sqlRequest = new StringBuilder("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
-                    .append(schemaPrefix).append("om\".\"observations\" o, \"").append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE o.\"foi\" = sf.\"id\"");
+                    .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
+        foiObsJoin = false;
 
         getFOI = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void initFilterGetPhenomenon() {
+        sqlRequest = new StringBuilder("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE ");
+        firstFilter = true;
+        getPhen = true;
     }
 
     /**
@@ -178,6 +192,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
             sqlRequest.append(") ");
             firstFilter = false;
+            foiObsJoin = true;
         } else if (offerings != null && !offerings.isEmpty()) {
 
             if (firstFilter) {
@@ -194,6 +209,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
             sqlRequest.append(") ");
             firstFilter = false;
+            foiObsJoin = true;
         }
     }
 
@@ -207,28 +223,42 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
         if (!phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
-            final StringBuilder sbPheno = new StringBuilder();
-            final StringBuilder sbCompo = new StringBuilder(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+            final String sb;
             final Set<String> fields    = new HashSet<>();
-            for (String p : phenomenon) {
-                sbPheno.append(" \"observed_property\"='").append(p).append("' OR ");
-                sbCompo.append(" \"component\"='").append(p).append("' OR ");
-                fields.addAll(getFieldsForPhenomenon(p));
+            if (getPhen) {
+                final StringBuilder sbPheno = new StringBuilder();
+                for (String p : phenomenon) {
+                    sbPheno.append(" \"id\"='").append(p).append("' OR ");
+                    fields.addAll(getFieldsForPhenomenon(p));
+                }
+                sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                sb = sbPheno.toString();
+            } else {
+                final StringBuilder sbPheno = new StringBuilder();
+                final StringBuilder sbCompo = new StringBuilder(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                for (String p : phenomenon) {
+                    sbPheno.append(" \"observed_property\"='").append(p).append("' OR ");
+                    sbCompo.append(" \"component\"='").append(p).append("' OR ");
+                    fields.addAll(getFieldsForPhenomenon(p));
+                }
+                sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                sbCompo.delete(sbCompo.length() - 3, sbCompo.length());
+                sbCompo.append(')');
+                sb = sbPheno.append(sbCompo).toString();
+                foiObsJoin = true;
             }
-            sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
-            sbCompo.delete(sbCompo.length() - 3, sbCompo.length());
-            sbCompo.append(')');
             if (!getFOI) {
                 for (String field : fields) {
                     currentFields.add(field);
                 }
             }
             if (!firstFilter) {
-                sqlRequest.append(" AND( ").append(sbPheno).append(sbCompo).append(") ");
+                sqlRequest.append(" AND( ").append(sb).append(") ");
             } else {
-                sqlRequest.append(sbPheno).append(sbCompo);
+                sqlRequest.append(" ( ").append(sb).append(") ");
                 firstFilter = false;
             }
+
         }
     }
 
@@ -271,6 +301,24 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         }
     }
 
+    @Override
+    public void setObservationIds(List<String> ids) {
+        if (!ids.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (String oid : ids) {
+                sb.append("(o.\"identifier\"='").append(oid).append("') OR");
+            }
+            sb.delete(sb.length() - 3, sb.length());
+
+            if (!firstFilter) {
+                sqlRequest.append(" AND( ").append(sb).append(") ");
+            } else {
+                sqlRequest.append(sb);
+                firstFilter = false;
+            }
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -286,6 +334,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
             sqlRequest.append(" \"time_end\"='").append(end).append("') ");
 
+            foiObsJoin = true;
         // if the temporal object is a timeInstant
         } else if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
@@ -299,6 +348,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             //case 2 multiple observations containing a matching value
             sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
 
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -319,6 +369,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             // the single and multpile observations which begin after the bound
             sqlRequest.append("(\"time_begin\"<='").append(position).append("'))");
 
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -342,7 +393,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             // the multiple observations overlapping the bound
             sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
 
-
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -375,7 +426,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             // the multiple observations which overlaps the whole period
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">= '").append(end).append("'))");
 
-
+            foiObsJoin = true;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -451,17 +502,55 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      */
     @Override
     public Set<String> filterFeatureOfInterest() throws DataStoreException {
-        LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
+
+        String request = sqlRequest.toString();
+        if (foiObsJoin) {
+            final String obsJoin = "\"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
+            request = request.replace("WHERE", obsJoin);
+        } else {
+            request = request.replace("\"foi\"='", "sf.\"id\"='");
+            if (firstFilter) {
+                request = request.replace("WHERE", "");
+            }
+        }
+
+        LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(sqlRequest.toString())) {
+            final ResultSet result           = currentStatement.executeQuery(request)) {
             final Set<String> results        = new LinkedHashSet<>();
             while (result.next()) {
                 results.add(result.getString("id"));
             }
             return results;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<String> filterPhenomenon() throws DataStoreException {
+
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replace("WHERE", "");
+        }
+
+        LOGGER.log(Level.FINER, "request:{0}", request);
+        try(final Connection c               = source.getConnection();
+            final Statement currentStatement = c.createStatement();
+            final ResultSet result           = currentStatement.executeQuery(request)) {
+            final Set<String> results        = new LinkedHashSet<>();
+            while (result.next()) {
+                results.add(result.getString("id"));
+            }
+            return results;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
     }

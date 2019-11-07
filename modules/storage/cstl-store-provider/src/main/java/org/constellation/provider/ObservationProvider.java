@@ -20,9 +20,12 @@ package org.constellation.provider;
 
 import java.util.Collection;
 import java.util.List;
+import org.apache.sis.storage.Query;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.observation.Observation;
+import org.opengis.observation.Phenomenon;
+import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
@@ -35,9 +38,15 @@ public interface ObservationProvider extends DataProvider {
 
     Collection<String> getPhenomenonNames() throws ConstellationStoreException;
 
+    Collection<Phenomenon> getPhenomenon(Query query, String version) throws ConstellationStoreException;
+
     Collection<String> getProcedureNames() throws ConstellationStoreException;
 
     Collection<String> getFeatureOfInterestNames() throws ConstellationStoreException;
+
+    List<SamplingFeature> getFeatureOfInterest(Query query, String version) throws ConstellationStoreException;
+
+    List<Observation> getObservations(Query query, String version) throws ConstellationStoreException;
 
     List<String> getResponseFormats() throws ConstellationStoreException;
 

@@ -314,6 +314,29 @@ public class FileObservationReader implements ObservationReader {
     }
 
     @Override
+    public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
+        if (Files.isDirectory(phenomenonDirectory)) {
+            Path phenomenonFile = phenomenonDirectory.resolve(identifier + FILE_EXTENSION);
+            if (Files.isRegularFile(phenomenonFile)) {
+                try (InputStream is = Files.newInputStream(phenomenonFile)) {
+                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
+                    Object obj = unmarshaller.unmarshal(is);
+                    MARSHALLER_POOL.recycle(unmarshaller);
+                    if (obj instanceof JAXBElement) {
+                        obj = ((JAXBElement)obj).getValue();
+                    }
+                    if (obj instanceof Phenomenon) {
+                        return (Phenomenon) obj;
+                    }
+                } catch (IOException | JAXBException e) {
+                    throw new DataStoreException("Error during phenomenon umarshalling", e);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public Collection<String> getProceduresForPhenomenon(String observedProperty) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
