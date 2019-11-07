@@ -51,6 +51,7 @@ import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.constellation.sos.ws.SOSUtils;
 import org.opengis.observation.Observation;
+import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -127,7 +128,11 @@ public class SOSRestAPI {
 
     @RequestMapping(value="{id}/sensor/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorMetadata(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(sensorBusiness.getSensorMetadata(sensorID, id), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        if (sensorBusiness.isLinkedSensor(serviceId, sensorID)) {
+            return new ResponseEntity(sensorBusiness.getSensorMetadata(sensorID), OK);
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -150,7 +155,8 @@ public class SOSRestAPI {
 
     @RequestMapping(value="/SOS/{id}/sensors/count", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensortCount(final @PathVariable("id") String id) throws Exception {
-        return new ResponseEntity(new SimpleValue(sensorBusiness.getCountByServiceId(id)), OK);
+        final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
+        return new ResponseEntity(new SimpleValue(sensorBusiness.getCountByServiceId(serviceId)), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)

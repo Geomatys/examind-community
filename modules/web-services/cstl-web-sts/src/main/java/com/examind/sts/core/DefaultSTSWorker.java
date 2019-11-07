@@ -47,6 +47,7 @@ import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.Datastream;
@@ -90,6 +91,8 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     private Integer smlProviderID;
 
     private boolean isTransactionnal;
+    
+    private boolean sensorMetadataAsLink = true;
 
     private SOSConfiguration configuration;
 
@@ -240,7 +243,46 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     @Override
     public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
         final List<Sensor> sensors = new ArrayList<>();
+        try {
+            String selfLink = getServiceUrl();
+            selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors($)";
+            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+            for (String sensorId : sensorIds) {
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                
+                Sensor sensor = buildSensor(s, selfLink);
+                sensors.add(sensor);
+            }
+        } catch (ConfigurationException ex) {
+            throw new CstlServiceException(ex);
+        }
+        // TODO iot count
+        // TODO nextLink
         return new SensorsResponse(sensors);
+    }
+    
+    @Override
+    public Sensor getSensorById(GetSensorById gs) throws CstlServiceException {
+        if (gs.getId() != null) {
+            Integer id = Integer.parseInt(gs.getId());
+            org.constellation.dto.Sensor s = sensorBusiness.getSensor(id);
+            if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                String selfLink = getServiceUrl();
+                selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors(" + id + ")";
+                return buildSensor(s, selfLink);
+            }
+        }
+        return null;
+    }
+    
+    private Sensor buildSensor(org.constellation.dto.Sensor s, String selfLink) {
+        Sensor sensor = new Sensor();
+        sensor = sensor.description("TODO")  // TODO extract from metadata and record in database
+                .name(s.getIdentifier())
+                .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
+                .iotId(s.getId().toString())
+                .iotSelfLink(selfLink.replace("$", s.getId().toString()));
+        return sensor;
     }
 
     @Override

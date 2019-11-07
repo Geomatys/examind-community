@@ -48,11 +48,13 @@ import org.constellation.ws.rs.OGCWebService;
 import com.examind.sts.core.STSWorker;
 import java.util.LinkedHashMap;
 import org.geotoolkit.sts.AbstractSTSRequest;
+import org.geotoolkit.sts.AbstractSTSRequestById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThings;
 import org.springframework.http.MediaType;
@@ -124,7 +126,11 @@ public class STSService extends OGCWebService<STSWorker> {
             } else if (request instanceof GetSensors) {
                 final GetSensors model = (GetSensors) request;
                 return new ResponseObject(worker.getSensors(model), MediaType.APPLICATION_JSON_UTF8);
+            } else if (request instanceof GetSensorById) {
+                final GetSensorById model = (GetSensorById) request;
+                return new ResponseObject(worker.getSensorById(model), MediaType.APPLICATION_JSON_UTF8);
             }
+
 
             throw new CstlServiceException("The operation " + request.getClass().getName() + " is not supported by the service",
                                           INVALID_PARAMETER_VALUE, "request");
@@ -186,9 +192,9 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
 
-    private AbstractSTSRequest adaptQuery(final String requestName, final Worker worker) throws CstlServiceException {
+    private RequestBase adaptQuery(final String requestName, final Worker worker) throws CstlServiceException {
 
-        AbstractSTSRequest request = null;
+        RequestBase request = null;
         if (STR_GETFEATUREOFINTEREST.equalsIgnoreCase(requestName)) {
            request = new GetFeatureOfInterests();
         } else if (STR_GETTHINGS.equalsIgnoreCase(requestName)) {
@@ -203,15 +209,23 @@ public class STSService extends OGCWebService<STSWorker> {
            request = new GetLocations();
         } else if (STR_GETSENSORS.equalsIgnoreCase(requestName)) {
            request = new GetSensors();
+        } else if (STR_GETSENSOR_BYID.equalsIgnoreCase(requestName)) {
+           request = new GetSensorById();
         }
-        if (request != null) {
-            request.setCount(getBooleanParameter(COUNT, false));
-            request.setFilter(getParameter(FILTER, false));
-            request.setSkip(parseOptionalIntegerParam(SKIP));
-            request.setTop(parseOptionalIntegerParam(TOP));
-            request.setExpand(parseCommaSeparatedParameter(EXPAND));
-            request.setSelect(parseCommaSeparatedParameter(SELECT));
-            request.setOrderby(parseSortByParameter());
+        if (request instanceof AbstractSTSRequest) {
+            AbstractSTSRequest sRequest = (AbstractSTSRequest) request;
+            sRequest.setCount(getBooleanParameter(COUNT, false));
+            sRequest.setFilter(getParameter(FILTER, false));
+            sRequest.setSkip(parseOptionalIntegerParam(SKIP));
+            sRequest.setTop(parseOptionalIntegerParam(TOP));
+            sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
+            sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
+            sRequest.setOrderby(parseSortByParameter());
+            return request;
+        } else if (request instanceof AbstractSTSRequestById) {
+            AbstractSTSRequestById sRequest = (AbstractSTSRequestById) request;
+            sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
+            sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
             return request;
         } else {
             throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
@@ -247,7 +261,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETFEATUREOFINTEREST, worker);
+                RequestBase request = adaptQuery(STR_GETFEATUREOFINTEREST, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -264,7 +278,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETTHINGS, worker);
+                RequestBase request = adaptQuery(STR_GETTHINGS, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -281,7 +295,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETOBSERVATION, worker);
+                RequestBase request = adaptQuery(STR_GETOBSERVATION, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -298,7 +312,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETDATASTREAMS, worker);
+                RequestBase request = adaptQuery(STR_GETDATASTREAMS, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -315,7 +329,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                RequestBase request = adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -332,7 +346,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETLOCATIONS, worker);
+                RequestBase request = adaptQuery(STR_GETLOCATIONS, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -349,7 +363,24 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETSENSORS, worker);
+                RequestBase request = adaptQuery(STR_GETSENSORS, worker);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+    
+    @RequestMapping(path = "Sensors({id:\\d})", method = RequestMethod.GET)
+    public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") Integer id) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                RequestBase request = adaptQuery(STR_GETSENSOR_BYID, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -366,7 +397,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                RequestBase request = adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();

@@ -397,7 +397,7 @@ public class SOSworker extends AbstractWorker {
                 }
             }
 
-            this.acceptedSensorMLFormats = sensorBusiness.getAcceptedSensorMLFormats(id);
+            this.acceptedSensorMLFormats = sensorBusiness.getAcceptedSensorMLFormats(getServiceId());
 
             // we initialize the O&M reader/writer/filter
             if (omProvider != null) {
@@ -680,7 +680,7 @@ public class SOSworker extends AbstractWorker {
      *
      * @throws org.constellation.ws.CstlServiceException
      */
-    public AbstractSensorML describeSensor(final DescribeSensor request) throws CstlServiceException  {
+    public Object describeSensor(final DescribeSensor request) throws CstlServiceException  {
         LOGGER.log(Level.INFO, "DescribeSensor request processing\n");
         final long start = System.currentTimeMillis();
 
@@ -717,10 +717,14 @@ public class SOSworker extends AbstractWorker {
         if (sensorId == null || sensorId.isEmpty()) {
             throw new CstlServiceException("You must specify the sensor ID!", MISSING_PARAMETER_VALUE, PROCEDURE);
         }
+        
+        if (!sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+            throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
+        }
 
-        AbstractSensorML result;
+        Object result;
         try {
-            result = (AbstractSensorML) sensorBusiness.getSensorMetadata(sensorId, getId());
+            result = sensorBusiness.getSensorMetadata(sensorId);
         } catch (ConfigurationException ex) {
             throw new CstlServiceException(ex);
         }
@@ -728,7 +732,7 @@ public class SOSworker extends AbstractWorker {
             (out.equalsIgnoreCase(SENSORML_101_FORMAT_V100) || out.equalsIgnoreCase(SENSORML_101_FORMAT_V200))) {
             result = SmlFactory.convertTo101((SensorML)result);
         } else if (result == null) {
-            throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
+            throw new CstlServiceException("this sensor has no metadata SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
 
         LOGGER.log(Level.INFO, "describeSensor processed in {0} ms.\n", (System.currentTimeMillis() - start));

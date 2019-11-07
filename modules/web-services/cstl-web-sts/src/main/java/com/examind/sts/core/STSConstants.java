@@ -43,6 +43,7 @@ public final class STSConstants {
     public static final String STR_GETOBSERVEDPROPERTIES   = "GetObservedProperties";
     public static final String STR_GETLOCATIONS            = "GetLocations";
     public static final String STR_GETSENSORS              = "GetSensors";
+    public static final String STR_GETSENSOR_BYID          = "GetSensorById";
     public static final String STR_GETHISTORICALLOCATIONS  = "HistoricalLocations";
 
 

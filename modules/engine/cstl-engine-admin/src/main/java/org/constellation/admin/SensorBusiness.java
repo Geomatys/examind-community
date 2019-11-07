@@ -314,12 +314,8 @@ public class SensorBusiness implements ISensorBusiness {
     }
 
     @Override
-    public int getCountByServiceId(String serviceID) {
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (service != null) {
-            return sensorRepository.getLinkedSensorCount(service);
-        }
-        return 0;
+    public int getCountByServiceId(Integer serviceID) {
+        return sensorRepository.getLinkedSensorCount(serviceID);
     }
 
     @Override
@@ -339,18 +335,6 @@ public class SensorBusiness implements ISensorBusiness {
             Data data = provider.get(null, sensor.getIdentifier());
             if (data instanceof SensorData) {
                 return ((SensorData)data).getSensorMetadata();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Object getSensorMetadata(String sensorID, String serviceID) throws ConfigurationException {
-        final Sensor sensor   = sensorRepository.findByIdentifier(sensorID);
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (sensor != null && service != null) {
-            if (sensorRepository.isLinkedSensorToSOS(sensor.getId(), service)) {
-                return getSensorMetadata(sensor.getId());
             }
         }
         return null;
@@ -469,13 +453,24 @@ public class SensorBusiness implements ISensorBusiness {
     public List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException {
         return sensorRepository.getLinkedSensorIdentifiers(serviceID, sensorType);
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isLinkedSensor(Integer serviceID, String sensorID) {
+        final Integer sid = sensorRepository.findIdByIdentifier(sensorID);
+        if (serviceID != null && sid != null) {
+            return sensorRepository.isLinkedSensorToSOS(sid, serviceID);
+        }
+        return false;
+    }
 
     @Override
-    public Map<String, List<String>> getAcceptedSensorMLFormats(String serviceID) throws ConfigurationException {
+    public Map<String, List<String>> getAcceptedSensorMLFormats(Integer serviceID) throws ConfigurationException {
         final Map<String, List<String>> results = new HashMap<>();
-        final Integer service = serviceRepository.findIdByIdentifierAndType(serviceID, "sos");
-        if (service != null) {
-            final List<Integer> providers = serviceRepository.getLinkedSensorProviders(service);
+        if (serviceID != null) {
+            final List<Integer> providers = serviceRepository.getLinkedSensorProviders(serviceID);
             for (Integer providerID : providers) {
                 final DataProvider provider = DataProviders.getProvider(providerID);
                 if (provider instanceof SensorProvider) {

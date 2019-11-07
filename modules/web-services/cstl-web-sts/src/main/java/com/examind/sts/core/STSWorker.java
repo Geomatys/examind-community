@@ -28,6 +28,7 @@ import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
+import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.Datastream;
@@ -75,6 +76,8 @@ public interface STSWorker extends Worker {
     void addLocation(Location location) throws CstlServiceException;
 
     SensorsResponse getSensors(GetSensors gs) throws CstlServiceException;
+    
+    Sensor getSensorById(GetSensorById gs) throws CstlServiceException;
 
     void addSensor(Sensor sensor) throws CstlServiceException;
 

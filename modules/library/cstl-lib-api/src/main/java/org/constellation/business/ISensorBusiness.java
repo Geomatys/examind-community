@@ -51,7 +51,7 @@ public interface ISensorBusiness {
 
     List<SensorReference> getByDataId(int dataId);
 
-    int getCountByServiceId(String serviceId);
+    int getCountByServiceId(Integer serviceId);
 
     List<Sensor> getChildren(String parentIdentifier);
 
@@ -73,8 +73,6 @@ public interface ISensorBusiness {
     Object getSensorMetadata(Integer sensorID) throws ConfigurationException;
 
     Object getSensorMetadata(String sensorID) throws ConfigurationException;
-
-    Object getSensorMetadata(String sensorID, String serviceID) throws ConfigurationException;
 
     void updateSensorMetadata(Integer sensorID, Object sensorMetadata) throws ConfigurationException;
 
@@ -110,8 +108,10 @@ public interface ISensorBusiness {
      * @throws ConfigurationException
      */
     List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException;
+    
+    boolean isLinkedSensor(Integer serviceID, String sensorId);
 
-    Map<String, List<String>> getAcceptedSensorMLFormats(String serviceID) throws ConfigurationException;
+    Map<String, List<String>> getAcceptedSensorMLFormats(Integer serviceID) throws ConfigurationException;
 
     /**
      * Link a sensor to a service.
