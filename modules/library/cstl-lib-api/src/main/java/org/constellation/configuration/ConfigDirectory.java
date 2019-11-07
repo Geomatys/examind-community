@@ -124,13 +124,15 @@ public final class ConfigDirectory {
             }
 
             public Builder forTest(String filename) {
-                try {
+                //try {
                     Path currentRelativePath = Paths.get("");
-                    this.homeLocation = new URI("file:" + currentRelativePath.toAbsolutePath() + "/" + filename);
-                    this.dataLocation = new URI("file:" + currentRelativePath.toAbsolutePath() + "/" + filename + "/data");
-                } catch (URISyntaxException ex) {
+                    Path home = currentRelativePath.resolve(filename);
+                    Path data = home.resolve("data");
+                    this.homeLocation = home.toUri(); //new URI("file:" + currentRelativePath.toAbsolutePath() + File.separator + filename);
+                    this.dataLocation = data.toUri(); //new URI("file:" + currentRelativePath.toAbsolutePath() + File.separator + filename + File.separator + "data");
+                /*} catch (URISyntaxException ex) {
                     throw new RuntimeException(ex);
-                }
+                }*/
                 this.testing = true;
                 return this;
             }
@@ -352,7 +354,7 @@ public final class ConfigDirectory {
     }
 
     public static Path setupTestEnvironement(String filename) {
-        config = new Config.Builder().forTest("target/" + filename).build();
+        config = new Config.Builder().forTest("target" + File.separator + filename).build();
         return config.home;
 
     }
