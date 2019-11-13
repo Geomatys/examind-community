@@ -18,6 +18,8 @@
  */
 package org.constellation.dto.metadata;
 
+import java.util.Objects;
+
 /**
  *
  * @author Guilhem Legal
@@ -110,5 +112,32 @@ public class MetadataBbox {
      */
     public void setSouth(Double south) {
         this.south = south;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof MetadataBbox) {
+            MetadataBbox that = (MetadataBbox) obj;
+            return Objects.equals(this.east, that.east) &&
+                   Objects.equals(this.north, that.north) &&
+                   Objects.equals(this.south, that.south) &&
+                   Objects.equals(this.west, that.west) &&
+                   Objects.equals(this.metadataId, that.metadataId);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 31 * hash + Objects.hashCode(this.metadataId);
+        hash = 31 * hash + Objects.hashCode(this.east);
+        hash = 31 * hash + Objects.hashCode(this.west);
+        hash = 31 * hash + Objects.hashCode(this.north);
+        hash = 31 * hash + Objects.hashCode(this.south);
+        return hash;
     }
 }

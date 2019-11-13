@@ -79,6 +79,7 @@ import javax.xml.transform.TransformerException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.Locales;
 import org.apache.sis.util.iso.Types;
+import static org.apache.sis.xml.XML.SCHEMAS;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_ONLY_PUBLISHED;
 import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.api.ServiceDef;
@@ -1298,6 +1299,8 @@ public class MetadataBusiness implements IMetadataBusiness {
     public String marshallMetadata(final Object metadata) throws ConfigurationException {
         try {
             final Marshaller m = EBRIMMarshallerPool.getInstance().acquireMarshaller();
+            Map<String, String> gmd = Collections.singletonMap("gmd", "http://www.isotc211.org/2005/");
+            m.setProperty(SCHEMAS, gmd);
             final StringWriter sw = new StringWriter();
             m.marshal(metadata, sw);
             EBRIMMarshallerPool.getInstance().recycle(m);

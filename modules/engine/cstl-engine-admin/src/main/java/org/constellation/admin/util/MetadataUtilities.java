@@ -132,7 +132,9 @@ public final class MetadataUtilities {
                                                                             geobox.getWestBoundLongitude(),
                                                                             geobox.getNorthBoundLatitude(),
                                                                             geobox.getSouthBoundLatitude());
-                           results.add(bbox);
+                           if (!results.contains(bbox)) {
+                               results.add(bbox);
+                           }
                        }
                    }
                }
