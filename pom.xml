@@ -34,7 +34,7 @@
         <jaxws.version>2.2.8</jaxws.version>
         <spring.version>5.0.8.RELEASE</spring.version>
         <spring-security.version>5.0.7.RELEASE</spring-security.version>
-        <jackson.version>2.9.6</jackson.version>
+        <jackson.version>2.10.1</jackson.version>
         <joda.version>2.2</joda.version>
         <postgresql.version>42.2.2</postgresql.version>
         <jooq.version>3.5.3</jooq.version>
