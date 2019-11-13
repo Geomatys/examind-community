@@ -278,11 +278,6 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:regroup</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
-            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:douglasPeucker</ows:Title>
-            <ows:Abstract>Simplify a FeatureCollection geometry with Douglas Pucker algorithm</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker</ows:Identifier>
-        </wps:ProcessSummary>
-        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:intersects</ows:Title>
             <ows:Abstract>Returns true if this geometry source (geom1) intersects the specified geometry (geom2).</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects</ows:Identifier>

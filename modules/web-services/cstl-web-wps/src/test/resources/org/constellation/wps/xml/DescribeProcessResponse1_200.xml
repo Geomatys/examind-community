@@ -43,9 +43,9 @@
             <ows:Abstract xml:lang="fr-FR">Create a pyramid / mosaic from the givencoverage. Created tiles are stored in the given Coverage store.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume</ows:Identifier>
             <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">GridCoverageReader</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">GridCoverageReader which contain Digital Elevation model to compute bulk.</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume:input:GridCoverageReader</ows:Identifier>
+                <ows:Title xml:lang="fr-FR">GridCoverageResource</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">GridCoverageResource which contain Digital Elevation model to compute bulk.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume:input:GridCoverageResource</ows:Identifier>
                 <wps:ComplexData/>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -2471,81 +2471,6 @@
                 <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Output FeatureFeatureCollection</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::vector:regroup:output:feature_out</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
-                </wps:ComplexData>
-            </wps:Output>
-        </wps:Process>
-    </wps:ProcessOffering>
-    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
-        <wps:Process>
-            <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:douglasPeucker</ows:Title>
-            <ows:Abstract xml:lang="fr-FR">Simplify a FeatureCollection geometry with Douglas Pucker algorithm</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker</ows:Identifier>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Feature_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input FeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker:input:feature_in</ows:Identifier>
-                <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd" maximumMegabytes="100"/>
-                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd" maximumMegabytes="100"/>
-                </wps:ComplexData>
-            </wps:Input>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Accuracy_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input simplification accuracy.</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker:input:accuracy_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
-                        <ows:UOM>m</ows:UOM>
-                        <ows:DefaultValue>1.0</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Input minOccurs="0" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Del_small_geo_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input boolean to set process behavior with small geometry</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker:input:del_small_geo_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#boolean">Boolean</ows:DataType>
-                        <ows:DefaultValue>false</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Input minOccurs="0" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Lenient_transform_in</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Input boolean to set accuracy CRS transformation</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker:input:lenient_transform_in</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#boolean">Boolean</ows:DataType>
-                        <ows:DefaultValue>true</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Output>
-                <ows:Title xml:lang="fr-FR">Feature_out</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Output FeatureFeatureCollection</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::vector:douglasPeucker:output:feature_out</ows:Identifier>
                 <wps:ComplexData>
                     <wps:Format mimeType="application/geo+json" encoding="utf-8" default="true"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
