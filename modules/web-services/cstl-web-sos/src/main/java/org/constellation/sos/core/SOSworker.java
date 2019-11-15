@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +40,8 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
@@ -174,10 +177,12 @@ import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.apache.sis.storage.DataStore;
 import org.constellation.dto.Sensor;
+import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.sos.ws.SOSUtils;
+import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.Utils;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
@@ -196,6 +201,8 @@ import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsBetween;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.PropertyIsGreaterThan;
@@ -203,6 +210,7 @@ import org.opengis.filter.PropertyIsLessThan;
 import org.opengis.filter.PropertyIsLike;
 import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.identity.Identifier;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
@@ -402,8 +410,9 @@ public class SOSworker extends AbstractWorker {
             // we initialize the O&M reader/writer/filter
             if (omProvider != null) {
                 //we initialize the variables depending on the Reader capabilities
-                this.acceptedResponseMode   = omProvider.getResponseModes();
-                this.acceptedResponseFormat = omProvider.getResponseFormats();
+                SOSProviderCapabilities pc = omProvider.getCapabilities();
+                this.acceptedResponseMode   = pc.responseModes;
+                this.acceptedResponseFormat = pc.responseFormats;
             } else {
                 this.acceptedResponseMode   = new ArrayList<>();
                 this.acceptedResponseFormat = new ArrayList<>();
@@ -577,11 +586,11 @@ public class SOSworker extends AbstractWorker {
 
                 final ObservationReader reader = omStore.getReader();
                 if (reader != null) {
-                    procNames.addAll(reader.getProcedureNames(sensorTypeFilter));
+                    procNames.addAll(omProvider.getProcedureNames(sensorTypeFilter));
                     offNames.addAll(reader.getOfferingNames(currentVersion, sensorTypeFilter));
                     eventTime.addAll(reader.getEventTime());
                 }
-                queryableResultProperties.addAll(omProvider.supportedQueryableResultProperties());
+                queryableResultProperties.addAll(omProvider.getCapabilities().queryableResultProperties);
 
                 // the list of offering names
                 go.updateParameter(OFFERING, offNames);
@@ -717,7 +726,7 @@ public class SOSworker extends AbstractWorker {
         if (sensorId == null || sensorId.isEmpty()) {
             throw new CstlServiceException("You must specify the sensor ID!", MISSING_PARAMETER_VALUE, PROCEDURE);
         }
-        
+
         if (!sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
             throw new CstlServiceException("this sensor is not registered in the SOS", INVALID_PARAMETER_VALUE, PROCEDURE);
         }
@@ -780,9 +789,9 @@ public class SOSworker extends AbstractWorker {
         verifyBaseRequest(request, true, false);
 
         final String currentVersion = request.getVersion().toString();
-
-        final List<Observation> observation = new ArrayList<>();
+        final List<Observation> observation;
         try {
+            final Set<Identifier> oids = new LinkedHashSet<>();
             for (String oid : request.getObservation()) {
                 if (oid.isEmpty()) {
                     final String locator;
@@ -793,9 +802,15 @@ public class SOSworker extends AbstractWorker {
                     }
                     throw new CstlServiceException("Empty observation id", MISSING_PARAMETER_VALUE, locator);
                 }
-                observation.add(omStore.getReader().getObservation(oid, request.getResultModel(), INLINE, currentVersion));
+                oids.add(new DefaultFeatureId(oid));
             }
-        } catch (DataStoreException ex) {
+            final SimpleQuery subquery = new SimpleQuery();
+            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+            Id filter = ff.id(oids);
+            subquery.setFilter(filter);
+            observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", currentVersion);
+
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         final ObservationCollection response = buildGetObservationByIdResponse(currentVersion, "collection-1", null, observation);
@@ -953,7 +968,7 @@ public class SOSworker extends AbstractWorker {
                         throw new CstlServiceException(" the procedure parameter is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
                     }
 
-                    if (!omStore.getReader().existProcedure(procedure)) {
+                    if (!omProvider.existProcedure(procedure)) {
                         throw new CstlServiceException(" this process is not registred in the table", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                     if (!offerings.isEmpty()) {
@@ -1291,8 +1306,6 @@ public class SOSworker extends AbstractWorker {
         final String values;
 
         try {
-            // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
 
             if (observationTemplateID != null) {
                 final Observation template = templates.get(observationTemplateID);
@@ -1338,6 +1351,9 @@ public class SOSworker extends AbstractWorker {
                 fois.addAll(request.getFeatureOfInterest());
             }
 
+            // we clone the filter for this request
+            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
+
             //we begin to create the sql request
             localOmFilter.initFilterGetResult(procedure, resultModel);
 
@@ -1366,8 +1382,7 @@ public class SOSworker extends AbstractWorker {
                                 // TODO for SOS 2.0 use observed area
                                 final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) omStore.getReader().getFeatureOfInterest(refStation, currentVersion);
                                 if (station == null) {
-                                    throw new CstlServiceException("the feature of interest is not registered",
-                                            INVALID_PARAMETER_VALUE);
+                                    throw new CstlServiceException("the feature of interest is not registered", INVALID_PARAMETER_VALUE);
                                 }
                                 if (station.getGeometry() instanceof Point) {
                                     if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
@@ -1521,7 +1536,7 @@ public class SOSworker extends AbstractWorker {
                     // CITE
                     if (procedure.isEmpty()) {
                         throw new CstlServiceException("The procedure name is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
-                    } else if (!omStore.getReader().existProcedure(procedure)){
+                    } else if (!omProvider.existProcedure(procedure)){
                         throw new CstlServiceException("This procedure is not registered", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                 }

@@ -305,8 +305,15 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
-            for (String oid : ids) {
-                sb.append("(o.\"identifier\"='").append(oid).append("') OR");
+            if (template) {
+                for (String oid : ids) {
+                    final String procedureID = oid.substring(observationTemplateIdBase.length());
+                    sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                }
+            } else {
+                for (String oid : ids) {
+                    sb.append("(o.\"identifier\"='").append(oid).append("') OR");
+                }
             }
             sb.delete(sb.length() - 3, sb.length());
 

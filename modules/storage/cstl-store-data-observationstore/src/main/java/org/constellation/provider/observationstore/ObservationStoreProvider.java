@@ -40,6 +40,7 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArraysExt;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
@@ -50,6 +51,7 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
+import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
@@ -61,6 +63,7 @@ import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
+import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.temporal.After;
 import org.opengis.filter.temporal.Before;
 import org.opengis.filter.temporal.Begins;
@@ -314,9 +317,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public Collection<String> getProcedureNames() throws ConstellationStoreException {
+    public Collection<String> getProcedureNames(String typeFilter) throws ConstellationStoreException {
         try {
-            return store.getReader().getProcedureNames();
+            return store.getReader().getProcedureNames(typeFilter);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -332,27 +335,25 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<String> getResponseFormats() throws ConstellationStoreException {
+    public SOSProviderCapabilities getCapabilities() throws ConstellationStoreException {
+        SOSProviderCapabilities capa = new SOSProviderCapabilities();
         try {
-            return store.getReader().getResponseFormats();
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
-    @Override
-    public List<String> getResponseModes() throws ConstellationStoreException {
-        try {
+            ObservationReader reader = store.getReader();
+            capa.responseFormats = reader.getResponseFormats();
             final List<String> arm = new ArrayList<>();
-            store.getReader().getResponseModes().stream().forEach((rm) -> {
+            reader.getResponseModes().stream().forEach((rm) -> {
                 arm.add(rm.value());
             });
-            return arm;
+            capa.responseModes = arm;
+            ObservationFilter filter = store.getFilter();
+            if (filter != null) {
+                capa.queryableResultProperties = filter.supportedQueryableResultProperties();
+            }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
+        return capa;
     }
-
 
     @Override
     public  AbstractGeometry getSensorLocation(String sensorID, String gmlVersion) throws ConstellationStoreException {
@@ -367,6 +368,15 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public boolean existPhenomenon(String phenomenonName) throws ConstellationStoreException {
         try {
             return store.getReader().existPhenomenon(phenomenonName);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public boolean existProcedure(String procedureName) throws ConstellationStoreException {
+        try {
+            return store.getReader().existProcedure(procedureName);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -451,15 +461,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<String> supportedQueryableResultProperties() {
-        ObservationFilter filter = store.getFilter();
-        if (filter != null) {
-            return filter.supportedQueryableResultProperties();
-        }
-        return new ArrayList<>();
-    }
-
-    @Override
     public String writeObservation(Observation observation) throws ConstellationStoreException {
         try {
             return store.getWriter().writeObservation(observation);
@@ -508,10 +509,14 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<Observation> getObservations(Query q, String version) throws ConstellationStoreException {
+    public List<Observation> getObservations(Query q, QName resultModel, String responseMode, String version) throws ConstellationStoreException {
         try {
-            QName resultModel = null;// todo resultModel
-            ResponseModeType mode = ResponseModeType.INLINE;
+            ResponseModeType mode;
+            if (responseMode != null) {
+                mode = ResponseModeType.fromValue(responseMode);
+            } else {
+                mode = ResponseModeType.INLINE;
+            }
 
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
@@ -536,8 +541,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.setFeatureOfInterest(fois);
 
             if (localOmFilter instanceof ObservationFilterReader) {
-                return ((ObservationFilterReader)localOmFilter).getObservations(version);
+                if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
+                    return ((ObservationFilterReader)localOmFilter).getObservationTemplates(version);
+                } else {
+                    return ((ObservationFilterReader)localOmFilter).getObservations(version);
+                }
             } else {
+                // TODO missing case for template
                 final List<Observation> observations = new ArrayList<>();
                 final Set<String> oid = localOmFilter.filterObservation();
                 for (String foid : oid) {
@@ -613,13 +623,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
         } else if (filter instanceof PropertyIsEqualTo) {
             final PropertyIsEqualTo ef = (PropertyIsEqualTo) filter;
-            Literal name = (Literal) ef.getExpression1();
+            PropertyName name = (PropertyName) ef.getExpression1();
             Literal value = (Literal) ef.getExpression2();
-            if (name.getValue().equals("observedProperty")) {
+            if (name.getPropertyName().equals("observedProperty")) {
                 observedProperties.add((String) value.getValue());
-            } else if (name.getValue().equals("procedure")) {
+            } else if (name.getPropertyName().equals("procedure")) {
                 procedures.add((String) value.getValue());
-            }  else if (name.getValue().equals("featureOfInterest")) {
+            }  else if (name.getPropertyName().equals("featureOfInterest")) {
                 fois.add((String) value.getValue());
             }
 

@@ -145,7 +145,7 @@ public class LuceneObservationFilter implements ObservationFilter {
                     add = true;
                 }
             }
-        } else {
+        } else if (offerings != null){
             //if is not specified we use all the process of the offering
             for (ObservationOffering off : offerings) {
                 for (String proc : off.getProcedures()) {
@@ -169,7 +169,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
-        if (!allPhenonenon(phenomenon)) {
+        if (!allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
             luceneRequest.append(" AND( ");
             for (String p : phenomenon) {
                 luceneRequest.append(" observed_property:\"").append(p).append('"').append(OR_OPERATOR);
@@ -185,12 +185,14 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
-        luceneRequest.append(" AND (");
-        for (String foi : fois) {
-            luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+        if (!fois.isEmpty()) {
+            luceneRequest.append(" AND (");
+            for (String foi : fois) {
+                luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+            }
+            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+            luceneRequest.append(") ");
         }
-        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-        luceneRequest.append(") ");
     }
 
     /**
@@ -198,12 +200,14 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setObservationIds(List<String> ids) {
-        luceneRequest.append(" AND (");
-        for (String oid : ids) {
-            luceneRequest.append("id:").append(oid).append(" OR ");
+        if (!ids.isEmpty()) {
+            luceneRequest.append(" AND (");
+            for (String oid : ids) {
+                luceneRequest.append("id:\"").append(oid).append("\" OR ");
+            }
+            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+            luceneRequest.append(") ");
         }
-        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-        luceneRequest.append(") ");
     }
 
     /**

@@ -185,13 +185,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Observation> getObservationTemplates(final String version) throws DataStoreException {
-        if (resultModel.equals(MEASUREMENT_QNAME)) {
+        if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurementTemplates(version);
+        }
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
         }
         try(final Connection c = source.getConnection()) {
             final Map<String, Observation> observations = new HashMap<>();
             try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(sqlRequest.toString())) {
+                final ResultSet rs               = currentStatement.executeQuery(request)) {
                 final TextBlock encoding = getDefaultTextEncoding(version);
 
                 while (rs.next()) {
@@ -216,7 +220,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         for (Field f : fields) {
                             scal.add(f.getScalar(version));
                         }
-                        final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size() - 1);
+                        final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
                         observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, null);
                         observations.put(procedure, observation);
                     }
@@ -224,7 +228,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
             return new ArrayList<>(observations.values());
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
@@ -232,11 +236,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
     }
 
     public List<Observation> getMesurementTemplates(final String version) throws DataStoreException {
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
         try(final Connection c = source.getConnection()) {
             final Map<String, Observation> observations = new HashMap<>();
 
             try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(sqlRequest.toString())) {
+                final ResultSet rs               = currentStatement.executeQuery(request)) {
 
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
@@ -266,7 +274,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
             return new ArrayList<>(observations.values());
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage());
@@ -278,11 +286,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurements(version);
         }
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement()) {
-            try(final ResultSet rs           = currentStatement.executeQuery(sqlRequest.toString())) {
+            try(final ResultSet rs           = currentStatement.executeQuery(request)) {
                 // add orderby to the query
-                sqlRequest.append(" ORDER BY o.\"id\"");
                 final Map<String, Observation> observations = new HashMap<>();
                 final TextBlock encoding = getDefaultTextEncoding(version);
                 final Map<String, List<Field>> fieldMap = new LinkedHashMap<>();
@@ -402,7 +414,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         }
 
                         final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
-                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values.toString(), observations.size() - 1);
+                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values.toString(), observations.size());
                         observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
                         observations.put(procedure + '-' + featureID, observation);
                     } else {
@@ -471,7 +483,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 return new ArrayList<>(observations.values());
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
@@ -495,13 +507,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     public List<Observation> getMesurements(final String version) throws DataStoreException {
         // add orderby to the query
-        sqlRequest.append(" ORDER BY o.\"id\"");
+        String request = sqlRequest.append(" ORDER BY o.\"id\"").toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
 
         try(final Connection c = source.getConnection()) {
             final List<Observation> observations        = new ArrayList<>();
 
             try(final Statement currentStatement = c.createStatement();
-                final ResultSet rs               = currentStatement.executeQuery(sqlRequest.toString())) {
+                final ResultSet rs               = currentStatement.executeQuery(request)) {
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
                     final Timestamp startTime = rs.getTimestamp("time_begin");
@@ -566,7 +581,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
             return observations;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request.toString());
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
@@ -580,19 +595,24 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public String getResults() throws DataStoreException {
+        String request = null;
         try {
             // add orderby to the query
             final Field timeField = getTimeField(currentProcedure);
             if (timeField != null) {
                 sqlRequest.append(sqlMeasureRequest.toString().replace("$time", timeField.fieldName));
             }
-            sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
+            request = sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"").toString();
+
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
 
             final StringBuilder values = new StringBuilder();
             try(final Connection c = source.getConnection()) {
                 try(final Statement currentStatement = c.createStatement()) {
-                    LOGGER.info(sqlRequest.toString());
-                    final ResultSet rs = currentStatement.executeQuery(sqlRequest.toString());
+                    LOGGER.info(request);
+                    final ResultSet rs = currentStatement.executeQuery(request);
                     final List<Field> fields;
                     if (!currentFields.isEmpty()) {
                         fields = new ArrayList<>();
@@ -661,7 +681,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
             return values.toString();
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         }
     }

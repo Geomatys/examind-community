@@ -20,8 +20,10 @@ package org.constellation.provider;
 
 import java.util.Collection;
 import java.util.List;
+import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
 import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -40,23 +42,21 @@ public interface ObservationProvider extends DataProvider {
 
     Collection<Phenomenon> getPhenomenon(Query query, String version) throws ConstellationStoreException;
 
-    Collection<String> getProcedureNames() throws ConstellationStoreException;
+    Collection<String> getProcedureNames(String typeFilter) throws ConstellationStoreException;
 
     Collection<String> getFeatureOfInterestNames() throws ConstellationStoreException;
 
     List<SamplingFeature> getFeatureOfInterest(Query query, String version) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, String version) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String version) throws ConstellationStoreException;
 
-    List<String> getResponseFormats() throws ConstellationStoreException;
-
-    List<String> getResponseModes() throws ConstellationStoreException;
-
-    List<String> supportedQueryableResultProperties();
+    SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
     Object getSensorLocation(final String sensorID, final String gmlVersion) throws ConstellationStoreException;
 
     boolean existPhenomenon(final String phenomenonName) throws ConstellationStoreException;
+
+    boolean existProcedure(final String procedureName) throws ConstellationStoreException;
 
     Collection<String> getProceduresForPhenomenon(final String observedProperty) throws ConstellationStoreException;
 

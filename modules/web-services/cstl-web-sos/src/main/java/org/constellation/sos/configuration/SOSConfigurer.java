@@ -222,7 +222,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            return pr.getProcedureNames();
+            return pr.getProcedureNames(null);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

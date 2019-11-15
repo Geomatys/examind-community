@@ -534,7 +534,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                     if (prov instanceof ObservationProvider) {
                         ObservationProvider omP = (ObservationProvider) prov;
                         if (omP.existPhenomenon(observedProperty)) {
-                            sensorIDS.addAll(omP.getProcedureNames());
+                            sensorIDS.addAll(omP.getProcedureNames(null));
                         }
                     }
                 }
