@@ -4,7 +4,7 @@
         <gcol:CharacterString>2005092200_sst_21-24.en</gcol:CharacterString>
     </gmd:fileIdentifier>
     <gmd:hierarchyLevel>
-        <gmd:MD_ScopeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">Dataset</gmd:MD_ScopeCode>
+        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">Dataset</gmd:MD_ScopeCode>
     </gmd:hierarchyLevel>
     <gmd:metadataStandardName>
         <gcol:CharacterString>Geographic Information — Metadata Part 1: Fundamentals</gcol:CharacterString>
@@ -20,7 +20,7 @@
             <gmd:axisDimensionProperties>
                 <gmd:MD_Dimension>
                     <gmd:dimensionName>
-                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="column">Column</gmd:MD_DimensionNameTypeCode>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="column">Column</gmd:MD_DimensionNameTypeCode>
                     </gmd:dimensionName>
                     <gmd:dimensionSize>
                         <gcol:Integer>73</gcol:Integer>
@@ -30,7 +30,7 @@
             <gmd:axisDimensionProperties>
                 <gmd:MD_Dimension>
                     <gmd:dimensionName>
-                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="row">Row</gmd:MD_DimensionNameTypeCode>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="row">Row</gmd:MD_DimensionNameTypeCode>
                     </gmd:dimensionName>
                     <gmd:dimensionSize>
                         <gcol:Integer>73</gcol:Integer>
@@ -40,7 +40,7 @@
             <gmd:axisDimensionProperties>
                 <gmd:MD_Dimension>
                     <gmd:dimensionName>
-                        <gmd:MD_DimensionNameTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="time">Time</gmd:MD_DimensionNameTypeCode>
+                        <gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="time">Time</gmd:MD_DimensionNameTypeCode>
                     </gmd:dimensionName>
                     <gmd:dimensionSize>
                         <gcol:Integer>1</gcol:Integer>
@@ -48,7 +48,7 @@
                 </gmd:MD_Dimension>
             </gmd:axisDimensionProperties>
             <gmd:cellGeometry>
-                <gmd:MD_CellGeometryCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_CellGeometryCode" codeListValue="area">Area</gmd:MD_CellGeometryCode>
+                <gmd:MD_CellGeometryCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CellGeometryCode" codeListValue="area">Area</gmd:MD_CellGeometryCode>
             </gmd:cellGeometry>
             <gmd:transformationParameterAvailability>
                 <gcol:Boolean>false</gcol:Boolean>
@@ -90,7 +90,7 @@
                                 <gcol:DateTime>2005-09-22T02:00:00+02:00</gcol:DateTime>
                             </gmd:date>
                             <gmd:dateType>
-                                <gmd:CI_DateTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">Creation</gmd:CI_DateTypeCode>
+                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">Creation</gmd:CI_DateTypeCode>
                             </gmd:dateType>
                         </gmd:CI_Date>
                     </gmd:date>
@@ -114,7 +114,7 @@
                                 <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
                             </gmd:individualName>
                             <gmd:role>
-                                <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">Originator</gmd:CI_RoleCode>
+                                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">Originator</gmd:CI_RoleCode>
                             </gmd:role>
                         </gmd:CI_ResponsibleParty>
                     </gmd:citedResponsibleParty>
@@ -129,12 +129,12 @@
                         <gcol:CharacterString>NOAA/NWS/NCEP</gcol:CharacterString>
                     </gmd:individualName>
                     <gmd:role>
-                        <gmd:CI_RoleCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">Point of contact</gmd:CI_RoleCode>
+                        <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">Point of contact</gmd:CI_RoleCode>
                     </gmd:role>
                 </gmd:CI_ResponsibleParty>
             </gmd:pointOfContact>
             <gmd:spatialRepresentationType>
-                <gmd:MD_SpatialRepresentationTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">Grid</gmd:MD_SpatialRepresentationTypeCode>
+                <gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">Grid</gmd:MD_SpatialRepresentationTypeCode>
             </gmd:spatialRepresentationType>
             <gmd:resourceFormat>
                 <gmd:MD_Format>
@@ -152,7 +152,7 @@
                         <gcol:CharacterString>EARTH SCIENCE &gt; Oceans &gt; Ocean Temperature &gt; Sea Surface Temperature</gcol:CharacterString>
                     </gmd:keyword>
                     <gmd:type>
-                        <gmd:MD_KeywordTypeCode codeList="http://schemas.opengis.net/iso/19139/20070417/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">Theme</gmd:MD_KeywordTypeCode>
+                        <gmd:MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">Theme</gmd:MD_KeywordTypeCode>
                     </gmd:type>
                     <gmd:thesaurusName>
                         <gmd:CI_Citation>
