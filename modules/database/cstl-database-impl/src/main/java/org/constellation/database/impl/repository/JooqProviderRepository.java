@@ -20,13 +20,13 @@ package org.constellation.database.impl.repository;
 
 import java.util.ArrayList;
 import static org.constellation.database.api.jooq.Tables.DATA;
-import static org.constellation.database.api.jooq.Tables.LAYER;
 import static org.constellation.database.api.jooq.Tables.PROVIDER;
-import static org.constellation.database.api.jooq.Tables.SERVICE;
 
 import java.util.List;
+import org.constellation.database.api.jooq.Tables;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
+import static org.constellation.database.api.jooq.Tables.SENSOR;
 
 import org.constellation.database.api.jooq.tables.pojos.Provider;
 import org.constellation.database.api.jooq.tables.records.ProviderRecord;
@@ -105,6 +105,7 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(int id) {
+        dsl.delete(SENSOR).where(SENSOR.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_CSW).where(PROVIDER_X_CSW.PROVIDER_ID.eq(id)).execute();
         return dsl.delete(PROVIDER).where(PROVIDER.ID.eq(id)).execute();

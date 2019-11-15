@@ -93,6 +93,7 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteAll() {
+        dsl.delete(SENSOR_X_SOS).execute();
         dsl.delete(SENSOR).execute();
     }
 

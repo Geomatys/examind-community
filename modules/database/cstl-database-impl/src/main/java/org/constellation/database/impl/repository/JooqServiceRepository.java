@@ -113,6 +113,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void delete(Integer id) {
+        dsl.delete(SENSOR_X_SOS).where(SENSOR_X_SOS.SOS_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.SOS_ID.eq(id)).execute();
         dsl.delete(SERVICE_DETAILS).where(SERVICE_DETAILS.ID.eq(id)).execute();
         dsl.delete(SERVICE_EXTRA_CONFIG).where(SERVICE_EXTRA_CONFIG.ID.eq(id)).execute();
