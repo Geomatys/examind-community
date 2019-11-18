@@ -49,6 +49,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -143,7 +144,8 @@ public abstract class AbstractGrizzlyServer {
      * Initialize and start the server.
      */
     public void startServer(final String[] resourcePackages, final String uriSuffix) throws Exception {
-
+        // Hack: force french locale to comply with hard-coded test identifiers (see WMSRequestsTest#testWMSGetFeatureInfoPlainCoveragePng
+        Locale.setDefault(Locale.FRANCE);
         ctx = SpringApplication.run(AbstractGrizzlyServer.class, new String[0]);
 
         serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
