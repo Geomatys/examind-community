@@ -10,7 +10,7 @@
         <gcol:CharacterString>Geographic Information — Metadata Part 1: Fundamentals</gcol:CharacterString>
     </gmd:metadataStandardName>
     <gmd:metadataStandardVersion>
-        <gcol:CharacterString>ISO 19115-1:2014(E)</gcol:CharacterString>
+        <gcol:CharacterString>ISO 19115-1:2014</gcol:CharacterString>
     </gmd:metadataStandardVersion>
     <gmd:spatialRepresentationInfo>
         <gmd:MD_GridSpatialRepresentation>
