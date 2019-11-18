@@ -6,6 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Locale;
+
+import org.opengis.referencing.crs.CRSAuthorityFactory;
+import org.opengis.util.FactoryException;
+import org.opengis.util.InternationalString;
+
+import org.apache.sis.referencing.CRS;
 
 /**
  * Utility class used for setup test data environment of test classes.
@@ -19,7 +26,7 @@ public final class TestEnvironment {
      * Used to replace "EPSG_VERSION" in some test resource file.
      * Must be updated if current EPSG database version change.
      */
-    public static final String EPSG_VERSION = "9.4";
+    public static final String EPSG_VERSION = getEPSGVersion();
 
     /*
         List of resources available
@@ -96,5 +103,17 @@ public final class TestEnvironment {
         }
 
         return workspace;
+    }
+
+    private static String getEPSGVersion() {
+        final CRSAuthorityFactory epsg;
+        try {
+            epsg = CRS.getAuthorityFactory("EPSG");
+        } catch (FactoryException e) {
+            throw new IllegalStateException("No EPSG factory defined", e);
+        }
+        final InternationalString edition = epsg.getAuthority().getEdition();
+        if (edition == null) throw new IllegalStateException("No EPSG version defined !");
+        return edition.toString(Locale.ROOT);
     }
 }
