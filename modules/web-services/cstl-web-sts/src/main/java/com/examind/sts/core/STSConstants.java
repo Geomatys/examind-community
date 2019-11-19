@@ -36,6 +36,7 @@ public final class STSConstants {
     public static final String COUNT     = "$count";
     public static final String FILTER    = "$filter";
 
+    public static final String STR_GETCAPABILITIES           = "GetCapabilities";
     public static final String STR_GETFEATUREOFINTEREST      = "GetFeatureOfInterests";
     public static final String STR_GETFEATUREOFINTEREST_BYID = "GetFeatureOfInterestById";
     public static final String STR_GETTHINGS                 = "GetThings";

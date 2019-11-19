@@ -49,6 +49,7 @@ import com.examind.sts.core.STSWorker;
 import java.util.LinkedHashMap;
 import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.AbstractSTSRequestById;
+import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
@@ -103,7 +104,11 @@ public class STSService extends OGCWebService<STSWorker> {
             }
             version = worker.getVersionFromNumber(request.getVersion());
 
-            if (request instanceof GetFeatureOfInterests) {
+            if (request instanceof GetCapabilities) {
+                final GetCapabilities model = (GetCapabilities) request;
+                return new ResponseObject(worker.getCapabilities(model), MediaType.APPLICATION_JSON_UTF8);
+
+            } else if (request instanceof GetFeatureOfInterests) {
                 final GetFeatureOfInterests model = (GetFeatureOfInterests) request;
                 return new ResponseObject(worker.getFeatureOfInterests(model), MediaType.APPLICATION_JSON_UTF8);
 
@@ -240,6 +245,8 @@ public class STSService extends OGCWebService<STSWorker> {
            request = new GetSensors();
         } else if (STR_GETSENSOR_BYID.equalsIgnoreCase(requestName)) {
            request = new GetSensorById();
+        } else if (STR_GETCAPABILITIES.equalsIgnoreCase(requestName)) {
+           request = new GetCapabilities();
         }
         if (request instanceof AbstractSTSRequest) {
             AbstractSTSRequest sRequest = (AbstractSTSRequest) request;
@@ -256,6 +263,8 @@ public class STSService extends OGCWebService<STSWorker> {
             sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
             sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
             sRequest.setId(getParameter("id", true));
+            return request;
+        } else if (request instanceof RequestBase) {
             return request;
         } else {
             throw new CstlServiceException("The operation " + requestName + " is not supported by the service",
@@ -283,6 +292,23 @@ public class STSService extends OGCWebService<STSWorker> {
             results.put(sortByParam, order);
         }
         return results;
+    }
+
+    @RequestMapping(path = "", method = RequestMethod.GET)
+    public ResponseEntity getCapabilities(@PathVariable("serviceId") String serviceId) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                RequestBase request = adaptQuery(STR_GETCAPABILITIES, worker);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(path = "FeatureOfInterests", method = RequestMethod.GET)

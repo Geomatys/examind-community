@@ -46,6 +46,7 @@ import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
@@ -64,6 +65,7 @@ import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
+import org.geotoolkit.sts.json.STSCapabilities;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -472,6 +474,24 @@ public class OM2STSWorkerTest {
         SensorsResponse result = worker.getSensors(request);
 
         Assert.assertEquals(2, result.getValue().size());
+    }
+
+    @Test
+    @Order(order=11)
+    public void getCapabilitiesTest() throws Exception {
+        GetCapabilities req = new GetCapabilities();
+        STSCapabilities result = worker.getCapabilities(req);
+
+        STSCapabilities expesult = new STSCapabilities();
+        expesult.addLink("Things", "http://test.geomatys.com/sts/default/Things");
+        expesult.addLink("Locations", "http://test.geomatys.com/sts/default/Locations");
+        expesult.addLink("Datastreams", "http://test.geomatys.com/sts/default/Datastreams");
+        expesult.addLink("Sensors", "http://test.geomatys.com/sts/default/Sensors");
+        expesult.addLink("Observations", "http://test.geomatys.com/sts/default/Observations");
+        expesult.addLink("ObservedProperties", "http://test.geomatys.com/sts/default/ObservedProperties");
+        expesult.addLink("FeaturesOfInterest", "http://test.geomatys.com/sts/default/FeaturesOfInterest");
+
+        Assert.assertEquals(expesult, result);
     }
 
     public Object writeCommonDataFile(String resourceName) throws Exception {

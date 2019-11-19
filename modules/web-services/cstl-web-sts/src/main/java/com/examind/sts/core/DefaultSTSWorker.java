@@ -50,6 +50,7 @@ import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sensor.SensorStore;
+import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
@@ -76,6 +77,7 @@ import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
+import org.geotoolkit.sts.json.STSCapabilities;
 import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
@@ -210,6 +212,22 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
             return configuration.getParameter(propertyName);
         }
         return null;
+    }
+
+    @Override
+    public STSCapabilities getCapabilities(GetCapabilities gc) {
+        STSCapabilities result = new STSCapabilities();
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1);
+
+        result.addLink("Things", selfLink + "/Things");
+        result.addLink("Locations", selfLink + "/Locations");
+        result.addLink("Datastreams", selfLink + "/Datastreams");
+        result.addLink("Sensors", selfLink + "/Sensors");
+        result.addLink("Observations", selfLink + "/Observations");
+        result.addLink("ObservedProperties", selfLink + "/ObservedProperties");
+        result.addLink("FeaturesOfInterest", selfLink + "/FeaturesOfInterest");
+        return result;
     }
 
     @Override

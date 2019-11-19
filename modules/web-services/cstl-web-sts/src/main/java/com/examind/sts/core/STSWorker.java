@@ -22,6 +22,7 @@ package com.examind.sts.core;
 
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
+import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
@@ -47,6 +48,7 @@ import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
+import org.geotoolkit.sts.json.STSCapabilities;
 import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
@@ -100,4 +102,6 @@ public interface STSWorker extends Worker {
     HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations gh) throws CstlServiceException;
 
     void addHistoricalLocation(HistoricalLocation HistoricalLocation) throws CstlServiceException;
+
+    STSCapabilities getCapabilities(GetCapabilities gc);
 }
