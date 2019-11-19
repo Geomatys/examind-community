@@ -19,13 +19,6 @@
 package org.constellation.map.featureinfo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 import java.awt.Rectangle;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -37,6 +30,10 @@ import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.math.Statistics;
@@ -45,7 +42,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultCompoundCRS;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.coverage.io.CoverageStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -55,12 +52,14 @@ import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridCoverage;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.coverage.grid.GridEnvelope;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
@@ -166,7 +165,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     private ProfilLayer extract(SceneDef sdef, ViewDef vdef, CanvasDef cdef,
-            GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, CoverageStoreException, FactoryException, DataStoreException {
+            GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, FactoryException, DataStoreException {
 
         final ProfilLayer layer = new ProfilLayer();
 
@@ -273,7 +272,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final GridCoverage coverage = readCoverage(resource, workEnv, null);
             baseData = extractData(resource, coverage, geom);
 
-        } catch (CoverageStoreException ex) {
+        } catch (DataStoreException ex) {
             layer.message = ex.getMessage();
             return layer;
         }
@@ -503,7 +502,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work, Boolean deferred)
-            throws CoverageStoreException, TransformException, DataStoreException {
+            throws TransformException, DataStoreException {
 
         //ensure envelope is no flat
         final GeneralEnvelope workEnv = new GeneralEnvelope(work);

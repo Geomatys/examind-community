@@ -60,23 +60,22 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.util.DataStatisticsListener;
 import org.constellation.provider.util.ImageStatisticDeserializer;
 import org.constellation.repository.DataRepository;
-import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.coverage.io.CoverageStoreException;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
+import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.map.DefaultCoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.coverage.resample.ResampleProcess;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.coverage.ImageStatistics;
+import org.geotoolkit.storage.feature.query.QueryBuilder;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
@@ -268,7 +267,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (FactoryException | TransformException | CoverageStoreException | IncompleteGridGeometryException e) {
+        } catch (FactoryException | TransformException | DataStoreException | IncompleteGridGeometryException e) {
             throw new ConstellationStoreException("Unable to extract available times from coverage data " + name, e);
         }
         return dates;
@@ -301,7 +300,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
             } else {
                 LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
             }
-        } catch (TransformException | CoverageStoreException | IncompleteGridGeometryException e) {
+        } catch (TransformException | DataStoreException | IncompleteGridGeometryException e) {
             throw new ConstellationStoreException("Unable to extract available elevations from coverage data " + name, e);
         }
 
@@ -384,7 +383,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
      * @throws TransformException If we cannot transform grid coordinate into
      * spatial ones.
      */
-    private double[] getPositions(final SingleCRS dimOfInterest, GridGeometry geom) throws CoverageStoreException, TransformException {
+    private double[] getPositions(final SingleCRS dimOfInterest, GridGeometry geom) throws DataStoreException, TransformException {
         ArgumentChecks.ensureNonNull("Dimension of interest", dimOfInterest);
         ArgumentChecks.ensureDimensionMatches("Dimension of interest", 1, dimOfInterest);
         int dimIdx = 0;
