@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2019 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.examind.sensor.component;
 
-package org.constellation.sos.configuration;
-
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.io.WKTWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Timestamp;
@@ -32,23 +27,23 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
-
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CommonConstants;
 import org.constellation.business.ISensorBusiness;
-import org.constellation.dto.AcknowlegementType;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.Instance;
-import org.constellation.dto.service.config.sos.SensorMLTree;
+import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.Sensor;
+import org.constellation.dto.service.config.sos.SensorMLTree;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.ogc.configuration.OGCConfigurer;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import org.constellation.sos.ws.SOSUtils;
+import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
@@ -56,13 +51,15 @@ import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
-import org.constellation.store.observation.db.SOSDatabaseObservationStore;
-import org.constellation.ws.ISOSConfigurer;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.WKTWriter;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
@@ -72,33 +69,24 @@ import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
- * {@link OGCConfigurer} implementation for SOS service.
  *
- * TODO: implement specific configuration methods
- *
- * @author Fabien Bernard (Geomatys).
- * @version 0.9
- * @since 0.9
+ * @author Guilhem Legal (Geomatys)
  */
-public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
+@Component
+public class SensorServiceBusiness {
+
+    private static final Logger LOGGER = Logging.getLogger("com.examind.sensor.component");
 
     @Autowired
-    private ISensorBusiness sensorBusiness;
+    protected ISensorBusiness sensorBusiness;
 
-    @Override
-    public Instance getInstance(final Integer id) throws ConfigurationException {
-        final Instance instance = super.getInstance(id);
-        try {
-            instance.setLayersNumber(getSensorIds(id).size());
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while getting sensor count on SOS instance:" + id, ex);
-        }
-        return instance;
-    }
+    @Autowired
+    protected IServiceBusiness serviceBusiness;
 
-    public AcknowlegementType importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
+    public boolean importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
         LOGGER.info("Importing sensor");
 
         final List<Path> files;
@@ -133,17 +121,16 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                     throw new ConfigurationException("An imported file is null");
                 }
             }
-            return new AcknowlegementType("Success", "The specified sensor have been imported in the SOS");
+            return true;
         } catch (JAXBException ex) {
             LOGGER.log(Level.WARNING, "Exception while unmarshalling imported file", ex);
         } catch (IOException ex) {
             throw new ConfigurationException(ex);
         }
-        return new AcknowlegementType("Error", "An error occurs during the process");
+        return false;
     }
 
-    @Override
-    public AcknowlegementType removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
+    public boolean removeSensor(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final SensorMLTree root = getSensorTree(id);
@@ -172,13 +159,13 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 }
             }
 
-            return new AcknowlegementType("Success", "The specified sensor have been removed in the SOS");
+            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType removeAllSensors(final Integer id) throws ConfigurationException {
+    public boolean removeAllSensors(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             final Collection<Sensor> sensors = sensorBusiness.getByServiceId(id);
@@ -188,11 +175,11 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
                 if (sucess) {
                     pr.removeProcedure(sensor.getIdentifier());
                 } else {
-                    return new AcknowlegementType("Error", "Unable to remove the sensor from SML datasource:" + sensor.getIdentifier());
+                    return false;
                 }
             }
 
-            return new AcknowlegementType("Success", "The specified sensor have been removed in the SOS");
+            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -257,7 +244,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
+    public boolean importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final Object objectFile = SOSUtils.unmarshallObservationFile(observationFile);
@@ -266,54 +253,52 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
             } else if (objectFile instanceof ObservationCollection) {
                 importObservations(id, (ObservationCollection)objectFile);
             } else {
-                return new AcknowlegementType("Failure", "Unexpected object type for observation file");
+                return false;
             }
-            return new AcknowlegementType("Success", "The specified observation have been imported in the SOS");
+            return true;
         } catch (IOException | JAXBException | DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
+    public void importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final long start = System.currentTimeMillis();
             writer.writeObservations(collection.getMember());
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
-            return new AcknowlegementType("Success", "The specified observations have been imported in the SOS");
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
+    public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationWriter writer = getObservationWriter(id);
         try {
             final long start = System.currentTimeMillis();
             writer.writePhenomenons(phenomenons);
             writer.writeObservations(observations);
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
-            return new AcknowlegementType("Success", "The specified observations have been imported in the SOS");
         } catch (DataStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType removeSingleObservation(final Integer id, final String observationID) throws ConfigurationException {
+    public boolean removeSingleObservation(final Integer id, final String observationID) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             pr.removeObservation(observationID);
-            return new AcknowlegementType("Success", "The specified observation have been removed from the SOS");
+            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType removeObservationForProcedure(final Integer id, final String procedureID) throws ConfigurationException {
+    public boolean removeObservationForProcedure(final Integer id, final String procedureID) throws ConfigurationException {
         final ObservationProvider writer = getOMProvider(id);
         try {
             writer.removeObservationForProcedure(procedureID);
-            return new AcknowlegementType("Success", "The specified observations have been removed from the SOS");
+            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -328,21 +313,20 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
         }
     }
 
-    public AcknowlegementType writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
+    public void writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             pr.writeProcedure(sensorID, location, parent, type);
-            return new AcknowlegementType("Success", "The sensor have been recorded in the SOS");
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public AcknowlegementType updateSensorLocation(final Integer serviceId, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
+    public boolean updateSensorLocation(final Integer serviceId, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(serviceId);
         try {
             pr.updateProcedureLocation(sensorID, location);
-            return new AcknowlegementType("Success", "The sensor location have been updated in the SOS");
+            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -424,7 +408,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     /**
      * Build a new Observation writer for the specified service ID.
      *
-     * @param serviceID the service identifier (form multiple SOS) default: ""
+     * @param serviceID the service identifier (form multiple Sensor service) default: ""
      *
      * @return An observation Writer.
      * @throws ConfigurationException
@@ -441,7 +425,7 @@ public class SOSConfigurer extends OGCConfigurer implements ISOSConfigurer {
     /**
      * Build a new Observation writer for the specified service ID.
      *
-     * @param serviceID the service identifier (form multiple SOS) default: ""
+     * @param serviceID the service identifier (form multiple Sensor service) default: ""
      *
      * @return An observation Writer.
      * @throws ConfigurationException

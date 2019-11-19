@@ -19,6 +19,7 @@
 
 package com.examind.sts.core;
 
+import com.examind.sensor.ws.SensorWorker;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +33,6 @@ import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
-import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
@@ -42,7 +42,6 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.security.SecurityManagerHolder;
-import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
@@ -90,7 +89,6 @@ import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
@@ -101,24 +99,14 @@ import org.springframework.context.annotation.Scope;
  */
 @Named("STSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
-
-    /**
-     * The sensor business
-     */
-    @Autowired
-    private ISensorBusiness sensorBusiness;
+public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     /**
      * The sensorML provider identifier (to be removed)
      */
     private Integer smlProviderID;
 
-    private boolean isTransactionnal;
-
     private boolean sensorMetadataAsLink = true;
-
-    private SOSConfiguration configuration;
 
     /**
      * The Observation provider
@@ -204,14 +192,6 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
     @Override
     protected MarshallerPool getMarshallerPool() {
         // NO XML binding for this service
-        return null;
-    }
-
-    @Override
-    protected final String getProperty(final String propertyName) {
-        if (configuration != null) {
-            return configuration.getParameter(propertyName);
-        }
         return null;
     }
 

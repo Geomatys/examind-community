@@ -16,6 +16,6 @@
       </wss:service>
   </wss:binding>
   <bean id="SOService" class="org.constellation.sos.ws.soap.SOService"/>
-  <bean id="SOSConfigurer" name="SOSConfigurer" class="org.constellation.sos.configuration.SOSConfigurer" scope="prototype" />
+  <bean id="SOSConfigurer" name="SOSConfigurer" class="com.examind.sensor.configuration.SensorServiceConfigurer" scope="prototype" />
 
 </beans>

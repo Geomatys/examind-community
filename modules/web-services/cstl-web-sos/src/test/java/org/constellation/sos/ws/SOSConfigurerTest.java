@@ -18,6 +18,8 @@
  */
 package org.constellation.sos.ws;
 
+import com.examind.sensor.component.SensorServiceBusiness;
+import com.examind.sensor.configuration.SensorServiceConfigurer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,11 +34,11 @@ import javax.inject.Inject;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.sos.configuration.SOSConfigurer;
 import org.constellation.util.Util;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.junit.Assert;
 import org.opengis.temporal.TemporalPrimitive;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -59,11 +61,14 @@ public abstract class SOSConfigurerTest {
     @Inject
     protected ISensorBusiness sensorBusiness;
 
-    protected static SOSConfigurer configurer = new SOSConfigurer();
+    @Autowired
+    private SensorServiceBusiness sensorServBusiness;
+
+    protected static SensorServiceConfigurer configurer = new SensorServiceConfigurer();
 
     public void getDecimatedObservationsCsvTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        String result = configurer.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), new ArrayList<>(), null, null, 10);
+        String result = sensorServBusiness.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), new ArrayList<>(), null, null, 10);
         String expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                                  "2007-05-01T02:59:00,6.56\n" +
                                  "2007-05-01T04:53:00,6.56\n" +
@@ -81,7 +86,7 @@ public abstract class SOSConfigurerTest {
                                  "2007-05-01T21:53:00,6.55\n";
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null, 10);
+        result = sensorServBusiness.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null, 10);
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth,urn:ogc:def:phenomenon:GEOM:temperature\n" +
                     "2007-05-01T12:59:00,6.56,12.0\n" +
                     "2007-05-01T13:23:00,6.56,13.0\n" +
@@ -94,14 +99,14 @@ public abstract class SOSConfigurerTest {
 
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-001"), null, null, 10);
+        result = sensorServBusiness.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-001"), null, null, 10);
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T13:47:00,4.5\n" +
                     "2009-05-01T13:48:18,5.9\n";
 
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null, 10);
+        result = sensorServBusiness.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null, 10);
         expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T14:01:00,7.8\n" +
                     "2009-05-01T14:01:12,8.9\n" +
@@ -113,7 +118,7 @@ public abstract class SOSConfigurerTest {
 
     public void getObservationsCsvTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        String result = configurer.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), new ArrayList<>(), null, null);
+        String result = sensorServBusiness.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), new ArrayList<>(), null, null);
         String expResult = "urn:ogc:data:time:iso8601,urn:ogc:def:phenomenon:GEOM:depth\n" +
                                 "2007-05-01T02:59:00.0,6.56\n" +
                                 "2007-05-01T03:59:00.0,6.56\n" +
@@ -132,7 +137,7 @@ public abstract class SOSConfigurerTest {
                                 "2007-05-01T21:59:00.0,6.55\n";
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null);
+        result = sensorServBusiness.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:8", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null);
         expResult = "urn:ogc:data:time:iso8601,urn:ogc:def:phenomenon:GEOM:depth,urn:ogc:def:phenomenon:GEOM:temperature\n" +
                     "2007-05-01T12:59:00.0,6.56,12.0\n" +
                     "2007-05-01T13:59:00.0,6.56,13.0\n" +
@@ -142,14 +147,14 @@ public abstract class SOSConfigurerTest {
 
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-001"), null, null);
+        result = sensorServBusiness.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-001"), null, null);
         expResult = "urn:ogc:data:time:iso8601,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T13:47:00.0,4.5\n" +
                     "2009-05-01T14:00:00.0,5.9\n";
 
         Assert.assertEquals(expResult, result);
 
-        result = configurer.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null);
+        result = sensorServBusiness.getObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:10", Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"), Arrays.asList("station-002"), null, null);
         expResult = "urn:ogc:data:time:iso8601,urn:ogc:def:phenomenon:GEOM:depth\n" +
                     "2009-05-01T14:01:00.0,8.9\n" +
                     "2009-05-01T14:02:00.0,7.8\n" +
@@ -160,7 +165,7 @@ public abstract class SOSConfigurerTest {
 
     public void getObservationsCsvProfileTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        String result = configurer.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:2", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null, 10);
+        String result = sensorServBusiness.getDecimatedObservationsCsv(sid, "urn:ogc:object:sensor:GEOM:2", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null, 10);
         String expResult = "urn:ogc:def:phenomenon:GEOM:depth,urn:ogc:def:phenomenon:GEOM:temperature\n" +
                            "12,18.5\n" +
                            "87,23.9\n" +
@@ -175,7 +180,7 @@ public abstract class SOSConfigurerTest {
 
     public void getSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = configurer.getSensorIds(sid);
+        Collection<String> results = sensorServBusiness.getSensorIds(sid);
         List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:1",
                                                 "urn:ogc:object:sensor:GEOM:10",
                                                 "urn:ogc:object:sensor:GEOM:2",
@@ -191,7 +196,7 @@ public abstract class SOSConfigurerTest {
 
     public void getSensorIdsForObservedPropertyTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = configurer.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
+        Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
         List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:3",
                                                 "urn:ogc:object:sensor:GEOM:4",
                                                 "urn:ogc:object:sensor:GEOM:5",
@@ -201,14 +206,14 @@ public abstract class SOSConfigurerTest {
 
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = configurer.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
+        Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
         List<String> expResults = Arrays.asList("urn:ogc:def:phenomenon:GEOM:temperature");
         Assert.assertEquals(expResults, results);
     }
 
     public void getTimeForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        TemporalPrimitive results = configurer.getTimeForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
+        TemporalPrimitive results = sensorServBusiness.getTimeForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
         TemporalPrimitive expResults = new TimePeriodType(null, "2007-05-01 02:59:00.0", "2007-05-01 21:59:00.0");
         Assert.assertEquals(expResults, results);
     }
@@ -216,7 +221,7 @@ public abstract class SOSConfigurerTest {
 
     public void getObservedPropertiesTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = configurer.getObservedPropertiesIds(sid);
+        Collection<String> results = sensorServBusiness.getObservedPropertiesIds(sid);
         Set<String> expResults = new HashSet<>();
         expResults.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
         expResults.add("urn:ogc:def:phenomenon:GEOM:depth");
@@ -226,7 +231,7 @@ public abstract class SOSConfigurerTest {
 
     public void getWKTSensorLocationTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        String result = configurer.getWKTSensorLocation(sid, "urn:ogc:object:sensor:GEOM:1");
+        String result = sensorServBusiness.getWKTSensorLocation(sid, "urn:ogc:object:sensor:GEOM:1");
         String expResult = "POINT (-4.144984627896042 42.38798858151254)";
         Assert.assertEquals(expResult, result);
     }

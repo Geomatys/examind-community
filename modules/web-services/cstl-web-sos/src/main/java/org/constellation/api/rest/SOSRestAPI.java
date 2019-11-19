@@ -18,6 +18,7 @@
  */
 package org.constellation.api.rest;
 
+import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,23 +26,18 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import javax.inject.Inject;
-import org.constellation.api.ServiceDef;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.ws.IWSEngine;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
-import org.constellation.dto.ParameterValues;
 import org.constellation.dto.SimpleValue;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.NotRunningServiceException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
-import org.constellation.sos.configuration.SOSConfigurer;
 import org.constellation.sos.ws.SensorMLGenerator;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
 import org.geotoolkit.observation.ObservationStore;
@@ -86,7 +82,7 @@ public class SOSRestAPI {
     private ISensorBusiness sensorBusiness;
 
     @Inject
-    private IWSEngine wsengine;
+    private SensorServiceBusiness sensorServiceBusiness;
 
     @RequestMapping(value="/SOS/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity linkSOSProvider(final @PathVariable("id") String id, final @PathVariable("providerID") String providerID) throws Exception {
@@ -100,7 +96,7 @@ public class SOSRestAPI {
     public ResponseEntity buildDatasourceOM(final @PathVariable("id") String id, final @PathVariable("schema") String schema) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
         final AcknowlegementType ack;
-        if (getConfigurer().buildDatasource(serviceId, schema)) {
+        if (sensorServiceBusiness.buildDatasource(serviceId, schema)) {
             ack = AcknowlegementType.success("O&M datasource created");
         } else {
             ack = AcknowlegementType.failure("error while creating O&M datasource");
@@ -111,19 +107,37 @@ public class SOSRestAPI {
     @RequestMapping(value="/SOS/{id}/sensors", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensorMetadata(final @PathVariable("id") String id, @RequestBody final File sensor) throws Exception {
         Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType("sos", id);
-        return new ResponseEntity(getConfigurer().importSensor(serviceId, sensor.toPath(), "xml"), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.importSensor(serviceId, sensor.toPath(), "xml")) {
+            response = new AcknowlegementType("Success", "The specified sensor have been imported in the Sensor service");
+        } else {
+            response = new AcknowlegementType("Error", "An error occurs during the process");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensor/{sensorID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().removeSensor(serviceId, sensorID), OK);
+         AcknowlegementType response;
+        if (sensorServiceBusiness.removeSensor(serviceId, sensorID)) {
+            response = new AcknowlegementType("Success", "The specified sensor have been removed from the Sensor service");
+        } else {
+            response = new AcknowlegementType("Error", "The specified sensor fail to be removed from the Sensor service");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeAllSensor(final @PathVariable("id") String id) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().removeAllSensors(serviceId), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.removeAllSensors(serviceId)) {
+            response = new AcknowlegementType("Success", "The specified sensors have been removed in the Sensor service");
+        } else {
+            response = new AcknowlegementType("Error", "Unable to remove all the sensors from SML datasource.");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="{id}/sensor/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -138,19 +152,19 @@ public class SOSRestAPI {
     @RequestMapping(value="/SOS/{id}/sensors", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorTree(final @PathVariable("id") String id) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getSensorTree(serviceId), OK);
+        return new ResponseEntity(sensorServiceBusiness.getSensorTree(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorIds(final @PathVariable("id") String id) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getSensorIds(serviceId), OK);
+        return new ResponseEntity(sensorServiceBusiness.getSensorIds(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/identifiers/id", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorIdsForObservedProperty(final @PathVariable("id") String id, final @RequestParam("observedProperty") String observedProperty) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getSensorIdsForObservedProperty(serviceId, observedProperty), OK);
+        return new ResponseEntity(sensorServiceBusiness.getSensorIdsForObservedProperty(serviceId, observedProperty), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensors/count", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -162,61 +176,85 @@ public class SOSRestAPI {
     @RequestMapping(value="/SOS/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity updateSensorLocation(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometryType location) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().updateSensorLocation(serviceId, sensorID, location), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
+            response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
+        } else {
+            response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/sensor/location/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getWKTSensorLocation(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getWKTSensorLocation(serviceId, sensorID), OK);
+        return new ResponseEntity(sensorServiceBusiness.getWKTSensorLocation(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observedProperty/identifiers/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesForSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getObservedPropertiesForSensorId(serviceId, sensorID), OK);
+        return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesForSensorId(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/time/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getTimeForSensor(final @PathVariable("id") String id, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getTimeForSensorId(serviceId, sensorID), OK);
+        return new ResponseEntity(sensorServiceBusiness.getTimeForSensorId(serviceId, sensorID), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDecimatedObservations(final @PathVariable("id") String id, final @RequestBody ObservationFilter filter) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getDecimatedObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
+        return new ResponseEntity(sensorServiceBusiness.getDecimatedObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd(), filter.getWidth()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations/raw", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservations(final @PathVariable("id") String id, final @RequestBody ObservationFilter filter) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd()), OK);
+        return new ResponseEntity(sensorServiceBusiness.getObservationsCsv(serviceId, filter.getSensorID(), filter.getObservedProperty(), filter.getFoi(), filter.getStart(), filter.getEnd()), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observations", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importObservation(final @PathVariable("id") String id, final File obs) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().importObservations(serviceId, obs.toPath()), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.importObservations(serviceId, obs.toPath())) {
+            response = new AcknowlegementType("Success", "The specified observation have been imported in the Sensor service");
+        } else {
+            response = new AcknowlegementType("Failure", "Unexpected object type for observation file");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observation/{observationID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservation(final @PathVariable("id") String id, final @PathVariable("observationID") String observationID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().removeSingleObservation(serviceId, observationID), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.removeSingleObservation(serviceId, observationID)) {
+            response = new AcknowlegementType("Success", "The specified observation have been removed from the Sensor service");
+        } else {
+            response = new AcknowlegementType("Failure", "The specified observation fail to be removed from the Sensor service");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observation/procedure/{procedureID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservationForProcedure(final @PathVariable("id") String id, final @PathVariable("procedureID") String procedureID) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().removeObservationForProcedure(serviceId, procedureID), OK);
+        AcknowlegementType response;
+        if (sensorServiceBusiness.removeObservationForProcedure(serviceId, procedureID)) {
+            response = new AcknowlegementType("Success", "The specified observations have been removed from the Sensor service");
+        } else {
+            response = new AcknowlegementType("Failure", "The specified observations fail to be removed from the Sensor service");
+        }
+        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SOS/{id}/observedProperties/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesIds(final @PathVariable("id") String id) throws Exception {
         final Integer serviceId  = serviceBusiness.getServiceIdByIdentifierAndType("SOS", id);
-        return new ResponseEntity(getConfigurer().getObservedPropertiesIds(serviceId), OK);
+        return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesIds(serviceId), OK);
     }
 
     @RequestMapping(value="/SOS/{id}/data/{dataID}", method = PUT, produces = APPLICATION_JSON_VALUE)
@@ -235,14 +273,13 @@ public class SOSRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
 
-            final SOSConfigurer configurer = getConfigurer();
 
             // import in O&M database
-            configurer.importObservations(serviceId, result.observations, result.phenomenons);
+            sensorServiceBusiness.importObservations(serviceId, result.observations, result.phenomenons);
 
             // SensorML generation
             for (ProcedureTree process : result.procedures) {
-                generateSensorML(serviceId, process, result, configurer, null);
+                generateSensorML(serviceId, process, result, null);
             }
 
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the SOS"), OK);
@@ -266,12 +303,10 @@ public class SOSRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
 
-            final SOSConfigurer configurer = getConfigurer();
-
             // remove from O&M database
             for (Observation obs : result.observations) {
                 if (obs.getName() != null) {
-                    configurer.removeSingleObservation(serviceId, obs.getName().getCode());
+                    sensorServiceBusiness.removeSingleObservation(serviceId, obs.getName().getCode());
                 }
             }
 
@@ -282,7 +317,7 @@ public class SOSRestAPI {
     }
 
 
-    private void generateSensorML(final Integer serviceId, final ProcedureTree process, final ExtractionResult result, final SOSConfigurer configurer, String parentID) throws ConfigurationException {
+    private void generateSensorML(final Integer serviceId, final ProcedureTree process, final ExtractionResult result, String parentID) throws ConfigurationException {
         final Properties prop = new Properties();
         prop.put("id",         process.id);
         if (process.spatialBound.dateStart != null) {
@@ -310,21 +345,21 @@ public class SOSRestAPI {
         sensorBusiness.create(process.id, process.type, parentID, sml, System.currentTimeMillis(), getSensorProviderId(serviceId));
 
         for (ProcedureTree child : process.children) {
-            generateSensorML(serviceId, child, result, configurer, process.id);
+            generateSensorML(serviceId, child, result, process.id);
         }
 
         //record location
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
         if (geom != null) {
-            configurer.updateSensorLocation(serviceId, process.id, geom);
+            sensorServiceBusiness.updateSensorLocation(serviceId, process.id, geom);
         }
     }
 
-    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
+    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
-        configurer.writeProcedure(id, process.id, geom, parent, process.type);
+        sensorServiceBusiness.writeProcedure(id, process.id, geom, parent, process.type);
         for (ProcedureTree child : process.children) {
-            writeProcedures(id, child, process.id, configurer);
+            writeProcedures(id, child, process.id);
         }
     }
 
@@ -334,7 +369,6 @@ public class SOSRestAPI {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getIdentifier());
         final List<Integer> dataProviders = sensorBusiness.getLinkedDataProviderIds(sensor.getId());
-        final SOSConfigurer configurer    = getConfigurer();
         final List<String> sensorIds      = new ArrayList<>();
 
         sensorBusiness.addSensorToService(sid, sensor.getId());
@@ -367,11 +401,11 @@ public class SOSRestAPI {
 
                 // update sensor location
                 for (ProcedureTree process : result.procedures) {
-                    writeProcedures(sid, process, null, configurer);
+                    writeProcedures(sid, process, null);
                 }
 
                 // import in O&M database
-                configurer.importObservations(sid, result.observations, result.phenomenons);
+                sensorServiceBusiness.importObservations(sid, result.observations, result.phenomenons);
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
@@ -391,9 +425,5 @@ public class SOSRestAPI {
             }
         }
         throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
-    }
-
-    private SOSConfigurer getConfigurer() throws NotRunningServiceException {
-        return (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
     }
 }

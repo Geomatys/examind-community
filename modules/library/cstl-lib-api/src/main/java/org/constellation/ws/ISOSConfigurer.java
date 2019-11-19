@@ -18,7 +18,6 @@
  */
 package org.constellation.ws;
 
-import org.constellation.dto.AcknowlegementType;
 import org.constellation.exception.ConfigurationException;
 
 /**
@@ -27,5 +26,5 @@ import org.constellation.exception.ConfigurationException;
  */
 public interface ISOSConfigurer {
 
-    AcknowlegementType removeSensor(final Integer id, final String sensorID) throws ConfigurationException;
+    void removeSensor(final Integer id, final String sensorID) throws ConfigurationException;
 }

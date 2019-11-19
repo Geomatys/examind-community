@@ -20,6 +20,7 @@ package org.constellation.sos.core;
 
 // JDK dependencies
 
+import com.examind.sensor.ws.SensorWorker;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,11 +83,9 @@ import static org.constellation.sos.ws.SOSUtils.isCompleteEnvelope3D;
 import static org.constellation.sos.ws.SOSUtils.samplingPointMatchEnvelope;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
-import org.constellation.business.ISensorBusiness;
 import org.constellation.provider.DataProviders;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
 import org.geotoolkit.sensor.SensorStore;
-import org.constellation.ws.AbstractWorker;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.gml.GmlInstant;
@@ -236,7 +235,6 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.CodeList;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
@@ -247,7 +245,7 @@ import org.springframework.context.annotation.Scope;
  */
 @Named("SOSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class SOSworker extends AbstractWorker {
+public class SOSworker extends SensorWorker {
 
     /**
      * A list of temporary ObservationTemplate
@@ -275,22 +273,11 @@ public class SOSworker extends AbstractWorker {
     private Map<String, List<String>> acceptedSensorMLFormats;
 
     /**
-     * The profile of the SOS service (transational/discovery).
-     */
-    private boolean isTransactionnal;
-
-    /**
      * The Observation provider
      * TODO; find a way to remove the omStore calls
      */
     private ObservationStore omStore;
     private ObservationProvider omProvider;
-
-    /**
-     * The sensor business
-     */
-    @Autowired
-    private ISensorBusiness sensorBusiness;
 
     /**
      * The sensorML provider identifier (to be removed)
@@ -326,8 +313,6 @@ public class SOSworker extends AbstractWorker {
     private boolean alwaysFeatureCollection;
 
     private String sensorTypeFilter;
-
-    private SOSConfiguration configuration;
 
     /**
      * Initialize the database connection.
@@ -2488,21 +2473,6 @@ public class SOSworker extends AbstractWorker {
     @Override
     protected MarshallerPool getMarshallerPool() {
         return SOSMarshallerPool.getInstance();
-    }
-
-    @Override
-    protected final String getProperty(final String propertyName) {
-        if (configuration != null) {
-            return configuration.getParameter(propertyName);
-        }
-        return null;
-    }
-
-    private boolean getBooleanProperty(final String propertyName, boolean defaultValue) {
-        if (configuration != null) {
-            return configuration.getBooleanParameter(propertyName, defaultValue);
-        }
-        return defaultValue;
     }
 
     /**

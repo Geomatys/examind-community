@@ -4,8 +4,7 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-   <context:component-scan base-package="com.examind.sts.component, com.examind.sts.core"  />
+   <context:component-scan base-package="com.examind.sensor.component"  />
 
-   <bean name="STSConfigurer" class="com.examind.sensor.configuration.SensorServiceConfigurer" scope="prototype" />
 
 </beans>

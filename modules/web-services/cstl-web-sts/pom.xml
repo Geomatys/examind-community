@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-web-ogc</artifactId>
+            <artifactId>cstl-web-sensor</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

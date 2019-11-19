@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.api.ServiceDef;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
@@ -42,7 +41,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.sos.configuration.SOSConfigurer;
 import org.constellation.sos.ws.SOSUtils;
 import org.constellation.sos.ws.SensorMLGenerator;
 import org.constellation.ws.IWSEngine;
@@ -59,6 +57,7 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import com.examind.sensor.component.SensorServiceBusiness;
 import java.net.URI;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -67,7 +66,6 @@ import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.NotRunningServiceException;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -95,6 +93,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private IProviderBusiness providerBusiness;
+
+    @Autowired
+    private SensorServiceBusiness sensorServBusiness;
 
     @Autowired
     private IWSEngine wsengine;
@@ -174,13 +175,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             dsId = ds.getId();
         }
 
-        final SOSConfigurer configurer;
-        try {
-            configurer = (SOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
-        } catch (NotRunningServiceException ex) {
-            throw new ProcessException("Error while acquiring SOS configurer", this, ex);
-        }
-
         // remove previous integration
         if (removePrevious) {
             LOGGER.info("Removing previous integration");
@@ -208,7 +202,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     // unlink from SOS
                     for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
                         ServiceComplete sc = serviceBusiness.getServiceById(service);
-                        configurer.removeSensor(sc.getId(), sid.getIdentifier());
+                        sensorServBusiness.removeSensor(sc.getId(), sid.getIdentifier());
                     }
 
                     // remove sensor
@@ -335,7 +329,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                 // ajout d'un capteur au SOS
                 for (Integer sensorID : ids) {
-                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, configurer, sosStore);
+                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, sosStore);
                     LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
                     reload = true;
                 }
@@ -416,7 +410,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return sid;
     }
 
-    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, final SOSConfigurer configurer, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
         int nbObservationInserted                 = 0;
         final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
@@ -459,11 +453,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                     // update sensor location
                     for (ExtractionResult.ProcedureTree process : result.procedures) {
-                        writeProcedures(sosRef.getId(), process, null, configurer);
+                        writeProcedures(sosRef.getId(), process, null);
                     }
 
                     // import in O&M database
-                    configurer.importObservations(sosRef.getId(), result.observations, result.phenomenons);
+                    sensorServBusiness.importObservations(sosRef.getId(), result.observations, result.phenomenons);
                     nbObservationInserted = nbObservationInserted + result.observations.size();
                 } else {
                     LOGGER.info("Failure : Available only on Observation provider (and netCDF coverage) for now");
@@ -476,11 +470,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     }
 
 
-    private static void writeProcedures(final Integer id, final ExtractionResult.ProcedureTree process, final String parent, final SOSConfigurer configurer) throws ConfigurationException {
+    private void writeProcedures(final Integer id, final ExtractionResult.ProcedureTree process, final String parent) throws ConfigurationException {
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
-        configurer.writeProcedure(id, process.id, geom, parent, process.type);
+        sensorServBusiness.writeProcedure(id, process.id, geom, parent, process.type);
         for (ExtractionResult.ProcedureTree child : process.children) {
-            writeProcedures(id, child, process.id, configurer);
+            writeProcedures(id, child, process.id);
         }
     }
 

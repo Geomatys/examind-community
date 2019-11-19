@@ -20,8 +20,14 @@
 
     <dependencies>
         <dependency>
+            <!-- do not remove this dependency even if cstl-web-sensor inherit from it. The soap service bean will not start if not present (don't know why)-->
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-web-ogc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-web-sensor</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
