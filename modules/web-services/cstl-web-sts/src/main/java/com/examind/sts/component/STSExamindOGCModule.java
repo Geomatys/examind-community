@@ -27,7 +27,7 @@ public class STSExamindOGCModule implements ConstellationOGCModule {
 
     @Override
     public String getName() {
-        return "IOT";
+        return "STS";
     }
 
     @Override

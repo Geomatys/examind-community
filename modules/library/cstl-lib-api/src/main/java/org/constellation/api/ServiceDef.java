@@ -63,6 +63,8 @@ public enum ServiceDef {
     // SOS service definition
     SOS_1_0_0(Specification.SOS, Organization.OGC, "1.0.0", Profile.NONE, "1.1.0", true, true),
     SOS_2_0_0(Specification.SOS, Organization.OGC, "2.0.0", Profile.NONE, "1.1.0", true, true),
+    // SensorThings service definition
+    STS_1_0_0(Specification.STS, Organization.OGC, "1.0.0", Profile.NONE, "2.0.0", true, true),
     // Security services definitions
     PEP(Specification.PEP, Organization.OASIS, null, Profile.NONE, null, false, true),
     PDP(Specification.PDP, Organization.OASIS, null, Profile.NONE, null, false, true),

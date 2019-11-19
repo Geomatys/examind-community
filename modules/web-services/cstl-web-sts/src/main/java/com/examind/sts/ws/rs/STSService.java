@@ -91,6 +91,11 @@ public class STSService extends OGCWebService<STSWorker> {
 
         try {
 
+             // Handle an empty request by sending a basic web page.
+            if ((null == objectRequest) && isGetCapaRequest()) {
+                return getCapabilities(worker);
+            }
+
             // if the request is not an xml request we fill the request parameter.
             final RequestBase request;
             if (objectRequest == null) {
@@ -294,21 +299,17 @@ public class STSService extends OGCWebService<STSWorker> {
         return results;
     }
 
-    @RequestMapping(path = "", method = RequestMethod.GET)
-    public ResponseEntity getCapabilities(@PathVariable("serviceId") String serviceId) throws CstlServiceException {
-       putServiceIdParam(serviceId);
-        final Worker worker = getWorker(serviceId);
+    private ResponseObject getCapabilities(STSWorker worker) throws CstlServiceException {
         if (worker != null) {
-            try {
-                RequestBase request = adaptQuery(STR_GETCAPABILITIES, worker);
-                return treatIncomingRequest(request).getResponseEntity();
-            } catch (IllegalArgumentException ex) {
-                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
-            } catch (CstlServiceException ex) {
-                return processExceptionResponse(ex, null, worker).getResponseEntity();
-            }
+            return new ResponseObject(worker.getCapabilities(new GetCapabilities()), MediaType.APPLICATION_JSON_UTF8);
         }
-        return new ResponseEntity(HttpStatus.NOT_FOUND);
+        return new ResponseObject(HttpStatus.NOT_FOUND);
+    }
+
+    private boolean isGetCapaRequest() {
+        Map<String, String[]> params = new HashMap<>(getParameters());
+        params.remove("serviceId");
+        return params.isEmpty();
     }
 
     @RequestMapping(path = "FeatureOfInterests", method = RequestMethod.GET)

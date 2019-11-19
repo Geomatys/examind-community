@@ -159,6 +159,7 @@ public class DefaultSTSWorker extends AbstractWorker implements STSWorker {
                 }
                 isTransactionnal = t;
             }
+            applySupportedVersion();
 
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
