@@ -51,14 +51,10 @@ public class WebdavWorker extends AbstractWorker {
                 candidate = (WebdavContext) obj;
                 isStarted = true;
             } else {
-                startError = "The webdav context File does not contain a WebdavContext object";
-                isStarted = false;
-                LOGGER.log(Level.WARNING, startError);
+                startError("The webdav context File does not contain a WebdavContext object", null);
             }
         } catch (ConfigurationException ex) {
-            startError = "ConfigurationException while unmarshalling the webdav context File";
-            isStarted = false;
-            LOGGER.log(Level.WARNING, startError, ex);
+            startError("ConfigurationException while unmarshalling the webdav context File", ex);
         }
         this.context = candidate;
         this.context.setId(id);

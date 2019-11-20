@@ -34,7 +34,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.contact.Details;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -45,7 +44,6 @@ import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sensor.SensorStore;
@@ -108,11 +106,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private boolean sensorMetadataAsLink = true;
 
-    /**
-     * The Observation provider
-     * TODO; find a way to remove the omStore calls
-     */
-    private ObservationStore omStore;
     private ObservationProvider omProvider;
 
     public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -123,16 +116,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     public DefaultSTSWorker(final String id) {
         super(id, ServiceDef.Specification.STS);
-        isStarted = true;
         try {
-
-            final Object object = serviceBusiness.getConfiguration("sts", id);
-            if (object instanceof SOSConfiguration) {
-                configuration = (SOSConfiguration) object;
-            } else {
-                startError("The configuration object is malformed or null.", null);
-                return;
-            }
 
             final String isTransactionnalProp = getProperty("transactional");
             if (isTransactionnalProp != null) {
@@ -147,7 +131,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 isTransactionnal = t;
             }
-            applySupportedVersion();
 
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
@@ -161,8 +144,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         smlProviderID  = providerID;
                     }
                     // store may implements the 2 interface
-                    if (store instanceof ObservationStore) {
-                        omStore     = (ObservationStore)store;
+                    if (p instanceof ObservationProvider) {
                         omProvider  = (ObservationProvider) p;
                     }
                 } else {
@@ -177,15 +159,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
         if (isStarted) {
             LOGGER.log(Level.INFO, "STS worker {0} running", id);
-        }
-    }
-
-    private void startError(final String msg, final Exception ex) {
-        startError    = msg;
-        isStarted     = false;
-        LOGGER.log(Level.WARNING, "\nThe STS worker is not running!\ncause: {0}", startError);
-        if (ex != null) {
-            LOGGER.log(Level.FINER, "\nThe STS worker is not running!", ex);
         }
     }
 

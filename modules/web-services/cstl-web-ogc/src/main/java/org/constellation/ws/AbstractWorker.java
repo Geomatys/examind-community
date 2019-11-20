@@ -49,6 +49,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.security.SimplePDP;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
@@ -81,9 +82,9 @@ public abstract class AbstractWorker implements Worker {
     protected boolean isStarted;
 
     /**
-     * A message keeping the reason of the start error of the service
+     * A message keeping the reason of the start error of the worker.
      */
-    protected String startError;
+    private String startError;
 
     /**
      * Contains the service url used in capabilities document.
@@ -132,19 +133,24 @@ public abstract class AbstractWorker implements Worker {
     protected IServiceBusiness serviceBusiness;
 
     public AbstractWorker(final String id, final Specification specification) {
+        this.isStarted = true;
         this.id = id;
         this.specification = specification;
         SpringHelper.injectDependencies(this);
         this.serviceId = serviceBusiness.getServiceIdByIdentifierAndType(specification.name(), id);
+        try {
+            applySupportedVersion();
+        } catch (ConfigurationException ex) {
+            startError(ex.getMessage(), ex);
+        }
     }
 
     /**
      * this method initialize the supproted version of the worker.
-     * Must be called after the configuration Object is set (need to call getProperty).
      *
      * @throws org.constellation.ws.CstlServiceException if a version in the property "supported_versions" is not supported.
      */
-    protected void applySupportedVersion() throws CstlServiceException {
+    private void applySupportedVersion() throws ConfigurationException {
         final ServiceComplete service = serviceBusiness.getServiceById(serviceId);
         if (service != null) {
             final List<ServiceDef> definitions = new ArrayList<>();
@@ -153,7 +159,7 @@ public abstract class AbstractWorker implements Worker {
                 final String version = tokenizer.nextToken();
                 final ServiceDef def = ServiceDef.getServiceDefinition(specification, version);
                 if (def == null) {
-                    throw new CstlServiceException("Unable to find a service specification for:" + specification.name() + " version:" + version);
+                    throw new ConfigurationException("Unable to find a service specification for:" + specification.name() + " version:" + version);
                 } else {
                     definitions.add(def);
                 }
@@ -161,6 +167,15 @@ public abstract class AbstractWorker implements Worker {
             setSupportedVersion(definitions);
         } else {
             setSupportedVersion(ServiceDef.getAllSupportedVersionForSpecification(specification));
+        }
+    }
+
+    protected final void startError(final String msg, final Throwable ex) {
+        startError    = msg;
+        isStarted     = false;
+        LOGGER.log(Level.WARNING, "\nThe " + this.specification.name() + " worker is not running!\ncause: {0}", startError);
+        if (ex != null) {
+            LOGGER.log(Level.FINER, "\nThe " + this.specification.name() + " worker is not running!", ex);
         }
     }
 

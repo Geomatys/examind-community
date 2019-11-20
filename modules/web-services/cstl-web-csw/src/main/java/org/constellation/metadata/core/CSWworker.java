@@ -270,16 +270,13 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      */
     public CSWworker(final String serviceID) {
         super(serviceID, ServiceDef.Specification.CSW);
-        isStarted = true;
         try {
             //we look if the configuration have been specified
             final Object obj = serviceBusiness.getConfiguration("csw", serviceID);
             if (obj instanceof Automatic) {
                 configuration = (Automatic) obj;
             } else {
-                startError = " Configuration Object is not an Automatic Object";
-                LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause:{0}", startError);
-                isStarted = false;
+                startError(" Configuration Object is not an Automatic Object", null);
                 return;
             }
 
@@ -293,41 +290,27 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             if (profile == TRANSACTIONAL) {
                 suffix = "-T";
             }
-            applySupportedVersion();
 
             LOGGER.info("CSW" + suffix + " worker \"" + serviceID + "\" running\n");
 
         } catch (MetadataIoException | IndexingException e) {
-            startError = e.getMessage();
+            StringBuilder sb =  new StringBuilder(e.getMessage());
             Throwable tr = e.getCause();
             while (tr != null) {
-                startError = startError + "\n" + tr.getMessage();
+                sb.append('\n').append(tr.getMessage());
                 tr = tr.getCause();
             }
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause:{0}\n", startError);
-            isStarted = false;
-        } catch (IllegalArgumentException | IllegalStateException | JAXBException e) {
-            startError = e.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: {0}\n", startError);
-            LOGGER.log(Level.WARNING, e.getLocalizedMessage(), e);
-            isStarted = false;
-        } catch (CstlServiceException e) {
-            startError = e.getLocalizedMessage();
-            LOGGER.log(Level.WARNING, "\nThe CSW worker is not working!\nCause: CstlServiceException: {0}\n", startError);
-            LOGGER.log(Level.FINER, e.getLocalizedMessage(), e);
-            isStarted = false;
+            startError(sb.toString(), e);
         } catch (ConfigurationException ex) {
+            String msg;
             if (ex.getMessage() == null) {
-                startError = "The configuration file has not been found";
+                msg = "The configuration file has not been found";
             } else {
-                startError = ex.getMessage();
+                msg = ex.getMessage();
             }
-            LOGGER.log(Level.WARNING, "\nThe CSW worker( {0}) is not working!\nCause: " + startError, serviceID);
-            isStarted = false;
+            startError(msg, ex);
         } catch (Throwable ex) {
-            LOGGER.log(Level.WARNING, "\nThe CSW worker( {0}) is not working!\nCause: "+ex.getLocalizedMessage(), serviceID);
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-            isStarted = false;
+            startError(ex.getLocalizedMessage(), ex);
         }
     }
 
@@ -338,7 +321,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * @throws MetadataIoException If an error occurs while querying the dataSource.
      * @throws IndexingException If an error occurs while initializing the indexation.
      */
-    private void init() throws MetadataIoException, IndexingException, JAXBException, CstlServiceException, ConfigurationException {
+    private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException {
 
         // we assign the configuration directory
         final Path configDir = ConfigDirectory.getInstanceDirectory("csw", getId());
@@ -420,7 +403,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      *
      * @throws CstlServiceException if there is a JAXBException while using the unmarshaller.
      */
-    private void initializeRecordSchema() throws CstlServiceException {
+    private void initializeRecordSchema() throws ConfigurationException {
         try {
             final Unmarshaller unmarshaller = XSDMarshallerPool.getInstance().acquireUnmarshaller();
             schemas.put(RECORD_202_QNAME,          unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/metadata/record.xsd")));
@@ -430,7 +413,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             XSDMarshallerPool.getInstance().recycle(unmarshaller);
 
         } catch (JAXBException ex) {
-            throw new CstlServiceException("JAXB Exception when trying to parse xsd file", ex, NO_APPLICABLE_CODE);
+            throw new ConfigurationException("JAXB Exception when trying to parse xsd file", ex);
         }
     }
 

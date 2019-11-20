@@ -21,6 +21,7 @@ package com.examind.sensor.ws;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.ws.AbstractWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,7 +46,17 @@ public abstract class SensorWorker extends AbstractWorker {
 
     public SensorWorker(final String id, final ServiceDef.Specification specification) {
         super(id, specification);
-
+        try {
+            final Object object = serviceBusiness.getConfiguration(specification.name().toLowerCase(), id);
+            if (object instanceof SOSConfiguration) {
+                configuration = (SOSConfiguration) object;
+            } else {
+                startError("The configuration object is malformed or null.", null);
+                return;
+            }
+        } catch (ConfigurationException ex) {
+            startError("The configuration file can't be found.", ex);
+        }
     }
 
     @Override

@@ -87,7 +87,6 @@ public abstract class LayerWorker extends AbstractWorker {
 
     public LayerWorker(final String id, final Specification specification) {
         super(id, specification);
-        isStarted = true;
 
         String defaultLanguageCandidate = null;
 
@@ -118,26 +117,14 @@ public abstract class LayerWorker extends AbstractWorker {
                 //Check  FeatureInfo configuration (if exist)
                 FeatureInfoUtilities.checkConfiguration(layerContext);
 
-                applySupportedVersion();
             } else {
-                startError = "The layer context File does not contain a layerContext object";
-                isStarted  = false;
-                LOGGER.log(Level.WARNING, startError);
+                startError("The layer context File does not contain a layerContext object", null);
             }
         } catch (FactoryNotFoundException ex) {
-            startError = ex.getMessage();
-            isStarted  = false;
-            LOGGER.log(Level.WARNING, startError, ex);
+            startError(ex.getMessage(), ex);
         } catch (ClassNotFoundException | ConfigurationException ex) {
-            startError = "Custom FeatureInfo configuration error : " + ex.getMessage();
-            isStarted  = false;
-            LOGGER.log(Level.WARNING, startError, ex);
-        } catch (CstlServiceException ex) {
-            startError = "Error applying supported versions : " + ex.getMessage();
-            isStarted  = false;
-            LOGGER.log(Level.WARNING, startError, ex);
+            startError("Custom FeatureInfo configuration error : " + ex.getMessage(), ex);
         }
-
         defaultLanguage = defaultLanguageCandidate;
 
     }

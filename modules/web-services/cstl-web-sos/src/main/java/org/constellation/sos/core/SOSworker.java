@@ -50,7 +50,6 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER_LC;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.contact.Details;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.sos.core.DatablockParser.Values;
@@ -321,18 +320,12 @@ public class SOSworker extends SensorWorker {
      */
     public SOSworker(final String id) {
         super(id, ServiceDef.Specification.SOS);
-        isStarted = true;
 
+        if (!isStarted) {
+            return;
+        }
         // Database configuration
         try {
-
-            final Object object = serviceBusiness.getConfiguration("sos", id);
-            if (object instanceof SOSConfiguration) {
-                configuration = (SOSConfiguration) object;
-            } else {
-                startError("The configuration object is malformed or null.", null);
-                return;
-            }
 
             // legacy
             SensorConfigurationUpgrade upgrader = new SensorConfigurationUpgrade();
@@ -349,8 +342,6 @@ public class SOSworker extends SensorWorker {
             //we initialize the properties attribute
             alwaysFeatureCollection = getBooleanProperty(CommonConstants.ALWAYS_FEATURE_COLLECTION, false);
             sensorTypeFilter        = getProperty(CommonConstants.SENSOR_TYPE_FILTER);
-
-            applySupportedVersion();
 
             // look for template life limit
             int h, m;
@@ -386,7 +377,7 @@ public class SOSworker extends SensorWorker {
                         omProvider  = (ObservationProvider) p;
                     }
                 } else {
-                    throw new CstlServiceException("Unable to instanciate the provider:" + providerID);
+                    throw new ConfigurationException("Unable to instanciate the provider:" + providerID);
                 }
             }
 
@@ -407,19 +398,10 @@ public class SOSworker extends SensorWorker {
             // we log some implementation informations
             logInfos();
 
-        } catch (CstlServiceException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             startError(ex.getMessage(), ex);
         } catch (ConfigurationException ex) {
             startError("The configuration file can't be found.", ex);
-        }
-    }
-
-    private void startError(final String msg, final Exception ex) {
-        startError    = msg;
-        isStarted     = false;
-        LOGGER.log(Level.WARNING, "\nThe SOS worker is not running!\ncause: {0}", startError);
-        if (ex != null) {
-            LOGGER.log(Level.FINER, "\nThe SOS worker is not running!", ex);
         }
     }
 
@@ -2453,8 +2435,7 @@ public class SOSworker extends SensorWorker {
         schreduledTask.stream().forEach((t) -> {
             t.cancel();
         });
-        startError = "The service has been shutdown";
-        isStarted = false;
+        startError("The service has been shutdown", null);
     }
 
     private void assertTransactionnal(final String requestName) throws CstlServiceException {

@@ -252,21 +252,11 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             final Object obj = serviceBusiness.getConfiguration("WPS", id);
             if (obj instanceof ProcessContext) {
                 context = (ProcessContext) obj;
-                applySupportedVersion();
-                isStarted = true;
             } else {
-                startError = "The process context File does not contain a ProcessContext object";
-                isStarted = false;
-                LOGGER.log(Level.WARNING, "The worker ({0}) is not working!\nCause: " + startError, id);
+                startError("The process context File does not contain a ProcessContext object", null);
             }
         } catch (ConfigurationException ex) {
-            startError = ex.getMessage();
-            isStarted = false;
-            LOGGER.log(Level.WARNING, "The worker ({0}) is not working!\nCause: " + startError, id);
-        } catch (CstlServiceException ex) {
-            startError = "Error applying supported versions : " + ex.getMessage();
-            isStarted = false;
-            LOGGER.log(Level.WARNING, "The worker ({0}) is not working!\nCause: " + startError, id);
+            startError(ex.getMessage(), ex);
         }
 
         this.supportStorage = false;
@@ -300,6 +290,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         }
 
         //WMS link
+        String wmslinkError = "";
         if (context != null) {
             if (context.getWmsInstanceName() != null) {
                 this.wmsInstanceName = context.getWmsInstanceName();
@@ -316,7 +307,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
                     final IWSEngine wsengine = SpringHelper.getBean(IWSEngine.class);
                     if(wsengine.serviceInstanceExist("WMS", wmsInstanceName) || provider == null) {
-                        startError = "Linked WMS instance is not found or FileCoverageStore not defined.";
+                        wmslinkError = "Linked WMS instance is not found or FileCoverageStore not defined.";
                     } else {
                         try {
                             final ParameterValue pathParam = (ParameterValue) Parameters.search(provider.getSource(), "path", 3).get(0);
@@ -327,20 +318,20 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                             }
                             this.wmsSupported = true;
                         } catch (IOException ex) {
-                            startError = "Linked WMS storage folder failed to initialize.";
+                            wmslinkError = "Linked WMS storage folder failed to initialize.";
                         }
                     }
 
                 } else {
-                    startError = "Linked provider identifier name is not defined.";
+                    wmslinkError = "Linked provider identifier name is not defined.";
                 }
             } else {
-                startError = "Linked WMS instance name is not defined.";
+                wmslinkError = "Linked WMS instance name is not defined.";
             }
         }
 
         if (!wmsSupported) {
-            LOGGER.log(Level.WARNING, "The WPS worker ({0}) don\'t support WMS outputs : \n " + startError, id);
+            LOGGER.log(Level.WARNING, "The WPS worker ({0}) don\'t support WMS outputs : \n " + wmslinkError, id);
         }
 
         fillProcessList(context);
