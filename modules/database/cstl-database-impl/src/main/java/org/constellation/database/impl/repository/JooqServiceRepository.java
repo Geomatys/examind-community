@@ -297,13 +297,13 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public List<Integer> getLinkedSensorProviders(int serviceId) {
+    public List<Integer> getLinkedSensorProviders(Integer serviceId) {
         return dsl.select(PROVIDER_X_SOS.PROVIDER_ID).from(Arrays.asList(PROVIDER_X_SOS))
                 .where(PROVIDER_X_SOS.SOS_ID.eq(serviceId)).fetchInto(Integer.class);
     }
 
     @Override
-    public List<Service> getLinkedSOSServices(int providerId) {
+    public List<Service> getLinkedSOSServices(Integer providerId) {
         return convertListToDto(dsl.select(SERVICE.fields()).from(Arrays.asList(PROVIDER_X_SOS,SERVICE))
                 .where(PROVIDER_X_SOS.SOS_ID.eq(SERVICE.ID))
                 .and(PROVIDER_X_SOS.PROVIDER_ID.eq(providerId))

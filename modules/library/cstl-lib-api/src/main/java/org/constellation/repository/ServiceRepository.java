@@ -68,9 +68,9 @@ public interface ServiceRepository {
 
     List<ServiceReference> fetchByDataId(int dataId);
 
-    List<Integer> getLinkedSensorProviders(int serviceId);
+    List<Integer> getLinkedSensorProviders(Integer serviceId);
 
-    List<Service> getLinkedSOSServices(int providerId);
+    List<Service> getLinkedSOSServices(Integer providerId);
 
     List<Service> getSensorLinkedServices(int sensorId);
 

@@ -391,12 +391,12 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
     ////--------------------------------------------------------------------///
 
     @Override
-    public List<Integer> getLinkedSensorProviders(int serviceId) {
+    public List<Integer> getLinkedSensorProviders(Integer serviceId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<Service> getLinkedSOSServices(int providerId) {
+    public List<Service> getLinkedSOSServices(Integer providerId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
