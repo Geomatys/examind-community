@@ -978,9 +978,9 @@ function Examind($http, url) {
     };
 
     /**
-     * SOS API
+     * Sensor Service API
      */
-    self.sos = {
+    self.sensorServices = {
 
         /**
          * Remove a sensor.
@@ -990,7 +990,7 @@ function Examind($http, url) {
         removeSensor : function(id, sensorID) {
             return self.request({
                 method: 'DELETE',
-                url: 'SOS/' + id + '/sensor/' + sensorID
+                url: 'SensorService/' + id + '/sensor/' + sensorID
                 });
         },
 
@@ -1002,7 +1002,7 @@ function Examind($http, url) {
         build : function(id, schema) {
             return self.request({
                 method: 'GET',
-                url: 'SOS/' + id + '/' + schema+ '/build'
+                url: 'SensorService/' + id + '/' + schema+ '/build'
                 });
         },
 
@@ -1014,7 +1014,7 @@ function Examind($http, url) {
         getSensorsTree : function(id) {
             return self.request({
                 method: 'GET',
-                 url: 'SOS/' + id + '/sensors'
+                 url: 'SensorService/' + id + '/sensors'
                 });
         },
 
@@ -1026,7 +1026,7 @@ function Examind($http, url) {
         getFeatures : function(id, sensorID) {
             return self.request({
                 method: 'GET',
-                 url: 'SOS/' + id + '/sensor/location/' + sensorID
+                 url: 'SensorService/' + id + '/sensor/location/' + sensorID
                 });
         },
 
@@ -1038,55 +1038,55 @@ function Examind($http, url) {
         measuresForSensor : function(id, sensorID) {
             return self.request({
                 method: 'GET',
-                 url: 'SOS/' + id + '/observedProperty/identifiers/' + sensorID
+                 url: 'SensorService/' + id + '/observedProperty/identifiers/' + sensorID
                 });
         },
 
         /**
-         * Link a SOS service and a provider.
+         * Link a Sensor Service service and a provider.
          *
          * @returns {Promise}
          */
-        linkSOSProvider : function(id, providerID) {
+        linkSensorProvider : function(id, providerID) {
             return self.request({
                 method: 'GET',
-                 url: 'SOS/' + id + '/link/' + providerID
+                 url: 'SensorService/' + id + '/link/' + providerID
                 });
         },
 
         /**
-         * import a sensor into the SOS.
+         * import a sensor into the Sensor Service.
          *
          * @returns {Promise}
          */
         importSensor : function(id, sensorID) {
             return self.request({
                 method: 'PUT',
-                url: 'SOS/' + id + '/sensor/import/' + sensorID
+                url: 'SensorService/' + id + '/sensor/import/' + sensorID
                 });
         },
 
         /**
-         * import a data into the SOS.
+         * import a data into the Sensor Service.
          *
          * @returns {Promise}
          */
         importData : function(id, dataID) {
             return self.request({
                 method: 'PUT',
-                url: 'SOS/' + id + '/data/' + dataID
+                url: 'SensorService/' + id + '/data/' + dataID
                 });
         },
 
         /**
-         * remove a data from the SOS.
+         * remove a data from the SensorService.
          *
          * @returns {Promise}
          */
         removeData : function(id, dataID) {
             return self.request({
                 method: 'DELETE',
-                url: 'SOS/' + id + '/data/' + dataID
+                url: 'SensorService/' + id + '/data/' + dataID
                 });
         }
     };

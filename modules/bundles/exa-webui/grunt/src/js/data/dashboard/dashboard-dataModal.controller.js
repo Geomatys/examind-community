@@ -42,7 +42,7 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
     };
 
     $scope.initData = function() {
-        if ($scope.service.type.toLowerCase() === 'sos') {
+        if ($scope.service.type.toLowerCase() === 'sos' || $scope.service.type.toLowerCase() === 'sts') {
             Examind.sensors.list().then(function(response) {
                 var list = response.data.children;
                 list = list.map(function(item){
@@ -153,7 +153,7 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
     $scope.selectAllData = function() {
         var array = $filter('filter')($scope.wrap.fullList, {'type':$scope.wrap.filtertype, '$': $scope.wrap.filtertext},$scope.wrap.matchExactly);
         $scope.values.listSelect = ($scope.dataSelect.all) ? array.slice(0) : [];
-        if ($scope.service.type.toLowerCase() !== 'sos') {
+        if ($scope.service.type.toLowerCase() !== 'sos' && $scope.service.type.toLowerCase() !== 'sts') {
             $scope.previewData();
         }
     };
@@ -174,7 +174,7 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
             $scope.values.listSelect.push(item);
         }
         $scope.dataSelect.all=($scope.values.listSelect.length === $scope.wrap.fullList.length);
-        if ($scope.service.type.toLowerCase() !== 'sos') {
+        if ($scope.service.type.toLowerCase() !== 'sos' && $scope.service.type.toLowerCase() !== 'sts') {
             $scope.previewData();
         }
 
@@ -205,13 +205,13 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
      * function to add data to service
      */
     $scope.choose = function() {
-        if ($scope.service.type.toLowerCase() === 'sos') {
+        if ($scope.service.type.toLowerCase() === 'sos' || $scope.service.type.toLowerCase() === 'sts') {
             if (!$scope.values.selectedSensor) {
                 Growl('warning', 'Warning', 'No data selected');
                 return;
             }
             var sensorId = ($scope.values.selectedSensorsChild) ? $scope.values.selectedSensorsChild.identifier : $scope.values.selectedSensor.identifier;
-            Examind.sos.importSensor($scope.service.identifier, sensorId).then(
+            Examind.sensorServices.importSensor($scope.service.id, sensorId).then(
                 function () {//success
                     Growl('success', 'Success', 'Sensor ' + sensorId + ' imported in service ' + $scope.service.name+' successfully!');
                     $scope.close();

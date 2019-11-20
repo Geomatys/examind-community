@@ -25,7 +25,7 @@ angular.module('cstl-webservice-create', [
     'examind-instance']
 )
 
-    .controller('WebServiceCreateController', function($routeParams,Examind, $filter, $location, Growl, $translate) {
+    .controller('WebServiceCreateController', function($routeParams,Examind, $filter, $location, Growl, $translate, webserviceFactory) {
         var self = this;
         self.type = $routeParams.type;
         self.tonext = true;
@@ -120,6 +120,9 @@ angular.module('cstl-webservice-create', [
             if (self.type === 'sos') {
                 return [{ 'id': '1.0.0'}, { 'id': '2.0.0', 'checked': true}];
             }
+            if (self.type === 'sts') {
+                return [{ 'id': '1.0.0', 'checked': true}];
+            }
             if (self.type === 'wps') {
                 return [{ 'id': '1.0.0', 'checked': true}, { 'id': '2.0.0'}];
             }
@@ -186,9 +189,10 @@ angular.module('cstl-webservice-create', [
             self.metadata.lang = self.getCurrentLang();
 
             Examind.ogcServices.create(self.type, self.metadata).then(
-                function() {
+                function(response) {
+                    webserviceFactory.serviceId = response.data.id;
                     Growl('success', 'Success', 'Service ' + self.metadata.name + ' successfully created');
-                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'wfs') {
+                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs') {
                         $location.path('/webservice/'+ self.type +'/'+ self.metadata.identifier +'/source');
                     } else {
                         $location.path('/webservice');
@@ -209,7 +213,7 @@ angular.module('cstl-webservice-create', [
         self.initCtrl();
     })
 
-    .controller('WebServiceChooseSourceController', function($routeParams , Growl, $location, Examind) {
+    .controller('WebServiceChooseSourceController', function($routeParams , Growl, $location, Examind, webserviceFactory) {
         var self = this;
         self.type = $routeParams.type;
         self.id = $routeParams.id;
@@ -245,7 +249,7 @@ angular.module('cstl-webservice-create', [
                                "es-url" : ''
                         }
                     };
-            } else if (self.type === 'sos') {
+            } else if (self.type === 'sos' || self.type === 'sts') {
                 self.source = {
                     'type':'SOSConfiguration',
                     'profile': 'discovery'
@@ -270,7 +274,7 @@ angular.module('cstl-webservice-create', [
 
             }
             if (self.guiConfig.transactional) {
-                if (self.type === 'sos' || self.type === 'csw') {
+                if (self.type === 'sos' || self.type === 'csw' || self.type === 'sts') {
                     self.source.profile = 'transactional';
                 } else if(self.type === 'wfs') {
                     self.source.customParameters = {
@@ -280,7 +284,7 @@ angular.module('cstl-webservice-create', [
             }
             Examind.ogcServices.setConfig(self.type, self.id, self.source).then(function() {
                 Growl('success','Success','Service '+ self.id +' successfully updated');
-                if (self.type === 'sos') {
+                if (self.type === 'sos' || self.type === 'sts') {
                     createProviders();
                 }
                 $location.path('/webservice');
@@ -290,7 +294,7 @@ angular.module('cstl-webservice-create', [
         };
 
         function createProviders() {
-            Examind.providers.create(self.id +'-om', false,
+            Examind.providers.create(self.id + '-' + self.type +'-om', false,
             {
                 type: "observation-store",
                 subType: "observationSOSDatabase",
@@ -323,7 +327,7 @@ angular.module('cstl-webservice-create', [
                     data_directory: self.guiConfig.dataDirectory
                 };
             }
-            Examind.providers.create(self.id +'-sensor', false, sensorProviderJson).then(
+            Examind.providers.create(self.id + '-' + self.type +'-sensor', false, sensorProviderJson).then(
                 function() {
                     linkProvider();
                 }, function() {
@@ -332,12 +336,12 @@ angular.module('cstl-webservice-create', [
             );
         }
         function linkProvider() {
-            Examind.sos.linkSOSProvider(self.id, self.id +'-sensor').then(
+            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId, self.id + '-' + self.type +'-sensor').then(
             function() {},
             function() {
                 Growl('error','Error','Unable to link SML provider');
             });
-            Examind.sos.linkSOSProvider(self.id,  self.id +'-om').then(
+            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId,  self.id + '-' + self.type + '-om').then(
             function() {
                  buildOmDatasource();
             },
@@ -346,7 +350,7 @@ angular.module('cstl-webservice-create', [
             });
         }
         function buildOmDatasource() {
-            Examind.sos.build(self.id, self.guiConfig.schema).then(
+            Examind.sensorServices.build(webserviceFactory.serviceId, self.guiConfig.schema).then(
                 function() {},
                 function() {
                     Growl('error','Error','Unable to build OM2 datasource');
@@ -356,4 +360,8 @@ angular.module('cstl-webservice-create', [
 
         //init the source
         self.initSource();
+    })
+
+    .factory('webserviceFactory', function() {
+        return {serviceId:null};
     });

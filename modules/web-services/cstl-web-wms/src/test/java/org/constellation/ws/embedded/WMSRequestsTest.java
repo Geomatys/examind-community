@@ -89,6 +89,7 @@ import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.SimpleValue;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
@@ -1477,12 +1478,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         meta.setDescription("Constellation Map Server");
         meta.setVersions(Arrays.asList( "1.3.0", "1.1.1"));
         putJsonRequestObject(conec, meta);
-        Object obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+        Object obj = unmarshallJsonResponse(conec, ServiceComplete.class);
 
-        assertTrue(obj instanceof AcknowlegementType);
+        assertTrue(obj instanceof ServiceComplete);
 
-        AcknowlegementType expResult = new AcknowlegementType("Success", "WMS service \"wms3\" successfully created.");
-        assertEquals(expResult, obj);
+        ServiceComplete result = (ServiceComplete)obj;
+        assertEquals("wms3", result.getIdentifier());
 
         /*
          * we see the instance with a status NOT_STARTED
@@ -1519,7 +1520,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertTrue(obj instanceof AcknowlegementType);
 
-        expResult = new AcknowlegementType("Failure", "Instance already created");
+        AcknowlegementType expResult = new AcknowlegementType("Failure", "Instance already created");
         assertEquals(expResult, obj);
     }
 

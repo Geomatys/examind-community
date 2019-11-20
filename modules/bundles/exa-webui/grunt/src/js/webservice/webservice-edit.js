@@ -50,10 +50,6 @@ angular.module('cstl-webservice-edit', [
             return lang;
         };
 
-        Examind.ogcServices.get($scope.type, $routeParams.id, $scope.getCurrentLang()).then(function (service) {
-            $scope.service = service.data;
-        });
-
         $scope.getVersionsForType = function() {
             if ($scope.type === 'wms') {
                 return [{ 'id': '1.1.1','checked':false}, { 'id': '1.3.0','checked':false}];
@@ -75,6 +71,9 @@ angular.module('cstl-webservice-edit', [
             }
             if ($scope.type === 'sos') {
                 return [{ 'id': '1.0.0','checked':false}, { 'id': '2.0.0','checked':false}];
+            }
+            if ($scope.type === 'sts') {
+                return [{ 'id': '1.0.0','checked':true}];
             }
             if ($scope.type === 'wps') {
                 return [{ 'id': '1.0.0','checked':false}, { 'id': '2.0.0','checked':false}];
@@ -124,53 +123,57 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.initScope = function() {
-            if ($scope.type === 'csw') {
-                Examind.csw.getRecordsCount($routeParams.id).then(function(max) {
-                    Examind.csw.getRecords($routeParams.id, max.data.value, 0).then(function(response) {
-                        Dashboard($scope, response.data, false);
-                        $scope.wrap.filtertype = "";
+            Examind.ogcServices.get($scope.type, $routeParams.id, $scope.getCurrentLang()).then(function (service) {
+                $scope.service = service.data;
 
-                        var mdIds = [];
-                        for (var i=0; i<response.data.length; i++) {
-                            mdIds.push(response.data[i].identifier);
-                        }
-                        Examind.metadata.getAssociatedData(mdIds).then(
-                            function(response) { $scope.relatedDatas = response.data;},
-                            function() { Growl('error','Error','Unable to get related data for metadata'); }
-                        );
+                if ($scope.type === 'csw') {
+                    Examind.csw.getRecordsCount($routeParams.id).then(function(max) {
+                        Examind.csw.getRecords($routeParams.id, max.data.value, 0).then(function(response) {
+                            Dashboard($scope, response.data, false);
+                            $scope.wrap.filtertype = "";
+
+                            var mdIds = [];
+                            for (var i=0; i<response.data.length; i++) {
+                                mdIds.push(response.data[i].identifier);
+                            }
+                            Examind.metadata.getAssociatedData(mdIds).then(
+                                function(response) { $scope.relatedDatas = response.data;},
+                                function() { Growl('error','Error','Unable to get related data for metadata'); }
+                            );
+                        });
                     });
-                });
-            } else if ($scope.type === 'sos') {
-                Examind.sos.getSensorsTree($routeParams.id).then(
-                function(sensors) {
-                    Dashboard($scope, sensors.data.children, false);
-                    $scope.layers = sensors.data.children;
+                } else if ($scope.type === 'sos' || $scope.type === 'sts' ) {
+                    Examind.sensorServices.getSensorsTree($scope.service.id).then(
+                    function(sensors) {
+                        Dashboard($scope, sensors.data.children, false);
+                        $scope.layers = sensors.data.children;
 
-                }, function() { Growl('error','Error','Unable to list sensors'); });
-            } else {
-                Examind.ogcServices.getConfig($scope.type, $routeParams.id).then(function(response) {
-                    $scope.config = response.data;
-                });
-                Examind.map.getLayers($scope.type, $routeParams.id).then(function(response) {
-                    $scope.layers = response.data;
-                    Dashboard($scope, response.data, true);
-                    $scope.wrap.filtertype = "";
-                    setTimeout(function(){
-                        $scope.showLayerDashboardMap();
-                    },300);
-                });
-            }
+                    }, function() { Growl('error','Error','Unable to list sensors'); });
+                } else {
+                    Examind.ogcServices.getConfig($scope.type, $routeParams.id).then(function(response) {
+                        $scope.config = response.data;
+                    });
+                    Examind.map.getLayers($scope.type, $routeParams.id).then(function(response) {
+                        $scope.layers = response.data;
+                        Dashboard($scope, response.data, true);
+                        $scope.wrap.filtertype = "";
+                        setTimeout(function(){
+                            $scope.showLayerDashboardMap();
+                        },300);
+                    });
+                }
+            });
         };
 
         /**
          * Reset filters for dashboard
          */
         $scope.resetFilters = function(){
-            $scope.wrap.ordertype= ($scope.service && $scope.service.type && $scope.service.type.toLowerCase()==='sos') ? 'id' : ($scope.service && $scope.service.type && $scope.service.type.toLowerCase==='csw') ? 'title' : 'name';
+            $scope.wrap.ordertype= ($scope.service && $scope.service.type && ($scope.service.type.toLowerCase()==='sos' || $scope.service.type.toLowerCase()==='sts')) ? 'id' : ($scope.service && $scope.service.type && $scope.service.type.toLowerCase==='csw') ? 'title' : 'name';
             $scope.wrap.orderreverse=false;
             $scope.wrap.filtertext='';
             $scope.selected=null;
-            if($scope.type !== 'csw' && $scope.type !== 'sos') {
+            if($scope.type !== 'csw' && $scope.type !== 'sos' && $scope.type !== 'sts') {
                 $scope.showLayerDashboardMap();
             }
         };
@@ -319,7 +322,7 @@ angular.module('cstl-webservice-edit', [
                 }
             });
             modal.result.then(function() {
-                if ($scope.type.toLowerCase() !== 'sos') {
+                if ($scope.type.toLowerCase() !== 'sos' && $scope.type.toLowerCase() !== 'sts') {
                     Examind.map.getLayers($scope.type, $routeParams.id).then(function (response) {
                         $scope.layers = response.data;
                         Dashboard($scope, response.data, true);
@@ -368,9 +371,9 @@ angular.module('cstl-webservice-edit', [
                 });
                 dlg.result.then(function(cfrm){
                     if(cfrm){
-                        if ($scope.service.type.toLowerCase() === 'sos') {
+                        if ($scope.service.type.toLowerCase() === 'sos' || $scope.service.type.toLowerCase() === 'sts') {
                             var idToDel = ($scope.selectedSensorsChild) ? $scope.selectedSensorsChild.identifier : $scope.selected.identifier;
-                            Examind.sos.removeSensor($scope.service.identifier, idToDel).then(
+                            Examind.sensorServices.removeSensor($scope.service.id, idToDel).then(
                               function() {
                                 Growl('success', 'Success', 'Sensor ' + idToDel + ' successfully removed from service ' + $scope.service.name);
                                 $scope.initScope();
@@ -534,7 +537,7 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.showLayerDashboardMap = function() {
-            if($scope.type !== 'sos' && $scope.type !== 'csw' && $scope.type !== 'wps') {
+            if($scope.type !== 'sos' && $scope.type !== 'csw' && $scope.type !== 'wps' && $scope.type !== 'sts') {
                 if($scope.type === 'wmts') {
                     if($scope.service.status !== "STARTED"){
                         return;

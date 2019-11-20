@@ -29,6 +29,8 @@
                        translate="webservicepage.button.dropdown.csw.label">Catalogs (CSW)</a></li>
                 <li><a href="#/webservice/sos" id="soschoice"
                        translate="webservicepage.button.dropdown.sos.label">Sensors (SOS)</a></li>
+                <li><a href="#/webservice/sts" id="stschoice"
+                       translate="webservicepage.button.dropdown.sts.label">Sensor Things (STS)</a></li>
                 <li><a href="#/webservice/wps" id="wpschoice"
                        translate="webservicepage.button.dropdown.wps.label">Geoprocessing (WPS)</a></li>
                 <li><a href="#/webservice/thw" id="thwchoice"
@@ -75,6 +77,9 @@
                         </li>
                         <li ng-class="{active:wsCtrl.typeFilter.type === 'WPS'}">
                             <a ng-click="wsCtrl.typeFilter = {type: 'WPS'}">WPS</a>
+                        </li>
+                        <li ng-class="{active:wsCtrl.typeFilter.type === 'STS'}">
+                            <a ng-click="wsCtrl.typeFilter = {type: 'STS'}">STS</a>
                         </li>
                     </ul>
                 </div>

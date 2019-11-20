@@ -22,12 +22,17 @@ import java.util.List;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.ProviderBrief;
+import org.constellation.dto.service.Service;
 import org.constellation.repository.DataRepository;
+import org.constellation.repository.ServiceRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProviderRepositoryTest extends AbstractRepositoryTest {
+
+    @Autowired
+    private ServiceRepository serviceRepository;
 
     @Autowired
     private DataRepository dataRepository;
@@ -42,6 +47,11 @@ public class ProviderRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void crude() {
+
+        List<Service> serv = serviceRepository.findAll();
+        for (Service p : serv) {
+            serviceRepository.delete(p.getId());
+        }
 
         // no removeAll method
         List<ProviderBrief> all = providerRepository.findAll();

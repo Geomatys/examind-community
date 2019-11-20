@@ -139,12 +139,12 @@ function DatasetService($rootScope, $q,  $modal, Growl, Examind) {
                         });
                 };
 
-                // remove from any SOS if there is one
+                // remove from any Sensor Service if there is one
                 if (data.targetService) {
                     var $removed = [];
                     data.targetService.forEach(function (service) {
-                        if (service.type.toLowerCase() === 'sos') {
-                            $removed.push(Examind.sos.removeData(service.identifier, data.id));
+                        if (service.type.toLowerCase() === 'sos' || service.type.toLowerCase() === 'sts' ) {
+                            $removed.push(Examind.sensorServices.removeData(service.id, data.id));
                         }
                     });
                     $q.all($removed).then(function() {

@@ -153,10 +153,9 @@ public class OGCRestAPI {
             if(service != null) {
                 return new ResponseEntity(AcknowlegementType.failure("Instance already created"), OK);
             }
+            Integer sid = serviceBusiness.create(spec, metadata.getIdentifier(), null, metadata, null);
 
-            serviceBusiness.create(spec, metadata.getIdentifier(), null, metadata, null);
-
-            return new ResponseEntity(AcknowlegementType.success(spec.toUpperCase() + " service \"" + metadata.getIdentifier() + "\" successfully created."), CREATED);
+            return new ResponseEntity(serviceBusiness.getServiceById(sid), CREATED);
         } catch (Throwable ex) {
             return new ErrorMessage(ex).build();
         }

@@ -1,5 +1,5 @@
 <div id="chooseDataModal" class="modal-dialog modal-dialog-resp-height modal-dialog-sld"
-     ng-style="service.type.toLowerCase()== 'sos' ? {'width':'600px'}:{}">
+     ng-style="(service.type.toLowerCase()== 'sos' || service.type.toLowerCase()== 'sts') ? {'width':'600px'}:{}">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" ng-click="dismiss()">×</button>
@@ -8,7 +8,7 @@
         <div class="modal-body modal-body-style">
             <div class="row">
                 <div style="padding-left: 0;padding-right: 0;"
-                     ng-class="{'col-xs-6 col-sm-6 col-md-6 col-lg-6':service.type.toLowerCase() != 'sos'}">
+                     ng-class="{'col-xs-6 col-sm-6 col-md-6 col-lg-6':(service.type.toLowerCase() != 'sos' && service.type.toLowerCase() !== 'sts')}">
                     <div class="dashboard dashboard-internal list-style-modal">
                         <div class="navbar sort-navbar" style="margin-bottom: 0;">
                             <div class="navbar-inner" style="padding-right: 10px;">
@@ -86,7 +86,7 @@
                                             <span class="nb-results"
                                                   translate="label.count.data">available data</span>
                                         </strong>
-                                        <div ng-if="service.type.toLowerCase() !== 'sos'"
+                                        <div ng-if="service.type.toLowerCase() !== 'sos' && service.type.toLowerCase() !== 'sts'"
                                              class="pull-right col-xs-4 selectall-div"
                                              style="padding-right:0;padding-left: 0">
                                             <input type="checkbox"
@@ -112,7 +112,7 @@
                                     </div>
                                 </div>
                                 <div class="item-list">
-                                    <div ng-if="service.type.toLowerCase() !== 'sos'">
+                                    <div ng-if="service.type.toLowerCase() !== 'sos' && service.type.toLowerCase() !== 'sts'">
                                         <div ng-repeat="data in wrap.dataList">
                                             <div class="item {{data.type | lowercase}}"
                                                  ng-class="{'selected':isInSelected(data)}"
@@ -194,7 +194,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div ng-if="service.type.toLowerCase() === 'sos'">
+                                    <div ng-if="service.type.toLowerCase() === 'sos' || service.type.toLowerCase() === 'sts'">
                                         <div ng-repeat="sosdata in wrap.dataList">
                                             <div class="item sensorChoose"
                                                  ng-class="{'sensor-sos':sosdata.type!=='System','sensor-system':sosdata.type==='System','selected':sosdata.id==values.selectedSensor.id}"
@@ -253,7 +253,7 @@
                         </div>
                     </div>
                 </div>
-                <div ng-if="service.type.toLowerCase() !== 'sos'"
+                <div ng-if="service.type.toLowerCase() !== 'sos' && service.type.toLowerCase() !== 'sts'"
                      class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                     <div id="dataChooseMapPreview" style="height: 500px; width:100%;padding: 0;"></div>
                 </div>

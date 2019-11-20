@@ -89,11 +89,9 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         return "http://localhost:" +  getCurrentPort() + "/WS/sos/test?";
     }
 
-    private static File configDirectory;
-
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement("SOSRequestTest").toFile();
+        ConfigDirectory.setupTestEnvironement("SOSRequestTest").toFile();
         controllerConfiguration = SOSControllerConfig.class;
     }
 
@@ -506,7 +504,9 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     @Order(order=9)
     public void testSOSAPIGetObservation() throws Exception {
         // Creates a valid GetObservation url.
-        final URL getCapsUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/SOS/default/observations?");
+        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+        Integer defId = service.getServiceIdByIdentifierAndType("sos", "default");
+        final URL getCapsUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/SensorService/" + defId + "/observations?");
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();

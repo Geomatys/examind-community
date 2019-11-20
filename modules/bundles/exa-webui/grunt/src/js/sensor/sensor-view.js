@@ -36,7 +36,7 @@ angular.module('cstl-sensor-view', ['cstl-restapi', 'cstl-services', 'ui.bootstr
 
         $scope.initSensorView = function() {
             StompService.connect();
-            Examind.sos.measuresForSensor(service.identifier, sensorId).then(
+            Examind.sensorServices.measuresForSensor(service.id, sensorId).then(
             function(measures){
                 var oldMeasures = $scope.measures;
 
@@ -61,7 +61,7 @@ angular.module('cstl-sensor-view', ['cstl-restapi', 'cstl-services', 'ui.bootstr
 
         $scope.initMap = function() {
             DataViewer.initConfig();
-            Examind.sos.getFeatures($scope.service.identifier, $scope.sensorId).then(
+            Examind.sensorServices.getFeatures($scope.service.id, $scope.sensorId).then(
             function(wkt) {
                 var wktReader = new ol.format.WKT();
                 var features;
@@ -158,7 +158,7 @@ angular.module('cstl-sensor-view', ['cstl-restapi', 'cstl-services', 'ui.bootstr
                 obsFilter.start = $scope.var.start;
                 obsFilter.end = $scope.var.end;
             }
-            $http.post('@cstl/API/SOS/'+ $scope.service.identifier +'/observations', obsFilter)
+            $http.post('@cstl/API/SensorService/'+ $scope.service.id +'/observations', obsFilter)
                 .success(function(response){
                     generateD3Graph(response, measuresChecked);
                 });
@@ -189,7 +189,7 @@ angular.module('cstl-sensor-view', ['cstl-restapi', 'cstl-services', 'ui.bootstr
                     labels: ['Time', measuresChecked]
                 });
             g.resize(jQuery("#sos_realtime_graph").width(), jQuery("#sos_realtime_graph").height());
-            
+
 
             $scope.var.topic = StompService.subscribe('/topic/sosevents/'+$scope.sensorId, function(data) {
                 var event = JSON.parse(data.body);

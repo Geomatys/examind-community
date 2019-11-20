@@ -83,16 +83,16 @@
                     <div ng-if="type !== 'wps'">
                       <div class="row" ng-init="initScope()">
                         <div class="col-sm-8" id="contentList">
-                            <div class="frame dashboard frame-data" ng-class="{'frame-metadata':type === 'csw', 'frame-sensor':type === 'sos' }">
+                            <div class="frame dashboard frame-data" ng-class="{'frame-metadata':type === 'csw', 'frame-sensor':(type === 'sos' || type === 'sts') }">
                                 <div class="navbar title">
                                     <div class="navbar-inner">
-                                        <div ng-if="type !== 'csw' && type !== 'sos' && type !== 'thw'"
+                                        <div ng-if="type !== 'csw' && type !== 'sos' && type !== 'thw' && type !== 'sts'"
                                              class="brand"
                                              translate="service.edit.dashboard.layer.title">Layers list</div>
                                         <div ng-if="type === 'csw'"
                                              class="brand"
                                              translate="service.edit.dashboard.metadata.title">Metadata list</div>
-                                        <div ng-if="type === 'sos'"
+                                        <div ng-if="(type === 'sos' || type === 'sts')"
                                              class="brand"
                                              translate="service.edit.dashboard.sensors.list">Sensors list</div>
                                         <div ng-if="type === 'thw'"
@@ -103,33 +103,33 @@
                                 <div class="navbar sort-navbar">
                                     <div class="navbar-inner">
                                         <ul class="nav nav-style">
-                                            <li ng-click="wrap.ordertype=(service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name';wrap.orderreverse=!wrap.orderreverse">
+                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts'))?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name';wrap.orderreverse=!wrap.orderreverse">
                                                 <a>
                                                     <span translate="service.edit.dashboard.header.title">Title</span>
                                                     <i class="fa fa-caret-up"
-                                                       ng-if="wrap.ordertype ===((service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype ===((service && service.type && (service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts'))?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && wrap.orderreverse"></i>
                                                     <i class="fa fa-caret-down"
-                                                       ng-if="wrap.ordertype ===((service && service.type && service.type.toLowerCase()==='sos')?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && !wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype ===((service && service.type && (service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts'))?'id':(service && service.type && service.type.toLowerCase()==='csw')?'title':'name') && !wrap.orderreverse"></i>
                                                 </a>
                                             </li>
                                             <li class="divider-vertical"></li>
-                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date';wrap.orderreverse=!wrap.orderreverse">
+                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'createDate' : 'date';wrap.orderreverse=!wrap.orderreverse">
                                                 <a>
                                                     <span translate="service.edit.dashboard.header.date">Date</span>
                                                     <i class="fa fa-caret-up"
-                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date') && wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'createDate' : 'date') && wrap.orderreverse"></i>
                                                     <i class="fa fa-caret-down"
-                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'createDate' : 'date') && !wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'createDate' : 'date') && !wrap.orderreverse"></i>
                                                 </a>
                                             </li>
                                             <li class="divider-vertical"></li>
-                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner';wrap.orderreverse=!wrap.orderreverse">
+                                            <li ng-click="wrap.ordertype=(service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'creator' : 'owner';wrap.orderreverse=!wrap.orderreverse">
                                                 <a>
                                                     <span translate="service.edit.dashboard.header.owner">Owner</span>
                                                     <i class="fa fa-caret-up"
-                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner') && wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'creator' : 'owner') && wrap.orderreverse"></i>
                                                     <i class="fa fa-caret-down"
-                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos')) ? 'creator' : 'owner') && !wrap.orderreverse"></i>
+                                                       ng-if="wrap.ordertype === ((service && service.type && (service.type.toLowerCase()==='csw' || service.type.toLowerCase()==='sos' || service.type.toLowerCase()==='sts')) ? 'creator' : 'owner') && !wrap.orderreverse"></i>
                                                 </a>
                                             </li>
                                             <li class="divider-vertical"></li>
@@ -146,7 +146,7 @@
                                         </ul>
                                         <button type="button"
                                                 ng-click="resetFilters();"
-                                                ng-class="{'btn-csw':type==='csw','btn-sos':type==='sos'}"
+                                                ng-class="{'btn-csw':type==='csw','btn-sos':(type==='sos'||type==='sts')}"
                                                 title="{{'label.search.refresh' | translate }}"
                                                 class="btn  btn-data btn-xs btn-info">
                                             <i class="fa fa-times"></i>
@@ -165,7 +165,7 @@
                                 <div class="dash-inner row dashboard" ng-init="small=false">
                                     <div id="list" data-role="list">
                                         <div class="pagination-wrapper pagination-data"
-                                             ng-class="{'pagination-csw':type==='csw','pagination-sos':type==='sos'}">
+                                             ng-class="{'pagination-csw':type==='csw','pagination-sos':(type==='sos'||type==='sts')}">
                                             <strong class="col-lg-6 col-xs-8 col-md-6">
                                                 <span class="nb-results pull-left">{{wrap.countdata}}&nbsp;</span>
                                                 <span class="nb-results" translate="label.count.data">available data</span>
@@ -173,13 +173,13 @@
                                             <div class="hidden-sm hidden-xs pull-right col-md-6" style="padding-right:0;">
                                                 <button type="button" ng-click="small=true"
                                                         class="pull-right btn btn-xs btn-info btn-data"
-                                                        ng-class="{'btn-small-selected':small==true, 'btn-csw':type==='csw',  'btn-sos':type==='sos'}"
+                                                        ng-class="{'btn-small-selected':small==true, 'btn-csw':type==='csw',  'btn-sos':(type==='sos'||type==='sts')}"
                                                         style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
                                                     <img src="img/btn-display-reduced.svg" alt="" />
                                                 </button>
                                                 <button type="button" ng-click="small=false"
                                                         class="pull-right btn btn-xs btn-info btn-data"
-                                                        ng-class="{'btn-small-selected':small==false, 'btn-csw':type==='csw',  'btn-sos':type==='sos'}"
+                                                        ng-class="{'btn-small-selected':small==false, 'btn-csw':type==='csw',  'btn-sos':(type==='sos'||type==='sts')}"
                                                         style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
                                                     <img src="img/btn-display-normal.svg" alt="" />
                                                 </button>
@@ -203,7 +203,7 @@
                                             </div>
                                         </div>
                                         <div class="item-list">
-                                            <div ng-if="type !== 'csw' && type!== 'sos' && type!== 'thw'">
+                                            <div ng-if="type !== 'csw' && type!== 'sos' && type!== 'thw' && type!== 'sts'">
                                                 <div class="item {{layer.type | lowercase}}"
                                                      ng-repeat="layer in wrap.dataList"
                                                      ng-class="{selected:layer.id==selected.id,coverage:layer.type.toLowerCase()==='coverage',vector:layer.type.toLowerCase()==='observation-store' || layer.type.toLowerCase()==='vector', 'col-xs-6':small, 'style-small':small}"
@@ -345,7 +345,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div ng-if="type === 'sos'">
+                                            <div ng-if="type === 'sos' || type === 'sts'">
                                                 <div ng-repeat="sosdata in wrap.dataList"
                                                      ng-class="{'col-xs-6':small==true}"
                                                      style="padding-left:0;">
@@ -463,7 +463,7 @@
                                     <preview-map class="layer-preview" layer="preview.layer" extent="preview.extent"></preview-map>
                                     <div>
                                         <div class="alert alert-info alert-data"
-                                             ng-class="{'alert-csw':type==='csw','alert-sos':type==='sos'}"
+                                             ng-class="{'alert-csw':type==='csw','alert-sos':(type==='sos' || type==='sts')}"
                                              ng-show="!selected">
                                             <h4 translate="label.no.selected.data">No selected data</h4>
                                             <p translate="msg.no.selected.data"
@@ -472,7 +472,7 @@
                                         <div class="selected-item"
                                              id="selected-item"
                                              ng-show="selected">
-                                            <div ng-if="service.type.toLowerCase() !== 'csw' && service.type.toLowerCase() !== 'sos'">
+                                            <div ng-if="service.type.toLowerCase() !== 'csw' && service.type.toLowerCase() !== 'sos' && service.type.toLowerCase() !== 'sts'">
                                                 <div class="block-header"
                                                      ng-click="toggleUpDownSelected()">
                                                     <strong class="item-title title-bloc-service"
@@ -631,7 +631,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div ng-if="service.type.toLowerCase() === 'sos'">
+                                            <div ng-if="service.type.toLowerCase() === 'sos' || service.type.toLowerCase() === 'sts'">
                                                 <div class="block-header block-header-sos"
                                                      ng-click="toggleUpDownSelected()">
                                                     <strong>{{truncateTitleBlock(selected.identifier)}}</strong>

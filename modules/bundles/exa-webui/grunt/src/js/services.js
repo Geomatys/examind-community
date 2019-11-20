@@ -255,7 +255,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
             scope.wrap.matchExactly = scope.wrap.matchExactly || false;
             scope.wrap.filtertext = scope.wrap.filtertext || "";
             scope.wrap.filtertype = scope.wrap.filtertype || undefined;
-            scope.wrap.ordertype = scope.wrap.ordertype || ((scope.service && scope.service.type && scope.service.type.toLowerCase()==='sos') ? "id" : (scope.service && scope.service.type && scope.service.type.toLowerCase==='csw') ? "title" : "name");
+            scope.wrap.ordertype = scope.wrap.ordertype || ((scope.service && scope.service.type && (scope.service.type.toLowerCase()==='sos' || scope.service.type.toLowerCase()==='sts')) ? "id" : (scope.service && scope.service.type && scope.service.type.toLowerCase==='csw') ? "title" : "name");
             scope.wrap.orderreverse = scope.wrap.orderreverse || false;
             scope.wrap.countdata = scope.wrap.countdata || 0;
             scope.wrap.nbbypage = scope.wrap.nbbypage || 10;
@@ -282,7 +282,7 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
                 for (var i = 0; i < array.length; i++) {
                     var found = false;
                     for (var j = 0; j < scope.exclude.length; j++) {
-                        if (scope.service && scope.service.type.toLowerCase() === 'sos') {
+                        if (scope.service && (scope.service.type.toLowerCase() === 'sos' || scope.service.type.toLowerCase() === 'sts')) {
                             if (scope.exclude[j].id === array[i].name) {
                                 found = true;
                                 break;

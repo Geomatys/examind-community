@@ -218,7 +218,7 @@ angular.module('webui-utils',[])
             scope.wrap.matchExactly = scope.wrap.matchExactly || false;
             scope.wrap.filtertext = scope.wrap.filtertext || "";
             scope.wrap.filtertype = scope.wrap.filtertype || undefined;
-            scope.wrap.ordertype = scope.wrap.ordertype || ((scope.service && scope.service.type && scope.service.type.toLowerCase()==='sos') ? "id" : (scope.service && scope.service.type && scope.service.type.toLowerCase==='csw') ? "title" : "name");
+            scope.wrap.ordertype = scope.wrap.ordertype || ((scope.service && scope.service.type && (scope.service.type.toLowerCase()==='sos' || scope.service.type.toLowerCase()==='sts')) ? "id" : (scope.service && scope.service.type && scope.service.type.toLowerCase==='csw') ? "title" : "name");
             scope.wrap.orderreverse = scope.wrap.orderreverse || false;
             scope.wrap.countdata = scope.wrap.countdata || 0;
             scope.wrap.nbbypage = scope.wrap.nbbypage || 10;
@@ -248,7 +248,7 @@ angular.module('webui-utils',[])
                         var arrName = angular.isDefined(array[i].name) ? array[i].name : array[i].Name; // @TODO CSTL-1926
                         var exclName = angular.isDefined(scope.exclude[j].name) ? scope.exclude[j].name : scope.exclude[j].Name; // @TODO CSTL-1926
                         var exclId = angular.isDefined(scope.exclude[j].id) ? scope.exclude[j].id : scope.exclude[j].Id; // @TODO CSTL-1926
-                        if (scope.service && scope.service.type.toLowerCase() === 'sos') {
+                        if (scope.service && (scope.service.type.toLowerCase() === 'sos' || scope.service.type.toLowerCase() === 'sts')) {
                             if (exclId === arrName) {
                                 found = true;
                                 break;
