@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.inject.Named;
@@ -47,6 +48,7 @@ import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sensor.SensorStore;
+import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
@@ -80,10 +82,12 @@ import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.sts.json.ThingsResponse;
 import org.geotoolkit.swe.xml.Phenomenon;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.observation.sampling.SamplingFeature;
+import org.opengis.observation.Process;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
@@ -195,20 +199,37 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req) {
+        final SimpleQuery subquery = new SimpleQuery();
+        if (!req.getExtraFilter().isEmpty()) {
+            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+            List<Filter> filters = new ArrayList<>();
+            for (Entry<String, String> entry : req.getExtraFilter().entrySet()) {
+                filters.add(ff.equals(ff.property(entry.getKey()), ff.literal(entry.getValue())));
+            }
+            if (filters.size() == 1) {
+                subquery.setFilter(filters.get(0));
+            } else {
+                subquery.setFilter(ff.and(filters));
+            }
+        }
+        return subquery;
+    }
+
     @Override
     public ObservationsResponse getObservations(GetObservations req) throws CstlServiceException {
+        List<Observation> values = new ArrayList<>();
         try {
-            List<Observation> values = new ArrayList<>();
-            List<org.opengis.observation.Observation> sps = omProvider.getObservations(null, null, "inline", "2.0.0");
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, null, "inline", "2.0.0");
             for (org.opengis.observation.Observation sp : sps) {
                 Observation result = buildObservation(req, (org.geotoolkit.observation.xml.AbstractObservation)sp);
                 values.add(result);
             }
-
-            return new ObservationsResponse(values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        return new ObservationsResponse(values);
     }
 
     @Override
@@ -302,17 +323,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public DatastreamsResponse getDatastreams(GetDatastreams req) throws CstlServiceException {
+        List<Datastream> values = new ArrayList<>();
         try {
-            List<Datastream> values = new ArrayList<>();
-            List<org.opengis.observation.Observation> templates = omProvider.getObservations(null, null, "resultTemplate", "2.0.0");
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, null, "resultTemplate", "2.0.0");
             for (org.opengis.observation.Observation template : templates) {
                 Datastream result = buildDatastream(req, (org.geotoolkit.observation.xml.AbstractObservation)template);
                 values.add(result);
             }
-            return new DatastreamsResponse(values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        return new DatastreamsResponse(values);
     }
 
     @Override
@@ -411,18 +433,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public ObservedPropertiesResponse getObservedProperties(GetObservedProperties req) throws CstlServiceException {
+        List<ObservedProperty> values = new ArrayList<>();
         try {
-            List<ObservedProperty> values = new ArrayList<>();
-            Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(null, "2.0.0");
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, "2.0.0");
             for (org.opengis.observation.Phenomenon sp : sps) {
                 ObservedProperty result = buildPhenomenon(req, (Phenomenon)sp);
                 values.add(result);
             }
-
-            return new ObservedPropertiesResponse(values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        return new ObservedPropertiesResponse(values);
     }
 
     @Override
@@ -504,12 +526,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
         final List<Sensor> sensors = new ArrayList<>();
         try {
-            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
-            for (String sensorId : sensorIds) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            List<Process> procs = omProvider.getProcedures(subquery, "2.0.0");
 
-                Sensor sensor = buildSensor(req, s);
-                sensors.add(sensor);
+            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+            for (Process proc : procs) {
+                String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                if (sensorIds.contains(sensorId)) {
+                    org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                    Sensor sensor = buildSensor(req, s);
+                    sensors.add(sensor);
+                }
             }
         } catch (ConfigurationException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -523,8 +550,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Sensor getSensorById(GetSensorById req) throws CstlServiceException {
         try {
             if (req.getId() != null) {
-                Integer id = Integer.parseInt(req.getId());
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(id);
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
                 if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
                     return buildSensor(req, s);
                 }
@@ -537,13 +563,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private Sensor buildSensor(STSRequest req, org.constellation.dto.Sensor s) throws ConstellationStoreException {
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ s.getId() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ s.getIdentifier()+ ")";
 
         Sensor sensor = new Sensor();
         sensor = sensor.description("TODO")  // TODO extract from metadata and record in database
                 .name(s.getIdentifier())
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
-                .iotId(s.getId().toString())
+                .iotId(s.getIdentifier())
                 .iotSelfLink(selfLink);
                 // TODO metadata
 
@@ -567,17 +593,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests req) throws CstlServiceException {
+        final List<FeatureOfInterest> values = new ArrayList<>();
         try {
-            List<FeatureOfInterest> values = new ArrayList<>();
-            List<SamplingFeature> sps = omProvider.getFeatureOfInterest(null, "2.0.0");
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, "2.0.0");
             for (SamplingFeature sp : sps) {
                 FeatureOfInterest result = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature)sp);
                 values.add(result);
             }
-            return new FeatureOfInterestsResponse(values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        return new FeatureOfInterestsResponse(values);
     }
 
     @Override

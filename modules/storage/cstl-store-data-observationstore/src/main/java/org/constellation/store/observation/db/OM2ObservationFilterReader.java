@@ -50,6 +50,7 @@ import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
+import org.geotoolkit.observation.xml.v100.ProcessType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 
@@ -65,6 +66,7 @@ import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
+import org.opengis.observation.Process;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 
@@ -99,14 +101,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             sqlRequest.append("AND (");
             sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
             sqlRequest.append(" \"time_end\"='").append(end).append("') ");
-            foiObsJoin = true;
+            obsJoin = true;
         // if the temporal object is a timeInstant
         } else if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
             //sqlRequest.append("AND (\"time_begin\"='").append(position).append("' AND \"time_end\"='").append(position).append("') ");
             sqlMeasureRequest.append("AND (\"$time\"='").append(position).append("') ");
-            foiObsJoin = true;
+            obsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -124,7 +126,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             final String position = getTimeValue(ti.getDate());
             sqlRequest.append("AND (\"time_begin\"<='").append(position).append("')");
             sqlMeasureRequest.append("AND (\"$time\"<='").append(position).append("')");
-            foiObsJoin = true;
+            obsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -142,7 +144,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             final String position = getTimeValue(ti.getDate());
             sqlRequest.append("AND (\"time_end\">='").append(position).append("')");
             sqlMeasureRequest.append("AND (\"$time\">='").append(position).append("')");
-            foiObsJoin = true;
+            obsJoin = true;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -176,7 +178,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
 
             sqlMeasureRequest.append("AND (\"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
-            foiObsJoin = true;
+            obsJoin = true;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -878,7 +880,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
     public List<SamplingFeature> getFeatureOfInterests(final String version) throws DataStoreException {
 
         String request = sqlRequest.toString();
-        if (foiObsJoin) {
+        if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
             if (firstFilter) {
                 request = request.replaceFirst("WHERE", obsJoin);
@@ -935,8 +937,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
     @Override
     public List<Phenomenon> getPhenomenons(String version) throws DataStoreException {
         String request = sqlRequest.toString();
-        if (firstFilter) {
-            request = request.replaceFirst("WHERE", "");
+        if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
         }
         try(final Connection c = source.getConnection()) {
             final List<Phenomenon> phenomenons = new ArrayList<>();
@@ -947,6 +958,36 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 }
             }
             return phenomenons;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public List<Process> getProcesses(String version) throws DataStoreException {
+        String request = sqlRequest.toString();
+        if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
+        }
+        try(final Connection c = source.getConnection()) {
+            final List<Process> processes = new ArrayList<>();
+            try(final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
+                while (rs.next()) {
+                    processes.add(new ProcessType(rs.getString(1)));
+                }
+            }
+            return processes;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);

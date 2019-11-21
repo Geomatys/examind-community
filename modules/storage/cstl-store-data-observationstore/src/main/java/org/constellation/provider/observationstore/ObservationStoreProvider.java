@@ -20,6 +20,7 @@ package org.constellation.provider.observationstore;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -78,6 +79,7 @@ import org.opengis.filter.temporal.TEquals;
 import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
+import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -93,9 +95,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     private final Set<GenericName> index = new LinkedHashSet<>();
     private ObservationStore store;
 
-    private static final int GET_OBS = 0;
-    private static final int GET_FEA = 1;
+    private static final int GET_OBS  = 0;
+    private static final int GET_FEA  = 1;
     private static final int GET_PHEN = 2;
+    private static final int GET_PROC = 3;
 
     public ObservationStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
@@ -561,7 +564,54 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
+    @Override
+    public List<Process> getProcedures(Query q, String version) throws ConstellationStoreException {
+        try {
+             // we clone the filter for this request
+            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            localOmFilter.initFilterGetSensor();
+
+            List<String> observedProperties = new ArrayList<>();
+            List<String> procedures         = new ArrayList<>();
+            List<String> fois               = new ArrayList<>();
+
+            if (q instanceof SimpleQuery) {
+                SimpleQuery query = (SimpleQuery) q;
+                handleFilter(GET_PROC, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+
+            } else if (q != null) {
+                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+            }
+
+            // TODO Spatial BBOX
+
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setProcedure(procedures, null);
+            localOmFilter.setFeatureOfInterest(fois);
+
+            if (localOmFilter instanceof ObservationFilterReader) {
+
+                return ((ObservationFilterReader)localOmFilter).getProcesses(version);
+
+            } else {
+                final List<Process> processes = new ArrayList<>();
+                final Set<String> oid = localOmFilter.filterObservation();
+                for (String foid : oid) {
+                    final Process pr = store.getReader().getProcess(foid, version);
+                    processes.add(pr);
+                }
+                return processes;
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
     private void handleFilter(int mode, Filter filter, final ObservationFilter localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
+        if (Filter.INCLUDE.equals(filter)) {
+            return;
+        }
+
         if (filter instanceof And) {
             for (Filter f : ((And) filter).getChildren()) {
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
@@ -617,6 +667,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 case GET_PHEN:
                     localOmFilter.setObservedProperties(ids);
                     break;
+                case GET_PROC:
+                    localOmFilter.setProcedure(ids, null);
+                    break;
                 default:
                     break;
             }
@@ -629,8 +682,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 observedProperties.add((String) value.getValue());
             } else if (name.getPropertyName().equals("procedure")) {
                 procedures.add((String) value.getValue());
-            }  else if (name.getPropertyName().equals("featureOfInterest")) {
+            } else if (name.getPropertyName().equals("featureOfInterest")) {
                 fois.add((String) value.getValue());
+            } else if (name.getPropertyName().equals("observationId")) {
+                localOmFilter.setObservationIds(Arrays.asList((String) value.getValue()));
             }
 
         } else if (filter instanceof Begins || filter instanceof BegunBy || filter instanceof TContains || filter instanceof EndedBy || filter instanceof Ends || filter instanceof Meets

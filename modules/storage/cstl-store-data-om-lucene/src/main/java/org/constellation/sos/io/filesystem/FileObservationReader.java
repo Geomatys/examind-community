@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.constellation.api.CommonConstants;
 import org.opengis.observation.Phenomenon;
+import org.opengis.observation.Process;
 
 /**
  *
@@ -334,6 +335,11 @@ public class FileObservationReader implements ObservationReader {
             }
         }
         return null;
+    }
+
+    @Override
+    public Process getProcess(String identifier, String version) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
     @Override

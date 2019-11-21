@@ -329,6 +329,24 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "Observations({id:\\w})/FeatureOfInterests", method = RequestMethod.GET)
+    public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker);
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
     @RequestMapping(path = "FeatureOfInterests({id:\\w})", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
@@ -371,6 +389,25 @@ public class STSService extends OGCWebService<STSWorker> {
         if (worker != null) {
             try {
                 RequestBase request = adaptQuery(STR_GETOBSERVATION, worker);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "FeatureOfInterests({id:\\w})/Observations", method = RequestMethod.GET)
+    public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                request.getExtraFilter().put("featureOfInterest", id);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -434,6 +471,42 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "Observations({id:\\w})/Datastreams", method = RequestMethod.GET)
+    public ResponseEntity getDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "ObservedProperties({id:\\w})/Datastreams", method = RequestMethod.GET)
+    public ResponseEntity getDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                request.getExtraFilter().put("observedProperty", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
     @RequestMapping(path = "ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedProperties(@PathVariable("serviceId") String serviceId) throws CstlServiceException {
        putServiceIdParam(serviceId);
@@ -469,6 +542,64 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "Datastreams({id:\\w})/ObservedProperties", method = RequestMethod.GET)
+    public ResponseEntity getObservedPropertyForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Datastreams({id:\\w})/Observations", method = RequestMethod.GET)
+    public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Datastreams({id:\\w})/Sensors", method = RequestMethod.GET)
+    public ResponseEntity getSensorsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+
     @RequestMapping(path = "Locations", method = RequestMethod.GET)
     public ResponseEntity getLocations(@PathVariable("serviceId") String serviceId) throws CstlServiceException {
        putServiceIdParam(serviceId);
@@ -503,14 +634,33 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Sensors({id:\\d})", method = RequestMethod.GET)
-    public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") Integer id) throws CstlServiceException {
+    @RequestMapping(path = "Sensors({id:\\w})", method = RequestMethod.GET)
+    public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
-       putParam("id", Integer.toString(id));
+       putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 RequestBase request = adaptQuery(STR_GETSENSOR_BYID, worker);
+                return treatIncomingRequest(request).getResponseEntity();
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Sensors({id:\\w})/Datastreams", method = RequestMethod.GET)
+    public ResponseEntity getDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                request.getExtraFilter().put("procedure", id);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();

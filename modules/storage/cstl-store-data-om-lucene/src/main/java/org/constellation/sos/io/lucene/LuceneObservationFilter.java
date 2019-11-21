@@ -116,8 +116,19 @@ public class LuceneObservationFilter implements ObservationFilter {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void initFilterGetPhenomenon() throws DataStoreException {
+        // do nothing no implemented
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void initFilterGetSensor() throws DataStoreException {
         // do nothing no implemented
     }
 
@@ -441,6 +452,11 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public Set<String> filterPhenomenon() throws DataStoreException {
         throw new DataStoreException("filterPhenomenon is not supported by this ObservationFilter implementation.");
+    }
+
+    @Override
+    public Set<String> filterProcedure() throws DataStoreException {
+        throw new DataStoreException("filterProcedure is not supported by this ObservationFilter implementation.");
     }
 
     @Override

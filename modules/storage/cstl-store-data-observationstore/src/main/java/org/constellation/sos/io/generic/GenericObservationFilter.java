@@ -144,6 +144,19 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
+    public void initFilterGetSensor() throws DataStoreException {
+        currentQuery              = new Query();
+        final Select select       = new Select(configurationQuery.getSelect("filterSensor"));
+        final From from           = new From(configurationQuery.getFrom("sensor"));
+
+        currentQuery.addSelect(select);
+        currentQuery.addFrom(from);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
         // do nothing no implemented
     }
@@ -343,26 +356,26 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public Set<String> filterObservation() throws DataStoreException {
-        final String request = currentQuery.buildSQLQuery();
-        LOGGER.log(Level.INFO, "request:{0}", request);
-        try {
-            final Set<String> results            = new LinkedHashSet<>();
-            try (Connection connection           = acquireConnection();
-                final Statement currentStatement = connection.createStatement();
-                final ResultSet result           = currentStatement.executeQuery(request)) {
-                while (result.next()) {
-                    results.add(result.getString(1));
-                }
-            }
-            return results;
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0} \nmsg:{1}", new Object[]{request, ex.getMessage()});
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
-        }
+        return extractIdQuery();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<String> filterPhenomenon() throws DataStoreException {
+        return extractIdQuery();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<String> filterProcedure() throws DataStoreException {
+        return extractIdQuery();
+    }
+
+    private Set<String> extractIdQuery() throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {

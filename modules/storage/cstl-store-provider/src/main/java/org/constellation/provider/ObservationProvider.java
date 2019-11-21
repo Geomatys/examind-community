@@ -27,6 +27,7 @@ import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
+import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -49,6 +50,8 @@ public interface ObservationProvider extends DataProvider {
     List<SamplingFeature> getFeatureOfInterest(Query query, String version) throws ConstellationStoreException;
 
     List<Observation> getObservations(Query query, QName resultModel, String responseMode, String version) throws ConstellationStoreException;
+
+    List<Process> getProcedures(Query query, String version) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 

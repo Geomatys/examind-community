@@ -70,6 +70,7 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.exception.ConstellationMetadataException;
+import org.geotoolkit.observation.xml.v200.OMProcessPropertyType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDirectPosition;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildLineString;
@@ -77,6 +78,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildPoint;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingCurve;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingPoint;
+import org.opengis.observation.Process;
 
 
 /**
@@ -746,6 +748,14 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         } catch (ConstellationMetadataException ex) {
             throw new DataStoreException(ex);
         }
+    }
+
+    @Override
+    public Process getProcess(String identifier, String version) throws DataStoreException {
+        if (existProcedure(identifier)) {
+            return SOSXmlFactory.buildProcess(version, identifier);
+        }
+        return null;
     }
 
     /**

@@ -87,6 +87,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_JSON;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.opengis.observation.Process;
 
 
 /**
@@ -369,6 +370,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
@@ -376,6 +380,17 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon.", ex);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Process getProcess(String identifier, String version) throws DataStoreException {
+        if (existProcedure(identifier)) {
+            return SOSXmlFactory.buildProcess(version, identifier);
+        }
+        return null;
     }
 
     /**
