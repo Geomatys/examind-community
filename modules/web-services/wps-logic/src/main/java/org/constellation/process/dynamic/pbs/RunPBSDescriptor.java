@@ -42,7 +42,9 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
     public static final InternationalString ABSTRACT = new SimpleInternationalString("Run a pbs file process in examind");
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
+    private static final ParameterBuilder BUILDER_CONFIG = new ParameterBuilder();
 
+    /////////////// Input Parameters ////////////////////
     public static final String PBS_FILE_NAME = "pbs.file";
     private static final String PBS_FILE_REMARKS = "The pbs file name";
     public static final ParameterDescriptor<String> PBS_FILE = BUILDER
@@ -83,6 +85,40 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
 	.setRequired(false)
 	.create(String.class, "false"); // true as default value 
 
+    public static final String PBS_CONFIG_FILE_NAME ="pbs.config_file";
+    private static final String PBS_CONFIG_FILE_REMARKS = "Configuration file for self monitoring : custom qstat command";
+    public static final ParameterDescriptor<String> PBS_CONFIG_FILE = BUILDER
+	.addName(PBS_CONFIG_FILE_NAME)
+	.setRemarks(PBS_CONFIG_FILE_REMARKS)
+	.setRequired(false)
+	.create(String.class, "./config_self_monitoring.json"); // 
+
+
+    /////////////// Output Parameters ////////////////////
+    public static final String PBS_JOB_ID_NAME = "pbs.jod.id";
+    private static final String PBS_JOB_ID_REMARKS = "PBS jod id : output of qsub command";
+    public static final ParameterDescriptor<String> PBS_JOB_ID = BUILDER
+	.addName(PBS_JOB_ID_NAME)
+	.setRemarks(PBS_JOB_ID_REMARKS)
+	.setRequired(false)
+	.create(String.class, "null"); // null as default value 
+
+    public static final String PBS_OUTPUT_FILE_NAME = "pbs.output.file";
+    public static final String PBS_OUTPUT_FILE_REMARKS = "PBS output file : output of qsub command";
+    public static final ParameterDescriptor<String> PBS_OUTPUT_FILE = BUILDER
+	.addName(PBS_OUTPUT_FILE_NAME)
+	.setRemarks(PBS_OUTPUT_FILE_REMARKS)
+	.setRequired(false)
+	.create(String.class, "null"); // null as default value 
+
+    public static final String PBS_ERROR_FILE_NAME = "pbs.error.file";
+    public static final String PBS_ERROR_FILE_REMARKS = "PBS error file : output of qsub command";
+    public static final ParameterDescriptor<String> PBS_ERROR_FILE = BUILDER
+	.addName(PBS_ERROR_FILE_NAME)
+	.setRemarks(PBS_ERROR_FILE_REMARKS)
+	.setRequired(false)
+	.create(String.class, "null"); // null as default value
+    
 
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
@@ -93,7 +129,7 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
 
     @Override
     public final AbstractCstlProcess createProcess(final ParameterValueGroup input) {
-        return new RunPBS(this, input);
+        return new RunPBS(this, input, this.getConfigDescriptor());
     }
 
     @Override
@@ -104,11 +140,36 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
 	inputs.add(PBS_OUTPUT_DIR);
 	inputs.add(PBS_COMMAND);
 	inputs.add(PBS_SELF_MONITORING);
+	inputs.add(PBS_CONFIG_FILE);
         return BUILDER.addName("InputParameters").setRequired(true).createGroup(inputs.toArray(new GeneralParameterDescriptor[inputs.size()]));
     }
 
     @Override
     public final ParameterDescriptorGroup getOutputDescriptor() {
-        return BUILDER.addName("OutputParameters").setRequired(true).createGroup(dynamicOutput.toArray(new GeneralParameterDescriptor[dynamicOutput.size()]));
+	List<GeneralParameterDescriptor> outputs = new ArrayList<>(dynamicOutput);
+        outputs.add(PBS_JOB_ID);
+	outputs.add(PBS_OUTPUT_FILE);
+	outputs.add(PBS_ERROR_FILE);
+        return BUILDER.addName("OutputParameters").setRequired(true).createGroup(outputs.toArray(new GeneralParameterDescriptor[outputs.size()]));
+    }
+
+    public final ParameterDescriptorGroup getConfigDescriptor() {
+
+	final ParameterBuilder builder = new ParameterBuilder();
+      
+	final GeneralParameterDescriptor[] config_status = {
+            builder.addName("In_queue").setRequired(true).create(String.class, " Q "),
+            builder.addName("Running").setRequired(true).create(String.class, " R "),
+            builder.addName("Finished").setRequired(true).create(String.class, " F "),
+            builder.addName("Held").setRequired(false).create(String.class, " H "),
+	    builder.addName("Running_JobArray").setRequired(false).create(String.class, " B ")
+        };
+
+	final GeneralParameterDescriptor[] config = {
+	    builder.addName("Status").createGroup(config_status),
+	    builder.addName("Time_between_Qstat").setRequired(true).createBounded(65, 150, 85)
+	};
+
+        return builder.addName("ConfigParameters").setRequired(true).createGroup(config);
     }
 }
