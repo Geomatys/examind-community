@@ -37,12 +37,12 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
-import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
+import org.constellation.provider.SensorProvider;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sensor.SensorStore;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.constellation.sos.ws.SOSUtils;
+import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.opengis.observation.Observation;
 import org.springframework.http.HttpStatus;
@@ -162,7 +162,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometryType location) throws Exception {
+    public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry location) throws Exception {
         AcknowlegementType response;
         if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
             response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
@@ -267,7 +267,7 @@ public class SensorServiceRestAPI {
 
     private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
         //record location
-        final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
+        final AbstractGeometry geom = process.spatialBound.getGeometry("2.0.0");
         if (geom != null) {
             sensorServiceBusiness.updateSensorLocation(serviceId, process.id, geom);
         }
@@ -321,7 +321,7 @@ public class SensorServiceRestAPI {
     }
 
     private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
-        final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
+        final AbstractGeometry geom = process.spatialBound.getGeometry("2.0.0");
         sensorServiceBusiness.writeProcedure(id, process.id, geom, parent, process.type);
         for (ProcedureTree child : process.children) {
             writeProcedures(id, child, process.id);
@@ -383,7 +383,7 @@ public class SensorServiceRestAPI {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p.getMainStore() instanceof SensorStore){
+            if (p instanceof SensorProvider){
                 // TODO for now we only take one provider by type
                 return providerID;
             }
