@@ -33,13 +33,11 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.inject.Inject;
@@ -65,7 +63,6 @@ import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.sos.ws.SOSUtils;
-import org.constellation.sos.ws.SensorMLGenerator;
 import org.constellation.ws.ISOSConfigurer;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
@@ -300,10 +297,11 @@ public class SensorRestAPI extends AbstractRestAPI {
             return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
         }
 
-        // SensorML generation
+        // Sensor generation
         try {
+            final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
             for (ProcedureTree process : procedures) {
-                generateSensorML(dataId, process, null);
+                sensorBusiness.generateSensorForData(dataId, process, smlProviderId, null);
             }
             IOUtils.write("The sensors has been succesfully generated", response.getOutputStream());
             return new ResponseEntity(OK);
@@ -311,46 +309,6 @@ public class SensorRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-    }
-
-    private void generateSensorML(final int dataID, final ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
-
-        final Properties prop = new Properties();
-        prop.put("id",         process.getId());
-        if (process.getDateStart() != null) {
-            prop.put("beginTime",  process.getDateStart());
-        }
-        if (process.getDateEnd() != null) {
-            prop.put("endTime",    process.getDateEnd());
-        }
-        if (process.getMinx() != null) {
-            prop.put("longitude",  process.getMinx());
-        }
-        if (process.getMiny() != null) {
-            prop.put("latitude",   process.getMiny());
-        }
-        prop.put("phenomenon", process.getFields());
-
-        Sensor sensor = sensorBusiness.getSensor(process.getId());
-        Integer sid;
-        if (sensor == null) {
-            Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sid = sensorBusiness.create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
-        } else {
-            sid = sensor.getId();
-        }
-
-        final List<String> component = new ArrayList<>();
-        for (ProcedureTree child : process.getChildren()) {
-            component.add(child.getId());
-            generateSensorML(dataID, child, process.getId());
-        }
-        prop.put("component", component);
-        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.getType());
-
-        // update sml
-        sensorBusiness.updateSensorMetadata(sid, sml);
-        sensorBusiness.linkDataToSensor(dataID, sid);
     }
 
     /**

@@ -26,11 +26,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-engine-templating</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-observation-store</artifactId>
         </dependency>

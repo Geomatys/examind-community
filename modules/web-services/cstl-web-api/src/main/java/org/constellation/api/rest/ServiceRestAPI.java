@@ -232,7 +232,8 @@ public class ServiceRestAPI extends AbstractRestAPI {
             }catch(Exception ex){
                 count = 0;
             }
-        } else if("sos".equalsIgnoreCase(service.getType())){
+        } else if("sos".equalsIgnoreCase(service.getType()) ||
+                  "sts".equalsIgnoreCase(service.getType())){
             try {
                 count = sensorBusiness.getCountByServiceId(service.getId());
             }catch(Exception ex){

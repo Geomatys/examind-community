@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.business.IDataBusiness;
@@ -38,14 +37,13 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
-import org.constellation.sos.ws.SensorMLGenerator;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sensor.SensorStore;
-import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.constellation.sos.ws.SOSUtils;
+import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.opengis.observation.Observation;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
@@ -252,19 +250,47 @@ public class SensorServiceRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
 
-
             // import in O&M database
             sensorServiceBusiness.importObservations(serviceId, result.observations, result.phenomenons);
 
             // SensorML generation
             for (ProcedureTree process : result.procedures) {
-                generateSensorML(serviceId, process, result, null);
+                sensorBusiness.generateSensorForData(dataID, toDto(process),  getSensorProviderId(serviceId), null);
+                updateSensorLocation(serviceId, process);
             }
 
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the Sensor Service"), OK);
         } else {
             return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
         }
+    }
+
+    private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
+        //record location
+        final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
+        if (geom != null) {
+            sensorServiceBusiness.updateSensorLocation(serviceId, process.id, geom);
+        }
+        for (ProcedureTree child : process.children) {
+            updateSensorLocation(serviceId, child);
+        }
+    }
+
+    private org.constellation.dto.service.config.sos.ProcedureTree toDto(ExtractionResult.ProcedureTree pt) {
+        GeoSpatialBound bound = pt.spatialBound;
+        org.constellation.dto.service.config.sos.ProcedureTree result  = new org.constellation.dto.service.config.sos.ProcedureTree(pt.id,
+                                                  pt.type,
+                                                  bound.dateStart,
+                                                  bound.dateEnd,
+                                                  bound.minx,
+                                                  bound.maxx,
+                                                  bound.miny,
+                                                  bound.maxy,
+                                                  pt.fields);
+        for (ExtractionResult.ProcedureTree child: pt.children) {
+            result.getChildren().add(toDto(child));
+        }
+        return result;
     }
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
@@ -291,45 +317,6 @@ public class SensorServiceRestAPI {
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the Sensor Service"), OK);
         } else {
             return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
-        }
-    }
-
-
-    private void generateSensorML(final Integer serviceId, final ProcedureTree process, final ExtractionResult result, String parentID) throws ConfigurationException {
-        final Properties prop = new Properties();
-        prop.put("id",         process.id);
-        if (process.spatialBound.dateStart != null) {
-            prop.put("beginTime",  process.spatialBound.dateStart);
-        }
-        if (process.spatialBound.dateEnd != null) {
-            prop.put("endTime",    process.spatialBound.dateEnd);
-        }
-        if (process.spatialBound.minx != null) {
-            prop.put("longitude",  process.spatialBound.minx);
-        }
-        if (process.spatialBound.miny != null) {
-            prop.put("latitude",   process.spatialBound.miny);
-        }
-        prop.put("phenomenon", result.fields);
-
-        final List<String> component = new ArrayList<>();
-        for (ProcedureTree child : process.children) {
-            component.add(child.id);
-        }
-        prop.put("component", component);
-
-        final AbstractSensorML sml = SensorMLGenerator.getTemplateSensorML(prop, process.type);
-
-        sensorBusiness.create(process.id, process.type, parentID, sml, System.currentTimeMillis(), getSensorProviderId(serviceId));
-
-        for (ProcedureTree child : process.children) {
-            generateSensorML(serviceId, child, result, process.id);
-        }
-
-        //record location
-        final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
-        if (geom != null) {
-            sensorServiceBusiness.updateSensorLocation(serviceId, process.id, geom);
         }
     }
 

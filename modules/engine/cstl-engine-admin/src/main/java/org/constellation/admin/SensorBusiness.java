@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,6 +57,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConfigurationException;
@@ -66,6 +68,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.dto.SensorReference;
 import org.constellation.business.IUserBusiness;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
@@ -453,7 +456,7 @@ public class SensorBusiness implements ISensorBusiness {
     public List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException {
         return sensorRepository.getLinkedSensorIdentifiers(serviceID, sensorType);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -518,6 +521,9 @@ public class SensorBusiness implements ISensorBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void removeSensorFromService(Integer serviceID, String sensorID) {
@@ -529,6 +535,9 @@ public class SensorBusiness implements ISensorBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SensorMLTree getFullSensorMLTree() {
         final List<SensorMLTree> values = new ArrayList<>();
@@ -566,6 +575,52 @@ public class SensorBusiness implements ISensorBusiness {
             templateName = "profile_sensorml_system";
         }
         return templateName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public Integer generateSensorForData(final int dataID, final ProcedureTree process, final Integer providerID, final String parentID) throws ConfigurationException {
+
+        final Properties prop = new Properties();
+        prop.put("id",         process.getId());
+        if (process.getDateStart() != null) {
+            prop.put("beginTime",  process.getDateStart());
+        }
+        if (process.getDateEnd() != null) {
+            prop.put("endTime",    process.getDateEnd());
+        }
+        if (process.getMinx() != null) {
+            prop.put("longitude",  process.getMinx());
+        }
+        if (process.getMiny() != null) {
+            prop.put("latitude",   process.getMiny());
+        }
+        prop.put("phenomenon", process.getFields());
+
+        Sensor sensor = getSensor(process.getId());
+        Integer sid;
+        if (sensor == null) {
+            sid = create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
+        } else {
+            sid = sensor.getId();
+        }
+
+        final List<String> component = new ArrayList<>();
+        for (ProcedureTree child : process.getChildren()) {
+            component.add(child.getId());
+            generateSensorForData(dataID, child, providerID, process.getId());
+        }
+        prop.put("component", component);
+        final String sml = MetadataUtilities.getTemplateSensorMLString(prop, process.getType());
+
+        // update sensor metadata
+        updateSensorMetadata(sid, sml);
+        // link data to created sensor
+        linkDataToSensor(dataID, sid);
+        return sid;
     }
 
 }

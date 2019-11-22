@@ -234,10 +234,10 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
-        final ObservationProvider pr = getOMProvider(id);
+    public Collection<String> getObservedPropertiesForSensorId(final Integer serviceId, final String sensorID) throws ConfigurationException {
+        final ObservationProvider pr = getOMProvider(serviceId);
         try {
-            final SensorMLTree root          = getSensorTree(id);
+            final SensorMLTree root          = getSensorTree(serviceId);
             final SensorMLTree current       = root.find(sensorID);
             return SOSUtils.getPhenomenonFromSensor(current, pr);
         } catch (ConstellationStoreException ex) {

@@ -19,6 +19,7 @@
 
 package org.constellation.admin.util;
 
+import java.io.IOException;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.engine.template.TemplateEngine;
 import org.constellation.engine.template.TemplateEngineException;
@@ -28,6 +29,8 @@ import org.opengis.metadata.Metadata;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +49,7 @@ import org.constellation.dto.CstlUser;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
+import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.metadata.citation.OnlineResource;
@@ -67,6 +71,32 @@ public final class MetadataUtilities {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.util");
 
+    public static String getTemplateSensorMLString(final Properties prop, final String type) {
+        try {
+            final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);
+            final InputStream stream;
+            if ("Component".equals(type)) {
+                stream = Util.getResourceAsStream("org/constellation/engine/template/smlComponentTemplate.xml");
+            } else if ("System".equals(type)) {
+                stream = Util.getResourceAsStream("org/constellation/engine/template/smlSystemTemplate.xml");
+            } else {
+                throw new IllegalArgumentException("unexpected sml type");
+            }
+
+            //apply props
+            final String templateApplied = templateEngine.apply(stream, prop);
+
+            //write to file
+            Path templateFile = Files.createTempFile("smlTemplate", ".xml");
+            IOUtilities.writeString(templateApplied, templateFile);
+
+            return templateApplied;
+        } catch (TemplateEngineException | IOException ex) {
+           LOGGER.log(Level.WARNING, null, ex);
+        }
+        return null;
+    }
+    
     public static String getTemplateMetadata(final Properties prop, final String templatePath) {
         try {
             final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);

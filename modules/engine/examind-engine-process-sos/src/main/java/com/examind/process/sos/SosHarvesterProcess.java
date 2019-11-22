@@ -20,7 +20,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
@@ -42,7 +41,6 @@ import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.sos.ws.SOSUtils;
-import org.constellation.sos.ws.SensorMLGenerator;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
 import org.geotoolkit.observation.ObservationStore;
@@ -347,7 +345,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     private List<Integer> generateSensorML(final int dataId) throws ConstellationStoreException, ConfigurationException, SQLException, ProcessException {
 
-        final Integer providerId = dataBusiness.getDataProvider(dataId);
+        final Integer providerId    = dataBusiness.getDataProvider(dataId);
+        final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
         final DataProvider provider = DataProviders.getProvider(providerId);
         final List<ProcedureTree> procedures;
         final List<Integer> ids = new ArrayList<>();
@@ -357,53 +356,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {
-                ids.add(generateSensorML(dataId, process, null));
+                ids.add(sensorBusiness.generateSensorForData(dataId, process, smlProviderId, null));
             }
         } else {
             throw new ProcessException("none observation store found", this);
         }
         return ids;
-    }
-
-    private Integer generateSensorML(final int dataID, final ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
-
-        final Properties prop = new Properties();
-        prop.put("id",         process.getId());
-        if (process.getDateStart() != null) {
-            prop.put("beginTime",  process.getDateStart());
-        }
-        if (process.getDateEnd() != null) {
-            prop.put("endTime",    process.getDateEnd());
-        }
-        if (process.getMinx() != null) {
-            prop.put("longitude",  process.getMinx());
-        }
-        if (process.getMiny() != null) {
-            prop.put("latitude",   process.getMiny());
-        }
-        prop.put("phenomenon", process.getFields());
-
-        Sensor sensor = sensorBusiness.getSensor(process.getId());
-        Integer sid;
-        if (sensor == null) {
-            Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sid = sensorBusiness.create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
-        } else {
-            sid = sensor.getId();
-        }
-
-        final List<String> component = new ArrayList<>();
-        for (ProcedureTree child : process.getChildren()) {
-            component.add(child.getId());
-            generateSensorML(dataID, child, process.getId());
-        }
-        prop.put("component", component);
-        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.getType());
-
-        // update sml
-        sensorBusiness.updateSensorMetadata(sid, sml);
-        sensorBusiness.linkDataToSensor(dataID, sid);
-        return sid;
     }
 
     private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
