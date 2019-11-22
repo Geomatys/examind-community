@@ -41,7 +41,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.data.dbf.DbaseFileFeatureStore;
+import org.geotoolkit.data.dbf.DbaseFileStore;
 import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.data.dbf.DbaseFileReader.Row;
@@ -72,7 +72,7 @@ import org.opengis.util.GenericName;
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class DbfObservationStore extends DbaseFileFeatureStore implements ObservationStore {
+public class DbfObservationStore extends DbaseFileStore implements ObservationStore {
 
     private static final String PROCEDURE_TREE_TYPE = "Component";
 

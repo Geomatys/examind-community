@@ -43,7 +43,7 @@ import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
-import org.geotoolkit.data.dbf.DbaseFeatureStoreFactory;
+import org.geotoolkit.data.dbf.DbaseFileProvider;
 import org.geotoolkit.data.shapefile.ShapefileFeatureStoreFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -73,7 +73,7 @@ public abstract class AbstractRestAPI {
         }
         private int getPriority(FileFeatureStoreFactory f){
             if(f instanceof ShapefileFeatureStoreFactory) return -10;
-            if(f instanceof DbaseFeatureStoreFactory)     return -9;
+            if(f instanceof DbaseFileProvider)     return -9;
             return 0;
         }
     };

@@ -37,7 +37,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
-import org.geotoolkit.data.dbf.DbaseFeatureStoreFactory;
+import org.geotoolkit.data.dbf.DbaseFileProvider;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
@@ -67,7 +67,7 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
-            = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFeatureStoreFactory.PATH,
+            = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID);
 
 
@@ -99,7 +99,7 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
         final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 
-        final URI uri = (URI) params.parameter(DbaseFeatureStoreFactory.PATH.getName().toString()).getValue();
+        final URI uri = (URI) params.parameter(DbaseFileProvider.PATH.getName().toString()).getValue();
         final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
         final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
         final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
