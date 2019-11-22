@@ -70,6 +70,8 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.provider.DataProvider;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationStore;
@@ -82,6 +84,8 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
 import org.geotoolkit.observation.Utils;
+import org.opengis.filter.FilterFactory;
+import org.opengis.observation.Phenomenon;
 
 /**
  *
@@ -399,20 +403,21 @@ public final class SOSUtils {
         return new ArrayList<>();
     }
 
-    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider reader) throws ConstellationStoreException {
-        if ("Component".equals(sensor.getType())) {
-            return reader.getPhenomenonsForProcedure(sensor.getIdentifier());
+    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider provider) throws ConstellationStoreException {
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final Set<String> phenomenons = new HashSet<>();
 
-        } else {
-            final Set<String> phenomenons = new HashSet<>();
+        SimpleQuery query = new SimpleQuery();
+        query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(sensor.getIdentifier())));
+        Collection<Phenomenon> phenos = provider.getPhenomenon(query, "2.0.0");
+        phenos.forEach(p -> phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
 
-            // add the root phenomenon if there is one
-            phenomenons.addAll(reader.getPhenomenonsForProcedure(sensor.getIdentifier()));
+        if (!"Component".equals(sensor.getType())) {
             for (SensorMLTree child : sensor.getChildren()) {
-                phenomenons.addAll(getPhenomenonFromSensor(child, reader));
+                phenomenons.addAll(getPhenomenonFromSensor(child, provider));
             }
-            return phenomenons;
         }
+        return phenomenons;
     }
 
     public static Object unmarshallObservationFile(final Path f) throws JAXBException, DataStoreException, IOException {

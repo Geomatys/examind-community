@@ -61,10 +61,6 @@ public interface ObservationProvider extends DataProvider {
 
     boolean existProcedure(final String procedureName) throws ConstellationStoreException;
 
-    Collection<String> getProceduresForPhenomenon(final String observedProperty) throws ConstellationStoreException;
-
-    Collection<String> getPhenomenonsForProcedure(final String sensorID) throws ConstellationStoreException;
-
     TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
 
     void removeProcedure(String procedureID) throws ConstellationStoreException;

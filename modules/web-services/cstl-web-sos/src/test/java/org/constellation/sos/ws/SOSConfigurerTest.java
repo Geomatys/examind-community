@@ -197,9 +197,9 @@ public abstract class SOSConfigurerTest {
     public void getSensorIdsForObservedPropertyTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
-        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:3",
-                                                "urn:ogc:object:sensor:GEOM:4",
+        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:2",
                                                 "urn:ogc:object:sensor:GEOM:5",
+                                                "urn:ogc:object:sensor:GEOM:7",
                                                 "urn:ogc:object:sensor:GEOM:8");
         Assert.assertEquals(expResults, results);
     }

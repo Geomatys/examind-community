@@ -386,24 +386,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public Collection<String> getProceduresForPhenomenon(String observedProperty) throws ConstellationStoreException {
-        try {
-            return store.getReader().getProceduresForPhenomenon(observedProperty);
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
-    @Override
-    public Collection<String> getPhenomenonsForProcedure(String sensorID) throws ConstellationStoreException {
-        try {
-            return store.getReader().getPhenomenonsForProcedure(sensorID);
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
-    @Override
     public TemporalGeometricPrimitive getTimeForProcedure(String version, String sensorID) throws ConstellationStoreException {
         try {
             return store.getReader().getTimeForProcedure("2.0.0", sensorID);

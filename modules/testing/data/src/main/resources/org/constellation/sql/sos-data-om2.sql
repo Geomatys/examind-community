@@ -38,6 +38,10 @@ INSERT INTO "om"."offerings" VALUES ('offering-8',  NULL, 'offering-8',  '2007-0
 INSERT INTO "om"."offerings" VALUES ('offering-9',  NULL, 'offering-9',  '2009-05-01 13:47:00.0', '2009-05-01 13:47:00.0', 'urn:ogc:object:sensor:GEOM:9');
 INSERT INTO "om"."offerings" VALUES ('offering-10', NULL, 'offering-10', '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:object:sensor:GEOM:10');
 
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:depth');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:temperature');
+
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:depth');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','urn:ogc:def:phenomenon:GEOM:temperature');
@@ -49,6 +53,8 @@ INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','urn:ogc:de
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:depth');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','urn:ogc:def:phenomenon:GEOM:temperature');
+
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-7','urn:ogc:def:phenomenon:GEOM:temperature');
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:def:phenomenon:GEOM:depth');

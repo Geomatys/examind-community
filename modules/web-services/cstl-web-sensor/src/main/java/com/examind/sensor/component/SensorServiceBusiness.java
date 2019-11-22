@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.CommonConstants;
@@ -60,6 +62,8 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKTWriter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.observation.Process;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
@@ -218,7 +222,13 @@ public class SensorServiceBusiness {
     public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            return pr.getProceduresForPhenomenon(observedProperty);
+            SimpleQuery query = new SimpleQuery();
+            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+            query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+            List<Process> processes = pr.getProcedures(query, "2.0.0");
+            List<String> results = new ArrayList<>();
+            processes.forEach(p -> results.add(((org.geotoolkit.observation.xml.Process)p).getHref()));
+            return results;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

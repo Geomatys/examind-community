@@ -43,7 +43,6 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.sos.ws.SOSUtils;
 import org.constellation.sos.ws.SensorMLGenerator;
-import org.constellation.ws.IWSEngine;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
 import org.geotoolkit.observation.ObservationStore;
@@ -65,7 +64,10 @@ import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.ObservationProvider;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -96,9 +98,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;
-
-    @Autowired
-    private IWSEngine wsengine;
 
     public SosHarvesterProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
@@ -338,7 +337,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 serviceBusiness.restart(sosServ.getId());
             }
 
-        } catch (ConfigurationException | DataStoreException | SQLException ex) {
+        } catch (ConfigurationException | ConstellationStoreException | DataStoreException | SQLException ex) {
             throw new ProcessException(ex.getMessage(), this ,ex);
         }
 
@@ -346,19 +345,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
 
-    private List<Integer> generateSensorML(final int dataId) throws DataStoreException, ConfigurationException, SQLException, ProcessException {
+    private List<Integer> generateSensorML(final int dataId) throws ConstellationStoreException, ConfigurationException, SQLException, ProcessException {
 
         final Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
-        final List<ExtractionResult.ProcedureTree> procedures;
+        final List<ProcedureTree> procedures;
         final List<Integer> ids = new ArrayList<>();
 
-        final ObservationStore store = SOSUtils.getObservationStore(provider);
-        if (store != null) {
-            procedures = store.getProcedures();
+        if (provider instanceof ObservationProvider) {
+            procedures = ((ObservationProvider)provider).getProcedures();
 
             // SensorML generation
-            for (final ExtractionResult.ProcedureTree process : procedures) {
+            for (final ProcedureTree process : procedures) {
                 ids.add(generateSensorML(dataId, process, null));
             }
         } else {
@@ -367,42 +365,40 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return ids;
     }
 
-
-
-    private Integer generateSensorML(final int dataID, final ExtractionResult.ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
+    private Integer generateSensorML(final int dataID, final ProcedureTree process, final String parentID) throws SQLException, ConfigurationException {
 
         final Properties prop = new Properties();
-        prop.put("id",         process.id);
-        if (process.spatialBound.dateStart != null) {
-            prop.put("beginTime",  process.spatialBound.dateStart);
+        prop.put("id",         process.getId());
+        if (process.getDateStart() != null) {
+            prop.put("beginTime",  process.getDateStart());
         }
-        if (process.spatialBound.dateEnd != null) {
-            prop.put("endTime",    process.spatialBound.dateEnd);
+        if (process.getDateEnd() != null) {
+            prop.put("endTime",    process.getDateEnd());
         }
-        if (process.spatialBound.minx != null) {
-            prop.put("longitude",  process.spatialBound.minx);
+        if (process.getMinx() != null) {
+            prop.put("longitude",  process.getMinx());
         }
-        if (process.spatialBound.miny != null) {
-            prop.put("latitude",   process.spatialBound.miny);
+        if (process.getMiny() != null) {
+            prop.put("latitude",   process.getMiny());
         }
-        prop.put("phenomenon", process.fields);
+        prop.put("phenomenon", process.getFields());
 
-        Sensor sensor = sensorBusiness.getSensor(process.id);
+        Sensor sensor = sensorBusiness.getSensor(process.getId());
         Integer sid;
         if (sensor == null) {
             Integer providerID = sensorBusiness.getDefaultInternalProviderID();
-            sid = sensorBusiness.create(process.id, process.type, parentID, null, System.currentTimeMillis(), providerID);
+            sid = sensorBusiness.create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
         } else {
             sid = sensor.getId();
         }
 
         final List<String> component = new ArrayList<>();
-        for (final ExtractionResult.ProcedureTree child : process.children) {
-            component.add(child.id);
-            generateSensorML(dataID, child, process.id);
+        for (ProcedureTree child : process.getChildren()) {
+            component.add(child.getId());
+            generateSensorML(dataID, child, process.getId());
         }
         prop.put("component", component);
-        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.type);
+        final String sml = SensorMLGenerator.getTemplateSensorMLString(prop, process.getType());
 
         // update sml
         sensorBusiness.updateSensorMetadata(sid, sml);
@@ -432,7 +428,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         //import sensor children
         for (Sensor child : sensorChildren) {
             providerIDs.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
-            if (!alreadyLinked.contains(sensor.getId())) {
+            if (!alreadyLinked.contains(sensor.getIdentifier())) {
                 sensorBusiness.addSensorToService(sosRef.getId(), child.getId());
             }
             sensorIds.add(child.getIdentifier());

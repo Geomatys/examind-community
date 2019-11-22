@@ -108,7 +108,7 @@ public interface ISensorBusiness {
      * @throws ConfigurationException
      */
     List<String> getLinkedSensorIdentifiers(Integer serviceID, String sensorType) throws ConfigurationException;
-    
+
     boolean isLinkedSensor(Integer serviceID, String sensorId);
 
     Map<String, List<String>> getAcceptedSensorMLFormats(Integer serviceID) throws ConfigurationException;

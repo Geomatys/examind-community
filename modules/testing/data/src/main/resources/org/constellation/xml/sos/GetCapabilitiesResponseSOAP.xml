@@ -426,6 +426,9 @@
                             </gml:TimePeriod>
                         </sos:time>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>
+                        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+                        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+                        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
                         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
                         <sos:resultModel>om:Observation</sos:resultModel>
                         <sos:resultModel>om:Measurement</sos:resultModel>
@@ -518,6 +521,7 @@
                         </gml:boundedBy>
                         <sos:time/>
                         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
+                        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
                         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
                         <sos:resultModel>om:Observation</sos:resultModel>
                         <sos:resultModel>om:Measurement</sos:resultModel>
