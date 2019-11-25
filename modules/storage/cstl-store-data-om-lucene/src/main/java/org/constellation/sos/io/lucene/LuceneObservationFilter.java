@@ -61,6 +61,8 @@ public class LuceneObservationFilter implements ObservationFilter {
 
     protected final String phenomenonIdBase;
 
+    protected boolean getFoi = false;
+
     private static final String OR_OPERATOR = " OR ";
 
     public LuceneObservationFilter(final LuceneObservationFilter omFilter) throws DataStoreException {
@@ -102,6 +104,7 @@ public class LuceneObservationFilter implements ObservationFilter {
         } else {
             luceneRequest.append("template:FALSE ");
         }
+        getFoi = false;
     }
 
     /**
@@ -114,6 +117,7 @@ public class LuceneObservationFilter implements ObservationFilter {
         } else {
             luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
         }
+        getFoi = false;
     }
 
     /**
@@ -121,7 +125,8 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void initFilterGetPhenomenon() throws DataStoreException {
-        // do nothing no implemented
+        luceneRequest = new StringBuilder("type:phenomenon");
+        getFoi = false;
     }
 
     /**
@@ -129,7 +134,8 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void initFilterGetSensor() throws DataStoreException {
-        // do nothing no implemented
+        luceneRequest = new StringBuilder("type:sensor");
+        getFoi = false;
     }
 
 
@@ -138,7 +144,8 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void initFilterGetFeatureOfInterest() throws DataStoreException {
-        // do nothing no implemented
+        luceneRequest = new StringBuilder("type:foi");
+        getFoi = true;
     }
 
     /**
@@ -199,7 +206,11 @@ public class LuceneObservationFilter implements ObservationFilter {
         if (!fois.isEmpty()) {
             luceneRequest.append(" AND (");
             for (String foi : fois) {
-                luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+                if (getFoi) {
+                    luceneRequest.append("id:").append(foi).append(" OR ");
+                } else {
+                    luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+                }
             }
             luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
             luceneRequest.append(") ");
@@ -367,6 +378,15 @@ public class LuceneObservationFilter implements ObservationFilter {
         }
     }
 
+    @Override
+    public Set<String> filterFeatureOfInterest() throws DataStoreException {
+        try {
+            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+        } catch(SearchingException ex) {
+            throw new DataStoreException("Search exception while filtering the observation", ex);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -442,11 +462,6 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public boolean isDefaultTemplateTime() {
         return true;
-    }
-
-    @Override
-    public Set<String> filterFeatureOfInterest() throws DataStoreException {
-        throw new DataStoreException("filterFeatureOfInterest is not supported by this ObservationFilter implementation.");
     }
 
     @Override

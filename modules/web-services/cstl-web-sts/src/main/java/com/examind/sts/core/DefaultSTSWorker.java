@@ -30,24 +30,18 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.inject.Named;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ObservationProvider;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import org.geotoolkit.sensor.SensorStore;
 import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
@@ -83,7 +77,6 @@ import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.sts.json.ThingsResponse;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -103,14 +96,7 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
-    /**
-     * The sensorML provider identifier (to be removed)
-     */
-    private Integer smlProviderID;
-
     private boolean sensorMetadataAsLink = true;
-
-    private ObservationProvider omProvider;
 
     public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     static {
@@ -120,47 +106,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     public DefaultSTSWorker(final String id) {
         super(id, ServiceDef.Specification.STS);
-        try {
-
-            final String isTransactionnalProp = getProperty("transactional");
-            if (isTransactionnalProp != null) {
-                isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
-            } else {
-                boolean t = false;
-                try {
-                    final Details details = serviceBusiness.getInstanceDetails("sts", id, null);
-                    t = details.isTransactional();
-                } catch (ConstellationException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
-                isTransactionnal = t;
+        final String isTransactionnalProp = getProperty("transactional");
+        if (isTransactionnalProp != null) {
+            isTransactionnal = Boolean.parseBoolean(isTransactionnalProp);
+        } else {
+            boolean t = false;
+            try {
+                final Details details = serviceBusiness.getInstanceDetails("sts", id, null);
+                t = details.isTransactional();
+            } catch (ConstellationException ex) {
+                LOGGER.log(Level.WARNING, null, ex);
             }
-
-            final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
-
-            // we initialize the reader/writer
-            for (Integer providerID: providers) {
-                DataProvider p = DataProviders.getProvider(providerID);
-                if (p != null) {
-                    final DataStore store = p.getMainStore();
-                    // TODO for now we only take one provider by type
-                    if (store instanceof SensorStore) {
-                        smlProviderID  = providerID;
-                    }
-                    // store may implements the 2 interface
-                    if (p instanceof ObservationProvider) {
-                        omProvider  = (ObservationProvider) p;
-                    }
-                } else {
-                    throw new CstlServiceException("Unable to instanciate the provider:" + providerID);
-                }
-            }
-
-        } catch (CstlServiceException ex) {
-            startError(ex.getMessage(), ex);
-        } catch (ConfigurationException ex) {
-            startError("The configuration file can't be found.", ex);
+            isTransactionnal = t;
         }
+
         if (isStarted) {
             LOGGER.log(Level.INFO, "STS worker {0} running", id);
         }
@@ -202,7 +161,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req) {
         final SimpleQuery subquery = new SimpleQuery();
         if (!req.getExtraFilter().isEmpty()) {
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+
             List<Filter> filters = new ArrayList<>();
             for (Entry<String, String> entry : req.getExtraFilter().entrySet()) {
                 filters.add(ff.equals(ff.property(entry.getKey()), ff.literal(entry.getValue())));
@@ -236,7 +195,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Observation getObservationById(GetObservationById goi) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             Id filter = ff.id(Collections.singleton(new DefaultFeatureId(goi.getId())));
             subquery.setFilter(filter);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, null, "inline", "2.0.0");
@@ -269,7 +227,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (req.getExpand().contains("Datastreams")) {
             if (obs.getProcedure().getHref() != null) {
                 final SimpleQuery subquery = new SimpleQuery();
-                final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
                 PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                 subquery.setFilter(pe);
                 List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, null, "resultTemplate", "2.0.0");
@@ -310,7 +267,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Instant tp = (Instant) to;
             return ISO_8601_FORMATTER.format(tp.getDate());
         } else if (to != null) {
-            LOGGER.warning("Unexpected temporal object:" + to.getClass().getName());
+            LOGGER.log(Level.WARNING, "Unexpected temporal object:{0}", to.getClass().getName());
         }
         return null;
     }
@@ -341,7 +298,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Datastream getDatastreamById(GetDatastreamById gd) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             Id filter = ff.id(Collections.singleton(new DefaultFeatureId(gd.getId())));
             subquery.setFilter(filter);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, null, "resultTemplate", "2.0.0");
@@ -404,7 +360,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private List<org.opengis.observation.Observation> getObservationsForDatastream(org.opengis.observation.Observation template) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
         if (template.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
             final SimpleQuery subquery = new SimpleQuery();
             PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
@@ -415,7 +370,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private List<org.opengis.observation.Observation> getObservationsForFeatureOfInterest(org.geotoolkit.sampling.xml.SamplingFeature sp) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
         if (sp.getName() != null) {
             final SimpleQuery subquery = new SimpleQuery();
             PropertyIsEqualTo pe = ff.equals(ff.property("featureOfInterest"), ff.literal(sp.getId()));
@@ -451,7 +405,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public ObservedProperty getObservedPropertyById(GetObservedPropertyById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
             subquery.setFilter(filter);
             Collection<org.opengis.observation.Phenomenon> phens = omProvider.getPhenomenon(subquery, "2.0.0");
@@ -490,7 +443,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private List<org.opengis.observation.Observation> getDatastreamForPhenomenon(String phenomenon) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
         final SimpleQuery subquery = new SimpleQuery();
         PropertyIsEqualTo pe = ff.equals(ff.property("observedProperty"), ff.literal(phenomenon));
         subquery.setFilter(pe);
@@ -498,7 +450,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private List<org.opengis.observation.Observation> getDatastreamForSensor(String sensorId) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
         final SimpleQuery subquery = new SimpleQuery();
         PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(sensorId));
         subquery.setFilter(pe);
@@ -610,18 +561,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public FeatureOfInterest getFeatureOfInterestById(GetFeatureOfInterestById gfi) throws CstlServiceException {
         try {
-            final SimpleQuery subquery = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(gfi.getId())));
-            subquery.setFilter(filter);
-            List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, "2.0.0");
-            if (sps.isEmpty()) {
-                return null;
-            } else {
-                org.geotoolkit.sampling.xml.SamplingFeature sp = (org.geotoolkit.sampling.xml.SamplingFeature)sps.get(0);
-                FeatureOfInterest result = buildFeatureOfInterest(gfi, sp);
+            SamplingFeature sp = getFeatureOfInterest(gfi.getId(), "2.0.0");
+            if (sp != null) {
+                FeatureOfInterest result = buildFeatureOfInterest(gfi, (org.geotoolkit.sampling.xml.SamplingFeature)sp);
                 return result;
             }
+            return null;
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }

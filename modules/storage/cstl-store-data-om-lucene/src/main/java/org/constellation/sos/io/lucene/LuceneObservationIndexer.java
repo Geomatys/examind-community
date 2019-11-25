@@ -56,15 +56,18 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
+import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
+public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
     private Path observationDirectory;
+
+    private Path foiDirectory;
 
     private Path observationTemplateDirectory;
 
@@ -93,6 +96,10 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
                 observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
                 if (!Files.exists(observationTemplateDirectory)) {
                     Files.createDirectories(observationTemplateDirectory);
+                }
+                foiDirectory = dataDirectory.resolve("features");
+                if (!Files.exists(foiDirectory)) {
+                    Files.createDirectories(foiDirectory);
                 }
             } catch (IOException e) {
                 throw new IndexingException("Unable to create observation directories", e);
@@ -126,7 +133,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
     }
 
     @Override
-    protected Iterator<Observation> getEntryIterator() throws IndexingException {
+    protected Iterator<Object> getEntryIterator() throws IndexingException {
         throw new UnsupportedOperationException("not used in this implementation");
     }
 
@@ -145,6 +152,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
         final long time = System.currentTimeMillis();
         int nbObservation = 0;
         int nbTemplate    = 0;
+        int nbfoi         = 0;
         try {
             final Unmarshaller unmarshaller = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
@@ -153,10 +161,13 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
             // getting the objects list and index avery item in the IndexWriter.
             nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation");
             template = true;
-            nbTemplate = indexDirectory(observationTemplateDirectory, nbObservation, unmarshaller, writer, "template");
+            nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template");
+            template = false;
+
+            nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi");
 
             SOSMarshallerPool.getInstance().recycle(unmarshaller);
-            template = false;
+
             // writer.optimize(); no longer justified
             writer.close();
 
@@ -194,6 +205,9 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
                     if (observation instanceof Observation) {
                         indexDocument(writer, (Observation) observation);
                         nbObservation++;
+                    } else if (observation instanceof SamplingFeature) {
+                        indexDocument(writer, (SamplingFeature) observation);
+                        nbObservation++;
                     } else {
                         LOGGER.info("The "+type+" file " + observationFile.getFileName().toString()
                                 + " does not contains an observation:" + observation);
@@ -208,7 +222,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
      * {@inheritDoc}
      */
     @Override
-    protected Document createDocument(final Observation observation, final int docid) {
+    protected Document createDocument(final Object obj, final int docid) {
         // make a new, empty document
         final Document doc = new Document();
 
@@ -222,65 +236,79 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
         sft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
         sft.setDocValuesType(DocValuesType.SORTED);
 
-        doc.add(new Field("id", observation.getName().getCode(), ft));
-        if (observation instanceof MeasurementType) {
-            doc.add(new Field("type", "measurement" , ft));
-        } else {
-            doc.add(new Field("type", "observation" , ft));
-        }
-        doc.add(new Field("procedure", ((Process)observation.getProcedure()).getHref(), ft));
+        if (obj instanceof Observation) {
+            Observation observation = (Observation) obj;
 
-        Phenomenon phen = (Phenomenon)observation.getObservedProperty();
-        if (phen instanceof CompositePhenomenon) {
-            CompositePhenomenon composite = (CompositePhenomenon) phen;
-            for (PhenomenonProperty component : composite.getRealComponent()) {
-                if (component.getPhenomenon() != null && component.getPhenomenon().getName() != null) {
-                    doc.add(new Field("observed_property",   component.getPhenomenon().getName().getCode(), ft));
-                } else if (component.getHref() != null) {
-                    doc.add(new Field("observed_property",   component.getHref(), ft));
-                } else {
-                    LOGGER.warning("Composite phenomenon component is empty");
+            doc.add(new Field("id", observation.getName().getCode(), ft));
+            if (observation instanceof MeasurementType) {
+                doc.add(new Field("type", "measurement" , ft));
+            } else {
+                doc.add(new Field("type", "observation" , ft));
+            }
+            doc.add(new Field("procedure", ((Process)observation.getProcedure()).getHref(), ft));
+
+            Phenomenon phen = (Phenomenon)observation.getObservedProperty();
+            if (phen instanceof CompositePhenomenon) {
+                CompositePhenomenon composite = (CompositePhenomenon) phen;
+                for (PhenomenonProperty component : composite.getRealComponent()) {
+                    if (component.getPhenomenon() != null && component.getPhenomenon().getName() != null) {
+                        doc.add(new Field("observed_property",   component.getPhenomenon().getName().getCode(), ft));
+                    } else if (component.getHref() != null) {
+                        doc.add(new Field("observed_property",   component.getHref(), ft));
+                    } else {
+                        LOGGER.warning("Composite phenomenon component is empty");
+                    }
                 }
+
+                // add the composite name
+                doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
+
+            } else if (phen != null) {
+                doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
             }
 
-            // add the composite name
-            doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
+            doc.add(new Field("feature_of_interest", ((AbstractGML)observation.getFeatureOfInterest()).getId(), ft));
 
-        } else if (phen != null) {
-            doc.add(new Field("observed_property",   phen.getName().getCode(), ft));
-        }
+            try {
+                final TemporalObject time = observation.getSamplingTime();
+                if (time instanceof Period) {
+                    final Period period = (Period) time;
+                    doc.add(new Field("sampling_time_begin", getLuceneTimeValue(period.getBeginning().getDate()), ft));
+                    doc.add(new Field("sampling_time_end",   getLuceneTimeValue(period.getEnding().getDate()), ft));
+                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(period.getBeginning().getDate()).getBytes()), sft));
+                    doc.add(new Field("sampling_time_end_sort",   new BytesRef(getLuceneTimeValue(period.getEnding().getDate()).getBytes()), sft));
 
-        doc.add(new Field("feature_of_interest", ((AbstractGML)observation.getFeatureOfInterest()).getId(), ft));
+                } else if (time instanceof Instant) {
+                    final Instant instant = (Instant) time;
+                    doc.add(new Field("sampling_time_begin",   getLuceneTimeValue(instant.getDate()), ft));
+                    doc.add(new Field("sampling_time_end",    "NULL", ft));
+                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(instant.getDate()).getBytes()), sft));
+                    doc.add(new Field("sampling_time_end_sort", new BytesRef("NULL".getBytes()), sft));
 
-        try {
-            final TemporalObject time = observation.getSamplingTime();
-            if (time instanceof Period) {
-                final Period period = (Period) time;
-                doc.add(new Field("sampling_time_begin", getLuceneTimeValue(period.getBeginning().getDate()), ft));
-                doc.add(new Field("sampling_time_end",   getLuceneTimeValue(period.getEnding().getDate()), ft));
-                doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(period.getBeginning().getDate()).getBytes()), sft));
-                doc.add(new Field("sampling_time_end_sort",   new BytesRef(getLuceneTimeValue(period.getEnding().getDate()).getBytes()), sft));
-
-            } else if (time instanceof Instant) {
-                final Instant instant = (Instant) time;
-                doc.add(new Field("sampling_time_begin",   getLuceneTimeValue(instant.getDate()), ft));
-                doc.add(new Field("sampling_time_end",    "NULL", ft));
-                doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(instant.getDate()).getBytes()), sft));
-                doc.add(new Field("sampling_time_end_sort", new BytesRef("NULL".getBytes()), sft));
-
-            } else if (time != null) {
-                LOGGER.log(Level.WARNING, "unrecognized sampling time type:{0}", time);
+                } else if (time != null) {
+                    LOGGER.log(Level.WARNING, "unrecognized sampling time type:{0}", time);
+                }
+            } catch(DataStoreException ex) {
+                LOGGER.severe("error while indexing sampling time.");
             }
-        } catch(DataStoreException ex) {
-            LOGGER.severe("error while indexing sampling time.");
-        }
-        if (template) {
-            doc.add(new Field("template", "TRUE", ft));
+            if (template) {
+                doc.add(new Field("template", "TRUE", ft));
+            } else {
+                doc.add(new Field("template", "FALSE", ft));
+            }
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
+
+        } else if (obj instanceof SamplingFeature) {
+            SamplingFeature feat = (SamplingFeature) obj;
+             doc.add(new Field("id", feat.getId(), ft));
+             doc.add(new Field("type", "foi" , ft));
+
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
         } else {
-            doc.add(new Field("template", "FALSE", ft));
+            throw new IllegalArgumentException("Unepxected object type to index");
         }
-        // add a default meta field to make searching all documents easy
-        doc.add(new Field("metafile", "doc", ft));
 
         return doc;
     }
@@ -289,8 +317,13 @@ public class LuceneObservationIndexer extends AbstractIndexer<Observation> {
      * {@inheritDoc}
      */
     @Override
-    protected String getIdentifier(Observation obj) {
-        return obj.getName().getCode();
+    protected String getIdentifier(Object obj) {
+        if (obj instanceof Observation) {
+            return ((Observation)obj).getName().getCode();
+        } else if (obj instanceof SamplingFeature) {
+            return ((SamplingFeature)obj).getName().getCode();
+        }
+        return null;
     }
 
     /**

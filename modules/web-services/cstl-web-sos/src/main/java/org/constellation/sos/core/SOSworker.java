@@ -82,9 +82,7 @@ import static org.constellation.sos.ws.SOSUtils.isCompleteEnvelope3D;
 import static org.constellation.sos.ws.SOSUtils.samplingPointMatchEnvelope;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
-import org.constellation.provider.DataProviders;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
-import org.geotoolkit.sensor.SensorStore;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.gml.GmlInstant;
@@ -98,7 +96,6 @@ import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationResult;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
@@ -173,12 +170,9 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeEquals;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
-import org.apache.sis.storage.DataStore;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.ObservationProvider;
 import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.Utils;
@@ -272,18 +266,6 @@ public class SOSworker extends SensorWorker {
     private Map<String, List<String>> acceptedSensorMLFormats;
 
     /**
-     * The Observation provider
-     * TODO; find a way to remove the omStore calls
-     */
-    private ObservationStore omStore;
-    private ObservationProvider omProvider;
-
-    /**
-     * The sensorML provider identifier (to be removed)
-     */
-    private Integer smlProviderID;
-
-    /**
      * The supported Response Mode for GetObservation request (depends on reader capabilities)
      */
     private List<String> acceptedResponseMode;
@@ -359,27 +341,6 @@ public class SOSworker extends SensorWorker {
                 m = 0;
             }
             templateValidTime = (h * 3600000) + (m * 60000);
-
-            final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
-
-            // we initialize the reader/writer
-            for (Integer providerID: providers) {
-                DataProvider p = DataProviders.getProvider(providerID);
-                if (p != null) {
-                    final DataStore store = p.getMainStore();
-                    // TODO for now we only take one provider by type
-                    if (store instanceof SensorStore) {
-                        smlProviderID  = providerID;
-                    }
-                    // store may implements the 2 interface
-                    if (store instanceof ObservationStore) {
-                        omStore     = (ObservationStore)store;
-                        omProvider  = (ObservationProvider) p;
-                    }
-                } else {
-                    throw new ConfigurationException("Unable to instanciate the provider:" + providerID);
-                }
-            }
 
             this.acceptedSensorMLFormats = sensorBusiness.getAcceptedSensorMLFormats(getServiceId());
 
@@ -1015,7 +976,7 @@ public class SOSworker extends SensorWorker {
 
                                 for (String refStation : off.getFeatureOfInterestIds()) {
                                     // TODO for SOS 2.0 use observed area
-                                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) omStore.getReader().getFeatureOfInterest(refStation, currentVersion);
+                                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
                                     if (station == null) {
                                         throw new CstlServiceException("the feature of interest is not registered",
                                                 INVALID_PARAMETER_VALUE);
@@ -1347,7 +1308,7 @@ public class SOSworker extends SensorWorker {
                         } else {
                             for (String refStation : offering.getFeatureOfInterestIds()) {
                                 // TODO for SOS 2.0 use observed area
-                                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) omStore.getReader().getFeatureOfInterest(refStation, currentVersion);
+                                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
                                 if (station == null) {
                                     throw new CstlServiceException("the feature of interest is not registered", INVALID_PARAMETER_VALUE);
                                 }
@@ -1525,7 +1486,7 @@ public class SOSworker extends SensorWorker {
                 if (request.getFeatureOfInterestId().get(0).isEmpty()) {
                     throw new CstlServiceException("The foi name is empty", MISSING_PARAMETER_VALUE, locatorFID);
                 }
-                final SamplingFeature singleResult = omStore.getReader().getFeatureOfInterest(request.getFeatureOfInterestId().get(0), currentVersion);
+                final SamplingFeature singleResult = getFeatureOfInterest(request.getFeatureOfInterestId().get(0), currentVersion);
                 if (singleResult == null) {
                     throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
                 } else {
@@ -1545,7 +1506,7 @@ public class SOSworker extends SensorWorker {
             } else if (request.getFeatureOfInterestId().size() > 1) {
                 final List<FeatureProperty> features = new ArrayList<>();
                 for (String featureID : request.getFeatureOfInterestId()) {
-                    final SamplingFeature feature = omStore.getReader().getFeatureOfInterest(featureID, currentVersion);
+                    final SamplingFeature feature = getFeatureOfInterest(featureID, currentVersion);
                     if (feature == null) {
                         throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
                     } else {
@@ -1614,7 +1575,7 @@ public class SOSworker extends SensorWorker {
                     final List<FeatureProperty> features = new ArrayList<>();
                     final Set<String> fid = localOmFilter.filterFeatureOfInterest();
                     for (String foid : fid) {
-                        final SamplingFeature feature = omStore.getReader().getFeatureOfInterest(foid, currentVersion);
+                        final SamplingFeature feature = getFeatureOfInterest(foid, currentVersion);
                         features.add(buildFeatureProperty(currentVersion, feature));
                     }
                     final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
@@ -1625,7 +1586,7 @@ public class SOSworker extends SensorWorker {
             } else if (!filter) {
                 final List<FeatureProperty> features = new ArrayList<>();
                 for (String foid : omProvider.getFeatureOfInterestNames()) {
-                    final SamplingFeature feature = omStore.getReader().getFeatureOfInterest(foid, currentVersion);
+                    final SamplingFeature feature = getFeatureOfInterest(foid, currentVersion);
                     features.add(buildFeatureProperty(currentVersion, feature));
                 }
                 final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
@@ -1827,7 +1788,7 @@ public class SOSworker extends SensorWorker {
         return result;
     }
 
-    private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws DataStoreException, CstlServiceException {
+    private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws DataStoreException, ConstellationStoreException, CstlServiceException {
         final Envelope e = getEnvelopeFromBBOX(currentVersion, bbox);
         if (e != null && e.isCompleteEnvelope2D()) {
 
@@ -1836,7 +1797,7 @@ public class SOSworker extends SensorWorker {
             for (ObservationOffering off : offerings) {
                 // TODO for SOS 2.0 use observed area
                 for (String refStation : off.getFeatureOfInterestIds()) {
-                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) omStore.getReader().getFeatureOfInterest(refStation, currentVersion);
+                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
                     if (station == null) {
                         LOGGER.log(Level.WARNING, "the feature of interest is not registered:{0}", refStation);
                         continue;

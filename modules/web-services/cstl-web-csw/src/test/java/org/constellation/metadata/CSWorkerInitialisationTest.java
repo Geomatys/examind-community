@@ -151,9 +151,8 @@ public class CSWorkerInitialisationTest {
             worker.getCapabilities(request);
 
         } catch (CstlServiceException ex) {
-            assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertEquals(ex.getMessage(),
-                    "The service is not running!\nCause:The configuration file has not been found");
+            assertEquals(NO_APPLICABLE_CODE, ex.getExceptionCode());
+            assertEquals("The service is not running!\nCause:The configuration object is malformed or null.", ex.getMessage());
             exceptionLaunched = true;
         }
 

@@ -385,7 +385,7 @@ public class ServiceBusiness implements IServiceBusiness {
                 return getObjectFromString(confXml, GenericDatabaseMarshallerPool.getInstance());
             }
         } catch (JAXBException ex) {
-            throw new ConfigurationException(ex.getMessage(), ex);
+            throw new ConfigurationException("The configuration object is malformed or null.", ex);
         }
         return null;
     }

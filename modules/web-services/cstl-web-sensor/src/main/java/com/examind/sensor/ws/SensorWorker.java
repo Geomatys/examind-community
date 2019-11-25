@@ -18,11 +18,25 @@
  */
 package com.examind.sensor.ws;
 
+import java.util.Collections;
+import java.util.List;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.api.ServiceDef;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.ObservationProvider;
+import org.constellation.provider.SensorProvider;
 import org.constellation.ws.AbstractWorker;
+import org.geotoolkit.filter.identity.DefaultFeatureId;
+import org.geotoolkit.observation.ObservationStore;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Id;
+import org.opengis.observation.sampling.SamplingFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -40,12 +54,28 @@ public abstract class SensorWorker extends AbstractWorker {
     protected SOSConfiguration configuration;
 
     /**
+     * The sensorML provider identifier (to be removed)
+     */
+    protected Integer smlProviderID;
+
+    /**
+     * The Observation provider
+     * TODO; find a way to remove the omStore calls
+     */
+    @Deprecated
+    protected ObservationStore omStore;
+    protected ObservationProvider omProvider;
+
+    /**
      * The profile of the SOS service (transational/discovery).
      */
     protected boolean isTransactionnal;
 
+    protected final FilterFactory ff;
+
     public SensorWorker(final String id, final ServiceDef.Specification specification) {
         super(id, specification);
+        this.ff = DefaultFactories.forBuildin(FilterFactory.class);
         try {
             final Object object = serviceBusiness.getConfiguration(specification.name().toLowerCase(), id);
             if (object instanceof SOSConfiguration) {
@@ -54,8 +84,28 @@ public abstract class SensorWorker extends AbstractWorker {
                 startError("The configuration object is malformed or null.", null);
                 return;
             }
+
+            final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
+
+            // we initialize the reader/writer
+            for (Integer providerID: providers) {
+                DataProvider p = DataProviders.getProvider(providerID);
+                if (p != null) {
+                    // TODO for now we only take one provider by type
+                    if (p instanceof SensorProvider) {
+                        smlProviderID  = providerID;
+                    }
+                    // store may implements the 2 interface
+                    if (p instanceof ObservationProvider) {
+                        omProvider  = (ObservationProvider) p;
+                        omStore     = (ObservationStore)p.getMainStore();
+                    }
+                } else {
+                    startError("Unable to instanciate the provider:" + providerID, null);
+                }
+            }
         } catch (ConfigurationException ex) {
-            startError("The configuration file can't be found.", ex);
+            startError(ex.getMessage(), ex);
         }
     }
 
@@ -72,5 +122,17 @@ public abstract class SensorWorker extends AbstractWorker {
             return configuration.getBooleanParameter(propertyName, defaultValue);
         }
         return defaultValue;
+    }
+
+    protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(featureName)));
+        subquery.setFilter(filter);
+        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, version);
+        if (sps.isEmpty()) {
+            return null;
+        } else {
+            return sps.get(0);
+        }
     }
 }

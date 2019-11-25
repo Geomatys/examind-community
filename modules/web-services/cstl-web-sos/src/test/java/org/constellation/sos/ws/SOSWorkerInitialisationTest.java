@@ -165,7 +165,7 @@ public class SOSWorkerInitialisationTest {
 
         } catch(CstlServiceException ex) {
             assertEquals(ex.getExceptionCode(), NO_APPLICABLE_CODE);
-            assertTrue(ex.getMessage().equals("The service is not running!\nCause:The configuration file can't be found."));
+            assertEquals("The service is not running!\nCause:The configuration object is malformed or null.", ex.getMessage());
 
             exceptionLaunched = true;
         }
