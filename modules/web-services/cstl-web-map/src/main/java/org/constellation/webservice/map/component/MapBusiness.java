@@ -20,25 +20,42 @@ package org.constellation.webservice.map.component;
 
 import java.awt.Dimension;
 import java.awt.RenderingHints;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
-import javax.measure.Unit;
 import javax.xml.bind.JAXBException;
+
+import org.opengis.style.Style;
+import org.opengis.util.FactoryException;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.storage.StoreResource;
-import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+
+import org.geotoolkit.display.canvas.control.NeverFailMonitor;
+import org.geotoolkit.display2d.GO2Utilities;
+import org.geotoolkit.display2d.service.CanvasDef;
+import org.geotoolkit.display2d.service.OutputDef;
+import org.geotoolkit.display2d.service.SceneDef;
+import org.geotoolkit.display2d.service.ViewDef;
+import org.geotoolkit.factory.Hints;
+import org.geotoolkit.map.MapBuilder;
+import org.geotoolkit.map.MapContext;
+import org.geotoolkit.map.MapItem;
+import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.sld.xml.Specification;
+import org.geotoolkit.sld.xml.StyleXmlIO;
+import org.geotoolkit.storage.coverage.ImageStatistics;
+import org.geotoolkit.style.MutableStyle;
+import org.geotoolkit.util.NamesExt;
+
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.exception.ConfigurationException;
+import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
@@ -46,34 +63,14 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
-import org.apache.sis.coverage.Category;
-import org.apache.sis.coverage.SampleDimension;
-import org.constellation.admin.util.DataCoverageUtilities;
-import org.constellation.dto.StatInfo;
-import org.constellation.provider.DefaultCoverageData;
-import org.geotoolkit.storage.coverage.amended.AmendedCoverageResource;
-import org.geotoolkit.display.canvas.control.NeverFailMonitor;
-import org.geotoolkit.display2d.service.CanvasDef;
-import org.geotoolkit.display2d.service.OutputDef;
-import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
-import org.geotoolkit.factory.Hints;
-import org.geotoolkit.map.CoverageMapLayer;
-import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.map.MapItem;
-import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.sld.xml.Specification;
-import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.style.Style;
-import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.stereotype.Component;
+
+import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.StatisticState.STATE_COMPLETED;
 
 /**
  *
@@ -196,160 +193,89 @@ public class MapBusiness {
 
         // Get the layer (throws exception if doesn't exist).
         final org.constellation.dto.Data data  = dataBusiness.getDataBrief(dataId);
-        if (data != null) {
+        if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
 
-            final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-            final GenericName name = NamesExt.valueOf(data.getName());
-            final Data d = provider.get(name);
+        final DataProvider provider = DataProviders.getProvider(data.getProviderId());
+        final GenericName name = NamesExt.valueOf(data.getName());
+        final Data d = provider.get(name);
 
-            if (d instanceof GeoData) {
-                final GeoData layer = (GeoData) d;
+        if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");
+        final GeoData layer = (GeoData) d;
 
-                try {
-                    // Envelope.
-                    final String[] bboxSplit = bbox.split(",");
-                    final GeneralEnvelope envelope = new GeneralEnvelope(CRS.forCode(crsCode));
-                    envelope.setRange(0, Double.valueOf(bboxSplit[0]), Double.valueOf(bboxSplit[2]));
-                    envelope.setRange(1, Double.valueOf(bboxSplit[1]), Double.valueOf(bboxSplit[3]));
+        try {
+            // Envelope.
+            final String[] bboxSplit = bbox.split(",");
+            final GeneralEnvelope envelope = new GeneralEnvelope(CRS.forCode(crsCode));
+            final int bboxDim = bboxSplit.length / 2;
+            ensureDimensionMatches("BBOX dimension", bboxDim, envelope);
+            for (int i = 0 ; i < bboxDim ; i++) {
+                final double lower = Double.parseDouble(bboxSplit[i].trim());
+                final double upper = Double.parseDouble(bboxSplit[i + bboxDim].trim());
+                envelope.setRange(i, lower, upper);
+            }
 
-                    // Dimension.
-                    final Dimension dimension = new Dimension(width, height);
+            // Dimension.
+            final Dimension dimension = new Dimension(width, height);
 
-                    // Style.
-                    final MutableStyle style;
-                    if (sldBody != null) {
-                        // Use specified style.
-                        final StringReader reader = new StringReader(sldBody);
-                        if ("1.1.0".equals(sldVersion)) {
-                            style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.V_1_1_0);
-                        } else {
-                            style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.SLD_1_0_0);
-                        }
-                    } else {
-                        //let portrayal process to apply its own style
-                        style= null;
-                    }
-
-                // Map context.
-                final MapContext mapContext = MapBuilder.createContext();
-                MapItem mapItem;
-                if (filter != null && !filter.isEmpty()) {
-                    final Map<String,Object> params = new HashMap<>();
-                    params.put("CQL_FILTER", filter);
-                    final Map<String,Object> extraParams = new HashMap<>();
-                    extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
-                    mapItem = layer.getMapLayer(style, extraParams);
+            // Style.
+            final MutableStyle style;
+            if (sldBody != null) {
+                // Use specified style.
+                final StringReader reader = new StringReader(sldBody);
+                if ("1.1.0".equals(sldVersion)) {
+                    style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.V_1_1_0);
                 } else {
-                    mapItem = layer.getMapLayer(style, null);
-                }
-
-                //append statistics to coverage resource
-                //used for palette creation when colors are not defined
-                replaceResource:
-                if (mapItem instanceof CoverageMapLayer) {
-                    final CoverageMapLayer cl = (CoverageMapLayer)mapItem;
-                    final MutableStyle covStyle = cl.getStyle();
-                    final GridCoverageResource res = cl.getResource();
-                    final String state = data.getStatsState();
-
-                    if (!"COMPLETED".equalsIgnoreCase(state)) {
-                        //if stats are not complete don't replace
-                        break replaceResource;
-                    }
-
-                    //Note : we don't check the style, do many cases to take in consideration
-                    //We could check for a RasterSymbolizer with a palette, but requires to check also filters, properties ... and so on.
-
-                    //parse statistics
-                    final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
-
-                    if (stats.getBands() == null || stats.getBands().length == 0) {
-                        //if stats are not complete don't replace
-                        break replaceResource;
-                    }
-
-                    //get original sample dimensions
-                    final List<SampleDimension> oldSampleDimensions;
-                    try {
-                        oldSampleDimensions = res.getSampleDimensions();
-                    } catch (DataStoreException ex) {
-                        throw new ConfigurationException(ex.getMessage(), ex);
-                    }
-
-                    //override sample dimensions
-                    final List<SampleDimension> newSampleDimensions = new ArrayList<>();
-                    final ImageStatistics.Band[] bands = stats.getBands();
-                    for (int i=0; i<bands.length; i++) {
-
-                        String description = ""+i;
-                        Unit unit = Units.UNITY;
-
-                        final List<Category> categories = new ArrayList<>();
-                        if (oldSampleDimensions != null && oldSampleDimensions.size() > i) {
-                            final SampleDimension gsd = oldSampleDimensions.get(i);
-                            description = String.valueOf(gsd.getName());
-                            unit = gsd.getUnits().orElse(Units.UNITY);
-
-                            //preserve no-data categories
-                            final List<Category> oldCategories = gsd.getCategories();
-                            gsd.getNoDataValues();
-                            if (oldCategories != null) {
-                                for (Category cat : oldCategories) {
-                                    if (!cat.isQuantitative()) {
-                                        categories.add(cat);
-                                    }
-                                }
-                            }
-                        }
-
-                        //min-max from statistics
-                        int min = (int) Math.floor(bands[i].getMin());
-                        int max = (int) Math.ceil(bands[i].getMax());
-                        if (min == max) min = max-1;
-
-                        final SampleDimension gsd = new SampleDimension.Builder()
-                                .setName(description)
-                                .addQuantitative("statdata", min, max, unit)
-                                .build();
-                        newSampleDimensions.add(gsd);
-                    }
-
-                    //create amended resource
-                    GridCoverageResource resource = res;
-                    final AmendedCoverageResource r = new AmendedCoverageResource(res, ((StoreResource) res).getOriginator());
-                    r.setOverrideDims(newSampleDimensions);
-                    resource = r;
-
-                    final MapLayer cml = MapBuilder.createCoverageLayer(resource, covStyle);
-                    cml.setDescription(cl.getDescription());
-                    cml.setElevationModel(cl.getElevationModel());
-                    cml.setOpacity(cl.getOpacity());
-                    cml.setName(cl.getName());
-                    cml.setSelectable(cl.isSelectable());
-                    cml.setVisible(cl.isVisible());
-                    mapItem = cml;
-                }
-
-                mapContext.items().add(mapItem);
-
-                    // Inputs.
-                    final SceneDef sceneDef = new SceneDef(mapContext, DEFAULT_HINTS);
-                    final CanvasDef canvasDef = new CanvasDef(dimension, null);
-                    final ViewDef viewDef = new ViewDef(envelope, 0, DEFAULT_MONITOR);
-                    final OutputDef outputDef = new OutputDef("image/png", new Object());
-
-                    // Create response.
-                    return new PortrayalResponse(canvasDef, sceneDef, viewDef, outputDef);
-
-                } catch (FactoryException | JAXBException | ConstellationStoreException ex) {
-                    throw new CstlServiceException(ex.getLocalizedMessage());
+                    style = new StyleXmlIO().readStyle(reader, Specification.SymbologyEncoding.SLD_1_0_0);
                 }
             } else {
-                throw new ConstellationStoreException("Unable to portray a non GeoData");
+                //let portrayal process to apply its own style
+                style= null;
             }
-        } else {
-            throw new TargetNotFoundException("Unexisting data: " + dataId);
+
+            // Map context.
+            MapItem mapItem;
+            if (filter != null && !filter.isEmpty()) {
+                final Map<String,Object> params = new HashMap<>();
+                params.put("CQL_FILTER", filter);
+                final Map<String,Object> extraParams = new HashMap<>();
+                extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
+                mapItem = layer.getMapLayer(style, extraParams);
+            } else {
+                mapItem = layer.getMapLayer(style, null);
+            }
+
+            // If no style is available, we'll try to infer one as precise as possible from computed statistics.
+            // TODO: This logic should be part of initial layer creation in DefaultCoverageData
+            if (mapItem instanceof MapLayer) {
+                final MapLayer ml = (MapLayer) mapItem;
+                if (style == null && ml.getResource() instanceof GridCoverageResource) {
+                    final GridCoverageResource res = (GridCoverageResource) ml.getResource();
+                    final String state = data.getStatsState();
+
+                    if (STATE_COMPLETED.equalsIgnoreCase(state)) {
+                        final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
+                        mapItem = GO2Utilities.inferStyle(stats, true)
+                                .<MapLayer>map(newStyle -> MapBuilder.createCoverageLayer(res, newStyle))
+                                .orElse(ml);
+                    }
+                }
+            }
+
+            final MapContext mapContext = MapBuilder.createContext();
+            mapContext.items().add(mapItem);
+
+            // Inputs.
+            final SceneDef sceneDef = new SceneDef(mapContext, DEFAULT_HINTS);
+            final CanvasDef canvasDef = new CanvasDef(dimension, null);
+            final ViewDef viewDef = new ViewDef(envelope, 0, DEFAULT_MONITOR);
+            final OutputDef outputDef = new OutputDef("image/png", new Object());
+
+            // Create response.
+            return new PortrayalResponse(canvasDef, sceneDef, viewDef, outputDef);
+
+        } catch (IOException | FactoryException | JAXBException | ConstellationStoreException ex) {
+            // TODO: format message to contain rendering parameters.
+            throw new CstlServiceException("Rendering failed for given parameters", ex);
         }
     }
-
 }
