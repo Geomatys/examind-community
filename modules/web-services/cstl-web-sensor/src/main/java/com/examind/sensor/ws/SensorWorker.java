@@ -18,6 +18,7 @@
  */
 package com.examind.sensor.ws;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.apache.sis.internal.storage.query.SimpleQuery;
@@ -36,6 +37,7 @@ import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.ObservationStore;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
+import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -133,6 +135,18 @@ public abstract class SensorWorker extends AbstractWorker {
             return null;
         } else {
             return sps.get(0);
+        }
+    }
+
+    protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(phenName)));
+        subquery.setFilter(filter);
+        Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, version);
+        if (sps.isEmpty()) {
+            return null;
+        } else {
+            return sps.iterator().next();
         }
     }
 }

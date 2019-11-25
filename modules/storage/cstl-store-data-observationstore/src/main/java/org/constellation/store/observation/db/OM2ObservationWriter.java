@@ -1226,11 +1226,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final List<String> fields = getFieldsFromResult((DataArrayProperty) result);
             final List<InternalPhenomenon> phenomenons = new ArrayList<>();
             for (String field : fields) {
-                phenomenons.add(new InternalPhenomenon(field));
+                phenomenons.add(new InternalPhenomenon(null, field));
             }
-            return new org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon(obsRef.getHref(), phenomenons);
+            return new org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon(null, obsRef.getHref(), phenomenons);
         }
-        return new InternalPhenomenon(obsRef.getHref());
+        return new InternalPhenomenon(null, obsRef.getHref());
     }
 
     private List<String> getFieldsFromResult(final DataArrayProperty arrayProp) {

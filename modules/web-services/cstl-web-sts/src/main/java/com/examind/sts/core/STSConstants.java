@@ -44,6 +44,8 @@ public final class STSConstants {
     public static final String STR_GETOBSERVATION_BYID       = "GetObservationById";
     public static final String STR_GETDATASTREAMS            = "getDatastreams";
     public static final String STR_GETDATASTREAM_BYID        = "getDatastreamById";
+    public static final String STR_GETMULTIDATASTREAMS       = "getDatastreams";
+    public static final String STR_GETMULTIDATASTREAM_BYID   = "getDatastreamById";
     public static final String STR_GETOBSERVEDPROPERTIES     = "GetObservedProperties";
     public static final String STR_GETOBSERVEDPROPERTY_BYID  = "GetObservedPropertyById";
     public static final String STR_GETLOCATIONS              = "GetLocations";

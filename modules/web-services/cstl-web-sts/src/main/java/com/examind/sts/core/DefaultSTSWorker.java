@@ -50,6 +50,8 @@ import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocations;
+import org.geotoolkit.sts.GetMultiDatastreamById;
+import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservationById;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
@@ -58,6 +60,7 @@ import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.STSRequest;
+import org.geotoolkit.sts.json.DataArray;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
@@ -66,6 +69,8 @@ import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.Location;
 import org.geotoolkit.sts.json.LocationsResponse;
+import org.geotoolkit.sts.json.MultiDatastream;
+import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
@@ -75,10 +80,18 @@ import org.geotoolkit.sts.json.Sensor;
 import org.geotoolkit.sts.json.SensorsResponse;
 import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.sts.json.ThingsResponse;
+import org.geotoolkit.swe.xml.AbstractBoolean;
+import org.geotoolkit.swe.xml.AbstractCategory;
+import org.geotoolkit.swe.xml.AbstractCount;
+import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.geotoolkit.swe.xml.DataComponentProperty;
+import org.geotoolkit.swe.xml.DataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
+import org.geotoolkit.swe.xml.Quantity;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.observation.Process;
 import org.opengis.temporal.Instant;
@@ -140,6 +153,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.addLink("Things", selfLink + "/Things");
         result.addLink("Locations", selfLink + "/Locations");
         result.addLink("Datastreams", selfLink + "/Datastreams");
+        result.addLink("MultiDatastreams", selfLink + "/MultiDatastreams");
         result.addLink("Sensors", selfLink + "/Sensors");
         result.addLink("Observations", selfLink + "/Observations");
         result.addLink("ObservedProperties", selfLink + "/ObservedProperties");
@@ -192,17 +206,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     @Override
-    public Observation getObservationById(GetObservationById goi) throws CstlServiceException {
+    public Observation getObservationById(GetObservationById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(goi.getId())));
+            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
             subquery.setFilter(filter);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, null, "inline", "2.0.0");
             if (obs.isEmpty()) {
                 return null;
             } else {
                 AbstractObservation sp = (AbstractObservation)obs.get(0);
-                Observation result = buildObservation(goi, sp);
+
+                Observation result = buildObservation(req, sp);
                 return result;
             }
         } catch (ConstellationStoreException ex) {
@@ -211,6 +226,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private Observation buildObservation(STSRequest req, AbstractObservation obs) throws ConstellationStoreException {
+        boolean isDataArray = "dataArray".equals(req.getResultFormat());
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obs.getName().getCode() + ")";
 
@@ -244,8 +260,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             observation = observation.resultTime(temporalObjToString(obs.getSamplingTime()));
         }
 
-        if (obs.getResult()!= null) {
-            observation = observation.result(null); //obs.getResult().toString()); // TODO
+        if (isDataArray) {
+            if (obs.getResult() instanceof DataArrayProperty) {
+                DataArray resultArray = new DataArray();
+                DataArrayProperty arp = (DataArrayProperty) obs.getResult();
+                if (arp.getDataArray() != null
+                        && arp.getDataArray().getPropertyElementType() != null
+                        && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+                    DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
+                    for (DataComponentProperty dcp : dr.getField()) {
+                        resultArray.getComponents().add(dcp.getName());
+                    }
+                }
+                observation.setResult(resultArray);
+            }
         }
 
         observation = observation.iotId(obs.getName().getCode())
@@ -359,6 +387,121 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return datastream;
     }
 
+    @Override
+    public MultiDatastreamsResponse getMultiDatastreams(GetMultiDatastreams req) throws CstlServiceException {
+        List<MultiDatastream> values = new ArrayList<>();
+        try {
+            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, null, "resultTemplate", "2.0.0");
+            for (org.opengis.observation.Observation template : templates) {
+                MultiDatastream result = buildMultiDatastream(req, (org.geotoolkit.observation.xml.AbstractObservation)template);
+                values.add(result);
+            }
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+        return new MultiDatastreamsResponse(values);
+    }
+
+
+    @Override
+    public MultiDatastream getMultiDatastreamById(GetMultiDatastreamById gd) throws CstlServiceException {
+        try {
+            final SimpleQuery subquery = new SimpleQuery();
+            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(gd.getId())));
+            subquery.setFilter(filter);
+            List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, null, "resultTemplate", "2.0.0");
+            if (obs.isEmpty()) {
+                return null;
+            } else {
+                AbstractObservation sp = (AbstractObservation)obs.get(0);
+                MultiDatastream result = buildMultiDatastream(gd, sp);
+                return result;
+            }
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    private MultiDatastream buildMultiDatastream(STSRequest req, AbstractObservation obs) throws ConstellationStoreException {
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/MultiDatastreams(" + obs.getName().getCode() + ")";
+
+        MultiDatastream datastream = new MultiDatastream();
+        if (req.getExpand().contains("ObservedProperties")) {
+            if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getPhenomenon()!= null) {
+                org.geotoolkit.swe.xml.Phenomenon obsPhen = (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon();
+                if (obsPhen instanceof CompositePhenomenon) {
+                    // for 2.0.0 issue with referenced phenomenon
+                    CompositePhenomenon compos = (CompositePhenomenon) getPhenomenon(((Phenomenon)obsPhen).getName().getCode(), "1.0.0");
+                    for (org.opengis.observation.Phenomenon phen : compos.getComponent()) {
+                        ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
+                        datastream.addObservedPropertiesItem(mphen);
+                    }
+
+                } else {
+                    ObservedProperty phen = buildPhenomenon(req, obsPhen);
+                    datastream.addObservedPropertiesItem(phen);
+                }
+            }
+        } else {
+            datastream.setObservedPropertyIotNavigationLink(selfLink + "/ObservedProperties");
+        }
+
+        if (req.getExpand().contains("Observations")) {
+            for (org.opengis.observation.Observation linkedObservation : getObservationsForDatastream(obs)) {
+                datastream.addObservationsItem(buildObservation(req, (AbstractObservation) linkedObservation));
+            }
+        } else {
+            datastream.setObservationsIotNavigationLink(selfLink + "/Observations");
+        }
+
+        if (req.getExpand().contains("Sensors")) {
+            if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(obs.getProcedure().getHref());
+                datastream.setSensor(buildSensor(req, s));
+            }
+        } else {
+            datastream.setSensorIotNavigationLink(selfLink + "/Sensors");
+        }
+
+        if (obs.getSamplingTime() != null) {
+            datastream.setResultTime(temporalObjToString(obs.getSamplingTime()));
+        }
+
+        datastream.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
+
+        if (obs.getResult() instanceof DataArrayProperty) {
+            DataArrayProperty arp = (DataArrayProperty) obs.getResult();
+            if (arp.getDataArray() != null &&
+                arp.getDataArray().getPropertyElementType() != null &&
+                arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+                DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
+                for (DataComponentProperty dcp : dr.getField()) {
+                    if (dcp.getValue() instanceof Quantity) {
+                        datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement");
+                    } else if (dcp.getValue() instanceof AbstractCategory) {
+                        datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CategoryObservation");
+                    } else if (dcp.getValue() instanceof AbstractCount) {
+                        datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CountObservation");
+                    } else if (dcp.getValue() instanceof AbstractBoolean) {
+                        datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation");
+                    } else {
+                        datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation");
+                    }
+                }
+            }
+        }
+        // TODO area
+        // TODO description
+        // TODO thing
+        // TODO uom
+
+        datastream.setIotId(obs.getName().getCode());
+        datastream.setIotSelfLink(selfLink);
+        return datastream;
+    }
+
     private List<org.opengis.observation.Observation> getObservationsForDatastream(org.opengis.observation.Observation template) throws ConstellationStoreException {
         if (template.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
             final SimpleQuery subquery = new SimpleQuery();
@@ -392,8 +535,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = buildExtraFilterQuery(req);
             Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, "2.0.0");
             for (org.opengis.observation.Phenomenon sp : sps) {
-                ObservedProperty result = buildPhenomenon(req, (Phenomenon)sp);
-                values.add(result);
+                if (sp instanceof CompositePhenomenon &&
+                    req.getExtraFlag().containsKey("fromMultiDatastream") &&
+                    req.getExtraFlag().get("fromMultiDatastream").equals("true")) {
+                    // for 2.0.0 issue with referenced phenomenon
+                    CompositePhenomenon compos = (CompositePhenomenon) getPhenomenon(((Phenomenon)sp).getName().getCode(), "1.0.0");
+                    for (org.opengis.observation.Phenomenon phen : compos.getComponent()) {
+                        ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
+                        values.add(mphen);
+                    }
+
+                } else {
+                    ObservedProperty result = buildPhenomenon(req, (Phenomenon)sp);
+                    values.add(result);
+                }
             }
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);

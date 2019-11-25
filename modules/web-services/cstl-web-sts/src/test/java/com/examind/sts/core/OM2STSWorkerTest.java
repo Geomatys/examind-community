@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.sql.Connection;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,8 @@ import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetMultiDatastreamById;
+import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservationById;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
@@ -61,6 +64,8 @@ import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
 import org.geotoolkit.sts.json.FeatureOfInterestsResponse;
+import org.geotoolkit.sts.json.MultiDatastream;
+import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
@@ -329,12 +334,99 @@ public class OM2STSWorkerTest {
     }
 
     @Test
+    @Order(order=3)
+    public void getObservationByIdDataArrayTest() throws Exception {
+        GetObservationById request = new GetObservationById("urn:ogc:object:observation:GEOM:201");
+        request.setResultFormat("dataArray");
+        Observation result = worker.getObservationById(request);
+
+        Observation expResult = new Observation()
+                .iotId("urn:ogc:object:observation:GEOM:201")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/FeatureOfInterests")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)")
+                .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/Datastreams");
+        Assert.assertEquals(expResult, result);
+
+        /*
+         * expand foi, datastreams
+         */
+        request.getExpand().add("FeatureOfInterests");
+        request.getExpand().add("Datastreams");
+        result = worker.getObservationById(request);
+
+        FeatureOfInterest expFoi = new FeatureOfInterest()
+                .description("Point d'eau BSSS")
+                .name("10972X0137-PLOUF")
+                .iotId("station-002")
+                .encodingType("application/vnd.geo+json")
+                .iotSelfLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-002)")
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-002)/Observations");
+        expResult.setFeatureOfInterest(expFoi);
+        expResult.setFeatureOfInterestIotNavigationLink(null);
+
+        Datastream expDatas = new Datastream()
+                .iotId("urn:ogc:object:observation:template:GEOM:2")
+                .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2)")
+               // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2)/Observations")
+                .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
+        expResult.setDatastream(expDatas);
+        expResult.setDatastreamIotNavigationLink(null);
+
+        Assert.assertEquals(expResult.getDatastream(), result.getDatastream());
+        Assert.assertEquals(expResult.getFeatureOfInterest(), result.getFeatureOfInterest());
+        Assert.assertEquals(expResult, result);
+
+       /*
+        * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/FeatureOfInterests
+        */
+        GetFeatureOfInterests gfRequest = new GetFeatureOfInterests();
+        gfRequest.getExtraFilter().put("observationId", "urn:ogc:object:observation:GEOM:201");
+
+        FeatureOfInterestsResponse foiResult = worker.getFeatureOfInterests(gfRequest);
+        Assert.assertEquals(1, foiResult.getValue().size());
+        Assert.assertEquals(expFoi, foiResult.getValue().get(0));
+
+       /*
+        * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/Datastreams
+        */
+       GetDatastreams gdRequest = new GetDatastreams();
+       gdRequest.getExtraFilter().put("observationId", "urn:ogc:object:observation:GEOM:201");
+
+       DatastreamsResponse dsResult = worker.getDatastreams(gdRequest);
+       Assert.assertEquals(1, dsResult.getValue().size());
+       Assert.assertEquals(expDatas, dsResult.getValue().get(0));
+
+    }
+
+    @Test
     @Order(order=4)
     public void getObservationsTest() throws Exception {
         GetObservations request = new GetObservations();
         ObservationsResponse result = worker.getObservations(request);
 
         Assert.assertEquals(9, result.getValue().size());
+
+         Set<String> resultIds = new HashSet<>();
+        result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
+
+        Assert.assertEquals(9, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:1002");
+        expectedIds.add("urn:ogc:object:observation:GEOM:201");
+        expectedIds.add("urn:ogc:object:observation:GEOM:1001");
+        expectedIds.add("urn:ogc:object:observation:GEOM:801");
+        expectedIds.add("urn:ogc:object:observation:GEOM:901");
+        expectedIds.add("urn:ogc:object:observation:GEOM:406");
+        expectedIds.add("urn:ogc:object:observation:GEOM:802");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507");
+        expectedIds.add("urn:ogc:object:observation:GEOM:304");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
     }
 
     @Test
@@ -390,6 +482,16 @@ public class OM2STSWorkerTest {
         ObservedPropertiesResponse result = worker.getObservedProperties(request);
 
         Assert.assertEquals(3, result.getValue().size());
+        Set<String> resultIds = new HashSet<>();
+        result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
+
+        Assert.assertEquals(3, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:def:phenomenon:GEOM:temperature");
+        expectedIds.add("urn:ogc:def:phenomenon:GEOM:depth");
+        expectedIds.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
+        Assert.assertEquals(expectedIds, resultIds);
     }
 
     @Test
@@ -506,6 +608,132 @@ public class OM2STSWorkerTest {
 
     @Test
     @Order(order=9)
+    public void getMultiDatastreamByIdTest() throws Exception {
+        GetMultiDatastreamById request = new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:2");
+        MultiDatastream result = worker.getMultiDatastreamById(request);
+
+        MultiDatastream expResult = new MultiDatastream();
+                expResult.setIotId("urn:ogc:object:observation:template:GEOM:2");
+                expResult.setObservedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties");
+                expResult.setIotSelfLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)");
+               // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations");
+                expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
+                expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
+                expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+                                                                     "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+
+        Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
+        Assert.assertEquals(expResult.getObservationType(), result.getObservationType());
+        Assert.assertEquals(expResult, result);
+
+        /*
+         * expand obs property, sensor, observation
+         */
+        request.getExpand().add("ObservedProperties");
+        request.getExpand().add("Sensors");
+        request.getExpand().add("Observations");
+        result = worker.getMultiDatastreamById(request);
+
+        ObservedProperty expObsProp1 = new ObservedProperty()
+                .iotId("urn:ogc:def:phenomenon:GEOM:depth")
+                .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)")
+                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams");
+        ObservedProperty expObsProp2 = new ObservedProperty()
+                .iotId("urn:ogc:def:phenomenon:GEOM:temperature")
+                .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)")
+                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams");
+        expResult.setObservedProperties(Arrays.asList(expObsProp1,expObsProp2));
+        expResult.setObservedPropertyIotNavigationLink(null);
+
+        org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
+                .description("TODO")
+                .name("urn:ogc:object:sensor:GEOM:2")
+                .iotId("urn:ogc:object:sensor:GEOM:2")
+                .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:2)")
+                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/Sensors(urn:ogc:object:sensor:GEOM:2)/Datastreams");
+
+        expResult.setSensor(sensor);
+        expResult.setSensorIotNavigationLink(null);
+
+        Observation expObs = new Observation()
+                .iotId("urn:ogc:object:observation:GEOM:201")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/FeatureOfInterests")
+                .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)")
+                .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:201)/Datastreams");
+
+        expResult.addObservationsItem(expObs);
+        expResult.setObservationsIotNavigationLink(null);
+
+        Assert.assertEquals(expResult.getObservedProperty(),          result.getObservedProperty());
+        Assert.assertEquals(expResult.getObservations(),              result.getObservations());
+        Assert.assertEquals(expResult.getSensor(),                    result.getSensor());
+        Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
+        Assert.assertEquals(expResult.getObservedProperties(),        result.getObservedProperties());
+        Assert.assertEquals(expResult, result);
+
+
+       /*
+        * http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties
+        */
+       GetObservedProperties gop = new GetObservedProperties();
+       gop.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:2");
+       gop.getExtraFlag().put("fromMultiDatastream", "true");
+       ObservedPropertiesResponse obsPropResult = worker.getObservedProperties(gop);
+       Assert.assertEquals(2, obsPropResult.getValue().size());
+       Assert.assertEquals(expObsProp1, obsPropResult.getValue().get(0));
+       Assert.assertEquals(expObsProp2, obsPropResult.getValue().get(1));
+
+       /*
+        * http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations
+        */
+       GetObservations go = new GetObservations();
+       go.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:2");
+       ObservationsResponse obsResult = worker.getObservations(go);
+       Assert.assertEquals(1, obsResult.getValue().size());
+       Assert.assertEquals(expObs, obsResult.getValue().get(0));
+
+
+       /*
+        * http://test.geomatys.com/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors
+        */
+       GetSensors gs = new GetSensors();
+       gs.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:2");
+       SensorsResponse senResult = worker.getSensors(gs);
+       Assert.assertEquals(1, senResult.getValue().size());
+       Assert.assertEquals(sensor, senResult.getValue().get(0));
+    }
+
+    @Test
+    @Order(order=10)
+    public void getMultiDatastreamTest() throws Exception {
+        GetMultiDatastreams request = new GetMultiDatastreams();
+        MultiDatastreamsResponse result = worker.getMultiDatastreams(request);
+
+        Assert.assertEquals(8, result.getValue().size());
+
+        Set<String> resultIds = new HashSet<>();
+        result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
+
+        Assert.assertEquals(8, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
+        Assert.assertEquals(expectedIds, resultIds);
+
+    }
+
+    @Test
+    @Order(order=11)
     public void getSensorByIdTest() throws Exception {
         GetSensorById request = new GetSensorById();
         request.setId("urn:ogc:object:sensor:GEOM:2");
@@ -551,7 +779,7 @@ public class OM2STSWorkerTest {
     }
 
     @Test
-    @Order(order=10)
+    @Order(order=12)
     public void getsensorsTest() throws Exception {
         GetSensors request = new GetSensors();
         SensorsResponse result = worker.getSensors(request);
@@ -560,7 +788,7 @@ public class OM2STSWorkerTest {
     }
 
     @Test
-    @Order(order=11)
+    @Order(order=13)
     public void getCapabilitiesTest() throws Exception {
         GetCapabilities req = new GetCapabilities();
         STSCapabilities result = worker.getCapabilities(req);
@@ -569,6 +797,7 @@ public class OM2STSWorkerTest {
         expesult.addLink("Things", "http://test.geomatys.com/sts/default/Things");
         expesult.addLink("Locations", "http://test.geomatys.com/sts/default/Locations");
         expesult.addLink("Datastreams", "http://test.geomatys.com/sts/default/Datastreams");
+        expesult.addLink("MultiDatastreams", "http://test.geomatys.com/sts/default/MultiDatastreams");
         expesult.addLink("Sensors", "http://test.geomatys.com/sts/default/Sensors");
         expesult.addLink("Observations", "http://test.geomatys.com/sts/default/Observations");
         expesult.addLink("ObservedProperties", "http://test.geomatys.com/sts/default/ObservedProperties");

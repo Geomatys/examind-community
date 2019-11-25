@@ -29,6 +29,8 @@ import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocations;
+import org.geotoolkit.sts.GetMultiDatastreamById;
+import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservationById;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
@@ -44,6 +46,8 @@ import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.Location;
 import org.geotoolkit.sts.json.LocationsResponse;
+import org.geotoolkit.sts.json.MultiDatastream;
+import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.Observation;
 import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
@@ -74,6 +78,10 @@ public interface STSWorker extends Worker {
     DatastreamsResponse getDatastreams(GetDatastreams gd) throws CstlServiceException;
 
     Datastream getDatastreamById(GetDatastreamById gd) throws CstlServiceException;
+
+    MultiDatastreamsResponse getMultiDatastreams(GetMultiDatastreams gd) throws CstlServiceException;
+
+    MultiDatastream getMultiDatastreamById(GetMultiDatastreamById gd) throws CstlServiceException;
 
     void addDatastream(Datastream datastream) throws CstlServiceException;
 
