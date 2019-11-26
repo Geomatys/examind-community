@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.configuration.AppProperty;
@@ -180,10 +181,23 @@ public class RunPBS extends AbstractCstlProcess {
 			if (!runCommand.contains("-v")) {
 			    runCommand = runCommand + " -v ";
 			}
-			    
-		    
-			runCommand = runCommand + keyVar.toUpperCase() + "=" + ValueVar + ",";
+	    
+			runCommand = runCommand + keyVar.toUpperCase() + "=" + "'" + ValueVar + "'" + ",";
 		    }
+	
+		    // Set UID if required
+		    if (keyVar.equals("uid")) {
+			if (!runCommand.contains("-v")) {
+			    runCommand = runCommand + " -v ";	
+			}
+			
+			// Create a unique id
+			String uid = UUID.randomUUID().toString();
+			
+			runCommand = runCommand + keyVar.toUpperCase() + "=" + "'" + uid + "'" + ",";
+		
+		    }
+
 		}
 	    }
 
