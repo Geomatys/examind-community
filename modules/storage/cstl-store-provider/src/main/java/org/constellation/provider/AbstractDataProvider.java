@@ -19,17 +19,18 @@
 
 package org.constellation.provider;
 
-import org.constellation.api.ProviderType;
-import org.opengis.parameter.ParameterValueGroup;
-
 import java.util.Collection;
-import java.util.Set;
 import java.util.logging.Logger;
+
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.constellation.exception.ConstellationStoreException;
 
 import org.geotoolkit.util.NamesExt;
-import org.opengis.util.GenericName;
+
+import org.constellation.api.ProviderType;
+import org.constellation.exception.ConstellationStoreException;
 
 /**
  * Abstract implementation of LayerProvider which only handle the
@@ -139,9 +140,8 @@ public abstract class AbstractDataProvider implements DataProvider{
      * Provider should pass by this method to fill there index.
      * loading the index is part of the child class.
      */
-    protected void visit(){
-        final ParameterValueGroup config = getSource();
-        final Set<GenericName> keys = getKeys();
+    protected void visit() {
+        // Default to no-op
     }
 
     public static GenericName containsOnlyLocalPart(final Collection<GenericName> index, final GenericName layerName) {

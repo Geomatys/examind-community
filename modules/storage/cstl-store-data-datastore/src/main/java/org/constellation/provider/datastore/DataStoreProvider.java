@@ -18,6 +18,7 @@
  */
 package org.constellation.provider.datastore;
 
+import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
@@ -25,7 +26,16 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+
+import org.opengis.geometry.Envelope;
+import org.opengis.parameter.GeneralParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
@@ -35,10 +45,24 @@ import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureNaming;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.ArraysExt;
+import org.apache.sis.util.iso.Names;
+
+import org.geotoolkit.db.postgres.PostgresFeatureStore;
+import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.storage.ResourceType;
+import org.geotoolkit.storage.feature.FeatureStore;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.geotoolkit.storage.memory.ExtendedFeatureStore;
+
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -48,23 +72,6 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
-import org.constellation.util.StoreUtilities;
-import org.geotoolkit.storage.feature.FeatureStore;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.geotoolkit.storage.memory.ExtendedFeatureStore;
-import org.geotoolkit.storage.memory.InMemoryStore;
-import org.geotoolkit.db.postgres.PostgresFeatureStore;
-import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
-import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.ResourceType;
-import org.opengis.geometry.Envelope;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -72,12 +79,15 @@ import org.opengis.util.GenericName;
  */
 public class DataStoreProvider extends AbstractDataProvider{
 
+    private static final String SEPARATOR = ":";
 
-    private final Set<GenericName> index = new LinkedHashSet<>();
+    private FeatureNaming<CachedData> index = new FeatureNaming<>();
+    private final LinkedHashSet<GenericName> nameList = new LinkedHashSet<>();
+    final StampedLock lock = new StampedLock();
     private org.apache.sis.storage.DataStore store;
 
 
-    public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
+    public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
         visit();
     }
@@ -115,7 +125,7 @@ public class DataStoreProvider extends AbstractDataProvider{
      * @return the datastore this provider encapsulate.
      */
     @Override
-    public synchronized org.apache.sis.storage.DataStore getMainStore(){
+    public synchronized org.apache.sis.storage.DataStore getMainStore() {
         if(store==null){
             store = createBaseStore();
         }
@@ -127,7 +137,7 @@ public class DataStoreProvider extends AbstractDataProvider{
      */
     @Override
     public synchronized Set<GenericName> getKeys() {
-        return Collections.unmodifiableSet(index);
+        return Collections.unmodifiableSet(nameList);
     }
 
     /**
@@ -143,24 +153,31 @@ public class DataStoreProvider extends AbstractDataProvider{
      */
     @Override
     public Data get(GenericName key, Date version) {
-        key = fullyQualified(key);
-        if(!contains(key)){
+        try {
+            return index.get(getMainStore(), forceAbsolutePath(key).toString())
+                    .getOrCreate(version);
+        } catch (IllegalNameException e) {
+            getLogger().log(Level.FINE, "Queried an unknown name: "+key, e);
             return null;
         }
+    }
 
+    private Data create(final String dataName, Date version) {
         final org.apache.sis.storage.DataStore store = getMainStore();
         try {
-            final Resource rs = StoreUtilities.findResource(store, key.toString());
+            final Resource rs = store.findResource(dataName);
+            final GenericName targetName = rs.getIdentifier()
+                    .orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
             if (rs instanceof org.apache.sis.storage.GridCoverageResource) {
-                return new DefaultCoverageData(key, (org.apache.sis.storage.GridCoverageResource) rs, store);
+                return new DefaultCoverageData(targetName, (org.apache.sis.storage.GridCoverageResource) rs, store);
             } else if (rs instanceof FeatureSet){
-                return new DefaultFeatureData(key, store, (FeatureSet) rs, null, null, null, null, version);
+                return new DefaultFeatureData(targetName, store, (FeatureSet) rs, null, null, null, null, version);
 
-            // Other Data
+                // Other Data
             } else if (!(rs instanceof Aggregate)){
-                return new DefaultOtherData(key, rs, store);
+                return new DefaultOtherData(targetName, rs, store);
             }
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | NullPointerException ex) {
             getLogger().log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
@@ -168,36 +185,32 @@ public class DataStoreProvider extends AbstractDataProvider{
 
     @Override
     protected synchronized void visit() {
-        store = createBaseStore();
+        store = getMainStore();
+        index = new FeatureNaming<>();
         if (store == null) {
-            //use an empty datastore in case of the store is temporarly unavailable
-            store = new InMemoryStore();
+            getLogger().warning("Cannot visit main store because its has not been initialized properly. Provider: "+getId());
+            return;
         }
 
         try {
-
-            for (final Resource rs : DataStores.flatten(store, true)) {
+            for (final DataSet rs : DataStores.flatten(store, true, DataSet.class)) {
                 Optional<GenericName> name = rs.getIdentifier();
                 if (name.isPresent()) {
-                    if (rs instanceof FeatureSet || rs instanceof org.apache.sis.storage.GridCoverageResource) {
-                        if (!index.contains(name.get())) {
-                            index.add(name.get());
-                        }
-                    } else if (!(rs instanceof Aggregate)) {
-                        if (!index.contains(name.get())) {
-                            index.add(name.get());
-                        }
-                    }
+                    final GenericName baseName = name.get();
+                    final GenericName indexedName = forceAbsolutePath(baseName);
+                    // Cached data use base name to retrieve it from data-store.
+                    index.add(store, indexedName, new CachedData(baseName.toString()));
+                    nameList.add(baseName);
+                } else {
+                    getLogger().warning("DataSet ignored because it is unidentified: "+rs);
                 }
             }
-
         } catch (DataStoreException ex) {
             //Looks like we failed to retrieve the list of featuretypes,
             //the layers won't be indexed and the getCapability
             //won't be able to find thoses layers.
             getLogger().log(Level.SEVERE, "Failed to retrive list of available feature types.", ex);
         }
-
 
         super.visit();
     }
@@ -333,10 +346,13 @@ public class DataStoreProvider extends AbstractDataProvider{
             try {
                 store.close();
             } catch (DataStoreException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
+                LOGGER.log(Level.WARNING, "Cannot properly dispose DataStore provider "+getId(), ex);
+            } finally {
+                store = null;
             }
         }
-        index.clear();
+        index = null;
+        nameList.clear();
     }
 
     @Override
@@ -360,7 +376,7 @@ public class DataStoreProvider extends AbstractDataProvider{
                     return isNetCDF;
                 }
             } catch (DataStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error while retrieving file from datastore:" + getId(), ex);
+                LOGGER.log(Level.WARNING, "Error while retrieving file from datastore: " + getId(), ex);
             }
         }
         return super.isSensorAffectable();
@@ -460,5 +476,53 @@ public class DataStoreProvider extends AbstractDataProvider{
             return candidat.getName().toString();
         }
         return null;
+    }
+
+    /**
+     * This method tries to define a strict representation of names to allow name comparison without ambiguity. Possible
+     * problems are:
+     * <ul>
+     *     <li>
+     *         Separator inconsistency: Given names for search usually use ':' as separator. However, user can choose
+     *         any character at the time of name creation. We could (and it already happened) try to compare names with
+     *         different separators, which would always fail. Here, we force {@link #SEPARATOR a constant separator}.
+     *     </li>
+     *     <li>
+     *         Path definition: some names can use a namespace + local name construct, but others can be created using
+     *         {@link Names#createScopedName(GenericName, String, CharSequence) scoped name construct}. Both approach
+     *         are valid, but incompatible in terms of comparison. We'll force scoped name construct for each input name.
+     *     </li>
+     * </ul>
+     * @param origin
+     * @return
+     */
+    private static GenericName forceAbsolutePath(final GenericName origin) {
+        final GenericName fullName = origin.toFullyQualifiedName();
+        final CharSequence[] parts = fullName.getParsedNames().stream()
+                .map(part -> part.toString())
+                .toArray(size -> new CharSequence[size]);
+        return Names.createGenericName(null, SEPARATOR, parts);
+    }
+
+    private class CachedData {
+        final String dataName;
+
+        WeakReference<Data> ref;
+
+        private CachedData(String dataName) {
+            this.dataName = dataName;
+        }
+
+        Data getOrCreate(final Date version) {
+            // In case a version is given (~ 0.00001% of cases), skip cache.
+            if (version != null) return create(dataName, version);
+
+            Data cached = ref == null? null : ref.get();
+            if (cached == null) {
+                cached = create(dataName, null); // Ok because we short-circuit non-null version above.
+                ref = new WeakReference<>(cached);
+            }
+            return cached;
+        }
     }
 }
