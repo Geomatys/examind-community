@@ -23,6 +23,7 @@ import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.coverage.grid.GridCoverageStack;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.util.grid.GridTraversal;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.LineString;
