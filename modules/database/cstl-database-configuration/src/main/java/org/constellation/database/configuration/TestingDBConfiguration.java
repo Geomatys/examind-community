@@ -18,20 +18,21 @@
  */
 package org.constellation.database.configuration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+
+import org.apache.sis.util.logging.Logging;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
-
-import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
-import org.apache.sis.util.logging.Logging;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -59,6 +60,7 @@ public class TestingDBConfiguration implements IDatabaseConfiguration {
         }
 
         HikariConfig config = DatabaseConfigurationUtils.createHikariConfig(testDBURL, "testing", 5);
+        config.setLeakDetectionThreshold(10_000);
         try {
             testDatasource = new HikariDataSource(config);
             if (testDBURL.contains("postgres")) {

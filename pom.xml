@@ -915,6 +915,13 @@
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-processing-core</artifactId>
                 <version>${geotoolkit.version}</version>
+                <!-- Import Quartz which imports an obsolete version of Hikari, causing problems with HikariConfig serialization (datacube) -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.zaxxer</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotoolkit</groupId>
