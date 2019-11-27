@@ -23,6 +23,7 @@ import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.coverage.grid.GridCoverageStack;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.util.grid.GridTraversal;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
@@ -88,7 +89,8 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
         final CoordinateReferenceSystem dataCrs = datasource.getCoordinateReferenceSystem();
         this.dataCrs = CRS.getHorizontalComponent(dataCrs);
 
-        final GridGeometry gridGeometry = datasource.getGridGeometry();
+        GridGeometry gridGeometry = datasource.getGridGeometry();
+        gridGeometry = CoverageUtilities.forceLowerToZero(gridGeometry);
         final MathTransform gridToDataCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
         final TransformSeparator ts = new TransformSeparator(gridToDataCrs);
         ts.addSourceDimensions(0,1);
