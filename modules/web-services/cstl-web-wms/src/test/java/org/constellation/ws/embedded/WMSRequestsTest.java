@@ -965,7 +965,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         String expResult = "SSTMDE200305\n" +
-                           "Sans titre [1];\n"+
+                           "0;\n"+
                            "0.0;\n\n";
 
         String result = getStringResponse(gfi);
