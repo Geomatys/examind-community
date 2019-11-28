@@ -136,14 +136,6 @@ public abstract class AbstractDataProvider implements DataProvider{
         return key;
     }
 
-    /**
-     * Provider should pass by this method to fill there index.
-     * loading the index is part of the child class.
-     */
-    protected void visit() {
-        // Default to no-op
-    }
-
     public static GenericName containsOnlyLocalPart(final Collection<GenericName> index, final GenericName layerName) {
         if (layerName != null) {
             if (NamesExt.getNamespace(layerName) == null) {

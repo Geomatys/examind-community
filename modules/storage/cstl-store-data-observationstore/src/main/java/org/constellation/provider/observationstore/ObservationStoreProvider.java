@@ -178,7 +178,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         return null;
     }
 
-    @Override
     protected synchronized void visit() {
         store = createBaseStore();
 
@@ -201,8 +200,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             //won't be able to find thoses layers.
             getLogger().log(Level.SEVERE, "Failed to retrive list of available feature types.", ex);
         }
-
-        super.visit();
     }
 
     protected ObservationStore createBaseStore() {

@@ -26,28 +26,32 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreException;
-import org.constellation.api.DataType;
-import org.constellation.provider.AbstractDataProvider;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProviderFactory;
-import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
+
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
+
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ArraysExt;
-import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.MetadataProvider;
+
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
+import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
+
+import org.constellation.api.DataType;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.MetadataProvider;
 import org.w3c.dom.Node;
 
 /**
@@ -131,7 +135,6 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
         return null;
     }
 
-    @Override
     protected synchronized void visit() {
         store = createBaseStore();
 
@@ -153,9 +156,6 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             //won't be able to find thoses layers.
             getLogger().log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
         }
-
-
-        super.visit();
     }
 
     protected MetadataStore createBaseStore() {

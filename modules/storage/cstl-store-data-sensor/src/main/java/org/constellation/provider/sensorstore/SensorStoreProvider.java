@@ -26,25 +26,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreException;
-import org.constellation.api.DataType;
-import org.constellation.provider.AbstractDataProvider;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProviderFactory;
-import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
+
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
+
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.ArraysExt;
-import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.SensorProvider;
+
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.sml.xml.AbstractSensorML;
+import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
+import org.geotoolkit.util.NamesExt;
+
+import org.constellation.api.DataType;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.AbstractDataProvider;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.SensorProvider;
 
 /**
  *
@@ -129,7 +133,6 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         return null;
     }
 
-    @Override
     protected synchronized void visit() {
         store = createBaseStore();
 
@@ -148,9 +151,6 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             //won't be able to find thoses layers.
             getLogger().log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
         }
-
-
-        super.visit();
     }
 
     protected AbstractSensorStore createBaseStore() {
