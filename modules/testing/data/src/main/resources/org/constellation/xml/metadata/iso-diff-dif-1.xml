@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MD_Metadata xmlns="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd http://www.isotc211.org/2005/gmx http://schemas.opengis.net/iso/19139/20070417/gmx/gmx.xsd">
+    <fileIdentifier>
+        <CharacterString xmlns="http://www.isotc211.org/2005/gco">id-1</CharacterString>
+    </fileIdentifier>
+    <contact>
+        <CI_ResponsibleParty>
+            <organisationName>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Geomatys</CharacterString>
+            </organisationName>
+            <positionName>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">METADATA AUTHOR</CharacterString>
+            </positionName>
+            <contactInfo>
+                <CI_Contact>
+                    <phone>
+                        <CI_Telephone>
+                            <voice>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">0466441122</CharacterString>
+                            </voice>
+                        </CI_Telephone>
+                    </phone>
+                    <address>
+                        <CI_Address>
+                            <deliveryPoint>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">12 rue blip</CharacterString>
+                            </deliveryPoint>
+                            <city>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Montpellier</CharacterString>
+                            </city>
+                            <postalCode>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">34000</CharacterString>
+                            </postalCode>
+                            <country>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">France</CharacterString>
+                            </country>
+                            <electronicMailAddress>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">contact@geomatys.com</CharacterString>
+                            </electronicMailAddress>
+                        </CI_Address>
+                    </address>
+                </CI_Contact>
+            </contactInfo>
+            <role>
+                <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="author">author</CI_RoleCode>
+            </role>
+        </CI_ResponsibleParty>
+    </contact>
+    <contact>
+        <CI_ResponsibleParty>
+            <individualName>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">jean pierre imbert</CharacterString>
+            </individualName>
+            <positionName>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">METADATA AUTHOR</CharacterString>
+            </positionName>
+            <contactInfo>
+                <CI_Contact>
+                    <phone>
+                        <CI_Telephone>
+                            <voice>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">0466441122</CharacterString>
+                            </voice>
+                        </CI_Telephone>
+                    </phone>
+                    <address>
+                        <CI_Address>
+                            <deliveryPoint>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">12 rue blip</CharacterString>
+                            </deliveryPoint>
+                            <city>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Montpellier</CharacterString>
+                            </city>
+                            <postalCode>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">34000</CharacterString>
+                            </postalCode>
+                            <country>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">France</CharacterString>
+                            </country>
+                            <electronicMailAddress>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">contact@geomatys.com</CharacterString>
+                            </electronicMailAddress>
+                        </CI_Address>
+                    </address>
+                </CI_Contact>
+            </contactInfo>
+            <role>
+                <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="author">author</CI_RoleCode>
+            </role>
+        </CI_ResponsibleParty>
+    </contact>
+    <dateStamp>
+        <DateTime xmlns="http://www.isotc211.org/2005/gco">2010-12-01T12:00:00Z</DateTime>
+    </dateStamp>
+    <identificationInfo>
+        <MD_DataIdentification>
+            <citation>
+                <CI_Citation>
+                    <title>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">title</CharacterString>
+                    </title>
+                </CI_Citation>
+            </citation>
+            <abstract>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">some abstract</CharacterString>
+            </abstract>
+            <purpose>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">some purpose</CharacterString>
+            </purpose>
+            <status>
+                <MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="COMPLETE">COMPLETE</MD_ProgressCode>
+            </status>
+            <graphicOverview>
+                <MD_BrowseGraphic>
+                    <fileName>
+                        <FileName src="http://localhost:8080/quicklook/SCENE_5_083-342_09_04_16_09_38_39_1_J.png" xmlns="http://www.isotc211.org/2005/gmx">http://localhost:8080/quicklook/SCENE_5_083-342_09_04_16_09_38_39_1_J.png</FileName>
+                    </fileName>
+                    <fileDescription>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">quicklook</CharacterString>
+                    </fileDescription>
+                    <fileType>
+                        <MimeFileType type="image/png" xmlns="http://www.isotc211.org/2005/gmx">image/png</MimeFileType>
+                    </fileType>
+                </MD_BrowseGraphic>
+            </graphicOverview>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">science category</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">science topic</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">science term</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">theme</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">NASA/GCMD Science Keywords</CharacterString>
+                            </title>
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">anc kw1</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">anc kw2</CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <resourceConstraints>
+                <MD_LegalConstraints>
+                    <useLimitation>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">use csts</CharacterString>
+                    </useLimitation>
+                    <otherConstraints>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">some acces constraint</CharacterString>
+                    </otherConstraints>
+                </MD_LegalConstraints>
+            </resourceConstraints>
+            <language>
+                <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="French">French</LanguageCode>
+            </language>
+            <topicCategory>
+                <MD_TopicCategoryCode>economy</MD_TopicCategoryCode>
+            </topicCategory>
+            <extent>
+                <EX_Extent>
+                    <geographicElement>
+                        <EX_GeographicDescription>
+                            <geographicIdentifier>
+                                <MD_Identifier>
+                                    <code>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">GARD</CharacterString>
+                                    </code>
+                                </MD_Identifier>
+                            </geographicIdentifier>
+                        </EX_GeographicDescription>
+                    </geographicElement>
+                    <geographicElement>
+                        <EX_GeographicBoundingBox>
+                            <westBoundLongitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">5.0</Decimal>
+                            </westBoundLongitude>
+                            <eastBoundLongitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">5.0</Decimal>
+                            </eastBoundLongitude>
+                            <southBoundLatitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">5.0</Decimal>
+                            </southBoundLatitude>
+                            <northBoundLatitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">5.0</Decimal>
+                            </northBoundLatitude>
+                        </EX_GeographicBoundingBox>
+                    </geographicElement>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
+                                    <beginPosition>2010-12-01T12:00:00Z</beginPosition>
+                                    <endPosition>2010-12-02T23:00:00Z</endPosition>
+                                </TimePeriod>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
+                    <verticalElement>
+                        <EX_VerticalExtent>
+                            <minimumValue>
+                                <Real xmlns="http://www.isotc211.org/2005/gco">3</Real>
+                            </minimumValue>
+                            <maximumValue>
+                                <Real xmlns="http://www.isotc211.org/2005/gco">10</Real>
+                            </maximumValue>
+                        </EX_VerticalExtent>
+                    </verticalElement>
+                </EX_Extent>
+            </extent>
+        </MD_DataIdentification>
+    </identificationInfo>
+    <distributionInfo>
+        <MD_Distribution>
+            <distributionFormat>
+                <MD_Format>
+                    <name>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">binary</CharacterString>
+                    </name>
+                </MD_Format>
+            </distributionFormat>
+            <distributionFormat>
+                <MD_Format>
+                    <name>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">image/png</CharacterString>
+                    </name>
+                </MD_Format>
+            </distributionFormat>
+            <distributor>
+                <MD_Distributor>
+                    <distributorContact>
+                        <CI_ResponsibleParty>
+                            <individualName>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">pedro juan lopez</CharacterString>
+                            </individualName>
+                            <positionName>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>
+                            </positionName>
+                            <contactInfo>
+                                <CI_Contact>
+                                    <phone>
+                                        <CI_Telephone>
+                                            <voice>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">0466441122</CharacterString>
+                                            </voice>
+                                        </CI_Telephone>
+                                    </phone>
+                                    <address>
+                                        <CI_Address>
+                                            <deliveryPoint>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">12 rue blip</CharacterString>
+                                            </deliveryPoint>
+                                            <city>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Montpellier</CharacterString>
+                                            </city>
+                                            <postalCode>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">34000</CharacterString>
+                                            </postalCode>
+                                            <country>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">France</CharacterString>
+                                            </country>
+                                            <electronicMailAddress>
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">distributor@geomatys.com</CharacterString>
+                                            </electronicMailAddress>
+                                        </CI_Address>
+                                    </address>
+                                    <onlineResource>
+                                        <CI_OnlineResource>
+                                            <linkage>
+                                                <URL>http://www.geomatys.com</URL>
+                                            </linkage>
+                                        </CI_OnlineResource>
+                                    </onlineResource>
+                                </CI_Contact>
+                            </contactInfo>
+                            <role>
+                                <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="distributor">distributor</CI_RoleCode>
+                            </role>
+                        </CI_ResponsibleParty>
+                    </distributorContact>
+                </MD_Distributor>
+            </distributor>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>https://gportal.jaxa.jp/</URL>
+                            </linkage>
+                            <protocol>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">http</CharacterString>
+                            </protocol>
+                            <name>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">jaxa</CharacterString>
+                            </name>
+                            <description>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco"> desc blma</CharacterString>
+                            </description>
+                            <function>
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="GET DATA">GET DATA</CI_OnLineFunctionCode>
+                            </function>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <transferSize>
+                        <Real xmlns="http://www.isotc211.org/2005/gco">3.12</Real>
+                    </transferSize>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <transferSize>
+                        <Real xmlns="http://www.isotc211.org/2005/gco">6</Real>
+                    </transferSize>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+        </MD_Distribution>
+    </distributionInfo>
+</MD_Metadata>

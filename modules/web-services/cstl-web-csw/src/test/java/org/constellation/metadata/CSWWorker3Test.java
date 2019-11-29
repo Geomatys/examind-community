@@ -133,6 +133,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.geotoolkit.csw.xml.v300.ListOfValuesType.Value;
 import org.geotoolkit.dif.xml.v102.DIF;
+import org.opengis.metadata.Metadata;
 
 /**
  *
@@ -581,6 +582,33 @@ public class CSWWorker3Test {
             } else if (obj instanceof Node) {
                 Node resultNode = (Node) obj;
                 Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/v300/meta13SDC.xml");
+                DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
+                comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+                comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+                comparator.compare();
+            } else {
+                fail("unexpected record type:" + obj);
+            }
+
+            /*
+             *  TEST 13 : getRecordById with transformed ISO from DIF.
+             */
+            request = new GetRecordByIdType("CSW", "3.0.0", new ElementSetNameType(ElementSetType.SUMMARY),
+                    MimeType.APPLICATION_XML, "http://www.isotc211.org/2005/gmd", "L2-SST");
+            result = (GetRecordByIdResponse) worker.getRecordById(request);
+
+            assertTrue(result != null);
+            assertTrue(result.getAny().size() == 1);
+
+            obj = result.getAny().get(0);
+
+            if (obj instanceof Metadata) {
+                Metadata dcResult =  (Metadata) obj;
+                Metadata dcexpResult =  (Metadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-SST.xml"));
+                assertEquals(dcexpResult, dcResult);
+            } else if (obj instanceof Node) {
+                Node resultNode = (Node) obj;
+                Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/iso-diff-SST.xml");
                 DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
                 comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
                 comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -1871,6 +1899,8 @@ public class CSWWorker3Test {
         list.add(new Value("40510_145_19930221211500"));
         list.add(new Value("42292_5p_19900609195600"));
         list.add(new Value("42292_9s_19900610041000"));
+        list.add("L2-LST");
+        list.add("L2-SST");
         list.add(new Value("gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX"));
         list.add(new Value("mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4"));
         // no ebrim list.add("urn:uuid:3e195454-42e8-11dd-8329-00e08157d076");
@@ -1932,6 +1962,8 @@ public class CSWWorker3Test {
         list.add(new Value("90008411-2.ctd"));
         list.add(new Value("90008411.ctd"));
         list.add(new Value("92005711.ctd"));
+        list.add(new Value("GCOM-C/SGLI L2 Land surface temperature"));
+        list.add(new Value("GCOM-C/SGLI L2 Sea surface temperature"));
         list.add(new Value("Sea surface temperature and history derived from an analysis of MODIS Level 3 data for the Gulf of Mexico"));
         list.add(new Value("WMS Server for CORINE Land Cover France"));
         values = new ListOfValuesType(list);

@@ -94,6 +94,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT+2"));
     }
 
+    private static final String GMD = "http://www.isotc211.org/2005/gmd";
+    private static final String GMX = "http://www.isotc211.org/2005/gmx";
+    private static final String GML = "http://www.opengis.net/gml/3.2";
+    private static final String GCO = "http://www.isotc211.org/2005/gco";
+
     protected final DocumentBuilderFactory dbf;
 
     protected final XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -703,6 +708,500 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         return null;
     }
 
+    protected Node translateDIFtoISONode(final Node metadata, final ElementSetType type, final List<QName> elementName) throws MetadataIoException {
+        if (metadata != null) {
+
+            final DocumentBuilder docBuilder;
+            try {
+                docBuilder = dbf.newDocumentBuilder();
+            } catch (ParserConfigurationException ex) {
+                throw new MetadataIoException(ex);
+            }
+            final Document doc = docBuilder.newDocument();
+
+            final Element root = doc.createElementNS(GMD, "MD_Metadata");
+
+            final String identifierValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Entry_ID/dif:Short_Name");
+            addCharacterStringNode(doc, root, "fileIdentifier", identifierValue);
+
+            final List<Node> contactNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Personnel");
+            if (!contactNodes.isEmpty()) {
+                for (Node contactNode : contactNodes) {
+                    String role = NodeUtilities.getFirstValueFromPath(contactNode, "/dif:Personnel/dif:Role");
+                    if ("METADATA AUTHOR".equals(role)) {
+
+                        List<Node> groups = NodeUtilities.getNodeFromPath(contactNode, "/dif:Contact_Group");
+                        for (Node groupNode : groups) {
+                            final Node contact = doc.createElementNS(GMD, "contact");
+                            root.appendChild(contact);
+                            final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                            contact.appendChild(ciResp);
+
+                            addCharacterStringNode(doc, ciResp, "organisationName", NodeUtilities.getFirstValueFromPath(groupNode, "/dif:Contact_Group/dif:Name"));
+                            addCharacterStringNode(doc, ciResp, "positionName", "METADATA AUTHOR");
+
+                            buildDiffAddress(doc, ciResp, groupNode, null, "/dif:Contact_Group");
+
+                            addCodelistNode(doc, ciResp, "role", "CI_RoleCode", "author");
+                        }
+
+                        List<Node> persons = NodeUtilities.getNodeFromPath(contactNode, "/dif:Contact_Person");
+                        for (Node personNode : persons) {
+                            final Node contact = doc.createElementNS(GMD, "contact");
+                            root.appendChild(contact);
+                            final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                            contact.appendChild(ciResp);
+
+                            String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
+                            String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
+                            String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
+                            if (fName != null || mName != null || lName != null) {
+                                StringBuilder indName = new StringBuilder();
+                                if (fName != null) {
+                                    indName.append(fName).append(" ");
+                                }
+                                if (mName != null) {
+                                    indName.append(mName).append(" ");
+                                }
+                                if (lName != null) {
+                                    indName.append(lName);
+                                }
+                                addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
+                            }
+                            addCharacterStringNode(doc, ciResp, "positionName", "METADATA AUTHOR");
+
+                            buildDiffAddress(doc, ciResp, personNode, null, "/dif:Contact_Person");
+
+                            addCodelistNode(doc, ciResp, "role", "CI_RoleCode", "author");
+                        }
+                    }
+                }
+            }
+
+            final String dateValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Creation");
+            addDateNode(doc, root, "dateStamp", dateValue);
+
+            final Node identInfo = doc.createElementNS(GMD, "identificationInfo");
+            root.appendChild(identInfo);
+            final Node dIdent = doc.createElementNS(GMD, "MD_DataIdentification");
+            identInfo.appendChild(dIdent);
+            final Node cit = doc.createElementNS(GMD, "citation");
+            dIdent.appendChild(cit);
+            final Node citType = doc.createElementNS(GMD, "CI_Citation");
+            cit.appendChild(citType);
+
+            final String titleValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Entry_Title");
+            addCharacterStringNode(doc, citType, "title", titleValue);
+
+            final String abstractValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Summary/dif:Abstract");
+            addCharacterStringNode(doc, dIdent, "abstract", abstractValue);
+
+            final String purposeValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Summary/dif:Purpose");
+            addCharacterStringNode(doc, dIdent, "purpose", purposeValue);
+
+            final String progressValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Dataset_Progress");
+            addCodelistNode(doc, dIdent, "status", "MD_ProgressCode", progressValue);
+
+            final List<Node> multiMedias = NodeUtilities.getNodeFromPath(metadata, "/dif:Multimedia_Sample");
+            for (Node multiMedia : multiMedias) {
+                Node graOvNode = doc.createElementNS(GMD, "graphicOverview");
+                dIdent.appendChild(graOvNode);
+                Node browNode = doc.createElementNS(GMD, "MD_BrowseGraphic");
+                graOvNode.appendChild(browNode);
+
+                String fileValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:File");
+                if (fileValue != null) {
+                    Node fileNNode = doc.createElementNS(GMD, "fileName");
+                    browNode.appendChild(fileNNode);
+                    Node fileXNode = doc.createElementNS(GMX, "FileName");
+                    fileXNode.setTextContent(fileValue);
+                    ((Element)fileXNode).setAttribute("src", fileValue);
+                    fileNNode.appendChild(fileXNode);
+                }
+
+                String descValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:Description");
+                addCharacterStringNode(doc, browNode, "fileDescription", descValue);
+
+                String formatValue = NodeUtilities.getFirstValueFromPath(multiMedia, "/dif:Multimedia_Sample/dif:Format");
+                if (formatValue != null) {
+                    final Node node = doc.createElementNS(GMD, "fileType");
+                    final Node val = doc.createElementNS(GMX, "MimeFileType");
+                    val.setTextContent(formatValue);
+                    ((Element)val).setAttribute("type", formatValue);
+                    node.appendChild(val);
+                    browNode.appendChild(node);
+                }
+            }
+
+            final List<String> kw1Value = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:Science_Keywords/dif:Category");
+            final List<String> kw2Value = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:Science_Keywords/dif:Topic");
+            final List<String> kw3Value = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:Science_Keywords/dif:Term");
+            kw1Value.addAll(kw2Value);
+            kw1Value.addAll(kw3Value);
+            if (!kw1Value.isEmpty()) {
+                final Node descKw = doc.createElementNS(GMD, "descriptiveKeywords");
+                dIdent.appendChild(descKw);
+                final Node mdDesc = doc.createElementNS(GMD, "MD_Keywords");
+                descKw.appendChild(mdDesc);
+
+                for (String kw : kw1Value) {
+                    addCharacterStringNode(doc, mdDesc, "keyword", kw);
+                }
+                addCodelistNode(doc, mdDesc, "type", "MD_KeywordTypeCode", "theme");
+
+                final Node thName = doc.createElementNS(GMD, "thesaurusName");
+                mdDesc.appendChild(thName);
+                final Node thCit = doc.createElementNS(GMD, "CI_Citation");
+                thName.appendChild(thCit);
+                addCharacterStringNode(doc, thCit, "title", "NASA/GCMD Science Keywords");
+            }
+
+            final List<String> kw4Value = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:Ancillary_Keyword");
+            if (!kw4Value.isEmpty()) {
+                final Node descKw = doc.createElementNS(GMD, "descriptiveKeywords");
+                dIdent.appendChild(descKw);
+                final Node mdDesc = doc.createElementNS(GMD, "MD_Keywords");
+                descKw.appendChild(mdDesc);
+
+                for (String kw : kw4Value) {
+                    addCharacterStringNode(doc, mdDesc, "keyword", kw);
+                }
+            }
+
+            String accValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Access_Constraints");
+            String useValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Use_Constraints");
+
+            if (useValue != null || accValue != null) {
+                final Node resCst = doc.createElementNS(GMD, "resourceConstraints");
+                dIdent.appendChild(resCst);
+                final Node legCst = doc.createElementNS(GMD, "MD_LegalConstraints");
+                resCst.appendChild(legCst);
+                addCharacterStringNode(doc, legCst, "useLimitation", useValue);
+                addCharacterStringNode(doc, legCst, "otherConstraints", accValue);
+            }
+
+            final String langValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Dataset_Language");
+            if (langValue != null) {
+                addCodelistNode(doc, dIdent, "language", "LanguageCode", langValue); // TODO ISO code
+            }
+
+            final List<String> categoryValues = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:ISO_Topic_Category");
+            for (String categoryValue : categoryValues) {
+                categoryValue = categoryValue.replace(" ", "");
+                categoryValue = categoryValue.replace("/", "");
+                String first = categoryValue.substring(0, 1);
+                categoryValue = first.toLowerCase() + categoryValue.substring(1);
+                addGCONode(doc, dIdent, "topicCategory", categoryValue, GMD, "MD_TopicCategoryCode");
+            }
+
+            Node exExtent = null;
+
+            final String locationValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Location/dif:Detailed_Location");
+            if (locationValue != null) {
+                final Node extent = doc.createElementNS(GMD, "extent");
+                dIdent.appendChild(extent);
+                exExtent = doc.createElementNS(GMD, "EX_Extent");
+                extent.appendChild(exExtent);
+
+                final Node geoElem = doc.createElementNS(GMD, "geographicElement");
+                exExtent.appendChild(geoElem);
+                final Node geoDesc = doc.createElementNS(GMD, "EX_GeographicDescription");
+                geoElem.appendChild(geoDesc);
+                final Node geoId = doc.createElementNS(GMD, "geographicIdentifier");
+                geoDesc.appendChild(geoId);
+                final Node mdId = doc.createElementNS(GMD, "MD_Identifier");
+                geoId.appendChild(mdId);
+                addCharacterStringNode(doc, mdId, "code", locationValue);
+            }
+
+            final List<Node> rectNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Spatial_Coverage/dif:Geometry/dif:Bounding_Rectangle");
+
+            if (exExtent == null) {
+                final Node extent = doc.createElementNS(GMD, "extent");
+                dIdent.appendChild(extent);
+                exExtent = doc.createElementNS(GMD, "EX_Extent");
+                extent.appendChild(exExtent);
+            }
+
+            for (int i = 0; i < rectNodes.size(); i++) {
+                Node rectNode = rectNodes.get(i);
+                String wests = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Westernmost_Longitude");
+                String easts = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Easternmost_Longitude");
+                String norths = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Northernmost_Latitude");
+                String souths = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Southernmost_Latitude");
+                if (wests != null && easts != null && norths != null && souths != null) {
+                    final Node geoElem = doc.createElementNS(GMD, "geographicElement");
+                    exExtent.appendChild(geoElem);
+                    final Node geoBox = doc.createElementNS(GMD, "EX_GeographicBoundingBox");
+                    geoElem.appendChild(geoBox);
+
+                    addDecimalNode(doc, geoBox, "westBoundLongitude", wests);
+                    addDecimalNode(doc, geoBox, "eastBoundLongitude", easts);
+                    addDecimalNode(doc, geoBox, "southBoundLatitude", souths);
+                    addDecimalNode(doc, geoBox, "northBoundLatitude", norths);
+                }
+            }
+
+            final String beginValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Temporal_Coverage/dif:Range_DateTime/dif:Beginning_Date_Time");
+            final String endValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Temporal_Coverage/dif:Range_DateTime/dif:Ending_Date_Time");
+            if (beginValue != null || endValue != null) {
+                final Node tempElem = doc.createElementNS(GMD, "temporalElement");
+                exExtent.appendChild(tempElem);
+                final Node tempEx = doc.createElementNS(GMD, "EX_TemporalExtent");
+                tempElem.appendChild(tempEx);
+                final Node ext = doc.createElementNS(GMD, "extent");
+                tempEx.appendChild(ext);
+                final Node tp = doc.createElementNS(GML, "TimePeriod");
+                ext.appendChild(tp);
+                final Node beg = doc.createElementNS(GML, "beginPosition");
+                beg.setTextContent(beginValue);
+                final Node end = doc.createElementNS(GML, "endPosition");
+                end.setTextContent(endValue);
+                tp.appendChild(beg);
+                tp.appendChild(end);
+            }
+
+
+            for (int i = 0; i < rectNodes.size(); i++) {
+                Node rectNode = rectNodes.get(i);
+                String minAltValue = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Minimum_Altitude");
+                String maxAltValue = NodeUtilities.getFirstValueFromPath(rectNode, "/dif:Bounding_Rectangle/dif:Maximum_Altitude");
+
+                if (minAltValue != null || maxAltValue != null) {
+                    final Node vertElem = doc.createElementNS(GMD, "verticalElement");
+                    exExtent.appendChild(vertElem);
+                    final Node vertEx = doc.createElementNS(GMD, "EX_VerticalExtent");
+                    vertElem.appendChild(vertEx);
+
+                    addRealNode(doc, vertEx, "minimumValue", minAltValue);
+                    addRealNode(doc, vertEx, "maximumValue", maxAltValue);
+                }
+            }
+
+
+            final Node distInfo = doc.createElementNS(GMD, "distributionInfo");
+            root.appendChild(distInfo);
+            final Node mdDIst = doc.createElementNS(GMD, "MD_Distribution");
+            distInfo.appendChild(mdDIst);
+
+            List<Node> distNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Distribution");
+            for (Node distNode : distNodes) {
+                String format = NodeUtilities.getFirstValueFromPath(distNode, "/dif:Distribution/dif:Distribution_Format");
+                if (format != null) {
+                    final Node distFormat = doc.createElementNS(GMD, "distributionFormat");
+                    mdDIst.appendChild(distFormat);
+                    final Node mdFormat = doc.createElementNS(GMD, "MD_Format");
+                    distFormat.appendChild(mdFormat);
+                    addCharacterStringNode(doc, mdFormat, "name", format);
+                }
+            }
+
+            Node mdDistributor = null;
+
+            List<Node> orgNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Organization");
+            for (Node orgNode : orgNodes) {
+                String orgType = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_Type");
+
+                if ("DISTRIBUTOR".equals(orgType)) {
+                    String orgUrl = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_URL");
+
+                    List<Node> distributors = NodeUtilities.getNodeFromPath(orgNode, "/dif:Personnel");
+                    if (!distributors.isEmpty()) {
+                        final Node distributor = doc.createElementNS(GMD, "distributor");
+                        mdDIst.appendChild(distributor);
+                        mdDistributor = doc.createElementNS(GMD, "MD_Distributor");
+                        distributor.appendChild(mdDistributor);
+
+                        for (Node distributorNode : distributors) {
+                            String role = NodeUtilities.getFirstValueFromPath(distributorNode, "/dif:Personnel/dif:Role");
+                            if ("DATA CENTER CONTACT".equals(role)) {
+
+                                List<Node> groups = NodeUtilities.getNodeFromPath(distributorNode, "/dif:Contact_Group");
+                                for (Node groupNode : groups) {
+                                    final Node contact = doc.createElementNS(GMD, "distributorContact");
+                                    mdDistributor.appendChild(contact);
+                                    final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                    contact.appendChild(ciResp);
+
+                                    addCharacterStringNode(doc, ciResp, "organisationName", NodeUtilities.getFirstValueFromPath(groupNode, "dif:Name"));
+                                    addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
+
+                                    buildDiffAddress(doc, ciResp, groupNode, orgUrl, "/dif:Contact_Group");
+
+                                    addCodelistNode(doc, ciResp, "role", "CI_RoleCode", "distributor");
+                                }
+
+                                List<Node> persons = NodeUtilities.getNodeFromPath(distributorNode, "/dif:Contact_Person");
+                                for (Node personNode : persons) {
+                                    final Node contact = doc.createElementNS(GMD, "distributorContact");
+                                    mdDistributor.appendChild(contact);
+                                    final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                    contact.appendChild(ciResp);
+
+                                    String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
+                                    String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
+                                    String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
+                                    if (fName != null || mName != null || lName != null) {
+                                        StringBuilder indName = new StringBuilder();
+                                        if (fName != null) {
+                                            indName.append(fName).append(" ");
+                                        }
+                                        if (mName != null) {
+                                            indName.append(mName).append(" ");
+                                        }
+                                        if (lName != null) {
+                                            indName.append(lName);
+                                        }
+                                        addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
+                                    }
+                                    addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
+
+                                    buildDiffAddress(doc, ciResp, personNode, orgUrl, "/dif:Contact_Person");
+
+                                    addCodelistNode(doc, ciResp, "role", "CI_RoleCode", "distributor");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            List<Node> urlNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Related_URL");
+
+            for (Node urlNode : urlNodes) {
+                String urlType = NodeUtilities.getFirstValueFromPath(urlNode, "/dif:Related_URL/dif:URL_Content_Type/dif:Type");
+                String proto = NodeUtilities.getFirstValueFromPath(urlNode, "/dif:Related_URL/dif:Protocol");
+                String url = NodeUtilities.getFirstValueFromPath(urlNode, "/dif:Related_URL/dif:URL");
+                String title = NodeUtilities.getFirstValueFromPath(urlNode, "/dif:Related_URL/dif:Title");
+                String desc = NodeUtilities.getFirstValueFromPath(urlNode, "/dif:Related_URL/dif:Description");
+
+                if (urlType != null || proto != null || url != null || title != null || desc != null) {
+                    final Node distTransfer = doc.createElementNS(GMD, "transferOptions");
+                    mdDIst.appendChild(distTransfer);
+                    final Node mdTransfer = doc.createElementNS(GMD, "MD_DigitalTransferOptions");
+                    distTransfer.appendChild(mdTransfer);
+                    final Node online = doc.createElementNS(GMD, "onLine");
+                    mdTransfer.appendChild(online);
+                    final Node ciOnline = doc.createElementNS(GMD, "CI_OnlineResource");
+                    online.appendChild(ciOnline);
+                    addGCONode(doc, ciOnline, "linkage", url, GMD, "URL");
+                    addCharacterStringNode(doc, ciOnline, "protocol", proto);
+                    addCharacterStringNode(doc, ciOnline, "name", title);
+                    addCharacterStringNode(doc, ciOnline, "description", desc);
+                    addCodelistNode(doc, ciOnline, "function", "CI_OnLineFunctionCode", urlType);
+                }
+            }
+
+            for (Node distNode : distNodes) {
+                String size = NodeUtilities.getFirstValueFromPath(distNode, "/dif:Distribution/dif:Distribution_Size");
+                String media = NodeUtilities.getFirstValueFromPath(distNode, "/dif:Distribution/dif:Distribution_Media");
+
+                if (size != null || media != null) {
+                    final Node distTransfer = doc.createElementNS(GMD, "transferOptions");
+                    mdDIst.appendChild(distTransfer);
+                    final Node mdTransfer = doc.createElementNS(GMD, "MD_DigitalTransferOptions");
+                    distTransfer.appendChild(mdTransfer);
+                    addRealNode(doc, mdTransfer, "transferSize", size);
+                }
+
+                String fees = NodeUtilities.getFirstValueFromPath(distNode, "/dif:Distribution//dif:Fees");
+
+                if (fees != null) {
+                    if (mdDistributor == null) {
+                        final Node distributor = doc.createElementNS(GMD, "distributor");
+                        mdDIst.appendChild(distributor);
+                        mdDistributor = doc.createElementNS(GMD, "MD_Distributor");
+                        distributor.appendChild(mdDistributor);
+                    }
+                    final Node distOrder = doc.createElementNS(GMD, "distributionOrderProcess");
+                    mdDistributor.appendChild(distOrder);
+                    final Node mdOrder = doc.createElementNS(GMD, "MD_StandardOrderProcess");
+                    distOrder.appendChild(mdOrder);
+                    addCharacterStringNode(doc, mdOrder, "fees", fees);
+                }
+            }
+
+            doc.appendChild(root);
+            return root;
+        }
+        return null;
+    }
+
+    private void addDateNode(Document doc, Node root, String nodeName, String value) {
+        addGCONode(doc, root, nodeName, value, GCO, "DateTime");
+    }
+
+    private void addCharacterStringNode(Document doc, Node root, String nodeName, String value) {
+        addGCONode(doc, root, nodeName, value, GCO, "CharacterString");
+    }
+
+    private void addDecimalNode(Document doc, Node root, String nodeName, String value) {
+        addGCONode(doc, root, nodeName, value, GCO, "Decimal");
+    }
+
+    private void addRealNode(Document doc, Node root, String nodeName, String value) {
+        addGCONode(doc, root, nodeName, value, GCO, "Real");
+    }
+
+    private void addGCONode(Document doc, Node root, String nodeName, String value, String gcoNmsp, String gcoType) {
+        if (value != null) {
+            final Node node = doc.createElementNS(GMD, nodeName);
+            final Node val = doc.createElementNS(gcoNmsp, gcoType);
+            val.setTextContent(value);
+            node.appendChild(val);
+            root.appendChild(node);
+        }
+    }
+
+    private void addCodelistNode(Document doc, Node root, String nodeName, String codelistName, String value) {
+        if (value != null) {
+            final Node node = doc.createElementNS(GMD, nodeName);
+            final Node val = doc.createElementNS(GMD, codelistName);
+
+            ((Element) val).setAttribute("codeList", "http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#" + codelistName);
+            ((Element) val).setAttribute("codeListValue", value);
+            val.setTextContent(value);
+            node.appendChild(val);
+            root.appendChild(node);
+        }
+    }
+
+    private void buildDiffAddress(Document doc, Node ciResp, Node difNode, String url, String parent) {
+        final Node contactInfo = doc.createElementNS(GMD, "contactInfo");
+        ciResp.appendChild(contactInfo);
+        final Node ciContact = doc.createElementNS(GMD, "CI_Contact");
+        contactInfo.appendChild(ciContact);
+
+        String phoneNum = NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Phone/dif:Number");
+        if (phoneNum != null) {
+            final Node phone = doc.createElementNS(GMD, "phone");
+            ciContact.appendChild(phone);
+            final Node ciPhone = doc.createElementNS(GMD, "CI_Telephone");
+            phone.appendChild(ciPhone);
+            addCharacterStringNode(doc, ciPhone, "voice", phoneNum);
+        }
+
+        final Node address = doc.createElementNS(GMD, "address");
+        ciContact.appendChild(address);
+        final Node ciAddress = doc.createElementNS(GMD, "CI_Address");
+        address.appendChild(ciAddress);
+
+        addCharacterStringNode(doc, ciAddress, "deliveryPoint", NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Address/dif:Street_Address"));
+        addCharacterStringNode(doc, ciAddress, "city", NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Address/dif:City"));
+        addCharacterStringNode(doc, ciAddress, "postalCode", NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Address/dif:Postal_Code"));
+        addCharacterStringNode(doc, ciAddress, "country", NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Address/dif:Country"));
+        addCharacterStringNode(doc, ciAddress, "electronicMailAddress", NodeUtilities.getFirstValueFromPath(difNode, parent + "/dif:Email"));
+
+        if (url != null) {
+            final Node onlineResource = doc.createElementNS(GMD, "onlineResource");
+            ciContact.appendChild(onlineResource);
+            final Node ciOnline = doc.createElementNS(GMD, "CI_OnlineResource");
+            onlineResource.appendChild(ciOnline);
+            addGCONode(doc, ciOnline, "linkage", url, GMD, "URL");
+        }
+    }
+
+
 
      protected Node convertAndApplyElementSet(MetadataType metadataMode, MetadataType mode, ElementSetType type, List<QName> elementName, Node metadataNode) throws MetadataIoException {
          final Node n;
@@ -714,6 +1213,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         // DIF TO CSW3
         } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.DUBLINCORE_CSW300) {
             n = translateDIFtoDCNode(metadataNode, type, elementName, Namespaces.CSW);
+
+        // DIF TO ISO
+        } else if (metadataMode ==  MetadataType.DIF && mode == MetadataType.ISO_19115) {
+            n = translateDIFtoISONode(metadataNode, type, elementName);
 
         // ISO TO CSW2
         } else if (metadataMode ==  MetadataType.ISO_19115 && mode == MetadataType.DUBLINCORE_CSW202) {

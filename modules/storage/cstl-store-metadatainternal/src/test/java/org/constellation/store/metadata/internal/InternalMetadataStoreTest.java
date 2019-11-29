@@ -24,13 +24,11 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.repository.MetadataRepository;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
@@ -102,6 +100,7 @@ public class InternalMetadataStoreTest {
                 // add DIF metadata
                 writeMetadata("NO.009_L2-SST.xml", "L2-SST");
                 writeMetadata("NO.021_L2-LST.xml", "L2-LST");
+                writeMetadata("dif-1.xml", "dif-1");
 
                 // prepare an hidden metadata
                 writeMetadata("meta7.xml", "MDWeb_FR_SY_couche_vecteur_258");
@@ -176,6 +175,45 @@ public class InternalMetadataStoreTest {
         List<String> results = inStore1.getFieldDomainofValuesForMetadata("title", "42292_5p_19900609195600");
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.contains("90008411.ctd"));
+
+    }
+
+     @Test
+    public void getDiffToISOTest() throws Exception {
+        RecordInfo results = inStore1.getMetadata("L2-SST", MetadataType.ISO_19115);
+        Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        System.out.println("\n\n\n\n\n\n\n\n");
+        String result = NodeUtilities.getStringFromNode(results.node);
+        System.out.println(result);
+        System.out.println("\n\n\n\n\n\n\n\n");
+
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-SST.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
+    }
+
+    @Test
+    public void getDiffToISO2Test() throws Exception {
+        RecordInfo results = inStore1.getMetadata("dif-1", MetadataType.ISO_19115);
+        Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        System.out.println("\n\n\n\n\n\n\n\n");
+        String result = NodeUtilities.getStringFromNode(results.node);
+        System.out.println(result);
+        System.out.println("\n\n\n\n\n\n\n\n");
+
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-dif-1.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
 
     }
 

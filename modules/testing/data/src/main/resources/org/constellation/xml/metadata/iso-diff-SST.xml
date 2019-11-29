@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MD_Metadata xmlns="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd http://www.isotc211.org/2005/gmx http://schemas.opengis.net/iso/19139/20070417/gmx/gmx.xsd">
+    <fileIdentifier>
+        <CharacterString xmlns="http://www.isotc211.org/2005/gco">L2-SST</CharacterString>
+    </fileIdentifier>
+    <dateStamp>
+        <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-11-18</DateTime>
+    </dateStamp>
+    <identificationInfo>
+        <MD_DataIdentification>
+            <citation>
+                <CI_Citation>
+                    <title>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C/SGLI L2 Sea surface temperature</CharacterString>
+                    </title>
+                </CI_Citation>
+            </citation>
+            <abstract>
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C conducts long-term and continuous global observation and data collection to elucidate the mechanism behind fluctuations in radiation budget and carbon cycle needed to make accurate projections regarding future temperature rise.</CharacterString>
+            </abstract>
+            <status>
+                <MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="IN WORK">IN WORK</MD_ProgressCode>
+            </status>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">OCEAN</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">OCEAN TEMPERATURE</CharacterString>
+                    </keyword>
+                    <type>
+                        <MD_KeywordTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">theme</MD_KeywordTypeCode>
+                    </type>
+                    <thesaurusName>
+                        <CI_Citation>
+                            <title>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">NASA/GCMD Science Keywords</CharacterString>
+                            </title>
+                        </CI_Citation>
+                    </thesaurusName>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SEA SURFACE TEMPERATURE</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">OCEAN</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SEA SURFACE TEMPERATURE</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA</CharacterString>
+                    </keyword>
+                    <keyword>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Level-2</CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <topicCategory>
+                <MD_TopicCategoryCode>climatologyMeteorologyAtmosphere</MD_TopicCategoryCode>
+            </topicCategory>
+            <topicCategory>
+                <MD_TopicCategoryCode>imageryBaseMapsEarthCover</MD_TopicCategoryCode>
+            </topicCategory>
+            <topicCategory>
+                <MD_TopicCategoryCode>environment</MD_TopicCategoryCode>
+            </topicCategory>
+            <topicCategory>
+                <MD_TopicCategoryCode>oceans</MD_TopicCategoryCode>
+            </topicCategory>
+            <extent>
+                <EX_Extent>
+                    <geographicElement>
+                        <EX_GeographicBoundingBox>
+                            <westBoundLongitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">-180</Decimal>
+                            </westBoundLongitude>
+                            <eastBoundLongitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">180</Decimal>
+                            </eastBoundLongitude>
+                            <southBoundLatitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">-90</Decimal>
+                            </southBoundLatitude>
+                            <northBoundLatitude>
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">90</Decimal>
+                            </northBoundLatitude>
+                        </EX_GeographicBoundingBox>
+                    </geographicElement>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
+                                    <beginPosition>2018-01-01T00:00:00.000Z</beginPosition>
+                                    <endPosition/>
+                                </TimePeriod>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
+                </EX_Extent>
+            </extent>
+        </MD_DataIdentification>
+    </identificationInfo>
+    <distributionInfo>
+        <MD_Distribution>
+            <transferOptions>
+                <MD_DigitalTransferOptions>
+                    <onLine>
+                        <CI_OnlineResource>
+                            <linkage>
+                                <URL>https://gportal.jaxa.jp/</URL>
+                            </linkage>
+                            <description>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">G-Portal is a portal system allowing users to search, and download products acquired by JAXA Earth observation satellite.</CharacterString>
+                            </description>
+                            <function>
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="GET DATA">GET DATA</CI_OnLineFunctionCode>
+                            </function>
+                        </CI_OnlineResource>
+                    </onLine>
+                </MD_DigitalTransferOptions>
+            </transferOptions>
+        </MD_Distribution>
+    </distributionInfo>
+</MD_Metadata>

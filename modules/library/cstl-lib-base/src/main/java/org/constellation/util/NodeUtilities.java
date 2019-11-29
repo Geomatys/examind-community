@@ -203,6 +203,35 @@ public class NodeUtilities {
         return nodes;
     }
 
+    public static String getFirstValueFromPath(final Node parent, final String xpath) {
+        return getFirstValueFromPaths(parent, Arrays.asList(xpath));
+    }
+
+    public static String getFirstValueFromPaths(final Node parent, final List<String> xpaths) {
+
+        for (String xpath : xpaths) {
+            // verify type
+            xpath = xpath.substring(xpath.indexOf(':') + 1);
+            final String pathType;
+            if (xpath.indexOf('/') != -1) {
+                pathType = xpath.substring(0, xpath.indexOf('/'));
+            } else {
+                pathType = xpath;
+            }
+            if (!pathType.equals("*") && !pathType.equals(parent.getLocalName())) {
+                continue;
+            }
+
+            final List<Node> nodes = getNodeFromPath(parent, xpath);
+            for (Node n : nodes) {
+                if (n.getTextContent() != null && !n.getTextContent().isEmpty())
+                return n.getTextContent();
+            }
+        }
+        return null;
+    }
+
+
     public static List<String> getValuesFromPath(final Node parent, final String xpath) {
         return getValuesFromPaths(parent, Arrays.asList(xpath));
     }
@@ -213,7 +242,12 @@ public class NodeUtilities {
         for (String xpath : xpaths) {
             // verify type
             xpath = xpath.substring(xpath.indexOf(':') + 1);
-            final String pathType = xpath.substring(0, xpath.indexOf('/'));
+            final String pathType;
+            if (xpath.indexOf('/') != -1) {
+                pathType = xpath.substring(0, xpath.indexOf('/'));
+            } else {
+                pathType = xpath;
+            }
             if (!pathType.equals("*") && !pathType.equals(parent.getLocalName())) {
                 continue;
             }
