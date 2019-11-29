@@ -23,10 +23,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.StampedLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.opengis.geometry.Envelope;
@@ -43,8 +40,6 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
-import org.apache.sis.storage.ConcurrentReadException;
-import org.apache.sis.storage.ConcurrentWriteException;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
@@ -65,6 +60,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.datastore.SafeAccess.Session;
 
 /**
  * @implNote Some of this object methods modify underlying storage state. To avoid problems over concurrent access, a
@@ -77,17 +73,15 @@ import org.constellation.provider.DataProviderFactory;
  *     </li>
  *     <li>
  *         Sadly, it greatly complexify codebase, due to stamp management (lock must be upgraded for a consistent switch
- *         between read and write operations, and non-reentrant locking management). To deal with this complexity, we
- *         tried to isolate locking mechanism as much as possible. Exclusive locking (write) is focused in
- *         {@link #handle(long)} , {@link #reload()} and {@link #dispose()} methods. Utility methods are available for
- *         both {@link #readOnHandle(Function) read} and {@link #writeOnHandle(Consumer) write} accesses.
+ *         between read and write operations, and we have to prevent nesting locks). To deal with this complexity, we
+ *         tried to isolate locking mechanism as much as possible. Locking logic is available through {@link SafeAccess}
+ *         and its {@link Session session objects}.
  *     </li>
  * </ol>
  *
  * IMPORTANT: If modifying this class, be aware that Stamped locking is not reentrant. Therefore, make caution to not
  * nest calls of methods acquiring locks independently. The best is to follow the same behavior as {@link #reload()} in
- * such a case: create manually a stamp, and update it if needed in nested methods, so only one release is needed after
- * all code is done.
+ * such a case: isolate logic in private methods, and let public ones just be locking control wrappers around it.
  *
  * @author Johann Sorel (Geomatys)
  * @author Alexis Manin (Geomatys)
@@ -95,21 +89,13 @@ import org.constellation.provider.DataProviderFactory;
 public class DataStoreProvider extends AbstractDataProvider {
 
     /**
-     * Maximum number of seconds to wait for a lock to be available. After that, throw error.
+     * Component allowing to acquire underlying data store in a thread-safe way.
      */
-    private static final long LOCK_TIMEOUT = 60;
-    public static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
-
-    private DataStoreHandle handle;
-    /**
-     * The synchronization management component. Beware that it's not reentrant. It's more complex than many other
-     * synchronization solutions, but provide an efficient and safe way to upgrade a lock from read to write access.
-     */
-    private final StampedLock lock;
-
+    final SafeAccess storage;
+    
     public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
-        lock = new StampedLock();
+        storage = new SafeAccess(this);
     }
 
     /**
@@ -119,7 +105,13 @@ public class DataStoreProvider extends AbstractDataProvider {
     @Override
     @Deprecated
     public DataType getDataType() {
-        final org.apache.sis.storage.DataStoreProvider provider = readOnHandle(handle -> handle.store.getProvider());
+        final org.apache.sis.storage.DataStoreProvider provider;
+        try (Session session = storage.read()) {
+            provider = session.handle().store.getProvider();
+        } catch (DataStoreException e) {
+            throw new BackingStoreException(e);
+        }
+
         if (provider != null) {
             final ResourceType[] resourceTypes = DataStores.getResourceTypes(provider);
             if (ArraysExt.contains(resourceTypes, ResourceType.COVERAGE)
@@ -143,10 +135,16 @@ public class DataStoreProvider extends AbstractDataProvider {
 
     /**
      * @return the datastore this provider encapsulate.
+     * WARNING: This method does NOT allow proper concurrency safety. We should instead only allow to return a
+     * {@link Session}, the user would operate on.
      */
     @Override
     public DataStore getMainStore() {
-        return readOnHandle(handle -> handle.store);
+        try (Session session = storage.read()) {
+            return session.handle().store;
+        } catch (DataStoreException e) {
+            throw new BackingStoreException("Cannot read information from provider", e);
+        }
     }
 
     /**
@@ -154,7 +152,11 @@ public class DataStoreProvider extends AbstractDataProvider {
      */
     @Override
     public Set<GenericName> getKeys() {
-        return readOnHandle(handle -> handle.getNames());
+        try (Session session = storage.read()) {
+            return session.handle().getNames();
+        } catch (DataStoreException e) {
+            throw new BackingStoreException("Cannot read information from provider", e);
+        }
     }
 
     /**
@@ -170,31 +172,26 @@ public class DataStoreProvider extends AbstractDataProvider {
      */
     @Override
     public Data get(GenericName key, Date version) {
-        return readOnHandle(handle -> {
-            try {
-                return handle.fetch(key, version);
-            } catch (IllegalNameException e) {
-                getLogger().log(Level.FINE, "Queried an unknown name: "+key, e);
-                return null;
-            } catch (DataStoreException e) {
-                throw new BackingStoreException(e);
-            }
-        });
+        try (Session session = storage.read()) {
+            return session.handle().fetch(key, version);
+        } catch (IllegalNameException e) {
+            getLogger().log(Level.FINE, "Queried an unknown name: "+key, e);
+            return null;
+        } catch (DataStoreException e) {
+            throw new BackingStoreException(e);
+        }
     }
 
     @Override
     public boolean remove(GenericName key) {
-        return writeOnHandle(handle -> {
-            try {
-                return handle.remove(key);
-            } catch (IllegalNameException e) {
-                getLogger().log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
-                return false;
-            } catch (DataStoreException e) {
-                getLogger().log(Level.WARNING, "An error occurred while removing data from provider");
-                return false;
-            }
-        });
+        try (Session session = storage.write()) {
+            return session.handle().remove(key);
+        } catch (IllegalNameException e) {
+            getLogger().log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
+        } catch (DataStoreException e) {
+            getLogger().log(Level.WARNING, "An error occurred while removing data from provider");
+        }
+        return false;
     }
 
     /**
@@ -202,20 +199,18 @@ public class DataStoreProvider extends AbstractDataProvider {
      */
     @Override
     public void removeAll() {
-        writeOnHandle(handle -> {
-            final org.apache.sis.storage.DataStore store = getMainStore();
-            try {
+        try (Session session = storage.write()) {
+            final DataStore store = session.handle().store;
                 if (store instanceof PostgresFeatureStore) {
-                    final PostgresFeatureStore pgStore = (PostgresFeatureStore)store;
+                    final PostgresFeatureStore pgStore = (PostgresFeatureStore) store;
                     final String dbSchema = pgStore.getDatabaseSchema();
-                        if (dbSchema != null && !dbSchema.isEmpty()) {
-                            pgStore.dropPostgresSchema(dbSchema);
-                        }
+                    if (dbSchema != null && !dbSchema.isEmpty()) {
+                        pgStore.dropPostgresSchema(dbSchema);
+                    }
                 }
-            } catch (DataStoreException e) {
-                getLogger().log(Level.WARNING, e.getMessage(), e);
-            }
-        });
+        } catch (DataStoreException e) {
+            getLogger().log(Level.WARNING, e.getMessage(), e);
+        }
     }
 
     /**
@@ -223,12 +218,11 @@ public class DataStoreProvider extends AbstractDataProvider {
      */
     @Override
     public void reload() {
-        long stamp = tryLock(true);
-        try {
-            disposeImpl();
-            stamp = handle(stamp).stamp;
-        } finally {
-            lock.unlockWrite(stamp);
+        try (Session session = storage.write()) {
+            storage.disposeDataStore(session);
+            session.handle(); // Force recreating data
+        } catch (DataStoreException e) {
+            throw new BackingStoreException("Reloading of data provider failed", e);
         }
     }
 
@@ -238,60 +232,42 @@ public class DataStoreProvider extends AbstractDataProvider {
     @Override
     public void dispose() {
         // Do not use utility method writeOnHandle, because it forces creation of handle, which we want to avoid.
-        final long stamp = tryLock(true);
-        try {
-            disposeImpl();
-        } finally {
-            lock.unlockWrite(stamp);
-        }
-    }
-
-    private void disposeImpl() {
-        if (handle != null) {
-            try {
-                handle.close();
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.WARNING, "Cannot properly dispose DataStore provider " + getId(), ex);
-            } finally {
-                handle = null;
-            }
+        try (Session session = storage.write()) {
+            storage.disposeDataStore(session);
+        }  catch (DataStoreException ex) {
+            LOGGER.log(Level.WARNING, "Cannot properly dispose DataStore provider " + getId(), ex);
         }
     }
 
     @Override
     public boolean isSensorAffectable() {
-        return readOnHandle(handle -> {
-            final DataStore store = handle.store;
+        try (Session session = storage.read()) {
+            final DataStore store = session.handle().store;
             if (store instanceof ObservationStore) {
                 return true;
             } else if (store instanceof ResourceOnFileSystem) {
-                try {
-                    final ResourceOnFileSystem dfStore = (ResourceOnFileSystem) store;
-                    final Path[] files = dfStore.getComponentFiles();
-                    if (files.length > 0) {
-                        boolean isNetCDF = true;
-                        for (Path f : files) {
-                            if (!f.getFileName().toString().endsWith(".nc")) {
-                                isNetCDF = false;
-                            }
+                final ResourceOnFileSystem dfStore = (ResourceOnFileSystem) store;
+                final Path[] files = dfStore.getComponentFiles();
+                if (files.length > 0) {
+                    boolean isNetCDF = true;
+                    for (Path f : files) {
+                        if (!f.getFileName().toString().endsWith(".nc")) {
+                            isNetCDF = false;
                         }
-                        return isNetCDF;
                     }
-                } catch (DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Error while retrieving file from datastore: " + getId(), ex);
+                    return isNetCDF;
                 }
             }
-            return super.isSensorAffectable();
-        });
+        } catch (DataStoreException ex) {
+            LOGGER.log(Level.WARNING, "Error while retrieving file from datastore: " + getId(), ex);
+        }
+        return super.isSensorAffectable();
     }
 
     @Override
     public Path[] getFiles() throws ConstellationException {
-        long stamp = tryLock(false);
-        try {
-            final StampedHandle handle = handle(stamp);
-            stamp = handle.stamp;
-            DataStore currentStore = handle.handle.store;
+        try (Session session = storage.read()) {
+            DataStore currentStore = session.handle().store;
             if (currentStore instanceof ExtendedFeatureStore) {
                 currentStore = (DataStore) ((ExtendedFeatureStore) currentStore).getWrapped();
             }
@@ -300,23 +276,17 @@ public class DataStoreProvider extends AbstractDataProvider {
             }
 
             final ResourceOnFileSystem fileStore = (ResourceOnFileSystem) currentStore;
-            try {
-                return fileStore.getComponentFiles();
-            } catch (DataStoreException ex) {
-                throw new ConstellationException(ex);
-            }
-        } finally {
-            lock.unlockRead(stamp);
+            return fileStore.getComponentFiles();
+        } catch (DataStoreException ex) {
+            throw new ConstellationException(ex);
         }
     }
 
     @Override
     public DefaultMetadata getStoreMetadata() throws ConstellationStoreException {
-        long stamp = tryLock(false);
-        try {
-            final StampedHandle handle = handle(stamp);
-            stamp = handle.stamp;
-            final DataStore store = handle.handle.store;
+        try (Session session = storage.read()) {
+            final DataStoreHandle handle = session.handle();
+            final DataStore store = handle.store;
             Metadata storeMetadata = store.getMetadata();
             if (storeMetadata != null) return DefaultMetadata.castOrCopy(storeMetadata);
 
@@ -329,7 +299,7 @@ public class DataStoreProvider extends AbstractDataProvider {
             metadata.getIdentificationInfo().add(ident);
             DefaultGeographicBoundingBox bbox = null;
 
-            final Iterator<Envelope> envelopes = handle.handle.getEnvelopes().iterator();
+            final Iterator<Envelope> envelopes = handle.getEnvelopes().iterator();
             while (envelopes.hasNext()) {
                 final DefaultGeographicBoundingBox databbox = new DefaultGeographicBoundingBox();
                 databbox.setBounds(envelopes.next());
@@ -349,19 +319,14 @@ public class DataStoreProvider extends AbstractDataProvider {
             return metadata;
         } catch (DataStoreException | TransformException ex) {
             throw new ConstellationStoreException(ex);
-        } finally {
-            lock.unlockRead(stamp);
         }
     }
 
     @Override
     public String getCRSName() throws ConstellationStoreException {
         // TODO: We should start by checking metadata, then cached data, and only as last resort fallback on a full scan
-        long stamp = tryLock(false);
-        try {
-            final StampedHandle handle = handle(stamp);
-            stamp = handle.stamp;
-            final CoordinateReferenceSystem crs = handle.handle.getEnvelopes()
+        try (Session session = storage.read()) {
+            final CoordinateReferenceSystem crs = session.handle().getEnvelopes()
                     .map(Envelope::getCoordinateReferenceSystem)
                     .filter(Objects::nonNull)
                     .findAny()
@@ -372,40 +337,9 @@ public class DataStoreProvider extends AbstractDataProvider {
             }
         } catch (DataStoreException | FactoryException ex) {
             throw new ConstellationStoreException(ex);
-        } finally {
-            lock.unlockRead(stamp);
         }
 
         return null;
-    }
-
-    private StampedHandle handle(long stamp) {
-        try {
-            DataStoreHandle currentHandle = handle;
-            if (!lock.validate(stamp)) {
-                stamp = lock.tryReadLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
-                if (stamp == 0) throw new ConcurrentWriteException();
-            }
-            if (currentHandle == null) {
-                long writeStamp = lock.tryConvertToWriteLock(stamp);
-                if (writeStamp == 0) {
-                    writeStamp = lock.tryWriteLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
-                }
-                if (writeStamp == 0) throw new ConcurrentReadException();
-                try {
-                    /* Provider could have been updated while we were waiting for an exclusive lock. If it's the case,
-                     * we do not need to reload it anymore, and we can downgrade the stamp directly.
-                     */
-                    if (handle == null) handle = new DataStoreHandle(createBaseStore(), getLogger());
-                } finally {
-                    if (writeStamp != stamp) stamp = lock.tryConvertToReadLock(writeStamp);
-                }
-            }
-        } catch (DataStoreException | InterruptedException e) {
-            throw new BackingStoreException(e);
-        }
-
-        return new StampedHandle(stamp, handle);
     }
 
     protected DataStore createBaseStore() {
@@ -451,52 +385,5 @@ public class DataStoreProvider extends AbstractDataProvider {
         }
 
         return store;
-    }
-
-    private <T> T readOnHandle(final Function<DataStoreHandle, T> reader) {
-        return operateOnHandle(reader, false);
-    }
-
-    private void writeOnHandle(final Consumer<DataStoreHandle> writer) {
-        operateOnHandle(handle -> {writer.accept(handle);return null;}, true);
-    }
-
-    private <T> T writeOnHandle(final Function<DataStoreHandle, T> writer) {
-        return operateOnHandle(writer, true);
-    }
-
-    private <T> T operateOnHandle(final Function<DataStoreHandle, T> op, boolean write) {
-        long stamp = tryLock(write);
-        try {
-            final StampedHandle handle = handle(stamp);
-            stamp = handle.stamp;
-            return op.apply(handle.handle);
-        } finally {
-            if (write) lock.unlockWrite(stamp);
-            else lock.unlockRead(stamp);
-        }
-    }
-
-    private long tryLock(final boolean write) {
-        try {
-            final long stamp = write ?
-                    lock.tryWriteLock(LOCK_TIMEOUT, TIMEOUT_UNIT) : lock.tryReadLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
-            if (stamp == 0) throw write ? new ConcurrentReadException() : new ConcurrentWriteException();
-            return stamp;
-
-        } catch (InterruptedException | DataStoreException e) {
-            final String[] args = write ? new String[]{"write", "read"} : new String[]{"read", "write"};
-            throw new RuntimeException(String.format("Cannot %s data from provider because a %s operation takes a long time", args), e);
-        }
-    }
-
-    private static class StampedHandle {
-        long stamp;
-        DataStoreHandle handle;
-
-        public StampedHandle(long stamp, DataStoreHandle handle) {
-            this.stamp = stamp;
-            this.handle = handle;
-        }
     }
 }
