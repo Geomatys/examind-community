@@ -781,7 +781,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
 
         //List all outputs if not define in request
         final List<OutputDefinition> outputs;
-        if (request.getOutput() == null) {
+        if (request.getOutput() == null || request.isLineage()) {
             outputs = processDesc.getOutputDefinitions();
         } else {
             outputs = request.getOutput();
@@ -896,7 +896,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
             final List<DataInput> inputsResponse;
             final List<OutputDefinition> outputsResponse;
             if (request.isLineage()) {
-                inputsResponse = request.getInput();
+		inputsResponse = request.getInput();
                 outputsResponse = new ArrayList<>();
                 outputsResponse.addAll(outputs);
             } else {

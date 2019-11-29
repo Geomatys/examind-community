@@ -103,7 +103,7 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
 	.setRequired(false)
 	.create(String.class, "null"); // null as default value 
 
-    public static final String PBS_OUTPUT_FILE_NAME = "pbs.output.file";
+    public static final String PBS_OUTPUT_FILE_NAME = "pbs_output_file";
     public static final String PBS_OUTPUT_FILE_REMARKS = "PBS output file : output of qsub command";
     public static final ParameterDescriptor<String> PBS_OUTPUT_FILE = BUILDER
 	.addName(PBS_OUTPUT_FILE_NAME)
@@ -111,7 +111,7 @@ public class RunPBSDescriptor extends AbstractDynamicDescriptor {
 	.setRequired(false)
 	.create(String.class, "null"); // null as default value 
 
-    public static final String PBS_ERROR_FILE_NAME = "pbs.error.file";
+    public static final String PBS_ERROR_FILE_NAME = "pbs_error_file";
     public static final String PBS_ERROR_FILE_REMARKS = "PBS error file : output of qsub command";
     public static final ParameterDescriptor<String> PBS_ERROR_FILE = BUILDER
 	.addName(PBS_ERROR_FILE_NAME)

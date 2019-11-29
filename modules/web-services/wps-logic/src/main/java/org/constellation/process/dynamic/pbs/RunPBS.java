@@ -450,10 +450,26 @@ public class RunPBS extends AbstractCstlProcess {
 	//////////////////////////// Assigne output ///////////////////////
 	ParameterDescriptorGroup output = getDescriptor().getOutputDescriptor();
 	for (GeneralParameterDescriptor desc : output.descriptors()) {
-	    if (! (desc.equals(PBS_OUTPUT_FILE) || desc.equals(PBS_ERROR_FILE)) )
-		{
-		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(result);
+	    if (! (desc.equals(PBS_OUTPUT_FILE) || desc.equals(PBS_ERROR_FILE))) {
+		// Get key for parsing
+		int pos = desc.getName().getCode().lastIndexOf(':');
+		String keyVar = "";
+		if (pos != -1) {
+		    keyVar = desc.getName().getCode().substring(pos + 1);
 		}
+
+		if (keyVar.equals("pbs_output_file")) {
+		    String file_o = inputParameters.getValue(PBS_OUTPUT_DIR) + "/" + result + ".OU";
+		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_o);
+		}
+		else if (keyVar.equals("pbs_error_file")) {
+		    String file_e = inputParameters.getValue(PBS_ERROR_DIR) + "/" + result + ".ER";
+		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_e);		
+		}
+		else {
+		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(result);
+		}	
+	    }
 	}
     }
 }

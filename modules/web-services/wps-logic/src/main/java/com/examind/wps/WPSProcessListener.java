@@ -180,7 +180,17 @@ public class WPSProcessListener implements ProcessListener{
     public void completed(final ProcessEvent event) {
         LOGGER.log(Level.INFO, "Process {0} is finished (JobId:{1}).", new Object[]{WPSUtils.buildProcessIdentifier(event.getSource().getDescriptor()), jobId});
         try {
-           List<DataOutput> outputs =  process.createDocOutput(wpsVersion, request.getOutput(), event.getOutput(), parameters, false);
+	    List<OutputDefinition> wantedOutputs;
+	    if (request.isLineage()) {
+		wantedOutputs = outputsResponse;
+	    }	
+	    else {
+		wantedOutputs = request.getOutput();
+	    }
+ 
+
+	    List<DataOutput> outputs =  process.createDocOutput(wpsVersion, wantedOutputs, event.getOutput(), parameters, false);
+           
 
             XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
             String msg = "Process completed.";
