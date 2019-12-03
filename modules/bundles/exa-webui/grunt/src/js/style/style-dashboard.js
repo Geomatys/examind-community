@@ -195,7 +195,7 @@ angular.module('cstl-style-dashboard', [
                     }
                 }else if(selectedStyle.dataList && selectedStyle.dataList.length>0){
                     dataToShow = selectedStyle.dataList[0];
-                    dataToShow.dataId = dataToShow.id; // filling dataId with data.id 
+                    dataToShow.dataId = dataToShow.id; // filling dataId with data.id
                     self.styleOpts.currentDataId=dataToShow.id;
                     self.styleOpts.currentLayerId=null;
                 }else if(selectedStyle.layersList && selectedStyle.layersList.length>0) {
@@ -225,7 +225,7 @@ angular.module('cstl-style-dashboard', [
                         dataToShow.dataId = 4;
                     }
                 }
-                if(dataToShow) { 
+                if(dataToShow) {
                     var layerName = dataToShow.name;
                     var namespace = dataToShow.namespace;
                     if (namespace) {
@@ -239,7 +239,7 @@ angular.module('cstl-style-dashboard', [
                     //to force the browser cache reloading styled layer.
                     layerData.get('params').ts=new Date().getTime();
                     self.preview.layer = layerData;
-                    
+
                     Examind.datas.getGeographicExtent(dataToShow.dataId).then(
                         function(response){
                             self.preview.extent = response.data.boundingBox;
@@ -283,14 +283,14 @@ angular.module('cstl-style-dashboard', [
             $scope.$apply( function (){
                 var lastPointIndex = path.lastIndexOf(".");
                 var extension = path.substring(lastPointIndex+1, path.length);
-                if(extension && (extension.toLowerCase() === 'xml' || extension.toLowerCase() === 'sld')) {
+                if (extension && (extension.toLowerCase() === 'xml' || extension.toLowerCase() === 'sld' || extension.toLowerCase() === 'cpt' || extension.toLowerCase() === 'clr' || extension.toLowerCase() === 'pal') ) {
                     //ok to sumbit the form
                     $scope.import.allowSubmit = true;
                     $scope.import.badExtension = false;
                     if(!$scope.import.styleName) {
                         $scope.import.styleName = path.substring(path.lastIndexOf("\\")+1,lastPointIndex);
                     }
-                }else {
+                } else {
                     //bad extension then disable submitting the form
                     $scope.import.allowSubmit = false;
                     $scope.import.badExtension = true;

@@ -112,9 +112,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RestController;
 import static org.geotoolkit.style.StyleConstants.*;
+import org.geotoolkit.style.io.PaletteReader;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.FilterFactory;
+import org.opengis.style.ColorMap;
 import org.opengis.style.StyleFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -718,6 +720,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         }
     }
 
+    /**
+     * Import style from an SLD or palette file CPT,CLR,PAL.
+     */
     @RequestMapping(value="/internal/styles/import",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity importStyle(
             @RequestParam(value="type",required=false,defaultValue = "sld") String type,
@@ -791,6 +796,33 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     style = io.readStyle(new ByteArrayInputStream(buffer), Specification.SymbologyEncoding.SLD_1_0_0);
                 } catch (JAXBException | FactoryException ex) {
                     LOGGER.log(Level.FINEST, ex.getMessage(),ex);
+                }
+            }
+            if (style == null) {
+                //test cpt,clr,pal type
+                String originalFilename = file.getOriginalFilename();
+                if (originalFilename != null) {
+                    originalFilename = originalFilename.toLowerCase();
+                    ColorMap colormap = null;
+                    try {
+                        if (originalFilename.endsWith("cpt")) {
+                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CPT);
+                            colormap = reader.read(new String(buffer));
+                        } else if (originalFilename.endsWith("clr")) {
+                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_CLR);
+                            colormap = reader.read(new String(buffer));
+                        } else if (originalFilename.endsWith("pal")) {
+                            PaletteReader reader = new PaletteReader(PaletteReader.PATTERN_PAL);
+                            colormap = reader.read(new String(buffer));
+                        }
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.FINEST, ex.getMessage(),ex);
+                    }
+                    if (colormap != null) {
+                        final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+                        RasterSymbolizer symbol = SF.rasterSymbolizer(null, null, null, null, colormap, null, null, null);
+                        style = SF.style(symbol);
+                    }
                 }
             }
         }
