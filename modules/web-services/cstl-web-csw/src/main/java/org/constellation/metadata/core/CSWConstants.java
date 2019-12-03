@@ -537,7 +537,7 @@ public abstract class CSWConstants {
                         + "name={geo:name?}&"
                         + "time={time:start}/{time:end}&"
                         + "trelation={time:relation?}&"
-                        + "outputSchema=http://www.opengis.net/cat/csw/3.0&"
+                        + "outputSchema={outputSchema?}&"
                         + "outputFormat=application/xml";
         Url cswURL = new Url(type, template);
 
@@ -615,7 +615,15 @@ public abstract class CSWConstants {
         param.addOption("AnyInteracts");
         params.add(param);
 
-        cswURL.setParameters(params);
+        Parameter outSchemParam = new Parameter("outputSchema", "{outputSchema}", "Used to indicate the schema of the output that is generated in response to a GetRecords request.");
+        outSchemParam.addOption("http://www.opengis.net/cat/csw/3.0");
+        outSchemParam.addOption("http://www.isotc211.org/2005/gmd");
+        outSchemParam.addOption("http://www.opengis.net/cat/csw/2.0.2");
+        outSchemParam.addOption("http://www.isotc211.org/2005/gfc");
+        outSchemParam.addOption("http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/");
+        params.add(outSchemParam);
+
+        cswURL.setParameters(new ArrayList<>(params));
 
         OS_DESCRIPTION.getUrl().add(cswURL);
 
@@ -638,7 +646,8 @@ public abstract class CSWConstants {
                  + "outputFormat=application/atom+xml";
         Url atURL = new Url(type, template);
         atURL.setRel("collection");
-        atURL.setParameters(params);
+        params.remove(outSchemParam);
+        atURL.setParameters(new ArrayList<>(params));
         OS_DESCRIPTION.getUrl().add(atURL);
 
     }
