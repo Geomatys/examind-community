@@ -1000,6 +1000,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     /**
      * Add the convertible typeName to the list.
      * Example : MD_Metadata can be converted to a csw:Record (2 or 3)
+     * Example : DIF can be converted to a MD_Metadata
      *
      * TODO dynamic
      */
@@ -1010,7 +1011,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 result.add(METADATA_QNAME);
                 result.add(METADATA2_QNAME);
                 result.add(DIF_QNAME);
+            } else if ((typeName.equals(METADATA_QNAME) || typeName.equals(METADATA2_QNAME))){
+                result.add(DIF_QNAME);
             }
+
             result.add(typeName);
         }
         return new ArrayList<>(result);
