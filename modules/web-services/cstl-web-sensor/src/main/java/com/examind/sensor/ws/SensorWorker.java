@@ -130,7 +130,7 @@ public abstract class SensorWorker extends AbstractWorker {
         final SimpleQuery subquery = new SimpleQuery();
         final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(featureName)));
         subquery.setFilter(filter);
-        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, version);
+        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
             return null;
         } else {
@@ -142,7 +142,7 @@ public abstract class SensorWorker extends AbstractWorker {
         final SimpleQuery subquery = new SimpleQuery();
         final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(phenName)));
         subquery.setFilter(filter);
-        Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, version);
+        Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
             return null;
         } else {

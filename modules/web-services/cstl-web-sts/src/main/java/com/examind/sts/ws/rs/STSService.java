@@ -694,7 +694,6 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("fromMultiDatastream", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -714,7 +713,6 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("fromMultiDatastream", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -734,7 +732,6 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
                 request.getExtraFilter().put("observationId", id);
-                request.getExtraFlag().put("fromMultiDatastream", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();

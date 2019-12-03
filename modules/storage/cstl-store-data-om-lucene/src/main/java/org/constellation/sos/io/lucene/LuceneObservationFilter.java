@@ -92,7 +92,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel) {
+    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, final Map<String, String> hints) {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             luceneRequest = new StringBuilder("type:measurement ");
         } else {
@@ -111,7 +111,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel) {
+    public void initFilterGetResult(final String procedure, final QName resultModel, final Map<String, String> hints) {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             luceneRequest = new StringBuilder("type:measurement AND template:FALSE AND procedure:\"" + procedure + "\" ");
         } else {

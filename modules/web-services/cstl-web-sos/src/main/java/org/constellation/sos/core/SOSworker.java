@@ -736,7 +736,7 @@ public class SOSworker extends SensorWorker {
             final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             Id filter = ff.id(oids);
             subquery.setFilter(filter);
-            observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", currentVersion);
+            observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", Collections.singletonMap("version", currentVersion));
 
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -835,7 +835,7 @@ public class SOSworker extends SensorWorker {
                 ((ObservationFilterReader)localOmFilter).setResponseFormat(responseFormat);
             }
 
-            localOmFilter.initFilterObservation(responseMode, resultModel);
+            localOmFilter.initFilterObservation(responseMode, resultModel, Collections.emptyMap());
 
             //we verify that there is an offering (mandatory in 1.0.0, optional in 2.0.0)
             final List<ObservationOffering> offerings = new ArrayList<>();
@@ -1132,9 +1132,9 @@ public class SOSworker extends SensorWorker {
                 } else {
                     final ObservationFilterReader omFR = (ObservationFilterReader) localOmFilter;
                     if (template) {
-                        matchingResult = omFR.getObservationTemplates(currentVersion);
+                        matchingResult = omFR.getObservationTemplates(Collections.singletonMap("version", currentVersion));
                     } else {
-                        matchingResult = omFR.getObservations(currentVersion);
+                        matchingResult = omFR.getObservations(Collections.singletonMap("version", currentVersion));
                     }
                     if (omFR.computeCollectionBound()) {
                         computedBounds = omFR.getCollectionBoundingShape();
@@ -1283,7 +1283,7 @@ public class SOSworker extends SensorWorker {
             final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
 
             //we begin to create the sql request
-            localOmFilter.initFilterGetResult(procedure, resultModel);
+            localOmFilter.initFilterGetResult(procedure, resultModel, Collections.emptyMap());
 
             // phenomenon property
             if (observedProperty !=  null) {
@@ -1564,7 +1564,7 @@ public class SOSworker extends SensorWorker {
             if (ofilter) {
                 if (localOmFilter instanceof ObservationFilterReader) {
                     final List<FeatureProperty> features = new ArrayList<>();
-                    final List<SamplingFeature> sfeatures = ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(currentVersion);
+                    final List<SamplingFeature> sfeatures = ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
                     sfeatures.stream().forEach((sf) -> {
                         features.add(buildFeatureProperty(currentVersion, sf));
                     });
@@ -1741,7 +1741,7 @@ public class SOSworker extends SensorWorker {
             // we clone the filter for this request
             final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
 
-            localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME);
+            localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
             localOmFilter.setProcedure(offering.getProcedures(), Arrays.asList(offering));
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
@@ -1763,7 +1763,7 @@ public class SOSworker extends SensorWorker {
             // case (2)
             } else {
                 final ObservationFilterReader omFR = (ObservationFilterReader) localOmFilter;
-                matchingResult = omFR.getObservationTemplates(currentVersion);
+                matchingResult = omFR.getObservationTemplates(Collections.singletonMap("version", currentVersion));
             }
             if (matchingResult.isEmpty()) {
                 throw new CstlServiceException("there is no result template matching the arguments");

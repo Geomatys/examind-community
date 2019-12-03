@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -225,7 +226,7 @@ public class SensorServiceBusiness {
             SimpleQuery query = new SimpleQuery();
             final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
-            List<Process> processes = pr.getProcedures(query, "2.0.0");
+            List<Process> processes = pr.getProcedures(query, Collections.emptyMap());
             List<String> results = new ArrayList<>();
             processes.forEach(p -> results.add(((org.geotoolkit.observation.xml.Process)p).getHref()));
             return results;
@@ -444,7 +445,7 @@ public class SensorServiceBusiness {
         final DataProvider omProvider = getOMProvider(serviceID);
         if (omProvider != null) {
             ObservationFilterReader filter = (ObservationFilterReader) getObservationStore(serviceID).getFilter();
-            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME);
+            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
             if (observedProperties.isEmpty()) {
                 observedProperties.addAll(getObservedPropertiesForSensorId(serviceID, sensorID));
             }

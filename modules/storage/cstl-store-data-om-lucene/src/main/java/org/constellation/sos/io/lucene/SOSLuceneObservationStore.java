@@ -206,7 +206,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
 
         // TODO optimize we don't need to call the filter here
         final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
-        final List<Observation> observations = currentFilter.getObservations("2.0.0");
+        final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
             final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");

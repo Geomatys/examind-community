@@ -62,6 +62,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -409,7 +410,7 @@ public final class SOSUtils {
 
         SimpleQuery query = new SimpleQuery();
         query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(sensor.getIdentifier())));
-        Collection<Phenomenon> phenos = provider.getPhenomenon(query, "2.0.0");
+        Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
         phenos.forEach(p -> phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
 
         if (!"Component".equals(sensor.getType())) {

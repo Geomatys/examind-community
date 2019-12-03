@@ -20,6 +20,7 @@ package org.constellation.provider;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
 import org.constellation.dto.service.config.sos.ProcedureTree;
@@ -41,17 +42,17 @@ public interface ObservationProvider extends DataProvider {
 
     Collection<String> getPhenomenonNames() throws ConstellationStoreException;
 
-    Collection<Phenomenon> getPhenomenon(Query query, String version) throws ConstellationStoreException;
+    Collection<Phenomenon> getPhenomenon(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
     Collection<String> getProcedureNames(String typeFilter) throws ConstellationStoreException;
 
     Collection<String> getFeatureOfInterestNames() throws ConstellationStoreException;
 
-    List<SamplingFeature> getFeatureOfInterest(Query query, String version) throws ConstellationStoreException;
+    List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String version) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException;
 
-    List<Process> getProcedures(Query query, String version) throws ConstellationStoreException;
+    List<Process> getProcedures(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 

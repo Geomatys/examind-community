@@ -49,7 +49,6 @@ import org.geotoolkit.sts.json.LocationsResponse;
 import org.geotoolkit.sts.json.MultiDatastream;
 import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.Observation;
-import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.STSCapabilities;
@@ -69,7 +68,7 @@ public interface STSWorker extends Worker {
 
     void addThing(Thing thing) throws CstlServiceException;
 
-    ObservationsResponse getObservations(GetObservations go) throws CstlServiceException;
+    Object getObservations(GetObservations go) throws CstlServiceException;
 
     Observation getObservationById(GetObservationById goi) throws CstlServiceException;
 

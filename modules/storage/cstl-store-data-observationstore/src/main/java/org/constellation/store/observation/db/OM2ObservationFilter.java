@@ -48,6 +48,7 @@ import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.util.StringUtilities;
 
 // Geotoolkit dependencies
 // GeoAPI dependencies
@@ -75,10 +76,15 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     protected boolean getFOI = false;
     protected boolean getPhen = false;
     protected boolean getProc = false;
+    protected boolean includeIDInDataBlock = false;
 
     protected String currentProcedure = null;
 
     protected List<String> currentFields = new ArrayList<>();
+
+    protected List<Integer> fieldFilters = new ArrayList<>();
+
+    protected List<Integer> measureIdFilters = new ArrayList<>();
 
     /**
      * Clone a new Observation Filter.
@@ -112,7 +118,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      * {@inheritDoc}
      */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel) {
+    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, final Map<String,String> hints) {
         if (ResponseModeType.RESULT_TEMPLATE.equals(requestMode)) {
              sqlRequest = new StringBuilder("SELECT distinct \"observed_property\", \"procedure\", \"foi\" "
                                           + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE");
@@ -130,7 +136,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      * {@inheritDoc}
      */
     @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel) {
+    public void initFilterGetResult(final String procedure, final QName resultModel, final Map<String,String> hints) {
         firstFilter = false;
         currentProcedure = procedure;
         try(final Connection c = source.getConnection()) {
@@ -317,20 +323,55 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
+            // TODO i know that the 2 block are equals. need more test to see
             if (template) {
                 for (String oid : ids) {
-                    if (oid.contains(observationTemplateIdBase)) {
-                        final String procedureID = oid.substring(observationTemplateIdBase.length());
+                    if (oid.startsWith(observationTemplateIdBase)) {
+                        String procedureID = oid.substring(observationTemplateIdBase.length());
+                        // look for a field separator
+                        int pos = procedureID.indexOf("-");
+                        if (pos != -1) {
+                            fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
+                            procedureID = procedureID.substring(0, pos);
+                        }
                         sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                    } else if (oid.startsWith(observationIdBase)) {
+                        String[] component = oid.split("-");
+                        if (component.length == 3) {
+                            oid = component[0];
+                            fieldFilters.add(Integer.parseInt(component[1]));
+                            measureIdFilters.add(Integer.parseInt(component[2]));
+                        } else if (component.length == 2) {
+                            oid = component[0];
+                            fieldFilters.add(Integer.parseInt(component[1]));
+                        }
+                        sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     } else {
                         sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     }
                 }
             } else {
                 for (String oid : ids) {
-                    if (oid.contains(observationTemplateIdBase)) {
-                        final String procedureID = oid.substring(observationTemplateIdBase.length());
+                     if (oid.contains(observationTemplateIdBase)) {
+                        String procedureID = oid.substring(observationTemplateIdBase.length());
+                        // look for a field separator
+                        int pos = procedureID.indexOf("-");
+                        if (pos != -1) {
+                            fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
+                            procedureID = procedureID.substring(0, pos);
+                        }
                         sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                    } else if (oid.startsWith(observationIdBase)) {
+                        String[] component = oid.split("-");
+                        if (component.length == 3) {
+                            oid = component[0];
+                            fieldFilters.add(Integer.parseInt(component[1]));
+                            measureIdFilters.add(Integer.parseInt(component[2]));
+                        } else if (component.length == 2) {
+                            oid = component[0];
+                            fieldFilters.add(Integer.parseInt(component[1]));
+                        }
+                        sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     } else {
                         sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     }

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -279,7 +280,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public Collection<Phenomenon> getPhenomenon(Query q, String version) throws ConstellationStoreException {
+    public Collection<Phenomenon> getPhenomenon(Query q, final Map<String,String> hints) throws ConstellationStoreException {
+        final String version = getVersionFromHints(hints);
         try {
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
@@ -304,7 +306,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.setFeatureOfInterest(fois);
 
             if (localOmFilter instanceof ObservationFilterReader) {
-                return ((ObservationFilterReader)localOmFilter).getPhenomenons(version);
+                return ((ObservationFilterReader)localOmFilter).getPhenomenons(hints);
             } else {
                 final List<Phenomenon> phenomenons = new ArrayList<>();
                 final Set<String> fid = localOmFilter.filterFeatureOfInterest();
@@ -455,7 +457,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterest(Query q, String version) throws ConstellationStoreException {
+    public List<SamplingFeature> getFeatureOfInterest(Query q, Map<String, String> hints) throws ConstellationStoreException {
+        final String version = getVersionFromHints(hints);
         try {
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
@@ -478,7 +481,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.setProcedure(procedures, null);
 
             if (localOmFilter instanceof ObservationFilterReader) {
-                return ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(version);
+                return ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(hints);
             } else {
                 final List<SamplingFeature> features = new ArrayList<>();
                 final Set<String> fid = localOmFilter.filterFeatureOfInterest();
@@ -494,8 +497,14 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<Observation> getObservations(Query q, QName resultModel, String responseMode, String version) throws ConstellationStoreException {
+    public List<Observation> getObservations(Query q, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException {
         try {
+            String version = "2.0.0";
+            if (hints != null) {
+                if (hints.containsKey("version")) {
+                    version = hints.get("version");
+                }
+            }
             ResponseModeType mode;
             if (responseMode != null) {
                 mode = ResponseModeType.fromValue(responseMode);
@@ -505,7 +514,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
-            localOmFilter.initFilterObservation(mode, resultModel);
+            localOmFilter.initFilterObservation(mode, resultModel, hints);
 
             List<String> observedProperties = new ArrayList<>();
             List<String> procedures         = new ArrayList<>();
@@ -527,9 +536,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
             if (localOmFilter instanceof ObservationFilterReader) {
                 if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
-                    return ((ObservationFilterReader)localOmFilter).getObservationTemplates(version);
+                    return ((ObservationFilterReader)localOmFilter).getObservationTemplates(hints);
                 } else {
-                    return ((ObservationFilterReader)localOmFilter).getObservations(version);
+                    return ((ObservationFilterReader)localOmFilter).getObservations(hints);
                 }
             } else {
                 // TODO missing case for template
@@ -547,7 +556,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<Process> getProcedures(Query q, String version) throws ConstellationStoreException {
+    public List<Process> getProcedures(Query q, Map<String, String> hints) throws ConstellationStoreException {
+        final String version = getVersionFromHints(hints);
         try {
              // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
@@ -573,7 +583,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
             if (localOmFilter instanceof ObservationFilterReader) {
 
-                return ((ObservationFilterReader)localOmFilter).getProcesses(version);
+                return ((ObservationFilterReader)localOmFilter).getProcesses(hints);
 
             } else {
                 final List<Process> processes = new ArrayList<>();
@@ -598,7 +608,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             for (Filter f : ((And) filter).getChildren()) {
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
             }
-        }// The operation Time Equals
+        } else
+
+            // The operation Time Equals
         if (filter instanceof TEquals) {
             final TEquals tf = (TEquals) filter;
 
@@ -678,4 +690,14 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
+    @Deprecated
+    private String getVersionFromHints(Map<String, String> hints) {
+        String version = "2.0.0";
+        if (hints != null) {
+            if (hints.containsKey("version")) {
+                version = hints.get("version");
+            }
+        }
+        return version;
+    }
 }

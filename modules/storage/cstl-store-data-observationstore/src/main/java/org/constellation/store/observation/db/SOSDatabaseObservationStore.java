@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -304,7 +305,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
         currentFilter.setProcedure(sensorIDs, null);
 
-        final List<Observation> observations = currentFilter.getObservations("2.0.0");
+        final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
             final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");
@@ -341,7 +342,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
 
         // TODO optimize we don't need to call the filter here
         final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
-        final List<Observation> observations = currentFilter.getObservations("2.0.0");
+        final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
             final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");

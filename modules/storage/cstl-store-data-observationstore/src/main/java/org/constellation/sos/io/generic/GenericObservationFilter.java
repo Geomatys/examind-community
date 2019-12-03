@@ -90,7 +90,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel) {
+    public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, Map<String, String> hints) {
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterObservation"));
         final From from;
@@ -115,7 +115,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void initFilterGetResult(final String procedure, final QName resultModel) {
+    public void initFilterGetResult(final String procedure, final QName resultModel, Map<String, String> hints) {
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterResult"));
         final From from           = new From(configurationQuery.getFrom("observations"));
