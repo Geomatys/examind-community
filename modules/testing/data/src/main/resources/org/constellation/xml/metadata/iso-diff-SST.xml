@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MD_Metadata xmlns="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd http://www.isotc211.org/2005/gmx http://schemas.opengis.net/iso/19139/20070417/gmx/gmx.xsd">
-    <fileIdentifier>
+<MI_Metadata xmlns="http://www.isotc211.org/2005/gmi">
+    <fileIdentifier xmlns="http://www.isotc211.org/2005/gmd">
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">L2-SST</CharacterString>
     </fileIdentifier>
-    <dateStamp>
+    <dateStamp xmlns="http://www.isotc211.org/2005/gmd">
         <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-11-18</DateTime>
     </dateStamp>
-    <identificationInfo>
+    <identificationInfo xmlns="http://www.isotc211.org/2005/gmd">
         <MD_DataIdentification>
             <citation>
                 <CI_Citation>
@@ -107,7 +107,7 @@
             </extent>
         </MD_DataIdentification>
     </identificationInfo>
-    <distributionInfo>
+    <distributionInfo xmlns="http://www.isotc211.org/2005/gmd">
         <MD_Distribution>
             <transferOptions>
                 <MD_DigitalTransferOptions>
@@ -128,4 +128,44 @@
             </transferOptions>
         </MD_Distribution>
     </distributionInfo>
-</MD_Metadata>
+    <acquisitionInformation>
+        <MI_AcquisitionInformation>
+            <platform>
+                <MI_Platform>
+                    <citation>
+                        <CI_Citation xmlns="http://www.isotc211.org/2005/gmd">
+                            <title>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Observation Mission.Climate</CharacterString>
+                            </title>
+                        </CI_Citation>
+                    </citation>
+                    <identifier>
+                        <MD_Identifier xmlns="http://www.isotc211.org/2005/gmd">
+                            <code>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C</CharacterString>
+                            </code>
+                        </MD_Identifier>
+                    </identifier>
+                    <instrument>
+                        <MI_Instrument>
+                            <citation>
+                                <CI_Citation xmlns="http://www.isotc211.org/2005/gmd">
+                                    <title>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Second Generation Global Imager</CharacterString>
+                                    </title>
+                                </CI_Citation>
+                            </citation>
+                            <identifier>
+                                <MD_Identifier xmlns="http://www.isotc211.org/2005/gmd">
+                                    <code>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SGLI</CharacterString>
+                                    </code>
+                                </MD_Identifier>
+                            </identifier>
+                        </MI_Instrument>
+                    </instrument>
+                </MI_Platform>
+            </platform>
+        </MI_AcquisitionInformation>
+    </acquisitionInformation>
+</MI_Metadata>

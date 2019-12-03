@@ -95,6 +95,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     }
 
     private static final String GMD = "http://www.isotc211.org/2005/gmd";
+    private static final String GMI = "http://www.isotc211.org/2005/gmi";
     private static final String GMX = "http://www.isotc211.org/2005/gmx";
     private static final String GML = "http://www.opengis.net/gml/3.2";
     private static final String GCO = "http://www.isotc211.org/2005/gco";
@@ -719,7 +720,14 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             }
             final Document doc = docBuilder.newDocument();
 
-            final Element root = doc.createElementNS(GMD, "MD_Metadata");
+            final Element root;
+
+            List<Node> platformNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Platform");
+            if (platformNodes.isEmpty()) {
+                root = doc.createElementNS(GMD, "MD_Metadata");
+            } else {
+                root = doc.createElementNS(GMI, "MI_Metadata");
+            }
 
             final String identifierValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Entry_ID/dif:Short_Name");
             addCharacterStringNode(doc, root, "fileIdentifier", identifierValue);
@@ -1120,6 +1128,65 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     addCharacterStringNode(doc, mdOrder, "fees", fees);
                 }
             }
+
+            if (!platformNodes.isEmpty()) {
+                final Node acquiInfo = doc.createElementNS(GMI, "acquisitionInformation");
+                root.appendChild(acquiInfo);
+                final Node miAcqui = doc.createElementNS(GMI, "MI_AcquisitionInformation");
+                acquiInfo.appendChild(miAcqui);
+
+                for (Node platformNode : platformNodes) {
+                    final Node platf = doc.createElementNS(GMI, "platform");
+                    miAcqui.appendChild(platf);
+                    final Node miPlatf = doc.createElementNS(GMI, "MI_Platform");
+                    platf.appendChild(miPlatf);
+
+                    String shortName = NodeUtilities.getFirstValueFromPath(platformNode, "/dif:Platform/dif:Short_Name");
+                    String longName  = NodeUtilities.getFirstValueFromPath(platformNode, "/dif:Platform/dif:Long_Name");
+                    if (longName != null) {
+                        final Node platCit = doc.createElementNS(GMI, "citation");
+                        miPlatf.appendChild(platCit);
+                        final Node ciPlatCit = doc.createElementNS(GMD, "CI_Citation");
+                        platCit.appendChild(ciPlatCit);
+                        addCharacterStringNode(doc, ciPlatCit, "title", longName);
+                    }
+                    if (shortName != null) {
+                        final Node platId = doc.createElementNS(GMI, "identifier");
+                        miPlatf.appendChild(platId);
+                        final Node mdPlatId = doc.createElementNS(GMD, "MD_Identifier");
+                        platId.appendChild(mdPlatId);
+                        addCharacterStringNode(doc, mdPlatId, "code", shortName);
+                    }
+                    List<Node> instrumentNodes = NodeUtilities.getNodeFromPath(platformNode, "/dif:Instrument");
+                    for (Node instrumentNode : instrumentNodes) {
+                        final Node inst = doc.createElementNS(GMI, "instrument");
+                        miPlatf.appendChild(inst);
+                        final Node miInst = doc.createElementNS(GMI, "MI_Instrument");
+                        inst.appendChild(miInst);
+
+                        String instShortName = NodeUtilities.getFirstValueFromPath(instrumentNode, "/dif:Instrument/dif:Short_Name");
+                        String instLongName  = NodeUtilities.getFirstValueFromPath(instrumentNode, "/dif:Instrument/dif:Long_Name");
+                        if (longName != null) {
+                            final Node instCit = doc.createElementNS(GMI, "citation");
+                            miInst.appendChild(instCit);
+                            final Node ciInstCit = doc.createElementNS(GMD, "CI_Citation");
+                            instCit.appendChild(ciInstCit);
+                            addCharacterStringNode(doc, ciInstCit, "title", instLongName);
+                        }
+                        if (shortName != null) {
+                            final Node InstId = doc.createElementNS(GMI, "identifier");
+                            miInst.appendChild(InstId);
+                            final Node mdInstId = doc.createElementNS(GMD, "MD_Identifier");
+                            InstId.appendChild(mdInstId);
+                            addCharacterStringNode(doc, mdInstId, "code", instShortName);
+                        }
+
+                    }
+
+
+                }
+            }
+
 
             doc.appendChild(root);
             return root;

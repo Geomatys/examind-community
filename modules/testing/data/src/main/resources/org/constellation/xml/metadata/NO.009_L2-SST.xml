@@ -23,8 +23,7 @@
     <Platform>
         <Type>Earth Observation Satellites</Type>
         <Short_Name>GCOM-C</Short_Name>
-        <Long_Name>Global Change Observation Mission &amp;amp;amp;
-            8211; Climate</Long_Name>
+        <Long_Name>Global Change Observation Mission.Climate</Long_Name>
         <Instrument>
             <Short_Name>SGLI</Short_Name>
             <Long_Name>Second Generation Global Imager</Long_Name>
