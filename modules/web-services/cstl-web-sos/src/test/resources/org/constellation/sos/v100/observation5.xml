@@ -55,12 +55,17 @@
                             <swe:uom code="m"/>
                         </swe:Quantity>
                     </swe:field>
+                    <swe:field name="temperature">
+                        <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:temperature">
+                            <swe:uom code="°C"/>
+                        </swe:Quantity>
+                    </swe:field>
                 </swe:SimpleDataRecord>
             </swe:elementType>
             <swe:encoding>
                 <swe:TextBlock blockSeparator="@@" decimalSeparator="." tokenSeparator="," id="encoding-1"/>
             </swe:encoding>
-            <swe:values>2007-05-01T12:59:00.0,6.56@@2007-05-01T13:59:00.0,6.56@@2007-05-01T14:59:00.0,6.56@@2007-05-01T15:59:00.0,6.56@@2007-05-01T16:59:00.0,6.56@@</swe:values>
+            <swe:values>2007-05-01T12:59:00.0,6.56,@@2007-05-01T13:59:00.0,6.56,@@2007-05-01T14:59:00.0,6.56,@@2007-05-01T15:59:00.0,6.56,@@2007-05-01T16:59:00.0,6.56,@@</swe:values>
         </swe:DataArray>
     </om:result>
 </om:Observation>

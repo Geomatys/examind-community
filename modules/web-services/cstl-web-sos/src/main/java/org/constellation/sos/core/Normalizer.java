@@ -22,6 +22,7 @@ package org.constellation.sos.core;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,7 +56,7 @@ import org.opengis.temporal.Period;
 /**
  * Static methods use to create valid XML file, by setting object into referenceMode.
  * The goal is to avoid to declare the same block many times in a XML file.
- * 
+ *
  * @author Guilhem Legal (Geomatys)
  */
 public final class Normalizer {
@@ -63,7 +64,7 @@ public final class Normalizer {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
 
     private Normalizer() {}
-    
+
     public static Capabilities normalizeDocument(final Capabilities capa){
         if (capa instanceof org.geotoolkit.sos.xml.v100.Capabilities) {
             return normalizeDocumentv100((org.geotoolkit.sos.xml.v100.Capabilities)capa);
@@ -71,7 +72,7 @@ public final class Normalizer {
             return capa; // no necessary in SOS 2
         }
     }
-    
+
     /**
      * Normalize the capabilities document by replacing the double by reference
      *
@@ -116,16 +117,16 @@ public final class Normalizer {
      */
     public static ObservationCollection regroupObservation(final String version, final Envelope bounds, final ObservationCollection collection){
         final List<Observation> members = collection.getMember();
-        final Map<String, Observation> merged = new HashMap<>();
+        final Map<String, Observation> merged = new LinkedHashMap<>();
         for (Observation obs : members) {
             final Process process    = (Process) obs.getProcedure();
             final String featureID   = getFeatureID(obs);
             final String key         = process.getHref() + '-' + featureID;
-            
+
             if (obs instanceof MeasurementType) {
                 // measurment are not merged
                 merged.put(UUID.randomUUID().toString(), obs);
-                
+
             } else if (merged.containsKey(key)) {
                 final AbstractObservation uniqueObs = (AbstractObservation) merged.get(key);
                 if (uniqueObs.getResult() instanceof DataArrayProperty) {
@@ -139,7 +140,7 @@ public final class Normalizer {
                         //we merge this observation with the map one
                         mergedArray.setElementCount(mergedArray.getElementCount().getCount().getValue() + array.getElementCount().getCount().getValue());
                         mergedArray.setValues(mergedArray.getValues() + array.getValues());
-                    } 
+                    }
                 }
                 // merge the samplingTime
                 if (uniqueObs.getSamplingTime() instanceof Period) {
@@ -153,7 +154,7 @@ public final class Normalizer {
                         if (totalPeriod.getEnding().getDate().getTime() < instant.getDate().getTime()) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), instant.getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
-                        } 
+                        }
                     } else if (obs.getSamplingTime() instanceof Period) {
                         final Period period = (Period)obs.getSamplingTime();
                         // BEGIN
@@ -161,18 +162,18 @@ public final class Normalizer {
                             TimeIndeterminateValueType.BEFORE.equals((((GmlInstant)     period.getBeginning()).getTimePosition()).getIndeterminatePosition())) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  ((GmlInstant) totalPeriod.getBeginning()).getTimePosition(), ((GmlInstant) period.getEnding()).getTimePosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
-                            
+
                         } else if (totalPeriod.getBeginning().getDate().getTime() > period.getBeginning().getDate().getTime()) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  period.getBeginning().getDate(), totalPeriod.getEnding().getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
-                        
+
                         // END
                         if (TimeIndeterminateValueType.NOW.equals((((GmlInstant)totalPeriod.getEnding()).getTimePosition()).getIndeterminatePosition()) ||
                             TimeIndeterminateValueType.NOW.equals((((GmlInstant)     period.getEnding()).getTimePosition()).getIndeterminatePosition())) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), period.getEnding().getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
-                            
+
                         } else if (totalPeriod.getEnding().getDate().getTime() < period.getEnding().getDate().getTime()) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), period.getEnding().getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
@@ -210,7 +211,7 @@ public final class Normalizer {
         }
         return null;
     }
-    
+
     /**
      * Normalize the Observation collection document by replacing the double by reference
      *
@@ -289,7 +290,7 @@ public final class Normalizer {
         }
         return collection;
     }
-    
+
     private static FeatureProperty getPropertyFeatureOfInterest(final Observation obs) {
         if (obs instanceof AbstractObservation) {
             final AbstractObservation observation = (AbstractObservation)obs;
@@ -297,7 +298,7 @@ public final class Normalizer {
         }
         return null;
     }
-    
+
     private static PhenomenonProperty getPhenomenonProperty(final Observation obs) {
         if (obs instanceof AbstractObservation) {
             final AbstractObservation observation = (AbstractObservation)obs;

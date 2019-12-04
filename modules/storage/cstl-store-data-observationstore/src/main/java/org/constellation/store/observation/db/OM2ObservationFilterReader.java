@@ -574,7 +574,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     final String featureID = rs.getString("foi");
                     final String observedProperty = rs.getString("observed_property");
                     final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                    final FeatureProperty prop = buildFeatureProperty(version, feature);
                     final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                     final int pid = getPIDFromProcedure(procedure, c);
                     final List<Field> fields = readFields(procedure, c);
@@ -664,8 +663,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                             } catch (NumberFormatException ex) {
                                                 throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
                                             }
+                                            final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
                                             final Object result = buildMeasureResult(version, dValue, field.field.fieldUom, Integer.toString(rid));
-                                            observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, prop, field.phenomenon, procedure, result, measureTime));
+                                            observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, procedure, result, measureTime));
                                         }
                                     }
                                 }

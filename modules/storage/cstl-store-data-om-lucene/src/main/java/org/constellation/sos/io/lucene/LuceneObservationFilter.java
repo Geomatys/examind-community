@@ -38,6 +38,8 @@ import org.opengis.temporal.Period;
 import javax.xml.namespace.QName;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -372,7 +374,11 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public Set<String> filterObservation() throws DataStoreException {
         try {
-            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+            Set<String> results = searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+            // order results
+            List<String> tmp = new ArrayList<>(results);
+            Collections.sort(tmp);
+            return new LinkedHashSet<>(tmp);
         } catch(SearchingException ex) {
             throw new DataStoreException("Search exception while filtering the observation", ex);
         }

@@ -104,6 +104,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.opengis.observation.Observation;
 import org.opengis.observation.sampling.SamplingPoint;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.test.annotation.DirtiesContext;
@@ -1496,7 +1497,7 @@ public abstract class SOSWorkerTest {
 
         TimePeriodType period = new TimePeriodType(new TimePositionType("1900-01-01T00:00:00"));
         expResult.setSamplingTime(period);
-        expResult.setName("urn:ogc:object:observation:template:GEOM:7-0");
+        expResult.setName("urn:ogc:object:observation:template:GEOM:7-0-0");
 
         assertEquals(expResult.getName(), measResult.getName());
 
@@ -1526,10 +1527,16 @@ public abstract class SOSWorkerTest {
                                       null);
         result = (ObservationCollectionType) worker.getObservation(request);
 
-        assertTrue(result.getMember().iterator().next() instanceof MeasurementType);
+        assertEquals(7, result.getMember().size());
 
-        measResult =  (MeasurementType) result.getMember().iterator().next();
-        assertTrue(measResult != null);
+        for (Observation obs : result.getMember()) {
+            assertTrue(obs instanceof MeasurementType);
+            if ("urn:ogc:object:observation:GEOM:901-0-1".equals(obs.getName().getCode())) {
+                measResult = (MeasurementType) obs;
+            }
+        }
+
+        assertNotNull(measResult);
 
         obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v100/measure1.xml");
 
@@ -1829,9 +1836,11 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult.getSamplingTime(), result.getSamplingTime());
         assertEquals(expResult, result);
 
-        request = new GetObservationById("1.0.0", "urn:ogc:object:observation:GEOM:901", "text/xml; subtype=\"om/1.0.0\"", MEASUREMENT_QNAME, ResponseModeType.INLINE, "EPSG:4326");
+        request = new GetObservationById("1.0.0", "urn:ogc:object:observation:GEOM:901-0-1", "text/xml; subtype=\"om/1.0.0\"", MEASUREMENT_QNAME, ResponseModeType.INLINE, "EPSG:4326");
 
         response = (ObservationCollectionType) worker.getObservationById(request);
+
+        assertEquals(1, response.getMember().size());
 
         assertTrue(response.getMember().iterator().next() instanceof MeasurementType);
 

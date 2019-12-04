@@ -912,6 +912,7 @@ public abstract class SOS2WorkerTest {
         assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
         assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
         assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
+        assertEquals(expArray.getDataArray().getValues(), resArray.getDataArray().getValues());
         assertEquals(expArray.getDataArray(), resArray.getDataArray());
         assertEquals(expArray, resArray);
 

@@ -120,14 +120,20 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFile(observationsDirectory, "v100/observation4.xml", "urn:ogc:object:observation:GEOM:307", EPSG_VERSION);
         writeDataFile(observationsDirectory, "v100/observation5.xml", "urn:ogc:object:observation:GEOM:507", EPSG_VERSION);
         writeDataFile(observationsDirectory, "v100/observation6.xml", "urn:ogc:object:observation:GEOM:801", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v100/measure1.xml",     "urn:ogc:object:observation:GEOM:901", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure1.xml",     "urn:ogc:object:observation:GEOM:901-0-1", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure2.xml",     "urn:ogc:object:observation:GEOM:901-0-2", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure3.xml",     "urn:ogc:object:observation:GEOM:901-0-3", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure4.xml",     "urn:ogc:object:observation:GEOM:901-0-4", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure5.xml",     "urn:ogc:object:observation:GEOM:901-0-5", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure6.xml",     "urn:ogc:object:observation:GEOM:901-0-6", EPSG_VERSION);
+        writeDataFile(observationsDirectory, "v100/measure7.xml",     "urn:ogc:object:observation:GEOM:901-0-7", EPSG_VERSION);
 
         File observationTemplatesDirectory = new File(instDirectory, "observationTemplates");
         observationTemplatesDirectory.mkdir();
         writeDataFile(observationTemplatesDirectory, "v100/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3", EPSG_VERSION);
         writeDataFile(observationTemplatesDirectory, "v100/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4", EPSG_VERSION);
         writeDataFile(observationTemplatesDirectory, "observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:5", EPSG_VERSION);
-        writeDataFile(observationTemplatesDirectory, "observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7", EPSG_VERSION);
+        writeDataFile(observationTemplatesDirectory, "observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7-0", EPSG_VERSION);
         writeDataFile(observationTemplatesDirectory, "observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8", EPSG_VERSION);
 
         File sensorDirectory = new File(instDirectory, "sensors");
