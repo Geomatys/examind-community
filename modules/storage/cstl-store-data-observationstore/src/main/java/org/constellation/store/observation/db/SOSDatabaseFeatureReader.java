@@ -111,10 +111,12 @@ class SOSDatabaseFeatureReader implements FeatureReader {
         if (b != null) {
             WKBReader reader = new WKBReader();
             geom = reader.read(b);
+            if (geom != null) {
+                JTS.setCRS(geom, crs);
+            }
         } else {
             geom = null;
         }
-        JTS.setCRS(geom, crs);
         current.setPropertyValue(OMFeatureTypes.ATT_DESC.toString(),result.getString("description"));
         current.setPropertyValue(OMFeatureTypes.ATT_NAME.toString(),result.getString("name"));
         current.setPropertyValue(OMFeatureTypes.ATT_SAMPLED.toString(),result.getString("sampledfeature"));
