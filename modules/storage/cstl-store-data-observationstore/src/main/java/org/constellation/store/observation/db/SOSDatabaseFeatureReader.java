@@ -8,10 +8,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -27,6 +29,7 @@ import org.opengis.util.FactoryException;
  */
 class SOSDatabaseFeatureReader implements FeatureReader {
 
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.store.observation.db");
     protected final Connection cnx;
     private boolean firstCRS = true;
     protected FeatureType type;
@@ -85,7 +88,12 @@ class SOSDatabaseFeatureReader implements FeatureReader {
         }
         if (firstCRS) {
             try {
-                crs = CRS.forCode("EPSG:" + result.getString("crs"));
+                String crsCode = result.getString("crs");
+                if (crsCode == null) {
+                    LOGGER.warning("Missing CRS in sampling_feature. using default EPSG:4326");
+                    crsCode = "4326";
+                }
+                crs = CRS.forCode("EPSG:" + crsCode);
                 final FeatureTypeBuilder ftb = new FeatureTypeBuilder(type);
                 ((AttributeTypeBuilder)ftb.getProperty("position")).setCRS(crs);
                 type = ftb.build();
