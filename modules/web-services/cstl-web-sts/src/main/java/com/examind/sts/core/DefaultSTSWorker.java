@@ -222,8 +222,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             } else {
                 List<Observation> values = new ArrayList<>();
                 for (org.opengis.observation.Observation sp : sps) {
-                    Observation result = buildObservation(req, (org.geotoolkit.observation.xml.AbstractObservation)sp, forMds);
-                    values.add(result);
+                    if (forMds) {
+                        List<Observation> results = buildMDSObservations(req, (org.geotoolkit.observation.xml.AbstractObservation)sp);
+                        values.addAll(results);
+                    } else {
+                        Observation result = buildObservation(req, (org.geotoolkit.observation.xml.AbstractObservation)sp, forMds);
+                        values.add(result);
+                    }
                 }
                 return new ObservationsResponse(values);
             }
@@ -242,16 +247,98 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (obs.isEmpty()) {
                 return null;
             } else if (obs.size() > 1) {
-                throw new CstlServiceException("Error multiple observation id found for one id");
+                return buildMdsObservation(req, obs, req.getId());
             } else {
                 AbstractObservation sp = (AbstractObservation)obs.get(0);
 
-                Observation result = buildObservation(req, sp, false);
-                return result;
+                return buildObservation(req, sp, false);
             }
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+    }
+
+    private Observation buildMdsObservation(STSRequest req, List<org.opengis.observation.Observation> obs, String obsId) throws ConstellationStoreException {
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obsId + ")";
+
+        org.geotoolkit.sampling.xml.SamplingFeature foi = null;
+        AbstractObservation template                    = null;
+        String time                                     = null;
+        List<Object> results                            = new ArrayList<>();
+        Observation observation = new Observation();
+
+        for (org.opengis.observation.Observation ob : obs) {
+            AbstractObservation aob = (AbstractObservation) ob;
+
+            if (aob.getPropertyFeatureOfInterest() != null && aob.getPropertyFeatureOfInterest().getAbstractFeature() != null) {
+                org.geotoolkit.sampling.xml.SamplingFeature currentFoi = (org.geotoolkit.sampling.xml.SamplingFeature) aob.getPropertyFeatureOfInterest().getAbstractFeature();
+                if (foi == null) {
+                    foi = currentFoi;
+                } else if (currentFoi != null && !currentFoi.equals(foi)){
+                    throw new ConstellationStoreException("Inconsistent request result. unable to merge measure  with different foi");
+                }
+            }
+
+            if (req.getExpand().contains("MultiDatastreams")) {
+                // perform only on first for performance purpose
+                if (template == null && aob.getProcedure().getHref() != null) {
+                    final SimpleQuery subquery = new SimpleQuery();
+                    PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(aob.getProcedure().getHref()));
+                    subquery.setFilter(pe);
+                    List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", defaultHints);
+                    if (templates.size() == 1) {
+                        template = (AbstractObservation) templates.get(0);
+                    } else {
+                        throw new ConstellationStoreException("Inconsistent request found no or multiple template for observation");
+                    }
+                }
+            }
+
+            // TODO quality
+            // TODO parameters
+
+            if (aob.getSamplingTime() != null) {
+                String curentTime = temporalObjToString(aob.getSamplingTime());
+                if (time == null) {
+                    time = curentTime;
+                } else if (curentTime != null && !curentTime.equals(time)){
+                    throw new ConstellationStoreException("Inconsistent request result. unable to merge measure with different time");
+                }
+            }
+
+            if (aob.getResult() instanceof DataArrayProperty) {
+                throw new IllegalArgumentException("Data Array result Not supported in this mode");
+
+            } else if (aob.getResult() instanceof Measure) {
+                Measure meas = (Measure) aob.getResult();
+                results.add(meas.getValue());
+            } else {
+                throw new ConstellationStoreException("unexpected result type:" + aob.getResult());
+            }
+        }
+
+        observation = observation.iotId(obsId).iotSelfLink(selfLink);
+        observation = observation.resultTime(time);
+        observation = observation.phenomenonTime(time);
+
+        if (req.getExpand().contains("FeatureOfInterests")) {
+            if (foi != null) {
+                observation = observation.featureOfInterest(buildFeatureOfInterest(req, foi));
+            }
+        } else {
+            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeatureOfInterests");
+        }
+
+        if (req.getExpand().contains("MultiDatastreams")) {
+            if (template != null) {
+                observation.setMultiDatastream(buildMultiDatastream(req, template));
+            }
+        } else {
+            observation.setMultiDatastreamIotNavigationLink(selfLink + "/MultiDatastreams");
+        }
+        observation.setResult(results);
+        return observation;
     }
 
     private Observation buildObservation(STSRequest req, AbstractObservation obs, boolean fromMds) throws ConstellationStoreException {
@@ -275,8 +362,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", defaultHints);
-                    if (!templates.isEmpty()) {
+                    if (templates.size() == 1) {
                         observation.setDatastream(buildDatastream(req, (AbstractObservation) templates.get(0)));
+                    } else {
+                        throw new ConstellationStoreException("Inconsistent request found no or multiple template for observation");
                     }
                 }
             } else {
@@ -289,12 +378,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
                     subquery.setFilter(pe);
                     List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", defaultHints);
-                    if (!templates.isEmpty()) {
+                    if (templates.size() == 1) {
                         observation.setMultiDatastream(buildMultiDatastream(req, (AbstractObservation) templates.get(0)));
+                    } else {
+                        throw new ConstellationStoreException("Inconsistent request found no or multiple template for observation");
                     }
                 }
             } else {
-                observation.setDatastreamIotNavigationLink(selfLink + "/Datastreams");
+                observation.setMultiDatastreamIotNavigationLink(selfLink + "/MultiDatastreams");
             }
         }
 
@@ -309,21 +400,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
 
         if (obs.getResult() instanceof DataArrayProperty) {
-
-            // TODO
-            DataArrayProperty arp = (DataArrayProperty) obs.getResult();
-            if (arp.getDataArray() != null
-                    && arp.getDataArray().getPropertyElementType() != null
-                    && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
-                DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                /*for (DataComponentProperty dcp : dr.getField()) {
-                    resultArray.getComponents().add(dcp.getName());
-                }*/
-
-                //List<Object> results = transformDataBlock(arp.getDataArray().getValues(), arp.getDataArray().getEncoding());
-
-            }
-            observation.setResult(null);
+            throw new IllegalArgumentException("Data Array result Not supported in this mode");
 
         } else if (obs.getResult() instanceof Measure) {
             Measure meas = (Measure) obs.getResult();
@@ -335,6 +412,95 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         observation = observation.iotId(obs.getName().getCode())
                                  .iotSelfLink(selfLink);
         return observation;
+    }
+
+    private List<Observation> buildMDSObservations(STSRequest req, AbstractObservation obs) throws ConstellationStoreException {
+        final List<Observation> observations = new ArrayList<>();
+
+        String baseSelfLink = getServiceUrl();
+        baseSelfLink = baseSelfLink.substring(0, baseSelfLink.length() - 1);
+
+        FeatureOfInterest foi = null;
+        if (req.getExpand().contains("FeatureOfInterests")) {
+            if (obs.getPropertyFeatureOfInterest() != null && obs.getPropertyFeatureOfInterest().getAbstractFeature() != null) {
+                foi = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature) obs.getPropertyFeatureOfInterest().getAbstractFeature());
+            }
+        }
+
+        MultiDatastream mds = null;
+        if (req.getExpand().contains("MultiDatastreams")) {
+            if (obs.getProcedure().getHref() != null) {
+                final SimpleQuery subquery = new SimpleQuery();
+                PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(obs.getProcedure().getHref()));
+                subquery.setFilter(pe);
+                List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", defaultHints);
+                if (templates.size() == 1) {
+                    mds = buildMultiDatastream(req, (AbstractObservation) templates.get(0));
+                } else {
+                    throw new ConstellationStoreException("Inconsistent request found no or multiple template for observation");
+                }
+            }
+        }
+
+        if (obs.getResult() instanceof DataArrayProperty) {
+
+            DataArrayProperty arp = (DataArrayProperty) obs.getResult();
+            if (arp.getDataArray() != null
+                    && arp.getDataArray().getPropertyElementType() != null
+                    && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+
+                DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
+                    List<AbstractDataComponent> fields = new ArrayList<>();
+                    for (DataComponentProperty dc : dr.getField()) {
+                        fields.add(dc.getValue());
+                    }
+                List<Object> results = transformDataBlock(obs.getName().getCode(), arp.getDataArray().getValues(), arp.getDataArray().getEncoding(),  fields);
+                for (Object resultObj : results) {
+                    if (resultObj instanceof List) {
+                        List result = (List) resultObj;
+                        Observation observation = new Observation();
+
+                        String obsId = (String) result.get(0);
+
+                        String selfLink = baseSelfLink + "/Observations(" + obsId + ")";
+                        observation = observation.iotId(obsId)
+                                                 .iotSelfLink(selfLink);
+
+                        // time
+                        observation = observation.resultTime((String) result.get(1));
+                        observation = observation.phenomenonTime((String) result.get(2));
+
+                        // feature of interest
+                        if (foi != null) {
+                            observation = observation.featureOfInterest(foi);
+                        } else {
+                            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeatureOfInterests");
+                        }
+
+                        // multiDatastream
+                        if (mds != null) {
+                            observation.setMultiDatastream(mds);
+                        } else {
+                            observation.setMultiDatastreamIotNavigationLink(selfLink + "/MultiDatastreams");
+                        }
+
+                        // TODO quality
+                        // TODO parameters
+
+                        List measures = (List) result.get(3);
+                        observation = observation.result(measures);
+
+                        observations.add(observation);
+                    }
+                }
+            }
+
+        } else if (obs.getResult() instanceof Measure) {
+            throw new IllegalArgumentException("Measure result Not supported in this mode");
+        } else {
+            throw new ConstellationStoreException("unexpected result type:" + obs.getResult());
+        }
+        return observations;
     }
 
     private DataArray buildDataArray(List<org.opengis.observation.Observation> obs, boolean fromMds) throws ConstellationStoreException {
@@ -364,7 +530,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     result.getDataArray().addAll(results);
 
                 } else {
-                    throw new ConstellationStoreException("malformed data array result in observatio");
+                    throw new ConstellationStoreException("malformed data array result in observation");
                 }
             } else if (aob.getResult() instanceof Measure) {
                 List<Object> line = new ArrayList<>();
@@ -523,6 +689,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 datastream.addObservationsItem(buildObservation(req, (AbstractObservation) linkedObservation, false));
             }
         } else {
+            datastream.setObservations(null);
             datastream.setObservationsIotNavigationLink(selfLink + "/Observations");
         }
 
@@ -555,7 +722,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         List<MultiDatastream> values = new ArrayList<>();
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req);
-            List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, null, "resultTemplate", defaultHints);
+            List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", defaultHints);
             for (org.opengis.observation.Observation template : templates) {
                 MultiDatastream result = buildMultiDatastream(req, (org.geotoolkit.observation.xml.AbstractObservation)template);
                 values.add(result);
@@ -573,7 +740,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             Id filter = ff.id(Collections.singleton(new DefaultFeatureId(gd.getId())));
             subquery.setFilter(filter);
-            List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, null, "resultTemplate", defaultHints);
+            List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", defaultHints);
             if (obs.isEmpty()) {
                 return null;
             } else if (obs.size() > 1) {
@@ -615,9 +782,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (req.getExpand().contains("Observations")) {
             for (org.opengis.observation.Observation linkedObservation : getObservationsForMultiDatastream(obs)) {
-                datastream.addObservationsItem(buildObservation(req, (AbstractObservation) linkedObservation, true));
+                datastream.addObservationsItems(buildMDSObservations(req, (AbstractObservation) linkedObservation));
             }
         } else {
+            datastream.setObservations(null);
             datastream.setObservationsIotNavigationLink(selfLink + "/Observations");
         }
 
@@ -642,7 +810,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 arp.getDataArray().getPropertyElementType() != null &&
                 arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
                 DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                for (DataComponentProperty dcp : dr.getField()) {
+
+                // skip first main field
+                for (int i = 1; i < dr.getField().size(); i++) {
+                    DataComponentProperty dcp = dr.getField().get(i);
                     if (dcp.getValue() instanceof Quantity) {
                         datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement");
                     } else if (dcp.getValue() instanceof AbstractCategory) {
@@ -684,7 +855,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = new SimpleQuery();
             PropertyIsEqualTo pe = ff.equals(ff.property("procedure"), ff.literal(((org.geotoolkit.observation.xml.Process) template.getProcedure()).getHref()));
             subquery.setFilter(pe);
-            return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", defaultHints);
+            Map<String,String> hints = new HashMap<>(defaultHints);
+            hints.put("includeIDInDataBlock", "true");
+            return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", hints);
         }
         return new ArrayList<>();
     }
@@ -779,7 +952,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (req.getExpand().contains("MultiDatastreams")) {
             List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForPhenomenon(s.getName().getCode());
             for (org.opengis.observation.Observation template : linkedTemplates) {
-                obsProp.addDatastreamsItem(buildDatastream(req, (AbstractObservation) template));
+                obsProp.addMultiDatastreamsItem(buildMultiDatastream(req, (AbstractObservation) template));
             }
         } else {
             obsProp.setMultiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");

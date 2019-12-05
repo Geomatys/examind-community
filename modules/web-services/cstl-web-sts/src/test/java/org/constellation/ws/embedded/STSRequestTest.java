@@ -196,11 +196,20 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         assertEquals(expResult, result);
 
         /*
-        * request correspounding http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations
+        * FOI station-001 linked observations
         */
         getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)/Observations");
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-obs.json");
+
+        assertEquals(expResult, result);
+
+        /*
+        * FOI station-002 linked observations
+        */
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-002)/Observations");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-obs-2.json");
 
         assertEquals(expResult, result);
     }
@@ -221,9 +230,159 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=3)
     public void getObservationByIdTest() throws Exception {
+        initPool();
+        // Creates a valid GetFoi url.
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)?$expand=FeatureOfInterests,Datastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-exp.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeatureOfInterests");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-foi.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/Datastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-ds.json");
+        assertEquals(expResult, result);
 
     }
 
+    @Test
+    @Order(order=4)
+    public void getObservationByIdMdsTest() throws Exception {
+        initPool();
+        // Creates a valid GetFoi url.
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs2.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)?$expand=FeatureOfInterests,MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs2-exp.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-3)");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs3.json");
+        assertEquals(expResult, result);
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-3)?$expand=FeatureOfInterests,MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs3-exp.json");
+        assertEquals(expResult, result);
+
+    }
+
+    @Test
+    @Order(order=5)
+    public void getDataArrayForDatastreams() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:5-0)/Observations?$resultFormat=dataArray");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=6)
+    public void getDataArrayForMultiDatastreams() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=7)
+    public void getObservedPropertyById() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)?$expand=Datastreams,MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-exp.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-ds.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-mds.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=8)
+    public void getObservedProperties() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprops.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=9)
+    public void getDatastreamByIdTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=10)
+    public void getMultiDatastreamByIdTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-obs.json");
+        assertEquals(expResult, result);
+    }
 
 
     public Object writeDataFile(String resourceName) throws Exception {

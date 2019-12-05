@@ -1,0 +1,24 @@
+{
+  "phenomenonTime" : "2007-05-01T11:59:00Z",
+  "result" : [ 6.56, 13.0 ],
+  "resultTime" : "2007-05-01T11:59:00Z",
+  "@iot.id" : "urn:ogc:object:observation:GEOM:801-3",
+  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:801-3)",
+  "FeatureOfInterest" : {
+    "name" : "cycle1",
+    "description" : "Geology traverse",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-006",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)/Observations"
+  },
+  "MultiDatastream" : {
+    "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "@iot.id" : "urn:ogc:object:observation:template:GEOM:8",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)",
+    "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Sensors",
+    "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/ObservedProperties",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations",
+    "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
+  }
+}

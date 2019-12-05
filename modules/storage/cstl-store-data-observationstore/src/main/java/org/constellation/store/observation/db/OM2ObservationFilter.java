@@ -318,7 +318,16 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
-            // TODO i know that the 2 block are equals. need more test to see
+           /*
+            * in template mode 2 possibility :
+            *   1) look for for a template by id:
+            *       - <template base> - <proc id>
+            *       - <template base> - <proc id> - <field id>
+            *   2) look for a template for an observation id:
+            *       - <observation id>
+            *       - <observation id> - <field id>
+            *       - <observation id> - <field id> - <measure id>
+            */
             if (template) {
                 for (String oid : ids) {
                     if (oid.startsWith(observationTemplateIdBase)) {
@@ -345,6 +354,16 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
                         sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     }
                 }
+           /*
+            * in observations mode 2 possibility :
+            *   1) look for for observation for a template:
+            *       - <template base> - <proc id>
+            *       - <template base> - <proc id> - <field id>
+            *   2) look for observation by id:
+            *       - <observation id>
+            *       - <observation id> - <measure id>
+            *       - <observation id> - <field id> - <measure id>
+            */
             } else {
                 for (String oid : ids) {
                      if (oid.contains(observationTemplateIdBase)) {
@@ -364,7 +383,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
                             measureIdFilters.add(Integer.parseInt(component[2]));
                         } else if (component.length == 2) {
                             oid = component[0];
-                            fieldFilters.add(Integer.parseInt(component[1]));
+                            measureIdFilters.add(Integer.parseInt(component[1]));
                         }
                         sb.append("(o.\"identifier\"='").append(oid).append("') OR");
                     } else {

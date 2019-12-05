@@ -251,9 +251,9 @@ public class STSService extends OGCWebService<STSWorker> {
         } else if (STR_GETDATASTREAM_BYID.equalsIgnoreCase(requestName)) {
            request = new GetDatastreamById();
         } else if (STR_GETMULTIDATASTREAMS.equalsIgnoreCase(requestName)) {
-           request = new GetDatastreams();
+           request = new GetMultiDatastreams();
         } else if (STR_GETMULTIDATASTREAM_BYID.equalsIgnoreCase(requestName)) {
-           request = new GetDatastreamById();
+           request = new GetMultiDatastreamById();
         } else if (STR_GETOBSERVEDPROPERTIES.equalsIgnoreCase(requestName)) {
            request = new GetObservedProperties();
         } else if (STR_GETOBSERVEDPROPERTY_BYID.equalsIgnoreCase(requestName)) {
@@ -271,6 +271,7 @@ public class STSService extends OGCWebService<STSWorker> {
             AbstractSTSRequest sRequest = (AbstractSTSRequest) request;
             sRequest.setCount(getBooleanParameter(COUNT, false));
             sRequest.setFilter(getParameter(FILTER, false));
+            sRequest.setResultFormat(getParameter(RESULT_FORMAT, false));
             sRequest.setSkip(parseOptionalIntegerParam(SKIP));
             sRequest.setTop(parseOptionalIntegerParam(TOP));
             sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
@@ -281,6 +282,7 @@ public class STSService extends OGCWebService<STSWorker> {
             AbstractSTSRequestById sRequest = (AbstractSTSRequestById) request;
             sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
             sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
+            sRequest.setResultFormat(getParameter(RESULT_FORMAT, false));
             sRequest.setId(getParameter("id", true));
             return request;
         } else if (request instanceof RequestBase) {
@@ -694,6 +696,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forMDS", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -713,6 +716,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forMDS", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -732,6 +736,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forMDS", "true");
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity();
@@ -821,7 +826,7 @@ public class STSService extends OGCWebService<STSWorker> {
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
                 request.getExtraFilter().put("procedure", id);
                 return treatIncomingRequest(request).getResponseEntity();
             } catch (IllegalArgumentException ex) {

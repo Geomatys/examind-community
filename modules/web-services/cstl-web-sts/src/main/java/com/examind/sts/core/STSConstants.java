@@ -28,13 +28,14 @@ public final class STSConstants {
 
     private STSConstants() {}
 
-    public static final String ORDERBY    = "$orderby";
-    public static final String SELECT    = "$select";
-    public static final String EXPAND    = "$expand";
-    public static final String TOP       = "$top";
-    public static final String SKIP      = "$skip";
-    public static final String COUNT     = "$count";
-    public static final String FILTER    = "$filter";
+    public static final String ORDERBY       = "$orderby";
+    public static final String SELECT        = "$select";
+    public static final String EXPAND        = "$expand";
+    public static final String TOP           = "$top";
+    public static final String SKIP          = "$skip";
+    public static final String COUNT         = "$count";
+    public static final String FILTER        = "$filter";
+    public static final String RESULT_FORMAT = "$resultFormat";
 
     public static final String STR_GETCAPABILITIES           = "GetCapabilities";
     public static final String STR_GETFEATUREOFINTEREST      = "GetFeatureOfInterests";
@@ -44,8 +45,8 @@ public final class STSConstants {
     public static final String STR_GETOBSERVATION_BYID       = "GetObservationById";
     public static final String STR_GETDATASTREAMS            = "getDatastreams";
     public static final String STR_GETDATASTREAM_BYID        = "getDatastreamById";
-    public static final String STR_GETMULTIDATASTREAMS       = "getDatastreams";
-    public static final String STR_GETMULTIDATASTREAM_BYID   = "getDatastreamById";
+    public static final String STR_GETMULTIDATASTREAMS       = "getMultiDatastreams";
+    public static final String STR_GETMULTIDATASTREAM_BYID   = "getMultiDatastreamById";
     public static final String STR_GETOBSERVEDPROPERTIES     = "GetObservedProperties";
     public static final String STR_GETOBSERVEDPROPERTY_BYID  = "GetObservedPropertyById";
     public static final String STR_GETLOCATIONS              = "GetLocations";

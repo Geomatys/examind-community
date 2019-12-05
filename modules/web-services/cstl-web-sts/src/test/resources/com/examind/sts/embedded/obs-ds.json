@@ -1,0 +1,9 @@
+{
+  "value" : [ {
+    "@iot.id" : "urn:ogc:object:observation:template:GEOM:3-0",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)",
+    "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Sensors",
+    "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/ObservedProperties",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Observations"
+  } ]
+}
