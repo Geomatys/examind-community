@@ -89,6 +89,7 @@ import org.geotoolkit.sts.json.ThingsResponse;
 import org.geotoolkit.swe.xml.AbstractBoolean;
 import org.geotoolkit.swe.xml.AbstractCategory;
 import org.geotoolkit.swe.xml.AbstractCount;
+import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataComponentProperty;
@@ -125,7 +126,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     static {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-    
+
     private final Map<String, String> defaultHints = new HashMap<>();
 
 
@@ -208,12 +209,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final SimpleQuery subquery = buildExtraFilterQuery(req);
             QName model;
             boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
+            Map<String,String> hints = new HashMap<>(defaultHints);
             if (forMds) {
+                hints.put("includeIDInDataBlock", "true");
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
             }
-            List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", defaultHints);
+            List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", hints);
             if (isDataArray) {
                 return buildDataArray(sps, forMds);
             } else {
@@ -250,9 +253,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             throw new CstlServiceException(ex);
         }
     }
-    
+
     private Observation buildObservation(STSRequest req, AbstractObservation obs, boolean fromMds) throws ConstellationStoreException {
-        boolean isDataArray = "dataArray".equals(req.getResultFormat());
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obs.getName().getCode() + ")";
 
@@ -305,32 +307,29 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             observation = observation.phenomenonTime(tempObj);
         }
 
-        if (isDataArray) {
-            if (obs.getResult() instanceof DataArrayProperty) {
-                DataArray resultArray = new DataArray();
-                DataArrayProperty arp = (DataArrayProperty) obs.getResult();
-                if (arp.getDataArray() != null
-                        && arp.getDataArray().getPropertyElementType() != null
-                        && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
-                    DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                    resultArray.getComponents().add("id");
-                    resultArray.getComponents().add("phenomenonTime");
-                    resultArray.getComponents().add("resultTime");
-                    resultArray.getComponents().add("result");
-                    /*for (DataComponentProperty dcp : dr.getField()) {
-                        resultArray.getComponents().add(dcp.getName());
-                    }*/
 
-                    List<Object> results = transformDataBlock(arp.getDataArray().getValues(), arp.getDataArray().getEncoding());
-                    resultArray.setDataArray(results);
-                }
-                observation.setResult(resultArray);
+        if (obs.getResult() instanceof DataArrayProperty) {
+
+            // TODO
+            DataArrayProperty arp = (DataArrayProperty) obs.getResult();
+            if (arp.getDataArray() != null
+                    && arp.getDataArray().getPropertyElementType() != null
+                    && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+                DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
+                /*for (DataComponentProperty dcp : dr.getField()) {
+                    resultArray.getComponents().add(dcp.getName());
+                }*/
+
+                //List<Object> results = transformDataBlock(arp.getDataArray().getValues(), arp.getDataArray().getEncoding());
+
             }
+            observation.setResult(null);
+
+        } else if (obs.getResult() instanceof Measure) {
+            Measure meas = (Measure) obs.getResult();
+            observation.setResult(meas.getValue());
         } else {
-            if (obs.getResult() instanceof Measure) {
-                Measure meas = (Measure) obs.getResult();
-                observation.setResult(meas.getValue());
-            }
+            throw new ConstellationStoreException("unexpected result type:" + obs.getResult());
         }
 
         observation = observation.iotId(obs.getName().getCode())
@@ -339,7 +338,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private DataArray buildDataArray(List<org.opengis.observation.Observation> obs, boolean fromMds) throws ConstellationStoreException {
-      
+
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + "" + ")";
 
@@ -347,42 +346,47 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         for (org.opengis.observation.Observation ob : obs) {
             AbstractObservation aob = (AbstractObservation)ob;
-            List<Object> line = new ArrayList<>();
-            line.add(aob.getName().getCode());
-            String tempObj = null;
-            if (aob.getSamplingTime() != null) {
-                tempObj = temporalObjToString(aob.getSamplingTime());
-            } 
-            line.add(tempObj);
-            line.add(tempObj);
-                
+
             if (aob.getResult() instanceof DataArrayProperty) {
                 DataArrayProperty arp = (DataArrayProperty) aob.getResult();
                 if (arp.getDataArray() != null
+                        && arp.getDataArray().getEncoding() != null
+                        && arp.getDataArray().getValues() != null
                         && arp.getDataArray().getPropertyElementType() != null
                         && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
-                    DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                    /*for (DataComponentProperty dcp : dr.getField()) {
-                        resultArray.getComponents().add(dcp.getName());
-                    }*/
 
-                    List<Object> results = transformDataBlock(arp.getDataArray().getValues(), arp.getDataArray().getEncoding());
-                    // TODO
+                    DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
+                    List<AbstractDataComponent> fields = new ArrayList<>();
+                    for (DataComponentProperty dc : dr.getField()) {
+                        fields.add(dc.getValue());
+                    }
+                    List<Object> results = transformDataBlock(aob.getName().getCode(), arp.getDataArray().getValues(), arp.getDataArray().getEncoding(),  fields);
+                    result.getDataArray().addAll(results);
+
+                } else {
+                    throw new ConstellationStoreException("malformed data array result in observatio");
                 }
             } else if (aob.getResult() instanceof Measure) {
-
+                List<Object> line = new ArrayList<>();
+                line.add(aob.getName().getCode());
+                String tempObj = null;
+                if (aob.getSamplingTime() != null) {
+                    tempObj = temporalObjToString(aob.getSamplingTime());
+                }
+                line.add(tempObj);
+                line.add(tempObj);
                 Measure meas = (Measure) aob.getResult();
                 line.add(meas.getValue());
-
+                result.getDataArray().add(line);
             } else {
                 throw new ConstellationStoreException("unexpected result type:" + aob.getResult());
             }
-            result.getDataArray().add(line);
+
         }
         return result;
     }
 
-    public List<Object> transformDataBlock(String values, AbstractEncoding encoding) {
+    public List<Object> transformDataBlock(String observationId, String values, AbstractEncoding encoding, List<AbstractDataComponent> fields) {
         List<Object> results = new ArrayList<>();
         if (encoding instanceof TextBlock) {
             TextBlock tb = (TextBlock) encoding;
@@ -392,15 +396,43 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 String block = valuesLeft.substring(0, pos);
                 List<Object> blockValues = new ArrayList<>();
                 int bpos = block.indexOf(tb.getTokenSeparator());
-                while (bpos != -1) {
-                    String value = block.substring(0, bpos);
-                    blockValues.add(value);
-                    block = block.substring(bpos + tb.getTokenSeparator().length());
-                    bpos = block.indexOf(tb.getTokenSeparator());
+
+                // first the observation id
+                String oid = block.substring(0, bpos);
+                blockValues.add(observationId + "-" + oid);
+                block = block.substring(bpos + tb.getTokenSeparator().length());
+                bpos = block.indexOf(tb.getTokenSeparator());
+
+                // then the time of measure (two times)
+                String time = block.substring(0, bpos);
+                blockValues.add(time);
+                blockValues.add(time);
+                block = block.substring(bpos + tb.getTokenSeparator().length());
+                bpos = block.indexOf(tb.getTokenSeparator());
+
+                // the the measure in their own array
+                List<Object> measures = new ArrayList<>();
+
+                // skip id and time field
+                if (bpos != -1) {
+                    int i = 2;
+                    do {
+                        AbstractDataComponent compo = fields.get(i);
+                        String value = block.substring(0, bpos);
+                        if (compo instanceof Quantity) {
+                            measures.add(Float.parseFloat(value));
+                        } else {
+                            measures.add(value);
+                        }
+                        block = block.substring(bpos + tb.getTokenSeparator().length());
+                        bpos = block.indexOf(tb.getTokenSeparator());
+                        if (bpos == -1) {
+                            bpos = block.length() -1;
+                        }
+                    } while (!block.isEmpty());
+
                 }
-                if (!block.isEmpty()) {
-                    blockValues.add(block);
-                }
+                blockValues.add(measures);
 
                 valuesLeft = valuesLeft.substring(pos + tb.getBlockSeparator().length());
                 pos = valuesLeft.indexOf(tb.getBlockSeparator());

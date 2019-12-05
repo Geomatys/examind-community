@@ -48,10 +48,6 @@ import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import org.geotoolkit.util.StringUtilities;
-
-// Geotoolkit dependencies
-// GeoAPI dependencies
 
 /**
  *
@@ -76,7 +72,6 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     protected boolean getFOI = false;
     protected boolean getPhen = false;
     protected boolean getProc = false;
-    protected boolean includeIDInDataBlock = false;
 
     protected String currentProcedure = null;
 

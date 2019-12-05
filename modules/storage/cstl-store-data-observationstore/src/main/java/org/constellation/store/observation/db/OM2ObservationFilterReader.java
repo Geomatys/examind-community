@@ -323,10 +323,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
+        boolean includeIDInDataBlock = false;
         String version = "2.0.0";
         if (hints != null) {
             if (hints.containsKey("version")) {
                 version = hints.get("version");
+            }
+            if (hints.containsKey("includeIDInDataBlock")) {
+                includeIDInDataBlock = Boolean.parseBoolean(hints.get("includeIDInDataBlock"));
             }
         }
         if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -379,6 +383,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
                         } else {
                             fields = readFields(procedure, c);
+                        }
+
+                        // add the result id in the dataBlock if requested
+                        if (includeIDInDataBlock) {
+                            fields.add(0, new Field("Text", "id", "measure identifier", null));
                         }
                         fieldMap.put(procedure, fields);
                     }

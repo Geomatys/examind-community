@@ -271,7 +271,7 @@ public class OM2STSWorkerTest {
         GetObservations goRequest = new GetObservations();
         goRequest.getExtraFilter().put("featureOfInterest", "station-001");
         Object obj = worker.getObservations(goRequest);
-        
+
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse obsResult = (ObservationsResponse) obj;
 
@@ -389,7 +389,7 @@ public class OM2STSWorkerTest {
         request.setResultFormat("dataArray");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:5-0");
         Object resultObj = worker.getObservations(request);
-        
+
         Assert.assertTrue(resultObj instanceof DataArray);
         DataArray result = (DataArray) resultObj;
 
@@ -402,12 +402,12 @@ public class OM2STSWorkerTest {
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-0-4", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", 6.56f));
         array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-0-5", "2007-05-01T14:59:00Z", "2007-05-01T14:59:00Z", 6.56f));
         expResult.setDataArray(array);
-               
+
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
     }
-    
+
     @Test
     @Order(order=3)
     public void getObservationsMultiDataStreamDataArrayTest() throws Exception {
@@ -416,20 +416,35 @@ public class OM2STSWorkerTest {
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:8");
         request.getExtraFlag().put("forMDS", "true");
         Object resultObj = worker.getObservations(request);
-        
+
         Assert.assertTrue(resultObj instanceof DataArray);
         DataArray result = (DataArray) resultObj;
 
         DataArray expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         List<Object> array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-1", "2007-05-01T10:59:00Z", "2007-05-01T10:59:00Z", Arrays.asList(6.56f,12.0f)));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-3", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", Arrays.asList(6.56f,13.0f)));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-5", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", Arrays.asList(6.56f,14.0f)));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", Arrays.asList(6.56f,15.0f)));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-9", "2007-05-01T14:59:00Z", "2007-05-01T14:59:00Z", Arrays.asList(6.56f,16.0f)));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-1", "2007-05-01T12:59:00.0", "2007-05-01T12:59:00.0", Arrays.asList(6.56f,12.0f)));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-3", "2007-05-01T13:59:00.0", "2007-05-01T13:59:00.0", Arrays.asList(6.56f,13.0f)));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-5", "2007-05-01T14:59:00.0", "2007-05-01T14:59:00.0", Arrays.asList(6.56f,14.0f)));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-7", "2007-05-01T15:59:00.0", "2007-05-01T15:59:00.0", Arrays.asList(6.56f,15.0f)));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:801-9", "2007-05-01T16:59:00.0", "2007-05-01T16:59:00.0", Arrays.asList(6.56f,16.0f)));
         expResult.setDataArray(array);
-               
+
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        for (int i = 0; i < 5; i++) {
+            Object expCell = expResult.getDataArray().get(i);
+            Object resCell = result.getDataArray().get(i);
+            if (expCell instanceof List && resCell instanceof List) {
+                List expSubArray = (List) expCell;
+                List resSubArray = (List) resCell;
+                Assert.assertEquals(expSubArray.size(), resSubArray.size());
+                for (int j = 0; j < expSubArray.size(); j++) {
+                    Assert.assertEquals(expSubArray.get(j), resSubArray.get(j));
+                }
+            }
+            Assert.assertEquals(expCell, resCell);
+        }
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
@@ -440,7 +455,7 @@ public class OM2STSWorkerTest {
     public void getObservationsTest() throws Exception {
         GetObservations request = new GetObservations();
         Object obj = worker.getObservations(request);
-        
+
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
 
@@ -651,10 +666,10 @@ public class OM2STSWorkerTest {
        GetObservations go = new GetObservations();
        go.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:5-0");
        Object obj = worker.getObservations(go);
-       
+
        Assert.assertTrue(obj instanceof ObservationsResponse);
        ObservationsResponse obsResult = (ObservationsResponse) obj;
-        
+
        Assert.assertEquals(5, obsResult.getValue().size());
        Assert.assertEquals(expObs1, obsResult.getValue().get(0));
        Assert.assertEquals(expObs2, obsResult.getValue().get(1));
@@ -802,10 +817,10 @@ public class OM2STSWorkerTest {
        go.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:2");
        go.getExtraFlag().put("forMDS", "true");
        Object obj = worker.getObservations(go);
-       
+
        Assert.assertTrue(obj instanceof ObservationsResponse);
        ObservationsResponse obsResult = (ObservationsResponse) obj;
-        
+
        Assert.assertEquals(1, obsResult.getValue().size());
        Assert.assertEquals(expObs, obsResult.getValue().get(0));
 
