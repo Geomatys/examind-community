@@ -32,15 +32,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  */
 @Configuration
 public class STSControllerConfig  extends WebMvcConfigurationSupport {
-    
+
     public STSControllerConfig() {
-        
+
     }
 
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new STSResponseWriter());
         converters.add(new ExceptionReportWriter());
+        converters.add(new MappingJackson2HttpMessageConverter());
     }
 }

@@ -100,12 +100,6 @@ import org.w3c.dom.Node;
 @ImportResource({"classpath:/cstl/spring/test-context-complete.xml"})
 public abstract class AbstractGrizzlyServer {
 
-    public static String REST_JERSEY_PACKAGE =
-            "org.constellation.rest.api;\n" +
-            "org.constellation.ws.rest;\n" +
-            "org.constellation.metadata.ws.rs.provider;\n" +
-            "org.constellation.ws.rs.provider" ;
-
     public static String[] CSTL_SPRING_PACKAGE = new String[] {
             "org.constellation.configuration.ws",
             "org.constellation.map.ws.rs",
@@ -118,6 +112,7 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.wmts.ws.rs",
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
+            "com.examind.sts.ws.rs",
             "org.constellation.webdav",
             "org.constellation.thesaurus.ws.rs"};
 

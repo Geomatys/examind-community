@@ -57,11 +57,11 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     private static boolean initialized = false;
 
     private static String getDefaultURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/sts/default?";
+        return "http://localhost:" +  getCurrentPort() + "/WS/sts/default";
     }
 
     private static String getTestURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/sts/test?";
+        return "http://localhost:" +  getCurrentPort() + "/WS/sts/test";
     }
 
     @BeforeClass
@@ -173,64 +173,63 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         stopServer();
     }
 
-    
-    @Ignore
+
+    @Test
     @Order(order=1)
     public void getFeatureOfInterestByIdTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
         URL getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)");
 
-        String result = getStringResponse(getFoiUrl);
+        String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi.json");
-        
-        assertEquals(result, expResult);
+
+        assertEquals(expResult, result);
 
         /*
          * expand observations
          */
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)?expand=Observations");
-        result = getStringResponse(getFoiUrl);
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)?$expand=Observations");
+        result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-exp.json");
-        
-        assertEquals(result, expResult);
-        
+
+        assertEquals(expResult, result);
+
         /*
         * request correspounding http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations
         */
         getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)/Observations");
-        result = getStringResponse(getFoiUrl);
+        result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-obs.json");
-        
-        assertEquals(result, expResult);
+
+        assertEquals(expResult, result);
     }
-    
-      
-    @Ignore
+
+
+    @Test
     @Order(order=2)
     public void getFeatureOfInterestsTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
         URL getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests");
 
-        String result = getStringResponse(getFoiUrl);
+        String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi-all.json");
-        
-        assertEquals(result, expResult);
+        assertEquals(expResult, result);
     }
-    
+
     @Test
     @Order(order=3)
     public void getObservationByIdTest() throws Exception {
-        
+
     }
 
-  
+
 
     public Object writeDataFile(String resourceName) throws Exception {
 
         StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream("org/constellation/embedded/test/" + resourceName + ".xml");
+        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
 
         byte[] buffer = new byte[1024];
         int size;

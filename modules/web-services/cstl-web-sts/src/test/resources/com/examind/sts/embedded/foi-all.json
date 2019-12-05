@@ -1,1 +1,45 @@
-
+{
+  "value" : [ {
+    "name" : "10972X0137-PONT",
+    "description" : "Point d'eau BSSS",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-001",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-001)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-001)/Observations"
+  }, {
+    "name" : "10972X0137-PLOUF",
+    "description" : "Point d'eau BSSS",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-002",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-002)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-002)/Observations"
+  }, {
+    "name" : "66685X4587-WARP",
+    "description" : "Station Thermale",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-003",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)/Observations"
+  }, {
+    "name" : "99917X9856-FRAG",
+    "description" : "Puits",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-004",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)/Observations"
+  }, {
+    "name" : "44499X4517-TRUC",
+    "description" : "bouée ds le rhone",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-005",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-005)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-005)/Observations"
+  }, {
+    "name" : "cycle1",
+    "description" : "Geology traverse",
+    "encodingType" : "application/vnd.geo+json",
+    "@iot.id" : "station-006",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)/Observations"
+  } ]
+}

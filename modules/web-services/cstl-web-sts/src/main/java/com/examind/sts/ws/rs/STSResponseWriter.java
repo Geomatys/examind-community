@@ -19,9 +19,13 @@
 
 package com.examind.sts.ws.rs;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.sis.util.logging.Logging;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,6 +44,7 @@ import org.geotoolkit.sts.json.STSResponse;
 public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("com.examind.sts.ws.rs");
+    private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
@@ -63,8 +68,12 @@ public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
     @Override
     public void write(STSResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-
-             // JSON WRITE
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setDateFormat(DATE_FORM);
+        mapper.writeValue(outputMessage.getBody(), t);
 
     }
 }

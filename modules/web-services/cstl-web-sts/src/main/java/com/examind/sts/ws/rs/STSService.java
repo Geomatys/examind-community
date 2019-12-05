@@ -343,7 +343,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:\\w})/FeatureOfInterests", method = RequestMethod.GET)
+    @RequestMapping(path = "Observations({id:[^\\)]+})/FeatureOfInterests", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -361,7 +361,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeatureOfInterests({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -413,7 +413,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeatureOfInterests({id:\\w})/Observations", method = RequestMethod.GET)
+    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -432,7 +432,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "Observations({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getObservationsById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -467,7 +467,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Datastreams({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "Datastreams({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -485,7 +485,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:\\w})/Datastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "Observations({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -503,7 +503,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "ObservedProperties({id:\\w})/Datastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -538,7 +538,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "MultiDatastreams({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -556,7 +556,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:\\w})/MultiDatastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "Observations({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -574,7 +574,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "ObservedProperties({id:\\w})/MultiDatastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -610,7 +610,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "ObservedProperties({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "ObservedProperties({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -628,7 +628,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Datastreams({id:\\w})/ObservedProperties", method = RequestMethod.GET)
+    @RequestMapping(path = "Datastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -647,7 +647,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Datastreams({id:\\w})/Observations", method = RequestMethod.GET)
+    @RequestMapping(path = "Datastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -666,7 +666,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Datastreams({id:\\w})/Sensors", method = RequestMethod.GET)
+    @RequestMapping(path = "Datastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
     public ResponseEntity getSensorsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -685,7 +685,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "MultiDatastreams({id:\\w})/ObservedProperties", method = RequestMethod.GET)
+    @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
     public ResponseEntity getObservedPropertyForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -704,7 +704,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "MultiDatastreams({id:\\w})/Observations", method = RequestMethod.GET)
+    @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -723,7 +723,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "MultiDatastreams({id:\\w})/Sensors", method = RequestMethod.GET)
+    @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
     public ResponseEntity getSensorsForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -777,7 +777,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Sensors({id:\\w})", method = RequestMethod.GET)
+    @RequestMapping(path = "Sensors({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
@@ -795,7 +795,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Sensors({id:\\w})/Datastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "Sensors({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
     public ResponseEntity getDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
@@ -814,7 +814,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Sensors({id:\\w})/MultiDatastreams", method = RequestMethod.GET)
+    @RequestMapping(path = "Sensors({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
     public ResponseEntity getMultiDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
