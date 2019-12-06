@@ -46,7 +46,6 @@ import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
@@ -398,7 +397,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    public Object getFeatureInfo(SceneDef sdef, ViewDef vdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
+    public Object getFeatureInfo(SceneDef sdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
 
         this.gfi = getFI;
         final StringBuilder builder = new StringBuilder();
@@ -406,7 +405,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final String mimeType = getFI.getInfoFormat();
 
         //fill coverages and features maps
-        getCandidates(sdef, vdef, cdef, searchArea, -1);
+        getCandidates(sdef, cdef, searchArea, -1);
 
         builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append("\n")
                 .append("<FeatureInfo>").append("\n");

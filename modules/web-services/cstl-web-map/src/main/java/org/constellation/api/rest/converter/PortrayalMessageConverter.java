@@ -33,7 +33,6 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -97,12 +96,11 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
             } else {
                 final CanvasDef cdef = r.getCanvasDef();
                 final SceneDef sdef = r.getSceneDef();
-                final ViewDef vdef = r.getViewDef();
 
                 if(LOGGER.isLoggable(Level.FINE)){
                     final long before = System.nanoTime();
                     try {
-                        CstlPortrayalService.getInstance().portray(sdef, vdef, cdef, outdef);
+                        CstlPortrayalService.getInstance().portray(sdef, cdef, outdef);
                     } catch (PortrayalException ex) {
                         //should not happen normally since we asked to never fail.
                         throw new IOException(ex);
@@ -112,7 +110,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
                             new Object[]{outdef.getMime(),outdef.getCompression(),Math.round( (after - before) / 1000000d)});
                 }else{
                     try {
-                        CstlPortrayalService.getInstance().portray(sdef, vdef, cdef, outdef);
+                        CstlPortrayalService.getInstance().portray(sdef, cdef, outdef);
                     } catch (PortrayalException ex) {
                         //should not happen normally since we asked to never fail.
                         throw new IOException(ex);

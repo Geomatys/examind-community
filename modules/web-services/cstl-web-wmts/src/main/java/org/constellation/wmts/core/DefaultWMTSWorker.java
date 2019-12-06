@@ -64,7 +64,6 @@ import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.Data;
-import org.constellation.util.DataReference;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.LayerWorker;
@@ -72,7 +71,6 @@ import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
@@ -648,16 +646,15 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
-        // 2. VIEW
-        final JTSEnvelope2D refEnv = new JTSEnvelope2D(c.getGridGeometry().getEnvelope());
-        final double azimuth       = 0;//request.getAzimuth();
-        final ViewDef vdef         = new ViewDef(refEnv,azimuth);
-
 
         // 3. CANVAS
+        final JTSEnvelope2D refEnv = new JTSEnvelope2D(c.getGridGeometry().getEnvelope());
+        final double azimuth       = 0;//request.getAzimuth();
         final java.awt.Dimension canvasDimension = null;//request.getSize();
         final Color background = null;
-        final CanvasDef cdef = new CanvasDef(canvasDimension,background);
+        final CanvasDef cdef = new CanvasDef(canvasDimension,refEnv);
+        cdef.setBackground(background);
+        cdef.setAzimuth(azimuth);
 
         // 4. SHAPE
         //     a
@@ -696,7 +693,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         }
 
         try {
-            final Object result = featureInfo.getFeatureInfo(sdef, vdef, cdef, selectionArea, request);
+            final Object result = featureInfo.getFeatureInfo(sdef, cdef, selectionArea, request);
             return new AbstractMap.SimpleEntry<>(infoFormat, result);
         } catch (PortrayalException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);

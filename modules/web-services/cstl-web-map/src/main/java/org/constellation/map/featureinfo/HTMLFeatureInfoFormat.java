@@ -39,7 +39,6 @@ import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
@@ -249,11 +248,11 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    public Object getFeatureInfo(final SceneDef sdef, final ViewDef vdef, final CanvasDef cdef, final Rectangle searchArea,
+    public Object getFeatureInfo(final SceneDef sdef, final CanvasDef cdef, final Rectangle searchArea,
                                  final GetFeatureInfo getFI) throws PortrayalException {
 
         //fill coverages and features maps
-        getCandidates(sdef, vdef, cdef, searchArea, -1);
+        getCandidates(sdef, cdef, searchArea, -1);
 
         final StringBuilder response = new StringBuilder();
 

@@ -18,6 +18,8 @@
  */
 package org.constellation.portrayal;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display.canvas.control.CanvasMonitor;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
@@ -26,11 +28,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.display2d.service.VisitDef;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 
 /**
@@ -57,7 +55,6 @@ public final class CstlPortrayalService {
      * Portray a set of Layers over a given geographic extent with a given
      * resolution yielding a {@code BufferedImage} of the scene.
      * @param sdef A structure which defines the scene.
-     * @param vdef A structure which defines the view.
      * @param cdef A structure which defines the canvas.
      *
      * @return A rendered image of the scene, in the chosen view and for the
@@ -65,15 +62,14 @@ public final class CstlPortrayalService {
      * @throws PortrayalException For errors during portrayal, TODO: common examples?
      */
     public BufferedImage portray( final SceneDef sdef,
-                                  final ViewDef vdef,
                                   final CanvasDef cdef)
     		throws PortrayalException {
 
         final StopOnErrorMonitor monitor = new StopOnErrorMonitor();
-        vdef.setMonitor(monitor);
+        cdef.setMonitor(monitor);
 
         try {
-            final BufferedImage buffer = DefaultPortrayalService.portray(cdef,sdef,vdef);
+            final BufferedImage buffer = DefaultPortrayalService.portray(cdef,sdef);
 
             final Exception exp = monitor.getLastException();
             if(exp != null){
@@ -107,13 +103,12 @@ public final class CstlPortrayalService {
      *
      */
     public void visit( final SceneDef sdef,
-                       final ViewDef vdef,
                        final CanvasDef cdef,
                        final VisitDef visitDef)
             throws PortrayalException {
 
         try{
-            DefaultPortrayalService.visit(cdef,sdef,vdef,visitDef);
+            DefaultPortrayalService.visit(cdef,sdef,visitDef);
         }catch(Exception ex){
             if (ex instanceof PortrayalException) {
                 throw (PortrayalException)ex;
@@ -164,20 +159,19 @@ public final class CstlPortrayalService {
      * Portray a set of Layers over a given geographic extent with a given
      * resolution in the provided output.
      * @param sdef A structure which defines the scene.
-     * @param vdef A structure which defines the view.
      * @param cdef A structure which defines the canvas.
      * @param odef A structure which defines the output.
      *
      * @throws PortrayalException For errors during portrayal, TODO: common examples?
      */
-    public void portray(SceneDef sdef, ViewDef vdef, CanvasDef cdef, OutputDef odef) throws PortrayalException {
+    public void portray(SceneDef sdef, CanvasDef cdef, OutputDef odef) throws PortrayalException {
 
         //never stop rendering, we write in the output, we must never.
         final CanvasMonitor monitor = new NeverFailMonitor();
-        vdef.setMonitor(monitor);
+        cdef.setMonitor(monitor);
 
         try {
-            DefaultPortrayalService.portray(cdef,sdef,vdef,odef);
+            DefaultPortrayalService.portray(cdef,sdef,odef);
         }catch(PortrayalException ex){
             throw ex;
         } catch(Exception ex) {

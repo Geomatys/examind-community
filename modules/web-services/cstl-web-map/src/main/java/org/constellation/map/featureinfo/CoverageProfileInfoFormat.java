@@ -47,7 +47,6 @@ import org.apache.sis.storage.Resource;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.map.MapLayer;
@@ -103,7 +102,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     @Override
-    public Object getFeatureInfo(SceneDef sdef, ViewDef vdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
+    public Object getFeatureInfo(SceneDef sdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
 
         //extract profile geometry
         String geomStr = null;
@@ -132,7 +131,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
 
         //geometry is in view crs
-        final CoordinateReferenceSystem geomCrs = CRS.getHorizontalComponent(vdef.getEnvelope().getCoordinateReferenceSystem());
+        final CoordinateReferenceSystem geomCrs = CRS.getHorizontalComponent(cdef.getEnvelope().getCoordinateReferenceSystem());
         geom.setUserData(geomCrs);
 
         final Profile profil = new Profile();
@@ -142,7 +141,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             if (resource instanceof GridCoverageResource) {
                 final GridCoverageResource ressource = (GridCoverageResource) resource;
                 try {
-                    final ProfilLayer l = extract(vdef, getFI, geom, ressource);
+                    final ProfilLayer l = extract(cdef, getFI, geom, ressource);
                     l.name = layer.getName();
                     if (l.name == null) {
                         if (ressource.getIdentifier().isPresent()) {
@@ -165,7 +164,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return Collections.singletonList(MIME);
     }
 
-    private ProfilLayer extract(ViewDef vdef, GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, FactoryException, DataStoreException {
+    private ProfilLayer extract(CanvasDef cdef, GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, FactoryException, DataStoreException {
 
         final ProfilLayer layer = new ProfilLayer();
 
@@ -173,7 +172,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         try {
             //build temporal and vertical slice
             final JTSEnvelope2D geomEnv = JTS.toEnvelope(geom);
-            final Envelope venv = vdef.getEnvelope();
+            final Envelope venv = cdef.getEnvelope();
             final CoordinateReferenceSystem vcrs = venv.getCoordinateReferenceSystem();
             final TemporalCRS vtcrs = CRS.getTemporalComponent(vcrs);
             final VerticalCRS vacrs = CRS.getVerticalComponent(vcrs, true);

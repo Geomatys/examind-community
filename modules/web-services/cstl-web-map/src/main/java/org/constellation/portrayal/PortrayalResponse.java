@@ -19,14 +19,12 @@
 
 package org.constellation.portrayal;
 
+import java.awt.image.BufferedImage;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
-
-import javax.xml.bind.annotation.XmlRootElement;
-import java.awt.image.BufferedImage;
 
 /**
  * Contain image informations for the response.
@@ -38,29 +36,26 @@ public final class PortrayalResponse {
 
     private final CanvasDef canvasDef;
     private final SceneDef sceneDef;
-    private final ViewDef viewDef;
     private final OutputDef outputDef;
     private BufferedImage image;
     private byte[] buffer;
 
-    public PortrayalResponse(CanvasDef canvasDef, SceneDef sceneDef, ViewDef viewDef, OutputDef outputDef) {
+    public PortrayalResponse(CanvasDef canvasDef, SceneDef sceneDef, OutputDef outputDef) {
         this.canvasDef = canvasDef;
         this.sceneDef = sceneDef;
-        this.viewDef = viewDef;
         this.outputDef = outputDef;
         this.image = null;
     }
-        
+
     public PortrayalResponse(BufferedImage image) {
         this.canvasDef = null;
         this.sceneDef = null;
-        this.viewDef = null;
         this.outputDef = null;
         this.image = image;
     }
 
     public void prepareNow() throws PortrayalException{
-        image = CstlPortrayalService.getInstance().portray(sceneDef, viewDef, canvasDef);
+        image = CstlPortrayalService.getInstance().portray(sceneDef, canvasDef);
     }
 
 
@@ -80,10 +75,6 @@ public final class PortrayalResponse {
         return image;
     }
 
-    public ViewDef getViewDef() {
-        return viewDef;
-    }
-
     public byte[] getBuffer() {
         return buffer;
     }
@@ -91,5 +82,5 @@ public final class PortrayalResponse {
     public void setBuffer(byte[] buffer) {
         this.buffer = buffer;
     }
-    
+
 }

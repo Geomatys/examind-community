@@ -19,78 +19,8 @@
 package org.constellation.coverage.core;
 
 // J2SE dependencies
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.util.Utilities;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.api.ServiceDef;
-import org.constellation.api.QueryConstants;
-import org.constellation.dto.service.config.wxs.Layer;
-import org.constellation.dto.contact.Details;
-import org.constellation.portrayal.PortrayalUtil;
-import org.constellation.provider.CoverageData;
-import org.constellation.provider.Data;
-import org.constellation.util.WCSUtils;
-import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.LayerWorker;
-import org.constellation.ws.MimeType;
-import org.geotoolkit.display.PortrayalException;
-import org.geotoolkit.display2d.service.CanvasDef;
-import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
-import org.geotoolkit.geometry.jts.JTSEnvelope2D;
-import org.geotoolkit.gml.xml.v311.DirectPositionType;
-import org.geotoolkit.gml.xml.v311.EnvelopeType;
-import org.geotoolkit.gml.xml.v311.GridType;
-import org.geotoolkit.gml.xml.v311.RectifiedGridType;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
-import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
-import org.geotoolkit.ows.xml.AbstractServiceIdentification;
-import org.geotoolkit.ows.xml.AbstractServiceProvider;
-import org.geotoolkit.ows.xml.AcceptFormats;
-import org.geotoolkit.ows.xml.Sections;
-import org.geotoolkit.ows.xml.v110.BoundingBoxType;
-import org.geotoolkit.ows.xml.v110.SectionsType;
-import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
-import org.apache.sis.referencing.CommonCRS;
-import org.geotoolkit.resources.Errors;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.temporal.util.TimeParser;
-import org.geotoolkit.wcs.xml.Content;
-import org.geotoolkit.wcs.xml.CoverageInfo;
-import org.geotoolkit.wcs.xml.DescribeCoverage;
-import org.geotoolkit.wcs.xml.DescribeCoverageResponse;
-import org.geotoolkit.wcs.xml.GetCapabilities;
-import org.geotoolkit.wcs.xml.GetCapabilitiesResponse;
-import org.geotoolkit.wcs.xml.GetCoverage;
-import org.geotoolkit.wcs.xml.WCSMarshallerPool;
-import org.geotoolkit.wcs.xml.WCSXmlFactory;
-import org.geotoolkit.wcs.xml.v100.CoverageOfferingType;
-import org.geotoolkit.wcs.xml.v100.DomainSetType;
-import org.geotoolkit.wcs.xml.v100.InterpolationMethod;
-import org.geotoolkit.wcs.xml.v100.LonLatEnvelopeType;
-import org.geotoolkit.wcs.xml.v100.RangeSetType;
-import org.geotoolkit.wcs.xml.v100.SupportedCRSsType;
-import org.geotoolkit.wcs.xml.v100.SupportedFormatsType;
-import org.geotoolkit.wcs.xml.v100.SupportedInterpolationsType;
-import org.geotoolkit.wcs.xml.v111.CoverageDescriptionType;
-import org.geotoolkit.wcs.xml.v111.CoverageDomainType;
-import org.geotoolkit.wcs.xml.v111.FieldType;
-import org.geotoolkit.wcs.xml.v111.GridCrsType;
-import org.geotoolkit.wcs.xml.v111.InterpolationMethods;
-import org.geotoolkit.wcs.xml.v111.RangeType;
-import org.geotoolkit.swe.xml.v200.Field;
-import org.opengis.coverage.grid.RectifiedGrid;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.cs.CoordinateSystemAxis;
-import org.opengis.referencing.operation.TransformException;
-import org.opengis.util.FactoryException;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -114,13 +44,23 @@ import javax.inject.Named;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
-
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.util.Utilities;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
+import org.constellation.api.QueryConstants;
+import org.constellation.api.ServiceDef;
 import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
 import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
 import static org.constellation.coverage.core.WCSConstant.INTERPOLATION_V100;
@@ -145,22 +85,43 @@ import static org.constellation.coverage.core.WCSConstant.getOperationMetadata;
 import org.constellation.coverage.ws.rs.GeotiffResponse;
 import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
+import org.constellation.dto.StyleReference;
+import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.portrayal.CstlPortrayalService;
+import org.constellation.portrayal.PortrayalUtil;
+import org.constellation.provider.CoverageData;
+import org.constellation.provider.Data;
+import org.constellation.util.WCSUtils;
+import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ExceptionCode;
 import static org.constellation.ws.ExceptionCode.AXIS_LABEL_INVALID;
 import static org.constellation.ws.ExceptionCode.INVALID_SUBSETTING;
+import org.constellation.ws.LayerWorker;
+import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.MultiPart;
-import org.apache.sis.coverage.Category;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.display.PortrayalException;
+import org.geotoolkit.display2d.service.CanvasDef;
+import org.geotoolkit.display2d.service.SceneDef;
+import org.geotoolkit.geometry.jts.JTSEnvelope2D;
+import org.geotoolkit.gml.xml.v311.DirectPositionType;
+import org.geotoolkit.gml.xml.v311.EnvelopeType;
+import org.geotoolkit.gml.xml.v311.GridType;
+import org.geotoolkit.gml.xml.v311.RectifiedGridType;
 import org.geotoolkit.gml.xml.v321.AssociationRoleType;
 import org.geotoolkit.gml.xml.v321.FileType;
 import org.geotoolkit.gmlcov.geotiff.xml.v100.CompressionType;
 import org.geotoolkit.gmlcov.geotiff.xml.v100.ParametersType;
 import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
+import org.geotoolkit.image.io.metadata.SpatialMetadata;
+import org.geotoolkit.map.MapContext;
+import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
+import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
+import org.geotoolkit.ows.xml.AbstractServiceIdentification;
+import org.geotoolkit.ows.xml.AbstractServiceProvider;
+import org.geotoolkit.ows.xml.AcceptFormats;
 import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
@@ -173,23 +134,60 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
-import org.apache.sis.storage.GridCoverageResource;
-import org.constellation.dto.StyleReference;
+import org.geotoolkit.ows.xml.Sections;
+import org.geotoolkit.ows.xml.v110.BoundingBoxType;
+import org.geotoolkit.ows.xml.v110.SectionsType;
+import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
+import org.geotoolkit.resources.Errors;
+import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.swe.xml.v200.AllowedValuesPropertyType;
 import org.geotoolkit.swe.xml.v200.AllowedValuesType;
 import org.geotoolkit.swe.xml.v200.DataRecordPropertyType;
 import org.geotoolkit.swe.xml.v200.DataRecordType;
+import org.geotoolkit.swe.xml.v200.Field;
 import org.geotoolkit.swe.xml.v200.QuantityType;
 import org.geotoolkit.swe.xml.v200.UnitReference;
 import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.geotoolkit.temporal.util.TimeParser;
+import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.wcs.xml.Content;
+import org.geotoolkit.wcs.xml.CoverageInfo;
+import org.geotoolkit.wcs.xml.DescribeCoverage;
+import org.geotoolkit.wcs.xml.DescribeCoverageResponse;
 import org.geotoolkit.wcs.xml.DomainSubset;
+import org.geotoolkit.wcs.xml.GetCapabilities;
+import org.geotoolkit.wcs.xml.GetCapabilitiesResponse;
+import org.geotoolkit.wcs.xml.GetCoverage;
 import org.geotoolkit.wcs.xml.ServiceMetadata;
+import org.geotoolkit.wcs.xml.WCSMarshallerPool;
+import org.geotoolkit.wcs.xml.WCSXmlFactory;
+import org.geotoolkit.wcs.xml.v100.CoverageOfferingType;
+import org.geotoolkit.wcs.xml.v100.DomainSetType;
+import org.geotoolkit.wcs.xml.v100.InterpolationMethod;
+import org.geotoolkit.wcs.xml.v100.LonLatEnvelopeType;
+import org.geotoolkit.wcs.xml.v100.RangeSetType;
+import org.geotoolkit.wcs.xml.v100.SupportedCRSsType;
+import org.geotoolkit.wcs.xml.v100.SupportedFormatsType;
+import org.geotoolkit.wcs.xml.v100.SupportedInterpolationsType;
+import org.geotoolkit.wcs.xml.v111.CoverageDescriptionType;
+import org.geotoolkit.wcs.xml.v111.CoverageDomainType;
+import org.geotoolkit.wcs.xml.v111.FieldType;
+import org.geotoolkit.wcs.xml.v111.GridCrsType;
+import org.geotoolkit.wcs.xml.v111.InterpolationMethods;
+import org.geotoolkit.wcs.xml.v111.RangeType;
 import org.geotoolkit.wcs.xml.v200.DimensionSliceType;
 import org.geotoolkit.wcs.xml.v200.DimensionTrimType;
 import org.geotoolkit.wcs.xml.v200.ExtensionType;
 import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
+import org.opengis.coverage.grid.RectifiedGrid;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CompoundCRS;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -1068,19 +1066,20 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             // VIEW
             final Double azimuth = 0.0; //HARD CODED SINCE PROTOCOL DOES NOT ALLOW
-            final ViewDef vdef = new ViewDef(refEnvel, azimuth);
 
             // CANVAS
             Color background = null;
             if (MimeType.IMAGE_JPEG.equalsIgnoreCase(format)) {
                 background = Color.WHITE;
             }
-            final CanvasDef cdef = new CanvasDef(size, background);
+            final CanvasDef cdef = new CanvasDef(size, refEnvel);
+            cdef.setBackground(background);
+            cdef.setAzimuth(azimuth);
 
             // IMAGE
             final BufferedImage img;
             try {
-                img = CstlPortrayalService.getInstance().portray(sdef, vdef, cdef);
+                img = CstlPortrayalService.getInstance().portray(sdef, cdef);
             } catch (PortrayalException ex) {
                 /*
                  * TODO: the binding xml for WCS and GML do not support the exceptions format,
@@ -1305,20 +1304,18 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 
-            // VIEW
-            final ViewDef vdef = new ViewDef(readEnv);
-
             // CANVAS
             Color background = null;
             if (MimeType.IMAGE_JPEG.equalsIgnoreCase(format)) {
                 background = Color.WHITE;
             }
-            final CanvasDef cdef = new CanvasDef(new Dimension(500, 500), background);
+            final CanvasDef cdef = new CanvasDef(new Dimension(500, 500), readEnv);
+            cdef.setBackground(background);
 
             // IMAGE
             final BufferedImage img;
             try {
-                img = CstlPortrayalService.getInstance().portray(sdef, vdef, cdef);
+                img = CstlPortrayalService.getInstance().portray(sdef, cdef);
             } catch (PortrayalException ex) {
                 /*
                  * TODO: the binding xml for WCS and GML do not support the exceptions format,

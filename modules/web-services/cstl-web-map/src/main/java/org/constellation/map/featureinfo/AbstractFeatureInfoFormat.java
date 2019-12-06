@@ -18,6 +18,11 @@
  */
 package org.constellation.map.featureinfo;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
 import org.geotoolkit.display.PortrayalException;
@@ -31,18 +36,11 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.display2d.service.VisitDef;
 import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.display.primitive.Graphic;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.geotoolkit.map.MapLayer;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -107,7 +105,6 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      *
      *
      * @param sDef {@link org.geotoolkit.display2d.service.SceneDef}
-     * @param vDef {@link org.geotoolkit.display2d.service.ViewDef}
      * @param cDef {@link org.geotoolkit.display2d.service.CanvasDef}
      * @param searchArea {@link java.awt.Rectangle} of the searching area
      * @param maxCandidat
@@ -115,7 +112,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      * @see #nextProjectedFeature(ProjectedFeature, RenderingContext2D, SearchAreaJ2D)
      * @see #nextProjectedCoverage(ProjectedCoverage, RenderingContext2D, SearchAreaJ2D)
      */
-    protected void getCandidates(final SceneDef sDef, final ViewDef vDef, final CanvasDef cDef, final Rectangle searchArea,
+    protected void getCandidates(final SceneDef sDef, final CanvasDef cDef, final Rectangle searchArea,
                                  final Integer maxCandidat) throws PortrayalException {
 
         final VisitDef visitDef = new VisitDef();
@@ -153,7 +150,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
             }
         });
 
-        DefaultPortrayalService.visit(cDef, sDef, vDef, visitDef);
+        DefaultPortrayalService.visit(cDef, sDef, visitDef);
     }
 
     /**

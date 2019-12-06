@@ -18,16 +18,14 @@
  */
 package org.constellation.map.featureinfo;
 
+import java.awt.*;
+import java.util.List;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.display2d.service.ViewDef;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
-
-import java.awt.*;
-import java.util.List;
 
 /**
  * FeatureInfo formatter.
@@ -42,7 +40,6 @@ public interface FeatureInfoFormat {
      * Features/Coverage from which FeatureInfo object can be computed.
      *
      * @param sdef {@link SceneDef}
-     * @param vdef {@link ViewDef}
      * @param cdef {@link CanvasDef}
      * @param searchArea {@link Rectangle} searching area
      * @param getFI {@link GetFeatureInfo} source request from a map service like WMS or WMTS.
@@ -51,7 +48,7 @@ public interface FeatureInfoFormat {
      * @throws PortrayalException
      * @see AbstractFeatureInfoFormat#getCandidates(SceneDef, ViewDef, CanvasDef, Rectangle, Integer)
      */
-    public Object getFeatureInfo(final SceneDef sdef, final ViewDef vdef, final CanvasDef cdef, final Rectangle searchArea,
+    public Object getFeatureInfo(final SceneDef sdef, final CanvasDef cdef, final Rectangle searchArea,
                                  final GetFeatureInfo getFI) throws PortrayalException;
 
     /**
