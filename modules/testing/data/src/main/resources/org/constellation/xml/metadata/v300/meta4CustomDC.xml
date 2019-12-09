@@ -7,7 +7,7 @@
     <dc:identifier>11325_158_19640418141800</dc:identifier>
     <dct:modified>2009-01-26T13:22:24+02:00</dct:modified>
     <ows:BoundingBox dimensions="2" crs="EPSG:4326">
-        <ows:LowerCorner>9.2667 3.55</ows:LowerCorner>
-        <ows:UpperCorner>9.2667 3.55</ows:UpperCorner>
+        <ows:LowerCorner>3.55 9.2667</ows:LowerCorner>
+        <ows:UpperCorner>3.55 9.2667</ows:UpperCorner>
     </ows:BoundingBox>
 </csw:Record>

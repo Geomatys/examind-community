@@ -33,7 +33,7 @@
             Temporal coverage: 1-Day
             Product Unit : Kelvin</a:summary>
         <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
-        <georss:box>-90.0 -180.0 90.0 180.0</georss:box>
+        <georss:box>-180.0 -90.0 180.0 90.0</georss:box>
     </a:entry>
     <a:entry>
         <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>

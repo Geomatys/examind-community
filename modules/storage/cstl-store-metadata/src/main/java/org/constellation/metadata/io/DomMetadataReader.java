@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.Namespaces;
@@ -355,10 +354,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     dimAtt.setTextContent("2");
                     bboxNode.getAttributes().setNamedItem(dimAtt);
                     final Node lower    = document.createElementNS(owsNmsp, "LowerCorner");
-                    lower.setTextContent(westValues.get(i) + " " + southValues.get(i));
+                    lower.setTextContent(southValues.get(i) + " " + westValues.get(i));
                     bboxNode.appendChild(lower);
                     final Node upper    = document.createElementNS(owsNmsp, "UpperCorner");
-                    upper.setTextContent(eastValues.get(i) + " " + northValues.get(i));
+                    upper.setTextContent(northValues.get(i) + " " + eastValues.get(i));
                     bboxNode.appendChild(upper);
                     bboxes.add(bboxNode);
                 }
@@ -559,10 +558,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     dimAtt.setTextContent("2");
                     bboxNode.getAttributes().setNamedItem(dimAtt);
                     final Node lower    = document.createElementNS(owsNmsp, "LowerCorner");
-                    lower.setTextContent(westValues.get(i) + " " + southValues.get(i));
+                    lower.setTextContent(southValues.get(i) + " " + westValues.get(i));
                     bboxNode.appendChild(lower);
                     final Node upper    = document.createElementNS(owsNmsp, "UpperCorner");
-                    upper.setTextContent(eastValues.get(i) + " " + northValues.get(i));
+                    upper.setTextContent(northValues.get(i) + " " + eastValues.get(i));
                     bboxNode.appendChild(upper);
                     bboxes.add(bboxNode);
                 }

@@ -4,11 +4,11 @@
         <dc:title>90008411-2.ctd</dc:title>
         <dc:type>dataset</dc:type>
         <ows:BoundingBox dimensions="2" crs="EPSG:4326">
-            <ows:LowerCorner>1.3667 36.6</ows:LowerCorner>
-            <ows:UpperCorner>1.3667 36.6</ows:UpperCorner>
+            <ows:LowerCorner>36.6 1.3667</ows:LowerCorner>
+            <ows:UpperCorner>36.6 1.3667</ows:UpperCorner>
         </ows:BoundingBox>
         <ows:BoundingBox dimensions="2" crs="EPSG:4326">
-            <ows:LowerCorner>12.1 31.2</ows:LowerCorner>
-            <ows:UpperCorner>12.1 31.2</ows:UpperCorner>
+            <ows:LowerCorner>31.2 12.1</ows:LowerCorner>
+            <ows:UpperCorner>31.2 12.1</ows:UpperCorner>
         </ows:BoundingBox>
 </csw:BriefRecord>

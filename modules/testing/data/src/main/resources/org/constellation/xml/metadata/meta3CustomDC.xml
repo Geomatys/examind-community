@@ -3,11 +3,11 @@
     <dc:identifier>39727_22_19750113062500</dc:identifier>
     <dct:modified>2009-01-26T13:21:45+02:00</dct:modified>
     <ows:BoundingBox dimensions="2" crs="EPSG:4326">
-        <ows:LowerCorner>-4.967 -6.95</ows:LowerCorner>
-        <ows:UpperCorner>-4.967 -6.95</ows:UpperCorner>
+        <ows:LowerCorner>-6.95 -4.967</ows:LowerCorner>
+        <ows:UpperCorner>-6.95 -4.967</ows:UpperCorner>
     </ows:BoundingBox>
     <ows:BoundingBox dimensions="2" crs="EPSG:4326">
-        <ows:LowerCorner>-5.1 -7.2</ows:LowerCorner>
-        <ows:UpperCorner>-5.1 -7.2</ows:UpperCorner>
+        <ows:LowerCorner>-7.2 -5.1</ows:LowerCorner>
+        <ows:UpperCorner>-7.2 -5.1</ows:UpperCorner>
     </ows:BoundingBox>
 </csw:Record>
