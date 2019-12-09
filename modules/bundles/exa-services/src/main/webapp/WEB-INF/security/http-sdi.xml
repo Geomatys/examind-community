@@ -69,6 +69,14 @@
         <intercept-url pattern="/webdav/**" access="permitAll"/>
 
         <intercept-url pattern="/**" access="hasAuthority('cstl-admin')"/>
+        <headers>
+            <frame-options disabled="true"></frame-options>
+            <!--<cache-control />
+            <content-type-options />
+            <hsts />
+            <frame-options />
+            <xss-protection />-->
+        </headers>
 
     </http>
 

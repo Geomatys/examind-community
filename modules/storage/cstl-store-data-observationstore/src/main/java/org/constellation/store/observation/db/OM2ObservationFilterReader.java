@@ -50,9 +50,9 @@ import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.OMXmlFactory;
-import org.geotoolkit.observation.xml.v100.ProcessType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.geotoolkit.sos.xml.SOSXmlFactory;
 
 import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -195,47 +195,48 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             }
         }
         if (MEASUREMENT_QNAME.equals(resultModel)) {
-            return getMesurementTemplates(version);
+            return getMesurementTemplates(version, hints);
         }
         String request = sqlRequest.toString();
         if (firstFilter) {
             request = request.replaceFirst("WHERE", "");
         }
+        request = request + " ORDER BY \"procedure\" ";
+        request = appendPaginationToRequest(request, hints);
+
         try(final Connection c = source.getConnection()) {
-            final Map<String, Observation> observations = new HashMap<>();
+            final List<Observation> observations = new ArrayList<>();
             try(final Statement currentStatement = c.createStatement();
                 final ResultSet rs               = currentStatement.executeQuery(request)) {
                 final TextBlock encoding = getDefaultTextEncoding(version);
 
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
-                    Observation observation = observations.get(procedure);
-
-                    if (observation == null) {
-
-                        final String procedureID = procedure.substring(sensorIdBase.length());
-                        final String obsID = "obs-" + procedureID;
-                        final String name = observationTemplateIdBase + procedureID;
+                    final String procedureID = procedure.substring(sensorIdBase.length());
+                    final String obsID = "obs-" + procedureID;
+                    final String name = observationTemplateIdBase + procedureID;
+                    final String observedProperty = rs.getString("observed_property");
+                    FeatureProperty foi = null;
+                    if (includeFoiInTemplate) {
                         final String featureID = rs.getString("foi");
-                        final String observedProperty = rs.getString("observed_property");
                         final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                        final FeatureProperty prop = buildFeatureProperty(version, feature);
-                        final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                        List<Field> fields = readFields(procedure, c);
-                        /*
-                         *  BUILD RESULT
-                         */
-                        final List<AnyScalar> scal = new ArrayList<>();
-                        for (Field f : fields) {
-                            scal.add(f.getScalar(version));
-                        }
-                        final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
-                        observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, null);
-                        observations.put(procedure, observation);
+                        foi = buildFeatureProperty(version, feature);
                     }
+                    final Phenomenon phen = getPhenomenon(version, observedProperty, c);
+                    List<Field> fields = readFields(procedure, c);
+                    /*
+                     *  BUILD RESULT
+                     */
+                    final List<AnyScalar> scal = new ArrayList<>();
+                    for (Field f : fields) {
+                        scal.add(f.getScalar(version));
+                    }
+                    final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
+                    Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, null);
+                    observations.add(observation);
                 }
             }
-            return new ArrayList<>(observations.values());
+            return observations;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
@@ -244,11 +245,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
         }
     }
 
-    public List<Observation> getMesurementTemplates(final String version) throws DataStoreException {
+    private List<Observation> getMesurementTemplates(final String version, Map<String, String> hints) throws DataStoreException {
         String request = sqlRequest.toString();
         if (firstFilter) {
             request = request.replaceFirst("WHERE", "");
         }
+        request = request + " ORDER BY \"procedure\" ";
+        request = appendPaginationToRequest(request, hints);
+
         try(final Connection c = source.getConnection()) {
             final Map<String, Observation> observations = new HashMap<>();
 
@@ -263,10 +267,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         final String procedureID = procedure.substring(sensorIdBase.length());
                         final String obsID = "obs-" + procedureID;
                         final String name = observationTemplateIdBase + procedureID;
-                        final String featureID = rs.getString("foi");
                         final String observedProperty = rs.getString("observed_property");
-                        final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                        final FeatureProperty prop = buildFeatureProperty(version, feature);
+                        FeatureProperty foi = null;
+                        if (includeFoiInTemplate) {
+                            final String featureID = rs.getString("foi");
+                            final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                            foi = buildFeatureProperty(version, feature);
+                        }
                         final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
                         final String phenID = phen.getId();
                         /*
@@ -289,7 +296,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                             (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
                                             final String cphenID = compPhen.getId();
                                             final Object result = buildMeasureResult(version, 0, fields.get(i).fieldUom, "1");
-                                            observations.put(procedure + cphenID, OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, prop, compPhen, procedure, result, null));
+                                            observations.put(procedure + cphenID, OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, null));
                                         }
                                     }
                                 } else {
@@ -305,7 +312,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                                 throw new DataStoreException("incoherence between single fields and composite phenomenon");
                             }
                             final Object result = buildMeasureResult(version, 0, fields.get(0).fieldUom, "1");
-                            observations.put(procedure + phenID, OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, prop, phen, procedure, result, null));
+                            observations.put(procedure + phenID, OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, null));
                         }
                     } else {
                         LOGGER.log(Level.WARNING, "multiple fields on Measurement for :{0}", procedure);
@@ -392,6 +399,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         fieldMap.put(procedure, fields);
                     }
 
+                    final String sqlRequest;
+                    if (mainField != null) {
+                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
+                                + "ORDER BY m.\"id\"";
+                    } else {
+                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                    }
+
                     if (observation == null) {
                         final String obsID = "obs-" + oid;
                         final String timeID = "time-" + oid;
@@ -411,15 +427,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         /*
                          *  BUILD RESULT
                          */
-                        final String sqlRequest;
-                        if (mainField != null) {
-                            sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
-                                    + "ORDER BY m.\"id\"";
-                        } else {
-                            sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
-                        }
-
                         try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
@@ -474,15 +481,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                         observations.put(procedure + '-' + featureID, observation);
                     } else {
                         String lastTime = null;
-                        final String sqlRequest;
-                        if (mainField != null) {
-                            sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                    + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
-                                    + "ORDER BY m.\"id\"";
-                        } else {
-                            sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
-                        }
-
                         try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
@@ -568,7 +566,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
         }
 
         try(final Connection c = source.getConnection()) {
-            final List<Observation> observations        = new ArrayList<>();
+            final List<Observation> observations = new ArrayList<>();
 
             try(final Statement currentStatement = c.createStatement();
                 final ResultSet rs               = currentStatement.executeQuery(request)) {
@@ -1011,6 +1009,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 request = request.replaceFirst("WHERE", "");
             }
         }
+        request = appendPaginationToRequest(request, hints);
 
         try(final Connection c = source.getConnection()) {
             final List<SamplingFeature> features = new ArrayList<>();
@@ -1073,6 +1072,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 request = request.replaceFirst("WHERE", "");
             }
         }
+        request = appendPaginationToRequest(request, hints);
+
         try(final Connection c = source.getConnection()) {
             final List<Phenomenon> phenomenons = new ArrayList<>();
             try(final Statement currentStatement = c.createStatement();
@@ -1104,6 +1105,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Process> getProcesses(final Map<String,String> hints) throws DataStoreException {
+        String version = "2.0.0";
+        if (hints != null) {
+            if (hints.containsKey("version")) {
+                version = hints.get("version");
+            }
+        }
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
@@ -1117,12 +1124,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 request = request.replaceFirst("WHERE", "");
             }
         }
+        request = appendPaginationToRequest(request, hints);
         try(final Connection c = source.getConnection()) {
             final List<Process> processes = new ArrayList<>();
             try(final Statement currentStatement = c.createStatement();
                 final ResultSet rs = currentStatement.executeQuery(request)) {
                 while (rs.next()) {
-                    processes.add(new ProcessType(rs.getString(1)));
+                    processes.add(SOSXmlFactory.buildProcess(version, rs.getString(1)));
                 }
             }
             return processes;
@@ -1130,6 +1138,35 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         }
+    }
+
+    private String appendPaginationToRequest(String request, Map<String, String> hints) {
+        Long limit     = null;
+        Long offset    = null;
+        if (hints != null) {
+            if (hints.containsKey("limit")) {
+                limit = Long.parseLong(hints.get("limit"));
+            }
+            if (hints.containsKey("offset")) {
+                offset = Long.parseLong(hints.get("offset"));
+            }
+        }
+        if (isPostgres) {
+            if (limit != null) {
+                request = request + " LIMIT " + limit;
+            }
+            if (offset != null) {
+                request = request + " OFFSET " + offset;
+            }
+        } else {
+            if (offset != null) {
+                request = request + " OFFSET " + offset + " ROWS ";
+            }
+            if (limit != null) {
+                request = request + " fetch next " + limit +" rows only";
+            }
+        }
+        return request;
     }
 
     @Override

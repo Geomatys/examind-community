@@ -294,6 +294,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             if (q instanceof SimpleQuery) {
                 SimpleQuery query = (SimpleQuery) q;
                 handleFilter(GET_PHEN, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+                    hints.put("limit", Long.toString(query.getLimit()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put("offset", Long.toString(query.getLimit()));
+                }
 
             } else if (q != null) {
                 throw new ConstellationStoreException("Only SimpleQuery are supported for now");
@@ -470,6 +476,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             if (q instanceof SimpleQuery) {
                 SimpleQuery query = (SimpleQuery) q;
                 handleFilter(GET_FEA, query.getFilter(), localOmFilter, observedProperties, procedures, new ArrayList<>());
+                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+                    hints.put("limit", Long.toString(query.getLimit()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put("offset", Long.toString(query.getLimit()));
+                }
 
             } else if (q != null) {
                 throw new ConstellationStoreException("Only SimpleQuery are supported for now");
@@ -499,12 +511,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public List<Observation> getObservations(Query q, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException {
         try {
-            String version = "2.0.0";
-            if (hints != null) {
-                if (hints.containsKey("version")) {
-                    version = hints.get("version");
-                }
-            }
+            final String version = getVersionFromHints(hints);
             ResponseModeType mode;
             if (responseMode != null) {
                 mode = ResponseModeType.fromValue(responseMode);
@@ -523,6 +530,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             if (q instanceof SimpleQuery) {
                 SimpleQuery query = (SimpleQuery) q;
                 handleFilter(GET_OBS, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+                    hints.put("limit", Long.toString(query.getLimit()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put("offset", Long.toString(query.getLimit()));
+                }
 
             } else if (q != null) {
                 throw new ConstellationStoreException("Only SimpleQuery are supported for now");
@@ -570,6 +583,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             if (q instanceof SimpleQuery) {
                 SimpleQuery query = (SimpleQuery) q;
                 handleFilter(GET_PROC, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+                    hints.put("limit", Long.toString(query.getLimit()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put("offset", Long.toString(query.getLimit()));
+                }
 
             } else if (q != null) {
                 throw new ConstellationStoreException("Only SimpleQuery are supported for now");

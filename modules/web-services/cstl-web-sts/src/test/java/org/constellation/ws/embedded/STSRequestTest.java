@@ -225,6 +225,19 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi-all.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-top.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$skip=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-top2.json");
+        assertEquals(expResult, result);
+
     }
 
     @Test
@@ -286,6 +299,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/obs3-exp.json");
         assertEquals(expResult, result);
 
+    }
+
+    @Ignore
+    @Order(order=4)
+    public void getObservationsTest() throws Exception {
+        initPool();
+        // Creates a valid GetFoi url.
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations?$top=2");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-top.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -352,6 +377,16 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obsprops.json");
         assertEquals(expResult, result);
+
+       /*  NOT WORKING FOR NOW BECAUSE AGGREGATE
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$top=1");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-top.json");
+        assertEquals(expResult, result);
+
+        */
     }
 
     @Test
@@ -363,6 +398,24 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=9)
+    public void getDatastreamsTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-all.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-top.json"); // error return 3 result
         assertEquals(expResult, result);
     }
 
@@ -381,6 +434,30 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-obs.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=11)
+    public void getMultiDatastreamsTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-all.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-top.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2&$skip=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-top2.json");
         assertEquals(expResult, result);
     }
 

@@ -68,6 +68,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     protected QName resultModel;
 
     protected boolean obsJoin = false;
+    protected boolean includeFoiInTemplate = true;
 
     protected boolean getFOI = false;
     protected boolean getPhen = false;
@@ -114,14 +115,20 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      */
     @Override
     public void initFilterObservation(final ResponseModeType requestMode, final QName resultModel, final Map<String,String> hints) {
+        if (hints != null && hints.containsKey("includeFoiInTemplate")) {
+            includeFoiInTemplate = Boolean.parseBoolean(hints.get("includeFoiInTemplate"));
+        }
         if (ResponseModeType.RESULT_TEMPLATE.equals(requestMode)) {
-             sqlRequest = new StringBuilder("SELECT distinct \"observed_property\", \"procedure\", \"foi\" "
-                                          + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE");
+            sqlRequest = new StringBuilder("SELECT distinct \"observed_property\", \"procedure\"");
+            if (includeFoiInTemplate) {
+                sqlRequest.append(", \"foi\"");
+            }
+            sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o WHERE");
             template = true;
             firstFilter = true;
         } else {
-            sqlRequest = new StringBuilder("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" "
-                                         + "FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE \"identifier\" NOT LIKE '"+ observationTemplateIdBase +"%' ");
+            sqlRequest = new StringBuilder("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
+            sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE '").append(observationTemplateIdBase).append("%' ");
             firstFilter = false;
         }
         this.resultModel = resultModel;
