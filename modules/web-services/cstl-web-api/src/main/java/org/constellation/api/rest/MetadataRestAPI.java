@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
 import java.util.zip.ZipOutputStream;
@@ -461,7 +460,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      * @return Response that contains the directory and file names.
      */
     @RequestMapping(value="/metadatas/export",method=POST,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity exportMetadata(@RequestBody final List<Integer> idList) {
+    public ResponseEntity exportMetadatas(@RequestBody final List<Integer> idList) {
 
         Path directory = null;
         try {
@@ -498,6 +497,22 @@ public class MetadataRestAPI extends AbstractRestAPI{
             return new ResponseEntity(map, OK);
 
         } catch (IOException ex) {
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/metadatas/export/{id}",method=GET,produces=APPLICATION_XML_VALUE)
+    public ResponseEntity exportMetadata(@PathVariable("id") Integer id, final HttpServletResponse response) {
+        try {
+            final String xml = metadataBusiness.getMetadataXml(id);
+            if (xml != null) {
+                IOUtils.write(xml, response.getOutputStream());
+                return new ResponseEntity(OK);
+            } else {
+                return new ResponseEntity(NOT_FOUND);
+            }
+
+        } catch (IOException | ConfigurationException ex) {
             return new ErrorMessage(ex).build();
         }
     }
