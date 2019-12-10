@@ -461,6 +461,42 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         assertEquals(expResult, result);
     }
 
+    @Test
+    @Order(order=12)
+    public void getSensorByIdTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Sensors(urn:ogc:object:sensor:GEOM:2)");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ss.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=13)
+    public void getSensorsTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Sensors");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ss-all.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ss-top.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors?$top=2&$skip=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ss-top2.json");
+        assertEquals(expResult, result);
+    }
+
 
     public Object writeDataFile(String resourceName) throws Exception {
 

@@ -22,6 +22,7 @@ package com.examind.sts.ws.rs;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.apache.sis.util.logging.Logging;
 
 import java.io.IOException;
@@ -73,6 +74,17 @@ public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.setDateFormat(DATE_FORM);
+        /*
+            Not needed for now
+        mapper.registerSubtypes(new NamedType(GeoJSONFeatureCollection.class, "FeatureCollection"),
+                                new NamedType(GeoJSONFeature.class,"Feature"),
+                                new NamedType(GeoJSONPoint.class, "Point"),
+                                new NamedType(GeoJSONLineString.class, "LineString"),
+                                new NamedType(GeoJSONPolygon.class,"Polygon"),
+                                new NamedType(GeoJSONMultiPoint.class,"MultiPoint"),
+                                new NamedType(GeoJSONMultiLineString.class,"MultiLineString"),
+                                new NamedType(GeoJSONMultiPolygon.class,"MultiPolygon"),
+                                new NamedType(GeoJSONGeometryCollection.class,"GeometryCollection"))*/;
         mapper.writeValue(outputMessage.getBody(), t);
 
     }

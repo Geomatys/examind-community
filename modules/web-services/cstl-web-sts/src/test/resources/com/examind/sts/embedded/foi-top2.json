@@ -3,6 +3,15 @@
     "name" : "66685X4587-WARP",
     "description" : "Station Thermale",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 70800.0, 1891659.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-003",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)/Observations"
@@ -10,6 +19,15 @@
     "name" : "99917X9856-FRAG",
     "description" : "Puits",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 41945.0, 2567987.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-004",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)/Observations"

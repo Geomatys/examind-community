@@ -44,6 +44,8 @@ import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
+import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
+import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -222,13 +224,19 @@ public class OM2STSWorkerTest {
         GetFeatureOfInterestById request = new GetFeatureOfInterestById("station-001");
         FeatureOfInterest result = worker.getFeatureOfInterestById(request);
 
+
+        GeoJSONFeature feature = new GeoJSONFeature();
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{65400.0, 1731368.0});
+        feature.setGeometry(point);
         FeatureOfInterest expResult = new FeatureOfInterest()
                 .description("Point d'eau BSSS")
                 .name("10972X0137-PONT")
                 .iotId("station-001")
                 .encodingType("application/vnd.geo+json")
                 .iotSelfLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)")
-                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations");
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations")
+                .feature(feature);
         Assert.assertEquals(expResult, result);
 
         /*
@@ -339,13 +347,18 @@ public class OM2STSWorkerTest {
         request.getExpand().add("Datastreams");
         result = worker.getObservationById(request);
 
+        GeoJSONFeature feature = new GeoJSONFeature();
+        GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
+        point.setCoordinates(new double[]{65400.0, 1731368.0});
+        feature.setGeometry(point);
         FeatureOfInterest expFoi = new FeatureOfInterest()
                 .description("Point d'eau BSSS")
                 .name("10972X0137-PONT")
                 .iotId("station-001")
                 .encodingType("application/vnd.geo+json")
                 .iotSelfLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)")
-                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations");
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations")
+                .feature(feature);
         expResult.setFeatureOfInterest(expFoi);
         expResult.setFeatureOfInterestIotNavigationLink(null);
 
@@ -1016,7 +1029,23 @@ public class OM2STSWorkerTest {
         GetSensors request = new GetSensors();
         SensorsResponse result = worker.getSensors(request);
 
-        Assert.assertEquals(4, result.getValue().size());
+        Set<String> resultIds = new HashSet<>();
+        result.getValue().stream().forEach(s -> resultIds.add(s.getIotId()));
+
+        Assert.assertEquals(10, result.getValue().size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:sensor:GEOM:6");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:5");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:8");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:1");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:4");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:10");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:3");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:9");
+        Assert.assertEquals(expectedIds, resultIds);
     }
 
     @Test

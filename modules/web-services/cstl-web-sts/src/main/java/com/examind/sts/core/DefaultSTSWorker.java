@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
@@ -38,6 +39,8 @@ import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.api.ServiceDef;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -45,7 +48,12 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
+import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
+import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
+import org.geotoolkit.data.geojson.utils.GeometryUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
+import org.geotoolkit.gml.GeometrytoJTS;
+import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sts.AbstractSTSRequest;
@@ -97,6 +105,7 @@ import org.geotoolkit.swe.xml.DataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.TextBlock;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Id;
@@ -108,6 +117,7 @@ import org.opengis.observation.Process;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
+import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
@@ -705,8 +715,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (req.getExpand().contains("Sensors")) {
             if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(obs.getProcedure().getHref());
-                datastream.setSensor(buildSensor(req, s));
+                String sensorID = obs.getProcedure().getHref();
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorID);
+                datastream.setSensor(buildSensor(req, sensorID, s));
             }
         } else {
             datastream.setSensorIotNavigationLink(selfLink + "/Sensors");
@@ -805,8 +816,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (req.getExpand().contains("Sensors")) {
             if (obs.getProcedure() != null && obs.getProcedure().getHref() != null) {
+                String sensorId = obs.getProcedure().getHref();
                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(obs.getProcedure().getHref());
-                datastream.setSensor(buildSensor(req, s));
+                datastream.setSensor(buildSensor(req, sensorId, s));
             }
         } else {
             datastream.setSensorIotNavigationLink(selfLink + "/Sensors");
@@ -1038,11 +1050,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
             for (Process proc : procs) {
                 String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                org.constellation.dto.Sensor s = null;
                 if (sensorIds.contains(sensorId)) {
-                    org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                    Sensor sensor = buildSensor(req, s);
-                    sensors.add(sensor);
+                    s = sensorBusiness.getSensor(sensorId);
                 }
+                Sensor sensor = buildSensor(req, sensorId, s);
+                sensors.add(sensor);
             }
         } catch (ConfigurationException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -1057,8 +1070,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             if (req.getId() != null) {
                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
-                if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                    return buildSensor(req, s);
+                if (s == null) {
+                    return buildSensor(req, req.getId(), null);
+                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                    return buildSensor(req, req.getId(), s);
                 }
             }
             return null;
@@ -1067,40 +1082,48 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
     }
 
-    private Sensor buildSensor(STSRequest req, org.constellation.dto.Sensor s) throws ConstellationStoreException {
+
+    private Sensor buildSensor(STSRequest req, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ sensorID+ ")";
+
+        String metadataLink = null;
         if (s != null) {
-            String selfLink = getServiceUrl();
-            selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Sensors("+ s.getIdentifier()+ ")";
-
-            Sensor sensor = new Sensor();
-            sensor = sensor.description("TODO")  // TODO extract from metadata and record in database
-                    .name(s.getIdentifier())
-                    .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
-                    .iotId(s.getIdentifier())
-                    .iotSelfLink(selfLink);
-                    // TODO metadata
-
-            if (req.getExpand().contains("Datastreams")) {
-                List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForSensor(s.getIdentifier());
-                for (org.opengis.observation.Observation template : linkedTemplates) {
-                    sensor.addDatastreamsItem(buildDatastream(req, (AbstractObservation) template));
+            metadataLink = Application.getProperty(AppProperty.CSTL_URL);
+            if (metadataLink != null) {
+                if (metadataLink.endsWith("/")) {
+                    metadataLink = metadataLink.substring(0, metadataLink.length() - 1);
                 }
-            } else {
-                sensor = sensor.datastreamsIotNavigationLink(selfLink + "/Datastreams");
+                metadataLink = metadataLink + "/API/sensors/" + s.getId() + "/metadata/download";
             }
-
-            if (req.getExpand().contains("MultiDatastreams")) {
-                List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForSensor(s.getIdentifier());
-                for (org.opengis.observation.Observation template : linkedTemplates) {
-                    sensor.addMultiDatastreamsItem(buildMultiDatastream(req, (AbstractObservation) template));
-                }
-            } else {
-                sensor = sensor.multiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");
-            }
-
-            return sensor;
         }
-        return null;
+
+        Sensor sensor = new Sensor();
+        sensor = sensor.description("TODO")  // TODO extract from metadata and record in database
+                .name(sensorID)
+                .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
+                .iotId(sensorID)
+                .iotSelfLink(selfLink)
+                .metadata(metadataLink);
+
+        if (req.getExpand().contains("Datastreams")) {
+            List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForSensor(sensorID);
+            for (org.opengis.observation.Observation template : linkedTemplates) {
+                sensor.addDatastreamsItem(buildDatastream(req, (AbstractObservation) template));
+            }
+        } else {
+            sensor = sensor.datastreamsIotNavigationLink(selfLink + "/Datastreams");
+        }
+
+        if (req.getExpand().contains("MultiDatastreams")) {
+            List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForSensor(sensorID);
+            for (org.opengis.observation.Observation template : linkedTemplates) {
+                sensor.addMultiDatastreamsItem(buildMultiDatastream(req, (AbstractObservation) template));
+            }
+        } else {
+            sensor = sensor.multiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");
+        }
+        return sensor;
     }
 
     @Override
@@ -1157,6 +1180,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         } else {
             result = result.observationsIotNavigationLink(selfLink + "/Observations");
+        }
+        if (sp.getGeometry() != null) {
+            try {
+                Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)sp.getGeometry());
+                GeoJSONGeometry geom = GeometryUtils.toGeoJSONGeometry(jts);
+                GeoJSONFeature feature = new GeoJSONFeature();
+                feature.setGeometry(geom);
+                result.setFeature(feature);
+            } catch (FactoryException ex) {
+                LOGGER.log(Level.WARNING, "Eror while transforming foi geometry", ex);
+            }
         }
         return result;
     }

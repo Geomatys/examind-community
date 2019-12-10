@@ -2,6 +2,15 @@
   "name" : "10972X0137-PONT",
   "description" : "Point d'eau BSSS",
   "encodingType" : "application/vnd.geo+json",
+  "feature" : {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "type" : "Point",
+      "coordinates" : [ 65400.0, 1731368.0 ]
+    },
+    "properties" : { }
+  },
   "@iot.id" : "station-001",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-001)",
   "Observations" : [ {

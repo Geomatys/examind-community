@@ -8,6 +8,15 @@
     "name" : "cycle1",
     "description" : "Geology traverse",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "LineString",
+        "type" : "LineString",
+        "coordinates" : [ [ -30.711, 134.205 ], [ -30.71, 134.204 ], [ -30.709, 134.203 ], [ -30.708, 134.201 ], [ -30.706, 134.196 ], [ -30.703, 134.197 ], [ -30.702, 134.199 ] ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-006",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)/Observations"

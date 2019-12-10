@@ -286,30 +286,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
             localOmFilter.initFilterGetPhenomenon();
-
-            List<String> observedProperties = new ArrayList<>();
-            List<String> procedures         = new ArrayList<>();
-            List<String> fois               = new ArrayList<>();
-
-            if (q instanceof SimpleQuery) {
-                SimpleQuery query = (SimpleQuery) q;
-                handleFilter(GET_PHEN, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit() != SimpleQuery.UNLIMITED) {
-                    hints.put("limit", Long.toString(query.getLimit()));
-                }
-                if (query.getOffset()!= 0) {
-                    hints.put("offset", Long.toString(query.getLimit()));
-                }
-
-            } else if (q != null) {
-                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
-            }
-
-            // TODO Spatial BBOX
-
-            localOmFilter.setObservedProperties(observedProperties);
-            localOmFilter.setProcedure(procedures, null);
-            localOmFilter.setFeatureOfInterest(fois);
+            handleQuery(q, localOmFilter, GET_PHEN, hints);
 
             if (localOmFilter instanceof ObservationFilterReader) {
                 return ((ObservationFilterReader)localOmFilter).getPhenomenons(hints);
@@ -469,28 +446,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
             localOmFilter.initFilterGetFeatureOfInterest();
-
-            List<String> observedProperties = new ArrayList<>();
-            List<String> procedures = new ArrayList<>();
-
-            if (q instanceof SimpleQuery) {
-                SimpleQuery query = (SimpleQuery) q;
-                handleFilter(GET_FEA, query.getFilter(), localOmFilter, observedProperties, procedures, new ArrayList<>());
-                if (query.getLimit() != SimpleQuery.UNLIMITED) {
-                    hints.put("limit", Long.toString(query.getLimit()));
-                }
-                if (query.getOffset()!= 0) {
-                    hints.put("offset", Long.toString(query.getLimit()));
-                }
-
-            } else if (q != null) {
-                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
-            }
-
-            // TODO Spatial BBOX
-
-            localOmFilter.setObservedProperties(observedProperties);
-            localOmFilter.setProcedure(procedures, null);
+            handleQuery(q, localOmFilter, GET_FEA, hints);
 
             if (localOmFilter instanceof ObservationFilterReader) {
                 return ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(hints);
@@ -522,30 +478,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
             localOmFilter.initFilterObservation(mode, resultModel, hints);
-
-            List<String> observedProperties = new ArrayList<>();
-            List<String> procedures         = new ArrayList<>();
-            List<String> fois               = new ArrayList<>();
-
-            if (q instanceof SimpleQuery) {
-                SimpleQuery query = (SimpleQuery) q;
-                handleFilter(GET_OBS, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit() != SimpleQuery.UNLIMITED) {
-                    hints.put("limit", Long.toString(query.getLimit()));
-                }
-                if (query.getOffset()!= 0) {
-                    hints.put("offset", Long.toString(query.getLimit()));
-                }
-
-            } else if (q != null) {
-                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
-            }
-
-            // TODO Spatial BBOX
-
-            localOmFilter.setObservedProperties(observedProperties);
-            localOmFilter.setProcedure(procedures, null);
-            localOmFilter.setFeatureOfInterest(fois);
+            handleQuery(q, localOmFilter, GET_OBS, hints);
 
             if (localOmFilter instanceof ObservationFilterReader) {
                 if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
@@ -575,30 +508,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
              // we clone the filter for this request
             final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
             localOmFilter.initFilterGetSensor();
-
-            List<String> observedProperties = new ArrayList<>();
-            List<String> procedures         = new ArrayList<>();
-            List<String> fois               = new ArrayList<>();
-
-            if (q instanceof SimpleQuery) {
-                SimpleQuery query = (SimpleQuery) q;
-                handleFilter(GET_PROC, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit() != SimpleQuery.UNLIMITED) {
-                    hints.put("limit", Long.toString(query.getLimit()));
-                }
-                if (query.getOffset()!= 0) {
-                    hints.put("offset", Long.toString(query.getLimit()));
-                }
-
-            } else if (q != null) {
-                throw new ConstellationStoreException("Only SimpleQuery are supported for now");
-            }
-
-            // TODO Spatial BBOX
-
-            localOmFilter.setObservedProperties(observedProperties);
-            localOmFilter.setProcedure(procedures, null);
-            localOmFilter.setFeatureOfInterest(fois);
+            handleQuery(q, localOmFilter, GET_PROC, hints);
 
             if (localOmFilter instanceof ObservationFilterReader) {
 
@@ -616,6 +526,31 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
+    }
+
+    private void handleQuery(Query q, final ObservationFilter localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
+        List<String> observedProperties = new ArrayList<>();
+        List<String> procedures         = new ArrayList<>();
+        List<String> fois               = new ArrayList<>();
+
+        if (q instanceof SimpleQuery) {
+                SimpleQuery query = (SimpleQuery) q;
+                handleFilter(mode, query.getFilter(), localOmFilter, observedProperties, procedures, fois);
+                if (query.getLimit() != SimpleQuery.UNLIMITED) {
+                    hints.put("limit", Long.toString(query.getLimit()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put("offset", Long.toString(query.getOffset()));
+                }
+
+        } else if (q != null) {
+            throw new ConstellationStoreException("Only SimpleQuery are supported for now");
+        }
+
+        // TODO Spatial BBOX
+        localOmFilter.setObservedProperties(observedProperties);
+        localOmFilter.setProcedure(procedures, null);
+        localOmFilter.setFeatureOfInterest(fois);
     }
 
     private void handleFilter(int mode, Filter filter, final ObservationFilter localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {

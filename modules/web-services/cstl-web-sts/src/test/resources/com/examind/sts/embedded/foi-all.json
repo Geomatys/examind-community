@@ -3,6 +3,15 @@
     "name" : "10972X0137-PONT",
     "description" : "Point d'eau BSSS",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 65400.0, 1731368.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-001",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-001)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-001)/Observations"
@@ -10,6 +19,15 @@
     "name" : "10972X0137-PLOUF",
     "description" : "Point d'eau BSSS",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 65400.0, 1731368.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-002",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-002)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-002)/Observations"
@@ -17,6 +35,15 @@
     "name" : "66685X4587-WARP",
     "description" : "Station Thermale",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 70800.0, 1891659.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-003",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-003)/Observations"
@@ -24,6 +51,15 @@
     "name" : "99917X9856-FRAG",
     "description" : "Puits",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 41945.0, 2567987.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-004",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)/Observations"
@@ -31,6 +67,15 @@
     "name" : "44499X4517-TRUC",
     "description" : "bouée ds le rhone",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "Point",
+        "type" : "Point",
+        "coordinates" : [ 62500.0, 1625236.0 ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-005",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-005)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-005)/Observations"
@@ -38,6 +83,15 @@
     "name" : "cycle1",
     "description" : "Geology traverse",
     "encodingType" : "application/vnd.geo+json",
+    "feature" : {
+      "type" : "Feature",
+      "geometry" : {
+        "type" : "LineString",
+        "type" : "LineString",
+        "coordinates" : [ [ -30.711, 134.205 ], [ -30.71, 134.204 ], [ -30.709, 134.203 ], [ -30.708, 134.201 ], [ -30.706, 134.196 ], [ -30.703, 134.197 ], [ -30.702, 134.199 ] ]
+      },
+      "properties" : { }
+    },
     "@iot.id" : "station-006",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-006)/Observations"
