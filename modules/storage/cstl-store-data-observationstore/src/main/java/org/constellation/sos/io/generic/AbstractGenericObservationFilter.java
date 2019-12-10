@@ -93,8 +93,6 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
     private Automatic configuration;
 
 
-    protected Level logLevel = Level.INFO;
-
     /**
      * use for debugging purpose
      */
@@ -135,7 +133,6 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
         this.observationTemplateIdBase = that.observationTemplateIdBase;
         this.configurationQuery        = that.configurationQuery;
         this.dataSource                = that.dataSource;
-        this.logLevel                  = that.logLevel;
         this.staticParameters          = that.staticParameters;
         this.phenomenonIdBase          = that.phenomenonIdBase;
     }
@@ -172,14 +169,6 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
             }
             staticParameters.put(varName, pValue);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setLoglevel(final Level logLevel) {
-         this.logLevel = logLevel;
     }
 
     /**

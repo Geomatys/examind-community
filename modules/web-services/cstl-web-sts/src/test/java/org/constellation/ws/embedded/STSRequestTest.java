@@ -399,6 +399,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)?$expand=Sensors,ObservedProperties,Observations");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-exp.json");
+        assertEquals(expResult, result);
     }
 
     @Test

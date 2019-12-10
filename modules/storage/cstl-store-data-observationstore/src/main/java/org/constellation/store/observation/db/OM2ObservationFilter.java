@@ -720,14 +720,6 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         //do nothing
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setLoglevel(final Level logLevel) {
-         //do nothing
-    }
-
     @Override
     public void setTimeLatest() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");

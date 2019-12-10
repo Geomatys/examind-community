@@ -43,7 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import org.constellation.api.CommonConstants;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
@@ -442,16 +441,6 @@ public class LuceneObservationFilter implements ObservationFilter {
             searcher.refresh();
         } catch (IndexingException ex) {
             throw new DataStoreException("Indexing Exception while refreshing the lucene index", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setLoglevel(final Level logLevel) {
-        if (searcher != null) {
-            searcher.setLogLevel(logLevel);
         }
     }
 

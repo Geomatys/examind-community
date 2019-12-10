@@ -302,7 +302,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 
-        final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
+        final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
         currentFilter.setProcedure(sensorIDs, null);
 
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
@@ -341,7 +341,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         final List<ExtractionResult.ProcedureTree> result = new ArrayList<>();
 
         // TODO optimize we don't need to call the filter here
-        final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
+        final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
@@ -459,11 +459,6 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
 
     @Override
     public ObservationFilter getFilter() {
-        return cloneObservationFilter(filter);
-    }
-
-    @Override
-    public ObservationFilter cloneObservationFilter(ObservationFilter toClone) {
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }
 

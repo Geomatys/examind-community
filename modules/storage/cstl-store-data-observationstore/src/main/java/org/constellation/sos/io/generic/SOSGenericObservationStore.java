@@ -170,7 +170,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 
-        final ObservationFilter currentFilter = cloneObservationFilter(filter);
+        final ObservationFilter currentFilter = getFilter();
         currentFilter.setProcedure(sensorIDs, null);
 
         final Set<String> observationIDS = currentFilter.filterObservation();
@@ -209,7 +209,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final List<ExtractionResult.ProcedureTree> result = new ArrayList<>();
 
         // TODO optimize we don't need to call the filter here
-        final ObservationFilterReader currentFilter = (ObservationFilterReader) cloneObservationFilter(filter);
+        final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
@@ -327,11 +327,6 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
 
     @Override
     public ObservationFilter getFilter() {
-        return cloneObservationFilter(filter);
-    }
-
-    @Override
-    public ObservationFilter cloneObservationFilter(ObservationFilter toClone) {
         return new GenericObservationFilter((GenericObservationFilter) filter);
     }
 

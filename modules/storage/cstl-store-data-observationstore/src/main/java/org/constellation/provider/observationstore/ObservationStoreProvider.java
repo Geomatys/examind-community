@@ -284,7 +284,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         final String version = getVersionFromHints(hints);
         try {
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            final ObservationFilter localOmFilter = store.getFilter();
             localOmFilter.initFilterGetPhenomenon();
             handleQuery(q, localOmFilter, GET_PHEN, hints);
 
@@ -433,7 +433,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public String writeObservation(Observation observation) throws ConstellationStoreException {
         try {
-            return store.getWriter().writeObservation(observation);
+            String oid = store.getWriter().writeObservation(observation);
+            store.getFilter().refresh();
+            return oid;
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
         }
@@ -444,7 +446,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         final String version = getVersionFromHints(hints);
         try {
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            final ObservationFilter localOmFilter = store.getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
             handleQuery(q, localOmFilter, GET_FEA, hints);
 
@@ -476,7 +478,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             }
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            final ObservationFilter localOmFilter = store.getFilter();
             localOmFilter.initFilterObservation(mode, resultModel, hints);
             handleQuery(q, localOmFilter, GET_OBS, hints);
 
@@ -506,7 +508,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         final String version = getVersionFromHints(hints);
         try {
              // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.cloneObservationFilter(store.getFilter());
+            final ObservationFilter localOmFilter = store.getFilter();
             localOmFilter.initFilterGetSensor();
             handleQuery(q, localOmFilter, GET_PROC, hints);
 

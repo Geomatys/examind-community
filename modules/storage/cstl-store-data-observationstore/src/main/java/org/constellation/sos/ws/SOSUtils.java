@@ -451,15 +451,6 @@ public final class SOSUtils {
         return null;
     }
 
-    public static void setLogLevel(DataProvider provider, final Level logLevel) {
-        final DataStore store = provider.getMainStore();
-        if(store instanceof ObservationStore){
-            if (((ObservationStore)store).getFilter() != null) {
-                ((ObservationStore)store).getFilter().setLoglevel(logLevel);
-            }
-        }
-    }
-
     public static String getInfos(DataProvider provider) {
         final DataStore store = provider.getMainStore();
         if(store instanceof ObservationStore){

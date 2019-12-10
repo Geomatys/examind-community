@@ -724,14 +724,6 @@ public class DbfObservationStore extends DbaseFileFeatureStore implements Observ
         throw new UnsupportedOperationException("Writing is not supported on this observation store.");
     }
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationFilter cloneObservationFilter(ObservationFilter toClone) {
-        throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
-    }
-
     private static final long TIME_AT_2000;
     static {
         long candidate = 0L;

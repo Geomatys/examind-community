@@ -828,7 +828,7 @@ public class SOSworker extends SensorWorker {
         try {
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
+            final ObservationFilter localOmFilter = omStore.getFilter();
 
             // we set the response format on the filter reader
             if (localOmFilter instanceof ObservationFilterReader) {
@@ -1280,7 +1280,7 @@ public class SOSworker extends SensorWorker {
             }
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
+            final ObservationFilter localOmFilter = omStore.getFilter();
 
             //we begin to create the sql request
             localOmFilter.initFilterGetResult(procedure, resultModel, Collections.emptyMap());
@@ -1439,7 +1439,7 @@ public class SOSworker extends SensorWorker {
         AbstractFeature result = null;
         try {
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
+            final ObservationFilter localOmFilter = omStore.getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
 
             // filtering on time
@@ -1712,9 +1712,8 @@ public class SOSworker extends SensorWorker {
             obs.setName(null); //omStore.getReader().getNewObservationId());
             obs.setResult(array);
             obs.setSamplingTimePeriod(extractTimeBounds(currentVersion, values, encoding));
-            omStore.getWriter().writeObservation(obs);
-            omStore.getFilter().refresh();
-        } catch (DataStoreException ex) {
+            omProvider.writeObservation(obs);
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         final InsertResultResponse result = buildInsertResultResponse(currentVersion);
@@ -1739,7 +1738,7 @@ public class SOSworker extends SensorWorker {
                 throw new CstlServiceException("offering parameter is invalid.", INVALID_PARAMETER_VALUE, "offering");
             }
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.cloneObservationFilter(omStore.getFilter());
+            final ObservationFilter localOmFilter = omStore.getFilter();
 
             localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
             localOmFilter.setProcedure(offering.getProcedures(), Arrays.asList(offering));
@@ -1872,7 +1871,7 @@ public class SOSworker extends SensorWorker {
             }
         }
 
-        String id = "";
+        String sensorId = "";
         String assignedOffering = null;
         try {
             //we get the observation template provided with the sensor description.
@@ -1901,15 +1900,15 @@ public class SOSworker extends SensorWorker {
             //we create a new Identifier from the SensorML database
             final String smlExtractedIdentifier = SensorMLUtilities.getSmlID(process);
             if (temp.getProcedure() != null) {
-                id  = temp.getProcedure();
-                LOGGER.log(Level.INFO, "using specified sensor ID:{0}", new Object[]{id});
+                sensorId  = temp.getProcedure();
+                LOGGER.log(Level.INFO, "using specified sensor ID:{0}", new Object[]{sensorId});
 
             } else if (!smlExtractedIdentifier.equals("unknow_identifier")){
-                id  = smlExtractedIdentifier;
+                sensorId  = smlExtractedIdentifier;
 
-                LOGGER.log(Level.INFO, "using extracted sensor ID:{0}", new Object[]{id});
+                LOGGER.log(Level.INFO, "using extracted sensor ID:{0}", new Object[]{sensorId});
             } else {
-                id = sensorBusiness.getNewSensorId(smlProviderID);
+                sensorId = sensorBusiness.getNewSensorId(smlProviderID);
             }
 
             /*
@@ -1919,13 +1918,13 @@ public class SOSworker extends SensorWorker {
              * does we have to keep the one of the metadata instead of generating one?
              */
             if (process.getMember().size() == 1) {
-                process.getMember().get(0).getRealProcess().setId(id);
+                process.getMember().get(0).getRealProcess().setId(sensorId);
             } else {
                 LOGGER.warning("multiple SensorML member");
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
-            Integer sid = sensorBusiness.create(id, smlType, null, process, System.currentTimeMillis(), smlProviderID);
+            Integer sid = sensorBusiness.create(sensorId, smlType, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer
@@ -1933,15 +1932,15 @@ public class SOSworker extends SensorWorker {
             if (omStore != null && omStore.getWriter() != null) {
 
                 //we assign the new capteur id to the observation template
-                temp.setProcedure(id);
+                temp.setProcedure(sensorId);
                 temp.setName(UUID.randomUUID().toString());
 
                 //we write the observation template in the O&amp;M database
                 omStore.getWriter().writeObservationTemplate(temp);
 
-                omStore.getWriter().recordProcedureLocation(id, position);
+                omStore.getWriter().recordProcedureLocation(sensorId, position);
 
-                assignedOffering = addSensorToOffering(id, temp, currentVersion);
+                assignedOffering = addSensorToOffering(sensorId, temp, currentVersion);
             } else {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
             }
@@ -1951,7 +1950,7 @@ public class SOSworker extends SensorWorker {
         }
 
         LOGGER.log(Level.INFO, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
-        return buildInsertSensorResponse(currentVersion, id, assignedOffering);
+        return buildInsertSensorResponse(currentVersion, sensorId, assignedOffering);
     }
 
     /**
