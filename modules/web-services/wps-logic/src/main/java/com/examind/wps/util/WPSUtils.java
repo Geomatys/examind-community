@@ -19,89 +19,87 @@
 package com.examind.wps.util;
 
 import com.examind.wps.api.IOParameterException;
-import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
-import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessFinder;
-import org.geotoolkit.wps.io.WPSIO.FormatSupport;
-import org.geotoolkit.wps.io.WPSIO;
-import org.geotoolkit.ows.xml.v200.CodeType;
-import org.geotoolkit.ows.xml.v200.DomainMetadataType;
-import org.geotoolkit.ows.xml.v200.LanguageStringType;
-import org.geotoolkit.wps.xml.WPSMarshallerPool;
-import org.geotoolkit.wps.xml.v200.ComplexData;
-import org.geotoolkit.wps.xml.v200.Format;
-import org.geotoolkit.wps.xml.v200.DataInput;
-import org.geotoolkit.wps.xml.v200.OutputDefinition;
-import org.geotoolkit.wps.xml.v200.ProcessSummary;
-import org.geotoolkit.wps.xml.v200.Execute;
-//import org.geotoolkit.wps.xml.v100.DocumentOutputDefinitionType;
-import org.geotoolkit.xsd.xml.v2001.Schema;
-import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
-import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.util.NoSuchIdentifierException;
-
-import javax.measure.Unit;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
+import static com.examind.wps.util.WPSConstants.IDENTIFIER_PARAMETER;
+import static com.examind.wps.util.WPSConstants.MAX_MB_INPUT_COMPLEX;
+import static com.examind.wps.util.WPSConstants.PROCESS_PREFIX;
+import static com.examind.wps.util.WPSConstants.URN_SEPARATOR;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import static java.nio.file.StandardOpenOption.*;
-import java.util.Locale;
-import static com.examind.wps.util.WPSConstants.MAX_MB_INPUT_COMPLEX;
-import static com.examind.wps.util.WPSConstants.PROCESS_PREFIX;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import org.opengis.feature.FeatureType;
-import org.opengis.parameter.ParameterNotFoundException;
-import static com.examind.wps.util.WPSConstants.IDENTIFIER_PARAMETER;
-import static com.examind.wps.util.WPSConstants.URN_SEPARATOR;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Objects;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.measure.Unit;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.ImmutableIdentifier;
+import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.NullArgumentException;
+import org.apache.sis.util.logging.Logging;
+import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProviders;
+import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
+import org.geotoolkit.ows.xml.v200.CodeType;
+import org.geotoolkit.ows.xml.v200.DomainMetadataType;
+import org.geotoolkit.ows.xml.v200.LanguageStringType;
+import org.geotoolkit.process.ProcessDescriptor;
+import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.geotoolkit.wps.converters.WPSConvertersUtils;
+import org.geotoolkit.wps.io.WPSEncoding;
+import org.geotoolkit.wps.io.WPSIO;
+import org.geotoolkit.wps.io.WPSIO.FormatSupport;
+import org.geotoolkit.wps.xml.WPSMarshallerPool;
+import org.geotoolkit.wps.xml.v200.ComplexData;
+import org.geotoolkit.wps.xml.v200.DataInput;
+import org.geotoolkit.wps.xml.v200.Execute;
+import org.geotoolkit.wps.xml.v200.Format;
+import org.geotoolkit.wps.xml.v200.OutputDefinition;
+import org.geotoolkit.wps.xml.v200.ProcessSummary;
+import org.geotoolkit.xsd.xml.v2001.Schema;
+import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
+import org.opengis.feature.FeatureType;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.citation.Citation;
 import org.opengis.metadata.lineage.Algorithm;
+import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterNotFoundException;
 import org.opengis.util.InternationalString;
+import org.opengis.util.NoSuchIdentifierException;
 
 
 /**
@@ -570,6 +568,7 @@ public class WPSUtils {
             infos = WPSIO.getFormats(attributeClass, ioType);
         }
 
+        Format defaultFormat = null;
         if (infos != null) {
             for (FormatSupport inputClass : infos) {
 
@@ -578,7 +577,26 @@ public class WPSUtils {
                 String schemaf  = schema != null ? schema : inputClass.getSchema(); //URL to xsd schema
 
                 Format format = new Format(encoding, mimetype, schemaf, maximumMegabytes);
-                formats.add(format);
+
+                if (inputClass.isDefaultFormat()) {
+                    if (defaultFormat != null) {
+                        //multiple default format
+                        //prefere the one with base64 encoding
+                        if (WPSEncoding.BASE64.getValue().equals(encoding) && !WPSEncoding.BASE64.getValue().equals(defaultFormat.getEncoding())) {
+                            format.setDefault(true);
+                            defaultFormat = format;
+                            formats.add(format);
+                        } else {
+                            formats.add(format);
+                        }
+                    } else {
+                        format.setDefault(true);
+                        defaultFormat = format;
+                        formats.add(format);
+                    }
+                } else {
+                    formats.add(format);
+                }
             }
         }
 
@@ -586,7 +604,7 @@ public class WPSUtils {
         Collections.sort(formats, new FormatComparator());
 
         // set default for the first format => TODO find a real default
-        if (!formats.isEmpty()) {
+        if (defaultFormat == null && !formats.isEmpty()) {
             formats.get(0).setDefault(Boolean.TRUE);
         }
         return new ComplexData(formats, maximumMegabytes);

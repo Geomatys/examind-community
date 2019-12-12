@@ -9,14 +9,14 @@
                 <ows:Abstract>Input GridCoverage.</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inCoverage</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">

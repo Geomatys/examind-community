@@ -243,14 +243,14 @@
                 <ows:Abstract xml:lang="fr-FR">Coverage à reformater</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reformat:input:coverage</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -270,11 +270,11 @@
                 <ows:Abstract xml:lang="fr-FR">Coverage reformaté</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reformat:output:result</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
-                    <wps:Format mimeType="image/x-geotiff"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -336,14 +336,14 @@
                 <ows:Abstract xml:lang="fr-FR">Input coverage </ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:straighten:input:coverage_in</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Output>
@@ -351,11 +351,11 @@
                 <ows:Abstract xml:lang="fr-FR">Output coverage </ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:straighten:output:coverage_out</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
-                    <wps:Format mimeType="image/x-geotiff"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -544,7 +544,9 @@
                 <ows:Abstract xml:lang="fr-FR">Image à reformater</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:reformat:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/png" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/png" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
@@ -554,8 +556,6 @@
                     <wps:Format mimeType="image/jpeg" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/jpeg2000" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/jpeg2000" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/png" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/png" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
@@ -607,7 +607,9 @@
                 <ows:Abstract xml:lang="fr-FR">Image reformaté</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:reformat:output:result</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="image/bmp" encoding="base64" default="true"/>
+                    <wps:Format mimeType="image/png" encoding="base64" default="true"/>
+                    <wps:Format mimeType="image/png"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64"/>
                     <wps:Format mimeType="image/bmp"/>
                     <wps:Format mimeType="image/gif" encoding="base64"/>
                     <wps:Format mimeType="image/gif"/>
@@ -617,8 +619,6 @@
                     <wps:Format mimeType="image/jpeg"/>
                     <wps:Format mimeType="image/jpeg2000" encoding="base64"/>
                     <wps:Format mimeType="image/jpeg2000"/>
-                    <wps:Format mimeType="image/png" encoding="base64"/>
-                    <wps:Format mimeType="image/png"/>
                     <wps:Format mimeType="image/tiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
@@ -1418,7 +1418,9 @@
                 <ows:Abstract xml:lang="fr-FR">Image dont on va changer les bandes</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:bandselect:input:image</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/png" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/png" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/bmp" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/gif" maximumMegabytes="100"/>
@@ -1428,8 +1430,6 @@
                     <wps:Format mimeType="image/jpeg" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/jpeg2000" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/jpeg2000" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/png" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/png" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
@@ -1481,7 +1481,9 @@
                 <ows:Abstract xml:lang="fr-FR">Image resultat</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::image:bandselect:output:result</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="image/bmp" encoding="base64" default="true"/>
+                    <wps:Format mimeType="image/png" encoding="base64" default="true"/>
+                    <wps:Format mimeType="image/png"/>
+                    <wps:Format mimeType="image/bmp" encoding="base64"/>
                     <wps:Format mimeType="image/bmp"/>
                     <wps:Format mimeType="image/gif" encoding="base64"/>
                     <wps:Format mimeType="image/gif"/>
@@ -1491,8 +1493,6 @@
                     <wps:Format mimeType="image/jpeg"/>
                     <wps:Format mimeType="image/jpeg2000" encoding="base64"/>
                     <wps:Format mimeType="image/jpeg2000"/>
-                    <wps:Format mimeType="image/png" encoding="base64"/>
-                    <wps:Format mimeType="image/png"/>
                     <wps:Format mimeType="image/tiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
@@ -1652,14 +1652,14 @@
                 <ows:Abstract xml:lang="fr-FR">Coverage dont on va changer les bandes</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:bandselect:input:coverage</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -1679,11 +1679,11 @@
                 <ows:Abstract xml:lang="fr-FR">Coverage resultat</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:bandselect:output:result</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
-                    <wps:Format mimeType="image/x-geotiff"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -1946,14 +1946,14 @@
                 <ows:Abstract xml:lang="fr-FR">Input coverage </ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain:input:coverage_in</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Output>
@@ -1961,11 +1961,11 @@
                 <ows:Abstract xml:lang="fr-FR">Output coverage </ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:reduceToDomain:output:coverage_out</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
-                    <wps:Format mimeType="image/x-geotiff"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>
@@ -2386,14 +2386,14 @@
                 <ows:Abstract xml:lang="fr-FR">Grid coverage en entrée.</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:isoline:input:inCoverage</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="1" maxOccurs="1">
@@ -3222,14 +3222,14 @@
                 <ows:Abstract xml:lang="fr-FR">Coverage to process.</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:CoverageToVector:input:coverage</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
                     <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
-                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100"/>
                 </wps:ComplexData>
             </wps:Input>
             <wps:Input minOccurs="0" maxOccurs="1">

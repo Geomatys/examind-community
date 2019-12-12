@@ -252,12 +252,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -281,9 +283,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
@@ -306,12 +305,14 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-wms</MimeType>
-                            <Encoding>utf-8</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/x-ogc-wms</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
@@ -325,9 +326,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -461,12 +459,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -490,9 +490,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
@@ -506,12 +503,14 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-wms</MimeType>
-                            <Encoding>utf-8</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/x-ogc-wms</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
@@ -525,9 +524,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -959,12 +955,19 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>image/bmp</MimeType>
+                            <MimeType>image/png</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/png</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/png</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -998,13 +1001,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/jpeg2000</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
                         </Format>
                         <Format>
                             <MimeType>image/tiff</MimeType>
@@ -1139,12 +1135,19 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>image/bmp</MimeType>
+                            <MimeType>image/png</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/png</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/png</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -1178,13 +1181,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/jpeg2000</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
                         </Format>
                         <Format>
                             <MimeType>image/tiff</MimeType>
@@ -2863,12 +2859,19 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>image/bmp</MimeType>
+                            <MimeType>image/png</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/png</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/png</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -2902,13 +2905,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/jpeg2000</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
                         </Format>
                         <Format>
                             <MimeType>image/tiff</MimeType>
@@ -3043,12 +3039,19 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>image/bmp</MimeType>
+                            <MimeType>image/png</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/png</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/png</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>image/bmp</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -3082,13 +3085,6 @@
                         </Format>
                         <Format>
                             <MimeType>image/jpeg2000</MimeType>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
-                            <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/png</MimeType>
                         </Format>
                         <Format>
                             <MimeType>image/tiff</MimeType>
@@ -3501,12 +3497,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -3530,9 +3528,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
@@ -3555,12 +3550,14 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-wms</MimeType>
-                            <Encoding>utf-8</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/x-ogc-wms</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
@@ -3574,9 +3571,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -4069,12 +4063,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -4098,9 +4094,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
@@ -4114,12 +4107,14 @@
                 <ComplexOutput>
                     <Default>
                         <Format>
-                            <MimeType>application/x-ogc-wms</MimeType>
-                            <Encoding>utf-8</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/x-ogc-wms</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
@@ -4133,9 +4128,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexOutput>
@@ -5047,12 +5039,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -5076,9 +5070,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
@@ -6690,12 +6681,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -6719,9 +6712,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>

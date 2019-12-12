@@ -19,12 +19,14 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/netcdf</MimeType>
-                            <Encoding>base64</Encoding>
+                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Default>
                     <Supported>
                         <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
                             <MimeType>application/netcdf</MimeType>
                             <Encoding>base64</Encoding>
                         </Format>
@@ -48,9 +50,6 @@
                         <Format>
                             <MimeType>image/x-geotiff</MimeType>
                             <Encoding>base64</Encoding>
-                        </Format>
-                        <Format>
-                            <MimeType>image/x-geotiff</MimeType>
                         </Format>
                     </Supported>
                 </ComplexData>
