@@ -303,7 +303,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         result.spatialBound.initBoundary();
 
         final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
-        currentFilter.setProcedure(sensorIDs, null);
+        currentFilter.setProcedure(sensorIDs);
 
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {

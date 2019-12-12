@@ -19,6 +19,7 @@
 package org.constellation.provider;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -54,6 +55,9 @@ public interface ObservationProvider extends DataProvider {
 
     List<Process> getProcedures(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
+    // TODO use a query instead of all the prameters
+    String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException;
+
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
     Object getSensorLocation(final String sensorID, final String gmlVersion) throws ConstellationStoreException;
@@ -65,6 +69,8 @@ public interface ObservationProvider extends DataProvider {
     TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
 
     void removeProcedure(String procedureID) throws ConstellationStoreException;
+
+    void writePhenomenons(final List<Phenomenon> phens) throws ConstellationStoreException;
 
     String writeObservation(final Observation observation) throws ConstellationStoreException;
 

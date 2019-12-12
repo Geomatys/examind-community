@@ -19,6 +19,7 @@
 package org.constellation.provider.observationstore;
 
 import java.nio.file.Path;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +34,7 @@ import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -40,6 +42,7 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArraysExt;
+import org.constellation.api.CommonConstants;
 import org.constellation.api.DataType;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
@@ -51,6 +54,8 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.v321.TimeInstantType;
+import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -63,6 +68,7 @@ import org.geotoolkit.storage.ResourceType;
 import org.opengis.filter.Id;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
@@ -84,6 +90,8 @@ import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
 
@@ -439,6 +447,16 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
+    public void writePhenomenons(List<Phenomenon> phens) throws ConstellationStoreException {
+        try {
+            store.getWriter().writePhenomenons(phens);
+            store.getFilter().refresh();
+        } catch (DataStoreException ex) {
+             throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
     public List<SamplingFeature> getFeatureOfInterest(Query q, Map<String, String> hints) throws ConstellationStoreException {
         final String version = getVersionFromHints(hints);
         try {
@@ -527,6 +545,43 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
+    @Override
+    public String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException {
+        try {
+            final ObservationFilterReader localOmFilter = (ObservationFilterReader) store.getFilter();
+            localOmFilter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
+            if (observedProperties.isEmpty()) {
+                final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+                SimpleQuery query = new SimpleQuery();
+                query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(sensorID)));
+                Collection<Phenomenon> phenos = getPhenomenon(query, Collections.emptyMap());
+                phenos.forEach(p -> observedProperties.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
+            }
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setFeatureOfInterest(foi);
+            localOmFilter.setResponseFormat("text/csv");
+
+            if (start != null && end != null) {
+                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+                localOmFilter.setTimeDuring(period);
+            } else if (start != null) {
+                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
+                localOmFilter.setTimeAfter(time);
+            } else if (end != null) {
+                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
+                localOmFilter.setTimeBefore(time);
+            }
+
+            if (decimationSize != null) {
+                return localOmFilter.getDecimatedResults(decimationSize);
+            } else {
+                return localOmFilter.getResults();
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
     private void handleQuery(Query q, final ObservationFilter localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
         List<String> observedProperties = new ArrayList<>();
         List<String> procedures         = new ArrayList<>();
@@ -548,7 +603,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
         // TODO Spatial BBOX
         localOmFilter.setObservedProperties(observedProperties);
-        localOmFilter.setProcedure(procedures, null);
+        localOmFilter.setProcedure(procedures);
         localOmFilter.setFeatureOfInterest(fois);
     }
 
@@ -615,7 +670,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                     localOmFilter.setObservedProperties(ids);
                     break;
                 case GET_PROC:
-                    localOmFilter.setProcedure(ids, null);
+                    localOmFilter.setProcedure(ids);
                     break;
                 default:
                     break;
@@ -633,6 +688,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 fois.add((String) value.getValue());
             } else if (name.getPropertyName().equals("observationId")) {
                 localOmFilter.setObservationIds(Arrays.asList((String) value.getValue()));
+            } else if (name.getPropertyName().equals("offering")) {
+                localOmFilter.setOfferings(Arrays.asList((String) value.getValue()));
             }
 
         } else if (filter instanceof Begins || filter instanceof BegunBy || filter instanceof TContains || filter instanceof EndedBy || filter instanceof Ends || filter instanceof Meets

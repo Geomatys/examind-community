@@ -68,6 +68,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
 
     protected QName resultModel;
 
+    protected boolean offJoin = false;
     protected boolean obsJoin = false;
     protected boolean includeFoiInTemplate = true;
 
@@ -198,7 +199,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures, final List<ObservationOffering> offerings) {
+    public void setProcedure(final List<String> procedures) {
         if (procedures != null && !procedures.isEmpty()) {
             if (firstFilter) {
                 sqlRequest.append(" ( ");
@@ -208,23 +209,6 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             for (String s : procedures) {
                 if (s != null) {
                     sqlRequest.append(" \"procedure\"='").append(s).append("' OR ");
-                }
-            }
-            sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
-            sqlRequest.append(") ");
-            firstFilter = false;
-            obsJoin = true;
-        } else if (offerings != null && !offerings.isEmpty()) {
-
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
-            } else {
-                sqlRequest.append("AND ( ");
-            }
-            //if is not specified we use all the process of the offering
-            for (ObservationOffering off : offerings) {
-                for (String proc : off.getProcedures()) {
-                    sqlRequest.append(" \"procedure\"='").append(proc).append("' OR ");
                 }
             }
             sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
@@ -740,8 +724,23 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     }
 
     @Override
-    public void setOfferings(final List<ObservationOffering> offerings) throws DataStoreException {
-        // not used in this implementations
+    public void setOfferings(final List<String> offerings) throws DataStoreException {
+        if (offerings != null && !offerings.isEmpty()) {
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
+            for (String s : offerings) {
+                if (s != null) {
+                    sqlRequest.append(" off.\"id_offering\"='").append(s).append("' OR ");
+                }
+            }
+            sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
+            sqlRequest.append(") ");
+            firstFilter = false;
+            offJoin = true;
+        }
     }
 
     @Override

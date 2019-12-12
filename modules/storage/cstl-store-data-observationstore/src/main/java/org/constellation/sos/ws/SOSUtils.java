@@ -437,7 +437,7 @@ public final class SOSUtils {
         return phenomenons;
     }
 
-    public static Object unmarshallObservationFile(final Path f) throws JAXBException, DataStoreException, IOException {
+    public static Object unmarshallObservationFile(final Path f) throws JAXBException, ConstellationStoreException, IOException {
         try (InputStream stream = Files.newInputStream(f)){
             final Unmarshaller um = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             Object obj = um.unmarshal(stream);
@@ -448,7 +448,7 @@ public final class SOSUtils {
                 return obj;
             }
         }
-        throw new DataStoreException("the observation file does not contain a valid O&M object");
+        throw new ConstellationStoreException("the observation file does not contain a valid O&M object");
     }
 
     public static boolean isCompleteEnvelope3D(Envelope e) {

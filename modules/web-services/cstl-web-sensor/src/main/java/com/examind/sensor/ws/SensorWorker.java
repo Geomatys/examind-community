@@ -37,7 +37,9 @@ import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.ObservationStore;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
+import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.observation.Phenomenon;
+import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -149,4 +151,18 @@ public abstract class SensorWorker extends AbstractWorker {
             return sps.iterator().next();
         }
     }
+
+     protected List<SamplingFeature> getSamplingFeatureForOffering(String offname, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
+        subquery.setFilter(filter);
+        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+     }
+
+     protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
+        subquery.setFilter(filter);
+        return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
+     }
 }

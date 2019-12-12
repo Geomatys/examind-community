@@ -153,28 +153,13 @@ public class LuceneObservationFilter implements ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures, final List<ObservationOffering> offerings) {
-        luceneRequest.append(" ( ");
-        boolean add = false;
-        if (!procedures.isEmpty()) {
-
+    public void setProcedure(final List<String> procedures) {
+        if (procedures != null && !procedures.isEmpty()) {
+            luceneRequest.append(" ( ");
             for (String s : procedures) {
-                if (s != null) {
-                    luceneRequest.append(" procedure:\"").append(s).append("\" OR ");
-                    add = true;
-                }
+                luceneRequest.append(" procedure:\"").append(s).append("\" OR ");
             }
-        } else if (offerings != null){
-            //if is not specified we use all the process of the offering
-            for (ObservationOffering off : offerings) {
-                for (String proc : off.getProcedures()) {
-                    luceneRequest.append(" procedure:\"").append(proc).append("\" OR ");
-                    add = true;
-                }
-            }
-        }
-        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-        if (add) {
+            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
             luceneRequest.append(") ");
         }
     }
@@ -348,7 +333,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setOfferings(final List<ObservationOffering> offerings) throws DataStoreException {
+    public void setOfferings(final List<String> offerings) throws DataStoreException {
         // not used in this implementations
     }
 

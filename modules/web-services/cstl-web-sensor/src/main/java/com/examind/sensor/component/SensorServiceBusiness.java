@@ -20,7 +20,6 @@ package com.examind.sensor.component;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,9 +31,7 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.api.CommonConstants;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.Sensor;
@@ -49,13 +46,7 @@ import org.constellation.sos.ws.SOSUtils;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.util.NamedId;
 import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.v321.TimeInstantType;
-import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
-import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
@@ -70,8 +61,6 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -263,41 +252,45 @@ public class SensorServiceBusiness {
     }
 
     public boolean importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider writer = getOMProvider(id);
         try {
             final Object objectFile = SOSUtils.unmarshallObservationFile(observationFile);
-            if (objectFile instanceof AbstractObservation) {
-                writer.writeObservation((AbstractObservation)objectFile);
+            if (objectFile instanceof Observation) {
+                writer.writeObservation((Observation)objectFile);
             } else if (objectFile instanceof ObservationCollection) {
                 importObservations(id, (ObservationCollection)objectFile);
             } else {
                 return false;
             }
             return true;
-        } catch (IOException | JAXBException | DataStoreException ex) {
+        } catch (IOException | JAXBException | ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public void importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider writer = getOMProvider(id);
         try {
             final long start = System.currentTimeMillis();
-            writer.writeObservations(collection.getMember());
+            for (Observation obs : collection.getMember()) {
+                writer.writeObservation(obs);
+            }
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
-        final ObservationWriter writer = getObservationWriter(id);
+        final ObservationProvider writer = getOMProvider(id);
         try {
             final long start = System.currentTimeMillis();
             writer.writePhenomenons(phenomenons);
-            writer.writeObservations(observations);
+            for (Observation obs : observations) {
+                writer.writeObservation(obs);
+            }
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
-        } catch (DataStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
@@ -375,18 +368,18 @@ public class SensorServiceBusiness {
 
     public String getObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
         try {
-            final ObservationFilterReader filter = filterObservation(id, sensorID, observedProperties, foi, start, end);
-            return filter.getResults();
-        } catch (DataStoreException ex) {
+            final ObservationProvider pr = getOMProvider(id);
+            return pr.getResults(sensorID, observedProperties, foi, start, end, null);
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     public String getDecimatedObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
         try {
-            final ObservationFilterReader filter = filterObservation(id, sensorID, observedProperties, foi, start, end);
-            return filter.getDecimatedResults(width);
-        } catch (DataStoreException ex) {
+            final ObservationProvider pr = getOMProvider(id);
+            return pr.getResults(sensorID, observedProperties, foi, start, end, width);
+        } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
@@ -421,63 +414,5 @@ public class SensorServiceBusiness {
             }
         }
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
-    }
-
-    /**
-     * Build a new Observation writer for the specified service ID.
-     *
-     * @param serviceID the service identifier (form multiple Sensor service) default: ""
-     *
-     * @return An observation Writer.
-     * @throws ConfigurationException
-     */
-    protected ObservationWriter getObservationWriter(final Integer serviceID) throws ConfigurationException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        if (omProvider != null) {
-            return getObservationStore(serviceID).getWriter();
-        } else {
-            throw new ConfigurationException("there is no configuration file correspounding to this ID:" + serviceID);
-        }
-    }
-
-    /**
-     * Build a new Observation writer for the specified service ID.
-     *
-     * @param serviceID the service identifier (form multiple Sensor service) default: ""
-     *
-     * @return An observation Writer.
-     * @throws ConfigurationException
-     */
-    protected ObservationFilterReader filterObservation(final Integer serviceID, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException, DataStoreException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        if (omProvider != null) {
-            ObservationFilterReader filter = (ObservationFilterReader) getObservationStore(serviceID).getFilter();
-            filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
-            if (observedProperties.isEmpty()) {
-                observedProperties.addAll(getObservedPropertiesForSensorId(serviceID, sensorID, false));
-            }
-            filter.setObservedProperties(observedProperties);
-            filter.setFeatureOfInterest(foi);
-            filter.setResponseFormat("text/csv");
-
-            if (start != null && end != null) {
-                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
-                filter.setTimeDuring(period);
-            } else if (start != null) {
-                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
-                filter.setTimeAfter(time);
-            } else if (end != null) {
-                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
-                filter.setTimeBefore(time);
-            }
-            return filter;
-        } else {
-            throw new ConfigurationException("there is no configuration file correspounding to this ID:" + serviceID);
-        }
-    }
-
-    private ObservationStore getObservationStore(final Integer serviceID) throws ConfigurationException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        return SOSUtils.getObservationStore(omProvider);
     }
 }

@@ -171,7 +171,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         result.spatialBound.initBoundary();
 
         final ObservationFilter currentFilter = getFilter();
-        currentFilter.setProcedure(sensorIDs, null);
+        currentFilter.setProcedure(sensorIDs);
 
         final Set<String> observationIDS = currentFilter.filterObservation();
         for (String oid : observationIDS) {

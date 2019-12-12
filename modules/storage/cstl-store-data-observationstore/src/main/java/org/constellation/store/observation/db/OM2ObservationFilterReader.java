@@ -1013,6 +1013,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             } else {
                 request = request.replaceFirst("WHERE", obsJoin + "AND ");
             }
+        } else if (offJoin) {
+            final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_foi\" off WHERE off.\"foi\" = sf.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", offJoin);
+            } else {
+                request = request.replaceFirst("WHERE", offJoin + "AND ");
+            }
         } else {
             request = request.replace("\"foi\"='", "sf.\"id\"='");
             if (firstFilter) {

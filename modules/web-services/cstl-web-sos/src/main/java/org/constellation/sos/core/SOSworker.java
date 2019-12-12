@@ -855,7 +855,6 @@ public class SOSworker extends SensorWorker {
                     offerings.add(offering);
                 }
             }
-            localOmFilter.setOfferings(offerings);
 
             //we verify that the srsName (if there is one) is advertised in the offering
             if (requestObservation.getSrsName() != null) {
@@ -887,7 +886,7 @@ public class SOSworker extends SensorWorker {
             }
 
             //we get the list of process
-            final List<String> procedures = requestObservation.getProcedure();
+            final List<String> procedures = new ArrayList<>(requestObservation.getProcedure());
             for (String procedure : procedures) {
                 if (procedure != null) {
                     LOGGER.log(Level.INFO, "process ID: {0}", procedure);
@@ -917,7 +916,13 @@ public class SOSworker extends SensorWorker {
                     }
                 }
             }
-            localOmFilter.setProcedure(procedures, offerings);
+            // if no procedure specified extract the offerings procedures
+            if (procedures.isEmpty()) {
+                for (ObservationOffering off : offerings) {
+                    procedures.addAll(off.getProcedures());
+                }
+            }
+            localOmFilter.setProcedure(procedures);
 
             //we get the list of phenomenon
             //TODO verifier que les pheno appartiennent a l'offering
@@ -973,13 +978,12 @@ public class SOSworker extends SensorWorker {
                             localOmFilter.setBoundingBox(e);
                         } else {
                             for (ObservationOffering off : offerings) {
-
-                                for (String refStation : off.getFeatureOfInterestIds()) {
+                                final List<SamplingFeature> offStations = getSamplingFeatureForOffering(off.getId(), currentVersion);
+                                for (SamplingFeature offStation : offStations) {
                                     // TODO for SOS 2.0 use observed area
-                                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
+                                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) offStation;
                                     if (station == null) {
-                                        throw new CstlServiceException("the feature of interest is not registered",
-                                                INVALID_PARAMETER_VALUE);
+                                        throw new CstlServiceException("the feature of interest is not registered", INVALID_PARAMETER_VALUE);
                                     }
                                     if (station.getGeometry() instanceof Point) {
                                         if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
@@ -1226,7 +1230,7 @@ public class SOSworker extends SensorWorker {
         final String currentVersion         = request.getVersion().toString();
         final String observationTemplateID  = request.getObservationTemplateId();
         final List<String> fois             = new ArrayList<>();
-        ObservationOffering offering        = null;
+        String offering                     = null;
         final String procedure;
         final String observedProperty;
         final TemporalObject time;
@@ -1259,12 +1263,12 @@ public class SOSworker extends SensorWorker {
                 if (request.getOffering() == null || request.getOffering().isEmpty()) {
                     throw new CstlServiceException("The offering parameter must be specified", MISSING_PARAMETER_VALUE, "offering");
                 } else {
-                    offering = omStore.getReader().getObservationOffering(request.getOffering(), currentVersion);
-                    if (offering== null) {
-                        throw new CstlServiceException("The offering parameter is invalid",
-                                                  INVALID_PARAMETER_VALUE, "offering");
+
+                    List<org.opengis.observation.Process> procedures = getProcedureForOffering(offering, currentVersion);
+                    if (procedures.isEmpty()) {
+                        throw new CstlServiceException("The offering parameter is invalid", INVALID_PARAMETER_VALUE, "offering");
                     }
-                    procedure = offering.getProcedures().get(0);
+                    procedure = ((Process) procedures.get(0)).getHref();
                 }
                 if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                     throw new CstlServiceException("The observedProperty parameter must be specified", MISSING_PARAMETER_VALUE, "observedProperty");
@@ -1290,11 +1294,6 @@ public class SOSworker extends SensorWorker {
                 localOmFilter.setObservedProperties(Arrays.asList(observedProperty));
             }
 
-            // offering
-            if (offering != null) {
-                localOmFilter.setOfferings(Arrays.asList(offering));
-            }
-
             // spatial filter
              // if the request is a spatial operator
             if (request.getSpatialFilter() != null) {
@@ -1306,9 +1305,10 @@ public class SOSworker extends SensorWorker {
                         if (localOmFilter.isBoundedObservation()) {
                             localOmFilter.setBoundingBox(e);
                         } else {
-                            for (String refStation : offering.getFeatureOfInterestIds()) {
+                            List<SamplingFeature> stations = getSamplingFeatureForOffering(offering, currentVersion);
+                            for (SamplingFeature offStation : stations) {
                                 // TODO for SOS 2.0 use observed area
-                                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
+                                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) offStation;
                                 if (station == null) {
                                     throw new CstlServiceException("the feature of interest is not registered", INVALID_PARAMETER_VALUE);
                                 }
@@ -1468,7 +1468,7 @@ public class SOSworker extends SensorWorker {
                         throw new CstlServiceException("This procedure is not registered", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                 }
-                localOmFilter.setProcedure(request.getProcedure(), null);
+                localOmFilter.setProcedure(request.getProcedure());
                 ofilter = true;
             }
 
@@ -1741,7 +1741,7 @@ public class SOSworker extends SensorWorker {
             final ObservationFilter localOmFilter = omStore.getFilter();
 
             localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
-            localOmFilter.setProcedure(offering.getProcedures(), Arrays.asList(offering));
+            localOmFilter.setProcedure(offering.getProcedures());
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
             }
@@ -1792,30 +1792,24 @@ public class SOSworker extends SensorWorker {
         if (e != null && e.isCompleteEnvelope2D()) {
 
             final List<SamplingFeature> matchingFeatureOfInterest = new ArrayList<>();
-            final List<ObservationOffering> offerings             = omStore.getReader().getObservationOfferings(currentVersion);
-            for (ObservationOffering off : offerings) {
+            final List<SamplingFeature> featureOfInterests        = omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
+            for (SamplingFeature foi : featureOfInterests) {
                 // TODO for SOS 2.0 use observed area
-                for (String refStation : off.getFeatureOfInterestIds()) {
-                    final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) getFeatureOfInterest(refStation, currentVersion);
-                    if (station == null) {
-                        LOGGER.log(Level.WARNING, "the feature of interest is not registered:{0}", refStation);
-                        continue;
-                    }
-                    if (station.getGeometry() instanceof Point) {
-                        if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
-                            matchingFeatureOfInterest.add(station);
-                        } else {
-                            LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
-                        }
-                    } else if (station instanceof AbstractFeature) {
-                        if (BoundMatchEnvelope((AbstractFeature) station, e)) {
-                            matchingFeatureOfInterest.add(station);
-                        } else {
-                            LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
-                        }
+                final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) foi;
+                if (station.getGeometry() instanceof Point) {
+                    if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
+                        matchingFeatureOfInterest.add(station);
                     } else {
-                        LOGGER.log(Level.WARNING, "unknow implementation:{0}", station.getClass().getName());
+                        LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
                     }
+                } else if (station instanceof AbstractFeature) {
+                    if (BoundMatchEnvelope((AbstractFeature) station, e)) {
+                        matchingFeatureOfInterest.add(station);
+                    } else {
+                        LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
+                    }
+                } else {
+                    LOGGER.log(Level.WARNING, "unknow implementation:{0}", station.getClass().getName());
                 }
             }
             return matchingFeatureOfInterest;

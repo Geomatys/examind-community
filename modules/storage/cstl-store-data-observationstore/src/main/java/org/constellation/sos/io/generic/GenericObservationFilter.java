@@ -28,7 +28,6 @@ import org.constellation.dto.service.config.generic.Where;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -165,22 +164,13 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures, final List<ObservationOffering> offerings) {
+    public void setProcedure(final List<String> procedures) {
         if (!procedures.isEmpty()) {
             for (String s : procedures) {
                 if (s != null) {
                     final Where where = new Where(configurationQuery.getWhere(PROCEDURE));
                     where.replaceVariable(PROCEDURE, s, true);
                     currentQuery.addWhere(where);
-                }
-            }
-        } else {
-            //if is not specified we use all the process of the offering
-            for (ObservationOffering off : offerings) {
-                for (String proc : off.getProcedures()) {
-                     final Where where = new Where(configurationQuery.getWhere(PROCEDURE));
-                     where.replaceVariable(PROCEDURE, proc, true);
-                     currentQuery.addWhere(where);
                 }
             }
         }
@@ -320,7 +310,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setOfferings(final List<ObservationOffering> offerings) throws DataStoreException {
+    public void setOfferings(final List<String> offerings) throws DataStoreException {
         // not used in this implementations
     }
 
