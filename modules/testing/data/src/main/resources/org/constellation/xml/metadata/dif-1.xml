@@ -124,11 +124,34 @@
       </Contact_Person>
     </Personnel>
   </Organization>
+  <Organization>
+      <Organization_Type>ARCHIVER</Organization_Type>
+      <Organization_Name uuid="b6bb79aa-0743-4730-ba5f-39b6fb28167b">
+          <Short_Name>JP/JAXA/SAOC</Short_Name>
+          <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+      </Organization_Name>
+      <Organization_URL>http://www.jaxa.jp</Organization_URL>
+      <Personnel>
+          <Role>DATA CENTER CONTACT</Role>
+          <Contact_Person>
+              <Last_Name>JAXA G-PORTAL</Last_Name>
+              <Address>
+                  <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                  <Street_Address>2-1-1, Sengen</Street_Address>
+                  <City>Tsukuba-city</City>
+                  <State_Province>Ibaraki</State_Province>
+                  <Postal_Code>305-8505</Postal_Code>
+                  <Country>JAPAN</Country>
+              </Address>
+              <Email>z-gportal-support@ml.jaxa.jp</Email>
+          </Contact_Person>
+      </Personnel>
+  </Organization>
   <Distribution>
-    <Distribution_Media>http://link.com</Distribution_Media>
-    <Distribution_Size>3.12</Distribution_Size>
-    <Distribution_Format>binary</Distribution_Format>
-    <Fees>free</Fees>
+      <Distribution_Media>http://link.com</Distribution_Media>
+      <Distribution_Size>3.12</Distribution_Size>
+      <Distribution_Format>binary</Distribution_Format>
+      <Fees>free</Fees>
   </Distribution>
   <Distribution>
     <Distribution_Media>http://link/img</Distribution_Media>

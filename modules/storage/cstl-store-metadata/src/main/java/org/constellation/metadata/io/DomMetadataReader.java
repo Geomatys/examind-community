@@ -810,6 +810,66 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final String progressValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Dataset_Progress");
             addCodelistNode(doc, dIdent, "status", "MD_ProgressCode", progressValue);
 
+            List<Node> orgNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Organization");
+            for (Node orgNode : orgNodes) {
+                String orgType = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_Type");
+                String orgUrl  = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_URL");
+                String orgName  = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Short_Name");
+
+                if (!"DISTRIBUTOR".equals(orgType)) {
+
+                    List<Node> contacts = NodeUtilities.getNodeFromPath(orgNode, "/dif:Personnel");
+                    if (!contacts.isEmpty()) {
+
+                        for (Node contactNode : contacts) {
+                            List<Node> groups = NodeUtilities.getNodeFromPath(contactNode, "/dif:Contact_Group");
+                            for (Node groupNode : groups) {
+                                final Node poc = doc.createElementNS(GMD, "pointOfContact");
+                                dIdent.appendChild(poc);
+                                final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                poc.appendChild(ciResp);
+                                addCharacterStringNode(doc, ciResp, "organisationName", orgName);
+                                addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
+
+                                buildDiffAddress(doc, ciResp, groupNode, orgUrl, "/dif:Contact_Group");
+
+                                addCodelistNode(doc, ciResp, "role", "CI_RoleCode", orgType);
+                            }
+
+                            List<Node> persons = NodeUtilities.getNodeFromPath(contactNode, "/dif:Contact_Person");
+                            for (Node personNode : persons) {
+                                final Node poc = doc.createElementNS(GMD, "pointOfContact");
+                                dIdent.appendChild(poc);
+                                final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
+                                poc.appendChild(ciResp);
+                                addCharacterStringNode(doc, ciResp, "organisationName", orgName);
+                                String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
+                                String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
+                                String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
+                                if (fName != null || mName != null || lName != null) {
+                                    StringBuilder indName = new StringBuilder();
+                                    if (fName != null) {
+                                        indName.append(fName).append(" ");
+                                    }
+                                    if (mName != null) {
+                                        indName.append(mName).append(" ");
+                                    }
+                                    if (lName != null) {
+                                        indName.append(lName);
+                                    }
+                                    addCharacterStringNode(doc, ciResp, "individualName", indName.toString());
+                                }
+                                addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
+
+                                buildDiffAddress(doc, ciResp, personNode, orgUrl, "/dif:Contact_Person");
+
+                                addCodelistNode(doc, ciResp, "role", "CI_RoleCode", orgType);
+                            }
+                        }
+                    }
+                }
+            }
+
             final List<Node> multiMedias = NodeUtilities.getNodeFromPath(metadata, "/dif:Multimedia_Sample");
             for (Node multiMedia : multiMedias) {
                 Node graOvNode = doc.createElementNS(GMD, "graphicOverview");
@@ -1005,13 +1065,12 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             }
 
             Node mdDistributor = null;
-
-            List<Node> orgNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Organization");
             for (Node orgNode : orgNodes) {
                 String orgType = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_Type");
+                String orgUrl  = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_URL");
+                String orgName  = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Short_Name");
 
                 if ("DISTRIBUTOR".equals(orgType)) {
-                    String orgUrl = NodeUtilities.getFirstValueFromPath(orgNode, "/dif:Organization/dif:Organization_URL");
 
                     List<Node> distributors = NodeUtilities.getNodeFromPath(orgNode, "/dif:Personnel");
                     if (!distributors.isEmpty()) {

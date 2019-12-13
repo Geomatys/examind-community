@@ -110,6 +110,49 @@
             <status>
                 <MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="COMPLETE">COMPLETE</MD_ProgressCode>
             </status>
+            <pointOfContact>
+                <CI_ResponsibleParty>
+                    <individualName>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>
+                    </individualName>
+                    <positionName>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>
+                    </positionName>
+                    <contactInfo>
+                        <CI_Contact>
+                            <address>
+                                <CI_Address>
+                                    <deliveryPoint>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>
+                                    </deliveryPoint>
+                                    <city>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>
+                                    </city>
+                                    <postalCode>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>
+                                    </postalCode>
+                                    <country>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>
+                                    </country>
+                                    <electronicMailAddress>
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>
+                                    </electronicMailAddress>
+                                </CI_Address>
+                            </address>
+                            <onlineResource>
+                                <CI_OnlineResource>
+                                    <linkage>
+                                        <URL>http://www.jaxa.jp</URL>
+                                    </linkage>
+                                </CI_OnlineResource>
+                            </onlineResource>
+                        </CI_Contact>
+                    </contactInfo>
+                    <role>
+                        <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="ARCHIVER">ARCHIVER</CI_RoleCode>
+                    </role>
+                </CI_ResponsibleParty>
+            </pointOfContact>
             <graphicOverview>
                 <MD_BrowseGraphic>
                     <fileName>
