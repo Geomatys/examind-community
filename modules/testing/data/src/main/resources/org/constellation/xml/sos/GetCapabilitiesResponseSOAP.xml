@@ -148,8 +148,8 @@
                     <ows:Parameter name="eventTime">
                         <ows:AllowedValues>
                             <ows:Range>
-                                <ows:MinimumValue>2009-05-01 13:47:00.0</ows:MinimumValue>
-                                <ows:MaximumValue>2007-05-01 16:59:00.0</ows:MaximumValue>
+                                <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
+                                <ows:MaximumValue>2007-05-01T14:59:00.000Z</ows:MaximumValue>
                             </ows:Range>
                         </ows:AllowedValues>
                     </ows:Parameter>

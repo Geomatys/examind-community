@@ -51,7 +51,6 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
-import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -302,9 +301,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
-        List<String> dates = reader.getEventTime();
-        appendTime(new TimeInstantType(dates.get(0)), result.spatialBound);
-        appendTime(new TimeInstantType(dates.get(1)), result.spatialBound);
+        appendTime(reader.getEventTime("2.0.0"), result.spatialBound);
         return result.spatialBound.getTimeObject("2.0.0");
     }
 

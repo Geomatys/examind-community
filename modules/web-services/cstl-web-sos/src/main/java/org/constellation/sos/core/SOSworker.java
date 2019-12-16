@@ -22,6 +22,8 @@ package org.constellation.sos.core;
 
 import com.examind.sensor.ws.SensorWorker;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -239,6 +242,11 @@ import org.springframework.context.annotation.Scope;
 @Named("SOSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class SOSworker extends SensorWorker {
+
+    private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    static {
+        ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     /**
      * A list of temporary ObservationTemplate
@@ -503,33 +511,39 @@ public class SOSworker extends SensorWorker {
                 final AbstractOperation go = om.getOperation(GET_OBSERVATION);
 
                 final Collection<String> foiNames  = new ArrayList<>();
-                final Collection<String> procNames = new ArrayList<>();
                 final Collection<String> phenNames = new ArrayList<>();
-                final Collection<String> offNames  = new ArrayList<>();
-                final List<String> eventTime       = new ArrayList<>();
                 final List<String> queryableResultProperties = new ArrayList<>();
 
-                foiNames.addAll(omProvider.getFeatureOfInterestNames());
-                phenNames.addAll(omProvider.getPhenomenonNames());
+                foiNames.addAll(omProvider.getFeatureOfInterestNames(null, Collections.EMPTY_MAP));
+                phenNames.addAll(omProvider.getPhenomenonNames(null, Collections.EMPTY_MAP));
 
-                final ObservationReader reader = omStore.getReader();
-                if (reader != null) {
-                    procNames.addAll(omProvider.getProcedureNames(sensorTypeFilter));
-                    offNames.addAll(reader.getOfferingNames(currentVersion, sensorTypeFilter));
-                    eventTime.addAll(reader.getEventTime());
+                Map<String, String> hints = Collections.singletonMap("version", currentVersion);
+                SimpleQuery stQuery = null;
+                if (sensorTypeFilter != null) {
+                    stQuery = new SimpleQuery();
+                    PropertyIsEqualTo filter = ff.equals(ff.property("sensorType") , ff.literal("component"));
+                    stQuery.setFilter(filter);
                 }
+
+                final Collection<String>  procNames  = omProvider.getProcedureNames(stQuery, hints);
+                final Collection<String> offNames    = omProvider.getOfferingNames(stQuery, hints);
+                TemporalGeometricPrimitive eventTime = omProvider.getTime(currentVersion);
+
                 queryableResultProperties.addAll(omProvider.getCapabilities().queryableResultProperties);
 
                 // the list of offering names
                 go.updateParameter(OFFERING, offNames);
 
                 // the event time range
-                if (eventTime.size() == 1) {
-                    final Range range = buildRange(currentVersion, eventTime.get(0), "now");
+                if (eventTime instanceof Instant) {
+                    final Range range = buildRange(currentVersion, ISO8601_FORMAT.format(((Instant)eventTime).getDate()), "now");
                     go.updateParameter(EVENT_TIME, range);
-                } else if (eventTime.size() == 2) {
-                    final Range range = buildRange(currentVersion, eventTime.get(0), eventTime.get(1));
+                } else if (eventTime instanceof Period) {
+                    final Range range = buildRange(currentVersion, ISO8601_FORMAT.format(((Period)eventTime).getBeginning().getDate()),
+                                                                   ISO8601_FORMAT.format(((Period)eventTime).getEnding().getDate()));
                     go.updateParameter(EVENT_TIME, range);
+                } else {
+                    go.updateParameter(EVENT_TIME,  buildRange(currentVersion, "undefined", "now"));
                 }
 
                 //the process list
@@ -955,9 +969,8 @@ public class SOSworker extends SensorWorker {
             if (!requestObservation.getFeatureIds().isEmpty()) {
 
                 //verify that the station is registred in the DB.
-                final Collection<String> fois = omProvider.getFeatureOfInterestNames();
                 for (final String samplingFeatureName : requestObservation.getFeatureIds()) {
-                    if (!fois.contains(samplingFeatureName)) {
+                    if (!omProvider.existFeatureOfInterest(samplingFeatureName)) {
                         throw new CstlServiceException("the feature of interest "+ samplingFeatureName + " is not registered",
                                                          INVALID_PARAMETER_VALUE, "featureOfInterest");
                     }
@@ -1584,12 +1597,12 @@ public class SOSworker extends SensorWorker {
                 }
             // request for all foi
             } else if (!filter) {
-                final List<FeatureProperty> features = new ArrayList<>();
-                for (String foid : omProvider.getFeatureOfInterestNames()) {
-                    final SamplingFeature feature = getFeatureOfInterest(foid, currentVersion);
-                    features.add(buildFeatureProperty(currentVersion, feature));
+                final List<FeatureProperty> featProps = new ArrayList<>();
+               List<SamplingFeature> features =  omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
+                for (SamplingFeature feature : features) {
+                    featProps.add(buildFeatureProperty(currentVersion, feature));
                 }
-                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
+                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, featProps);
                 collection.computeBounds();
                 result = collection;
             }
@@ -1616,12 +1629,12 @@ public class SOSworker extends SensorWorker {
 
         final TemporalPrimitive result;
         try {
-            if (omProvider.getFeatureOfInterestNames().contains(fid)) {
-                result = omStore.getReader().getFeatureOfInterestTime(fid, currentVersion);
+            if (omProvider.existFeatureOfInterest(fid)) {
+                result = omProvider.getTimeForFeatureOfInterest(currentVersion, fid);
             } else {
                 throw new CstlServiceException("there is not such samplingFeature on the server", INVALID_PARAMETER_VALUE);
             }
-        } catch (DataStoreException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         LOGGER.log(Level.INFO, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
@@ -1733,15 +1746,18 @@ public class SOSworker extends SensorWorker {
         final AbstractEncoding encoding;
 
         try {
-            final ObservationOffering offering = omStore.getReader().getObservationOffering(request.getOffering(), currentVersion);
-            if (offering == null) {
+            final boolean offeringExist = omProvider.existOffering(request.getOffering(), currentVersion);
+            if (!offeringExist) {
                 throw new CstlServiceException("offering parameter is invalid.", INVALID_PARAMETER_VALUE, "offering");
             }
+            List<String> procedures = new ArrayList<>();
+            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr -> procedures.add(((Process)pr).getHref()));
+
             // we clone the filter for this request
             final ObservationFilter localOmFilter = omStore.getFilter();
 
             localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
-            localOmFilter.setProcedure(offering.getProcedures());
+            localOmFilter.setProcedure(procedures);
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
             }
@@ -1981,8 +1997,8 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("The offering identifiers are missing.",
                                                  MISSING_PARAMETER_VALUE, "offering");
                 } else {
-                    final ObservationOffering off = omStore.getReader().getObservationOffering(offeringNames.get(0), currentVersion);
-                    if (off != null) {
+                    final boolean offExist = omProvider.existOffering(offeringNames.get(0), currentVersion);
+                    if (offExist) {
                         // TODO
                     } else {
                         throw new CstlServiceException("The offering identifier is invalid.",

@@ -39,15 +39,17 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public interface ObservationProvider extends DataProvider {
 
+    Collection<String> getOfferingNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
+    Collection<String> getProcedureNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
+    Collection<String> getPhenomenonNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
+    Collection<String> getFeatureOfInterestNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
     List<ProcedureTree> getProcedures() throws ConstellationStoreException;
 
-    Collection<String> getPhenomenonNames() throws ConstellationStoreException;
-
-    Collection<Phenomenon> getPhenomenon(Query query, final Map<String,String> hints) throws ConstellationStoreException;
-
-    Collection<String> getProcedureNames(String typeFilter) throws ConstellationStoreException;
-
-    Collection<String> getFeatureOfInterestNames() throws ConstellationStoreException;
+    List<Phenomenon> getPhenomenon(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
     List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
@@ -66,17 +68,23 @@ public interface ObservationProvider extends DataProvider {
 
     boolean existProcedure(final String procedureName) throws ConstellationStoreException;
 
+    boolean existFeatureOfInterest(final String foiName) throws ConstellationStoreException;
+
+    boolean existOffering(final String offeringName, String version) throws ConstellationStoreException;
+
     TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
 
+    TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String version, final String fid) throws ConstellationStoreException;
+
+    TemporalGeometricPrimitive getTime(final String version) throws ConstellationStoreException;
+
     void removeProcedure(String procedureID) throws ConstellationStoreException;
+
+    void removeObservation(final String observationID) throws ConstellationStoreException;
 
     void writePhenomenons(final List<Phenomenon> phens) throws ConstellationStoreException;
 
     String writeObservation(final Observation observation) throws ConstellationStoreException;
-
-    void removeObservation(final String observationID) throws ConstellationStoreException;
-
-    void removeObservationForProcedure(final String procedureID) throws ConstellationStoreException;
 
     void writeProcedure(final String procedureID, final Object position, final String parent, final String type) throws ConstellationStoreException;
 

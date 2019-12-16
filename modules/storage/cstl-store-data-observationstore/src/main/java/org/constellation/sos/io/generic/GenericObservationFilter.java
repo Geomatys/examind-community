@@ -428,4 +428,19 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         // do nothing
     }
 
+    @Override
+    public void setProcedureType(String type) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void initFilterOffering() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Set<String> filterOffering() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

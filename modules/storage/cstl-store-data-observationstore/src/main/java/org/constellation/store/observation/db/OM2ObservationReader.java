@@ -87,6 +87,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_JSON;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.opengis.observation.Process;
 
 
@@ -864,22 +865,27 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<String> getEventTime() throws DataStoreException {
-        try(final Connection c         = source.getConnection();
-            final Statement stmt       = c.createStatement();
-            final ResultSet rs         = stmt.executeQuery("SELECT max(\"time_begin\"), min(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {
-            final List<String> results = new ArrayList<>();
+    public TemporalPrimitive getEventTime(String version) throws DataStoreException {
+        try(final Connection c   = source.getConnection();
+            final Statement stmt = c.createStatement();
+            final ResultSet rs   = stmt.executeQuery("SELECT max(\"time_begin\"), min(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {
+            String start         = "undefined";
+            String end           = "now";
             if (rs.next()) {
                 String s = rs.getString(1);
                 if (s != null) {
-                    results.add(s);
+                    start = s;
                 }
                 s = rs.getString(2);
                 if (s != null) {
-                    results.add(s);
+                    end = s;
                 }
             }
-            return results;
+            if ("2.0.0".equals(version)) {
+                return GMLXmlFactory.createTimePeriod("3.2.1", "evt-1", start, end);
+            } else {
+                return GMLXmlFactory.createTimePeriod("3.1.1", "evt-1", start, end);
+            }
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }

@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.constellation.api.CommonConstants;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -523,8 +524,8 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public List<String> getEventTime() throws DataStoreException {
-        return Arrays.asList("undefined", "now");
+    public TemporalPrimitive getEventTime(String version) throws DataStoreException {
+        return null;
     }
 
     /**

@@ -206,7 +206,7 @@ public class SensorServiceBusiness {
     public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            return pr.getProcedureNames(null);
+            return pr.getProcedureNames(null, Collections.EMPTY_MAP);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -305,20 +305,10 @@ public class SensorServiceBusiness {
         }
     }
 
-    public boolean removeObservationForProcedure(final Integer id, final String procedureID) throws ConfigurationException {
-        final ObservationProvider writer = getOMProvider(id);
-        try {
-            writer.removeObservationForProcedure(procedureID);
-            return true;
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
     public Collection<String> getObservedPropertiesIds(Integer id) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            return pr.getPhenomenonNames();
+            return pr.getPhenomenonNames(null, Collections.EMPTY_MAP);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

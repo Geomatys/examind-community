@@ -70,7 +70,6 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
-import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
@@ -83,6 +82,7 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.util.NamesExt;
@@ -342,6 +342,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
 
         // TODO optimize we don't need to call the filter here
         final ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
+        currentFilter.initFilterObservation(ResponseModeType.INLINE, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
@@ -438,9 +439,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
-        List<String> dates = reader.getEventTime();
-        appendTime(new TimeInstantType(dates.get(0)), result.spatialBound);
-        appendTime(new TimeInstantType(dates.get(1)), result.spatialBound);
+        appendTime(reader.getEventTime("2.0.0"), result.spatialBound);
         return result.spatialBound.getTimeObject("2.0.0");
     }
 

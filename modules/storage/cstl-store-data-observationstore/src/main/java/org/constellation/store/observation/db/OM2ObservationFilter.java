@@ -24,7 +24,6 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.swe.xml.CompositePhenomenon;
 import org.opengis.observation.Phenomenon;
@@ -56,7 +55,6 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
  */
 public class OM2ObservationFilter extends OM2BaseReader implements ObservationFilter {
 
-
     protected StringBuilder sqlRequest;
     protected StringBuilder sqlMeasureRequest = new StringBuilder();
 
@@ -72,9 +70,10 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     protected boolean obsJoin = false;
     protected boolean includeFoiInTemplate = true;
 
-    protected boolean getFOI = false;
+    protected boolean getFOI  = false;
     protected boolean getPhen = false;
     protected boolean getProc = false;
+    protected boolean getOff  = false;
 
     protected String currentProcedure = null;
 
@@ -195,6 +194,13 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         getProc = true;
     }
 
+    @Override
+    public void initFilterOffering() throws DataStoreException {
+        sqlRequest = new StringBuilder("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" pr WHERE ");
+        firstFilter = true;
+        getProc = true;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -215,6 +221,17 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             sqlRequest.append(") ");
             firstFilter = false;
             obsJoin = true;
+        }
+    }
+
+    @Override
+    public void setProcedureType(String type) throws DataStoreException {
+        if (type != null) {
+            if (!firstFilter) {
+                sqlRequest.append(" AND ");
+            }
+            sqlRequest.append(" pr.\"type\"='").append(type).append("' ");
+            firstFilter = false;
         }
     }
 
@@ -680,6 +697,39 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
     }
+
+    @Override
+    public Set<String> filterOffering() throws DataStoreException {
+        String request = sqlRequest.toString();
+        if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = off.\"procedure\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else {
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", "");
+            }
+        }
+
+        LOGGER.log(Level.FINER, "request:{0}", request);
+        try(final Connection c               = source.getConnection();
+            final Statement currentStatement = c.createStatement();
+            final ResultSet result           = currentStatement.executeQuery(request)) {
+            final Set<String> results        = new LinkedHashSet<>();
+            while (result.next()) {
+                results.add(result.getString("identifier"));
+            }
+            return results;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
+        }
+    }
+
+
 
     /**
      * {@inheritDoc}

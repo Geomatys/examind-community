@@ -34,6 +34,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -451,7 +452,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames());
+                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames(null, Collections.EMPTY_MAP));
                     } else {
                         LOGGER.warning("Searching phenomenon on a non-observation provider");
                     }
@@ -492,7 +493,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                     if (prov instanceof ObservationProvider) {
                         ObservationProvider omP = (ObservationProvider) prov;
                         if (omP.existPhenomenon(observedProperty)) {
-                            sensorIDS.addAll(omP.getProcedureNames(null));
+                            sensorIDS.addAll(omP.getProcedureNames(null, Collections.EMPTY_MAP));
                         }
                     }
                 }
@@ -528,7 +529,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames());
+                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames(null, Collections.EMPTY_MAP));
                     } else {
                         LOGGER.warning("Searching phenomenon on a non-observation provider");
                     }

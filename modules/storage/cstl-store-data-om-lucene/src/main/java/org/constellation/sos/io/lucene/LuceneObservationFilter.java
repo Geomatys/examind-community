@@ -30,7 +30,6 @@ import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -136,6 +135,12 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public void initFilterGetSensor() throws DataStoreException {
         luceneRequest = new StringBuilder("type:procedure");
+        getFoi = false;
+    }
+
+    @Override
+    public void initFilterOffering() throws DataStoreException {
+        luceneRequest = new StringBuilder("type:offering");
         getFoi = false;
     }
 
@@ -393,6 +398,24 @@ public class LuceneObservationFilter implements ObservationFilter {
         }
     }
 
+    @Override
+    public Set<String> filterOffering() throws DataStoreException {
+        try {
+            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+        } catch(SearchingException ex) {
+            throw new DataStoreException("Search exception while filtering the procedures", ex);
+        }
+    }
+
+    @Override
+    public Set<String> filterPhenomenon() throws DataStoreException {
+        try {
+            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+        } catch(SearchingException ex) {
+            throw new DataStoreException("Search exception while filtering the procedures", ex);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -461,14 +484,14 @@ public class LuceneObservationFilter implements ObservationFilter {
     }
 
     @Override
-    public Set<String> filterPhenomenon() throws DataStoreException {
-        throw new DataStoreException("filterPhenomenon is not supported by this ObservationFilter implementation.");
-    }
-
-    @Override
     public void destroy() {
         if (searcher != null) {
             searcher.destroy();
         }
+    }
+
+    @Override
+    public void setProcedureType(String type) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

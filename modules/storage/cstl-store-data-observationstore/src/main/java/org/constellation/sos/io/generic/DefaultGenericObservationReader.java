@@ -230,10 +230,19 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public List<String> getEventTime() throws DataStoreException {
+    public TemporalPrimitive getEventTime(String version) throws DataStoreException {
          try {
             final Values values = loadData(Arrays.asList("var06"));
-            return Arrays.asList(values.getVariable("var06"));
+            String v = values.getVariable("var06");
+            if (v!= null) {
+                if ("2.0.0".equals(version)) {
+                    return GMLXmlFactory.createTimeInstant("3.2.1", "evt-1", v);
+                } else {
+                    return GMLXmlFactory.createTimeInstant("3.1.1", "evt-1", v);
+                }
+            } else {
+                return null;
+            }
          } catch (ConstellationMetadataException ex) {
             throw new DataStoreException(ex);
          }

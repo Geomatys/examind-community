@@ -220,17 +220,6 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(response, OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/observation/procedure/{procedureID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeObservationForProcedure(final @PathVariable("id") Integer serviceId, final @PathVariable("procedureID") String procedureID) throws Exception {
-        AcknowlegementType response;
-        if (sensorServiceBusiness.removeObservationForProcedure(serviceId, procedureID)) {
-            response = new AcknowlegementType("Success", "The specified observations have been removed from the Sensor service");
-        } else {
-            response = new AcknowlegementType("Failure", "The specified observations fail to be removed from the Sensor service");
-        }
-        return new ResponseEntity(response, OK);
-    }
-
     @RequestMapping(value="/SensorService/{id}/observedProperties/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesIds(final @PathVariable("id") Integer serviceId) throws Exception {
         return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesIds(serviceId), OK);
