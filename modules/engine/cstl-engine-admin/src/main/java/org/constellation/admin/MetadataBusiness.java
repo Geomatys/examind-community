@@ -142,6 +142,7 @@ import org.constellation.ws.IWSEngine;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.exception.NotRunningServiceException;
 
 /**
  * Business facade for metadata.
@@ -1010,16 +1011,20 @@ public class MetadataBusiness implements IMetadataBusiness {
                     }
                 }
                 if (needRefresh) {
-                    ICSWConfigurer configurer = (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);
-                    configurer.removeFromIndex(service.getIdentifier(), identifierToRemove);
-                    configurer.addToIndex(service.getIdentifier(), identifierToUpdate);
+                    try {
+                        ICSWConfigurer configurer = (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);
+                        configurer.removeFromIndex(service.getIdentifier(), identifierToRemove);
+                        configurer.addToIndex(service.getIdentifier(), identifierToUpdate);
 
-                    //send refresh message to services
-                    final ClusterMessage message = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
-                    message.put(KEY_ACTION, SRV_VALUE_ACTION_REFRESH);
-                    message.put(SRV_KEY_TYPE, "CSW");
-                    message.put(KEY_IDENTIFIER, service.getIdentifier());
-                    clusterBusiness.publish(message);
+                        //send refresh message to services
+                        final ClusterMessage message = clusterBusiness.createRequest(SRV_MESSAGE_TYPE_ID,false);
+                        message.put(KEY_ACTION, SRV_VALUE_ACTION_REFRESH);
+                        message.put(SRV_KEY_TYPE, "CSW");
+                        message.put(KEY_IDENTIFIER, service.getIdentifier());
+                        clusterBusiness.publish(message);
+                    } catch (NotRunningServiceException ex) {
+                        LOGGER.warning("Unable to refresh CSW index.\n" + ex.getMessage());
+                    }
                 }
             }
         } catch (JAXBException ex) {

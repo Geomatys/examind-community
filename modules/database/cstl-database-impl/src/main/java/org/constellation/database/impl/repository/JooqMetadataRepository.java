@@ -22,6 +22,7 @@ import java.util.AbstractMap;
 import static org.constellation.database.api.jooq.Tables.METADATA;
 import static org.constellation.database.api.jooq.Tables.METADATA_BBOX;
 import static org.constellation.database.api.jooq.Tables.METADATA_X_CSW;
+import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -662,6 +663,7 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(final int id) {
+        dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(id)).execute();
         dsl.delete(METADATA_BBOX).where(METADATA_BBOX.METADATA_ID.eq(id)).execute();
         return dsl.delete(METADATA).where(METADATA.ID.eq(id)).execute();
     }
@@ -669,7 +671,10 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteAll() {
-        dsl.delete(METADATA).execute();
+        List<Integer> ids = findAllIds();
+        for (Integer id : ids) {
+            delete(id);
+        }
     }
 
     @Override

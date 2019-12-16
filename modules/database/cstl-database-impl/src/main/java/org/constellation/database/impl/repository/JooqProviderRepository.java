@@ -23,7 +23,8 @@ import static org.constellation.database.api.jooq.Tables.DATA;
 import static org.constellation.database.api.jooq.Tables.PROVIDER;
 
 import java.util.List;
-import org.constellation.database.api.jooq.Tables;
+import static org.constellation.database.api.jooq.Tables.INTERNAL_METADATA;
+import static org.constellation.database.api.jooq.Tables.METADATA;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_SOS;
 import static org.constellation.database.api.jooq.Tables.PROVIDER_X_CSW;
 import static org.constellation.database.api.jooq.Tables.SENSOR;
@@ -105,6 +106,11 @@ public class JooqProviderRepository extends AbstractJooqRespository<ProviderReco
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(int id) {
+        List<Integer> metadIds = dsl.select(METADATA.ID).from(METADATA).where(METADATA.PROVIDER_ID.eq(id)).fetchInto(Integer.class);
+        for (Integer metadId : metadIds) {
+            dsl.delete(INTERNAL_METADATA).where(INTERNAL_METADATA.ID.eq(metadId)).execute();
+        }
+        dsl.delete(METADATA).where(METADATA.PROVIDER_ID.eq(id)).execute();
         dsl.delete(SENSOR).where(SENSOR.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_SOS).where(PROVIDER_X_SOS.PROVIDER_ID.eq(id)).execute();
         dsl.delete(PROVIDER_X_CSW).where(PROVIDER_X_CSW.PROVIDER_ID.eq(id)).execute();
