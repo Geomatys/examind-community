@@ -1,0 +1,8 @@
+{
+  "value" : [ {
+    "@iot.id" : "urn:ogc:def:phenomenon:GEOM:depth",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/MultiDatastreams"
+  } ]
+}

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sos:ObservationOffering gml:id="offering-allSensor" 
-                         xmlns:sos="http://www.opengis.net/sos/2.0" 
-                         xmlns:swes="http://www.opengis.net/swes/2.0" 
-                         xmlns:xlink="http://www.w3.org/1999/xlink" 
-                         xmlns:swe="http://www.opengis.net/swe/1.0.1" 
-                         xmlns:gml="http://www.opengis.net/gml" 
-                         xmlns:om="http://www.opengis.net/om/1.0">
-    <swes:name>offering-allSensor</swes:name>
+<sos:ObservationOffering gml:id="offering-allSensor"
+                         xmlns:sos="http://www.opengis.net/sos/2.0"
+                         xmlns:swes="http://www.opengis.net/swes/2.0"
+                         xmlns:xlink="http://www.w3.org/1999/xlink"
+                         xmlns:swe="http://www.opengis.net/swe/1.0.1"
+                         xmlns:gml="http://www.opengis.net/gml"
+                         xmlns:om="http://www.opengis.net/om/1.0"
+                         swes:id="offering-2">>
+    <swes:name>offering-2</swes:name>
     <swes:procedure>urn:ogc:object:sensor:GEOM:2</swes:procedure>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:resultComponents</swes:observedProperty>
     <swes:observedProperty>urn:ogc:def:phenomenon:GEOM:depth</swes:observedProperty>

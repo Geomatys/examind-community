@@ -194,7 +194,23 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req) {
+    private List applyPostPagination(AbstractSTSRequest req, List full) {
+        int from = 0;
+        if (req.getSkip()!= null) {
+            from = req.getSkip();
+        }
+        int to = full.size();
+        if (req.getTop() != null) {
+            to = from + req.getTop();
+        }
+        if (from > to) {
+            full.clear();
+            return full;
+        }
+        return full.subList(from, to);
+    }
+
+    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) {
         final SimpleQuery subquery = new SimpleQuery();
         if (!req.getExtraFilter().isEmpty()) {
 
@@ -208,11 +224,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 subquery.setFilter(ff.and(filters));
             }
         }
-        if (req.getTop() != null) {
-            subquery.setLimit(req.getTop());
-        }
-        if (req.getSkip()!= null) {
-            subquery.setOffset(req.getSkip());
+        if (applyPagination) {
+            if (req.getTop() != null) {
+                subquery.setLimit(req.getTop());
+            }
+            if (req.getSkip()!= null) {
+                subquery.setOffset(req.getSkip());
+            }
         }
         return subquery;
     }
@@ -221,7 +239,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Object getObservations(GetObservations req) throws CstlServiceException {
         try {
             boolean isDataArray = "dataArray".equals(req.getResultFormat());
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             QName model;
             boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
             Map<String,String> hints = new HashMap<>(defaultHints);
@@ -652,7 +670,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public DatastreamsResponse getDatastreams(GetDatastreams req) throws CstlServiceException {
         List<Datastream> values = new ArrayList<>();
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, false);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "resultTemplate", hints);
@@ -663,6 +681,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        values = applyPostPagination(req, values);
         return new DatastreamsResponse(values);
     }
 
@@ -742,7 +761,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public MultiDatastreamsResponse getMultiDatastreams(GetMultiDatastreams req) throws CstlServiceException {
         List<MultiDatastream> values = new ArrayList<>();
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", hints);
@@ -908,7 +927,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public ObservedPropertiesResponse getObservedProperties(GetObservedProperties req) throws CstlServiceException {
         List<ObservedProperty> values = new ArrayList<>();
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, false);
             Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, new HashMap<>());
             for (org.opengis.observation.Phenomenon sp : sps) {
                 if (sp instanceof CompositePhenomenon) {
@@ -928,6 +947,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     }
                 }
             }
+            values = applyPostPagination(req, values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1045,7 +1065,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
         final List<Sensor> sensors = new ArrayList<>();
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
             List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -1137,7 +1157,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests req) throws CstlServiceException {
         final List<FeatureOfInterest> values = new ArrayList<>();
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, new HashMap<>());
             for (SamplingFeature sp : sps) {
                 FeatureOfInterest result = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature)sp);

@@ -731,9 +731,13 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             } else {
                 sqlRequest.append("AND ( ");
             }
+            String block = " off.\"identifier\"='";
+            if (getPhen || getFOI) {
+                block = " off.\"id_offering\"='";
+            }
             for (String s : offerings) {
                 if (s != null) {
-                    sqlRequest.append(" off.\"id_offering\"='").append(s).append("' OR ");
+                    sqlRequest.append(block).append(s).append("' OR ");
                 }
             }
             sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());

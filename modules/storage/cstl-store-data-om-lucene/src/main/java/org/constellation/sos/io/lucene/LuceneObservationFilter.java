@@ -135,7 +135,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void initFilterGetSensor() throws DataStoreException {
-        luceneRequest = new StringBuilder("type:sensor");
+        luceneRequest = new StringBuilder("type:procedure");
         getFoi = false;
     }
 
@@ -334,7 +334,14 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setOfferings(final List<String> offerings) throws DataStoreException {
-        // not used in this implementations
+        if (offerings != null && !offerings.isEmpty()) {
+            luceneRequest.append(" ( ");
+            for (String s : offerings) {
+                luceneRequest.append(" offering:\"").append(s).append("\" OR ");
+            }
+            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+            luceneRequest.append(") ");
+        }
     }
 
     /**
@@ -373,7 +380,16 @@ public class LuceneObservationFilter implements ObservationFilter {
         try {
             return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
         } catch(SearchingException ex) {
-            throw new DataStoreException("Search exception while filtering the observation", ex);
+            throw new DataStoreException("Search exception while filtering the featureOfinterest", ex);
+        }
+    }
+
+    @Override
+    public Set<String> filterProcedure() throws DataStoreException {
+        try {
+            return searcher.doSearch(new SpatialQuery(luceneRequest.toString()));
+        } catch(SearchingException ex) {
+            throw new DataStoreException("Search exception while filtering the procedures", ex);
         }
     }
 
@@ -447,11 +463,6 @@ public class LuceneObservationFilter implements ObservationFilter {
     @Override
     public Set<String> filterPhenomenon() throws DataStoreException {
         throw new DataStoreException("filterPhenomenon is not supported by this ObservationFilter implementation.");
-    }
-
-    @Override
-    public Set<String> filterProcedure() throws DataStoreException {
-        throw new DataStoreException("filterProcedure is not supported by this ObservationFilter implementation.");
     }
 
     @Override

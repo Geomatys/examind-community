@@ -533,9 +533,9 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
             } else {
                 final List<Process> processes = new ArrayList<>();
-                final Set<String> oid = localOmFilter.filterObservation();
-                for (String foid : oid) {
-                    final Process pr = store.getReader().getProcess(foid, version);
+                final Set<String> pids = localOmFilter.filterProcedure();
+                for (String pid : pids) {
+                    final Process pr = store.getReader().getProcess(pid, version);
                     processes.add(pr);
                 }
                 return processes;

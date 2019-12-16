@@ -53,17 +53,25 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import org.geotoolkit.sampling.xml.SamplingFeature;
+import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
+import org.geotoolkit.observation.xml.Process;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class LuceneObservationIndexer extends AbstractIndexer<Object> {
+
+    private Path offeringDirectoryv200;
+    private Path offeringDirectoryv100;
 
     private Path observationDirectory;
 
@@ -100,6 +108,18 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                 foiDirectory = dataDirectory.resolve("features");
                 if (!Files.exists(foiDirectory)) {
                     Files.createDirectories(foiDirectory);
+                }
+                Path offeringParentDirectory = dataDirectory.resolve("offerings");
+                if (!Files.exists(offeringParentDirectory)) {
+                    Files.createDirectories(offeringParentDirectory);
+                }
+                offeringDirectoryv200 = offeringParentDirectory.resolve("2.0.0");
+                if (!Files.exists(offeringDirectoryv200)) {
+                    Files.createDirectories(offeringDirectoryv200);
+                }
+                offeringDirectoryv100 = offeringParentDirectory.resolve("1.0.0");
+                if (!Files.exists(offeringDirectoryv100)) {
+                    Files.createDirectories(offeringDirectoryv100);
                 }
             } catch (IOException e) {
                 throw new IndexingException("Unable to create observation directories", e);
@@ -158,13 +178,22 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
             final IndexWriter writer = new IndexWriter(new SimpleFSDirectory(getFileDirectory()), conf);
 
+            Map<String, ObjAndOffering> procs = new HashMap<>();
+
             // getting the objects list and index avery item in the IndexWriter.
-            nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation");
+            nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation", procs);
             template = true;
-            nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template");
+            nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template", procs);
             template = false;
 
-            nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi");
+            nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi", procs);
+
+            indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
+            indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
+
+            for (ObjAndOffering po : procs.values()) {
+                indexDocument(writer, po);
+            }
 
             SOSMarshallerPool.getInstance().recycle(unmarshaller);
 
@@ -192,25 +221,51 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                 + nbObservation + ". Template indexed:" + nbTemplate + ".");
     }
 
-    private int indexDirectory(Path directory, int nbObservation, Unmarshaller unmarshaller, IndexWriter writer, String type)
+    private int indexDirectory(Path directory, int nbObservation, Unmarshaller unmarshaller, IndexWriter writer, String type, Map<String, ObjAndOffering> procs)
             throws JAXBException, IOException, IndexingException {
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path observationFile : stream) {
                 try (InputStream inputStream = Files.newInputStream(observationFile)) {
-                    Object observation = unmarshaller.unmarshal(inputStream);
-                    if (observation instanceof JAXBElement) {
-                        observation = ((JAXBElement) observation).getValue();
+                    Object obj = unmarshaller.unmarshal(inputStream);
+                    if (obj instanceof JAXBElement) {
+                        obj = ((JAXBElement) obj).getValue();
                     }
-                    if (observation instanceof Observation) {
-                        indexDocument(writer, (Observation) observation);
+                    if (obj instanceof Observation) {
+                        Observation obs = (Observation) obj;
+                        Process procedure = (Process) obs.getProcedure();
+                        if (!procs.containsKey(procedure.getHref())) {
+                            procs.put(procedure.getHref(), new ProcAndOffering(procedure));
+                        }
+
+                        indexDocument(writer, obs);
                         nbObservation++;
-                    } else if (observation instanceof SamplingFeature) {
-                        indexDocument(writer, (SamplingFeature) observation);
+                    } else if (obj instanceof SamplingFeature) {
+                        SamplingFeature feat = (SamplingFeature) obj;
+                        procs.put(feat.getId(), new FoiAndOffering(feat));
+
+                        //indexDocument(writer, (SamplingFeature) obj);
+                        //nbObservation++;
+
+                    } else if (obj instanceof ObservationOffering) {
+
+                        ObservationOffering off = (ObservationOffering) obj;
+                        indexDocument(writer, off);
+                        for (String procedure : off.getProcedures()) {
+                            if (procs.containsKey(procedure)) {
+                                procs.get(procedure).offering.add(off.getId());
+                            }
+                        }
+                        for (String foid : off.getFeatureOfInterestIds()) {
+                            if (procs.containsKey(foid)) {
+                                procs.get(foid).offering.add(off.getId());
+                            }
+                        }
+
                         nbObservation++;
                     } else {
                         LOGGER.info("The "+type+" file " + observationFile.getFileName().toString()
-                                + " does not contains an observation:" + observation);
+                                + " does not contains an observation:" + obj);
                     }
                 }
             }
@@ -306,6 +361,38 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
+
+        } else if (obj instanceof FoiAndOffering) {
+            FoiAndOffering fooff = ((FoiAndOffering) obj);
+            SamplingFeature feat = fooff.foi;
+            doc.add(new Field("id", feat.getId(), ft));
+            doc.add(new Field("type", "foi" , ft));
+            for (String off : fooff.offering) {
+               doc.add(new Field("offering", off , ft));
+            }
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
+
+        } else if (obj instanceof ObservationOffering) {
+
+            ObservationOffering feat = (ObservationOffering) obj;
+            doc.add(new Field("id", feat.getId(), ft));
+            doc.add(new Field("type", "offering" , ft));
+
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
+
+        } else if (obj instanceof ProcAndOffering) {
+
+            ProcAndOffering feat = (ProcAndOffering) obj;
+            doc.add(new Field("id", feat.proc.getHref(), ft));
+            doc.add(new Field("type", "procedure" , ft));
+            for (String off : feat.offering) {
+               doc.add(new Field("offering", off , ft));
+            }
+
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
         } else {
             throw new IllegalArgumentException("Unepxected object type to index");
         }
@@ -334,4 +421,23 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         super.destroy();
     }
 
+    private class ObjAndOffering {
+        public List<String> offering = new ArrayList<>();
+    }
+
+    private class ProcAndOffering extends ObjAndOffering {
+        public Process proc;
+
+        public ProcAndOffering(Process proc) {
+            this.proc = proc;
+        }
+    }
+
+     private class FoiAndOffering extends ObjAndOffering {
+        public SamplingFeature foi;
+
+        public FoiAndOffering(SamplingFeature foi) {
+            this.foi = foi;
+        }
+    }
 }

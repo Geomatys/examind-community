@@ -259,77 +259,71 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
         request = appendPaginationToRequest(request, hints);
 
         try(final Connection c = source.getConnection()) {
-            final Map<String, Observation> observations = new HashMap<>();
+            final List<Observation> observations = new ArrayList<>();
 
             try(final Statement currentStatement = c.createStatement();
                 final ResultSet rs               = currentStatement.executeQuery(request)) {
 
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
-                    final Observation observation = observations.get(procedure);
+                    final String procedureID;
+                    if (procedure.startsWith(sensorIdBase)) {
+                        procedureID = procedure.substring(sensorIdBase.length());
+                    } else {
+                        procedureID = procedure;
+                    }
+                    final String obsID = "obs-" + procedureID;
+                    final String name = observationTemplateIdBase + procedureID;
+                    final String observedProperty = rs.getString("observed_property");
+                    FeatureProperty foi = null;
+                    if (includeFoiInTemplate) {
+                        final String featureID = rs.getString("foi");
+                        final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
+                        foi = buildFeatureProperty(version, feature);
+                    }
+                    final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
+                    final String phenID = phen.getId();
+                    /*
+                     *  BUILD RESULT
+                     */
+                    final List<Field> fields = readFields(procedure, c);
+                    final Field timeField = getTimeField(procedure);
+                    if (timeField != null) {
+                        fields.remove(timeField);
+                    }
 
-                    if (observation == null) {
-                        final String procedureID;
-                        if (procedure.startsWith(sensorIdBase)) {
-                            procedureID = procedure.substring(sensorIdBase.length());
-                        } else {
-                            procedureID = procedure;
-                        }
-                        final String obsID = "obs-" + procedureID;
-                        final String name = observationTemplateIdBase + procedureID;
-                        final String observedProperty = rs.getString("observed_property");
-                        FeatureProperty foi = null;
-                        if (includeFoiInTemplate) {
-                            final String featureID = rs.getString("foi");
-                            final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                            foi = buildFeatureProperty(version, feature);
-                        }
-                        final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
-                        final String phenID = phen.getId();
-                        /*
-                         *  BUILD RESULT
-                         */
-                        final List<Field> fields = readFields(procedure, c);
-                        final Field timeField = getTimeField(procedure);
-                        if (timeField != null) {
-                            fields.remove(timeField);
-                        }
-
-                        // aggregate phenomenon mode
-                        if (fields.size() > 1) {
-                            if (phen instanceof CompositePhenomenon) {
-                                CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
-                                if (compoPhen.getComponent().size() == fields.size()) {
-                                    for (int i = 0; i < fields.size(); i++) {
-                                        org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
-                                        if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
-                                            (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                                            final String cphenID = compPhen.getId();
-                                            final Object result = buildMeasureResult(version, 0, fields.get(i).fieldUom, "1");
-                                            observations.put(procedure + cphenID, OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, null));
-                                        }
+                    // aggregate phenomenon mode
+                    if (fields.size() > 1) {
+                        if (phen instanceof CompositePhenomenon) {
+                            CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
+                            if (compoPhen.getComponent().size() == fields.size()) {
+                                for (int i = 0; i < fields.size(); i++) {
+                                    org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
+                                    if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
+                                        (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
+                                        //final String cphenID = compPhen.getId();
+                                        final Object result = buildMeasureResult(version, 0, fields.get(i).fieldUom, "1");
+                                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, null));
                                     }
-                                } else {
-                                    throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
                                 }
                             } else {
-                                throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
+                                throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
                             }
-
-                        // simple phenomenon mode
                         } else {
-                            if (phen instanceof CompositePhenomenon) {
-                                throw new DataStoreException("incoherence between single fields and composite phenomenon");
-                            }
-                            final Object result = buildMeasureResult(version, 0, fields.get(0).fieldUom, "1");
-                            observations.put(procedure + phenID, OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, null));
+                            throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
                         }
+
+                    // simple phenomenon mode
                     } else {
-                        LOGGER.log(Level.WARNING, "multiple fields on Measurement for :{0}", procedure);
+                        if (phen instanceof CompositePhenomenon) {
+                            throw new DataStoreException("incoherence between single fields and composite phenomenon");
+                        }
+                        final Object result = buildMeasureResult(version, 0, fields.get(0).fieldUom, "1");
+                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, null));
                     }
                 }
             }
-            return new ArrayList<>(observations.values());
+            return observations;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
@@ -1084,6 +1078,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             } else {
                 request = request.replaceFirst("WHERE", obsJoin + "AND ");
             }
+        } else if (offJoin) {
+            final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_observed_properties\" off WHERE off.\"phenomenon\" = op.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", offJoin);
+            } else {
+                request = request.replaceFirst("WHERE", offJoin + "AND ");
+            }
         } else {
             if (firstFilter) {
                 request = request.replaceFirst("WHERE", "");
@@ -1135,6 +1136,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                 request = request.replaceFirst("WHERE", obsJoin);
             } else {
                 request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else if (offJoin) {
+            final String offJoin = ", \"" + schemaPrefix + "om\".\"offerings\" off WHERE off.\"procedure\" = pr.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", offJoin);
+            } else {
+                request = request.replaceFirst("WHERE", offJoin + "AND ");
             }
         } else {
             if (firstFilter) {

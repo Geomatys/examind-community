@@ -1264,7 +1264,7 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("The offering parameter must be specified", MISSING_PARAMETER_VALUE, "offering");
                 } else {
 
-                    List<org.opengis.observation.Process> procedures = getProcedureForOffering(offering, currentVersion);
+                    List<org.opengis.observation.Process> procedures = getProcedureForOffering(request.getOffering(), currentVersion);
                     if (procedures.isEmpty()) {
                         throw new CstlServiceException("The offering parameter is invalid", INVALID_PARAMETER_VALUE, "offering");
                     }
