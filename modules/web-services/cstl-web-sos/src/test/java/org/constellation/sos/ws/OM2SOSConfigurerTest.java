@@ -93,6 +93,9 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
         File sensorDirectory = new File(instDirectory, "sensors");
         sensorDirectory.mkdirs();
         writeCommonDataFile(sensorDirectory, "system.xml",     "urn:ogc:object:sensor:GEOM:1");
+        writeCommonDataFile(sensorDirectory, "component.xml",  "urn:ogc:object:sensor:GEOM:2");
+        writeCommonDataFile(sensorDirectory, "system3.xml",    "urn:ogc:object:sensor:GEOM:5");
+        writeCommonDataFile(sensorDirectory, "system4.xml",    "urn:ogc:object:sensor:GEOM:8");
 
         pool.recycle(marshaller);
     }
@@ -192,7 +195,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     @Override
     @Order(order=5)
     public void getObservedPropertiesForSensorIdTest() throws Exception {
-        super.getSensorIdsForObservedPropertyTest();
+        super.getObservedPropertiesForSensorIdTest();
     }
 
     @Test

@@ -240,7 +240,11 @@ public class SensorServiceBusiness {
         try {
             final SensorMLTree root          = getSensorTree(serviceId);
             final SensorMLTree current       = root.find(sensorID);
-            return SOSUtils.getPhenomenonFromSensor(current, pr);
+            if (current != null) {
+                return SOSUtils.getPhenomenonFromSensor(current, pr);
+            } else {
+                return SOSUtils.getPhenomenonFromSensor(sensorID, pr);
+            }
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

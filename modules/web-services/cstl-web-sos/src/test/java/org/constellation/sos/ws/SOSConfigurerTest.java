@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -207,7 +208,7 @@ public abstract class SOSConfigurerTest {
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
-        List<String> expResults = Arrays.asList("urn:ogc:def:phenomenon:GEOM:temperature");
+        Set<String> expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:depth");
         Assert.assertEquals(expResults, results);
     }
 

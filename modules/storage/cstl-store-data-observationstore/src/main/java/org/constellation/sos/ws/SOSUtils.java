@@ -405,19 +405,23 @@ public final class SOSUtils {
     }
 
     public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider provider) throws ConstellationStoreException {
-        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-        final Set<String> phenomenons = new HashSet<>();
-
-        SimpleQuery query = new SimpleQuery();
-        query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(sensor.getIdentifier())));
-        Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
-        phenos.forEach(p -> phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
-
+        final Set<String> phenomenons = getPhenomenonFromSensor(sensor.getIdentifier(), provider);
         if (!"Component".equals(sensor.getType())) {
             for (SensorMLTree child : sensor.getChildren()) {
                 phenomenons.addAll(getPhenomenonFromSensor(child, provider));
             }
         }
+        return phenomenons;
+    }
+
+    public static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider) throws ConstellationStoreException {
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final Set<String> phenomenons = new HashSet<>();
+
+        SimpleQuery query = new SimpleQuery();
+        query.setFilter(ff.equals(ff.property("procedure"), ff.literal(sensorID)));
+        Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
+        phenos.forEach(p -> phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
         return phenomenons;
     }
 
