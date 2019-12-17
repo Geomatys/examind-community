@@ -238,6 +238,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top2.json");
         assertEquals(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-top2-ct.json");
+        assertEquals(expResult, result);
+
     }
 
     @Test
@@ -301,15 +313,27 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     }
 
-    @Ignore
+    @Test
     @Order(order=4)
     public void getObservationsTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
-        URL getFoiUrl = new URL(getDefaultURL() + "/Observations?$top=2");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations");
 
         String result = getStringResponse(getFoiUrl) + "\n";
-        String expResult = getStringFromFile("com/examind/sts/embedded/obs-top.json");
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-all.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-top.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-top-ct.json");
         assertEquals(expResult, result);
     }
 
@@ -390,7 +414,17 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-top2.json");
         assertEquals(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$top=1&$count=true");
 
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$top=1&$skip=1&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-top2-ct.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -444,6 +478,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-top2-ct.json");
         assertEquals(expResult, result);
 
     }
@@ -500,6 +546,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-top2-ct.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -535,6 +593,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ss-top2.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ss-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Sensors?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ss-top2-ct.json");
         assertEquals(expResult, result);
     }
 

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -34,6 +35,8 @@ import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
+import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ProcedureTree;
@@ -297,5 +300,86 @@ public class ObservationStoreProviderTest {
         query.setFilter(filter);
         resultIds = omPr.getOfferingNames(query, Collections.EMPTY_MAP);
         assertEquals(9, resultIds.size());
+    }
+
+    @Test
+    public void getObservationTemplateNamesTest() throws Exception {
+        assertNotNull(omPr);
+
+        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "resultTemplate", Collections.EMPTY_MAP);
+        assertEquals(11, resultIds.size());
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:5-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:5-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "resultTemplate", Collections.EMPTY_MAP);
+        assertEquals(8, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+    }
+
+    @Test
+    public void getObservationNamesTest() throws Exception {
+        assertNotNull(omPr);
+
+        Collection<String> resultIds = omPr.getObservationNames(null, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
+        assertEquals(67, resultIds.size());
+
+        SimpleQuery query = new SimpleQuery();
+        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:5"));
+        query.setFilter(filter);
+        resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
+
+        assertEquals(10, resultIds.size());
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-0-5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1-5");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        resultIds = omPr.getObservationNames(null, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        assertEquals(50, resultIds.size());
+
+
+        resultIds = omPr.getObservationNames(query, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        assertEquals(5, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:507-5");
+        Assert.assertEquals(expectedIds, resultIds);
+
     }
 }

@@ -1,0 +1,9 @@
+{
+  "value" : [ {
+    "@iot.id" : "urn:ogc:def:phenomenon:GEOM:temperature",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams"
+  } ],
+  "@iot.count" : 2
+}

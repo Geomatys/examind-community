@@ -47,6 +47,8 @@ public interface ObservationProvider extends DataProvider {
 
     Collection<String> getFeatureOfInterestNames(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
+    Collection<String> getObservationNames(Query query, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException;
+
     List<ProcedureTree> getProcedures() throws ConstellationStoreException;
 
     List<Phenomenon> getPhenomenon(Query query, final Map<String,String> hints) throws ConstellationStoreException;

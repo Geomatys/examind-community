@@ -287,7 +287,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             try {
                 final ObservationFilter localOmFilter = store.getFilter();
                 localOmFilter.initFilterGetPhenomenon();
-                handleQuery(q, localOmFilter, GET_PHEN, Collections.EMPTY_MAP);
+                handleQuery(q, localOmFilter, GET_PHEN, hints);
                 return localOmFilter.filterPhenomenon();
             } catch (DataStoreException ex) {
                 throw new ConstellationStoreException(ex);
@@ -328,7 +328,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 final ObservationFilter localOmFilter = store.getFilter();
                 localOmFilter.initFilterGetSensor();
-                handleQuery(q, localOmFilter, GET_PROC, Collections.EMPTY_MAP);
+                handleQuery(q, localOmFilter, GET_PROC, hints);
                 return localOmFilter.filterProcedure();
             }
         } catch (DataStoreException ex) {
@@ -344,7 +344,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 final ObservationFilter localOmFilter = store.getFilter();
                 localOmFilter.initFilterGetFeatureOfInterest();
-                handleQuery(q, localOmFilter, GET_FEA, Collections.EMPTY_MAP);
+                handleQuery(q, localOmFilter, GET_FEA, hints);
                 return localOmFilter.filterFeatureOfInterest();
             }
         } catch (DataStoreException ex) {
@@ -361,13 +361,34 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 final ObservationFilter localOmFilter = store.getFilter();
                 localOmFilter.initFilterGetSensor();
-                handleQuery(q, localOmFilter, GET_PROC, Collections.EMPTY_MAP);
+                handleQuery(q, localOmFilter, GET_PROC, hints);
                 return localOmFilter.filterProcedure();
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
     }
+
+    @Override
+    public Collection<String> getObservationNames(Query q, QName resultModel, String responseMode, Map<String, String> hints) throws ConstellationStoreException {
+        try {
+            ResponseModeType mode;
+            if (responseMode != null) {
+                mode = ResponseModeType.fromValue(responseMode);
+            } else {
+                mode = ResponseModeType.INLINE;
+            }
+            final ObservationFilter localOmFilter = store.getFilter();
+            localOmFilter.initFilterObservation(mode, resultModel, hints);
+            handleQuery(q, localOmFilter, GET_OBS, hints);
+
+            return localOmFilter.filterObservation();
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+
 
     @Override
     public SOSProviderCapabilities getCapabilities() throws ConstellationStoreException {

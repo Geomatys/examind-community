@@ -20,6 +20,7 @@
 package com.examind.sts.core;
 
 import com.examind.sensor.ws.SensorWorker;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -239,7 +240,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Object getObservations(GetObservations req) throws CstlServiceException {
         try {
             boolean isDataArray = "dataArray".equals(req.getResultFormat());
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            final SimpleQuery subquery = buildExtraFilterQuery(req, false);
             QName model;
             boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
             Map<String,String> hints = new HashMap<>(defaultHints);
@@ -253,6 +254,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (isDataArray) {
                 return buildDataArray(sps, forMds);
             } else {
+                BigDecimal count = null;
+                if (req.getCount()) {
+                    count = new BigDecimal(omProvider.getObservationNames(subquery, model, "inline", hints).size());
+                }
                 List<Observation> values = new ArrayList<>();
                 for (org.opengis.observation.Observation sp : sps) {
                     if (forMds) {
@@ -263,7 +268,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         values.add(result);
                     }
                 }
-                return new ObservationsResponse(values);
+                values = applyPostPagination(req, values);
+                return new ObservationsResponse(values).iotCount(count);
             }
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -681,8 +687,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+        DatastreamsResponse response = new DatastreamsResponse();
+        if (req.getCount()) {
+            response = response.iotCount(new BigDecimal(values.size()));
+        }
         values = applyPostPagination(req, values);
-        return new DatastreamsResponse(values);
+        return response.value(values);
     }
 
     @Override
@@ -760,10 +770,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public MultiDatastreamsResponse getMultiDatastreams(GetMultiDatastreams req) throws CstlServiceException {
         List<MultiDatastream> values = new ArrayList<>();
+        BigDecimal count = null;
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getObservationNames(subquery, OBSERVATION_QNAME, "resultTemplate", hints).size());
+            }
             List<org.opengis.observation.Observation> templates = omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", hints);
             for (org.opengis.observation.Observation template : templates) {
                 MultiDatastream result = buildMultiDatastream(req, (org.geotoolkit.observation.xml.AbstractObservation)template);
@@ -772,7 +786,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        return new MultiDatastreamsResponse(values);
+        return new MultiDatastreamsResponse(values).iotCount(count);
     }
 
 
@@ -947,11 +961,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     }
                 }
             }
-            values = applyPostPagination(req, values);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        return new ObservedPropertiesResponse(values);
+        ObservedPropertiesResponse response = new ObservedPropertiesResponse();
+        if (req.getCount()) {
+            response = response.iotCount(new BigDecimal(values.size()));
+        }
+        values = applyPostPagination(req, values);
+        return response.value(values);
     }
 
     @Override
@@ -1064,8 +1082,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public SensorsResponse getSensors(GetSensors req) throws CstlServiceException {
         final List<Sensor> sensors = new ArrayList<>();
+        BigDecimal count = null;
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+            }
             List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
 
             List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
@@ -1081,9 +1103,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConfigurationException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        // TODO iot count
         // TODO nextLink
-        return new SensorsResponse(sensors);
+        return new SensorsResponse(sensors).iotCount(count);
     }
 
     @Override
@@ -1156,8 +1177,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public FeatureOfInterestsResponse getFeatureOfInterests(GetFeatureOfInterests req) throws CstlServiceException {
         final List<FeatureOfInterest> values = new ArrayList<>();
+        BigDecimal count = null;
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getFeatureOfInterestNames(subquery, new HashMap<>()).size());
+            }
             List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, new HashMap<>());
             for (SamplingFeature sp : sps) {
                 FeatureOfInterest result = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature)sp);
@@ -1166,7 +1191,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        return new FeatureOfInterestsResponse(values);
+        return new FeatureOfInterestsResponse(values).iotCount(count);
     }
 
     @Override

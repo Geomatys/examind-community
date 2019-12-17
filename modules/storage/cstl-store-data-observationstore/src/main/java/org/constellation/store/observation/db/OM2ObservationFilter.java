@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
+import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 
@@ -577,22 +579,112 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
      */
     @Override
     public Set<String> filterObservation() throws DataStoreException {
-        LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+        LOGGER.log(Level.FINER, "request:{0}", request);
         try(final Connection c               = source.getConnection();
             final Statement currentStatement = c.createStatement();
-            final ResultSet result           = currentStatement.executeQuery(sqlRequest.toString())) {
+            final ResultSet rs               = currentStatement.executeQuery(request)) {
             final Set<String> results        = new LinkedHashSet<>();
-            final List<String> procedures    = new ArrayList<>();
-            while (result.next()) {
-                final String procedure = result.getString("procedure");
-                if (!template || !procedures.contains(procedure)) {
-                    results.add(result.getString("id"));
-                    procedures.add(procedure);
+            while (rs.next()) {
+                final String procedure        = rs.getString("procedure");
+                final String procedureID      = procedure.substring(sensorIdBase.length());
+                final String observedProperty = rs.getString("observed_property");
+                if (template) {
+                    if (MEASUREMENT_QNAME.equals(resultModel)) {
+
+                        final Phenomenon phen         = getPhenomenon("1.0.0", observedProperty, c);
+                        final List<Field> fields      = readFields(procedure, c);
+                        final Field timeField         = getTimeField(procedure);
+                        if (timeField != null) {
+                            fields.remove(timeField);
+                        }
+                        // aggregate phenomenon mode
+                        if (fields.size() > 1) {
+                            if (phen instanceof CompositePhenomenon) {
+                                CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
+                                if (compoPhen.getComponent().size() == fields.size()) {
+                                    for (int i = 0; i < fields.size(); i++) {
+                                        org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
+                                        if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode()))
+                                         && (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
+
+                                            results.add(observationTemplateIdBase + procedureID + '-' + i);
+                                        }
+                                    }
+                                } else {
+                                    throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
+                                }
+                            } else {
+                                throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
+                            }
+
+                            // simple phenomenon mode
+                        } else {
+                            if (phen instanceof CompositePhenomenon) {
+                                throw new DataStoreException("incoherence between single fields and composite phenomenon");
+                            }
+                            results.add(observationTemplateIdBase + procedureID + "-0");
+                        }
+
+                    } else {
+                        final String name = observationTemplateIdBase + procedureID;
+                        results.add(name);
+                    }
+                } else {
+                    final int oid            = rs.getInt("id");
+                    final String name        = rs.getString("identifier");
+                    final int pid            = getPIDFromProcedure(procedure, c);
+                    final List<Field> fields = readFields(procedure, c);
+                    final Field timeField    = getTimeField(procedure);
+                    final String sqlRequest;
+                    if (timeField != null) {
+                        sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", timeField.fieldName)
+                                + "ORDER BY m.\"id\"";
+                        fields.remove(timeField);
+                    } else {
+                        sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                    }
+
+                    if (MEASUREMENT_QNAME.equals(resultModel)) {
+                        final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
+                        List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
+                        try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
+                            stmt.setInt(1, oid);
+                            try (final ResultSet rs2 = stmt.executeQuery()) {
+                                while (rs2.next()) {
+                                    final Integer rid = rs2.getInt("id");
+                                    if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                                        for (int i = 0; i < fieldPhen.size(); i++) {
+                                            FieldPhenom field = fieldPhen.get(i);
+                                            results.add(name + '-' + field.i + '-' + rid);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } else {
+                        try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
+                            stmt.setInt(1, oid);
+                            try (final ResultSet rs2 = stmt.executeQuery()) {
+                                while (rs2.next()) {
+                                    final Integer rid = rs2.getInt("id");
+                                    if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                                        results.add(name + '-' + rid);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             return results;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
     }
@@ -807,7 +899,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         //do nothing
     }
 
-    public Field getMainField(final String procedure) throws DataStoreException {
+    protected Field getMainField(final String procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             return getMainField(procedure, c);
         } catch (SQLException ex) {
@@ -815,13 +907,14 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         }
     }
 
-    public Field getTimeField(final String procedure) throws DataStoreException {
+    protected Field getTimeField(final String procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             return getTimeField(procedure, c);
         } catch (SQLException ex) {
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
     }
+
 
     public boolean existProcedure(String procedure) {
         try(final Connection c   = source.getConnection();
@@ -835,5 +928,44 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             LOGGER.log(Level.WARNING, "Error while looking for procedure existance.", ex);
         }
         return false;
+    }
+
+    protected List<FieldPhenom> getPhenomenonFields(final Phenomenon phen, List<Field> fields) throws DataStoreException {
+        List<FieldPhenom> fieldPhen = new ArrayList<>();
+        if (fields.size() > 1) {
+            if (phen instanceof org.opengis.observation.CompositePhenomenon) {
+                org.opengis.observation.CompositePhenomenon compoPhen = (org.opengis.observation.CompositePhenomenon) phen;
+                if (compoPhen.getComponent().size() == fields.size()) {
+                    for (int i = 0; i < fields.size(); i++) {
+                        org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
+                        if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode()))
+                                && (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
+                            fieldPhen.add(new FieldPhenom(i, compPhen, fields.get(i)));
+                        }
+                    }
+                } else {
+                    throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
+                }
+            } else {
+                throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
+            }
+        } else {
+            if (phen instanceof org.opengis.observation.CompositePhenomenon) {
+                throw new DataStoreException("incoherence between single fields and composite phenomenon");
+            }
+            fieldPhen.add(new FieldPhenom(0, phen, fields.get(0)));
+        }
+        return fieldPhen;
+    }
+
+    protected static class FieldPhenom {
+        public int i;
+        public Phenomenon phenomenon;
+        public Field field;
+        public FieldPhenom(int i, Phenomenon phenomenon, Field field) {
+            this.i = i;
+            this.field = field;
+            this.phenomenon = phenomenon;
+        }
     }
 }

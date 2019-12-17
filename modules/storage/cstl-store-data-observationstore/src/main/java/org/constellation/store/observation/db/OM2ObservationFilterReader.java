@@ -621,30 +621,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     /**
                      * coherence verification
                      */
-                    List<FieldPhenom> fieldPhen = new ArrayList<>();
-                    if (fields.size() > 1) {
-                        if (phen instanceof CompositePhenomenon) {
-                                CompositePhenomenon compoPhen = (CompositePhenomenon) phen;
-                                if (compoPhen.getComponent().size() == fields.size()) {
-                                    for (int i = 0; i < fields.size(); i++) {
-                                        org.geotoolkit.swe.xml.Phenomenon compPhen = (org.geotoolkit.swe.xml.Phenomenon) compoPhen.getComponent().get(i);
-                                        if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
-                                            (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
-                                            fieldPhen.add(new FieldPhenom(i, compPhen, fields.get(i)));
-                                        }
-                                    }
-                                } else {
-                                    throw new DataStoreException("incoherence between multiple fields size and composite phenomenon components size");
-                                }
-                            } else {
-                                throw new DataStoreException("incoherence between multiple fields and non-composite phenomenon");
-                            }
-                    } else{
-                        if (phen instanceof CompositePhenomenon) {
-                            throw new DataStoreException("incoherence between single fields and composite phenomenon");
-                        }
-                        fieldPhen.add(new FieldPhenom(0, phen, fields.get(0)));
-                    }
+                    List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
 
                     try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
                         stmt.setInt(1, oid);
@@ -691,17 +668,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
-        }
-    }
-
-    private static class FieldPhenom {
-        public int i;
-        public Phenomenon phenomenon;
-        public Field field;
-        public FieldPhenom(int i, Phenomenon phenomenon, Field field) {
-            this.i = i;
-            this.field = field;
-            this.phenomenon = phenomenon;
         }
     }
 
