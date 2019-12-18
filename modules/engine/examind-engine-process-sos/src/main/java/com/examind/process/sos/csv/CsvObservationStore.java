@@ -44,7 +44,7 @@ import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationFilter;
+import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
@@ -682,7 +682,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      * {@inheritDoc }
      */
     @Override
-    public ObservationFilter getFilter() {
+    public ObservationFilterReader getFilter() {
         throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
     }
 

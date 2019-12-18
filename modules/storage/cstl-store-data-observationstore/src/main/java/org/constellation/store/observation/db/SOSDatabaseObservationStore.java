@@ -73,7 +73,6 @@ import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
@@ -457,7 +456,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
     }
 
     @Override
-    public ObservationFilter getFilter() {
+    public ObservationFilterReader getFilter() {
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }
 

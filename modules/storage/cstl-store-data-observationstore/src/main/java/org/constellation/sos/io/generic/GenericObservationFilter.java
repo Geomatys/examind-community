@@ -37,6 +37,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,10 +48,24 @@ import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import org.constellation.sos.ws.DatablockParser;
+import static org.constellation.sos.ws.DatablockParser.getResultValues;
+import org.geotoolkit.observation.ObservationReader;
 import static org.geotoolkit.observation.Utils.getTimeValue;
+import org.geotoolkit.ogc.xml.v200.TimeAfterType;
+import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
+import org.geotoolkit.ogc.xml.v200.TimeDuringType;
+import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
 import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
+import org.geotoolkit.swe.xml.DataArray;
+import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.opengis.filter.Filter;
+import org.opengis.observation.Observation;
+import org.opengis.observation.Phenomenon;
+import org.opengis.observation.Process;
+import org.opengis.observation.sampling.SamplingFeature;
 
 /**
  *
@@ -58,12 +73,23 @@ import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
  */
 public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
+    private ObservationReader reader;
+
+    private String responseFormat;
+
+    protected QName resultModel;
+
+    protected ResponseModeType requestMode;
+
+    protected final List<Filter> eventTimes = new ArrayList<>();
+
     /**
      * Clone a  Generic Observation Filter for CSTL O&amp;M datasource.
      * @param omFilter
      */
     public GenericObservationFilter(final GenericObservationFilter omFilter) {
         super(omFilter);
+        this.reader= omFilter.reader;
     }
 
     /**
@@ -74,8 +100,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      *
      * @throws DataStoreException
      */
-    public GenericObservationFilter(final Automatic configuration, final Map<String, Object> properties) throws DataStoreException {
+    public GenericObservationFilter(final Automatic configuration, final Map<String, Object> properties, ObservationReader reader) throws DataStoreException {
         super(configuration, properties);
+        this.reader = reader;
     }
 
     @Override
@@ -108,6 +135,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
+        eventTimes.clear();
     }
 
     /**
@@ -124,6 +152,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
         currentQuery.addWhere(where);
+        eventTimes.clear();
     }
 
     /**
@@ -137,6 +166,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
+        eventTimes.clear();
     }
 
     /**
@@ -150,6 +180,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
         currentQuery.addSelect(select);
         currentQuery.addFrom(from);
+        eventTimes.clear();
     }
 
     /**
@@ -220,6 +251,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setTimeEquals(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeEqualsType("result_time", time));
         if (time instanceof Period) {
             final Period tp    = (Period) time;
             final String begin = getTimeValue(tp.getBeginning().getDate());
@@ -250,6 +282,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setTimeBefore(final Object time) throws DataStoreException  {
+        eventTimes.add(new TimeBeforeType("result_time", time));
         // for the operation before the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti = (Instant) time;
@@ -270,6 +303,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setTimeAfter(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeAfterType("result_time", time));
         // for the operation after the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti = (Instant) time;
@@ -290,6 +324,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setTimeDuring(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeDuringType("result_time", time));
         if (time instanceof Period) {
             final Period tp    = (Period) time;
             final String begin = getTimeValue(tp.getBeginning().getDate());
@@ -441,6 +476,135 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public Set<String> filterOffering() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    /**
+     * TODO Not sure if it is working.
+     *
+     * @param hints
+     * @return
+     * @throws DataStoreException
+     */
+    @Override
+    public List<Observation> getObservationTemplates(Map<String, String> hints) throws DataStoreException {
+        final String version                 = getVersionFromHints(hints);
+        final List<Observation> observations = new ArrayList<>();
+        final Set<String> oid = filterObservation();
+        for (String foid : oid) {
+            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
+            observations.add(obs);
+        }
+        return observations;
+    }
+
+    @Override
+    public List<Observation> getObservations(Map<String, String> hints) throws DataStoreException {
+        final String version                 = getVersionFromHints(hints);
+        final List<Observation> observations = new ArrayList<>();
+        final Set<String> oid = filterObservation();
+        for (String foid : oid) {
+            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
+            // parse result values to eliminate wrong results
+            if (obs.getSamplingTime() instanceof Period) {
+                final Timestamp tbegin;
+                final Timestamp tend;
+                final Period p = (Period)obs.getSamplingTime();
+                if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
+                    tbegin = new Timestamp(p.getBeginning().getDate().getTime());
+                } else {
+                    tbegin = null;
+                }
+                if (p.getEnding() != null && p.getEnding().getDate() != null) {
+                    tend = new Timestamp(p.getEnding().getDate().getTime());
+                } else {
+                    tend = null;
+                }
+                if (obs.getResult() instanceof DataArrayProperty) {
+                    final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
+                    final DatablockParser.Values result   = getResultValues(tbegin, tend, array, eventTimes);
+                    array.setValues(result.values.toString());
+                    array.setElementCount(result.nbBlock);
+                }
+            }
+            observations.add(obs);
+        }
+        return observations;
+    }
+
+    @Override
+    public List<SamplingFeature> getFeatureOfInterests(Map<String, String> hints) throws DataStoreException {
+        final String version                 = getVersionFromHints(hints);
+        final List<SamplingFeature> features = new ArrayList<>();
+        final Set<String> fid = filterFeatureOfInterest();
+        for (String foid : fid) {
+            final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
+            features.add(feature);
+        }
+        return features;
+    }
+
+    @Override
+    public List<Phenomenon> getPhenomenons(Map<String, String> hints) throws DataStoreException {
+        final String version               = getVersionFromHints(hints);
+        final List<Phenomenon> phenomenons = new ArrayList<>();
+        final Set<String> fid = filterPhenomenon();
+        for (String foid : fid) {
+            final Phenomenon phen = reader.getPhenomenon(foid, version);
+            phenomenons.add(phen);
+        }
+        return phenomenons;
+    }
+
+    @Override
+    public List<Process> getProcesses(Map<String, String> hints) throws DataStoreException {
+        final String version          = getVersionFromHints(hints);
+        final List<Process> processes = new ArrayList<>();
+        final Set<String> pids = filterProcedure();
+        for (String pid : pids) {
+            final Process pr = reader.getProcess(pid, version);
+            processes.add(pr);
+        }
+        return processes;
+    }
+
+    @Override
+    public String getResults() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getDecimatedResults(int width) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Object getOutOfBandResults() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setResponseFormat(String responseFormat) {
+        this.responseFormat = responseFormat;
+    }
+
+    @Override
+    public boolean computeCollectionBound() {
+        return false;
+    }
+
+    @Override
+    public Envelope getCollectionBoundingShape() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private String getVersionFromHints(Map<String, String> hints) {
+        String version = "2.0.0";
+        if (hints != null) {
+            if (hints.containsKey("version")) {
+                version = hints.get("version");
+            }
+        }
+        return version;
     }
 
 }

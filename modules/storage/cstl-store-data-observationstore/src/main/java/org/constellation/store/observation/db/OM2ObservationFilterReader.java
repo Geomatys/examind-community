@@ -76,7 +76,7 @@ import org.opengis.util.FactoryException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class OM2ObservationFilterReader extends OM2ObservationFilter implements ObservationFilterReader {
+public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private String responseFormat;
 
@@ -188,12 +188,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Observation> getObservationTemplates(final Map<String,String> hints) throws DataStoreException {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
+        final String version = getVersionFromHints(hints);
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             return getMesurementTemplates(version, hints);
         }
@@ -959,12 +954,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<SamplingFeature> getFeatureOfInterests(final Map<String,String> hints) throws DataStoreException {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
+        final String version = getVersionFromHints(hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
@@ -1030,12 +1020,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Phenomenon> getPhenomenons(final Map<String,String> hints) throws DataStoreException {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
+        final String version = getVersionFromHints(hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
@@ -1089,12 +1074,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
     @Override
     public List<Process> getProcesses(final Map<String,String> hints) throws DataStoreException {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
+        final String version = getVersionFromHints(hints);
         String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
@@ -1178,5 +1158,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
     @Override
     public Envelope getCollectionBoundingShape() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private String getVersionFromHints(Map<String, String> hints) {
+        String version = "2.0.0";
+        if (hints != null) {
+            if (hints.containsKey("version")) {
+                version = hints.get("version");
+            }
+        }
+        return version;
     }
 }

@@ -22,12 +22,10 @@ package org.constellation.sos.io.lucene;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.index.SearchingException;
 import org.geotoolkit.lucene.filter.SpatialQuery;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -47,17 +45,29 @@ import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
+import org.geotoolkit.observation.ObservationFilterReader;
+import org.geotoolkit.ogc.xml.v200.TimeAfterType;
+import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
+import org.geotoolkit.ogc.xml.v200.TimeDuringType;
+import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.opengis.filter.Filter;
 /**
  * TODO
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class LuceneObservationFilter implements ObservationFilter {
+public abstract class LuceneObservationFilter implements ObservationFilterReader {
 
     private StringBuilder luceneRequest;
 
     private LuceneObservationSearcher searcher;
+
+    protected final List<Filter> eventTimes = new ArrayList<>();
+
+    protected QName resultModel;
+
+    protected ResponseModeType requestMode;
 
     protected final String phenomenonIdBase;
 
@@ -68,15 +78,6 @@ public class LuceneObservationFilter implements ObservationFilter {
     public LuceneObservationFilter(final LuceneObservationFilter omFilter) throws DataStoreException {
         this.searcher = omFilter.searcher;
         this.phenomenonIdBase  = omFilter.phenomenonIdBase;
-    }
-
-    public LuceneObservationFilter(final Automatic configuration, final Map<String, Object> properties) throws DataStoreException {
-        this.phenomenonIdBase  = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
-        try {
-            this.searcher = new LuceneObservationSearcher(configuration.getConfigurationDirectory(), "");
-        } catch (IndexingException ex) {
-            throw new DataStoreException("IndexingException in LuceneObservationFilter constructor", ex);
-        }
     }
 
     public LuceneObservationFilter(final Path confDirectory, final Map<String, Object> properties) throws DataStoreException {
@@ -104,7 +105,10 @@ public class LuceneObservationFilter implements ObservationFilter {
         } else {
             luceneRequest.append("template:FALSE ");
         }
-        getFoi = false;
+        this.resultModel = resultModel;
+        this.requestMode = requestMode;
+        this.getFoi = false;
+        eventTimes.clear();
     }
 
     /**
@@ -117,7 +121,9 @@ public class LuceneObservationFilter implements ObservationFilter {
         } else {
             luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
         }
-        getFoi = false;
+        this.resultModel = resultModel;
+        this.getFoi = false;
+        eventTimes.clear();
     }
 
     /**
@@ -127,6 +133,7 @@ public class LuceneObservationFilter implements ObservationFilter {
     public void initFilterGetPhenomenon() throws DataStoreException {
         luceneRequest = new StringBuilder("type:phenomenon");
         getFoi = false;
+        eventTimes.clear();
     }
 
     /**
@@ -136,12 +143,14 @@ public class LuceneObservationFilter implements ObservationFilter {
     public void initFilterGetSensor() throws DataStoreException {
         luceneRequest = new StringBuilder("type:procedure");
         getFoi = false;
+        eventTimes.clear();
     }
 
     @Override
     public void initFilterOffering() throws DataStoreException {
         luceneRequest = new StringBuilder("type:offering");
         getFoi = false;
+        eventTimes.clear();
     }
 
 
@@ -228,6 +237,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setTimeEquals(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeEqualsType("result_time", time));
         if (time instanceof Period) {
             final Period tp = (Period) time;
             final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
@@ -262,6 +272,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setTimeBefore(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeBeforeType("result_time", time));
         // for the operation before the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti = (Instant) time;
@@ -282,6 +293,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setTimeAfter(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeAfterType("result_time", time));
         // for the operation after the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti = (Instant) time;
@@ -306,6 +318,7 @@ public class LuceneObservationFilter implements ObservationFilter {
      */
     @Override
     public void setTimeDuring(final Object time) throws DataStoreException {
+        eventTimes.add(new TimeDuringType("result_time", time));
         if (time instanceof Period) {
             final Period tp = (Period) time;
             final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());

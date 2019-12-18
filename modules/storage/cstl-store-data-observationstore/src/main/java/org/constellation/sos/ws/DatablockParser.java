@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.constellation.sos.core;
+package org.constellation.sos.ws;
 
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;

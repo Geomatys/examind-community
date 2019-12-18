@@ -52,7 +52,6 @@ import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.observation.AbstractObservationStore;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
@@ -84,7 +83,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
 
     private final ObservationReader reader;
     private final ObservationWriter writer;
-    private final ObservationFilter filter;
+    private final LuceneObservationFilterReader filter;
 
     public SOSLuceneObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(params);
@@ -100,7 +99,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
 
         reader = new FileObservationReader(dataDir, properties);
         writer = new FileObservationWriter(dataDir, confDir, properties);
-        filter = new LuceneObservationFilter(confDir, properties);
+        filter = new LuceneObservationFilterReader(confDir, properties, reader);
     }
 
     private void extractParameter(final ParameterValueGroup params, String key, ParameterDescriptor<String> param, final Map<String,Object> properties) {
@@ -167,7 +166,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 
-        final ObservationFilter currentFilter = getFilter();
+        final ObservationFilterReader currentFilter = getFilter();
         currentFilter.setProcedure(sensorIDs);
 
         final Set<String> observationIDS = filter.filterObservation();
@@ -319,9 +318,9 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     }
 
     @Override
-    public ObservationFilter getFilter() {
+    public ObservationFilterReader getFilter() {
         try {
-            return new LuceneObservationFilter((LuceneObservationFilter) filter);
+            return new LuceneObservationFilterReader(filter);
         } catch (DataStoreException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }

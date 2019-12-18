@@ -26,7 +26,7 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.generic.BDD;
 import org.constellation.dto.service.config.generic.Query;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.observation.ObservationFilter;
+import org.geotoolkit.observation.ObservationFilterReader;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -48,7 +48,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
  *
  * @author Guilhem Legal
  */
-public abstract class AbstractGenericObservationFilter implements ObservationFilter {
+public abstract class AbstractGenericObservationFilter implements ObservationFilterReader {
 
     /**
      * The base whole configuration query extract from the file Affinage.xml

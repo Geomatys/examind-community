@@ -21,7 +21,7 @@ package org.constellation.store.observation.db;
 
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.observation.ObservationFilter;
+import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -54,7 +54,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class OM2ObservationFilter extends OM2BaseReader implements ObservationFilter {
+public abstract class OM2ObservationFilter extends OM2BaseReader implements ObservationFilterReader {
 
     protected StringBuilder sqlRequest;
     protected StringBuilder sqlMeasureRequest = new StringBuilder();

@@ -51,7 +51,6 @@ import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.observation.AbstractObservationStore;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
@@ -83,7 +82,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
 
     private ObservationReader reader;
     private ObservationWriter writer;
-    private ObservationFilter filter;
+    private ObservationFilterReader filter;
 
     public SOSGenericObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(params);
@@ -100,7 +99,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
 
             reader = new DefaultGenericObservationReader(conf, properties);
             writer = null;
-            filter = new GenericObservationFilter(conf, properties);
+            filter = new GenericObservationFilter(conf, properties, reader);
         } catch(ConstellationMetadataException ex) {
             throw new DataStoreException(ex);
         }
@@ -169,7 +168,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         final ExtractionResult result = new ExtractionResult();
         result.spatialBound.initBoundary();
 
-        final ObservationFilter currentFilter = getFilter();
+        final ObservationFilterReader currentFilter = getFilter();
         currentFilter.setProcedure(sensorIDs);
 
         final Set<String> observationIDS = currentFilter.filterObservation();
@@ -323,7 +322,7 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
     }
 
     @Override
-    public ObservationFilter getFilter() {
+    public ObservationFilterReader getFilter() {
         return new GenericObservationFilter((GenericObservationFilter) filter);
     }
 

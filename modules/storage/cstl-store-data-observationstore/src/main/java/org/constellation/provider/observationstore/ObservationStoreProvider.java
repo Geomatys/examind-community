@@ -56,7 +56,6 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
@@ -283,7 +282,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public Collection<String> getPhenomenonNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         try {
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetPhenomenon();
             handleQuery(q, localOmFilter, GET_PHEN, hints);
             return localOmFilter.filterPhenomenon();
@@ -294,24 +293,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public List<Phenomenon> getPhenomenon(Query q, final Map<String,String> hints) throws ConstellationStoreException {
-        final String version = getVersionFromHints(hints);
         try {
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetPhenomenon();
             handleQuery(q, localOmFilter, GET_PHEN, hints);
-
-            if (localOmFilter instanceof ObservationFilterReader) {
-                return ((ObservationFilterReader)localOmFilter).getPhenomenons(hints);
-            } else {
-                final List<Phenomenon> phenomenons = new ArrayList<>();
-                final Set<String> fid = localOmFilter.filterPhenomenon();
-                for (String foid : fid) {
-                    final Phenomenon phen = store.getReader().getPhenomenon(foid, version);
-                    phenomenons.add(phen);
-                }
-                return phenomenons;
-            }
+            return localOmFilter.getPhenomenons(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -320,7 +307,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public Collection<String> getProcedureNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         try {
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetSensor();
             handleQuery(q, localOmFilter, GET_PROC, hints);
             return localOmFilter.filterProcedure();
@@ -332,7 +319,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public Collection<String> getFeatureOfInterestNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         try {
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
             handleQuery(q, localOmFilter, GET_FEA, hints);
             return localOmFilter.filterFeatureOfInterest();
@@ -343,9 +330,8 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public Collection<String> getOfferingNames(Query q, final Map<String,String> hints) throws ConstellationStoreException {
-        final String version = getVersionFromHints(hints);
         try {
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterOffering();
             handleQuery(q, localOmFilter, GET_OFF, hints);
             return localOmFilter.filterOffering();
@@ -363,7 +349,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             } else {
                 mode = ResponseModeType.INLINE;
             }
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterObservation(mode, resultModel, hints);
             handleQuery(q, localOmFilter, GET_OBS, hints);
 
@@ -386,7 +372,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 arm.add(rm.value());
             });
             capa.responseModes = arm;
-            ObservationFilter filter = store.getFilter();
+            ObservationFilterReader filter = store.getFilter();
             if (filter != null) {
                 capa.queryableResultProperties = filter.supportedQueryableResultProperties();
             }
@@ -533,24 +519,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public List<SamplingFeature> getFeatureOfInterest(Query q, Map<String, String> hints) throws ConstellationStoreException {
-        final String version = getVersionFromHints(hints);
         try {
-            // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
             handleQuery(q, localOmFilter, GET_FEA, hints);
 
-            if (localOmFilter instanceof ObservationFilterReader) {
-                return ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(hints);
-            } else {
-                final List<SamplingFeature> features = new ArrayList<>();
-                final Set<String> fid = localOmFilter.filterFeatureOfInterest();
-                for (String foid : fid) {
-                    final SamplingFeature feature = store.getReader().getFeatureOfInterest(foid, version);
-                    features.add(feature);
-                }
-                return features;
-            }
+            return localOmFilter.getFeatureOfInterests(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -559,7 +533,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public List<Observation> getObservations(Query q, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException {
         try {
-            final String version = getVersionFromHints(hints);
             ResponseModeType mode;
             if (responseMode != null) {
                 mode = ResponseModeType.fromValue(responseMode);
@@ -568,25 +541,14 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             }
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterObservation(mode, resultModel, hints);
             handleQuery(q, localOmFilter, GET_OBS, hints);
 
-            if (localOmFilter instanceof ObservationFilterReader) {
-                if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
-                    return ((ObservationFilterReader)localOmFilter).getObservationTemplates(hints);
-                } else {
-                    return ((ObservationFilterReader)localOmFilter).getObservations(hints);
-                }
+            if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
+                return localOmFilter.getObservationTemplates(hints);
             } else {
-                // TODO missing case for template
-                final List<Observation> observations = new ArrayList<>();
-                final Set<String> oid = localOmFilter.filterObservation();
-                for (String foid : oid) {
-                    final Observation obs = store.getReader().getObservation(foid, resultModel, mode, version);
-                    observations.add(obs);
-                }
-                return observations;
+                return localOmFilter.getObservations(hints);
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -595,26 +557,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public List<Process> getProcedures(Query q, Map<String, String> hints) throws ConstellationStoreException {
-        final String version = getVersionFromHints(hints);
         try {
-             // we clone the filter for this request
-            final ObservationFilter localOmFilter = store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetSensor();
             handleQuery(q, localOmFilter, GET_PROC, hints);
+            return localOmFilter.getProcesses(hints);
 
-            if (localOmFilter instanceof ObservationFilterReader) {
-
-                return ((ObservationFilterReader)localOmFilter).getProcesses(hints);
-
-            } else {
-                final List<Process> processes = new ArrayList<>();
-                final Set<String> pids = localOmFilter.filterProcedure();
-                for (String pid : pids) {
-                    final Process pr = store.getReader().getProcess(pid, version);
-                    processes.add(pr);
-                }
-                return processes;
-            }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -623,7 +571,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     @Override
     public String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException {
         try {
-            final ObservationFilterReader localOmFilter = (ObservationFilterReader) store.getFilter();
+            final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
             if (observedProperties.isEmpty()) {
                 final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
@@ -657,7 +605,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
-    private void handleQuery(Query q, final ObservationFilter localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
+    private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
         List<String> observedProperties = new ArrayList<>();
         List<String> procedures         = new ArrayList<>();
         List<String> fois               = new ArrayList<>();
@@ -682,7 +630,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         localOmFilter.setFeatureOfInterest(fois);
     }
 
-    private void handleFilter(int mode, Filter filter, final ObservationFilter localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
+    private void handleFilter(int mode, Filter filter, final ObservationFilterReader localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
         if (Filter.INCLUDE.equals(filter)) {
             return;
         }
@@ -778,16 +726,5 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } else {
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
-    }
-
-    @Deprecated
-    private String getVersionFromHints(Map<String, String> hints) {
-        String version = "2.0.0";
-        if (hints != null) {
-            if (hints.containsKey("version")) {
-                version = hints.get("version");
-            }
-        }
-        return version;
     }
 }

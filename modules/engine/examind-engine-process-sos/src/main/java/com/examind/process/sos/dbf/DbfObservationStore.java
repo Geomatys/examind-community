@@ -47,7 +47,7 @@ import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.data.dbf.DbaseFileReader.Row;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationFilter;
+import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
@@ -712,7 +712,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
      * {@inheritDoc }
      */
     @Override
-    public ObservationFilter getFilter() {
+    public ObservationFilterReader getFilter() {
         throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
     }
 

@@ -55,8 +55,6 @@ import static org.constellation.api.QueryConstants.SERVICE_PARAMETER_LC;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.contact.Details;
 import org.constellation.security.SecurityManagerHolder;
-import org.constellation.sos.core.DatablockParser.Values;
-import static org.constellation.sos.core.DatablockParser.getResultValues;
 import static org.constellation.sos.core.Normalizer.normalizeDocument;
 import static org.constellation.sos.core.Normalizer.regroupObservation;
 import static org.constellation.sos.core.SOSConstants.*;
@@ -95,14 +93,10 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
-import org.geotoolkit.observation.ObservationFilter;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.observation.xml.OMXmlFactory;
-import org.geotoolkit.observation.xml.ObservationComparator;
 import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.ogc.xml.XMLLiteral;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
@@ -220,7 +214,6 @@ import org.opengis.filter.temporal.TContains;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.geometry.primitive.Point;
-import org.opengis.observation.Measure;
 import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
@@ -842,12 +835,10 @@ public class SOSworker extends SensorWorker {
         try {
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.getFilter();
+            final ObservationFilterReader localOmFilter = omStore.getFilter();
 
             // we set the response format on the filter reader
-            if (localOmFilter instanceof ObservationFilterReader) {
-                ((ObservationFilterReader)localOmFilter).setResponseFormat(responseFormat);
-            }
+            localOmFilter.setResponseFormat(responseFormat);
 
             localOmFilter.initFilterObservation(responseMode, resultModel, Collections.emptyMap());
 
@@ -1098,67 +1089,22 @@ public class SOSworker extends SensorWorker {
             if (!outOfBand) {
 
                 /*
-                 * here we can have 2 different behaviour :
-                 *
-                 * (1) - We have separate observation filter and reader :
-                 *        - The filter execute a request and return a list of identifiers.
-                 *        - The reader retrieve each observation from the list of identifiers
-                 *
-                 * (2) - We have mixed observation filter and reader :
-                 *        - The filterReader execute a request and return directly the observations
+                 * - The filterReader execute a request and return directly the observations
                  *
                  */
                 final List<Observation> matchingResult;
                 final Envelope computedBounds;
-
-                // case (1)
-                if (!(localOmFilter instanceof ObservationFilterReader)) {
-                    matchingResult = new ArrayList<>();
-                    final Set<String> observationIDs = localOmFilter.filterObservation();
-                    for (String observationID : observationIDs) {
-                        final Observation obs = OMXmlFactory.cloneObervation(currentVersion, omStore.getReader().getObservation(observationID, resultModel, responseMode, currentVersion));
-
-                        // parse result values to eliminate wrong results
-                        if (obs.getSamplingTime() instanceof Period) {
-                            final Timestamp tbegin;
-                            final Timestamp tend;
-                            final Period p = (Period)obs.getSamplingTime();
-                            if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                                tbegin = new Timestamp(p.getBeginning().getDate().getTime());
-                            } else {
-                                tbegin = null;
-                            }
-                            if (p.getEnding() != null && p.getEnding().getDate() != null) {
-                                tend = new Timestamp(p.getEnding().getDate().getTime());
-                            } else {
-                                tend = null;
-                            }
-                            if (obs.getResult() instanceof DataArrayProperty) {
-                                final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
-                                final Values result   = getResultValues(tbegin, tend, array, times);
-                                array.setValues(result.values.toString());
-                                array.setElementCount(result.nbBlock);
-                            }
-                        }
-                        matchingResult.add(obs);
-                    }
-                    Collections.sort(matchingResult, new ObservationComparator());
-                    computedBounds         = null;
-
-                // case (2)
+                if (template) {
+                    matchingResult = localOmFilter.getObservationTemplates(Collections.singletonMap("version", currentVersion));
                 } else {
-                    final ObservationFilterReader omFR = (ObservationFilterReader) localOmFilter;
-                    if (template) {
-                        matchingResult = omFR.getObservationTemplates(Collections.singletonMap("version", currentVersion));
-                    } else {
-                        matchingResult = omFR.getObservations(Collections.singletonMap("version", currentVersion));
-                    }
-                    if (omFR.computeCollectionBound()) {
-                        computedBounds = omFR.getCollectionBoundingShape();
-                    } else {
-                        computedBounds = null;
-                    }
+                    matchingResult = localOmFilter.getObservations(Collections.singletonMap("version", currentVersion));
                 }
+                if (localOmFilter.computeCollectionBound()) {
+                    computedBounds = localOmFilter.getCollectionBoundingShape();
+                } else {
+                    computedBounds = null;
+                }
+
 
                 final List<Observation> observations = new ArrayList<>();
                 for (Observation o : matchingResult) {
@@ -1203,13 +1149,11 @@ public class SOSworker extends SensorWorker {
                 ocResponse = normalizeDocument(currentVersion, ocResponse);
                 response   = ocResponse;
             } else {
-                final Object sReponse;
-                if (localOmFilter instanceof ObservationFilterReader) {
-                    sReponse = ((ObservationFilterReader)localOmFilter).getOutOfBandResults();
-                } else {
-                    throw new CstlServiceException("Out of band response mode has been implemented only for ObservationFilterReader for now", NO_APPLICABLE_CODE, RESPONSE_MODE);
+                try {
+                    response = localOmFilter.getOutOfBandResults();
+                } catch(UnsupportedOperationException ex) {
+                    throw new CstlServiceException("Out of band response mode has been yet implemented for this data source", NO_APPLICABLE_CODE, RESPONSE_MODE);
                 }
-                response = sReponse;
             }
         } catch (DataStoreException | ConstellationStoreException ex) {
             if (ex instanceof ObservationStoreException) {
@@ -1297,7 +1241,7 @@ public class SOSworker extends SensorWorker {
             }
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.getFilter();
+            final ObservationFilterReader localOmFilter = omStore.getFilter();
 
             //we begin to create the sql request
             localOmFilter.initFilterGetResult(procedure, resultModel, Collections.emptyMap());
@@ -1392,42 +1336,7 @@ public class SOSworker extends SensorWorker {
             treatEventTimeRequest(currentVersion, times, false, localOmFilter);
 
             //we prepare the response document
-            if (localOmFilter instanceof ObservationFilterReader) {
-                values = ((ObservationFilterReader)localOmFilter).getResults();
-
-            } else {
-                final List<ObservationResult> results = localOmFilter.filterResult();
-                final StringBuilder datablock         = new StringBuilder();
-
-                for (ObservationResult result: results) {
-                    final Timestamp tBegin = result.beginTime;
-                    final Timestamp tEnd   = result.endTime;
-                    final Object r         = omStore.getReader().getResult(result.resultID, resultModel, currentVersion);
-                    if (r instanceof DataArray || r instanceof DataArrayProperty) {
-                        final DataArray array;
-                        if (r instanceof DataArrayProperty) {
-                            array = ((DataArrayProperty)r).getDataArray();
-                        } else {
-                            array = (DataArray)r;
-                        }
-                        if (array != null) {
-                            final Values resultValues = getResultValues(tBegin, tEnd, array, times);
-                            final String brutValues   = resultValues.values.toString();
-                            if (!brutValues.isEmpty()) {
-                                datablock.append(brutValues);
-                            }
-                        } else {
-                            throw new IllegalArgumentException("Array is null");
-                        }
-                    } else if (r instanceof Measure) {
-                        final Measure meas = (Measure) r;
-                        datablock.append(tBegin).append(',').append(meas.getValue()).append("@@");
-                    } else {
-                        throw new IllegalArgumentException("Unexpected result type:" + r);
-                    }
-                }
-                values = datablock.toString();
-            }
+            values = localOmFilter.getResults();
 
         } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -1452,7 +1361,7 @@ public class SOSworker extends SensorWorker {
         AbstractFeature result = null;
         try {
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.getFilter();
+            final ObservationFilterReader localOmFilter = omStore.getFilter();
             localOmFilter.initFilterGetFeatureOfInterest();
 
             // filtering on time
@@ -1575,26 +1484,16 @@ public class SOSworker extends SensorWorker {
             }
 
             if (ofilter) {
-                if (localOmFilter instanceof ObservationFilterReader) {
-                    final List<FeatureProperty> features = new ArrayList<>();
-                    final List<SamplingFeature> sfeatures = ((ObservationFilterReader)localOmFilter).getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
-                    sfeatures.stream().forEach((sf) -> {
-                        features.add(buildFeatureProperty(currentVersion, sf));
-                    });
-                    final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                    collection.computeBounds();
-                    result = collection;
-                } else {
-                    final List<FeatureProperty> features = new ArrayList<>();
-                    final Set<String> fid = localOmFilter.filterFeatureOfInterest();
-                    for (String foid : fid) {
-                        final SamplingFeature feature = getFeatureOfInterest(foid, currentVersion);
-                        features.add(buildFeatureProperty(currentVersion, feature));
-                    }
-                    final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                    collection.computeBounds();
-                    result = collection;
-                }
+
+                final List<FeatureProperty> features = new ArrayList<>();
+                final List<SamplingFeature> sfeatures = localOmFilter.getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
+                sfeatures.stream().forEach((sf) -> {
+                    features.add(buildFeatureProperty(currentVersion, sf));
+                });
+                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
+                collection.computeBounds();
+                result = collection;
+
             // request for all foi
             } else if (!filter) {
                 final List<FeatureProperty> featProps = new ArrayList<>();
@@ -1754,7 +1653,7 @@ public class SOSworker extends SensorWorker {
             getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr -> procedures.add(((Process)pr).getHref()));
 
             // we clone the filter for this request
-            final ObservationFilter localOmFilter = omStore.getFilter();
+            final ObservationFilterReader localOmFilter = omStore.getFilter();
 
             localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
             localOmFilter.setProcedure(procedures);
@@ -1767,19 +1666,7 @@ public class SOSworker extends SensorWorker {
             }
             localOmFilter.setObservedProperties(Arrays.asList(request.getObservedProperty()));
 
-            final List<Observation> matchingResult;
-            // case (1)
-            if (!(localOmFilter instanceof ObservationFilterReader)) {
-                matchingResult = new ArrayList<>();
-                final Set<String> observationIDs = localOmFilter.filterObservation();
-                for (String observationID : observationIDs) {
-                    matchingResult.add(omStore.getReader().getObservation(observationID, OBSERVATION_QNAME, RESULT_TEMPLATE, currentVersion));
-                }
-            // case (2)
-            } else {
-                final ObservationFilterReader omFR = (ObservationFilterReader) localOmFilter;
-                matchingResult = omFR.getObservationTemplates(Collections.singletonMap("version", currentVersion));
-            }
+            final List<Observation> matchingResult = localOmFilter.getObservationTemplates(Collections.singletonMap("version", currentVersion));
             if (matchingResult.isEmpty()) {
                 throw new CstlServiceException("there is no result template matching the arguments");
             } else {
@@ -2066,7 +1953,7 @@ public class SOSworker extends SensorWorker {
             }
 
             LOGGER.log(Level.INFO, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
-            omStore.getFilter().refresh();
+            omStore.getFilter().refresh(); // probably useless as the filter is a new one
 
         } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -2082,7 +1969,7 @@ public class SOSworker extends SensorWorker {
      *
      * @return true if there is no errors in the time constraint else return false.
      */
-    private TemporalGeometricPrimitive treatEventTimeRequest(final String version, final List<Filter> times, final boolean template, final ObservationFilter localOmFilter) throws CstlServiceException, DataStoreException {
+    private TemporalGeometricPrimitive treatEventTimeRequest(final String version, final List<Filter> times, final boolean template, final ObservationFilterReader localOmFilter) throws CstlServiceException, DataStoreException {
 
         //In template mode  his method return a temporal Object.
         TemporalGeometricPrimitive templateTime = null;
