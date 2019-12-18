@@ -187,7 +187,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      */
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
-        if (!allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
+        if (phenomenon != null && !allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
             luceneRequest.append(" AND( ");
             for (String p : phenomenon) {
                 luceneRequest.append(" observed_property:\"").append(p).append('"').append(OR_OPERATOR);
@@ -203,7 +203,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      */
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
-        if (!fois.isEmpty()) {
+        if (fois != null && !fois.isEmpty()) {
             luceneRequest.append(" AND (");
             for (String foi : fois) {
                 if (getFoi) {

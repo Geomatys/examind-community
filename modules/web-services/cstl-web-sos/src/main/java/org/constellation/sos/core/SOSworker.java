@@ -45,7 +45,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
@@ -147,7 +146,6 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildContents;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDeleteSensorResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildEnvelope;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureCollection;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationByIdResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationResponse;
@@ -173,6 +171,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.Utils;
+import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
@@ -190,7 +189,6 @@ import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsBetween;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -740,7 +738,6 @@ public class SOSworker extends SensorWorker {
                 oids.add(new DefaultFeatureId(oid));
             }
             final SimpleQuery subquery = new SimpleQuery();
-            final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
             Id filter = ff.id(oids);
             subquery.setFilter(filter);
             observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", Collections.singletonMap("version", currentVersion));
@@ -834,14 +831,6 @@ public class SOSworker extends SensorWorker {
         final Object response;
         try {
 
-            // we clone the filter for this request
-            final ObservationFilterReader localOmFilter = omStore.getFilter();
-
-            // we set the response format on the filter reader
-            localOmFilter.setResponseFormat(responseFormat);
-
-            localOmFilter.initFilterObservation(responseMode, resultModel, Collections.emptyMap());
-
             //we verify that there is an offering (mandatory in 1.0.0, optional in 2.0.0)
             final List<ObservationOffering> offerings = new ArrayList<>();
             final List<String> offeringNames = requestObservation.getOfferings();
@@ -921,42 +910,29 @@ public class SOSworker extends SensorWorker {
                     }
                 }
             }
+
             // if no procedure specified extract the offerings procedures
             if (procedures.isEmpty()) {
                 for (ObservationOffering off : offerings) {
                     procedures.addAll(off.getProcedures());
                 }
             }
-            localOmFilter.setProcedure(procedures);
 
-            //we get the list of phenomenon
+            // Verify phenomenons list
             //TODO verifier que les pheno appartiennent a l'offering
             final List<String> observedProperties = requestObservation.getObservedProperty();
             if (observedProperties != null && !observedProperties.isEmpty()) {
-                final List<String> phenomenons    = new ArrayList<>();
-                for (String phenomenonName : observedProperties) {
-
-                    if (!omProvider.existPhenomenon(phenomenonName)) {
-                        throw new CstlServiceException(" this phenomenon " + phenomenonName + " is not registred in the datasource!",
+                for (String observedProperty : observedProperties) {
+                    if (!omProvider.existPhenomenon(observedProperty)) {
+                        throw new CstlServiceException(" this phenomenon " + observedProperty + " is not registred in the datasource!",
                                 INVALID_PARAMETER_VALUE, "observedProperty");
                     }
-                    phenomenons.add(phenomenonName);
-                }
-                if (!phenomenons.isEmpty()) {
-                    localOmFilter.setObservedProperties(phenomenons);
                 }
             } else if (currentVersion.equals("1.0.0")){
                 throw new CstlServiceException("You must specify at least One phenomenon", MISSING_PARAMETER_VALUE, "observedProperty");
             }
 
-
-            //we treat the time restriction
-            final List<Filter> times = requestObservation.getTemporalFilter();
-            final TemporalGeometricPrimitive templateTime = treatEventTimeRequest(currentVersion, times, template, localOmFilter);
-
-            //we treat the restriction on the feature of interest
-
-            // if the request is a list of station
+            // if the request contains feature of interest
             if (!requestObservation.getFeatureIds().isEmpty()) {
 
                 //verify that the station is registred in the DB.
@@ -966,8 +942,20 @@ public class SOSworker extends SensorWorker {
                                                          INVALID_PARAMETER_VALUE, "featureOfInterest");
                     }
                 }
-                localOmFilter.setFeatureOfInterest(requestObservation.getFeatureIds());
             }
+
+            // we clone the filter for this request
+            final ObservationFilterReader localOmFilter = omStore.getFilter();
+
+            // we set the response format on the filter reader
+            localOmFilter.initFilterObservation(responseMode, resultModel, Collections.emptyMap());
+            localOmFilter.setResponseFormat(responseFormat);
+            localOmFilter.setProcedure(procedures);
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setFeatureOfInterest(requestObservation.getFeatureIds());
+
+            final List<Filter> times = requestObservation.getTemporalFilter();
+            final TemporalGeometricPrimitive templateTime = treatEventTimeRequest(currentVersion, times, template, localOmFilter);
 
             // if the request is a spatial operator
             if (requestObservation.getSpatialFilter() != null) {
@@ -1184,12 +1172,12 @@ public class SOSworker extends SensorWorker {
         //we verify the base request attribute
         verifyBaseRequest(request, true, false);
 
-        final String currentVersion         = request.getVersion().toString();
-        final String observationTemplateID  = request.getObservationTemplateId();
-        final List<String> fois             = new ArrayList<>();
-        String offering                     = null;
+        final String currentVersion           = request.getVersion().toString();
+        final String observationTemplateID    = request.getObservationTemplateId();
+        final List<String> fois               = new ArrayList<>();
+        final List<String> observedProperties = new ArrayList<>();
+        String offering                       = null;
         final String procedure;
-        final String observedProperty;
         final TemporalObject time;
         final QName resultModel;
         final String values;
@@ -1204,7 +1192,6 @@ public class SOSworker extends SensorWorker {
                 }
                 procedure        = ((Process) template.getProcedure()).getHref();
                 time             = template.getSamplingTime();
-                observedProperty = null;
                 final String foi = SOSUtils.extractFOID(template);
                 if (foi != null) {
                     fois.add(foi);
@@ -1233,7 +1220,7 @@ public class SOSworker extends SensorWorker {
                     if (!omProvider.existPhenomenon(request.getObservedProperty())) {
                         throw new CstlServiceException("The observedProperty parameter is invalid", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
-                    observedProperty = request.getObservedProperty();
+                    observedProperties.add(request.getObservedProperty());
                 }
                 time = null;
                 resultModel = OBSERVATION_QNAME;
@@ -1242,14 +1229,7 @@ public class SOSworker extends SensorWorker {
 
             // we clone the filter for this request
             final ObservationFilterReader localOmFilter = omStore.getFilter();
-
-            //we begin to create the sql request
             localOmFilter.initFilterGetResult(procedure, resultModel, Collections.emptyMap());
-
-            // phenomenon property
-            if (observedProperty !=  null) {
-                localOmFilter.setObservedProperties(Arrays.asList(observedProperty));
-            }
 
             // spatial filter
              // if the request is a spatial operator
@@ -1295,10 +1275,9 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            //foi filter
-            if (!fois.isEmpty()) {
-                localOmFilter.setFeatureOfInterest(fois);
-            }
+            //we begin to create the sql request
+            localOmFilter.setObservedProperties(observedProperties);
+            localOmFilter.setFeatureOfInterest(fois);
 
             //we treat the time constraint
             final List<Filter> times = request.getTemporalFilter();
@@ -1306,7 +1285,6 @@ public class SOSworker extends SensorWorker {
             /**
              * The template time :
              */
-
             // case TEquals with time instant
             if (time instanceof Instant) {
                final TEquals equals  = buildTimeEquals(currentVersion, null, time);
@@ -1358,15 +1336,83 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("You must choose a filter parameter: eventTime, featureId or location", MISSING_PARAMETER_VALUE);
         }
 
-        AbstractFeature result = null;
         try {
-            // we clone the filter for this request
-            final ObservationFilterReader localOmFilter = omStore.getFilter();
-            localOmFilter.initFilterGetFeatureOfInterest();
 
-            // filtering on time
-            treatEventTimeRequest(currentVersion, request.getTemporalFilters(), false, localOmFilter);
+           /*
+            * - Features IDs mode
+            */
+            if (!request.getFeatureOfInterestId().isEmpty()) {
+                final String locatorFID = (currentVersion.equals("2.0.0")) ? "featureOfInterest" :  "featureOfInterestId";
+                final List<SamplingFeature> features = new ArrayList<>();
 
+                if (request.getFeatureOfInterestId().size() == 1) {
+                    // CITE
+                    if (request.getFeatureOfInterestId().get(0).isEmpty()) {
+                        throw new CstlServiceException("The foi name is empty", MISSING_PARAMETER_VALUE, locatorFID);
+                    }
+                    final SamplingFeature singleResult = getFeatureOfInterest(request.getFeatureOfInterestId().get(0), currentVersion);
+                    if (singleResult == null) {
+                        throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
+                    } else {
+                        if (!alwaysFeatureCollection) {
+                            return (AbstractFeature) singleResult;
+                        } else {
+                            features.add(singleResult);
+                        }
+                    }
+
+                // we return a featureCollection
+                } else if (request.getFeatureOfInterestId().size() > 1) {
+                    for (String featureID : request.getFeatureOfInterestId()) {
+                        final SamplingFeature feature = getFeatureOfInterest(featureID, currentVersion);
+                        if (feature == null) {
+                            throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
+                        } else {
+                            features.add(feature);
+                        }
+                    }
+                }
+                return buildFeatureCollection(currentVersion, "feature-collection-1", features);
+            }
+
+            /**
+             * - Spatial filter mode
+             */
+            if (request.getSpatialFilters() != null && !request.getSpatialFilters().isEmpty()) {
+                AbstractFeature result = null;
+                final Filter spatialFilter = request.getSpatialFilters().get(0); // TODO handle multiple filters (SOS 2.0.0)
+                if (spatialFilter instanceof BBOX) {
+                    final BBOX bboxFilter = (BBOX) spatialFilter;
+                    // CITE
+                    if (bboxFilter.getPropertyName() == null || bboxFilter.getPropertyName().isEmpty()) {
+                        final String locator = currentVersion.equals("2.0.0") ?  "ValueReference" :  "propertyName";
+                        throw new CstlServiceException("The spatial filter property name is empty", MISSING_PARAMETER_VALUE, locator);
+                    }
+
+                    final List<SamplingFeature> results = spatialFiltering(bboxFilter, currentVersion);
+
+                    // we return a single result
+                    if (results.size() == 1) {
+                        result = (AbstractFeature) results.get(0);
+
+                    // we return a feature collection
+                    } else if (results.size() > 1) {
+                        result =  buildFeatureCollection(currentVersion, "feature-collection-1", results);
+
+                    // if there is no response we send an error
+                    } else {
+                        //throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE);
+                        result = buildFeatureCollection(currentVersion, "feature-collection-empty", null);
+                    }
+                } else {
+                    throw new CstlServiceException("Only the filter BBOX is upported for now", OPERATION_NOT_SUPPORTED);
+                }
+                return result;
+            }
+
+           /**
+            * - Filter mode
+            */
             boolean ofilter = false;
             if (request.getObservedProperty() != null && !request.getObservedProperty().isEmpty()) {
                 for (String observedProperty : request.getObservedProperty()) {
@@ -1377,7 +1423,6 @@ public class SOSworker extends SensorWorker {
                         throw new CstlServiceException("This observedProperty is not registered", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
                 }
-                localOmFilter.setObservedProperties(request.getObservedProperty());
                 ofilter = true;
             }
 
@@ -1390,127 +1435,36 @@ public class SOSworker extends SensorWorker {
                         throw new CstlServiceException("This procedure is not registered", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                 }
-                localOmFilter.setProcedure(request.getProcedure());
                 ofilter = true;
-            }
-
-            boolean filter = false;
-
-            // we return a single result
-            final String locatorFID;
-            if (currentVersion.equals("2.0.0")) {
-                locatorFID = "featureOfInterest";
-            } else {
-                locatorFID = "featureOfInterestId";
-            }
-            if (request.getFeatureOfInterestId().size() == 1) {
-                // CITE
-                if (request.getFeatureOfInterestId().get(0).isEmpty()) {
-                    throw new CstlServiceException("The foi name is empty", MISSING_PARAMETER_VALUE, locatorFID);
-                }
-                final SamplingFeature singleResult = getFeatureOfInterest(request.getFeatureOfInterestId().get(0), currentVersion);
-                if (singleResult == null) {
-                    throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
-                } else {
-                    if (!alwaysFeatureCollection) {
-                        return (AbstractFeature) singleResult;
-                    } else {
-                        final List<FeatureProperty> features = new ArrayList<>();
-                        features.add(buildFeatureProperty(currentVersion, singleResult));
-                        final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                        collection.computeBounds();
-                        result = collection;
-                        filter = true;
-                    }
-                }
-
-            // we return a featureCollection
-            } else if (request.getFeatureOfInterestId().size() > 1) {
-                final List<FeatureProperty> features = new ArrayList<>();
-                for (String featureID : request.getFeatureOfInterestId()) {
-                    final SamplingFeature feature = getFeatureOfInterest(featureID, currentVersion);
-                    if (feature == null) {
-                        throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
-                    } else {
-                        features.add(buildFeatureProperty(currentVersion, feature));
-                    }
-                }
-                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                collection.computeBounds();
-                result = collection;
-                filter = true;
-            }
-
-            if (request.getSpatialFilters() != null && !request.getSpatialFilters().isEmpty()) {
-                final Filter spatialFilter = request.getSpatialFilters().get(0); // TODO handle multiple filters (SOS 2.0.0)
-                if (spatialFilter instanceof BBOX) {
-                    final BBOX bboxFilter = (BBOX) spatialFilter;
-                    // CITE
-                    if (bboxFilter.getPropertyName() == null || bboxFilter.getPropertyName().isEmpty()) {
-                        final String locator;
-                        if (currentVersion.equals("2.0.0")) {
-                            locator = "ValueReference";
-                        } else {
-                            locator = "propertyName";
-                        }
-                        throw new CstlServiceException("The spatial filter property name is empty", MISSING_PARAMETER_VALUE, locator);
-                    }
-
-                    final List<SamplingFeature> results = spatialFiltering(bboxFilter, currentVersion);
-
-                    // we return a single result
-                    if (results.size() == 1) {
-                        result = (AbstractFeature) results.get(0);
-
-                    // we return a feature collection
-                    } else if (results.size() > 1) {
-                        final List<FeatureProperty> features = new ArrayList<>();
-                        results.stream().forEach((feature) -> {
-                            features.add(buildFeatureProperty(currentVersion, feature));
-                        });
-                        final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                        collection.computeBounds();
-                        result = collection;
-
-                    // if there is no response we send an error
-                    } else {
-                        //throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE);
-                        result = buildFeatureCollection(currentVersion, "feature-collection-empty", null, null, null);
-                    }
-                } else {
-                    throw new CstlServiceException("Only the filter BBOX is upported for now", OPERATION_NOT_SUPPORTED);
-                }
-                filter = true;
             }
 
             if (ofilter) {
 
-                final List<FeatureProperty> features = new ArrayList<>();
-                final List<SamplingFeature> sfeatures = localOmFilter.getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
-                sfeatures.stream().forEach((sf) -> {
-                    features.add(buildFeatureProperty(currentVersion, sf));
-                });
-                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, features);
-                collection.computeBounds();
-                result = collection;
+                // we clone the filter for this request
+                final ObservationFilterReader localOmFilter = omStore.getFilter();
+                localOmFilter.initFilterGetFeatureOfInterest();
 
-            // request for all foi
-            } else if (!filter) {
-                final List<FeatureProperty> featProps = new ArrayList<>();
-               List<SamplingFeature> features =  omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
-                for (SamplingFeature feature : features) {
-                    featProps.add(buildFeatureProperty(currentVersion, feature));
-                }
-                final FeatureCollection collection = buildFeatureCollection(currentVersion, "feature-collection-1", null, null, featProps);
-                collection.computeBounds();
-                result = collection;
+                // filtering on time
+                treatEventTimeRequest(currentVersion, request.getTemporalFilters(), false, localOmFilter);
+                localOmFilter.setObservedProperties(request.getObservedProperty());
+                localOmFilter.setProcedure(request.getProcedure());
+
+                final List<SamplingFeature> features = localOmFilter.getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
+                return buildFeatureCollection(currentVersion, "feature-collection-1", features);
+
+            /**
+             * - Request for all foi
+             */
+            } else {
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(new SimpleQuery(), Collections.singletonMap("version", currentVersion));
+                return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
         } catch (DataStoreException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
+        } finally {
+            LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
         }
-        LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
-        return result;
     }
 
     public TemporalPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
@@ -1649,24 +1603,25 @@ public class SOSworker extends SensorWorker {
             if (!offeringExist) {
                 throw new CstlServiceException("offering parameter is invalid.", INVALID_PARAMETER_VALUE, "offering");
             }
-            List<String> procedures = new ArrayList<>();
-            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr -> procedures.add(((Process)pr).getHref()));
 
-            // we clone the filter for this request
-            final ObservationFilterReader localOmFilter = omStore.getFilter();
-
-            localOmFilter.initFilterObservation(RESULT_TEMPLATE, OBSERVATION_QNAME, Collections.emptyMap());
-            localOmFilter.setProcedure(procedures);
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
             }
             if (!omProvider.existPhenomenon(request.getObservedProperty())) {
-                throw new CstlServiceException(" this phenomenon " + request.getObservedProperty() + " is not registred in the database!",
+                throw new CstlServiceException(" this phenomenon " + request.getObservedProperty() + " is not registred in the datasource!",
                         INVALID_PARAMETER_VALUE, "observedProperty");
             }
-            localOmFilter.setObservedProperties(Arrays.asList(request.getObservedProperty()));
 
-            final List<Observation> matchingResult = localOmFilter.getObservationTemplates(Collections.singletonMap("version", currentVersion));
+            final List<Filter> filters   = new ArrayList<>();
+            final PropertyName procedure = ff.property("procedure");
+            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr -> filters.add(ff.equals(procedure, ff.literal(((Process) pr).getHref()))));
+
+            filters.add(ff.equals(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
+
+            // we clone the filter for this request
+            final SimpleQuery query = new SimpleQuery();
+            query.setFilter(ff.and(filters));
+            final List<Observation> matchingResult = omProvider.getObservations(query, OBSERVATION_QNAME, RESULT_TEMPLATE.value(), Collections.singletonMap("version", currentVersion));
             if (matchingResult.isEmpty()) {
                 throw new CstlServiceException("there is no result template matching the arguments");
             } else {
@@ -1682,7 +1637,7 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("unable to extract structure and encoding for other result type than DataArrayProperty");
                 }
             }
-        } catch (DataStoreException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         final GetResultTemplateResponse result = buildGetResultTemplateResponse(currentVersion, structure, encoding);
@@ -2281,6 +2236,18 @@ public class SOSworker extends SensorWorker {
                                             resultModelV200,
                                             responses,
                                             acceptedSensorMLFormats.get(version)));
+    }
+
+    private FeatureCollection buildFeatureCollection(String version, String name, List<SamplingFeature> features) {
+        final List<FeatureProperty> featProps = new ArrayList<>();
+        if (features != null) {
+            features.stream().forEach((feature) -> {
+                featProps.add(buildFeatureProperty(version, feature));
+            });
+        }
+        final FeatureCollection collection = SOSXmlFactory.buildFeatureCollection(version, name, null, null, featProps);
+        collection.computeBounds();
+        return collection;
     }
 
     /**

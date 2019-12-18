@@ -212,13 +212,15 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
-        for (String p : phenomenon) {
-            if (p.contains(phenomenonIdBase)) {
-                p = p.replace(phenomenonIdBase, "");
+        if (phenomenon != null) {
+            for (String p : phenomenon) {
+                if (p.contains(phenomenonIdBase)) {
+                    p = p.replace(phenomenonIdBase, "");
+                }
+                final Where where = new Where(configurationQuery.getWhere("phenomenon"));
+                where.replaceVariable("phenomenon", p, true);
+                currentQuery.addWhere(where);
             }
-            final Where where = new Where(configurationQuery.getWhere("phenomenon"));
-            where.replaceVariable("phenomenon", p, true);
-            currentQuery.addWhere(where);
         }
     }
 
@@ -227,10 +229,12 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      */
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
-        for (String foi : fois) {
-            final Where where = new Where(configurationQuery.getWhere("foi"));
-            where.replaceVariable("foi", foi, true);
-            currentQuery.addWhere(where);
+        if (fois != null) {
+            for (String foi : fois) {
+                final Where where = new Where(configurationQuery.getWhere("foi"));
+                where.replaceVariable("foi", foi, true);
+                currentQuery.addWhere(where);
+            }
         }
     }
 

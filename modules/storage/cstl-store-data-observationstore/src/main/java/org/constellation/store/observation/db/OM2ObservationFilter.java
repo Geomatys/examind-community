@@ -247,7 +247,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setObservedProperties(final List<String> phenomenon) {
-        if (!phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
+        if (phenomenon != null && !phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
             final String sb;
             final Set<String> fields    = new HashSet<>();
             if (getPhen) {
@@ -310,7 +310,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
-        if (!fois.isEmpty()) {
+        if (fois != null && !fois.isEmpty()) {
             final StringBuilder sb = new StringBuilder();
             for (String foi : fois) {
                 sb.append("(\"foi\"='").append(foi).append("') OR");
