@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
@@ -182,16 +183,17 @@ public abstract class SOSConfigurerTest {
     public void getSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getSensorIds(sid);
-        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:1",
-                                                "urn:ogc:object:sensor:GEOM:10",
-                                                "urn:ogc:object:sensor:GEOM:2",
-                                                "urn:ogc:object:sensor:GEOM:3",
-                                                "urn:ogc:object:sensor:GEOM:4",
-                                                "urn:ogc:object:sensor:GEOM:5",
-                                                "urn:ogc:object:sensor:GEOM:6",
-                                                "urn:ogc:object:sensor:GEOM:7",
-                                                "urn:ogc:object:sensor:GEOM:8",
-                                                "urn:ogc:object:sensor:GEOM:9");
+        Set<String> expResults = new LinkedHashSet<>();
+        expResults.add("urn:ogc:object:sensor:GEOM:1");
+        expResults.add("urn:ogc:object:sensor:GEOM:10");
+        expResults.add("urn:ogc:object:sensor:GEOM:2");
+        expResults.add("urn:ogc:object:sensor:GEOM:3");
+        expResults.add("urn:ogc:object:sensor:GEOM:4");
+        expResults.add("urn:ogc:object:sensor:GEOM:5");
+        expResults.add("urn:ogc:object:sensor:GEOM:6");
+        expResults.add("urn:ogc:object:sensor:GEOM:7");
+        expResults.add("urn:ogc:object:sensor:GEOM:8");
+        expResults.add("urn:ogc:object:sensor:GEOM:9");
         Assert.assertEquals(expResults, results);
     }
 

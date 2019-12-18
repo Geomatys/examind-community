@@ -38,7 +38,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -68,8 +67,9 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
 
     protected QName resultModel;
 
-    protected boolean offJoin = false;
-    protected boolean obsJoin = false;
+    protected boolean offJoin  = false;
+    protected boolean obsJoin  = false;
+    protected boolean procJoin = false;
     protected boolean includeFoiInTemplate = true;
 
     protected boolean getFOI  = false;
@@ -198,7 +198,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
 
     @Override
     public void initFilterOffering() throws DataStoreException {
-        sqlRequest = new StringBuilder("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" pr WHERE ");
+        sqlRequest = new StringBuilder("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
         firstFilter = true;
         getProc = true;
     }
@@ -234,6 +234,7 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
             }
             sqlRequest.append(" pr.\"type\"='").append(type).append("' ");
             firstFilter = false;
+            procJoin = true;
         }
     }
 
@@ -793,8 +794,22 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
     @Override
     public Set<String> filterOffering() throws DataStoreException {
         String request = sqlRequest.toString();
-        if (obsJoin) {
-            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = off.\"procedure\" ";
+        if (obsJoin && procJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"procedures\" pr WHERE o.\"procedure\" = off.\"procedure\" AND pr.\"id\" = off.\"procedure\"";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else if (obsJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"procedures\" o WHERE o.\"procedure\" = off.\"procedure\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", obsJoin);
+            } else {
+                request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else if (procJoin) {
+            final String obsJoin = ", \"" + schemaPrefix + "om\".\"procedures\" pr WHERE pr.\"id\" = off.\"procedure\" ";
             if (firstFilter) {
                 request = request.replaceFirst("WHERE", obsJoin);
             } else {
