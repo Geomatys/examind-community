@@ -16,5 +16,6 @@
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations",
     "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
-  } ]
+  } ],
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams?$skip=2&$top=2"
 }

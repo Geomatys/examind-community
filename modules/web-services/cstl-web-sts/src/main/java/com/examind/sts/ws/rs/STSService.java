@@ -48,6 +48,7 @@ import org.constellation.ws.rs.OGCWebService;
 import com.examind.sts.core.STSWorker;
 import java.util.LinkedHashMap;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import org.geotoolkit.sts.AbstractSTSRequest;
 import org.geotoolkit.sts.AbstractSTSRequestById;
 import org.geotoolkit.sts.GetCapabilities;
@@ -329,13 +330,14 @@ public class STSService extends OGCWebService<STSWorker> {
         return params.isEmpty();
     }
 
-    @RequestMapping(path = "FeaturesOfInterest", method = RequestMethod.GET)
-    public ResponseEntity getFeaturesOfInterest(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    @RequestMapping(path = "FeatureOfInterests", method = RequestMethod.GET)
+    public ResponseEntity getFeatureOfInterests(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETFEATUREOFINTEREST, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -346,14 +348,15 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:[^\\)]+})/FeaturesOfInterest", method = RequestMethod.GET)
-    public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    @RequestMapping(path = "Observations({id:[^\\)]+})/FeatureOfInterests", method = RequestMethod.GET)
+    public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETFEATUREOFINTEREST, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -364,14 +367,15 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})", method = RequestMethod.GET)
+    public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETFEATUREOFINTEREST_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETFEATUREOFINTEREST_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -383,12 +387,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Things", method = RequestMethod.GET)
-    public ResponseEntity getThings(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getThings(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETTHINGS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -400,12 +405,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Observations", method = RequestMethod.GET)
-    public ResponseEntity getObservations(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservations(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETOBSERVATION, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -416,8 +422,8 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})/Observations", method = RequestMethod.GET)
-    public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})/Observations", method = RequestMethod.GET)
+    public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -425,6 +431,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
                 request.getExtraFilter().put("featureOfInterest", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -436,13 +443,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Observations({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getObservationsById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservationsById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETOBSERVATION_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVATION_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -454,12 +462,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Datastreams", method = RequestMethod.GET)
-    public ResponseEntity getDatastreams(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getDatastreams(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -471,13 +480,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Datastreams({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETDATASTREAM_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETDATASTREAM_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -489,13 +499,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Observations({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
-    public ResponseEntity getDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -507,13 +518,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
-    public ResponseEntity getDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
                 request.getExtraFilter().put("observedProperty", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -525,12 +537,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "MultiDatastreams", method = RequestMethod.GET)
-    public ResponseEntity getMultiDatastreams(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getMultiDatastreams(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -542,13 +555,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getMultiDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getMultiDatastreamById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETMULTIDATASTREAM_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETMULTIDATASTREAM_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -560,13 +574,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Observations({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
-    public ResponseEntity getMultiDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
-       putServiceIdParam(serviceId);
+    public ResponseEntity getMultiDatastreamsForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -578,13 +593,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
-    public ResponseEntity getMultiDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getMultiDatastreamsForObservedProperty(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
                 request.getExtraFilter().put("observedProperty", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -597,12 +613,13 @@ public class STSService extends OGCWebService<STSWorker> {
 
 
     @RequestMapping(path = "ObservedProperties", method = RequestMethod.GET)
-    public ResponseEntity getObservedProperties(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservedProperties(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -614,13 +631,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "ObservedProperties({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getObservedPropertyById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservedPropertyById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETOBSERVEDPROPERTY_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETOBSERVEDPROPERTY_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -632,7 +650,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
-    public ResponseEntity getObservedPropertyForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservedPropertyForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -640,6 +658,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -651,7 +670,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
-    public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -659,6 +678,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -670,7 +690,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
-    public ResponseEntity getSensorsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getSensorsForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -678,6 +698,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -689,7 +710,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/ObservedProperties", method = RequestMethod.GET)
-    public ResponseEntity getObservedPropertyForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservedPropertyForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -698,6 +719,7 @@ public class STSService extends OGCWebService<STSWorker> {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker);
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -709,7 +731,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
-    public ResponseEntity getObservationForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getObservationForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -718,6 +740,7 @@ public class STSService extends OGCWebService<STSWorker> {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker);
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -729,7 +752,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "MultiDatastreams({id:[^\\)]+})/Sensors", method = RequestMethod.GET)
-    public ResponseEntity getSensorsForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getSensorsForMultiDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -738,6 +761,7 @@ public class STSService extends OGCWebService<STSWorker> {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
                 request.getExtraFilter().put("observationId", id);
                 request.getExtraFlag().put("forMDS", "true");
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -750,12 +774,13 @@ public class STSService extends OGCWebService<STSWorker> {
 
 
     @RequestMapping(path = "Locations", method = RequestMethod.GET)
-    public ResponseEntity getLocations(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getLocations(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETLOCATIONS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -767,12 +792,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Sensors", method = RequestMethod.GET)
-    public ResponseEntity getSensors(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getSensors(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETSENSORS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -784,13 +810,14 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Sensors({id:[^\\)]+})", method = RequestMethod.GET)
-    public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getSensorById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETSENSOR_BYID, worker);
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETSENSOR_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -802,7 +829,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Sensors({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
-    public ResponseEntity getDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -810,6 +837,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
                 request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -821,7 +849,7 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "Sensors({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
-    public ResponseEntity getMultiDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getMultiDatastreamsForSensor(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
        putParam("id", id);
         final Worker worker = getWorker(serviceId);
@@ -829,6 +857,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
                 request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
@@ -840,12 +869,13 @@ public class STSService extends OGCWebService<STSWorker> {
     }
 
     @RequestMapping(path = "HistoricalLocations", method = RequestMethod.GET)
-    public ResponseEntity getHistoricalLocations(@PathVariable("serviceId") String serviceId, HttpServletResponse response) throws CstlServiceException {
+    public ResponseEntity getHistoricalLocations(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
-                RequestBase request = adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);

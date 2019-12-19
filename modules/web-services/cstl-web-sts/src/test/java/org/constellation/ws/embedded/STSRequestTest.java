@@ -335,6 +335,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-top-ct.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$skip=2&$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-top-ct2.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$skip=60&$top=4&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-top-ct3.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -509,6 +521,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-obs.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$top=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-obs-top.json");
         assertEquals(expResult, result);
     }
 

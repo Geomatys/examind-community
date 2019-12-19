@@ -1,5 +1,5 @@
 {
-  "@iot.count" : 67,
+  "@iot.count" : 62,
   "value" : [ {
     "phenomenonTime" : "2000-12-31T23:00:00Z/2000-12-31T23:00:00Z",
     "result" : 12.0,
@@ -16,5 +16,6 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:201-1-1)",
     "Datastream@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:201-1-1)/Datastreams",
     "FeatureOfInterest@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:201-1-1)/FeatureOfInterests"
-  } ]
+  } ],
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/Observations?$skip=2&$top=2"
 }

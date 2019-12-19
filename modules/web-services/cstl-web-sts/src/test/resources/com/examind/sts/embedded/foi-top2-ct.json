@@ -32,5 +32,6 @@
     "@iot.id" : "station-004",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests(station-004)/Observations"
-  } ]
+  } ],
+  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/FeatureOfInterests?$skip=4&$top=2"
 }
