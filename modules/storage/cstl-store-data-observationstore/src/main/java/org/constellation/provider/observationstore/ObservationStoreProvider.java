@@ -289,7 +289,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 return ((ObservationFilterReader)localOmFilter).getPhenomenons(hints);
             } else {
                 final List<Phenomenon> phenomenons = new ArrayList<>();
-                final Set<String> fid = localOmFilter.filterFeatureOfInterest();
+                final Set<String> fid = localOmFilter.filterPhenomenon();
                 for (String foid : fid) {
                     final Phenomenon phen = store.getReader().getPhenomenon(foid, version);
                     phenomenons.add(phen);

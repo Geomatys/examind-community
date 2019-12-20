@@ -207,8 +207,18 @@ public abstract class SOSConfigurerTest {
 
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
+        Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3", true);
         Set<String> expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:depth");
+        Assert.assertEquals(expResults, results);
+
+        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:5", false);
+        expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
+        Assert.assertEquals(expResults, results);
+
+        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:5", true);
+        expResults = new HashSet();
+        expResults.add("urn:ogc:def:phenomenon:GEOM:temperature");
+        expResults.add("urn:ogc:def:phenomenon:GEOM:depth");
         Assert.assertEquals(expResults, results);
     }
 

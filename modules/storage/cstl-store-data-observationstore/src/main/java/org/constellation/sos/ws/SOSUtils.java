@@ -86,6 +86,8 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
 import org.geotoolkit.observation.Utils;
 import org.opengis.filter.FilterFactory;
+import org.opengis.observation.CompositePhenomenon;
+import org.opengis.observation.CompoundPhenomenon;
 import org.opengis.observation.Phenomenon;
 
 /**
@@ -404,24 +406,34 @@ public final class SOSUtils {
         return new ArrayList<>();
     }
 
-    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider provider) throws ConstellationStoreException {
-        final Set<String> phenomenons = getPhenomenonFromSensor(sensor.getIdentifier(), provider);
+    public static Collection<String> getPhenomenonFromSensor(final SensorMLTree sensor, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
+        final Set<String> phenomenons = getPhenomenonFromSensor(sensor.getIdentifier(), provider, decompose);
         if (!"Component".equals(sensor.getType())) {
             for (SensorMLTree child : sensor.getChildren()) {
-                phenomenons.addAll(getPhenomenonFromSensor(child, provider));
+                phenomenons.addAll(getPhenomenonFromSensor(child, provider, decompose));
             }
         }
         return phenomenons;
     }
 
-    public static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider) throws ConstellationStoreException {
+    public static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
         final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
         final Set<String> phenomenons = new HashSet<>();
 
         SimpleQuery query = new SimpleQuery();
         query.setFilter(ff.equals(ff.property("procedure"), ff.literal(sensorID)));
         Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
-        phenos.forEach(p -> phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
+        phenos.forEach(p -> {
+            org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon)p;
+            if (decompose && phen instanceof CompositePhenomenon) {
+                CompositePhenomenon cp = (CompositePhenomenon)phen;
+                for (Phenomenon c : cp.getComponent()) {
+                    phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)c).getName().getCode());
+                }
+            } else {
+                phenomenons.add(phen.getName().getCode());
+            }
+        });
         return phenomenons;
     }
 

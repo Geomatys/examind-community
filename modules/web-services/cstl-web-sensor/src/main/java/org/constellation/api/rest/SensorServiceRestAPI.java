@@ -179,7 +179,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/observedProperty/identifiers/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesForSensor(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesForSensorId(serviceId, sensorID), OK);
+        return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesForSensorId(serviceId, sensorID, true), OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/time/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)

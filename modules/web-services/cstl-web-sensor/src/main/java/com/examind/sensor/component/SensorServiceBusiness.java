@@ -235,15 +235,15 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Collection<String> getObservedPropertiesForSensorId(final Integer serviceId, final String sensorID) throws ConfigurationException {
+    public Collection<String> getObservedPropertiesForSensorId(final Integer serviceId, final String sensorID, final boolean decompose) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(serviceId);
         try {
             final SensorMLTree root          = getSensorTree(serviceId);
             final SensorMLTree current       = root.find(sensorID);
             if (current != null) {
-                return SOSUtils.getPhenomenonFromSensor(current, pr);
+                return SOSUtils.getPhenomenonFromSensor(current, pr, decompose);
             } else {
-                return SOSUtils.getPhenomenonFromSensor(sensorID, pr);
+                return SOSUtils.getPhenomenonFromSensor(sensorID, pr, decompose);
             }
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
@@ -451,7 +451,7 @@ public class SensorServiceBusiness {
             ObservationFilterReader filter = (ObservationFilterReader) getObservationStore(serviceID).getFilter();
             filter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
             if (observedProperties.isEmpty()) {
-                observedProperties.addAll(getObservedPropertiesForSensorId(serviceID, sensorID));
+                observedProperties.addAll(getObservedPropertiesForSensorId(serviceID, sensorID, false));
             }
             filter.setObservedProperties(observedProperties);
             filter.setFeatureOfInterest(foi);
