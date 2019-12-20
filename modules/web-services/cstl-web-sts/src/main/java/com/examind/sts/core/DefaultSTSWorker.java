@@ -63,6 +63,7 @@ import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetMultiDatastreamById;
 import org.geotoolkit.sts.GetMultiDatastreams;
@@ -72,6 +73,7 @@ import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
+import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.STSRequest;
 import org.geotoolkit.sts.json.DataArray;
@@ -186,7 +188,50 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public ThingsResponse getThings(GetThings req) throws CstlServiceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final List<Thing> things = new ArrayList<>();
+        BigDecimal count = null;
+        String iotNextLink = null;
+        try {
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+            }
+            List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
+
+            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+            for (Process proc : procs) {
+                String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                org.constellation.dto.Sensor s = null;
+                if (sensorIds.contains(sensorId)) {
+                    s = sensorBusiness.getSensor(sensorId);
+                }
+                Thing thing = buildThing(req, sensorId, s);
+                things.add(thing);
+            }
+
+            iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Things");
+
+        } catch (ConfigurationException | ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+        return new ThingsResponse().value(things).iotCount(count).iotNextLink(iotNextLink);
+    }
+
+    @Override
+    public Thing getThingById(GetThingById req) throws CstlServiceException {
+        try {
+            if (req.getId() != null) {
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
+                if (s == null) {
+                    return buildThing(req, req.getId(), null);
+                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                    return buildThing(req, req.getId(), s);
+                }
+            }
+            return null;
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
     }
 
     @Override
@@ -1112,7 +1157,32 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public LocationsResponse getLocations(GetLocations req) throws CstlServiceException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final List<Location> locations = new ArrayList<>();
+        BigDecimal count = null;
+        String iotNextLink = null;
+        try {
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+            }
+            List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
+            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+            for (Process proc : procs) {
+                String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                org.constellation.dto.Sensor s = null;
+                if (sensorIds.contains(sensorId)) {
+                    s = sensorBusiness.getSensor(sensorId);
+                }
+                Location location = buildLocation(req, sensorId, s);
+                locations.add(location);
+            }
+
+            iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Locations");
+
+        } catch (ConfigurationException | ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+        return new LocationsResponse().value(locations).iotCount(count).iotNextLink(iotNextLink);
     }
 
     @Override
@@ -1213,6 +1283,54 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return sensor;
     }
 
+    private Thing buildThing(STSRequest req, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
+
+        // TODO properties
+        Thing thing = new Thing();
+        thing = thing.description("TODO")  // TODO extract from metadata and record in database
+                .name(sensorID)
+                .iotId(sensorID)
+                .iotSelfLink(selfLink);
+
+        if (req.getExpand().contains("Datastreams")) {
+            List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForSensor(sensorID);
+            for (org.opengis.observation.Observation template : linkedTemplates) {
+                thing.addDatastreamsItem(buildDatastream(req, (AbstractObservation) template));
+            }
+        } else {
+            thing = thing.datastreamsIotNavigationLink(selfLink + "/Datastreams");
+        }
+
+        if (req.getExpand().contains("MultiDatastreams")) {
+            List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForSensor(sensorID);
+            for (org.opengis.observation.Observation template : linkedTemplates) {
+                thing.addMultiDatastreamsItem(buildMultiDatastream(req, (AbstractObservation) template));
+            }
+        } else {
+            thing = thing.multiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");
+        }
+        return thing;
+    }
+
+    @Override
+    public Location getLocationById(GetLocationById req) throws CstlServiceException {
+        try {
+            if (req.getId() != null) {
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
+                if (s == null) {
+                    return buildLocation(req, req.getId(), null);
+                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                    return buildLocation(req, req.getId(), s);
+                }
+            }
+            return null;
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
     @Override
     public void addSensor(Sensor sensor) throws CstlServiceException {
         assertTransactionnal();
@@ -1255,6 +1373,31 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
+    }
+
+    private Location buildLocation(STSRequest req, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Location(" + sensorID + ")";
+        Location result = new Location();
+        result.setIotId(sensorID);
+        result.setDescription("TODO");
+        result.setEncodingType("application/vnd.geo+json");
+        result.setName(sensorID);
+
+        result.setIotSelfLink(selfLink);
+        Object geomGML = omProvider.getSensorLocation(sensorID, "2.0.0");
+        if (geomGML instanceof AbstractGeometry) {
+            try {
+                Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)geomGML);
+                GeoJSONGeometry geom = GeometryUtils.toGeoJSONGeometry(jts);
+                GeoJSONFeature feature = new GeoJSONFeature();
+                feature.setGeometry(geom);
+                result.setLocation(feature);
+            } catch (FactoryException ex) {
+                LOGGER.log(Level.WARNING, "Eror while transforming foi geometry", ex);
+            }
+        }
+        return result;
     }
 
     private FeatureOfInterest buildFeatureOfInterest(STSRequest req, org.geotoolkit.sampling.xml.SamplingFeature sp) throws ConstellationStoreException {

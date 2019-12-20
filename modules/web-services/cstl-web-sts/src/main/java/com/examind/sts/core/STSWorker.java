@@ -28,6 +28,7 @@ import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
 import org.geotoolkit.sts.GetHistoricalLocations;
+import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetMultiDatastreamById;
 import org.geotoolkit.sts.GetMultiDatastreams;
@@ -37,6 +38,7 @@ import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
+import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.GetThings;
 import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
@@ -66,6 +68,8 @@ public interface STSWorker extends Worker {
 
     ThingsResponse getThings(GetThings gt) throws CstlServiceException;
 
+    Thing getThingById(GetThingById gs) throws CstlServiceException;
+
     void addThing(Thing thing) throws CstlServiceException;
 
     Object getObservations(GetObservations go) throws CstlServiceException;
@@ -91,6 +95,8 @@ public interface STSWorker extends Worker {
     void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException;
 
     LocationsResponse getLocations(GetLocations gl) throws CstlServiceException;
+
+    Location getLocationById(GetLocationById gl) throws CstlServiceException;
 
     void addLocation(Location location) throws CstlServiceException;
 

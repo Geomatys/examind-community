@@ -41,6 +41,7 @@ public final class STSConstants {
     public static final String STR_GETFEATUREOFINTEREST      = "GetFeatureOfInterests";
     public static final String STR_GETFEATUREOFINTEREST_BYID = "GetFeatureOfInterestById";
     public static final String STR_GETTHINGS                 = "GetThings";
+    public static final String STR_GETTHING_BYID             = "GetThingById";
     public static final String STR_GETOBSERVATION            = "GetObservations";
     public static final String STR_GETOBSERVATION_BYID       = "GetObservationById";
     public static final String STR_GETDATASTREAMS            = "getDatastreams";
@@ -50,6 +51,7 @@ public final class STSConstants {
     public static final String STR_GETOBSERVEDPROPERTIES     = "GetObservedProperties";
     public static final String STR_GETOBSERVEDPROPERTY_BYID  = "GetObservedPropertyById";
     public static final String STR_GETLOCATIONS              = "GetLocations";
+    public static final String STR_GETLOCATION_BYID          = "GetLocationById";
     public static final String STR_GETSENSORS                = "GetSensors";
     public static final String STR_GETSENSOR_BYID            = "GetSensorById";
     public static final String STR_GETHISTORICALLOCATIONS    = "HistoricalLocations";
