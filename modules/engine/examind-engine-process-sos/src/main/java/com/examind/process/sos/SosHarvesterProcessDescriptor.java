@@ -68,6 +68,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String REMOTE_READ_NAME = "remote reading";
+    public static final String REMOTE_READ_DESC = "remote reading";
+    public static final ParameterDescriptor<Boolean> REMOTE_READ = PARAM_BUILDER
+            .addName(REMOTE_READ_NAME)
+            .setRemarks(REMOTE_READ_DESC)
+            .setRequired(false)
+            .create(Boolean.class, false);
+
     public static final String SERVICE_ID_NAME = "SOS service";
     public static final String SERVICE_ID_DESC = "SOS service";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
@@ -189,7 +197,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"", "application/dbase; subtype=\"om\""}, "text/csv; subtype=\"om\"");
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
                     SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS,
                     STORE_ID, FORMAT);
 

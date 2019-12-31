@@ -152,7 +152,10 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final List<Parameter> inputs = new ArrayList<>();
 
-        final Parameter SIDparam = new Parameter(SERVICE_ID_NAME, ServiceProcessReference.class, SERVICE_ID_DESC, SERVICE_ID_DESC, 1, 1);
+        final Parameter DRparam = new Parameter(REMOTE_READ_NAME, Boolean.class, REMOTE_READ_DESC, REMOTE_READ_DESC, 0, 1);
+        inputs.add(DRparam);
+
+         final Parameter SIDparam = new Parameter(SERVICE_ID_NAME, ServiceProcessReference.class, SERVICE_ID_DESC, SERVICE_ID_DESC, 1, 1);
         // not using Collections.singletonMap() because of marshalling issue
         Map<String, Object> userMap = new HashMap<>();
         HashMap<String, String> typeMap = new HashMap<>();

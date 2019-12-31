@@ -120,6 +120,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String sourceFolderStr = inputParameters.getValue(DATA_FOLDER);
         final String user = inputParameters.getValue(USER);
         final String pwd  = inputParameters.getValue(PWD);
+        final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
 
 
         final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
@@ -165,6 +166,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             ds.setPwd(pwd);
             ds.setFormat(format);
             ds.setPermanent(Boolean.TRUE);
+            ds.setReadFromRemote(remoteRead);
             dsId = datasourceBusiness.create(ds);
             ds = datasourceBusiness.getDatasource(dsId);
         } else {
@@ -207,6 +209,15 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
 
                 datasourceBusiness.clearSelectedPaths(dsId);
+
+                // update datasource
+                ds.setReadFromRemote(remoteRead);
+                ds.setStoreId(storeId);
+                ds.setUsername(user);
+                ds.setPwd(pwd);
+                ds.setFormat(format);
+                datasourceBusiness.update(ds);
+                
             } catch (ConstellationException ex) {
                 throw new ProcessException("Error while removing previous insertion.", this, ex);
             }
