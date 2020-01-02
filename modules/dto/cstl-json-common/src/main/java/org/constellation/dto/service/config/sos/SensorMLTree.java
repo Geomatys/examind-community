@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import org.constellation.util.NamedId;
 
 /**
  *
@@ -204,6 +205,17 @@ public class SensorMLTree {
         for (SensorMLTree child : getChildren()) {
             if (child != null) {
                 results.addAll(child.getAllChildrenIds());
+            }
+        }
+        return results;
+    }
+
+    public List<NamedId> getAllChildrenNamedIds() {
+        final List<NamedId> results = new ArrayList<>();
+        results.add(new NamedId(id, identifier));
+        for (SensorMLTree child : getChildren()) {
+            if (child != null) {
+                results.addAll(child.getAllChildrenNamedIds());
             }
         }
         return results;

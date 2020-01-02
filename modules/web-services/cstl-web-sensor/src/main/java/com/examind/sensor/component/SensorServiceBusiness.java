@@ -47,6 +47,7 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import org.constellation.sos.ws.SOSUtils;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
+import org.constellation.util.NamedId;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
@@ -142,16 +143,18 @@ public class SensorServiceBusiness {
             final SensorMLTree tree = root.find(sensorID);
 
             // for a System sensor, we delete also his components
-            final List<String> toRemove = new ArrayList<>();
+            final List<NamedId> toRemove = new ArrayList<>();
             if (tree != null) {
-                toRemove.addAll(tree.getAllChildrenIds());
+                toRemove.addAll(tree.getAllChildrenNamedIds());
             } else {
                 // tree should no be null
-                toRemove.add(sensorID);
+                toRemove.add(new NamedId(-1, sensorID));
             }
-            for (String sid : toRemove) {
-                sensorBusiness.removeSensorFromService(id, sid);
-                pr.removeProcedure(sid);
+            for (NamedId sid : toRemove) {
+                sensorBusiness.removeSensorFromService(id, sid.getId());
+                if (sensorBusiness.getLinkedServiceIds(sid.getId()).isEmpty()) {
+                    pr.removeProcedure(sid.getIdentifier());
+                }
             }
 
             // if the sensor has a System parent, we must update his component list

@@ -21,6 +21,7 @@ package org.constellation.api.rest;
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -332,15 +333,24 @@ public class SensorServiceRestAPI {
     public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getIdentifier());
-        final List<Integer> dataProviders = sensorBusiness.getLinkedDataProviderIds(sensor.getId());
+        final Collection<String> previous = sensorServiceBusiness.getSensorIds(sid);
         final List<String> sensorIds      = new ArrayList<>();
+        final List<Integer> dataProviders = new ArrayList<>();
+
+        // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+        if (!previous.contains(sensorID)) {
+            dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(sensor.getId()));
+        }
 
         sensorBusiness.addSensorToService(sid, sensor.getId());
         sensorIds.add(sensorID);
 
         //import sensor children
         for (Sensor child : sensorChildren) {
-            dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
+            // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+            if (!previous.contains(child.getIdentifier())) {
+                dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
+            }
             sensorBusiness.addSensorToService(sid, child.getId());
             sensorIds.add(child.getIdentifier());
         }
@@ -374,8 +384,6 @@ public class SensorServiceRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }
         }
-
-
         return new ResponseEntity(new AcknowlegementType("Success", "The specified sensor has been imported in the Sensor Service"), OK);
     }
 
