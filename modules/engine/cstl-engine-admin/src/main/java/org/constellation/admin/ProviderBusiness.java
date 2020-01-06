@@ -529,6 +529,10 @@ public class ProviderBusiness implements IProviderBusiness {
                     dbObsParams.parameter("user").setValue(inParams.get("user"));
                     dbObsParams.parameter("password").setValue(inParams.get("password"));
                     dbObsParams.parameter("schema-prefix").setValue(inParams.get("schema-prefix"));
+                    dbObsParams.parameter("phenomenon-id-base").setValue(inParams.get("phenomenon-id-base"));
+                    dbObsParams.parameter("observation-template-id-base").setValue(inParams.get("observation-template-id-base"));
+                    dbObsParams.parameter("observation-id-base").setValue(inParams.get("observation-id-base"));
+                    dbObsParams.parameter("sensor-id-base").setValue(inParams.get("sensor-id-base"));
                     break;
             }
         }else if("filesensor".equals(subType)){

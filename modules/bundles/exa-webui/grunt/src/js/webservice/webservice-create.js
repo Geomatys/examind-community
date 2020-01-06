@@ -305,7 +305,11 @@ angular.module('cstl-webservice-create', [
                     user: self.guiConfig.user,
                     password: self.guiConfig.password,
                     'schema-prefix':self.guiConfig.schema,
-                    sgbdtype: 'postgres'
+                    sgbdtype: 'postgres',
+                    'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
+                    'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
+                    'observation-id-base':"urn:ogc:object:observation:GEOM:",
+                    'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
                 }
             }).then(function() {
                  createSensorProvider();
