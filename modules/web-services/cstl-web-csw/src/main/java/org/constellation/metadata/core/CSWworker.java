@@ -673,6 +673,10 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         return serviceUrl.substring(0, serviceUrl.length() - 1) + "/descriptionDocument.xml";
     }
 
+    private String getGranuleUrl(String serviceUrl, String recordId) {
+        return serviceUrl.substring(0, serviceUrl.length() - (1 + getId().length())) + recordId + "/descriptionDocument.xml";
+    }
+
     /**
      * Web service operation which permits to search the catalog to find records.
      *
@@ -932,7 +936,11 @@ public class CSWworker extends AbstractWorker implements Refreshable {
             final Details skeleton = getStaticCapabilitiesObject("csw", null);
             FeedType feed = CSWConstants.createFeed(serviceUrl, skeleton, getOsUrl(serviceUrl));
             for (RecordInfo record : records) {
-                EntryType entry = CSWUtils.getEntryFromRecordInfo(serviceUrl, record);
+                String entrySearchLink = null;
+                if ("true".equals(getProperty("collection"))) {
+                    entrySearchLink = getGranuleUrl(serviceUrl, record.identifier);
+                }
+                EntryType entry = CSWUtils.getEntryFromRecordInfo(serviceUrl, record, entrySearchLink);
                 feed.addEntry(entry);
             }
             response = OpenSearchXmlFactory.completeFeed(feed, (long)totalMatched,(long)startPos, (long)maxRecord);

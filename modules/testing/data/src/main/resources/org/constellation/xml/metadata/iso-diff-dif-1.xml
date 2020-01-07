@@ -47,7 +47,7 @@
         </CI_ResponsibleParty>
     </contact>
     <contact>
-        <CI_ResponsibleParty>
+        <CI_ResponsibleParty uuid="987-887">
             <individualName>
                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">jean pierre imbert</CharacterString>
             </individualName>
@@ -90,7 +90,7 @@
         </CI_ResponsibleParty>
     </contact>
     <dateStamp>
-        <DateTime xmlns="http://www.isotc211.org/2005/gco">2010-12-01T12:00:00Z</DateTime>
+        <DateTime xmlns="http://www.isotc211.org/2005/gco">2015-09-10T00:00:00Z</DateTime>
     </dateStamp>
     <identificationInfo>
         <MD_DataIdentification>
@@ -99,6 +99,26 @@
                     <title>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">title</CharacterString>
                     </title>
+                    <date>
+                        <CI_Date>
+                            <date>
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2009-09-10T00:00:00Z</DateTime>
+                            </date>
+                            <dateType>
+                                <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</CI_DateTypeCode>
+                            </dateType>
+                        </CI_Date>
+                    </date>
+                    <date>
+                        <CI_Date>
+                            <date>
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2015-08-01T00:00:00Z</DateTime>
+                            </date>
+                            <dateType>
+                                <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>
+                            </dateType>
+                        </CI_Date>
+                    </date>
                 </CI_Citation>
             </citation>
             <abstract>
@@ -111,10 +131,13 @@
                 <MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="COMPLETE">COMPLETE</MD_ProgressCode>
             </status>
             <pointOfContact>
-                <CI_ResponsibleParty>
+                <CI_ResponsibleParty uuid="b6bb79aa-0743-4730-ba5f-39b6fb28167b">
                     <individualName>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>
                     </individualName>
+                    <organisationName>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>
+                    </organisationName>
                     <positionName>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>
                     </positionName>
@@ -185,6 +208,22 @@
                             <title>
                                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">NASA/GCMD Science Keywords</CharacterString>
                             </title>
+                            <alternateTitle>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Science Keywords</CharacterString>
+                            </alternateTitle>
+                            <date>
+                                <CI_Date>
+                                    <date>
+                                        <Date xmlns="http://www.isotc211.org/2005/gco">2016-08-10</Date>
+                                    </date>
+                                    <dateType>
+                                        <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>
+                                    </dateType>
+                                </CI_Date>
+                            </date>
+                            <collectiveTitle>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)</CharacterString>
+                            </collectiveTitle>
                         </CI_Citation>
                     </thesaurusName>
                 </MD_Keywords>
@@ -215,6 +254,9 @@
             <topicCategory>
                 <MD_TopicCategoryCode>economy</MD_TopicCategoryCode>
             </topicCategory>
+            <topicCategory>
+                <MD_TopicCategoryCode>climatologyMeteorologyAtmosphere</MD_TopicCategoryCode>
+            </topicCategory>
             <extent>
                 <EX_Extent>
                     <geographicElement>
@@ -228,6 +270,10 @@
                             </geographicIdentifier>
                         </EX_GeographicDescription>
                     </geographicElement>
+                </EX_Extent>
+            </extent>
+            <extent>
+                <EX_Extent>
                     <geographicElement>
                         <EX_GeographicBoundingBox>
                             <westBoundLongitude>
@@ -244,16 +290,6 @@
                             </northBoundLatitude>
                         </EX_GeographicBoundingBox>
                     </geographicElement>
-                    <temporalElement>
-                        <EX_TemporalExtent>
-                            <extent>
-                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
-                                    <beginPosition>2010-12-01T12:00:00Z</beginPosition>
-                                    <endPosition>2010-12-02T23:00:00Z</endPosition>
-                                </TimePeriod>
-                            </extent>
-                        </EX_TemporalExtent>
-                    </temporalElement>
                     <verticalElement>
                         <EX_VerticalExtent>
                             <minimumValue>
@@ -264,6 +300,20 @@
                             </maximumValue>
                         </EX_VerticalExtent>
                     </verticalElement>
+                </EX_Extent>
+            </extent>
+            <extent>
+                <EX_Extent>
+                    <temporalElement>
+                        <EX_TemporalExtent>
+                            <extent>
+                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
+                                    <beginPosition>2010-12-01T12:00:00Z</beginPosition>
+                                    <endPosition>2010-12-02T23:00:00Z</endPosition>
+                                </TimePeriod>
+                            </extent>
+                        </EX_TemporalExtent>
+                    </temporalElement>
                 </EX_Extent>
             </extent>
         </MD_DataIdentification>
@@ -291,6 +341,9 @@
                             <individualName>
                                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">pedro juan lopez</CharacterString>
                             </individualName>
+                            <organisationName>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Geom</CharacterString>
+                            </organisationName>
                             <positionName>
                                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>
                             </positionName>

@@ -874,10 +874,24 @@ public class CSWService extends OGCWebService<CSWworker> {
 
     @RequestMapping(path = "/descriptionDocument.xml", method = GET)
     public ResponseEntity getOpenSearchDescriptionDocument(@PathVariable("serviceId") String serviceId) {
-        OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
-        String cswUrl = getServiceURL() + "/csw/" + serviceId;
-        CSWUtils.updateCswURL(description, cswUrl);
-        return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
+        CSWworker worker = getWorker(serviceId);
+        if (worker != null) {
+            OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
+            String cswUrl = getServiceURL() + "/csw/" + serviceId;
+            CSWUtils.updateCswURL(description, cswUrl);
+           /* boolean isCollection = false;
+            final Object conf = worker.getConfiguration();
+            if (conf instanceof Automatic) {
+                isCollection = ((Automatic)conf).getBooleanParameter("collection", true);
+            }
+            if (isCollection) {
+                // TODO
+            }*/
+            return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
+        } else {
+            LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
+            return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+        }
     }
 
     @RequestMapping(path = "/opensearch", method = GET)
@@ -895,9 +909,9 @@ public class CSWService extends OGCWebService<CSWworker> {
 
                 if (response instanceof FeedType) {
                     FeedType feed = (FeedType) response;
-                    String selfRequest = getLogParameters();
+                    String selfRequest = getServiceURL() + "/csw/" + serviceId + "/opensearch?" + getHttpServletRequest().getQueryString();
+
                     CSWUtils.addNavigationRequest(request, feed, selfRequest);
-                    // TODO add next / previous
                 }
 
                 return new ResponseObject(response, outputFormat).getResponseEntity();

@@ -68,6 +68,7 @@
     <Term>science term</Term>
   </Science_Keywords>
   <ISO_Topic_Category>economy</ISO_Topic_Category>
+  <ISO_Topic_Category>CLIMATOLOGY/METEOROLOGY/ATMOSPHERE</ISO_Topic_Category>
   <Ancillary_Keyword>anc kw1</Ancillary_Keyword>
   <Ancillary_Keyword>anc kw2</Ancillary_Keyword>
   <Temporal_Coverage>
@@ -185,5 +186,8 @@
   </Metadata_Association>
   <Metadata_Dates>
     <Metadata_Creation>2010-12-01T12:00:00Z</Metadata_Creation>
+    <Metadata_Last_Revision>2015-09-10T00:00:00Z</Metadata_Last_Revision>
+    <Data_Creation>2009-09-10T00:00:00Z</Data_Creation>
+    <Data_Last_Revision>2015-08-01T00:00:00Z</Data_Last_Revision>
   </Metadata_Dates>
 </DIF>

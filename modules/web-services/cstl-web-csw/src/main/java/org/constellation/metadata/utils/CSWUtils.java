@@ -387,7 +387,7 @@ public class CSWUtils {
         return entry;
     }
 
-    public static EntryType getEntryFromRecordInfo(String serviceUrl, RecordInfo record) {
+    public static EntryType getEntryFromRecordInfo(String serviceUrl, RecordInfo record, String entrySearchLink) {
 
         ISODateParser parser = new ISODateParser();
         EntryType entry = new EntryType();
@@ -405,6 +405,9 @@ public class CSWUtils {
         String cswUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", outputschema);
         entry.addLink(new LinkType(cswUrl, "Native format", "alternate", "application/xml"));
 
+        if (entrySearchLink != null) {
+            entry.addLink(new LinkType(entrySearchLink, "Granule search", "search", "application/opensearchdescription+xml"));
+        }
 
         final List<String> titleValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:title");
         if (!titleValues.isEmpty()) {

@@ -160,6 +160,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                                         true, "eng");
 
                 final Automatic config2 = new Automatic();
+                config2.putParameter("collection", "true");
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
                 Integer csw2Id = serviceBusiness.create("csw", "csw2", config2, d2, null);
                 serviceBusiness.linkCSWAndProvider("csw2", "metadataSrc2");
@@ -271,6 +272,10 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
     private static String getCsw2URL() {
         return "http://localhost:" +  getCurrentPort() + "/WS/csw/csw2?";
+    }
+
+    private static String getOpenSearch2URL() {
+        return "http://localhost:" +  getCurrentPort() + "/WS/csw/csw2/opensearch?";
     }
 
     @Test
@@ -867,6 +872,16 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom4.xml"));
+        domCompare(strResult, expResult);
+
+        /**
+         * KVP search atom output 5: full search on collection CSW
+         */
+        kvpsUrl = new URL(getOpenSearch2URL() + "service=CSW&version=3.0.0&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
+        conec = kvpsUrl.openConnection();
+
+        strResult = getStringResponse(conec);
+        expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom5.xml"));
         domCompare(strResult, expResult);
     }
 

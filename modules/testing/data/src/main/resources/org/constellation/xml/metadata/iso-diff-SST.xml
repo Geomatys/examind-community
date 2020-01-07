@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><MI_Metadata xmlns="http://www.isotc211.org/2005/gmi">
+<?xml version="1.0" encoding="UTF-8"?>
+<MI_Metadata xmlns="http://www.isotc211.org/2005/gmi">
     <fileIdentifier xmlns="http://www.isotc211.org/2005/gmd">
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">L2-SST</CharacterString>
     </fileIdentifier>
@@ -12,6 +13,16 @@
                     <title>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C/SGLI L2 Sea surface temperature</CharacterString>
                     </title>
+                    <date>
+                        <CI_Date>
+                            <date>
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-01-01</DateTime>
+                            </date>
+                            <dateType>
+                                <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</CI_DateTypeCode>
+                            </dateType>
+                        </CI_Date>
+                    </date>
                 </CI_Citation>
             </citation>
             <abstract>
@@ -25,6 +36,9 @@
                     <individualName>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>
                     </individualName>
+                    <organisationName>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>
+                    </organisationName>
                     <positionName>
                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>
                     </positionName>
@@ -82,6 +96,22 @@
                             <title>
                                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">NASA/GCMD Science Keywords</CharacterString>
                             </title>
+                            <alternateTitle>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Science Keywords</CharacterString>
+                            </alternateTitle>
+                            <date>
+                                <CI_Date>
+                                    <date>
+                                        <Date xmlns="http://www.isotc211.org/2005/gco">2016-08-10</Date>
+                                    </date>
+                                    <dateType>
+                                        <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>
+                                    </dateType>
+                                </CI_Date>
+                            </date>
+                            <collectiveTitle>
+                                <CharacterString  xmlns="http://www.isotc211.org/2005/gco">Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)</CharacterString>
+                            </collectiveTitle>
                         </CI_Citation>
                     </thesaurusName>
                 </MD_Keywords>
@@ -119,6 +149,9 @@
             </topicCategory>
             <extent>
                 <EX_Extent>
+                    <description>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SpatialGranuleSpatialRepresentation=CARTESIAN</CharacterString>
+                    </description>
                     <geographicElement>
                         <EX_GeographicBoundingBox>
                             <westBoundLongitude>
@@ -135,6 +168,10 @@
                             </northBoundLatitude>
                         </EX_GeographicBoundingBox>
                     </geographicElement>
+                </EX_Extent>
+            </extent>
+            <extent>
+                <EX_Extent>
                     <temporalElement>
                         <EX_TemporalExtent>
                             <extent>
