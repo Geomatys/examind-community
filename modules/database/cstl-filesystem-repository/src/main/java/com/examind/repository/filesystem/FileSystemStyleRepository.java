@@ -53,7 +53,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     private final Map<Integer, List<Style>> byLayer = new HashMap<>();
 
     public FileSystemStyleRepository() {
-        super(Style.class);
+        super(Style.class, StringList.class);
         load();
     }
 
@@ -520,7 +520,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
             }
 
             // create new file
-            if (found) {
+            if (!found) {
                 // update fs
                 StringList styleList = new StringList(Arrays.asList(styleId + ""));
                 Path styleDataFile = styleLayerDir.resolve(layerId + ".xml");
@@ -550,7 +550,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
                     StringList styleList = (StringList) getObjectFromPath(styleLayerFile, pool);
                     List<Integer> styleIds = getIntegerList(styleList);
                     if (styleIds.contains(styleId)) {
-                        styleIds.remove(styleId);
+                        styleIds.remove((Integer)styleId);
 
                         // update fs
                         writeObjectInPath(styleList, styleLayerFile, pool);

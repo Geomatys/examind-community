@@ -35,4 +35,10 @@ public class FSStyleRepositoryTest extends StyleRepositoryTest {
         super.crude();
     }
 
+    @Test
+    @Transactional()
+    @Override
+    public void layersLink() {
+        super.layersLink();
+    }
 }
