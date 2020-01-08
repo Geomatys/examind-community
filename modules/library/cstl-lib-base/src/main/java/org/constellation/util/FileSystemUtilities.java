@@ -253,20 +253,25 @@ public class FileSystemUtilities {
     }
 
     public static FileBean analysePath(String parentPath, Path path, boolean fullAnalyze) {
+        return analysePath(parentPath, path, true, fullAnalyze);
+    }
+
+    public static FileBean analysePath(String parentPath, Path path, boolean recursive, boolean fullAnalyze) {
         LOGGER.log(Level.FINER, "ANALYZING:{0}", path.toString());
         String fileName;
-        boolean isDir = fullAnalyze && Files.isDirectory(path);
+        boolean isDir = recursive && Files.isDirectory(path);
+        Path fname    = path.getFileName();
         String localPath;
         if (parentPath != null) {
-            fileName = path.getFileName().toString();
+            fileName = fname.toString();
             localPath = parentPath + fileName;
             if (isDir) {
                 localPath = localPath + '/';
             }
         } else {
             localPath = "/";
-            if (path.getFileName() != null) {
-                fileName = path.getFileName().toString();
+            if (fname != null) {
+                fileName = fname.toString();
             } else {
                 fileName = "/";
             }
