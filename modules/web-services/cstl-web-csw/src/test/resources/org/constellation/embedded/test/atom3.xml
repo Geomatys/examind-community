@@ -5,6 +5,7 @@
         xmlns:a="http://www.w3.org/2005/Atom"
         xmlns:os="http://a9.com/-/spec/opensearch/1.1/"
         xmlns:dc="http://purl.org/dc/elements/1.1/">
+<<<<<<< HEAD
   <a:id>http://localhost:9090/WS/csw/default?</a:id>
   <a:title>Examind Opensearch service</a:title>
   <a:author/>
