@@ -20,6 +20,7 @@ package org.constellation.metadata;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -89,6 +90,15 @@ public final class CSWQueryable {
          ALL_PREFIX_MAPPING.putAll(EBRIM_PREFIX_MAPPING);
          ALL_PREFIX_MAPPING.putAll(CSW_PREFIX_MAPPING);
      }
+
+     public static List<String> ISO_DISTRIBUTION_LINK = Arrays.asList("/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:linkage/gmd:URL");
+     public static List<String> DC_DISTRIBUTION_LINK  = Arrays.asList("/csw2:Record/dc:relation",
+                                                                      "/csw3:Record/dc:relation");
+     //public static List<String> DIF_DISTRIBUTION_LINK = Arrays.asList("/dif:DIF/dif:Related_URL#dif:URL_Content_Type/dif:Type=GET DATA/dif:URL");
+    public static String DIF_DISTRIBUTION_COND_PATH = "/dif:DIF/dif:Related_URL/dif:URL_Content_Type/dif:Type";
+    public static String DIF_DISTRIBUTION_COND_VALUE = "GET DATA";
+    public static String DIF_DISTRIBUTION_LINK = "/dif:DIF/dif:Related_URL/dif:URL";
+
 
      private CSWQueryable() {}
 

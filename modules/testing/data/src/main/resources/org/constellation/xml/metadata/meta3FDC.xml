@@ -18,6 +18,7 @@
     <dc:date>2009-01-26T13:21:45+02:00</dc:date>
     <dct:abstract>Donnees CTD ANGOLA CAP 7501 78</dct:abstract>
     <dc:publisher>IFREMER / IDM/SISMER</dc:publisher>
+    <dc:references>http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=39727_1&amp;cle2=CTDF02</dc:references>
     <ows:BoundingBox dimensions="2" crs="EPSG:4326">
         <ows:LowerCorner>-6.95 -4.967</ows:LowerCorner>
         <ows:UpperCorner>-6.95 -4.967</ows:UpperCorner>
@@ -26,4 +27,5 @@
         <ows:LowerCorner>-7.2 -5.1</ows:LowerCorner>
         <ows:UpperCorner>-7.2 -5.1</ows:UpperCorner>
     </ows:BoundingBox>
+    <dc:uri description="CTDF02" protocol="http">http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=39727_1&amp;cle2=CTDF02</dc:uri>
 </csw:Record>

@@ -231,6 +231,29 @@ public class NodeUtilities {
         return null;
     }
 
+    public static List<String> getValuesFromConditionalPath(final Node parent, String xpath, String conditionalPath, final String conditionalValue) {
+        final List<String> results = new ArrayList<>();
+
+        // verify type
+        conditionalPath = conditionalPath.substring(xpath.indexOf(':') + 1);
+        xpath           = xpath.substring(xpath.indexOf(':') + 1);
+        final String pathType;
+        if (xpath.indexOf('/') != -1) {
+            pathType = xpath.substring(0, xpath.indexOf('/'));
+        } else {
+            pathType = xpath;
+        }
+        if (!pathType.equals("*") && !pathType.equals(parent.getLocalName())) {
+            return results;
+        }
+
+        final List<Node> nodes = getNodeFromConditionalPath(xpath, conditionalPath, conditionalValue, parent);
+        for (Node n : nodes) {
+            results.add(n.getTextContent());
+        }
+
+        return results;
+    }
 
     public static List<String> getValuesFromPath(final Node parent, final String xpath) {
         return getValuesFromPaths(parent, Arrays.asList(xpath));

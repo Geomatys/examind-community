@@ -28,6 +28,8 @@
         <dc:date>2009-01-26T13:00:00+02:00</dc:date>
         <dct:abstract>Donnees CTD MEDIPROD VI 120</dct:abstract>
         <dc:publisher>IFREMER / IDM/SISMER</dc:publisher>
+        <dc:references>http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=42292_1&amp;cle2=CTDF02</dc:references>
+        <dc:references>ftp://test.xml</dc:references>
         <ows:BoundingBox dimensions="2" crs="EPSG:4326">
             <ows:LowerCorner>36.6 1.3667</ows:LowerCorner>
             <ows:UpperCorner>36.6 1.3667</ows:UpperCorner>
@@ -36,4 +38,6 @@
             <ows:LowerCorner>31.2 12.1</ows:LowerCorner>
             <ows:UpperCorner>31.2 12.1</ows:UpperCorner>
         </ows:BoundingBox>
+        <dc:uri description="CTDF02" protocol="http">http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=42292_1&amp;cle2=CTDF02</dc:uri>
+        <dc:uri protocol="ftp">ftp://test.xml</dc:uri>
 </csw:Record>

@@ -405,8 +405,13 @@ public class CSWUtils {
         String cswUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", outputschema);
         entry.addLink(new LinkType(cswUrl, "Native format", "alternate", "application/xml"));
 
+        final List<String> relationValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:references");
         if (entrySearchLink != null) {
             entry.addLink(new LinkType(entrySearchLink, "Granule search", "search", "application/opensearchdescription+xml"));
+        } else {
+            for (String relationValue : relationValues) {
+                entry.addLink(new LinkType(relationValue, "enclosure", null));
+            }
         }
 
         final List<String> titleValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:title");

@@ -51,6 +51,9 @@ import javax.xml.XMLConstants;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
+import static org.constellation.metadata.CSWQueryable.DIF_DISTRIBUTION_COND_PATH;
+import static org.constellation.metadata.CSWQueryable.DIF_DISTRIBUTION_COND_VALUE;
+import static org.constellation.metadata.CSWQueryable.DIF_DISTRIBUTION_LINK;
 import static org.constellation.metadata.CSWQueryable.DIF_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
@@ -77,7 +80,6 @@ import org.geotoolkit.metadata.RecordInfo;
 import static org.geotoolkit.metadata.TypeNames.METADATA_QNAME;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.v100.ObjectFactory._BoundingBox_QNAME;
-import org.w3c.dom.Attr;
 
 
 /**
@@ -473,9 +475,38 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 NodeUtilities.appendChilds(root, bboxes);
             }
 
+            final List<String> relValues  = new ArrayList<>();
+            final List<Node> uris         = new ArrayList<>();
+            final List<Node> transferOpts = NodeUtilities.getNodeFromPath(metadata, "/gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource");
+            for (Node transferOpt : transferOpts) {
+                String link = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:linkage/gmd:URL");
+                if (link != null) {
+                    relValues.add(link);
+
+                    // URI
+                    final Node n = document.createElementNS("http://purl.org/dc/elements/1.1/", "uri");
+                    n.setTextContent(link);
+
+                    final String protocol = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString");
+                    if (protocol != null) {
+                        ((Element)n).setAttribute("protocol", protocol);
+                    }
+                    final String description = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:description/gco:CharacterString");
+                    if (description != null) {
+                        ((Element)n).setAttribute("description", description);
+                    }
+                    final String name = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:name/gco:CharacterString");
+                    if (name != null) {
+                        ((Element)n).setAttribute("name", name);
+                    }
+                    uris.add(n);
+                }
+            }
+
+            final List<Node> references = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "references", relValues, false);
+
             /* TODO
-            final SimpleLiteral spatial = null;
-            final SimpleLiteral references = null;*/
+            final SimpleLiteral spatial = null;*/
 
             if (ElementSetType.FULL.equals(type)) {
                 final Element recRoot = document.createElementNS(mainNmsp, "Record");
@@ -491,9 +522,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 NodeUtilities.appendChilds(recRoot, abstracts);
                 NodeUtilities.appendChilds(recRoot, distributors);
                 NodeUtilities.appendChilds(recRoot, descriptions);
+                NodeUtilities.appendChilds(recRoot, references);
                 NodeUtilities.appendChilds(recRoot, bboxes);
+                NodeUtilities.appendChilds(recRoot, uris);
                 //NodeUtilities.appendChilds(recRoot, spatials);
-                //NodeUtilities.appendChilds(recRoot, references);
+
                 return recRoot;
             }
 
@@ -680,9 +713,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 NodeUtilities.appendChilds(root, bboxes);
             }
 
+            final List<String> relValues = NodeUtilities.getValuesFromConditionalPath(metadata, DIF_DISTRIBUTION_LINK, DIF_DISTRIBUTION_COND_PATH, DIF_DISTRIBUTION_COND_VALUE);
+            final List<Node> references = NodeUtilities.buildNodes(document, "http://purl.org/dc/elements/1.1/", "references", relValues, false);
+
             /* TODO
-            final SimpleLiteral spatial = null;
-            final SimpleLiteral references = null;*/
+            final SimpleLiteral spatial = null;*/
 
             if (ElementSetType.FULL.equals(type)) {
                 final Element recRoot = document.createElementNS(mainNmsp, "Record");
@@ -698,9 +733,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 NodeUtilities.appendChilds(recRoot, abstracts);
                 NodeUtilities.appendChilds(recRoot, distributors);
                 NodeUtilities.appendChilds(recRoot, descriptions);
+                NodeUtilities.appendChilds(recRoot, references);
                 NodeUtilities.appendChilds(recRoot, bboxes);
                 //NodeUtilities.appendChilds(recRoot, spatials);
-                //NodeUtilities.appendChilds(recRoot, references);
                 return recRoot;
             }
 

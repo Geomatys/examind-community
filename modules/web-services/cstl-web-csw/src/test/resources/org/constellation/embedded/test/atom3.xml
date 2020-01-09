@@ -5,27 +5,28 @@
         xmlns:a="http://www.w3.org/2005/Atom"
         xmlns:os="http://a9.com/-/spec/opensearch/1.1/"
         xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <a:id>http://localhost:9090/WS/csw/default?</a:id>
-    <a:title>Examind Opensearch service</a:title>
-    <a:author/>
-    <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
-    <a:entry>
-        <a:id>L2-LST</a:id>
-        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=L2-LST&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=L2-LST&amp;outputschema=http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" rel="alternate" type="application/xml" title="Native format"/>
-        <a:title>GCOM-C/SGLI L2 Land surface temperature</a:title>
-        <a:author>
-            <a:name>JP/JAXA/SAOC</a:name>
-        </a:author>
-        <a:category term="Imagery/Base Maps/Earth Cover"/>
-        <a:category term="Environment"/>
-        <a:category term="Climatology/Meteorology/Atmosphere"/>
-        <a:category term="SNOW"/>
-        <a:category term="LAND SURFACE TEMPERATURE"/>
-        <a:category term="LAND"/>
-        <a:category term="JAXA"/>
-        <a:category term="Level-2"/>
-        <a:summary>GCOM-C conducts long-term and continuous global observation and data collection to elucidate the mechanism behind fluctuations in radiation budget and carbon cycle needed to make accurate projections regarding future temperature rise. At the same time, cooperating with research institutions having a climate numerical model, it contributes to reduction of errors in temperature rise prediction derived from the climate numerical model and improvement of accuracy of prediction of various environmental changes.SGLI mounted on GCOM-C is the succession sensor of the Global Imager (GLI) mounted on ADEOS-II (MIDORI II) and is the Imaging Radiometer which measures the radiation from near-ultraviolet to thermal infrared region (380 nm-12 um) in 19 channels Global observation of once for approximately every two days is possible at mid-latitude near Japan by observation width at ground greater than 1,000 km. In addition, SGLI realizes high resolution than the similar global sensor and has a polarized observation function and a multi-angle observation function.
+  <a:id>http://localhost:9090/WS/csw/default?</a:id>
+  <a:title>Examind Opensearch service</a:title>
+  <a:author/>
+  <a:link href="http://localhost:9090/WS/csw/default/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
+  <a:entry>
+    <a:id>L2-LST</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=L2-LST&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=L2-LST&amp;outputschema=http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" rel="alternate" type="application/xml" title="Native format"/>
+    <a:link href="https://gportal.jaxa.jp/" rel="enclosure"/>
+    <a:title>GCOM-C/SGLI L2 Land surface temperature</a:title>
+    <a:author>
+      <a:name>JP/JAXA/SAOC</a:name>
+    </a:author>
+    <a:category term="Imagery/Base Maps/Earth Cover"/>
+    <a:category term="Environment"/>
+    <a:category term="Climatology/Meteorology/Atmosphere"/>
+    <a:category term="SNOW"/>
+    <a:category term="LAND SURFACE TEMPERATURE"/>
+    <a:category term="LAND"/>
+    <a:category term="JAXA"/>
+    <a:category term="Level-2"/>
+    <a:summary>GCOM-C conducts long-term and continuous global observation and data collection to elucidate the mechanism behind fluctuations in radiation budget and carbon cycle needed to make accurate projections regarding future temperature rise. At the same time, cooperating with research institutions having a climate numerical model, it contributes to reduction of errors in temperature rise prediction derived from the climate numerical model and improvement of accuracy of prediction of various environmental changes.SGLI mounted on GCOM-C is the succession sensor of the Global Imager (GLI) mounted on ADEOS-II (MIDORI II) and is the Imaging Radiometer which measures the radiation from near-ultraviolet to thermal infrared region (380 nm-12 um) in 19 channels Global observation of once for approximately every two days is possible at mid-latitude near Japan by observation width at ground greater than 1,000 km. In addition, SGLI realizes high resolution than the similar global sensor and has a polarized observation function and a multi-angle observation function.
             This product is the Temperature of terrestrial land surface.
             Process level: Level-2
             resolution: 250m
@@ -68,8 +69,8 @@
     <os:totalResults>13</os:totalResults>
     <os:startIndex>1</os:startIndex>
     <os:itemsPerPage>5</os:itemsPerPage>
-    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=1" rel="first" type="application/atom+xml"/>
-    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc" rel="self" type="application/atom+xml"/>
-    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=6" rel="next" type="application/atom+xml"/>
-    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=11" rel="last" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=1" rel="first" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc" rel="self" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=6" rel="next" type="application/atom+xml"/>
+  <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;maxRecords=5&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=11" rel="last" type="application/atom+xml"/>
 </a:feed>
