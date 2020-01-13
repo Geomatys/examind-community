@@ -212,7 +212,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
 
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
-                    final String procedureID = procedure.substring(sensorIdBase.length());
+                    final String procedureID;
+                    if (procedure.startsWith(sensorIdBase)) {
+                        procedureID = procedure.substring(sensorIdBase.length());
+                    } else {
+                        procedureID = procedure;
+                    }
                     final String obsID = "obs-" + procedureID;
                     final String name = observationTemplateIdBase + procedureID;
                     final String observedProperty = rs.getString("observed_property");
@@ -264,7 +269,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter implements 
                     final Observation observation = observations.get(procedure);
 
                     if (observation == null) {
-                        final String procedureID = procedure.substring(sensorIdBase.length());
+                        final String procedureID;
+                        if (procedure.startsWith(sensorIdBase)) {
+                            procedureID = procedure.substring(sensorIdBase.length());
+                        } else {
+                            procedureID = procedure;
+                        }
                         final String obsID = "obs-" + procedureID;
                         final String name = observationTemplateIdBase + procedureID;
                         final String observedProperty = rs.getString("observed_property");

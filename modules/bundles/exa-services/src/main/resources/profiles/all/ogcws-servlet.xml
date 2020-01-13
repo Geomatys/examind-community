@@ -24,6 +24,7 @@
 
   <mvc:annotation-driven>
     <mvc:message-converters>
+        <bean class="com.examind.sts.ws.rs.STSResponseWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageNCWriter" />
         <bean class="org.constellation.coverage.ws.rs.GridCoverageWriter" />
         <bean class="org.constellation.coverage.ws.rs.WCSResponseWriter" />
