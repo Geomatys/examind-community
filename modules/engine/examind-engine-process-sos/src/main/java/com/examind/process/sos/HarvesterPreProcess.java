@@ -304,8 +304,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     private String guessColumn(String[] headers, List<String> findValues) {
         if (headers != null) {
-            for (String header : headers) {
-                for (String findValue : findValues) {
+            for (String findValue : findValues) {
+                for (String header : headers) {
                     if (StringUtils.containsIgnoreCase(header, findValue)) {
                         return header;
                     }

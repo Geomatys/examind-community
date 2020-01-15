@@ -66,6 +66,8 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
+import org.geotoolkit.observation.xml.AbstractObservation;
+import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -217,7 +219,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 ds.setPwd(pwd);
                 ds.setFormat(format);
                 datasourceBusiness.update(ds);
-                
+
             } catch (ConstellationException ex) {
                 throw new ProcessException("Error while removing previous insertion.", this, ex);
             }
@@ -420,6 +422,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     for (ExtractionResult.ProcedureTree process : result.procedures) {
                         writeProcedures(sosRef.getId(), process, null);
                     }
+                    result.observations.stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
 
                     // import in O&M database
                     sensorServBusiness.importObservations(sosRef.getId(), result.observations, result.phenomenons);
