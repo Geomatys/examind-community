@@ -50,6 +50,10 @@
             <artifactId>cstl-store-data-sensor</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

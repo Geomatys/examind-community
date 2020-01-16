@@ -338,12 +338,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         observation = observation.resultTime(time);
         observation = observation.phenomenonTime(time);
 
-        if (req.getExpand().contains("FeatureOfInterests")) {
+        if (req.getExpand().contains("FeatureOfInterest") || req.getExpand().contains("FeaturesOfInterest")) {
             if (foi != null) {
                 observation = observation.featureOfInterest(buildFeatureOfInterest(req, foi));
             }
         } else {
-            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeatureOfInterests");
+            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeaturesOfInterest");
         }
 
         if (req.getExpand().contains("MultiDatastreams")) {
@@ -362,13 +362,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Observations(" + obs.getName().getCode() + ")";
 
         Observation observation = new Observation();
-        if (req.getExpand().contains("FeatureOfInterests")) {
+        if (req.getExpand().contains("FeatureOfInterest") || req.getExpand().contains("FeaturesOfInterest")) {
             if (obs.getPropertyFeatureOfInterest() != null && obs.getPropertyFeatureOfInterest().getAbstractFeature() != null) {
                 FeatureOfInterest foi = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature) obs.getPropertyFeatureOfInterest().getAbstractFeature());
                 observation = observation.featureOfInterest(foi);
             }
         } else {
-            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeatureOfInterests");
+            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeaturesOfInterest");
         }
 
         if (!fromMds) {
@@ -437,7 +437,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         baseSelfLink = baseSelfLink.substring(0, baseSelfLink.length() - 1);
 
         FeatureOfInterest foi = null;
-        if (req.getExpand().contains("FeatureOfInterests")) {
+        if (req.getExpand().contains("FeatureOfInterest") || req.getExpand().contains("FeaturesOfInterest")) {
             if (obs.getPropertyFeatureOfInterest() != null && obs.getPropertyFeatureOfInterest().getAbstractFeature() != null) {
                 foi = buildFeatureOfInterest(req, (org.geotoolkit.sampling.xml.SamplingFeature) obs.getPropertyFeatureOfInterest().getAbstractFeature());
             }
@@ -490,7 +490,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         if (foi != null) {
                             observation = observation.featureOfInterest(foi);
                         } else {
-                            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeatureOfInterests");
+                            observation.setFeatureOfInterestIotNavigationLink(selfLink + "/FeaturesOfInterest");
                         }
 
                         // multiDatastream
@@ -1164,7 +1164,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private FeatureOfInterest buildFeatureOfInterest(STSRequest req, org.geotoolkit.sampling.xml.SamplingFeature sp) throws ConstellationStoreException {
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/FeatureOfInterests(" + sp.getId() + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/FeaturesOfInterest(" + sp.getId() + ")";
         FeatureOfInterest result = new FeatureOfInterest();
         result.setIotId(sp.getId());
         result.setDescription(sp.getDescription());
