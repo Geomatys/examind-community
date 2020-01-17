@@ -179,7 +179,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getFeatureOfInterestByIdTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
-        URL getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)");
+        URL getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi.json");
@@ -189,7 +189,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         /*
          * expand observations
          */
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)?$expand=Observations");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)?$expand=Observations");
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-exp.json");
 
@@ -198,7 +198,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         /*
         * FOI station-001 linked observations
         */
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-001)/Observations");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-001)/Observations");
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-obs.json");
 
@@ -207,7 +207,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         /*
         * FOI station-002 linked observations
         */
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests(station-002)/Observations");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest(station-002)/Observations");
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-obs-2.json");
 
@@ -217,22 +217,22 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=2)
-    public void getFeatureOfInterestsTest() throws Exception {
+    public void getFeaturesOfInterestTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
-        URL getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests");
+        URL getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi-all.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$top=2");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$skip=2");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$top=2&$skip=2");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top2.json");
@@ -251,13 +251,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/obs.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)?$expand=FeatureOfInterests,Datastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)?$expand=FeaturesOfInterest,Datastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-exp.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeatureOfInterests");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeaturesOfInterest");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs-foi.json");
@@ -282,7 +282,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/obs2.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)?$expand=FeatureOfInterests,MultiDatastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)?$expand=FeaturesOfInterest,MultiDatastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs2-exp.json");
@@ -293,7 +293,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs3.json");
         assertEquals(expResult, result);
-        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-3)?$expand=FeatureOfInterests,MultiDatastreams");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-3)?$expand=FeaturesOfInterest,MultiDatastreams");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obs3-exp.json");

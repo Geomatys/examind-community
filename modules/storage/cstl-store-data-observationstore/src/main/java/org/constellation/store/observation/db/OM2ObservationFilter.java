@@ -34,6 +34,7 @@ import org.opengis.temporal.Period;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -345,7 +346,11 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
                             fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
                             procedureID = procedureID.substring(0, pos);
                         }
-                        sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                        if (existProcedure(sensorIdBase + procedureID)) {
+                            sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                        } else {
+                            sb.append("(o.\"procedure\"='").append(procedureID).append("') OR");
+                        }
                     } else if (oid.startsWith(observationIdBase)) {
                         String[] component = oid.split("-");
                         if (component.length == 3) {
@@ -381,7 +386,11 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
                             fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
                             procedureID = procedureID.substring(0, pos);
                         }
-                        sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                        if (existProcedure(sensorIdBase + procedureID)) {
+                            sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
+                        } else {
+                            sb.append("(o.\"procedure\"='").append(procedureID).append("') OR");
+                        }
                     } else if (oid.startsWith(observationIdBase)) {
                         String[] component = oid.split("-");
                         if (component.length == 3) {
@@ -759,5 +768,19 @@ public class OM2ObservationFilter extends OM2BaseReader implements ObservationFi
         } catch (SQLException ex) {
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
+    }
+
+    public boolean existProcedure(String procedure) {
+        try(final Connection c   = source.getConnection();
+            final PreparedStatement stmt = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+            stmt.setString(1, procedure);
+
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while looking for procedure existance.", ex);
+        }
+        return false;
     }
 }

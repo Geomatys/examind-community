@@ -611,7 +611,11 @@ public abstract class AbstractWebService implements WebService{
     protected String getLogParameters() {
         String log = null;
         if (httpServletRequest != null && httpServletRequest.getRequestURL() != null) {
-            log = httpServletRequest.getRequestURL().append('?').append(httpServletRequest.getQueryString()).toString();
+            StringBuffer buff = httpServletRequest.getRequestURL();
+            if (httpServletRequest.getQueryString() != null) {
+                buff = buff.append('?').append(httpServletRequest.getQueryString());
+            }
+            log = buff.toString();
         }
         return log;
     }

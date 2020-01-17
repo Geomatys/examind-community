@@ -234,8 +234,8 @@ public class OM2STSWorkerTest {
                 .name("10972X0137-PONT")
                 .iotId("station-001")
                 .encodingType("application/vnd.geo+json")
-                .iotSelfLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)")
-                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations")
+                .iotSelfLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)")
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)/Observations")
                 .feature(feature);
         Assert.assertEquals(expResult, result);
 
@@ -277,7 +277,7 @@ public class OM2STSWorkerTest {
 
 
        /*
-        * request correspounding http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations
+        * request correspounding http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)/Observations
         */
         GetObservations goRequest = new GetObservations();
         goRequest.getExtraFilter().put("featureOfInterest", "station-001");
@@ -304,7 +304,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:304-0-1")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)")
                 .resultTime("2007-05-01T00:59:00Z")
                 .phenomenonTime("2007-05-01T00:59:00Z")
@@ -332,7 +332,7 @@ public class OM2STSWorkerTest {
 
         Observation expResult = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:304-0-1")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)")
                 .resultTime("2007-05-01T00:59:00Z")
                 .phenomenonTime("2007-05-01T00:59:00Z")
@@ -343,7 +343,7 @@ public class OM2STSWorkerTest {
         /*
          * expand foi, datastreams
          */
-        request.getExpand().add("FeatureOfInterests");
+        request.getExpand().add("FeaturesOfInterest");
         request.getExpand().add("Datastreams");
         result = worker.getObservationById(request);
 
@@ -356,8 +356,8 @@ public class OM2STSWorkerTest {
                 .name("10972X0137-PONT")
                 .iotId("station-001")
                 .encodingType("application/vnd.geo+json")
-                .iotSelfLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)")
-                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeatureOfInterests(station-001)/Observations")
+                .iotSelfLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)")
+                .observationsIotNavigationLink("http://test.geomatys.com/sts/default/FeaturesOfInterest(station-001)/Observations")
                 .feature(feature);
         expResult.setFeatureOfInterest(expFoi);
         expResult.setFeatureOfInterestIotNavigationLink(null);
@@ -377,7 +377,7 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult, result);
 
        /*
-        * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeatureOfInterests
+        * http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:304-0-1)/FeaturesOfInterest
         */
         GetFeatureOfInterests gfRequest = new GetFeatureOfInterests();
         gfRequest.getExtraFilter().put("observationId", "urn:ogc:object:observation:GEOM:304-0-1");
@@ -646,7 +646,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs1 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:507-0-1")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-1)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-1)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-1)")
                 .resultTime("2007-05-01T10:59:00Z")
                 .phenomenonTime("2007-05-01T10:59:00Z")
@@ -656,7 +656,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs2 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:507-0-2")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-2)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-2)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-2)")
                 .resultTime("2007-05-01T11:59:00Z")
                 .phenomenonTime("2007-05-01T11:59:00Z")
@@ -666,7 +666,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs3 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:507-0-3")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-3)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-3)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-3)")
                 .resultTime("2007-05-01T12:59:00Z")
                 .phenomenonTime("2007-05-01T12:59:00Z")
@@ -676,7 +676,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs4 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:507-0-4")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-4)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-4)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-4)")
                 .resultTime("2007-05-01T13:59:00Z")
                 .phenomenonTime("2007-05-01T13:59:00Z")
@@ -686,7 +686,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs5 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:507-0-5")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-5)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-5)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:507-0-5)")
                 .resultTime("2007-05-01T14:59:00Z")
                 .phenomenonTime("2007-05-01T14:59:00Z")
@@ -827,7 +827,7 @@ public class OM2STSWorkerTest {
 
         Observation expObs1 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:801-1")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1)")
                 .resultTime("2007-05-01T12:59:00.0")
                 .phenomenonTime("2007-05-01T12:59:00.0")
@@ -835,7 +835,7 @@ public class OM2STSWorkerTest {
                 .result(Arrays.asList(6.56f, 12.0f));
         Observation expObs2 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:801-3")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-3)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-3)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-3)")
                 .resultTime("2007-05-01T13:59:00.0")
                 .phenomenonTime("2007-05-01T13:59:00.0")
@@ -843,7 +843,7 @@ public class OM2STSWorkerTest {
                 .result(Arrays.asList(6.56f, 13.0f));
         Observation expObs3 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:801-5")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-5)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-5)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-5)")
                 .resultTime("2007-05-01T14:59:00.0")
                 .phenomenonTime("2007-05-01T14:59:00.0")
@@ -851,7 +851,7 @@ public class OM2STSWorkerTest {
                 .result(Arrays.asList(6.56f, 14.0f));
         Observation expObs4 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:801-7")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-7)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-7)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-7)")
                 .resultTime("2007-05-01T15:59:00.0")
                 .phenomenonTime("2007-05-01T15:59:00.0")
@@ -859,7 +859,7 @@ public class OM2STSWorkerTest {
                 .result(Arrays.asList(6.56f, 15.0f));
         Observation expObs5 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:801-9")
-                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-9)/FeatureOfInterests")
+                .featureOfInterestIotNavigationLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-9)/FeaturesOfInterest")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Observations(urn:ogc:object:observation:GEOM:801-9)")
                 .resultTime("2007-05-01T16:59:00.0")
                 .phenomenonTime("2007-05-01T16:59:00.0")
