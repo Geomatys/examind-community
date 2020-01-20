@@ -367,6 +367,7 @@ public class OM2STSWorkerTest {
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)")
                // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
+                .description("urn:ogc:object:observation:template:GEOM:3-0")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Observations")
                 .sensorIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Sensors");
         expResult.setDatastream(expDatas);
@@ -505,6 +506,9 @@ public class OM2STSWorkerTest {
 
         ObservedProperty expResult = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:temperature")
+                .name("urn:ogc:def:phenomenon:GEOM:temperature")
+                .definition("urn:ogc:def:phenomenon:GEOM:temperature")
+                .description("urn:ogc:def:phenomenon:GEOM:temperature")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams");
         expResult.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams");
@@ -609,6 +613,7 @@ public class OM2STSWorkerTest {
 
         Datastream expResult = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:5-0")
+                .description("urn:ogc:object:observation:template:GEOM:5-0")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:5-0)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:5-0)")
                // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
@@ -626,6 +631,9 @@ public class OM2STSWorkerTest {
 
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:depth")
+                .name("urn:ogc:def:phenomenon:GEOM:depth")
+                .description("urn:ogc:def:phenomenon:GEOM:depth")
+                .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams");
         expObsProp.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/MultiDatastreams");
@@ -633,7 +641,7 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("TODO")
+                .description("urn:ogc:object:sensor:GEOM:5")
                 .name("urn:ogc:object:sensor:GEOM:5")
                 .iotId("urn:ogc:object:sensor:GEOM:5")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -801,11 +809,17 @@ public class OM2STSWorkerTest {
 
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:depth")
+                .name("urn:ogc:def:phenomenon:GEOM:depth")
+                .description("urn:ogc:def:phenomenon:GEOM:depth")
+                .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams")
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/MultiDatastreams");
         ObservedProperty expObsProp2 = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:temperature")
+                .name("urn:ogc:def:phenomenon:GEOM:temperature")
+                .description("urn:ogc:def:phenomenon:GEOM:temperature")
+                .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams")
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams");
@@ -814,7 +828,7 @@ public class OM2STSWorkerTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .description("TODO")
+                .description("urn:ogc:object:sensor:GEOM:8")
                 .name("urn:ogc:object:sensor:GEOM:8")
                 .iotId("urn:ogc:object:sensor:GEOM:8")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -955,7 +969,7 @@ public class OM2STSWorkerTest {
         org.geotoolkit.sts.json.Sensor result = worker.getSensorById(request);
 
         org.geotoolkit.sts.json.Sensor expResult = new org.geotoolkit.sts.json.Sensor()
-                .description("TODO")
+                .description("urn:ogc:object:sensor:GEOM:2")
                 .name("urn:ogc:object:sensor:GEOM:2")
                 .iotId("urn:ogc:object:sensor:GEOM:2")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -973,6 +987,7 @@ public class OM2STSWorkerTest {
 
         Datastream expDs1 = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:2-0")
+                .description("urn:ogc:object:observation:template:GEOM:2-0")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-0)")
                // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")
@@ -981,6 +996,7 @@ public class OM2STSWorkerTest {
 
         Datastream expDs2 = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:2-1")
+                .description("urn:ogc:object:observation:template:GEOM:2-1")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)")
                // .resultTime("2000-12-31T23:00:00Z/2000-12-31T23:00:00Z")

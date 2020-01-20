@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
@@ -729,11 +728,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         // TODO observation type
         // TODO area
-        // TODO description
         // TODO thing
         // TODO uom
 
-        datastream = datastream.iotId(obs.getName().getCode())
+        final String id = obs.getName().getCode();
+        datastream = datastream.iotId(id)
+                               .description(id)
                                .iotSelfLink(selfLink);
         return datastream;
     }
@@ -959,12 +959,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + s.getName().getCode() + ")";
         ObservedProperty obsProp = new ObservedProperty();
+        final String phenId = s.getName().getCode();
         obsProp = obsProp
-                .iotId(s.getName().getCode())
-                .iotSelfLink(selfLink.replace("$", s.getName().getCode()));
-        // TODO name
-        // TODO definition
-        // TODO description
+                .iotId(phenId)
+                .name(phenId)
+                .definition(phenId)
+                .description(phenId)
+                .iotSelfLink(selfLink.replace("$", phenId));
 
         if (req.getExpand().contains("Datastreams")) {
             List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForPhenomenon(s.getName().getCode());
@@ -1099,7 +1100,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         Sensor sensor = new Sensor();
-        sensor = sensor.description("TODO")  // TODO extract from metadata and record in database
+        sensor = sensor.description(sensorID)  // TODO extract from metadata and record in database
                 .name(sensorID)
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0") // TODO extract metadata type and record in database
                 .iotId(sensorID)

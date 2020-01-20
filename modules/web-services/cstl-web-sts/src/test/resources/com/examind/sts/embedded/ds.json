@@ -1,4 +1,5 @@
 {
+  "description" : "urn:ogc:object:observation:template:GEOM:8-1",
   "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-1",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)",
   "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Sensors",

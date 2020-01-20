@@ -1,5 +1,5 @@
 {
-  "description" : "TODO",
+  "description" : "urn:ogc:object:sensor:GEOM:2",
   "name" : "urn:ogc:object:sensor:GEOM:2",
   "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
   "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
