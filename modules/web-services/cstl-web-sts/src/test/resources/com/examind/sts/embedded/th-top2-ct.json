@@ -1,14 +1,14 @@
 {
   "value" : [ {
     "name" : "urn:ogc:object:sensor:GEOM:2",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:2",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:2)",
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:2)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:3",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:3",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:3",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:3)",
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Things(urn:ogc:object:sensor:GEOM:3)/Datastreams",

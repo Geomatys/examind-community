@@ -238,13 +238,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top2.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$count=true");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$top=2&$count=true");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top-ct.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/FeatureOfInterests?$top=2&$skip=2&$count=true");
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$top=2&$skip=2&$count=true");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/foi-top2-ct.json");

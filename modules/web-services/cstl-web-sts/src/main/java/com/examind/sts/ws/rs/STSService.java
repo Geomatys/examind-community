@@ -344,7 +344,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return params.isEmpty();
     }
 
-    @RequestMapping(path = "FeatureOfInterests", method = RequestMethod.GET)
+    @RequestMapping(path = "FeaturesOfInterest", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterests(@PathVariable("serviceId") String serviceId, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -362,7 +362,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "Observations({id:[^\\)]+})/FeatureOfInterests", method = RequestMethod.GET)
+    @RequestMapping(path = "Observations({id:[^\\)]+})/FeaturesOfInterest", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
@@ -381,7 +381,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})", method = RequestMethod.GET)
+    @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);
@@ -455,7 +455,7 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "FeatureOfInterests({id:[^\\)]+})/Observations", method = RequestMethod.GET)
+    @RequestMapping(path = "FeaturesOfInterest({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForFoi(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);
         putParam("id", id);

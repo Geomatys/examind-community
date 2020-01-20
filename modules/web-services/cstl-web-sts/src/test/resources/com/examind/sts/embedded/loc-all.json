@@ -1,7 +1,7 @@
 {
   "value" : [ {
     "name" : "urn:ogc:object:sensor:GEOM:1",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:1",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -16,7 +16,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:1)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:10",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:10",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -31,7 +31,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:10)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:2",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:2",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -46,7 +46,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:2)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:3",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:3",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -61,7 +61,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:3)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:4",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:4",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -76,7 +76,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:4)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:5",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:5",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -91,7 +91,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:5)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:6",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:6",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -106,7 +106,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:6)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:7",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:7",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -121,7 +121,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:7)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:8",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:8",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",
@@ -136,7 +136,7 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Location(urn:ogc:object:sensor:GEOM:8)"
   }, {
     "name" : "urn:ogc:object:sensor:GEOM:9",
-    "description" : "TODO",
+    "description" : "urn:ogc:object:sensor:GEOM:9",
     "encodingType" : "application/vnd.geo+json",
     "location" : {
       "type" : "Feature",

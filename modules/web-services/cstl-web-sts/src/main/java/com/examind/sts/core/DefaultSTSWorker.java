@@ -1289,7 +1289,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         // TODO properties
         Thing thing = new Thing();
-        thing = thing.description("TODO")  // TODO extract from metadata and record in database
+        thing = thing.description(sensorID)
                 .name(sensorID)
                 .iotId(sensorID)
                 .iotSelfLink(selfLink);
@@ -1380,7 +1380,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Location(" + sensorID + ")";
         Location result = new Location();
         result.setIotId(sensorID);
-        result.setDescription("TODO");
+        result.setDescription(sensorID);
         result.setEncodingType("application/vnd.geo+json");
         result.setName(sensorID);
 
