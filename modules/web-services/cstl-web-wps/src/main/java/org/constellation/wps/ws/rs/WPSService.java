@@ -18,106 +18,103 @@
  */
 package org.constellation.wps.ws.rs;
 
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.util.ArgumentChecks;
-import org.constellation.api.ServiceDef;
-import org.constellation.api.ServiceDef.Specification;
 import com.examind.wps.api.WPSWorker;
-import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.MimeType;
-import org.constellation.ws.Worker;
-import org.constellation.ws.rs.OGCWebService;
-import org.geotoolkit.ows.xml.RequestBase;
-import org.geotoolkit.ows.xml.BoundingBox;
-import org.geotoolkit.ows.xml.ExceptionResponse;
-import org.geotoolkit.ows.xml.v200.AcceptVersionsType;
-import org.geotoolkit.wps.json.ProcessCollection;
-import org.geotoolkit.wps.xml.v200.Format;
-import org.geotoolkit.wps.xml.v200.ProcessOfferings;
-import org.geotoolkit.wps.xml.v200.StatusInfo;
-import org.geotoolkit.wps.xml.v200.Capabilities;
-import org.geotoolkit.wps.xml.v200.Result;
-import org.geotoolkit.wps.xml.WPSMarshallerPool;
-import org.geotoolkit.ows.xml.v200.AcceptFormatsType;
-import org.geotoolkit.ows.xml.v200.GetCapabilitiesType;
-import org.geotoolkit.wps.xml.v200.Contents;
-import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
-import org.geotoolkit.wps.xml.v200.Reference;
-import org.geotoolkit.wps.xml.v200.DataInput;
-import org.geotoolkit.wps.xml.v200.DescribeProcess;
-import org.geotoolkit.wps.xml.v200.GetResult;
-import org.geotoolkit.wps.xml.v200.GetStatus;
-import org.geotoolkit.wps.xml.v200.Execute;
-import org.geotoolkit.wps.xml.v200.OutputDefinition;
-import org.geotoolkit.wps.xml.v200.GetCapabilities;
-import org.geotoolkit.atom.xml.Link;
-
+import static com.examind.wps.util.WPSConstants.*;
+import com.examind.wps.util.WPSUtils;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.util.ArgumentChecks;
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
-
 import static org.constellation.api.QueryConstants.ACCEPT_VERSIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
+import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
 import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
-import static org.constellation.api.QueryConstants.SECTIONS_PARAMETER;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.constellation.api.ServiceDef;
+import org.constellation.api.ServiceDef.Specification;
+import org.constellation.util.Util;
+import org.constellation.ws.CstlServiceException;
+import org.constellation.ws.MimeType;
+import org.constellation.ws.Worker;
+import org.constellation.ws.rs.OGCWebService;
+import org.constellation.ws.rs.ResponseObject;
+import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.ows.xml.BoundingBox;
+import org.geotoolkit.ows.xml.ExceptionResponse;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import com.examind.wps.util.WPSUtils;
-import org.opengis.parameter.ParameterNotFoundException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
-import org.constellation.ws.rs.ResponseObject;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import static com.examind.wps.util.WPSConstants.*;
-import java.io.IOException;
-import java.util.Set;
-import org.constellation.util.Util;
-import org.geotoolkit.nio.IOUtilities;
-import org.apache.sis.coverage.grid.GridCoverage;
-import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.geotoolkit.ows.xml.OWSXmlFactory;
+import org.geotoolkit.ows.xml.RequestBase;
+import org.geotoolkit.ows.xml.v200.AcceptFormatsType;
+import org.geotoolkit.ows.xml.v200.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
+import org.geotoolkit.ows.xml.v200.GetCapabilitiesType;
 import org.geotoolkit.ows.xml.v200.SectionsType;
 import org.geotoolkit.wps.json.ExceptionReportType;
 import org.geotoolkit.wps.json.JobCollection;
 import org.geotoolkit.wps.json.JsonLink;
 import org.geotoolkit.wps.json.LandingPage;
 import org.geotoolkit.wps.json.OutputInfo;
+import org.geotoolkit.wps.json.ProcessCollection;
 import org.geotoolkit.wps.json.ReqClasses;
+import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.Bill;
 import org.geotoolkit.wps.xml.v200.BillList;
+import org.geotoolkit.wps.xml.v200.Capabilities;
+import org.geotoolkit.wps.xml.v200.Contents;
 import org.geotoolkit.wps.xml.v200.Data;
+import org.geotoolkit.wps.xml.v200.DataInput;
 import org.geotoolkit.wps.xml.v200.DataOutput;
+import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
 import org.geotoolkit.wps.xml.v200.Deploy;
 import org.geotoolkit.wps.xml.v200.DeployResult;
+import org.geotoolkit.wps.xml.v200.DescribeProcess;
 import org.geotoolkit.wps.xml.v200.Dismiss;
+import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.Execute.Response;
+import org.geotoolkit.wps.xml.v200.Format;
+import org.geotoolkit.wps.xml.v200.GetCapabilities;
+import org.geotoolkit.wps.xml.v200.GetResult;
+import org.geotoolkit.wps.xml.v200.GetStatus;
 import org.geotoolkit.wps.xml.v200.LiteralValue;
+import org.geotoolkit.wps.xml.v200.OutputDefinition;
+import org.geotoolkit.wps.xml.v200.ProcessOfferings;
 import org.geotoolkit.wps.xml.v200.Quotation;
 import org.geotoolkit.wps.xml.v200.QuotationList;
+import org.geotoolkit.wps.xml.v200.Reference;
+import org.geotoolkit.wps.xml.v200.Result;
+import org.geotoolkit.wps.xml.v200.StatusInfo;
 import org.geotoolkit.wps.xml.v200.Undeploy;
 import org.geotoolkit.wps.xml.v200.UndeployResult;
+import org.opengis.parameter.ParameterNotFoundException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
@@ -245,6 +242,26 @@ public class WPSService extends OGCWebService<WPSWorker> {
              */
             if (request instanceof Execute) {
                 final Execute exec = (Execute) request;
+
+                for (DataInput di : exec.getInput()) {
+                    Data data = di.getData();
+                    if (data != null) {
+                        //TODO : check in the specification if a Format is really authorized at this place
+                        List<Object> content = data.getContent();
+                        for (int i=0;i<content.size();i++) {
+                            Object cdt = content.get(i);
+                            if (cdt instanceof Format) {
+                                Format f = (Format) cdt;
+                                data.setEncoding(f.getEncoding());
+                                data.setMimeType(f.getMimeType());
+                                data.setSchema(f.getSchema());
+                                content.remove(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 final Object executeResponse = worker.execute(exec);
 
                 boolean isTextPlain = false;

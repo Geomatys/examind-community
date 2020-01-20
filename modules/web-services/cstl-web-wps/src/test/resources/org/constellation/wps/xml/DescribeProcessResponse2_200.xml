@@ -15,7 +15,8 @@
                 <ows:Abstract xml:lang="en-EN">Geometry JTS source</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom1</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/ewkt" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
@@ -29,7 +30,8 @@
                 <ows:Abstract xml:lang="en-EN">Geometry JTS</ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::jts:intersects:input:geom2</ows:Identifier>
                 <wps:ComplexData>
-                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/ewkt" encoding="utf-8" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>
                     <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"/>
                     <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"/>

@@ -21,11 +21,15 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/geo+json</MimeType>
+                            <MimeType>application/ewkt</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
                     </Default>
                     <Supported>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
                         <Format>
                             <MimeType>application/geo+json</MimeType>
                             <Encoding>utf-8</Encoding>
@@ -70,11 +74,15 @@
                 <ComplexData maximumMegabytes="100">
                     <Default>
                         <Format>
-                            <MimeType>application/geo+json</MimeType>
+                            <MimeType>application/ewkt</MimeType>
                             <Encoding>utf-8</Encoding>
                         </Format>
                     </Default>
                     <Supported>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
                         <Format>
                             <MimeType>application/geo+json</MimeType>
                             <Encoding>utf-8</Encoding>
