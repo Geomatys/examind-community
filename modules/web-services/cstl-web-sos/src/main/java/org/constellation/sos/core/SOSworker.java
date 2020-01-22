@@ -21,7 +21,6 @@ package org.constellation.sos.core;
 // JDK dependencies
 
 import com.examind.sensor.ws.SensorWorker;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,7 +59,6 @@ import static org.constellation.sos.core.SOSConstants.*;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.NOT_SUPPORTED;
-import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_TEMPLATE;
 import static org.constellation.api.CommonConstants.OFFERING;
@@ -156,7 +154,6 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertResultResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertResultTemplateResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertSensorResponse;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildObservationCollection;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildRange;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeAfter;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeBefore;
@@ -166,6 +163,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.constellation.dto.Sensor;
+import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.sos.ws.SOSUtils;
@@ -832,7 +830,7 @@ public class SOSworker extends SensorWorker {
         try {
 
             //we verify that there is an offering (mandatory in 1.0.0, optional in 2.0.0)
-            final List<ObservationOffering> offerings = new ArrayList<>();
+            final List<Offering> offerings = new ArrayList<>();
             final List<String> offeringNames = requestObservation.getOfferings();
             if (currentVersion.equals("1.0.0") && (offeringNames == null || offeringNames.isEmpty())) {
                 throw new CstlServiceException("Offering must be specify!", MISSING_PARAMETER_VALUE, OFFERING);
@@ -842,7 +840,7 @@ public class SOSworker extends SensorWorker {
                     if (offeringName.isEmpty()) {
                         throw new CstlServiceException("This offering name is empty", MISSING_PARAMETER_VALUE, OFFERING);
                     }
-                    final ObservationOffering offering = omStore.getReader().getObservationOffering(offeringName, currentVersion);
+                    final Offering offering = omProvider.getOffering(offeringName, currentVersion);
                     if (offering == null) {
                         throw new CstlServiceException("This offering is not registered in the service", INVALID_PARAMETER_VALUE, OFFERING);
                     }
@@ -852,10 +850,10 @@ public class SOSworker extends SensorWorker {
 
             //we verify that the srsName (if there is one) is advertised in the offering
             if (requestObservation.getSrsName() != null) {
-                for (ObservationOffering off : offerings) {
-                    if (!off.getSrsName().contains(requestObservation.getSrsName())) {
+                for (Offering off : offerings) {
+                    if (!off.getAvailableSrs().contains(requestObservation.getSrsName())) {
                         final StringBuilder availableSrs = new StringBuilder();
-                        off.getSrsName().stream().forEach((s) -> {
+                        off.getAvailableSrs().stream().forEach((s) -> {
                             availableSrs.append(s).append('\n');
                         });
                         throw new CstlServiceException("This srs name is not advertised in the offering.\n" +
@@ -867,10 +865,10 @@ public class SOSworker extends SensorWorker {
 
             //we verify that the resultModel (if there is one) is advertised in the offering
             if (requestObservation.getResultModel() != null) {
-                for (ObservationOffering off : offerings) {
-                    if (!off.getResultModel().contains(requestObservation.getResultModel())) {
+                for (Offering off : offerings) {
+                    if (!off.getResultModels().contains(requestObservation.getResultModel())) {
                         final StringBuilder availableRM = new StringBuilder();
-                        off.getResultModel().stream().forEach((s) -> {
+                        off.getResultModels().stream().forEach((s) -> {
                             availableRM.append(s).append('\n');
                         });
                         throw new CstlServiceException("This result model is not advertised in the offering:" + requestObservation.getResultModel() + '\n' +
@@ -894,7 +892,7 @@ public class SOSworker extends SensorWorker {
                     }
                     if (!offerings.isEmpty()) {
                         boolean found = false;
-                        for (ObservationOffering off : offerings) {
+                        for (Offering off : offerings) {
                             if (!found && off.getProcedures().contains(procedure)) {
                                 found = true;
                             }
@@ -913,7 +911,7 @@ public class SOSworker extends SensorWorker {
 
             // if no procedure specified extract the offerings procedures
             if (procedures.isEmpty()) {
-                for (ObservationOffering off : offerings) {
+                for (Offering off : offerings) {
                     procedures.addAll(off.getProcedures());
                 }
             }
@@ -969,7 +967,7 @@ public class SOSworker extends SensorWorker {
                         if (localOmFilter.isBoundedObservation()) {
                             localOmFilter.setBoundingBox(e);
                         } else {
-                            for (ObservationOffering off : offerings) {
+                            for (Offering off : offerings) {
                                 final List<SamplingFeature> offStations = getSamplingFeatureForOffering(off.getId(), currentVersion);
                                 for (SamplingFeature offStation : offStations) {
                                     // TODO for SOS 2.0 use observed area
@@ -1797,7 +1795,7 @@ public class SOSworker extends SensorWorker {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
             }
 
-        } catch(DataStoreException | ConfigurationException ex) {
+        } catch(DataStoreException | ConfigurationException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
 
@@ -2118,10 +2116,10 @@ public class SOSworker extends SensorWorker {
      *
      * @throws CstlServiceException If an error occurs during the the storage of offering in the datasource.
      */
-    private String addSensorToOffering(final String num, final ObservationTemplate template, final String version) throws CstlServiceException, DataStoreException {
+    private String addSensorToOffering(final String num, final ObservationTemplate template, final String version) throws CstlServiceException, ConstellationStoreException, DataStoreException {
 
-        final String offeringName          = "offering-" + num;
-        final ObservationOffering offering = omStore.getReader().getObservationOffering(offeringName, version);
+        final String offeringName = "offering-" + num;
+        final Offering offering   = omProvider.getOffering(offeringName, version);
 
         if (offering != null) {
             updateOffering(offering, template);
@@ -2134,7 +2132,7 @@ public class SOSworker extends SensorWorker {
          * TODO remove ?
          */
         if (version.equals("1.0.0")) {
-            final ObservationOffering offeringAll = omStore.getReader().getObservationOffering("offering-allSensor", version);
+            final Offering offeringAll = omProvider.getOffering("offering-allSensor", version);
             if (offeringAll != null) {
                 updateOffering(offeringAll, template);
             } else {
@@ -2152,13 +2150,13 @@ public class SOSworker extends SensorWorker {
      *
      * @throws CstlServiceException If the service does not succeed to update the offering in the datasource.
      */
-    private void updateOffering(final ObservationOffering offering, final ObservationTemplate template) throws DataStoreException {
+    private void updateOffering(final Offering offering, final ObservationTemplate template) throws ConstellationStoreException {
 
         //we add the new sensor to the offering
-        String offProc = null;
+        List<String>  offProc = new ArrayList<>();
         final String processID = template.getProcedure();
         if (!offering.getProcedures().contains(processID)) {
-            offProc = processID;
+            offProc.add(processID);
         }
 
         //we add the phenomenon to the offering
@@ -2172,13 +2170,13 @@ public class SOSworker extends SensorWorker {
         }
 
         // we add the feature of interest (station) to the offering
-        String offSF = null;
+        List<String> offSF = new ArrayList<>();
         if (template.getFeatureOfInterest() != null) {
-            if (!offering.getFeatureOfInterestIds().contains(template.getFeatureOfInterest())) {
-                offSF = template.getFeatureOfInterest();
+            if (!offering.getFeatureOfInterest().contains(template.getFeatureOfInterest())) {
+                offSF.add(template.getFeatureOfInterest());
             }
         }
-        omStore.getWriter().updateOffering(offering.getId(), offProc, offPheno, offSF);
+        omProvider.updateOffering(new Offering(offering.getId(), null, null, null, offProc, offSF, offPheno));
     }
 
 
@@ -2190,14 +2188,8 @@ public class SOSworker extends SensorWorker {
      *
      * @throws CstlServiceException If the service does not succeed to store the offering in the datasource.
      */
-    private void createOffering(final String version, final String offeringName, final ObservationTemplate template) throws DataStoreException {
+    private void createOffering(final String version, final String offeringName, final ObservationTemplate template) throws ConstellationStoreException {
        LOGGER.log(Level.INFO, "offering {0} not present, first build", offeringName);
-
-        // TODO bounded by??? station?
-
-        // for the eventime of the offering we take the time of now.
-        final Timestamp t = new Timestamp(System.currentTimeMillis());
-        final Period time = buildTimePeriod(version, null, t.toString(), null);
 
         //we add the template process
         final String process = template.getProcedure();
@@ -2210,10 +2202,7 @@ public class SOSworker extends SensorWorker {
         final String featureOfInterest = template.getFeatureOfInterest();
 
         //we create a list of accepted responseMode (fixed)
-        final List<ResponseModeType> responses = Arrays.asList(RESULT_TEMPLATE, INLINE);
         final List<QName> resultModel = Arrays.asList(OBSERVATION_QNAME, MEASUREMENT_QNAME);
-        final List<String> resultModelV200 = Arrays.asList(OBSERVATION_MODEL);
-        final List<String> offeringOutputFormat = Arrays.asList("text/xml; subtype=\"om/1.0.0\"");
         final List<String> srsName = Arrays.asList("EPSG:4326");
 
         String description = "";
@@ -2221,21 +2210,8 @@ public class SOSworker extends SensorWorker {
             description = "Base offering containing all the sensors.";
         }
         // we create a the new Offering
-        omStore.getWriter().writeOffering(buildOffering(version,
-                                            offeringName,
-                                            offeringName,
-                                            description,
-                                            srsName,
-                                            time,
-                                            Arrays.asList(process),
-                                            observedPropertiesV100,
-                                            observedProperties,
-                                            Arrays.asList(featureOfInterest),
-                                            offeringOutputFormat,
-                                            resultModel,
-                                            resultModelV200,
-                                            responses,
-                                            acceptedSensorMLFormats.get(version)));
+        Offering offering = new Offering(offeringName, description, srsName, resultModel, Arrays.asList(process), Arrays.asList(featureOfInterest), observedProperties);
+        omProvider.writeOffering(offering, observedPropertiesV100, acceptedSensorMLFormats.get(version), version);
     }
 
     private FeatureCollection buildFeatureCollection(String version, String name, List<SamplingFeature> features) {

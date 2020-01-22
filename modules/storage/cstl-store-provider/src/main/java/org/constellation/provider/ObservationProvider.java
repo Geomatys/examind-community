@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
+import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
@@ -74,6 +75,8 @@ public interface ObservationProvider extends DataProvider {
 
     boolean existOffering(final String offeringName, String version) throws ConstellationStoreException;
 
+    Offering getOffering(String name, String version) throws ConstellationStoreException;
+
     TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
 
     TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String version, final String fid) throws ConstellationStoreException;
@@ -91,4 +94,8 @@ public interface ObservationProvider extends DataProvider {
     void writeProcedure(final String procedureID, final Object position, final String parent, final String type) throws ConstellationStoreException;
 
     void updateProcedureLocation(final String procedureID, final Object position) throws ConstellationStoreException;
+
+    void updateOffering(Offering offering) throws ConstellationStoreException;
+
+    void writeOffering(Offering offering, List<? extends Object> observedProperties, List<String> smlFormats, String version) throws ConstellationStoreException;
 }

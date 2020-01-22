@@ -43,7 +43,11 @@ import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArraysExt;
 import org.constellation.api.CommonConstants;
+import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
+import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.api.DataType;
+import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
@@ -61,9 +65,15 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
+import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
+import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
+import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.filter.Id;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
@@ -386,6 +396,97 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public  AbstractGeometry getSensorLocation(String sensorID, String gmlVersion) throws ConstellationStoreException {
         try {
             return store.getReader().getSensorLocation(sensorID, gmlVersion);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public Offering getOffering(String name, String version) throws ConstellationStoreException {
+        try {
+            ObservationOffering off = store.getReader().getObservationOffering(name, version);
+            if (off != null) {
+                return new Offering(off.getId(),
+                                    off.getDescription(),
+                                    off.getSrsName(),
+                                    off.getResultModel(),
+                                    off.getProcedures(),
+                                    off.getFeatureOfInterestIds(),
+                                    off.getObservedProperties());
+            }
+            return null;
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public void updateOffering(Offering offering) throws ConstellationStoreException {
+        try {
+            if (offering != null) {
+                String procedure = null;
+                if (offering.getProcedures() != null && !offering.getProcedures().isEmpty()) {
+                    procedure = offering.getProcedures().get(0);
+                }
+                String foi = null;
+                if (offering.getFeatureOfInterest()!= null && !offering.getFeatureOfInterest().isEmpty()) {
+                    foi = offering.getFeatureOfInterest().get(0);
+                }
+                store.getWriter().updateOffering(offering.getId(),
+                                                 procedure,
+                                                 offering.getObservedProperties(),
+                                                 foi);
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public void writeOffering(Offering offering,  List<? extends Object> observedProperties, List<String> smlFormats, String version) throws ConstellationStoreException {
+        try {
+            if (offering != null) {
+
+                // for the eventime of the offering we take the time of now.
+                final Timestamp t = new Timestamp(System.currentTimeMillis());
+                final Period time = buildTimePeriod(version, null, t.toString(), null);
+
+                // observed properties
+                final List<String> obsPropsV100             = new ArrayList<>();
+                final List<PhenomenonProperty> obsPropsV200 = new ArrayList<>();
+                for (Object obsProp : observedProperties) {
+                    if (obsProp instanceof PhenomenonProperty) {
+                        PhenomenonProperty pp = (PhenomenonProperty)obsProp;
+                        obsPropsV200.add(pp);
+                        obsPropsV100.add(pp.getHref());
+
+                    } else {
+                        throw new ClassCastException("Not a phenomenonProperty");
+                    }
+                }
+
+                ///we create a list of accepted responseMode (fixed)
+                final List<ResponseModeType> responses = Arrays.asList(RESULT_TEMPLATE, INLINE);
+                final List<QName> resultModel = Arrays.asList(OBSERVATION_QNAME, MEASUREMENT_QNAME);
+                final List<String> resultModelV200 = Arrays.asList(OBSERVATION_MODEL);
+                final List<String> offeringOutputFormat = Arrays.asList("text/xml; subtype=\"om/1.0.0\"");
+
+                store.getWriter().writeOffering(buildOffering(version,
+                                                offering.getId(),
+                                                offering.getId(),
+                                                offering.getDescription(),
+                                                offering.getAvailableSrs(),
+                                                time,
+                                                offering.getProcedures(),
+                                                obsPropsV200,
+                                                obsPropsV100,
+                                                offering.getFeatureOfInterest(),
+                                                offeringOutputFormat,
+                                                resultModel,
+                                                resultModelV200,
+                                                responses,
+                                                smlFormats));
+            }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
