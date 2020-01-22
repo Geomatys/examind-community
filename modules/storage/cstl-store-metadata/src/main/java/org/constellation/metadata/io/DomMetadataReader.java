@@ -484,7 +484,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                     relValues.add(link);
 
                     // URI
-                    final Node n = document.createElementNS("http://purl.org/dc/elements/1.1/", "uri");
+                    final Node n = document.createElementNS("http://purl.org/dc/elements/1.1/", "URI");
                     n.setTextContent(link);
 
                     final String protocol = NodeUtilities.getFirstValueFromPath(transferOpt, "/gmd:CI_OnlineResource/gmd:protocol/gco:CharacterString");

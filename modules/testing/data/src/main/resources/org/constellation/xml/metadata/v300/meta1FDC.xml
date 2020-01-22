@@ -22,5 +22,5 @@
             <ows:LowerCorner>36.6 1.1667</ows:LowerCorner>
             <ows:UpperCorner>36.6 1.1667</ows:UpperCorner>
         </ows:BoundingBox>
-        <dc:uri description="CTDF02" protocol="http">http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=42292_1&amp;cle2=CTDF02</dc:uri>
+        <dc:URI description="CTDF02" protocol="http">http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&amp;pageOrigine=CS&amp;cle1=42292_1&amp;cle2=CTDF02</dc:URI>
 </csw:Record>
