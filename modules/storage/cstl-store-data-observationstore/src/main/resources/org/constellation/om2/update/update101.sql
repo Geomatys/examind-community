@@ -14,3 +14,5 @@ CREATE TABLE "$SCHEMAom"."procedure_descriptions" (
 ALTER TABLE "$SCHEMAom"."procedure_descriptions" ADD CONSTRAINT procedure_descriptions_pk PRIMARY KEY ("procedure", "field_name");
 
 ALTER TABLE "$SCHEMAom"."procedure_descriptions" ADD CONSTRAINT procedure_desc_fk FOREIGN KEY ("procedure") REFERENCES "$SCHEMAom"."procedures"("id");
+
+UPDATE "$SCHEMAom"."version" SET "number"='1.0.1';

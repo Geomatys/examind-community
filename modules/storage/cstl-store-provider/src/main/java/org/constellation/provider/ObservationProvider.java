@@ -28,6 +28,7 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -77,6 +78,8 @@ public interface ObservationProvider extends DataProvider {
 
     Offering getOffering(String name, String version) throws ConstellationStoreException;
 
+    Observation getTemplate(String sensorId, String version) throws ConstellationStoreException;
+
     TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
 
     TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String version, final String fid) throws ConstellationStoreException;
@@ -98,4 +101,7 @@ public interface ObservationProvider extends DataProvider {
     void updateOffering(Offering offering) throws ConstellationStoreException;
 
     void writeOffering(Offering offering, List<? extends Object> observedProperties, List<String> smlFormats, String version) throws ConstellationStoreException;
+
+    void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
+
 }

@@ -468,7 +468,12 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
                         OM2DatabaseCreator.createObservationDatabase(source, true, null, schemaPrefix);
                         return true;
                     } else {
-                        LOGGER.info("OM2 structure already present");
+                        boolean updated = OM2DatabaseCreator.updateStructure(source, schemaPrefix, true);
+                        if (updated) {
+                            LOGGER.info("OM2 structure already present (updated)");
+                        } else {
+                            LOGGER.info("OM2 structure already present");
+                        }
                     }
                     return true;
                 } else {

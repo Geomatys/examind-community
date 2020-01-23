@@ -209,6 +209,7 @@ import org.opengis.filter.temporal.OverlappedBy;
 import org.opengis.filter.temporal.TContains;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.filter.temporal.TOverlaps;
+import org.opengis.geometry.Geometry;
 import org.opengis.geometry.primitive.Point;
 import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
@@ -1438,16 +1439,9 @@ public class SOSworker extends SensorWorker {
 
             if (ofilter) {
 
-                // we clone the filter for this request
-                final ObservationFilterReader localOmFilter = omStore.getFilter();
-                localOmFilter.initFilterGetFeatureOfInterest();
-
-                // filtering on time
-                treatEventTimeRequest(currentVersion, request.getTemporalFilters(), false, localOmFilter);
-                localOmFilter.setObservedProperties(request.getObservedProperty());
-                localOmFilter.setProcedure(request.getProcedure());
-
-                final List<SamplingFeature> features = localOmFilter.getFeatureOfInterests(Collections.singletonMap("version", currentVersion));
+                SimpleQuery query = new SimpleQuery();
+                query.setFilter(buildFilter(request.getTemporalFilters(), request.getObservedProperty(), request.getProcedure()));
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query, Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
 
             /**
@@ -1788,7 +1782,7 @@ public class SOSworker extends SensorWorker {
                 //we write the observation template in the O&amp;M database
                 omStore.getWriter().writeObservationTemplate(temp);
 
-                omStore.getWriter().recordProcedureLocation(sensorId, position);
+                omProvider.writeLocation(sensorId, (Geometry) position);
 
                 assignedOffering = addSensorToOffering(sensorId, temp, currentVersion);
             } else {
@@ -1885,7 +1879,7 @@ public class SOSworker extends SensorWorker {
                         id = omProvider.writeObservation(obs);
                     } else {
                         //in first we verify that the observation is conform to the template
-                        final Observation template = (Observation) omStore.getReader().getTemplateForProcedure(sensorId, currentVersion);
+                        final Observation template = omProvider.getTemplate(sensorId, currentVersion);
                         //if the observation to insert match the template we can insert it in the OM db
                         if (obs.matchTemplate(template)) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
@@ -1906,9 +1900,8 @@ public class SOSworker extends SensorWorker {
             }
 
             LOGGER.log(Level.INFO, "insertObservation processed in {0} ms", (System.currentTimeMillis() - start));
-            omStore.getFilter().refresh(); // probably useless as the filter is a new one
 
-        } catch (DataStoreException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
         return buildInsertObservationResponse(currentVersion, ids);
@@ -1922,6 +1915,51 @@ public class SOSworker extends SensorWorker {
      *
      * @return true if there is no errors in the time constraint else return false.
      */
+    private Filter buildFilter(final List<Filter> times, List<String> observedProperties, List<String> procedures) throws CstlServiceException, DataStoreException {
+        final List<Filter> filters = new ArrayList<>();
+        for (Filter time: times) {
+
+            // The operation Time Equals
+            if (time instanceof TEquals) {
+               filters.add(time);
+
+            // The operation Time before
+            } else if (time instanceof Before) {
+               filters.add(time);
+
+
+            // The operation Time after
+            } else if (time instanceof After) {
+                filters.add(time);
+
+
+            // The time during operation
+            } else if (time instanceof During) {
+               filters.add(time);
+
+            } else if (time instanceof Begins|| time instanceof BegunBy || time instanceof TContains ||time instanceof EndedBy || time instanceof Ends || time instanceof Meets
+                       || time instanceof TOverlaps|| time instanceof OverlappedBy) {
+                throw new CstlServiceException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During",
+                                              OPERATION_NOT_SUPPORTED);
+            } else {
+                throw new CstlServiceException("Unknow time filter operation, supported one are: TM_Equals, TM_After, TM_Before, TM_During.\n"
+                                             + "Another possibility is that the content of your time filter is empty or unrecognized.",
+                                              OPERATION_NOT_SUPPORTED);
+            }
+        }
+        if (observedProperties != null) {
+            for (String observedProperty : observedProperties) {
+                filters.add(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+            }
+        }
+        if (procedures != null) {
+            for (String procedure : procedures) {
+                filters.add(ff.equals(ff.property("procedure"), ff.literal(procedure)));
+            }
+        }
+        return ff.and(filters);
+    }
+
     private TemporalGeometricPrimitive treatEventTimeRequest(final String version, final List<Filter> times, final boolean template, final ObservationFilterReader localOmFilter) throws CstlServiceException, DataStoreException {
 
         //In template mode  his method return a temporal Object.
@@ -1935,29 +1973,6 @@ public class SOSworker extends SensorWorker {
                 // we get the property name (not used for now)
                 //String propertyName = time.getTEquals().getPropertyName();
                 final Object timeFilter   = filter.getExpression2();
-
-                /*look for "latest" or "getFirst" filter (52N compatibility)
-                if (timeFilter instanceof Instant){
-                    final Instant ti = (Instant) timeFilter;
-                    if (ti.getPosition() != null && ti.getPosition().getDateTime() != null &&
-                        ti.getPosition().getDateTime().toString().equalsIgnoreCase("latest")) {
-                        if (!template) {
-                            localOmFilter.setTimeLatest();
-                            continue;
-                        } else {
-                            LOGGER.warning("latest time are not handled with template mode");
-                        }
-                    }
-                    if (ti.getPosition() != null && ti.getPosition().getDateTime() != null &&
-                        ti.getPosition().getDateTime().toString().equalsIgnoreCase("getFirst")) {
-                        if (!template) {
-                            localOmFilter.setTimeFirst();
-                            continue;
-                        } else {
-                            LOGGER.warning("getFirst time are not handled with template mode");
-                        }
-                    }
-                }*/
 
                 if (!template) {
                     localOmFilter.setTimeEquals(timeFilter);

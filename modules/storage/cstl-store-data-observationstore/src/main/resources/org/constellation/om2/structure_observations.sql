@@ -4,7 +4,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.3');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.4');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -83,6 +83,11 @@ CREATE TABLE "$SCHEMAom"."sampling_features" (
     "crs"              integer
 );
 
+CREATE TABLE "$SCHEMAom"."historical_locations" (
+    "procedure"         character varying(200) NOT NULL,
+    "time"              timestamp NOT NULL,
+    "location"          varchar (10000) for bit data
+);
 
 -- USED ONLY FOR V100 SOS --
 
@@ -134,3 +139,7 @@ ALTER TABLE "$SCHEMAom"."offering_foi" ADD CONSTRAINT offering_foi_foi_fk FOREIG
 ALTER TABLE "$SCHEMAom"."components" ADD CONSTRAINT component_base_fk FOREIGN KEY ("phenomenon") REFERENCES "$SCHEMAom"."observed_properties"("id");
 
 ALTER TABLE "$SCHEMAom"."components" ADD CONSTRAINT component_child_fk FOREIGN KEY ("component") REFERENCES "$SCHEMAom"."observed_properties"("id");
+
+ALTER TABLE "$SCHEMAom"."historical_locations" ADD CONSTRAINT hl_pk PRIMARY KEY ("procedure", "time");
+
+ALTER TABLE "$SCHEMAom"."historical_locations" ADD CONSTRAINT historical_location_proc_fk FOREIGN KEY ("procedure") REFERENCES "$SCHEMAom"."procedures"("id");

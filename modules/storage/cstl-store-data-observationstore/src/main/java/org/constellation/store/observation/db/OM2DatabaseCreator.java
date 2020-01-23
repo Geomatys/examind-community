@@ -42,6 +42,8 @@ public class OM2DatabaseCreator {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.om2");
 
+    private final static String LAST_VERSION = "1.0.4";
+
     /**
      * Fill a new PostgreSQL database with the O&amp;M model.
      *
@@ -93,20 +95,6 @@ public class OM2DatabaseCreator {
         return false;
     }
 
-    public static boolean versionTablePresent(final Connection con, final String schemaPrefix) {
-        if (con != null) {
-            try (final Statement stmt = con.createStatement();
-                 final ResultSet result = stmt.executeQuery("SELECT * FROM " + schemaPrefix + "om\".\"version\"")) {
-                result.next();
-                return true;
-
-            } catch(SQLException ex) {
-                LOGGER.log(Level.FINER, "missing table in OM database", ex);
-            }
-        }
-        return false;
-    }
-
     public static boolean isPostgisInstalled(final DataSource source, boolean isPostgres) {
         if (!isPostgres) return true;
         if (source != null) {
@@ -139,9 +127,45 @@ public class OM2DatabaseCreator {
         if (newVersionTableMissing(con, schemaPrefix)) {
             try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate("CREATE TABLE \"" + schemaPrefix + "om\".\"version\" (\"number\"   character varying(10) NOT NULL);");
-                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.3');");
+                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.4');");
                 stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "om\".\"version\" ADD CONSTRAINT version_pk PRIMARY KEY (\"number\");");
             }
+        }
+    }
+
+    public static boolean updateStructure(final DataSource source, final String schemaPrefix, final boolean isPostgres) {
+        if (source != null) {
+            try (final Connection con = source.getConnection()) {
+
+                String version = getVersion(con, schemaPrefix);
+                if (!LAST_VERSION.equals(version)) {
+                    final ScriptRunner sr = new ScriptRunner(con);
+                    switch (version) {
+                        case "1.0.0": execute("org/constellation/om2/update/update101.sql", sr, schemaPrefix);
+                        case "1.0.1": execute("org/constellation/om2/update/update102.sql", sr, schemaPrefix);
+                        case "1.0.2": execute("org/constellation/om2/update/update103.sql", sr, schemaPrefix);
+                        case "1.0.3": if (isPostgres) {
+                                        execute("org/constellation/om2/update/update104_pg.sql", sr, schemaPrefix);
+                                      } else {
+                                        execute("org/constellation/om2/update/update104.sql", sr, schemaPrefix);
+                                      }
+                    }
+                    return true;
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.FINER, "Error during database update.", ex);
+            }
+        }
+        return false;
+    }
+
+    private static String getVersion(final Connection con, final String schemaPrefix) throws SQLException {
+        try (final Statement stmt = con.createStatement();
+             final ResultSet result = stmt.executeQuery("SELECT * FROM \"" + schemaPrefix + "om\".\"version\"")) {
+            if (result.next()) {
+                return result.getString(1);
+            }
+            return null;
         }
     }
 

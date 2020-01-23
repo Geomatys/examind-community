@@ -93,6 +93,7 @@ import org.opengis.filter.temporal.OverlappedBy;
 import org.opengis.filter.temporal.TContains;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.filter.temporal.TOverlaps;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -619,6 +620,15 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
+    public void writeLocation(String procedureId, Geometry position) throws ConstellationStoreException {
+        try {
+            store.getWriter().recordProcedureLocation(procedureId, (AbstractGeometry) position);
+        } catch (DataStoreException ex) {
+             throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
     public List<SamplingFeature> getFeatureOfInterest(Query q, Map<String, String> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = store.getFilter();
@@ -626,6 +636,15 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             handleQuery(q, localOmFilter, GET_FEA, hints);
 
             return localOmFilter.getFeatureOfInterests(hints);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public Observation getTemplate(String sensorId, String version) throws ConstellationStoreException {
+        try {
+            return store.getReader().getTemplateForProcedure(sensorId, version);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
