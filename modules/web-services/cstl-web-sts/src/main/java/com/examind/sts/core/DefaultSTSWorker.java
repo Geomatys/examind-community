@@ -101,6 +101,7 @@ import org.geotoolkit.swe.xml.AbstractCategory;
 import org.geotoolkit.swe.xml.AbstractCount;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
+import org.geotoolkit.swe.xml.AbstractTime;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataComponentProperty;
 import org.geotoolkit.swe.xml.DataRecord;
@@ -677,7 +678,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             String valuesLeft = values;
             int pos = valuesLeft.indexOf(tb.getBlockSeparator());
             while (pos != -1) {
-                String block = valuesLeft.substring(0, pos);
+                String block = valuesLeft.substring(0, pos + 1);
                 List<Object> blockValues = new ArrayList<>();
                 int bpos = block.indexOf(tb.getTokenSeparator());
 
@@ -704,14 +705,23 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         AbstractDataComponent compo = fields.get(i);
                         String value = block.substring(0, bpos);
                         if (compo instanceof Quantity) {
-                            measures.add(Float.parseFloat(value));
+                            if (value.isEmpty()) {
+                                measures.add(Float.NaN);
+                            } else {
+                                measures.add(Float.parseFloat(value));
+                            }
                         } else {
                             measures.add(value);
                         }
                         block = block.substring(bpos + tb.getTokenSeparator().length());
                         bpos = block.indexOf(tb.getTokenSeparator());
+                        int endpos = block.indexOf(tb.getBlockSeparator());
                         if (bpos == -1) {
-                            bpos = block.length() -1;
+                            if (endpos == -1) {
+                                bpos = block.length() -1;
+                            } else {
+                                bpos = block.length() - tb.getBlockSeparator().length() - 1;
+                            }
                         }
                     } while (!block.isEmpty());
 
@@ -954,8 +964,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
                 DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
 
-                // skip first main field
-                for (int i = 1; i < dr.getField().size(); i++) {
+                // skip first main field (not for profile)
+                int offset = 0;
+                if (!dr.getField().isEmpty() && dr.getField().get(0).getValue() instanceof AbstractTime) {
+                    offset = 1;
+                }
+                for (int i = offset; i < dr.getField().size(); i++) {
                     DataComponentProperty dcp = dr.getField().get(i);
                     if (dcp.getValue() instanceof Quantity) {
                         datastream.addMultiObservationDataTypesItem("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement");
@@ -1377,12 +1391,24 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private Location buildLocation(STSRequest req, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Location(" + sensorID + ")";
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + sensorID + ")";
         Location result = new Location();
         result.setIotId(sensorID);
         result.setDescription(sensorID);
         result.setEncodingType("application/vnd.geo+json");
         result.setName(sensorID);
+
+        if (req.getExpand().contains("Things")) {
+            result.addThingsItem(buildThing(req, sensorID, s));
+        } else {
+            result = result.thingsIotNavigationLink(selfLink + "/Things");
+        }
+
+        if (req.getExpand().contains("HistoricalLocations")) {
+            // TODO
+        } else {
+            result = result.historicalLocationsIotNavigationLink(selfLink + "/HistoricalLocations");
+        }
 
         result.setIotSelfLink(selfLink);
         Object geomGML = omProvider.getSensorLocation(sensorID, "2.0.0");

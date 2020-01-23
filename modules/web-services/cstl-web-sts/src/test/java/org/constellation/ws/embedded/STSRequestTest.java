@@ -636,6 +636,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/th.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)/Datastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-ds.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-mds.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -684,10 +696,28 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2)?$expand=Things");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-th.json");
+        assertEquals(expResult, result);
     }
 
     @Test
-    @Order(order=13)
+    @Order(order=15)
+    public void getLocationThingTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2)/Things");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/loc-th2.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=16)
     public void getLocationsTest() throws Exception {
         initPool();
 

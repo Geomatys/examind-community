@@ -1018,7 +1018,7 @@ public class OM2STSWorkerTest {
         expMDs1.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
 
         // vertical profile issue
-        expMDs1.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+        expMDs1.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
 
         expResult.addMultiDatastreamsItem(expMDs1);
         expResult.setMultiDatastreamsIotNavigationLink(null);

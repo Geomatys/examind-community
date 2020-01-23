@@ -272,6 +272,11 @@ public abstract class AbstractWebService implements WebService{
         kvpMap.put(name, new String[]{value});
         postKvpParameters.set(kvpMap);
     }
+
+    protected void clearKvpMap() {
+        postKvpParameters.set(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+    }
+
     /**
      * Treat the incoming GET request.
      *
@@ -280,7 +285,11 @@ public abstract class AbstractWebService implements WebService{
     @RequestMapping(method = RequestMethod.GET, headers="Accept=*/*")
     public @ResponseBody ResponseEntity doGET(@PathVariable("serviceId") String serviceId) {
         putServiceIdParam(serviceId);
-        return treatIncomingRequest(null).getResponseEntity(httpServletResponse);
+        try {
+            return treatIncomingRequest(null).getResponseEntity(httpServletResponse);
+        } finally {
+            clearKvpMap();
+        }
     }
 
     /**
@@ -321,7 +330,7 @@ public abstract class AbstractWebService implements WebService{
             LOGGER.info(log.toString());
             return treatIncomingRequest(null).getResponseEntity(httpServletResponse);
         } finally {
-            postKvpParameters.set(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+            clearKvpMap();
         }
     }
 
@@ -381,8 +390,11 @@ public abstract class AbstractWebService implements WebService{
 
                 return launchException(e.getMessage(), e.getExceptionCode().identifier(), e.getLocator()).getResponseEntity();
             }
-
-            return treatIncomingRequest(request).getResponseEntity(httpServletResponse);
+            try {
+                return treatIncomingRequest(request).getResponseEntity(httpServletResponse);
+            } finally {
+                clearKvpMap();
+            }
         } else {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.TEXT_PLAIN);

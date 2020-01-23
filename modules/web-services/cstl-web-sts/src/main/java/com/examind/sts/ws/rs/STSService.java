@@ -357,6 +357,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -364,7 +366,7 @@ public class STSService extends OGCWebService<STSWorker> {
 
     @RequestMapping(path = "Observations({id:[^\\)]+})/FeaturesOfInterest", method = RequestMethod.GET)
     public ResponseEntity getFeatureOfInterestForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
-       putServiceIdParam(serviceId);
+        putServiceIdParam(serviceId);
         final Worker worker = getWorker(serviceId);
         if (worker != null) {
             try {
@@ -376,6 +378,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -395,6 +399,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -413,6 +419,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -432,6 +440,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -450,6 +460,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -470,6 +482,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -489,6 +503,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -507,6 +523,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -526,6 +544,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -545,6 +565,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -564,6 +586,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -582,6 +606,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -601,6 +627,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -620,6 +648,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -639,6 +669,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -658,6 +690,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -677,6 +711,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -697,6 +733,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -717,6 +755,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -737,6 +777,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -758,6 +800,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -779,6 +823,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -800,6 +846,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -819,6 +867,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -838,6 +888,30 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Locations({id:[^\\)]+})/Things", method = RequestMethod.GET)
+    public ResponseEntity getThingsForLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -856,6 +930,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -875,6 +951,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -895,6 +973,30 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Things({id:[^\\)]+})/Datastreams", method = RequestMethod.GET)
+    public ResponseEntity getDatastreamsForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETDATASTREAMS, worker);
+                request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -915,6 +1017,30 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Things({id:[^\\)]+})/MultiDatastreams", method = RequestMethod.GET)
+    public ResponseEntity getMultiDatastreamsForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETMULTIDATASTREAMS, worker);
+                request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -933,6 +1059,8 @@ public class STSService extends OGCWebService<STSWorker> {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
