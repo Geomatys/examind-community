@@ -1,16 +1,28 @@
 {
   "value" : [ {
+    "unitOfMeasure" : [ {
+      "name" : "m",
+      "symbol" : "m",
+      "definition" : "m"
+    } ],
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:3",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)",
+    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Things",
     "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Sensors",
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations",
     "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
   }, {
+    "unitOfMeasure" : [ {
+      "name" : "m",
+      "symbol" : "m",
+      "definition" : "m"
+    } ],
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:4",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)",
+    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Things",
     "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Sensors",
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Observations",

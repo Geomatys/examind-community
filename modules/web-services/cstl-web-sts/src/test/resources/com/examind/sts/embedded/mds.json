@@ -1,7 +1,17 @@
 {
+  "unitOfMeasure" : [ {
+    "name" : "m",
+    "symbol" : "m",
+    "definition" : "m"
+  }, {
+    "name" : "°C",
+    "symbol" : "°C",
+    "definition" : "°C"
+  } ],
   "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
   "@iot.id" : "urn:ogc:object:observation:template:GEOM:8",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)",
+  "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Things",
   "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Sensors",
   "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/ObservedProperties",
   "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations",

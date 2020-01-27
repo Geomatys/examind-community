@@ -50,11 +50,12 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.chain.model.Chain;
 import org.geotoolkit.processing.chain.model.Constant;
-import org.geotoolkit.processing.chain.model.StringMap;
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
 import static org.geotoolkit.processing.chain.model.Element.END;
 import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
+import org.geotoolkit.processing.chain.model.StringMapList;
+import org.geotoolkit.processing.chain.model.StringList;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -158,9 +159,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
          final Parameter SIDparam = new Parameter(SERVICE_ID_NAME, ServiceProcessReference.class, SERVICE_ID_DESC, SERVICE_ID_DESC, 1, 1);
         // not using Collections.singletonMap() because of marshalling issue
         Map<String, Object> userMap = new HashMap<>();
-        HashMap<String, String> typeMap = new HashMap<>();
-        typeMap.put("type", "sos");
-        userMap.put("filter", new StringMap(typeMap));
+        HashMap<String, StringList> typeMap = new HashMap<>();
+        ArrayList<String> list = new ArrayList<>();
+        list.add("sos");
+        list.add("sts");
+        typeMap.put("type", new StringList(list));
+        userMap.put("filter", new StringMapList(typeMap));
         SIDparam.setUserMap(userMap);
         inputs.add(SIDparam);
 
@@ -204,6 +208,9 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
         inputs.add(RPparam);
+
+        final Parameter EUparam = new Parameter(EXTRACT_UOM_NAME, Boolean.class, EXTRACT_UOM_DESC, EXTRACT_UOM_DESC, 0, 1, false);
+        inputs.add(EUparam);
 
         if ("csv".equals(format)) {
             final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationCsvFile");

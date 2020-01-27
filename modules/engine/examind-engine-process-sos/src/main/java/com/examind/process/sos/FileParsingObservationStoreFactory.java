@@ -82,4 +82,9 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<Boolean> EXTRACT_UOM = PARAM_BUILDER
+            .addName("extract uom")
+            .setRequired(false)
+            .create(Boolean.class, false);
+
 }

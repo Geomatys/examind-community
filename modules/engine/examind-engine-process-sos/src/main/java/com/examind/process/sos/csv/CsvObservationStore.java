@@ -100,6 +100,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
     private final String procedureId;
 
+    private final boolean extractUom;
+
     /**
      *
      * @param observationFile path to the csv observation file
@@ -117,7 +119,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId) throws DataStoreException, MalformedURLException {
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final boolean extractUom) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
@@ -129,6 +131,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureId = procedureId;
+        this.extractUom = extractUom;
     }
 
     @Override
@@ -234,7 +237,18 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 =====================*/
                 final List<Field> fields = new ArrayList<>();
                 for (final String field : measureFields) {
-                    fields.add(new Field(field, 1, ""));
+                    String name;
+                    String uom;
+                    int b = field.indexOf('(');
+                    int o = field.indexOf(')');
+                    if (extractUom && b != -1 && o != -1 && b < o) {
+                        name = field.substring(0, b).trim();
+                        uom  = field.substring(b + 1, o);
+                    } else {
+                        name = field;
+                        uom  = null;
+                    }
+                    fields.add(new Field(name, null, 1, "", null, uom));
                 }
 
                 final ExtractionResult result = new ExtractionResult();

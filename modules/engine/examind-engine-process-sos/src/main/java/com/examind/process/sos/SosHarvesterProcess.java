@@ -123,6 +123,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String user = inputParameters.getValue(USER);
         final String pwd  = inputParameters.getValue(PWD);
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
+        final boolean extractUom = inputParameters.getValue(EXTRACT_UOM);
 
 
         final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
@@ -270,6 +271,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_COLUMNS.getName().toString(), StringUtilities.toCommaSeparatedValues(measureColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
 
             try {
                 datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);

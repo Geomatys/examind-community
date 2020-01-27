@@ -1,5 +1,11 @@
 {
   "description" : "urn:ogc:object:observation:template:GEOM:8-1",
+  "unitOfMeasure" : {
+    "name" : "°C",
+    "symbol" : "°C",
+    "definition" : "°C"
+  },
+  "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
   "@iot.id" : "urn:ogc:object:observation:template:GEOM:8-1",
   "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)",
   "Sensor" : {
@@ -60,5 +66,6 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1-9)",
     "Datastream@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1-9)/Datastreams",
     "FeatureOfInterest@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Observations(urn:ogc:object:observation:GEOM:801-1-9)/FeaturesOfInterest"
-  } ]
+  } ],
+  "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:8-1)/Things"
 }

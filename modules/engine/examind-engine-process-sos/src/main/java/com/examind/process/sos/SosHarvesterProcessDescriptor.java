@@ -16,6 +16,7 @@
  */
 package com.examind.process.sos;
 
+import java.util.Arrays;
 import java.util.Collections;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
@@ -80,7 +81,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final String SERVICE_ID_DESC = "SOS service";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
         new ExtendedParameterDescriptor<>(
-                SERVICE_ID_NAME, SERVICE_ID_DESC, ServiceProcessReference.class, null, true, Collections.singletonMap("filter", Collections.singletonMap("type", "sos")));
+                SERVICE_ID_NAME, SERVICE_ID_DESC, ServiceProcessReference.class, null, true, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
 
     public static final String DATASET_IDENTIFIER_NAME = "dataset identifier";
     public static final String DATASET_IDENTIFIER_DESC = "dataset identifier";
@@ -180,6 +181,14 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Boolean.class, false);
 
+    public static final String EXTRACT_UOM_NAME = "extract uom";
+    public static final String EXTRACT_UOM_DESC = "extract uom from headers";
+    public static final ParameterDescriptor<Boolean> EXTRACT_UOM = PARAM_BUILDER
+            .addName(EXTRACT_UOM_NAME)
+            .setRemarks(EXTRACT_UOM_DESC)
+            .setRequired(false)
+            .create(Boolean.class, false);
+
     public static final String STORE_ID_NAME = "Store Id";
     public static final String STORE_ID_DESC = "Store Id";
     public static final ParameterDescriptor<String> STORE_ID = PARAM_BUILDER
@@ -198,7 +207,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, OBS_TYPE,
-                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS,
+                    SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
                     STORE_ID, FORMAT);
 
     public static final String FILE_INSERTED_NAME = "Files inserted number";
