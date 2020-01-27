@@ -316,7 +316,22 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
 
         //apply filter
         if (parameter.ext && parameter.ext.filter) {
-            self.services = $filter('filter')(self.services, parameter.ext.filter);
+            self.serviceTmp = [];
+            for (var prop in parameter.ext.filter) {
+                if (Array.isArray(parameter.ext.filter[prop])) {
+                    for (var i = 0; i < parameter.ext.filter[prop].length; i++) {
+                        var item = parameter.ext.filter[prop][i];
+                        var f = {};
+                        f[prop] = item;
+                        self.serviceTmp = self.serviceTmp.concat($filter('filter')(self.services, f));
+                    }
+                } else {
+                    var f2 = {};
+                    f2[prop] = parameter.ext.filter[prop];
+                    self.serviceTmp = self.serviceTmp.concat($filter('filter')(self.services, f2));
+                }
+            }
+            self.services = self.serviceTmp;
         }
 
         // add undefined if parameter optional

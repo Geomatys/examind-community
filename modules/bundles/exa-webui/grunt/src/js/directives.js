@@ -585,7 +585,8 @@ angular.module('cstl-directives', ['pascalprecht.translate'])
                 rightModel: '=',
                 leftLabel: '=',
                 rightLabel: '=',
-                labelField: '@'
+                labelField: '@',
+                labelPrefix: '@?'
             },
             link: function(scope) {
 
@@ -637,7 +638,7 @@ angular.module('cstl-directives', ['pascalprecht.translate'])
                     '</div>' +
                     '<div class="picklist-body">' +
                         '<div class="picklist-left">' +
-                            '<select multiple="multiple" class="form-control" ng-model="leftSelect" ng-options="item as (labelField? item[labelField] : item) for item in leftModel"/>' +
+                            '<select multiple="multiple" class="form-control" ng-model="leftSelect" ng-options="item as ((labelPrefix ? labelPrefix + " - " : "") + (labelField ? item[labelField] : item)) for item in leftModel"/>' +
                         '</div>' +
                         '<div class="picklist-actions">' +
                             '<div class="centered">' +
@@ -648,7 +649,7 @@ angular.module('cstl-directives', ['pascalprecht.translate'])
                             '</div>' +
                         '</div>' +
                         '<div class="picklist-right">' +
-                            '<select multiple="multiple" class="form-control" ng-model="rightSelect" ng-options="item as (labelField? item[labelField] : item) for item in rightModel"/>' +
+                            '<select multiple="multiple" class="form-control" ng-model="rightSelect" ng-options="item as ((labelPrefix ? labelPrefix + " - " : "") + (labelField ? item[labelField] : item)) for item in rightModel"/>' +
                         '</div>' +
                     '</div>' +
                 '</div>'

@@ -3,8 +3,8 @@
         ng-if="!parameter.isArray"
         ng-required="parameter.mandatory"
         ng-model="parameter.save[$index]"
-        ng-options="s as s.name for s in ec.services | orderBy:'name' track by s.id">
+        ng-options="s as (s.type + ' - ' + s.name) for s in ec.services | orderBy:'name' track by s.id">
 </select>
-<picklist ng-if="parameter.isArray" label-field="name"
+<picklist ng-if="parameter.isArray" label-field="name" label-prefix="type"
           left-label="'tasks.edit.picklist.selected'|translate" left-model="parameter.save[$index]"
           right-label="'tasks.edit.picklist.available'|translate" right-model="ec.services"></picklist>
