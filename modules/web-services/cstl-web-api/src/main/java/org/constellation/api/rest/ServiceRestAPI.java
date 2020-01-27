@@ -256,7 +256,11 @@ public class ServiceRestAPI extends AbstractRestAPI {
             count = 0;
 
         } else {
-            count = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin()).size();
+            try {
+                count = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin()).size();
+            }catch(Exception ex){
+                count = 0;
+            }
         }
         instance.setLayersNumber(count);
         return instance;
