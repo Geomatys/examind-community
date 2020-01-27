@@ -64,7 +64,7 @@ import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.DefaultCoverageMapLayer;
+import org.geotoolkit.map.CoverageMapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.process.ProcessException;
@@ -192,7 +192,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         final MapLayer layer = MapBuilder.createCoverageLayer(ref, style);
 
         // EXTRA FILTER extra parameter ////////////////////////////////////////
-        if (params != null && layer instanceof DefaultCoverageMapLayer) {
+        if (params != null && layer instanceof CoverageMapLayer) {
             final Map<String,?> extras = (Map<String, ?>) params.get(KEY_EXTRA_PARAMETERS);
             if (extras != null) {
                 Filter filter = null;
@@ -215,7 +215,7 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
                     }
                 }
                 if (filter != null) {
-                    final DefaultCoverageMapLayer cml = (DefaultCoverageMapLayer) layer;
+                    final CoverageMapLayer cml = (CoverageMapLayer) layer;
                     try {
                         cml.setQuery(QueryBuilder.filtered(cml.getResource().getIdentifier().toString(), filter));
                     } catch (DataStoreException ex) {
