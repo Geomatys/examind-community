@@ -57,9 +57,13 @@ public interface ObservationProvider extends DataProvider {
 
     List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, QName resultModel, String responseMode, final Map<String,String> hints) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String responseFormat, final Map<String,String> hints) throws ConstellationStoreException;
+
+    Object getOutOfBandObservations(Query query, QName resultModel, String responseFormat, final Map<String,String> hints) throws ConstellationStoreException;
 
     List<Process> getProcedures(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
+    String getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
 
     // TODO use a query instead of all the prameters
     String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException;

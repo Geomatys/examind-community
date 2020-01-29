@@ -404,14 +404,14 @@ public class ObservationStoreProviderTest {
     public void getObservationTemplateTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", Collections.EMPTY_MAP);
+        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "resultTemplate", null, Collections.EMPTY_MAP);
         assertEquals(9, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", Collections.singletonMap("version", "1.0.0"));
+        results = omPr.getObservations(null,  OBSERVATION_QNAME, "resultTemplate", null, Collections.singletonMap("version", "1.0.0"));
         assertEquals(9, results.size());
 
         for (Observation p : results) {
@@ -467,14 +467,14 @@ public class ObservationStoreProviderTest {
     public void getObservationsTest() throws Exception {
         assertNotNull(omPr);
 
-        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", Collections.EMPTY_MAP);
+        List<Observation> results = omPr.getObservations(null, OBSERVATION_QNAME, "inline", null, Collections.EMPTY_MAP);
         assertEquals(9, results.size()); // why only 9?
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.xml.v200.OMObservationType);
         }
 
-        results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", Collections.singletonMap("version", "1.0.0"));
+        results = omPr.getObservations(null,  OBSERVATION_QNAME, "inline", null, Collections.singletonMap("version", "1.0.0"));
         assertEquals(9, results.size());// why only 9?
 
         for (Observation p : results) {

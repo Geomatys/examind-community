@@ -33,4 +33,9 @@ public class SOSProviderCapabilities {
 
     public List<String> queryableResultProperties = new ArrayList<>();
 
+    public boolean isBoundedObservation = false;
+
+    public boolean computeCollectionBound = false;
+
+    public boolean isDefaultTemplateTime = false;
 }
