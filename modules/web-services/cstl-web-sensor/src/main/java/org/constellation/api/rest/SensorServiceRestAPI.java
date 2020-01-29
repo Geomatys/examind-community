@@ -270,6 +270,7 @@ public class SensorServiceRestAPI {
         GeoSpatialBound bound = pt.spatialBound;
         org.constellation.dto.service.config.sos.ProcedureTree result  = new org.constellation.dto.service.config.sos.ProcedureTree(pt.id,
                                                   pt.type,
+                                                  pt.omType,
                                                   bound.dateStart,
                                                   bound.dateEnd,
                                                   bound.minx,
@@ -312,7 +313,7 @@ public class SensorServiceRestAPI {
 
     private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
         final AbstractGeometry geom = process.spatialBound.getGeometry("2.0.0");
-        sensorServiceBusiness.writeProcedure(id, process.id, geom, parent, process.type);
+        sensorServiceBusiness.writeProcedure(id, process.id, geom, parent, process.type, process.omType);
         for (ProcedureTree child : process.children) {
             writeProcedures(id, child, process.id);
         }

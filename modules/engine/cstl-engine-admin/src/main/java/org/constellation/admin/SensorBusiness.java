@@ -265,7 +265,7 @@ public class SensorBusiness implements ISensorBusiness {
 
     @Override
     @Transactional
-    public Integer create(final String identifier, final String type, final String parent, final Object metadata, final Long date, Integer providerID) throws ConfigurationException {
+    public Integer create(final String identifier, final String type, final String omType, final String parent, final Object metadata, final Long date, Integer providerID) throws ConfigurationException {
         // look for already existing sensor
         if (sensorRepository.existsByIdentifier(identifier)) {
             throw new ConfigurationException("the Sensor is already registered in the system");
@@ -287,6 +287,7 @@ public class SensorBusiness implements ISensorBusiness {
         }
         sensor.setProviderId(providerID);
         sensor.setProfile(getTemplateFromType(type));
+        sensor.setOmType(omType);
 
         Integer sid= sensorRepository.create(sensor);
         if (metadata != null) {
@@ -603,7 +604,7 @@ public class SensorBusiness implements ISensorBusiness {
         Sensor sensor = getSensor(process.getId());
         Integer sid;
         if (sensor == null) {
-            sid = create(process.getId(), process.getType(), parentID, null, System.currentTimeMillis(), providerID);
+            sid = create(process.getId(), process.getType(), process.getOmType(), parentID, null, System.currentTimeMillis(), providerID);
         } else {
             sid = sensor.getId();
         }

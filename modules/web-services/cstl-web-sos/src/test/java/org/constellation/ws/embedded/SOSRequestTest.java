@@ -129,13 +129,13 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
                 Object sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A");
-                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, sml, Long.MIN_VALUE, providerSEN);
+                int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626");
-                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, sml, Long.MIN_VALUE, providerSEN);
+                int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("urn-ogc-object-sensor-SunSpot-2");
-                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, sml, Long.MIN_VALUE, providerSEN);
+                int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
 
                 final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSDatabase");

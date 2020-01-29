@@ -323,7 +323,7 @@ public class FileObservationWriter implements ObservationWriter {
     }
 
     @Override
-    public void writeProcedure(final String procedureID, final AbstractGeometry position, final String parent, final String type) throws DataStoreException {
+    public void writeProcedure(final String procedureID, final AbstractGeometry position, final String parent, final String type, final String omType) throws DataStoreException {
          // do nothing
     }
 

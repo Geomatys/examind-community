@@ -442,7 +442,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
     private void writeProcedures(final Integer id, final ExtractionResult.ProcedureTree process, final String parent) throws ConfigurationException {
         final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
-        sensorServBusiness.writeProcedure(id, process.id, geom, parent, process.type);
+        sensorServBusiness.writeProcedure(id, process.id, geom, parent, process.type, process.omType);
         for (ExtractionResult.ProcedureTree child : process.children) {
             writeProcedures(id, child, process.id);
         }

@@ -455,7 +455,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 result.spatialBound.merge(globalSpaBound);
 
                 // build procedure tree
-                final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE);
+                final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
                 procedure.spatialBound.merge(globalSpaBound);
                 result.procedures.add(procedure);
 
@@ -647,7 +647,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 }
 
                 // procedure tree instanciation
-                final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, measureFields);
+                final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
 
                 Date minDate = null;
                 Date maxDate = null;

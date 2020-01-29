@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."sensor" ADD COLUMN om_type character varying(100);

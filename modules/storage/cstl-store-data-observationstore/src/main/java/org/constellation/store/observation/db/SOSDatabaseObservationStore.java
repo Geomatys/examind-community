@@ -307,7 +307,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
             if (sensorIDs == null || sensorIDs.contains(procedure.id)) {
                 if (!result.procedures.contains(procedure)) {
                     result.procedures.add(procedure);
@@ -345,7 +345,7 @@ public class SOSDatabaseObservationStore extends DataStore implements Aggregate,
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
 
             if (!result.contains(procedure)) {
                 result.add(procedure);

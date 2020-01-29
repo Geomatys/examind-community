@@ -67,7 +67,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
             sql = sql.replace("$SCHEMA", "");
             exec.run(sql);
-            exec.run(getResourceAsStream("org/constellation/sql/sos-data.sql"));
+            exec.run(getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
             final Map params = new HashMap<>();
             params.put("dbtype", "OM");

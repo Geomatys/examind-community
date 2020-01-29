@@ -60,7 +60,8 @@ CREATE TABLE "$SCHEMAom"."procedures" (
     "crs"    integer,
     "pid"    integer NOT NULL,
     "parent" character varying(200),
-    "type"   character varying(200)
+    "type"   character varying(200),
+    "om_type" character varying(100)
 );
 
 CREATE TABLE "$SCHEMAom"."procedure_descriptions" (

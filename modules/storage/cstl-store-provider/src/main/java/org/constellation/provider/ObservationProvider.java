@@ -94,7 +94,7 @@ public interface ObservationProvider extends DataProvider {
 
     String writeObservation(final Observation observation) throws ConstellationStoreException;
 
-    void writeProcedure(final String procedureID, final Object position, final String parent, final String type) throws ConstellationStoreException;
+    void writeProcedure(final String procedureID, final Object position, final String parent, final String type, final String omType) throws ConstellationStoreException;
 
     void updateProcedureLocation(final String procedureID, final Object position) throws ConstellationStoreException;
 

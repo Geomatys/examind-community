@@ -72,13 +72,13 @@ public class InternalSOS2WorkerTest extends SOS2WorkerTest {
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
                 Object sml = writeCommonDataFile("system.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, null, sml, Long.MIN_VALUE, provider);
 
                 sml = writeCommonDataFile("component.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, null, sml, Long.MIN_VALUE, provider);
 
                 sml = writeCommonDataFile("component2.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:3", "component", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:3", "component", null, null, sml, Long.MIN_VALUE, provider);
 
                 SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");

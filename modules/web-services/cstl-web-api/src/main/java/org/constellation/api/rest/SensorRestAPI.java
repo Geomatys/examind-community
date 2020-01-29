@@ -396,7 +396,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
                             final List<String> children = SensorMLUtilities.getChildrenIdentifiers(sml);
 
-                            final Integer sid = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
+                            final Integer sid = sensorBusiness.create(sensorID, type, null, null, sml, System.currentTimeMillis(), providerID);
                             sensorsImported.add(sensorBusiness.getSensor(sid));
                             parents.put(sensorID, children);
                         }
@@ -423,7 +423,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 final AbstractSensorML sml = (AbstractSensorML) objsml;
                 final String type          = SensorMLUtilities.getSensorMLType(sml);
                 final String sensorID      = SensorMLUtilities.getSmlID(sml);
-                final Integer sid          = sensorBusiness.create(sensorID, type, null, sml, System.currentTimeMillis(), providerID);
+                final Integer sid          = sensorBusiness.create(sensorID, type, null, null, sml, System.currentTimeMillis(), providerID);
                 sensorsImported.add(sensorBusiness.getSensor(sid));
             }
         }

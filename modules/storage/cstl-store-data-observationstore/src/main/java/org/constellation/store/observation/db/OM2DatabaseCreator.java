@@ -42,7 +42,7 @@ public class OM2DatabaseCreator {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.om2");
 
-    private final static String LAST_VERSION = "1.0.4";
+    private final static String LAST_VERSION = "1.0.5";
 
     /**
      * Fill a new PostgreSQL database with the O&amp;M model.
@@ -127,7 +127,7 @@ public class OM2DatabaseCreator {
         if (newVersionTableMissing(con, schemaPrefix)) {
             try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate("CREATE TABLE \"" + schemaPrefix + "om\".\"version\" (\"number\"   character varying(10) NOT NULL);");
-                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.4');");
+                stmt.executeUpdate("INSERT INTO \"" + schemaPrefix + "om\".\"version\" VALUES ('1.0.5');");
                 stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "om\".\"version\" ADD CONSTRAINT version_pk PRIMARY KEY (\"number\");");
             }
         }
@@ -149,6 +149,7 @@ public class OM2DatabaseCreator {
                                       } else {
                                         execute("org/constellation/om2/update/update104.sql", sr, schemaPrefix);
                                       }
+                        case "1.0.4": execute("org/constellation/om2/update/update105.sql", sr, schemaPrefix);
                     }
                     return true;
                 }

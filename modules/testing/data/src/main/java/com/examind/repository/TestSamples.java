@@ -197,6 +197,7 @@ public class TestSamples {
         sensor.setOwner(ownerId);
         sensor.setType("System");
         sensor.setProfile("profile_import");
+        sensor.setOmType("timeseries");
         return sensor;
     }
 

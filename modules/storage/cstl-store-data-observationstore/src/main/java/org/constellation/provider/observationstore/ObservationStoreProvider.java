@@ -272,6 +272,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         GeoSpatialBound bound = pt.spatialBound;
         ProcedureTree result  = new ProcedureTree(pt.id,
                                                   pt.type,
+                                                  pt.omType,
                                                   bound.dateStart,
                                                   bound.dateEnd,
                                                   bound.minx,
@@ -575,12 +576,12 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public void writeProcedure(String procedureID, Object position, String parent, String type) throws ConstellationStoreException {
+    public void writeProcedure(String procedureID, Object position, String parent, String type, String omType) throws ConstellationStoreException {
         if (position != null && !(position instanceof AbstractGeometry)) {
             throw new ConstellationStoreException("Unexpected geometry type. GML geometry expected.");
         }
         try {
-            store.getWriter().writeProcedure(procedureID, (AbstractGeometry) position, parent, type);
+            store.getWriter().writeProcedure(procedureID, (AbstractGeometry) position, parent, type, omType);
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
         }

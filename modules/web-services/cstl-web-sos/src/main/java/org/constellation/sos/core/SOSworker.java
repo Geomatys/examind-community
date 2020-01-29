@@ -1768,7 +1768,7 @@ public class SOSworker extends SensorWorker {
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
-            Integer sid = sensorBusiness.create(sensorId, smlType, null, process, System.currentTimeMillis(), smlProviderID);
+            Integer sid = sensorBusiness.create(sensorId, smlType, null, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer

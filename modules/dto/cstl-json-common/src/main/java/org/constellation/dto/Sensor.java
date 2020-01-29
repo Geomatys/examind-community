@@ -38,7 +38,12 @@ public class Sensor implements Serializable {
     private Date    date;
     private Integer providerId;
     private String profile;
+    protected String omType;
 
+    public Sensor() {
+
+    }
+    
     /**
      * @return the id
      */
@@ -151,6 +156,20 @@ public class Sensor implements Serializable {
         this.profile = profile;
     }
 
+    /**
+     * @return the omType
+     */
+    public String getOmType() {
+        return omType;
+    }
+
+    /**
+     * @param omType the omType to set
+     */
+    public void setOmType(String omType) {
+        this.omType = omType;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[Sensor]\n");
@@ -162,6 +181,7 @@ public class Sensor implements Serializable {
         sb.append("date").append(date).append('\n');
         sb.append("providerId").append(providerId).append('\n');
         sb.append("profile").append(profile).append('\n');
+        sb.append("omType").append(omType).append('\n');
         return sb.toString();
     }
 
@@ -176,6 +196,7 @@ public class Sensor implements Serializable {
         hash = 97 * hash + Objects.hashCode(this.date);
         hash = 97 * hash + Objects.hashCode(this.providerId);
         hash = 97 * hash + Objects.hashCode(this.profile);
+        hash = 97 * hash + Objects.hashCode(this.omType);
         return hash;
     }
 
@@ -193,6 +214,7 @@ public class Sensor implements Serializable {
                    Objects.equals(this.parent, that.parent) &&
                    Objects.equals(this.owner, that.owner) &&
                    Objects.equals(this.profile, that.profile) &&
+                   Objects.equals(this.omType, that.omType) &&
                    Objects.equals(this.providerId, that.providerId);
         }
         return false;

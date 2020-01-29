@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Sensor implements java.io.Serializable {
 
-	private static final long serialVersionUID = 208649053;
+	private static final long serialVersionUID = -1312765142;
 
 	private java.lang.Integer id;
 	private java.lang.String  identifier;
@@ -26,6 +26,7 @@ public class Sensor implements java.io.Serializable {
 	private java.lang.Long    date;
 	private java.lang.Integer providerId;
 	private java.lang.String  profile;
+	private java.lang.String  omType;
 
 	public Sensor() {}
 
@@ -37,7 +38,8 @@ public class Sensor implements java.io.Serializable {
 		java.lang.Integer owner,
 		java.lang.Long    date,
 		java.lang.Integer providerId,
-		java.lang.String  profile
+		java.lang.String  profile,
+		java.lang.String  omType
 	) {
 		this.id = id;
 		this.identifier = identifier;
@@ -47,6 +49,7 @@ public class Sensor implements java.io.Serializable {
 		this.date = date;
 		this.providerId = providerId;
 		this.profile = profile;
+		this.omType = omType;
 	}
 
 	@javax.validation.constraints.NotNull
@@ -125,6 +128,16 @@ public class Sensor implements java.io.Serializable {
 
 	public Sensor setProfile(java.lang.String profile) {
 		this.profile = profile;
+		return this;
+	}
+
+	@javax.validation.constraints.Size(max = 100)
+	public java.lang.String getOmType() {
+		return this.omType;
+	}
+
+	public Sensor setOmType(java.lang.String omType) {
+		this.omType = omType;
 		return this;
 	}
 }

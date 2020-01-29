@@ -1347,8 +1347,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         String selfLink = getServiceUrl();
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Things("+ sensorID+ ")";
 
-        // TODO properties
         Thing thing = new Thing();
+        if (s != null && s.getOmType() != null) {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("type", s.getOmType());
+            thing.setProperties(properties);
+        }
         thing = thing.description(sensorID)
                 .name(sensorID)
                 .iotId(sensorID)

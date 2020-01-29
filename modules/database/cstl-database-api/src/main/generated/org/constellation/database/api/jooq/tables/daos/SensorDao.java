@@ -107,4 +107,11 @@ public class SensorDao extends org.jooq.impl.DAOImpl<org.constellation.database.
 	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Sensor> fetchByProfile(java.lang.String... values) {
 		return fetch(org.constellation.database.api.jooq.tables.Sensor.SENSOR.PROFILE, values);
 	}
+
+	/**
+	 * Fetch records that have <code>om_type IN (values)</code>
+	 */
+	public java.util.List<org.constellation.database.api.jooq.tables.pojos.Sensor> fetchByOmType(java.lang.String... values) {
+		return fetch(org.constellation.database.api.jooq.tables.Sensor.SENSOR.OM_TYPE, values);
+	}
 }

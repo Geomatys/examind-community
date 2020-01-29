@@ -172,7 +172,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         final Set<String> observationIDS = filter.filterObservation();
         for (String oid : observationIDS) {
             final AbstractObservation o = (AbstractObservation) reader.getObservation(oid, OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
             if (sensorIDs == null || sensorIDs.contains(procedure.id)) {
                 if (!result.procedures.contains(procedure)) {
                     result.procedures.add(procedure);
@@ -207,7 +207,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         final List<Observation> observations = currentFilter.getObservations(Collections.emptyMap());
         for (Observation obs : observations) {
             final AbstractObservation o = (AbstractObservation)obs;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component");
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(o.getProcedure().getHref(), "Component", "timeseries");
 
             if (!result.contains(procedure)) {
                 result.add(procedure);

@@ -33,6 +33,8 @@ public class ProcedureTree {
 
     private String type;
 
+    protected String omType;
+
     private List<ProcedureTree> children = new ArrayList<>();
 
     private List<String> fields = new ArrayList<>();
@@ -50,9 +52,10 @@ public class ProcedureTree {
 
     }
 
-    public ProcedureTree(String id, String type, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields) {
+    public ProcedureTree(String id, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields) {
         this.id = id;
         this.type = type;
+        this.omType = omType;
         this.fields = fields;
 
         this.dateStart = dateStart;
@@ -204,12 +207,29 @@ public class ProcedureTree {
         this.maxy = maxy;
     }
 
+    /**
+     * @return the omType
+     */
+    public String getOmType() {
+        return omType;
+    }
+
+    /**
+     * @param omType the omType to set
+     */
+    public void setOmType(String omType) {
+        this.omType = omType;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[ProcedureTree]\n");
         sb.append("id=").append(id).append('\n');
         if (type != null) {
             sb.append("type=").append(type).append("\n");
+        }
+        if (omType != null) {
+            sb.append("OM type=").append(omType).append("\n");
         }
         if (dateStart != null) {
             sb.append("dateStart=").append(dateStart).append("\n");
@@ -261,6 +281,7 @@ public class ProcedureTree {
                    Objects.equals(this.maxy,         that.maxy)   &&
                    Objects.equals(this.fields,       that.fields)   &&
                    Objects.equals(this.children,     that.children)   &&
+                   Objects.equals(this.omType,       that.omType)   &&
                    Objects.equals(this.type,         that.type);
         }
         return false;
@@ -271,6 +292,7 @@ public class ProcedureTree {
         int hash = 7;
         hash = 11 * hash + Objects.hashCode(this.id);
         hash = 11 * hash + Objects.hashCode(this.type);
+        hash = 11 * hash + Objects.hashCode(this.omType);
         hash = 11 * hash + Objects.hashCode(this.children);
         hash = 11 * hash + Objects.hashCode(this.fields);
         hash = 11 * hash + Objects.hashCode(this.dateStart);

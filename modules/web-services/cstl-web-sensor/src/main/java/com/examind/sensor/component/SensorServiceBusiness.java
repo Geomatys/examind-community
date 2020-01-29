@@ -108,7 +108,7 @@ public class SensorServiceBusiness {
                     if (sensor instanceof AbstractSensorML) {
                         final String sensorID = getSmlID((AbstractSensorML)sensor);
                         final String smlType = SensorMLUtilities.getSensorMLType((AbstractSensorML)sensor);
-                        sensorBusiness.create(sensorID, smlType, null, sensor, System.currentTimeMillis(), getSensorProviderId(serviceID));
+                        sensorBusiness.create(sensorID, smlType, null, null, sensor, System.currentTimeMillis(), getSensorProviderId(serviceID));
                     } else {
                         throw new ConfigurationException("Only handle SensorML for now");
                     }
@@ -314,10 +314,10 @@ public class SensorServiceBusiness {
         }
     }
 
-    public void writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type) throws ConfigurationException {
+    public void writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type, final String omType) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            pr.writeProcedure(sensorID, location, parent, type);
+            pr.writeProcedure(sensorID, location, parent, type, omType);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

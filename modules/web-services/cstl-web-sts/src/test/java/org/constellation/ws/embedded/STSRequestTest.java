@@ -104,13 +104,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
                 Object sml = writeDataFile("system.xml");
-                Integer senId1 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId1 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("component.xml");
-                Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = writeDataFile("system3.xml");
-                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
 
 

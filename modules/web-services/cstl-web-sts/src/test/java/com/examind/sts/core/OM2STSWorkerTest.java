@@ -171,16 +171,16 @@ public class OM2STSWorkerTest {
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
                 Object sml = writeCommonDataFile("system.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
                 sml = writeCommonDataFile("component.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, provider);
 
                 sml = writeCommonDataFile("system3.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
                 sml = writeCommonDataFile("system4.xml");
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
                 serviceBusiness.linkServiceAndProvider(sid, provider);
 

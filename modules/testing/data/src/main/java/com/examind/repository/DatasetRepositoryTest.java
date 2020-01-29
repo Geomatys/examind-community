@@ -20,7 +20,9 @@ package com.examind.repository;
 
 import java.util.List;
 import org.constellation.dto.CstlUser;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataSet;
+import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,10 +35,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DatasetRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
+    private DataRepository dataRepository;
+
+    @Autowired
     private DatasetRepository datasetRepository;
 
     @Test
     public void crude() {
+
+        List<Data> alldata = dataRepository.findAll();
+        for (Data p : alldata) {
+            dataRepository.delete(p.getId());
+        }
 
         // no removeAll method
         List<DataSet> all = datasetRepository.findAll();
