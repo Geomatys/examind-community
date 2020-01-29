@@ -84,7 +84,7 @@ public class StreamResponseWriter implements HttpMessageConverter<ImageTile>  {
         if (t.getImageReaderSpi() != null) {
             final String[] baseType = t.getImageReaderSpi().getMIMETypes();
             final String mime = responseMt.getType()+"/"+responseMt.getSubtype();
-            if(Arrays.asList(baseType).contains(mime)) {
+            if(baseType !=null && Arrays.asList(baseType).contains(mime)) {
                 Object input = t.getInput();
                 //we can reuse the input directly
                 //try to write the content of the tile if it's alredy in a binary form

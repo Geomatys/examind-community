@@ -34,6 +34,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import org.constellation.business.ClusterMessage;
+import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -46,6 +47,8 @@ import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
+import org.constellation.dto.StyleReference;
+import org.constellation.dto.service.Service;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
@@ -70,9 +73,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import static org.constellation.business.ClusterMessageConstant.*;
-import org.constellation.dto.StyleReference;
-import org.constellation.dto.service.Service;
 
 /**
  *
@@ -135,16 +135,27 @@ public class LayerBusiness implements ILayerBusiness {
 
             // look for layer namespace
             if (namespace == null) {
-                final Integer pvId = providerRepository.findIdForIdentifier(providerId);
+                Integer pvId = providerRepository.findIdForIdentifier(providerId);
+                if (pvId == null) {
+                    try {
+                        pvId = Integer.parseInt(providerId);
+                    } catch (NumberFormatException ex) {
+                        throw new TargetNotFoundException("Unable to find provider :" + providerId);
+                    }
+                }
                 final DataProvider provider = DataProviders.getProvider(pvId);
                 if (provider != null) {
                     namespace = ProviderParameters.getNamespace(provider);
                 }
             }
 
-            final Integer data = dataRepository.findIdFromProvider(namespace, name, providerId);
+            Integer data = dataRepository.findIdFromProvider(namespace, name, providerId);
             if(data == null) {
-                throw new TargetNotFoundException("Unable to find data for namespace:" + namespace+" name:"+name+" provider:"+providerId);
+                try {
+                    data = Integer.parseInt(name);
+                } catch (NumberFormatException ex) {
+                    throw new TargetNotFoundException("Unable to find data for namespace:" + namespace+" name:"+name+" provider:"+providerId);
+                }
             }
             return add(data, alias, service, config);
 

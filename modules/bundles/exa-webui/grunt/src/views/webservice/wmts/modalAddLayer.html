@@ -53,7 +53,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" ng-if="mode.previous ==='internal' && values.listSelect.length === 1">
+                        <label class="col-sm-4 col-md-4 control-label"
+                               style="color: #ddd">
+                            Utiliser une pyramide existante
+                        </label>
+                        <div class="col-sm-7">
+                            <input type="checkbox" ng-click="listcrs()">
+                        </div>
+                    </div>
+
+                    <div class="form-group" ng-if="!pyramidFlag">
                         <label class="col-sm-4 col-md-4 control-label"
                                style="color: #ddd"
                                translate="layer.listing.data.upload.selectEPSG">Select projection</label>
@@ -68,6 +78,18 @@
                                 <i class="fa fa-warning"></i>
                                 <span translate="service.edit.dashboard.wmts.warning.projectionChange"></span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" ng-if="mode.previous ==='internal' && values.listSelect.length === 1 && pyramidFlag">
+                        <label class="col-sm-4 col-md-4 control-label"
+                               style="color: #ddd">Projection disponible</label>
+                        <div class="col-sm-7">
+                            <select ng-model="values.selectedProjection.code" class="form-control">
+                                <option ng-repeat="option in crsList" value="{{option}}">
+                                    {{option}}
+                                </option>
+                            </select>
                         </div>
                     </div>
                 </form>

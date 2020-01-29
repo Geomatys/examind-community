@@ -1499,6 +1499,13 @@ function Examind($http, url) {
                 data : dataIds
             });
         },
+        describePyramid : function (dataId) {
+            return self.request({
+                method: 'GET',
+                url: 'datas/' + dataId + '/describePyramid',
+                headers: {'Accept': 'application/json'}
+            });
+        },
         getDataSummary : function (dataId) {
             return self.request({
                 method: 'GET',

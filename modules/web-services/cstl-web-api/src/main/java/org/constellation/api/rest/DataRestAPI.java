@@ -46,11 +46,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
@@ -91,8 +95,6 @@ import org.constellation.util.MetadataMerger;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
-import org.geotoolkit.storage.multires.DefiningPyramid;
-import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.nio.IOUtilities;
@@ -100,9 +102,15 @@ import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
+import org.geotoolkit.storage.multires.DefiningPyramid;
+import org.geotoolkit.storage.multires.MultiResolutionModel;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ImageCRS;
@@ -908,6 +916,62 @@ public class DataRestAPI extends AbstractRestAPI{
             return new ResponseEntity(ref, OK);
         }
         return new ResponseEntity("The given list of data to pyramid is empty.",OK);
+    }
+
+    /**
+     * Indicate if given data is a pyramid.
+     * If data could not be found or is not a pyramid return an empty list.
+     *
+     * @param dataId
+     * @param req
+     * @return list of Coordinate Reference System is the pyramid.
+     */
+    @RequestMapping(value="/datas/{dataId}/describePyramid",method=GET,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity describePyramid(@PathVariable("dataId") final int dataId, HttpServletRequest req) {
+
+        final int userId;
+        try {
+            userId = assertAuthentificated(req);
+        } catch (ConstellationException ex) {
+            return new ErrorMessage().message(ex.getMessage()).build();
+        }
+
+        try {
+            final DataBrief brief = dataBusiness.getDataBrief(dataId);
+
+            final Map<String,List<String>> result = new HashMap<>();
+            final List<String> crss = new ArrayList<>();
+            result.put("crs", crss);
+
+            //get data
+            final DataProvider inProvider = DataProviders.getProvider(brief.getProviderId());
+            if (inProvider == null) return new ResponseEntity(result, OK);
+            final Data data = inProvider.get(NamesExt.create(brief.getName()));
+            if (data == null) return new ResponseEntity(result, OK);
+            final Resource resource = data.getOrigin();
+            if (resource == null) return new ResponseEntity(result, OK);
+
+
+            if (resource instanceof GridCoverageResource && resource instanceof MultiResolutionResource) {
+                final MultiResolutionResource mr = (MultiResolutionResource) resource;
+                for (MultiResolutionModel mrm : mr.getModels()) {
+                    if (mrm instanceof Pyramid) {
+                        final CoordinateReferenceSystem crs = ((Pyramid) mrm).getCoordinateReferenceSystem();
+                        final Identifier epsgid = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
+                        final Identifier otherid = IdentifiedObjects.getIdentifier(crs, null);
+                        if (epsgid != null) {
+                            crss.add("EPSG:"+epsgid.getCode());
+                        } else {
+                            crss.add(IdentifiedObjects.toString(otherid));
+                        }
+                    }
+                }
+            }
+
+            return new ResponseEntity(result, OK);
+        } catch (ConstellationException | DataStoreException ex) {
+            return new ErrorMessage().message(ex.getMessage()).build();
+        }
     }
 
     @RequestMapping(value="/datas/{dataId}",method=GET,produces=APPLICATION_JSON_VALUE)
