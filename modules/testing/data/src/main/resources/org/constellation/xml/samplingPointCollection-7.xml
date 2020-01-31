@@ -6,7 +6,7 @@
                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <gml:boundedBy>
         <gml:Envelope srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">
-            <gml:lowerCorner>-30.711 134.196</gml:lowerCorner>
+            <gml:lowerCorner>-30.711 10.0</gml:lowerCorner>
             <gml:upperCorner>95800.0 2567987.0</gml:upperCorner>
         </gml:Envelope>
     </gml:boundedBy>
@@ -29,7 +29,7 @@
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>
                 <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582">
-                    <gml:pos>65400.0 1731368.0</gml:pos>
+                    <gml:pos>5.0 10.0</gml:pos>
                 </gml:Point>
             </sampling:position>
         </sampling:SamplingPoint>

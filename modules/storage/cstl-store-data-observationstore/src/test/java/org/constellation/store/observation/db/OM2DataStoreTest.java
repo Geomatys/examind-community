@@ -101,8 +101,8 @@ public class OM2DataStoreTest extends AbstractReadingTests{
 
                 int size = 10;
                 GeneralEnvelope env = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
-                env.setRange(0, 65400, 65400);
-                env.setRange(1, 1731368, 1731368);
+                env.setRange(0, 5.0, 2846612.385024995);
+                env.setRange(1, -1628761.942286251, 1731368);
 
                 final ExpectedResult res = new ExpectedResult(name,
                         featureTypeBuilder.build(), size, env);

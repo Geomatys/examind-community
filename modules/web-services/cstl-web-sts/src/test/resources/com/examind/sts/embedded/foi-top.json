@@ -24,7 +24,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 5.0, 10.0 ]
       },
       "properties" : { }
     },

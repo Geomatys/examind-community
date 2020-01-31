@@ -59,6 +59,7 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
+import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -870,7 +871,24 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
         } else if (filter instanceof BBOX) {
             final BBOX bbox = (BBOX) filter;
-            localOmFilter.setBoundingBox((Envelope) bbox.getExpression2());
+            final Envelope env;
+            if (bbox.getExpression2() instanceof Envelope) {
+                env = (Envelope) bbox.getExpression2();
+            } else if (bbox.getExpression2() instanceof org.opengis.geometry.Envelope) {
+                env = new EnvelopeType((org.opengis.geometry.Envelope)bbox.getExpression2());
+            } else if (bbox.getExpression2() instanceof Literal) {
+                Literal lit = (Literal) bbox.getExpression2();
+                if (lit.getValue() instanceof Envelope) {
+                    env = (Envelope) lit.getValue();
+                } else if (lit.getValue() instanceof org.opengis.geometry.Envelope) {
+                    env = new EnvelopeType((org.opengis.geometry.Envelope)lit.getValue());
+                } else {
+                    throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
+                }
+            } else {
+                throw new ConstellationStoreException("Unexpected bbox expression type for geometry");
+            }
+            localOmFilter.setBoundingBox(env);
 
         } else if (filter instanceof PropertyIsEqualTo) {
             final PropertyIsEqualTo ef = (PropertyIsEqualTo) filter;

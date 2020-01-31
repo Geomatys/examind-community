@@ -93,7 +93,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             int size = 6;
             GeneralEnvelope env = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
             env.setRange(0, -30.711, 70800);
-            env.setRange(1, 134.196, 2567987);
+            env.setRange(1,    10.0, 2567987);
 
             final ExpectedResult res = new ExpectedResult(name,
                     featureTypeBuilder.build(), size, env);

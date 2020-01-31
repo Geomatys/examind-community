@@ -189,7 +189,7 @@ public class OM2BaseReader {
         if (geom instanceof Point) {
             final org.geotoolkit.gml.xml.Point point = JTStoGeometry.toGML(gmlVersion, (Point)geom, crs);
             // little hack fo unit test
-            point.setSrsName(null);
+            //point.setSrsName(null);
             point.setId("pt-" + id);
             return buildSamplingPoint(version, id, name, description, prop, point);
         } else if (geom instanceof LineString) {

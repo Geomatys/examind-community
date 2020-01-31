@@ -9,18 +9,18 @@ INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:p
 ---------
 
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',  x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',  x'000000000140efef0000000000413a6b2800000000', 27582, 2,  NULL, 'component', 'profile');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',  x'000000000140efef0000000000413a6b2800000000', 27582, 3,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',  x'000000000140efef0000000000413a6b2800000000', 27582, 4,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:5',  x'000000000140efef0000000000413a6b2800000000', 27582, 5,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',  x'000000000140efef0000000000413a6b2800000000', 27582, 6,  NULL, 'system',    'timeseries');
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',  x'000000000140efef0000000000413a6b2800000000', 27582, 7,  NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',  x'000000000140f207a9e96900384139bf0a15544d08', 27582, 2,  NULL, 'component', 'profile');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',  x'00000000014044000000000000c008000000000000', 4326,  3,  NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',  x'000000000140240000000000004024000000000000', 4326,  4,  NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:5',  x'000000000140140000000000004024000000000000', 4326,  5,  NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',  x'000000000140140000000000004014000000000000', 4326,  6,  NULL, 'system',    'timeseries');
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',  x'00000000014145b7ca31487fc1c138da59f139abf8', 27582, 7,  NULL, 'system',    'timeseries');
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',  x'000000000140efef0000000000413a6b2800000000', 27582, 8,  NULL, 'system',    'timeseries');
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',  x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile');
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10', x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries');
 
 INSERT INTO "om"."sampling_features" VALUES ('station-001', '10972X0137-PONT' , 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140efef0000000000413a6b2800000000', 27582);
-INSERT INTO "om"."sampling_features" VALUES ('station-002', '10972X0137-PLOUF', 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140efef0000000000413a6b2800000000', 27582);
+INSERT INTO "om"."sampling_features" VALUES ('station-002', '10972X0137-PLOUF', 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140140000000000004024000000000000',  4326);
 INSERT INTO "om"."sampling_features" VALUES ('station-003', '66685X4587-WARP',  'Station Thermale',  'urn:-sandre:object:bdrhf:123X', x'000000000140f1490000000000413cdd4b00000000', 27582);
 INSERT INTO "om"."sampling_features" VALUES ('station-004', '99917X9856-FRAG',  'Puits',             'urn:-sandre:object:bdrhf:123X', x'000000000140e47b20000000004143979980000000', 27582);
 INSERT INTO "om"."sampling_features" VALUES ('station-005', '44499X4517-TRUC',  'bouée ds le rhone', 'urn:-sandre:object:bdrhf:123X', x'000000000140ee8480000000004138cc9400000000', 27582);
@@ -37,6 +37,15 @@ INSERT INTO "om"."offerings" VALUES ('offering-7',  NULL, 'offering-7',  NULL,  
 INSERT INTO "om"."offerings" VALUES ('offering-8',  NULL, 'offering-8',  '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:object:sensor:GEOM:8');
 INSERT INTO "om"."offerings" VALUES ('offering-9',  NULL, 'offering-9',  '2009-05-01 13:47:00.0', '2009-05-01 13:47:00.0', 'urn:ogc:object:sensor:GEOM:9');
 INSERT INTO "om"."offerings" VALUES ('offering-10', NULL, 'offering-10', '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:object:sensor:GEOM:10');
+
+INSERT INTO "om"."offering_foi" VALUES ('offering-3', 'station-001');
+INSERT INTO "om"."offering_foi" VALUES ('offering-4', 'station-001');
+INSERT INTO "om"."offering_foi" VALUES ('offering-5', 'station-002');
+INSERT INTO "om"."offering_foi" VALUES ('offering-8', 'station-006');
+INSERT INTO "om"."offering_foi" VALUES ('offering-9', 'station-006');
+INSERT INTO "om"."offering_foi" VALUES ('offering-10','station-001');
+INSERT INTO "om"."offering_foi" VALUES ('offering-10','station-002');
+
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','urn:ogc:def:phenomenon:GEOM:depth');
@@ -63,14 +72,6 @@ INSERT INTO "om"."offering_observed_properties" VALUES ('offering-8','urn:ogc:de
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-9','urn:ogc:def:phenomenon:GEOM:depth');
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-10','urn:ogc:def:phenomenon:GEOM:depth');
-
-INSERT INTO "om"."offering_foi" VALUES ('offering-3', 'station-001');
-INSERT INTO "om"."offering_foi" VALUES ('offering-4', 'station-001');
-INSERT INTO "om"."offering_foi" VALUES ('offering-5', 'station-002');
-INSERT INTO "om"."offering_foi" VALUES ('offering-8', 'station-006');
-INSERT INTO "om"."offering_foi" VALUES ('offering-9', 'station-006');
-INSERT INTO "om"."offering_foi" VALUES ('offering-10','station-001');
-INSERT INTO "om"."offering_foi" VALUES ('offering-10','station-002');
 
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:201',   201, '2001-01-01 00:00:00.0', '2001-01-01 00:00:00.0', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:object:sensor:GEOM:2',  'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:406',   406, '2007-05-01 12:59:00.0', '2007-05-01 16:59:00.0', 'urn:ogc:def:phenomenon:GEOM:depth',               'urn:ogc:object:sensor:GEOM:4',  'station-001');

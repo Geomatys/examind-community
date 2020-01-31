@@ -70,6 +70,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
@@ -81,6 +83,7 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
@@ -89,6 +92,7 @@ import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.CompoundPhenomenon;
 import org.opengis.observation.Phenomenon;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  *
@@ -271,15 +275,27 @@ public final class SOSUtils {
      * @param e An envelope (2D).
      * @return True if the sampling point is strictly inside the specified envelope.
      */
-    public static boolean samplingPointMatchEnvelope(final Point sp, final Envelope e) {
+    public static boolean samplingPointMatchEnvelope(final Point sp, final Envelope e) throws ConstellationStoreException {
         if (sp.getDirectPosition() != null) {
+            org.opengis.geometry.Envelope reproj;
+            final CoordinateReferenceSystem spCRS = sp.getCoordinateReferenceSystem();
+            if (Utilities.equalsIgnoreMetadata(spCRS, e.getCoordinateReferenceSystem())) {
+                reproj = e;
+            } else {
+                try {
+                    reproj = new GeneralEnvelope(e);
+                    reproj = Envelopes.transform(reproj, spCRS);
+                } catch (TransformException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+            }
 
             final double stationX = sp.getDirectPosition().getOrdinate(0);
             final double stationY = sp.getDirectPosition().getOrdinate(1);
-            final double minx     = e.getLowerCorner().getOrdinate(0);
-            final double maxx     = e.getUpperCorner().getOrdinate(0);
-            final double miny     = e.getLowerCorner().getOrdinate(1);
-            final double maxy     = e.getUpperCorner().getOrdinate(1);
+            final double minx     = reproj.getLowerCorner().getOrdinate(0);
+            final double maxx     = reproj.getUpperCorner().getOrdinate(0);
+            final double miny     = reproj.getLowerCorner().getOrdinate(1);
+            final double maxy     = reproj.getUpperCorner().getOrdinate(1);
 
             // we look if the station if contained in the BBOX
             return stationX < maxx && stationX > minx && stationY < maxy && stationY > miny;

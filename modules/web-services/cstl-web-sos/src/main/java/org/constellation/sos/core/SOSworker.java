@@ -185,7 +185,6 @@ import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsBetween;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -947,7 +946,7 @@ public class SOSworker extends SensorWorker {
             final List<String> featureOfInterest = new ArrayList<>(requestObservation.getFeatureIds());
 
             // if the request is a spatial operator
-            Envelope bboxFilter = null;
+            BBOX bboxFilter = null;
             if (requestObservation.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
                 if (requestObservation.getSpatialFilter() instanceof BBOX) {
@@ -955,9 +954,9 @@ public class SOSworker extends SensorWorker {
 
                     if (e != null && e.isCompleteEnvelope2D() || isCompleteEnvelope3D(e)) {
                         if (pc.isBoundedObservation) {
-                            bboxFilter = e;
+                            bboxFilter = (BBOX)requestObservation.getSpatialFilter();
                         } else {
-                            final List<String> matchingFeatureOfInterest = getSamplingFeatureForBBOX(offerings, e, currentVersion);
+                            final List<String> matchingFeatureOfInterest = getFeaturesOfInterestForBBOX(offerings, e, currentVersion);
                             if (!matchingFeatureOfInterest.isEmpty()) {
                                 featureOfInterest.addAll(matchingFeatureOfInterest);
                             // if there is no matching FOI we must return an empty result
@@ -1197,7 +1196,7 @@ public class SOSworker extends SensorWorker {
             final SOSProviderCapabilities pc = omProvider.getCapabilities();
 
              // if the request is a spatial operator
-            Envelope bboxFilter = null;
+            BBOX bboxFilter = null;
             if (request.getSpatialFilter() != null) {
                 // for a BBOX Spatial ops
                 if (request.getSpatialFilter() instanceof BBOX) {
@@ -1205,9 +1204,9 @@ public class SOSworker extends SensorWorker {
 
                     if (e != null && e.isCompleteEnvelope2D()) {
                         if (pc.isBoundedObservation) {
-                            bboxFilter = e;
+                            bboxFilter = (BBOX)request.getSpatialFilter();
                         } else {
-                            fois.addAll(getSamplingFeatureForBBOX(offering, e, currentVersion));
+                            fois.addAll(getFeaturesOfInterestForBBOX(offering, e, currentVersion));
                         }
                     } else {
                         throw new CstlServiceException("the envelope is not build correctly", INVALID_PARAMETER_VALUE);
@@ -1854,7 +1853,7 @@ public class SOSworker extends SensorWorker {
      *
      * @return true if there is no errors in the time constraint else return false.
      */
-    private Filter buildFilter(final List<Filter> times, List<String> observedProperties, List<String> procedures, List<String> featuresOfInterest, Envelope bbox, Filter resultFilter) throws CstlServiceException {
+    private Filter buildFilter(final List<Filter> times, List<String> observedProperties, List<String> procedures, List<String> featuresOfInterest, BBOX bbox, Filter resultFilter) throws CstlServiceException {
         final List<Filter> filters = new ArrayList<>();
         for (Filter time: times) {
 
@@ -1902,7 +1901,7 @@ public class SOSworker extends SensorWorker {
             }
         }
         if (bbox != null) {
-            filters.add(((FilterFactory2)ff).bbox(ff.property("bbox"), bbox));
+            filters.add(bbox);
         }
         if (resultFilter != null) {
             filters.add(resultFilter);

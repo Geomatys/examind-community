@@ -25,6 +25,11 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.logging.Level;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
@@ -34,6 +39,9 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
+import org.geotoolkit.gml.GeometrytoJTS;
+import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.v321.PointType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -44,7 +52,12 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKBWriter;
+import org.opengis.geometry.DirectPosition;
+import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  *
@@ -726,8 +739,48 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-all.json");
         assertEquals(expResult, result);
+
+        String filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox.json");
+        assertEquals(expResult, result);
     }
 
+
+    private void printGeom(double x, double y) throws Exception {
+
+        StringBuilder sb = new StringBuilder();
+
+        CoordinateReferenceSystem crs1 = CRS.forCode("EPSG:27582");
+        CoordinateReferenceSystem crs2 = CommonCRS.WGS84.geographic();
+
+        DirectPosition dp = new GeneralDirectPosition(crs2);
+        dp.setOrdinate(0, x);
+        dp.setOrdinate(1, y);
+
+        PointType pt = new PointType(dp);
+
+        WKBWriter writer = new WKBWriter();
+
+
+        sb.append("\n\n\n").append("X=").append(x).append("  Y=").append(y).append('\n');
+
+        Envelope e = new GeneralEnvelope(dp, dp);
+        Geometry geom = GeometrytoJTS.toJTS(pt, false);
+        sb.append("WGS84  => " + e.getLowerCorner().getOrdinate(0) + " - " + e.getLowerCorner().getOrdinate(1)).append('\n');
+        sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
+
+        e = Envelopes.transform(e, crs1);
+
+        sb.append("27582  => " + e.getLowerCorner().getOrdinate(0) + " - " + e.getLowerCorner().getOrdinate(1)).append('\n');
+        pt = new PointType(e.getLowerCorner());
+        geom = GeometrytoJTS.toJTS(pt, false);
+        sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
+
+        System.out.println(sb.toString());
+    }
 
     public Object writeDataFile(String resourceName) throws Exception {
 

@@ -323,6 +323,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sqlRequest.append(sb);
                 firstFilter = false;
             }
+            obsJoin = true;
         }
     }
 

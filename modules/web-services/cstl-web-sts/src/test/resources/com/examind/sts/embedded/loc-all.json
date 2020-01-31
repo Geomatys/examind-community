@@ -8,7 +8,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
       },
       "properties" : { }
     },
@@ -25,7 +25,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
       },
       "properties" : { }
     },
@@ -42,7 +42,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 42.00000000005154, -3.9999999934153996 ]
       },
       "properties" : { }
     },
@@ -59,7 +59,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 40.0, -3.0 ]
       },
       "properties" : { }
     },
@@ -76,7 +76,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 10.0, 10.0 ]
       },
       "properties" : { }
     },
@@ -93,7 +93,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 5.0, 10.0 ]
       },
       "properties" : { }
     },
@@ -110,7 +110,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 5.0, 5.0 ]
       },
       "properties" : { }
     },
@@ -127,7 +127,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 12.00000000309688, 20.00000000001678 ]
       },
       "properties" : { }
     },
@@ -144,7 +144,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
       },
       "properties" : { }
     },
@@ -161,7 +161,7 @@
       "geometry" : {
         "type" : "Point",
         "type" : "Point",
-        "coordinates" : [ 65400.0, 1731368.0 ]
+        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
       },
       "properties" : { }
     },

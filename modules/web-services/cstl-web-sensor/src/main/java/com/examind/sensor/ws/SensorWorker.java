@@ -72,8 +72,7 @@ public abstract class SensorWorker extends AbstractWorker {
     protected Integer smlProviderID;
 
     /**
-     * The Observation provider
-     * TODO; find a way to remove the omStore calls
+     * The Observation provider TODO; find a way to remove the omStore calls
      */
     @Deprecated
     protected ObservationStore omStore;
@@ -101,17 +100,17 @@ public abstract class SensorWorker extends AbstractWorker {
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
             // we initialize the reader/writer
-            for (Integer providerID: providers) {
+            for (Integer providerID : providers) {
                 DataProvider p = DataProviders.getProvider(providerID);
                 if (p != null) {
                     // TODO for now we only take one provider by type
                     if (p instanceof SensorProvider) {
-                        smlProviderID  = providerID;
+                        smlProviderID = providerID;
                     }
                     // store may implements the 2 interface
                     if (p instanceof ObservationProvider) {
-                        omProvider  = (ObservationProvider) p;
-                        omStore     = (ObservationStore)p.getMainStore();
+                        omProvider = (ObservationProvider) p;
+                        omStore = (ObservationStore) p.getMainStore();
                     }
                 } else {
                     startError("Unable to instanciate the provider:" + providerID, null);
@@ -137,18 +136,6 @@ public abstract class SensorWorker extends AbstractWorker {
         return defaultValue;
     }
 
-    protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(featureName)));
-        subquery.setFilter(filter);
-        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
-        if (sps.isEmpty()) {
-            return null;
-        } else {
-            return sps.get(0);
-        }
-    }
-
     protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
         final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(phenName)));
@@ -161,24 +148,46 @@ public abstract class SensorWorker extends AbstractWorker {
         }
     }
 
-     protected List<SamplingFeature> getSamplingFeatureForOffering(String offname, String version) throws ConstellationStoreException {
+    protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(featureName)));
+        subquery.setFilter(filter);
+        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+        if (sps.isEmpty()) {
+            return null;
+        } else {
+            return sps.get(0);
+        }
+    }
+
+    protected List<SamplingFeature> getFeaturesOfInterest(String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+    }
+
+    protected List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
         final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
         subquery.setFilter(filter);
         return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
-     }
+    }
 
-     protected List<String> getSamplingFeatureForBBOX(List<Offering> offerings, final Envelope e, String version) throws ConstellationStoreException {
-         List<String> results = new ArrayList<>();
-         for (Offering off : offerings) {
-             results.addAll(getSamplingFeatureForBBOX(off.getId(), e, version));
-         }
-         return results;
-     }
-
-     protected List<String> getSamplingFeatureForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException {
+    protected List<String> getFeaturesOfInterestForBBOX(List<Offering> offerings, final Envelope e, String version) throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
-        List<SamplingFeature> stations = getSamplingFeatureForOffering(offname, version);
+        for (Offering off : offerings) {
+            results.addAll(getFeaturesOfInterestForBBOX(off.getId(), e, version));
+        }
+        return results;
+    }
+
+    protected List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException {
+        List<String> results = new ArrayList<>();
+        final List<SamplingFeature> stations = new ArrayList<>();
+        if (offname != null) {
+            stations.addAll(getFeaturesOfInterestForOffering(offname, version));
+        } else {
+            stations.addAll(getFeaturesOfInterest(version));
+        }
         for (SamplingFeature offStation : stations) {
             // TODO for SOS 2.0 use observed area
             final org.geotoolkit.sampling.xml.SamplingFeature station = (org.geotoolkit.sampling.xml.SamplingFeature) offStation;
@@ -188,7 +197,7 @@ public abstract class SensorWorker extends AbstractWorker {
                 throw new ConstellationStoreException("the feature of interest is in offering list but not registered");
             }
             if (station.getGeometry() instanceof Point) {
-                if (samplingPointMatchEnvelope((Point)station.getGeometry(), e)) {
+                if (samplingPointMatchEnvelope((Point) station.getGeometry(), e)) {
                     results.add(getIDFromObject(station));
                 } else {
                     LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", getIDFromObject(station));
@@ -204,12 +213,12 @@ public abstract class SensorWorker extends AbstractWorker {
             }
         }
         return results;
-     }
+    }
 
-     protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {
+    protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
         final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
         subquery.setFilter(filter);
         return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
-     }
+    }
 }

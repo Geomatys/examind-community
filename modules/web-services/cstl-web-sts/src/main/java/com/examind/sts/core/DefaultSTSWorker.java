@@ -34,7 +34,11 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.util.Utilities;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -52,8 +56,10 @@ import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.data.geojson.utils.GeometryUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.gml.xml.v321.MeasureType;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -112,14 +118,21 @@ import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.expression.Expression;
+import org.opengis.geometry.Envelope;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.observation.Process;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
@@ -290,18 +303,54 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return null;
     }
 
-    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) {
+    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) throws CstlServiceException {
         final SimpleQuery subquery = new SimpleQuery();
+        List<Filter> filters = new ArrayList<>();
         if (!req.getExtraFilter().isEmpty()) {
-
-            List<Filter> filters = new ArrayList<>();
             for (Entry<String, String> entry : req.getExtraFilter().entrySet()) {
                 filters.add(ff.equals(ff.property(entry.getKey()), ff.literal(entry.getValue())));
             }
-            if (filters.size() == 1) {
-                subquery.setFilter(filters.get(0));
+        }
+
+        //st_contains(location, geography'POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))')
+        if (req.getFilter() != null) {
+            String filterStr = req.getFilter();
+            if (filterStr.startsWith("st_contains(location, geography'")) {
+                String geomStr = filterStr.substring(32);
+                int i = geomStr.indexOf("'");
+                if (i != -1) {
+                    geomStr = geomStr.substring(0, i);
+                    System.out.println("GEOM:" + geomStr);
+                    WKTReader reader = new WKTReader();
+                    try {
+                        Geometry geom = reader.read(geomStr);
+                        geom.setUserData(CommonCRS.WGS84.geographic());
+                        Envelope e = JTS.toEnvelope(geom);
+                        try {
+                            if (omProvider.getCapabilities().isBoundedObservation) {
+                                filters.add(((FilterFactory2)ff).bbox(ff.property("location"), e));
+                            } else {
+                                org.geotoolkit.gml.xml.Envelope gmlEnv = new EnvelopeType(e);
+                                List<String> fois = getFeaturesOfInterestForBBOX((String)null, gmlEnv, "2.0.0");
+                                if (!fois.isEmpty()) {
+                                    for (String foi : fois) {
+                                        filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal(foi)));
+                                    }
+                                } else {
+                                    filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal("unexisting-foi")));
+                                }
+                            }
+                        } catch (ConstellationStoreException ex) {
+                            throw new CstlServiceException(ex);
+                        }
+                    } catch (ParseException ex) {
+                        throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
+                    }
+                } else {
+                    throw new CstlServiceException("malformed spatial filter", INVALID_PARAMETER_VALUE, "FILTER");
+                }
             } else {
-                subquery.setFilter(ff.and(filters));
+               throw new CstlServiceException("Unsupported filter", INVALID_PARAMETER_VALUE, "FILTER");
             }
         }
         if (applyPagination) {
@@ -311,6 +360,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getSkip()!= null) {
                 subquery.setOffset(req.getSkip());
             }
+        }
+
+        if (filters.size() == 1) {
+            subquery.setFilter(filters.get(0));
+        } else if (!filters.isEmpty()){
+            subquery.setFilter(ff.and(filters));
         }
         return subquery;
     }
@@ -816,7 +871,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Datastreams(" + obs.getName().getCode() + ")";
 
         Datastream datastream = new Datastream();
-        if (StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperties")) {
+        if (StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperties") ||
+            StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperty")) {
             if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getPhenomenon()!= null) {
                 ObservedProperty phen = buildPhenomenon(req, (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon());
                 datastream = datastream.observedProperty(phen);
@@ -1461,10 +1517,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         result.setIotSelfLink(selfLink);
-        Object geomGML = omProvider.getSensorLocation(sensorID, "2.0.0");
-        if (geomGML instanceof AbstractGeometry) {
+        Object geomS = omProvider.getSensorLocation(sensorID, "2.0.0");
+        if (geomS instanceof AbstractGeometry) {
             try {
+                CoordinateReferenceSystem crs = CommonCRS.WGS84.geographic();
+                AbstractGeometry geomGML = (AbstractGeometry)geomS;
+                CoordinateReferenceSystem geomCrs = geomGML.getCoordinateReferenceSystem(false);
                 Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)geomGML);
+                if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
+                    try {
+                        jts = JTS.transform(jts, crs);
+                    } catch (TransformException ex) {
+                        throw new ConstellationStoreException(ex);
+                    }
+                }
                 GeoJSONGeometry geom = GeometryUtils.toGeoJSONGeometry(jts);
                 GeoJSONFeature feature = new GeoJSONFeature();
                 feature.setGeometry(geom);
