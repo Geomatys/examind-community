@@ -746,6 +746,20 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox.json");
         assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-temp.json");
+        assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/Observation/featureOfInterest/id eq station-006".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-foi6.json");
+        assertEquals(expResult, result);
     }
 
 

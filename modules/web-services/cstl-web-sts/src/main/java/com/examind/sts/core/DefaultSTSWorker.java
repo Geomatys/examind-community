@@ -125,7 +125,6 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.expression.Expression;
 import org.opengis.geometry.Envelope;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
@@ -320,7 +319,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 int i = geomStr.indexOf("'");
                 if (i != -1) {
                     geomStr = geomStr.substring(0, i);
-                    System.out.println("GEOM:" + geomStr);
                     WKTReader reader = new WKTReader();
                     try {
                         Geometry geom = reader.read(geomStr);
@@ -349,8 +347,25 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 } else {
                     throw new CstlServiceException("malformed spatial filter", INVALID_PARAMETER_VALUE, "FILTER");
                 }
-            } else {
-               throw new CstlServiceException("Unsupported filter", INVALID_PARAMETER_VALUE, "FILTER");
+            } else if (filterStr.startsWith("st_")) {
+               throw new CstlServiceException("Only st_contains filter supported for now", INVALID_PARAMETER_VALUE, "FILTER");
+            } else if (filterStr.contains(" eq ")) {
+                int pos = filterStr.indexOf(" eq ");
+                String property     = filterStr.substring(0, pos);
+                String[] properties = property.split("/");
+                if (properties.length >= 2) {
+                    if (properties[properties.length -1].equals("id")) {
+                        String literal      = filterStr.substring(pos + 4, filterStr.length());
+                        String realProperty = getSupportedProperties(properties[properties.length -2]);
+                        System.out.println("property:" + realProperty);
+                        System.out.println("literal:"  + literal);
+                        filters.add(ff.equals(ff.property(realProperty), ff.literal(literal)));
+                    } else {
+                        throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+                    }
+                } else {
+                    throw new CstlServiceException("malformed filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+                }
             }
         }
         if (applyPagination) {
@@ -368,6 +383,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             subquery.setFilter(ff.and(filters));
         }
         return subquery;
+    }
+
+    private String getSupportedProperties(String property) throws CstlServiceException {
+        switch(property.toLowerCase()) {
+            case "thing"             : return "procedure";
+            case "sensor"            : return "procedure";
+            case "location"          : return "procedure";
+            case "observedproperty"  : return "observedProperty";
+            case "datastream"        : return "observationId";
+            case "multidatastream"   : return "observationId";
+            case "observation"       : return "observationId";
+            case "featureofinterest" : return "featureOfInterest";
+        }
+        throw new CstlServiceException("Unexpected property name:" + property, INVALID_PARAMETER_VALUE, "FILTER");
     }
 
     @Override
