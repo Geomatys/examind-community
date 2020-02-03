@@ -53,7 +53,10 @@ CREATE TABLE "$SCHEMAom"."offering_foi" (
 
 CREATE TABLE "$SCHEMAom"."observed_properties" (
     "id" character varying(200) NOT NULL,
-    "partial" integer NOT NULL DEFAULT 0
+    "partial" integer NOT NULL DEFAULT 0,
+    "name"        character varying(200),
+    "definition"  character varying(200),
+    "description" character varying(1000)
 );
 
 CREATE TABLE "$SCHEMAom"."procedures" (

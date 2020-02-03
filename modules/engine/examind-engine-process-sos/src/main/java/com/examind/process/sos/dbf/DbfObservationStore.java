@@ -231,7 +231,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 =====================*/
                 final List<Field> fields = new ArrayList<>();
                 for (final String field : measureFields) {
-                    fields.add(new Field(field, 1, ""));
+                    fields.add(new Field(field, 1, "", null));
                 }
 
                 final ExtractionResult result = new ExtractionResult();

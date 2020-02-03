@@ -223,32 +223,58 @@ public class OM2BaseReader {
                 try(final ResultSet rs = stmt.executeQuery()) {
                     final List<Phenomenon> phenomenons = new ArrayList<>();
                     while (rs.next()) {
-                        final String name = rs.getString(1);
-                        final String phenID;
-                        // hack for valid phenomenon ID in 1.0.0 static fields
-                        if (name.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
-                            phenID = "latitude";
-                        } else if (name.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
-                            phenID = "longitude";
-                        } else if (name.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
-                            phenID = "samplingTime";
-                        } else if (name.startsWith(phenomenonIdBase)) {
-                            phenID = name.substring(phenomenonIdBase.length());
-                        } else {
-                            phenID = null;
-                        }
-                        phenomenons.add(buildPhenomenon(version, phenID, name));
+                        final String phenID = rs.getString(1);
+                        phenomenons.add(getSinglePhenomenon(version, phenID, c));
                     }
+                    org.geotoolkit.swe.xml.Phenomenon base = getSinglePhenomenon(version, observedProperty, c);
                     if (phenomenons.isEmpty()) {
-                        return buildPhenomenon(version, id, observedProperty);
+                        return base;
                     } else {
-                        return buildCompositePhenomenon(version, id, observedProperty, phenomenons);
+                        return buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
                     }
                 }
             }
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
+    }
+
+    protected org.geotoolkit.swe.xml.Phenomenon getSinglePhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
+        final String id;
+        // cleanup phenomenon id because of its XML ype (NCName)
+        if (observedProperty.startsWith(phenomenonIdBase)) {
+            id = observedProperty.substring(phenomenonIdBase.length()).replace(':', '-');
+        } else {
+            id = observedProperty.replace(':', '-');
+        }
+        try {
+            // look for composite phenomenon
+            try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {
+                stmt.setString(1, observedProperty);
+                try(final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String name = rs.getString(1);
+                        String phenID = rs.getString(3);
+                        final String description = rs.getString(5);
+
+                        // hack for valid phenomenon ID in 1.0.0 static fields
+                        if (phenID.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
+                            name = "latitude";
+                        } else if (phenID.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
+                            name = "longitude";
+                        } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
+                            name = "samplingTime";
+                        } else if (phenID.startsWith(phenomenonIdBase)) {
+                            name = phenID.substring(phenomenonIdBase.length());
+                        }
+                        return buildPhenomenon(version, phenID, name, description);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw new DataStoreException(ex.getMessage(), ex);
+        }
+        return null;
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {

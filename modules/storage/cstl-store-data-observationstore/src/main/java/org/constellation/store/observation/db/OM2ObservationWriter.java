@@ -315,14 +315,34 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
 
-
+            final Phenomenon phen = phenomenonP.getPhenomenon();
             if (!exist) {
-                try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observed_properties\" VALUES(?,?)")) {
+                String name        = null;
+                String definition  = phenomenonId;
+                String description = null;
+                if (phen instanceof org.geotoolkit.swe.xml.Phenomenon) {
+                    org.geotoolkit.swe.xml.Phenomenon swePhen = (org.geotoolkit.swe.xml.Phenomenon) phen;
+                    name = swePhen.getName().getCode();
+                    description = swePhen.getDescription();
+                }
+
+                try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observed_properties\" VALUES(?,?,?,?,?)")) {
                     stmtInsert.setString(1, phenomenonId);
                     stmtInsert.setBoolean(2, partial);
+                    if (name != null) {
+                        stmtInsert.setString(3, name);
+                    } else {
+                        stmtInsert.setNull(3, java.sql.Types.VARCHAR);
+                    }
+                    stmtInsert.setString(4, definition);
+                    if (description != null) {
+                        stmtInsert.setString(5, description);
+                    } else {
+                        stmtInsert.setNull(5, java.sql.Types.VARCHAR);
+                    }
                     stmtInsert.executeUpdate();
                 }
-                if (phenomenonP.getPhenomenon() instanceof CompositePhenomenon) {
+                if (phen instanceof CompositePhenomenon) {
                     final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
                     try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?)")) {
                         for (PhenomenonProperty child : composite.getRealComponent()) {
@@ -340,7 +360,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmtUpdate.setString(2, phenomenonId);
                     stmtUpdate.executeUpdate();
                 }
-                if (phenomenonP.getPhenomenon() instanceof CompositePhenomenon) {
+                if (phen instanceof CompositePhenomenon) {
                     final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
                     try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?)")) {
                         for (PhenomenonProperty child : composite.getRealComponent()) {
@@ -1231,11 +1251,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final List<String> fields = getFieldsFromResult((DataArrayProperty) result);
             final List<InternalPhenomenon> phenomenons = new ArrayList<>();
             for (String field : fields) {
-                phenomenons.add(new InternalPhenomenon(null, field));
+                phenomenons.add(new InternalPhenomenon(null, field, null));
             }
-            return new org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon(null, obsRef.getHref(), phenomenons);
+            return new org.geotoolkit.observation.xml.v200.OMObservationType.InternalCompositePhenomenon(null, obsRef.getHref(), null, phenomenons);
         }
-        return new InternalPhenomenon(null, obsRef.getHref());
+        return new InternalPhenomenon(null, obsRef.getHref(), null);
     }
 
     private List<String> getFieldsFromResult(final DataArrayProperty arrayProp) {

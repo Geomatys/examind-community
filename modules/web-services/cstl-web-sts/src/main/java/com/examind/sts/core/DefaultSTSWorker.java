@@ -34,8 +34,6 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
-import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
@@ -902,8 +900,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         Datastream datastream = new Datastream();
         if (StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperties") ||
             StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperty")) {
-            if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getPhenomenon()!= null) {
-                ObservedProperty phen = buildPhenomenon(req, (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon());
+            if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getHref()!= null) {
+                org.geotoolkit.swe.xml.Phenomenon fullPhen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(obs.getPropertyObservedProperty().getHref(), "1.0.0");
+                ObservedProperty phen = buildPhenomenon(req, fullPhen);
                 datastream = datastream.observedProperty(phen);
             }
         } else {
@@ -1171,7 +1170,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         List<ObservedProperty> values = new ArrayList<>();
         try {
             final SimpleQuery subquery = buildExtraFilterQuery(req, false);
-            Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, new HashMap<>());
+            Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", "1.0.0"));
             for (org.opengis.observation.Phenomenon sp : sps) {
                 if (sp instanceof CompositePhenomenon) {
                     // for 2.0.0 issue with referenced phenomenon
@@ -1230,11 +1229,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/ObservedProperties(" + s.getName().getCode() + ")";
         ObservedProperty obsProp = new ObservedProperty();
         final String phenId = s.getName().getCode();
+        String description = phenId;
+        if (s.getDescription() != null) {
+            description = s.getDescription();
+        }
         obsProp = obsProp
                 .iotId(phenId)
                 .name(phenId)
                 .definition(phenId)
-                .description(phenId)
+                .description(description)
                 .iotSelfLink(selfLink.replace("$", phenId));
 
          if (StringUtilities.containsIgnoreCase(req.getExpand(), "Datastreams")) {

@@ -2,7 +2,7 @@
   "value" : [ {
     "name" : "urn:ogc:def:phenomenon:GEOM:depth",
     "definition" : "urn:ogc:def:phenomenon:GEOM:depth",
-    "description" : "urn:ogc:def:phenomenon:GEOM:depth",
+    "description" : "the depth in water",
     "@iot.id" : "urn:ogc:def:phenomenon:GEOM:depth",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)",
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams",
@@ -10,7 +10,7 @@
   }, {
     "name" : "urn:ogc:def:phenomenon:GEOM:temperature",
     "definition" : "urn:ogc:def:phenomenon:GEOM:temperature",
-    "description" : "urn:ogc:def:phenomenon:GEOM:temperature",
+    "description" : "the temperature in celcius degree",
     "@iot.id" : "urn:ogc:def:phenomenon:GEOM:temperature",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)",
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams",

@@ -512,7 +512,7 @@ public class OM2STSWorkerTest {
                 .iotId("urn:ogc:def:phenomenon:GEOM:temperature")
                 .name("urn:ogc:def:phenomenon:GEOM:temperature")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
-                .description("urn:ogc:def:phenomenon:GEOM:temperature")
+                .description("the temperature in celcius degree")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams");
         expResult.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/MultiDatastreams");
@@ -639,7 +639,7 @@ public class OM2STSWorkerTest {
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:depth")
                 .name("urn:ogc:def:phenomenon:GEOM:depth")
-                .description("urn:ogc:def:phenomenon:GEOM:depth")
+                .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams");
@@ -823,7 +823,7 @@ public class OM2STSWorkerTest {
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:depth")
                 .name("urn:ogc:def:phenomenon:GEOM:depth")
-                .description("urn:ogc:def:phenomenon:GEOM:depth")
+                .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:depth)/Datastreams")
@@ -831,7 +831,7 @@ public class OM2STSWorkerTest {
         ObservedProperty expObsProp2 = new ObservedProperty()
                 .iotId("urn:ogc:def:phenomenon:GEOM:temperature")
                 .name("urn:ogc:def:phenomenon:GEOM:temperature")
-                .description("urn:ogc:def:phenomenon:GEOM:temperature")
+                .description("the temperature in celcius degree")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .iotSelfLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/ObservedProperties(urn:ogc:def:phenomenon:GEOM:temperature)/Datastreams")

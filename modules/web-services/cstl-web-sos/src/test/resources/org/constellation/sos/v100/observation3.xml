@@ -11,6 +11,7 @@
     <om:observedProperty>
        <swe:Phenomenon gml:id="depth">
             <gml:name>urn:ogc:def:phenomenon:GEOM:depth</gml:name>
+            <gml:description>the depth in water</gml:description>
         </swe:Phenomenon>
     </om:observedProperty>
     <om:featureOfInterest>

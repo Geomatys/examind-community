@@ -1,6 +1,6 @@
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:depth', 1);
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:temperature', 1);
-INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 1);
+INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:depth', 1, 'depth', 'urn:ogc:def:phenomenon:GEOM:depth', 'the depth in water');
+INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:temperature', 1, 'temperature', 'urn:ogc:def:phenomenon:GEOM:temperature', 'the temperature in celcius degree');
+INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 1, 'aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'the aggregation of temperature and depth phenomenons');
 
 -- v100 --
 INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:depth');

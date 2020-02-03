@@ -6,6 +6,7 @@
     <om:observedProperty>
         <swe:Phenomenon gml:id="temperature">
             <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
+            <gml:description>the temperature in celcius degree</gml:description>
         </swe:Phenomenon>
     </om:observedProperty>
     <om:featureOfInterest>
