@@ -309,60 +309,23 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
         }
 
-        //st_contains(location, geography'POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))')
         if (req.getFilter() != null) {
             String filterStr = req.getFilter();
-            if (filterStr.startsWith("st_contains(location, geography'")) {
-                String geomStr = filterStr.substring(32);
-                int i = geomStr.indexOf("'");
-                if (i != -1) {
-                    geomStr = geomStr.substring(0, i);
-                    WKTReader reader = new WKTReader();
-                    try {
-                        Geometry geom = reader.read(geomStr);
-                        geom.setUserData(CommonCRS.WGS84.geographic());
-                        Envelope e = JTS.toEnvelope(geom);
-                        try {
-                            if (omProvider.getCapabilities().isBoundedObservation) {
-                                filters.add(((FilterFactory2)ff).bbox(ff.property("location"), e));
-                            } else {
-                                org.geotoolkit.gml.xml.Envelope gmlEnv = new EnvelopeType(e);
-                                List<String> fois = getFeaturesOfInterestForBBOX((String)null, gmlEnv, "2.0.0");
-                                if (!fois.isEmpty()) {
-                                    for (String foi : fois) {
-                                        filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal(foi)));
-                                    }
-                                } else {
-                                    filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal("unexisting-foi")));
-                                }
-                            }
-                        } catch (ConstellationStoreException ex) {
-                            throw new CstlServiceException(ex);
-                        }
-                    } catch (ParseException ex) {
-                        throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
-                    }
+            if (filterStr != null) {
+                String[] parts;
+                if (filterStr.contains(" or ")) {
+                    parts = filterStr.split(" or ");
+                } else if (filterStr.contains(" and ")) {
+                    parts = filterStr.split(" and ");
                 } else {
-                    throw new CstlServiceException("malformed spatial filter", INVALID_PARAMETER_VALUE, "FILTER");
+                    parts = new String[] {filterStr};
                 }
-            } else if (filterStr.startsWith("st_")) {
-               throw new CstlServiceException("Only st_contains filter supported for now", INVALID_PARAMETER_VALUE, "FILTER");
-            } else if (filterStr.contains(" eq ")) {
-                int pos = filterStr.indexOf(" eq ");
-                String property     = filterStr.substring(0, pos);
-                String[] properties = property.split("/");
-                if (properties.length >= 2) {
-                    if (properties[properties.length -1].equals("id")) {
-                        String literal      = filterStr.substring(pos + 4, filterStr.length());
-                        String realProperty = getSupportedProperties(properties[properties.length -2]);
-                        System.out.println("property:" + realProperty);
-                        System.out.println("literal:"  + literal);
-                        filters.add(ff.equals(ff.property(realProperty), ff.literal(literal)));
-                    } else {
-                        throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
-                    }
+                if (parts.length == 1) {
+                    filters.addAll(parseStringFilter(parts[0]));
                 } else {
-                    throw new CstlServiceException("malformed filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+                    for (String part : parts) {
+                        filters.addAll(parseStringFilter(part));
+                    }
                 }
             }
         }
@@ -381,6 +344,66 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             subquery.setFilter(ff.and(filters));
         }
         return subquery;
+    }
+
+    private List<Filter> parseStringFilter(String filterStr) throws CstlServiceException {
+        if (filterStr.startsWith("st_contains(location, geography'")) {
+            String geomStr = filterStr.substring(32);
+            int i = geomStr.indexOf("'");
+            if (i != -1) {
+                geomStr = geomStr.substring(0, i);
+                WKTReader reader = new WKTReader();
+                try {
+                    Geometry geom = reader.read(geomStr);
+                    geom.setUserData(CommonCRS.WGS84.geographic());
+                    Envelope e = JTS.toEnvelope(geom);
+                    try {
+                        if (omProvider.getCapabilities().isBoundedObservation) {
+                            return Arrays.asList(((FilterFactory2) ff).bbox(ff.property("location"), e));
+                        } else {
+                            org.geotoolkit.gml.xml.Envelope gmlEnv = new EnvelopeType(e);
+                            List<String> fois = getFeaturesOfInterestForBBOX((String) null, gmlEnv, "2.0.0");
+                            if (!fois.isEmpty()) {
+                                List<Filter> results = new ArrayList<>();
+                                for (String foi : fois) {
+                                    results.add(ff.equals(ff.property("featureOfInterest"), ff.literal(foi)));
+                                }
+                                return results;
+                            } else {
+                                return Arrays.asList(ff.equals(ff.property("featureOfInterest"), ff.literal("unexisting-foi")));
+                            }
+                        }
+                    } catch (ConstellationStoreException ex) {
+                        throw new CstlServiceException(ex);
+                    }
+                } catch (ParseException ex) {
+                    throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
+                }
+            } else {
+                throw new CstlServiceException("malformed spatial filter", INVALID_PARAMETER_VALUE, "FILTER");
+            }
+        } else if (filterStr.startsWith("st_")) {
+            throw new CstlServiceException("Only st_contains filter supported for now", INVALID_PARAMETER_VALUE, "FILTER");
+        } else if (filterStr.contains(" eq ")) {
+            int pos = filterStr.indexOf(" eq ");
+            String property = filterStr.substring(0, pos);
+            String[] properties = property.split("/");
+            if (properties.length >= 2) {
+                if (properties[properties.length - 1].equals("id")) {
+                    String literal = filterStr.substring(pos + 4, filterStr.length());
+                    String realProperty = getSupportedProperties(properties[properties.length - 2]);
+                    System.out.println("property:" + realProperty);
+                    System.out.println("literal:" + literal);
+                    return Arrays.asList(ff.equals(ff.property(realProperty), ff.literal(literal)));
+                } else {
+                    throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+                }
+            } else {
+                throw new CstlServiceException("malformed filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
+            }
+        } else {
+            throw new CstlServiceException("malformed or unknow filter", INVALID_PARAMETER_VALUE, "FILTER");
+        }
     }
 
     private String getSupportedProperties(String property) throws CstlServiceException {

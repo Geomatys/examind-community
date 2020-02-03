@@ -45,7 +45,6 @@ import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import org.geotoolkit.observation.xml.AbstractObservation;

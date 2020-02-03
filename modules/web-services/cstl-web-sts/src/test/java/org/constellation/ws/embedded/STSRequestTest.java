@@ -754,11 +754,32 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/loc-temp.json");
         assertEquals(expResult, result);
 
+        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature or Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:depth".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-temp-depth.json");
+        assertEquals(expResult, result);
+
         filter = "Thing/Datastream/Observation/featureOfInterest/id eq station-006".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-foi6.json");
+        assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/Observation/featureOfInterest/id eq station-006 or Thing/Datastream/Observation/featureOfInterest/id eq station-002".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-foi6_2.json");
+        assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature and Thing/Datastream/Observation/featureOfInterest/id eq station-006".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-temp-foi6.json");
         assertEquals(expResult, result);
     }
 

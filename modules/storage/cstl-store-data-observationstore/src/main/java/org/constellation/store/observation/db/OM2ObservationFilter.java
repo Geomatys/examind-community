@@ -191,7 +191,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void initFilterGetSensor() {
-        sqlRequest = new StringBuilder("SELECT pr.\"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
+        sqlRequest = new StringBuilder("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
         firstFilter = true;
         getProc = true;
     }
@@ -320,7 +320,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (!firstFilter) {
                 sqlRequest.append(" AND( ").append(sb).append(") ");
             } else {
-                sqlRequest.append(sb);
+                sqlRequest.append(" (").append(sb).append(") ");
                 firstFilter = false;
             }
             obsJoin = true;
