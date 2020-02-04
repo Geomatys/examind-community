@@ -224,6 +224,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=2)
     public void testSOSGetCapabilities() throws Exception {
+        initPool();
         // Creates a valid GetCapabilities url.
         URL getCapsUrl = new URL(getDefaultURL());
 
@@ -276,11 +277,17 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
+
+        String result = getStringResponse(getCapsUrl);
+        String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/sos/v100/capabilities.xml"));
+
+        domCompare(result, expResult);
     }
 
     @Test
     @Order(order=3)
     public void testSOSGetCapabilitiesv2() throws Exception {
+        initPool();
         // Creates a valid GetCapabilities url.
         URL getCapsUrl = new URL(getDefaultURL());
 
@@ -333,6 +340,11 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         op = c.getOperationsMetadata().getOperation(GET_OBSERVATION);
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getDefaultURL());
+
+        String result = getStringResponse(getCapsUrl);
+        String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/sos/v200/capabilities.xml"));
+
+        domCompare(result, expResult);
     }
 
     @Test
@@ -482,7 +494,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("org/constellation/xml/sos/GetFeatureOfInterestResponseSOAP.xml");
         expResult = expResult.replace("EPSG_VERSION", EPSG_VERSION);
 
-        System.out.println("GFI SOAP 1 result:\n" + result);
+        //System.out.println("GFI SOAP 1 result:\n" + result);
 
         domCompare(expResult, result);
 
@@ -494,8 +506,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("org/constellation/xml/sos/GetFeatureOfInterestResponseSOAP2.xml");
         expResult = expResult.replace("EPSG_VERSION", EPSG_VERSION);
 
-
-        System.out.println("GFI SOAP 2 result:\n" + result);
+        //System.out.println("GFI SOAP 2 result:\n" + result);
 
         domCompare(result, expResult);
     }
