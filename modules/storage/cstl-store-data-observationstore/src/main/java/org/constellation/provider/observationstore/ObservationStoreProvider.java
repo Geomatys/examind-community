@@ -419,19 +419,55 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         try {
             ObservationOffering off = store.getReader().getObservationOffering(name, version);
             if (off != null) {
-                return new Offering(off.getId(),
-                                    off.getDescription(),
-                                    off.getSrsName(),
-                                    off.getResultModel(),
-                                    off.getProcedures(),
-                                    off.getFeatureOfInterestIds(),
-                                    off.getObservedProperties());
+                return buildOfferingDto(off);
             }
             return null;
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
     }
+
+    @Override
+    public List<Offering> getOfferings(Query query, Map<String, String> hints) throws ConstellationStoreException {
+        String version = getVersionFromHints(hints);
+        List<Offering> results = new ArrayList<>();
+        try {
+            // query is ignored for now
+
+            List<ObservationOffering> offerings = store.getReader().getObservationOfferings(version);
+            for (ObservationOffering off : offerings) {
+
+                if (off != null) {
+                    results.add(buildOfferingDto(off));
+                }
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+        return results;
+    }
+
+    private Offering buildOfferingDto(final ObservationOffering off) {
+        final List<Date> times = new ArrayList<>();
+        if (off.getTime() instanceof Period) {
+            Period p = (Period) off.getTime();
+            times.add(p.getBeginning().getDate());
+            times.add(p.getEnding().getDate());
+        } else if (off.getTime() instanceof Instant) {
+            Instant p = (Instant) off.getTime();
+            times.add(p.getDate());
+        }
+        return new Offering(off.getId(),
+                            off.getName().getCode(),
+                            off.getDescription(),
+                            off.getSrsName(),
+                            off.getResultModel(),
+                            off.getProcedures(),
+                            off.getFeatureOfInterestIds(),
+                            off.getObservedProperties(),
+                            times);
+    }
+
 
     @Override
     public void updateOffering(Offering offering) throws ConstellationStoreException {
@@ -465,13 +501,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 final Period time = buildTimePeriod(version, null, t.toString(), null);
 
                 // observed properties
-                final List<String> obsPropsV100             = new ArrayList<>();
-                final List<PhenomenonProperty> obsPropsV200 = new ArrayList<>();
+                final List<String> obsPropsV200             = new ArrayList<>();
+                final List<PhenomenonProperty> obsPropsV100 = new ArrayList<>();
                 for (Object obsProp : observedProperties) {
                     if (obsProp instanceof PhenomenonProperty) {
                         PhenomenonProperty pp = (PhenomenonProperty)obsProp;
-                        obsPropsV200.add(pp);
-                        obsPropsV100.add(pp.getHref());
+                        obsPropsV100.add(pp);
+                        obsPropsV200.add(pp.getHref());
 
                     } else {
                         throw new ClassCastException("Not a phenomenonProperty");
@@ -486,13 +522,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
                 store.getWriter().writeOffering(buildOffering(version,
                                                 offering.getId(),
-                                                offering.getId(),
+                                                offering.getName(),
                                                 offering.getDescription(),
                                                 offering.getAvailableSrs(),
                                                 time,
                                                 offering.getProcedures(),
-                                                obsPropsV200,
                                                 obsPropsV100,
+                                                obsPropsV200,
                                                 offering.getFeatureOfInterest(),
                                                 offeringOutputFormat,
                                                 resultModel,
@@ -922,5 +958,15 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } else {
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
+    }
+
+    private String getVersionFromHints(Map<String, String> hints) {
+        String version = "2.0.0";
+        if (hints != null) {
+            if (hints.containsKey("version")) {
+                version = hints.get("version");
+            }
+        }
+        return version;
     }
 }

@@ -63,6 +63,8 @@ public interface ObservationProvider extends DataProvider {
 
     List<Process> getProcedures(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
+    List<Offering> getOfferings(Query query, final Map<String,String> hints) throws ConstellationStoreException;
+
     String getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
 
     // TODO use a query instead of all the prameters

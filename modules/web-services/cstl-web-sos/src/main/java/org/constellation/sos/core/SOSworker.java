@@ -59,6 +59,7 @@ import static org.constellation.sos.core.SOSConstants.*;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.NOT_SUPPORTED;
+import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_TEMPLATE;
 import static org.constellation.api.CommonConstants.OFFERING;
@@ -158,6 +159,8 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeBefore;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeDuring;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeEquals;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildPhenomenonProperty;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.constellation.dto.Sensor;
@@ -168,11 +171,13 @@ import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.observation.Utils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataRecord;
+import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.swes.xml.DeleteSensor;
@@ -491,6 +496,7 @@ public class SOSworker extends SensorWorker {
         //we update the URL
         om.updateURL(getServiceUrl());
 
+        final Map<String, String> hints = Collections.singletonMap("version", currentVersion);
         final Capabilities c;
         try {
             if (!keepCapabilities) {
@@ -505,7 +511,6 @@ public class SOSworker extends SensorWorker {
                 foiNames.addAll(omProvider.getFeatureOfInterestNames(null, Collections.EMPTY_MAP));
                 phenNames.addAll(omProvider.getPhenomenonNames(null, Collections.EMPTY_MAP));
 
-                Map<String, String> hints = Collections.singletonMap("version", currentVersion);
                 SimpleQuery stQuery = null;
                 if (sensorTypeFilter != null) {
                     stQuery = new SimpleQuery();
@@ -592,6 +597,7 @@ public class SOSworker extends SensorWorker {
                 final List<ObservationOffering> offerings;
                 ObservationReader reader = omStore.getReader();
                 if (reader != null) {
+                    List<Offering> tmp = omProvider.getOfferings(new SimpleQuery(), hints);
                     offerings = reader.getObservationOfferings(currentVersion, sensorTypeFilter);
                 } else {
                     offerings = new ArrayList<>();
@@ -609,6 +615,48 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         return (Capabilities) c.applySections(sections);
+    }
+
+    public List<ObservationOffering> buildOfferings(List<Offering> offerings, String version) throws ConstellationStoreException {
+        List<ObservationOffering> results = new ArrayList<>();
+        for (Offering off : offerings) {
+
+            final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL);
+            final List<String> procedureDescription   = acceptedSensorMLFormats.get(version);
+            TemporalGeometricPrimitive time           = null;
+            if (off.getTime().size() == 1) {
+                time = buildTimeInstant(version, off.getTime().get(0));
+            } else if (off.getTime().size() == 2) {
+                time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+            }
+            final List<ResponseModeType> responseModes = new ArrayList<>();
+            acceptedResponseMode.stream().forEach((i) -> {
+                responseModes.add(ResponseModeType.fromValue(i));
+            });
+            List<PhenomenonProperty> phen100 = new ArrayList<>();
+            if ("1.0.0".equals(version)) {
+                for (String op : off.getObservedProperties()) {
+                    phen100.add(buildPhenomenonProperty(version, (Phenomenon) getPhenomenon(op, version)));
+                }
+            }
+
+            results.add(buildOffering(version,
+                                 off.getId(),
+                                 off.getName(),
+                                 off.getDescription(),
+                                 off.getAvailableSrs(),
+                                 time,
+                                 off.getProcedures(),
+                                 phen100,
+                                 off.getObservedProperties(),
+                                 off.getFeatureOfInterest(),
+                                 acceptedResponseFormat,
+                                 off.getResultModels(),
+                                 resultModelV200,
+                                 responseModes,
+                                 procedureDescription));
+        }
+        return results;
     }
 
     /**
@@ -2126,7 +2174,7 @@ public class SOSworker extends SensorWorker {
                 offSF.add(template.getFeatureOfInterest());
             }
         }
-        omProvider.updateOffering(new Offering(offering.getId(), null, null, null, offProc, offSF, offPheno));
+        omProvider.updateOffering(new Offering(offering.getId(), null, null, null, null, offProc, offSF, offPheno, null));
     }
 
 
@@ -2160,7 +2208,7 @@ public class SOSworker extends SensorWorker {
             description = "Base offering containing all the sensors.";
         }
         // we create a the new Offering
-        Offering offering = new Offering(offeringName, description, srsName, resultModel, Arrays.asList(process), Arrays.asList(featureOfInterest), observedProperties);
+        Offering offering = new Offering(offeringName, offeringName, description, srsName, resultModel, Arrays.asList(process), Arrays.asList(featureOfInterest), observedProperties, null);
         omProvider.writeOffering(offering, observedPropertiesV100, acceptedSensorMLFormats.get(version), version);
     }
 

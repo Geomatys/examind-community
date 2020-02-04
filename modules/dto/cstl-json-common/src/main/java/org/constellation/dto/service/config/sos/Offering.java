@@ -19,6 +19,7 @@
 package org.constellation.dto.service.config.sos;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -29,7 +30,9 @@ import javax.xml.namespace.QName;
 public class Offering {
 
     protected String id;
+    protected String name;
     protected String description;
+    protected List<Date> time = new ArrayList<>();
     protected List<String> availableSrs = new ArrayList<>();
     protected List<QName> resultModels = new ArrayList<>();
     protected List<String> procedures = new ArrayList<>();
@@ -40,15 +43,17 @@ public class Offering {
 
     }
 
-    public Offering(String id, String description, List<String> availableSrs, List<QName> resultModels,
-            List<String> procedures, List<String> featureOfInterest, List<String> observedProperties) {
+    public Offering(String id, String name, String description, List<String> availableSrs, List<QName> resultModels,
+            List<String> procedures, List<String> featureOfInterest, List<String> observedProperties, List<Date> time) {
         this.availableSrs = availableSrs;
         this.featureOfInterest = featureOfInterest;
         this.id = id;
+        this.name = name;
         this.description = description;
         this.observedProperties = observedProperties;
         this.procedures = procedures;
         this.resultModels = resultModels;
+        this.time = time;
     }
 
     /**
@@ -147,5 +152,36 @@ public class Offering {
      */
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the time
+     */
+    public List<Date> getTime() {
+        if (time == null) {
+            time = new ArrayList<>();
+        }
+        return time;
+    }
+
+    /**
+     * @param time the time to set
+     */
+    public void setTime(List<Date> time) {
+        this.time = time;
     }
 }
