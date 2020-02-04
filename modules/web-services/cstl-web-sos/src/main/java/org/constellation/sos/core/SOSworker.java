@@ -91,7 +91,6 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.ogc.xml.XMLLiteral;
@@ -274,7 +273,7 @@ public class SOSworker extends SensorWorker {
     /**
      * The supported Response Format for GetObservation request (depends on reader capabilities)
      */
-    private List<String> acceptedResponseFormat;
+    private Map<String, List<String>> acceptedResponseFormat;
 
     /**
      * A debug flag.
@@ -353,7 +352,7 @@ public class SOSworker extends SensorWorker {
                 this.acceptedResponseFormat = pc.responseFormats;
             } else {
                 this.acceptedResponseMode   = new ArrayList<>();
-                this.acceptedResponseFormat = new ArrayList<>();
+                this.acceptedResponseFormat = new HashMap<>();
             }
 
 
@@ -552,7 +551,7 @@ public class SOSworker extends SensorWorker {
                 go.updateParameter(RESPONSE_MODE, acceptedResponseMode);
 
                 // the different responseFormat available
-                go.updateParameter("responseFormat", acceptedResponseFormat);
+                go.updateParameter("responseFormat", acceptedResponseFormat.get(currentVersion));
 
                 // the result filtrable part
                 if (!queryableResultProperties.isEmpty()) {
@@ -594,14 +593,7 @@ public class SOSworker extends SensorWorker {
                 cont = loadedCapabilities.getContents();
             } else {
                 // we add the list of observation offerings
-                final List<ObservationOffering> offerings;
-                ObservationReader reader = omStore.getReader();
-                if (reader != null) {
-                    List<Offering> tmp = omProvider.getOfferings(new SimpleQuery(), hints);
-                    offerings = reader.getObservationOfferings(currentVersion, sensorTypeFilter);
-                } else {
-                    offerings = new ArrayList<>();
-                }
+                final List<ObservationOffering> offerings = buildOfferings(omProvider.getOfferings(new SimpleQuery(), hints), currentVersion);
                 cont = buildContents(currentVersion, offerings);
             }
 
@@ -611,13 +603,13 @@ public class SOSworker extends SensorWorker {
 
             LOGGER.log(Level.INFO, "getCapabilities processed in {0} ms.\n", (System.currentTimeMillis() - start));
             putCapabilitiesInCache(currentVersion, null, c);
-        } catch (DataStoreException | ConstellationStoreException | ConfigurationException ex) {
+        } catch (ConstellationStoreException | ConfigurationException ex) {
             throw new CstlServiceException(ex);
         }
         return (Capabilities) c.applySections(sections);
     }
 
-    public List<ObservationOffering> buildOfferings(List<Offering> offerings, String version) throws ConstellationStoreException {
+    private List<ObservationOffering> buildOfferings(List<Offering> offerings, String version) throws ConstellationStoreException {
         List<ObservationOffering> results = new ArrayList<>();
         for (Offering off : offerings) {
 
@@ -650,7 +642,7 @@ public class SOSworker extends SensorWorker {
                                  phen100,
                                  off.getObservedProperties(),
                                  off.getFeatureOfInterest(),
-                                 acceptedResponseFormat,
+                                 acceptedResponseFormat.get(version),
                                  off.getResultModels(),
                                  resultModelV200,
                                  responseModes,
@@ -816,9 +808,9 @@ public class SOSworker extends SensorWorker {
         //we verify that the output format is good.
         final String responseFormat = requestObservation.getResponseFormat();
         if (responseFormat != null && !responseFormat.isEmpty()) {
-            if (!acceptedResponseFormat.contains(responseFormat)) {
+            if (!acceptedResponseFormat.get(currentVersion).contains(responseFormat)) {
                 final StringBuilder arf = new StringBuilder();
-                acceptedResponseFormat.stream().forEach((s) -> {
+                acceptedResponseFormat.get(currentVersion).stream().forEach((s) -> {
                     arf.append(s).append('\n');
                 });
                 throw new CstlServiceException(responseFormat + " is not accepted for responseFormat.\n" +
@@ -827,7 +819,7 @@ public class SOSworker extends SensorWorker {
             }
         } else if (currentVersion.equals("1.0.0") || (responseFormat != null && responseFormat.isEmpty())) {
             final StringBuilder arf = new StringBuilder();
-            acceptedResponseFormat.stream().forEach((s) -> {
+            acceptedResponseFormat.get(currentVersion).stream().forEach((s) -> {
                 arf.append(s).append('\n');
             });
             throw new CstlServiceException("Response format must be specify.\nAccepted values are:\n" + arf.toString(),

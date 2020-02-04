@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,6 +50,8 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
  *
@@ -972,6 +975,34 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             fieldPhen.add(new FieldPhenom(0, phen, fields.get(0)));
         }
         return fieldPhen;
+    }
+
+    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
+        String request = "SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=? AND \"observed_property\"=?";
+        if (foi != null) {
+            request = request + " AND \"foi\"=?";
+        }
+        try(final PreparedStatement stmt = c.prepareStatement(request)) {
+            stmt.setString(1, procedure);
+            stmt.setString(2, observedProperty);
+            if (foi != null) {
+                stmt.setString(3, foi);
+            }
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Date begin = rs.getTimestamp(1);
+                    Date end   = rs.getTimestamp(2);
+                    if (begin != null && end != null) {
+                        return SOSXmlFactory.buildTimePeriod(version, begin, end);
+                    } else if (begin != null) {
+                        return SOSXmlFactory.buildTimeInstant(version, begin);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while looking for template time.", ex);
+        }
+        return null;
     }
 
     protected static class FieldPhenom {

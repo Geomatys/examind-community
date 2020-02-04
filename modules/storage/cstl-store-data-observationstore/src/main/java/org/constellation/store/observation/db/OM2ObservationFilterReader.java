@@ -197,6 +197,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         request = request + " ORDER BY \"procedure\" ";
         request = appendPaginationToRequest(request, hints);
+        boolean includeTimeInTemplate = false;
+        if (hints != null && hints.containsKey("includeTimeInTemplate")) {
+            includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
+        }
 
         try(final Connection c = source.getConnection()) {
             final List<Observation> observations = new ArrayList<>();
@@ -215,11 +219,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final String obsID = "obs-" + procedureID;
                     final String name = observationTemplateIdBase + procedureID;
                     final String observedProperty = rs.getString("observed_property");
+                    String featureID = null;
                     FeatureProperty foi = null;
                     if (includeFoiInTemplate) {
-                        final String featureID = rs.getString("foi");
+                        featureID = rs.getString("foi");
                         final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                         foi = buildFeatureProperty(version, feature);
+                    }
+                    TemporalGeometricPrimitive tempTime = null;
+                    if (includeTimeInTemplate) {
+                        tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
                     }
                     final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                     List<Field> fields = readFields(procedure, c);
@@ -231,7 +240,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         scal.add(f.getScalar(version));
                     }
                     final Object result = buildComplexResult(version, scal, 0, encoding, null, observations.size());
-                    Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, null);
+                    Observation observation = OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, procedure, result, tempTime);
                     observations.add(observation);
                 }
             }
@@ -252,6 +261,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         request = request + " ORDER BY \"procedure\" ";
         request = appendPaginationToRequest(request, hints);
 
+        boolean includeTimeInTemplate = false;
+        if (hints != null && hints.containsKey("includeTimeInTemplate")) {
+            includeTimeInTemplate = Boolean.parseBoolean(hints.get("includeTimeInTemplate"));
+        }
+
         try(final Connection c = source.getConnection()) {
             final List<Observation> observations = new ArrayList<>();
 
@@ -269,14 +283,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final String obsID = "obs-" + procedureID;
                     final String name = observationTemplateIdBase + procedureID;
                     final String observedProperty = rs.getString("observed_property");
+                    String featureID = null;
                     FeatureProperty foi = null;
                     if (includeFoiInTemplate) {
-                        final String featureID = rs.getString("foi");
+                        featureID = rs.getString("foi");
                         final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                         foi = buildFeatureProperty(version, feature);
                     }
+                    TemporalGeometricPrimitive tempTime = null;
+                    if (includeTimeInTemplate) {
+                        tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
+                    }
                     final org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, observedProperty, c);
-                    final String phenID = phen.getId();
                     /*
                      *  BUILD RESULT
                      */
@@ -297,7 +315,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
                                         //final String cphenID = compPhen.getId();
                                         final Object result = buildMeasureResult(version, 0, fields.get(i).fieldUom, "1");
-                                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, null));
+                                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, tempTime));
                                     }
                                 }
                             } else {
@@ -313,7 +331,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             throw new DataStoreException("incoherence between single fields and composite phenomenon");
                         }
                         final Object result = buildMeasureResult(version, 0, fields.get(0).fieldUom, "1");
-                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, null));
+                        observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, tempTime));
                     }
                 }
             }

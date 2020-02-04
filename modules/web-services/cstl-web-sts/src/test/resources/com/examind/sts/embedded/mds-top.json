@@ -6,6 +6,7 @@
       "definition" : "m"
     } ],
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "resultTime" : "2009-05-01T11:47:00Z/2009-05-01T12:03:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:10",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things",
@@ -24,6 +25,7 @@
       "definition" : "°C"
     } ],
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "resultTime" : "2000-12-31T23:00:00Z/2000-12-31T23:00:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:2",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things",

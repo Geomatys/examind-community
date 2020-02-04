@@ -59,6 +59,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -67,6 +69,8 @@ import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.exception.ConstellationMetadataException;
@@ -787,8 +791,11 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public List<String> getResponseFormats() throws DataStoreException {
-        return Arrays.asList("text/xml; subtype=\"om/1.0.0\"");
+    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
+        final Map<String, List<String>> results = new HashMap<>();
+        results.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        results.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+        return results;
     }
 
     /**

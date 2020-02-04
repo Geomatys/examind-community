@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns9:Capabilities xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:mex="http://standards.iso.org/iso/19115/-3/mex/1.0" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:mrl="http://standards.iso.org/iso/19115/-3/mrl/1.0" xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" xmlns:sml="http://www.opengis.net/sensorML/1.0" xmlns:srv="http://standards.iso.org/iso/19115/-3/srv/2.0" xmlns:sos="http://www.opengis.net/sos/2.0" xmlns:ns9="http://www.opengis.net/sos/1.0" xmlns:gex="http://standards.iso.org/iso/19115/-3/gex/1.0" xmlns:mmi="http://standards.iso.org/iso/19115/-3/mmi/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:mac="http://standards.iso.org/iso/19115/-3/mac/1.0" xmlns:gmi="http://standards.iso.org/iso/19115/-2/gmi/1.0" xmlns:mdt="http://standards.iso.org/iso/19115/-3/mdt/1.0" xmlns:mas="http://standards.iso.org/iso/19115/-3/mas/1.0" xmlns:om="http://www.opengis.net/om/1.0" xmlns:mcc="http://standards.iso.org/iso/19115/-3/mcc/1.0" xmlns:mdq="http://standards.iso.org/iso/19157/-2/mdq/1.0" xmlns:mri="http://standards.iso.org/iso/19115/-3/mri/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:mrd="http://standards.iso.org/iso/19115/-3/mrd/1.0" xmlns:ism="urn:us:gov:ic:ism:v2" xmlns:cit="http://standards.iso.org/iso/19115/-3/cit/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mco="http://standards.iso.org/iso/19115/-3/mco/1.0" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mrs="http://standards.iso.org/iso/19115/-3/mrs/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:ns31="http://www.opengis.net/swe/1.0.1" xmlns:sa="http://www.opengis.net/sampling/1.0" xmlns:mpc="http://standards.iso.org/iso/19115/-3/mpc/1.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:mrc="http://standards.iso.org/iso/19115/-3/mrc/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lan="http://standards.iso.org/iso/19115/-3/lan/1.0" xmlns:msr="http://standards.iso.org/iso/19115/-3/msr/1.0" xmlns:ns39="http://www.opengis.net/gml" xmlns:gcx="http://standards.iso.org/iso/19115/-3/gcx/1.0" xmlns:mdb="http://standards.iso.org/iso/19115/-3/mdb/1.0" xmlns:ns42="http://www.opengis.net/fes/2.0" xmlns:ns43="http://www.opengis.net/swes/2.0" xmlns:ns44="http://www.opengis.net/om/2.0" xmlns:ns45="http://www.opengis.net/sampling/2.0" xmlns:ns46="http://www.opengis.net/samplingSpatial/2.0" xmlns:ns47="http://www.w3.org/2005/08/addressing" xmlns:ns48="http://www.opengis.net/swe/2.0" xmlns:ns49="http://docs.oasis-open.org/wsn/t-1" xmlns:ns50="http://www.opengis.net/gml/" xmlns:ns51="http://www.opengis.net/sensorML/1.0.1" version="1.0.0" updateSequence="1580808644169" xsi:schemaLocation="http://www.opengis.net/sos/1.0 http://schemas.opengis.net/sos/1.0.0/sosAll.xsd http://www.opengis.net/sampling/1.0 http://schemas.opengis.net/sampling/1.0.0/sampling.xsd">
+<ns9:Capabilities xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:mex="http://standards.iso.org/iso/19115/-3/mex/1.0" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:mrl="http://standards.iso.org/iso/19115/-3/mrl/1.0" xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" xmlns:sml="http://www.opengis.net/sensorML/1.0" xmlns:srv="http://standards.iso.org/iso/19115/-3/srv/2.0" xmlns:sos="http://www.opengis.net/sos/2.0" xmlns:ns9="http://www.opengis.net/sos/1.0" xmlns:gex="http://standards.iso.org/iso/19115/-3/gex/1.0" xmlns:mmi="http://standards.iso.org/iso/19115/-3/mmi/1.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:mac="http://standards.iso.org/iso/19115/-3/mac/1.0" xmlns:gmi="http://standards.iso.org/iso/19115/-2/gmi/1.0" xmlns:mdt="http://standards.iso.org/iso/19115/-3/mdt/1.0" xmlns:mas="http://standards.iso.org/iso/19115/-3/mas/1.0" xmlns:om="http://www.opengis.net/om/1.0" xmlns:mcc="http://standards.iso.org/iso/19115/-3/mcc/1.0" xmlns:mdq="http://standards.iso.org/iso/19157/-2/mdq/1.0" xmlns:mri="http://standards.iso.org/iso/19115/-3/mri/1.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:mrd="http://standards.iso.org/iso/19115/-3/mrd/1.0" xmlns:ism="urn:us:gov:ic:ism:v2" xmlns:cit="http://standards.iso.org/iso/19115/-3/cit/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mco="http://standards.iso.org/iso/19115/-3/mco/1.0" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mrs="http://standards.iso.org/iso/19115/-3/mrs/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:ns31="http://www.opengis.net/swe/1.0.1" xmlns:sa="http://www.opengis.net/sampling/1.0" xmlns:mpc="http://standards.iso.org/iso/19115/-3/mpc/1.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:mrc="http://standards.iso.org/iso/19115/-3/mrc/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lan="http://standards.iso.org/iso/19115/-3/lan/1.0" xmlns:msr="http://standards.iso.org/iso/19115/-3/msr/1.0" xmlns:ns39="http://www.opengis.net/gml" xmlns:gcx="http://standards.iso.org/iso/19115/-3/gcx/1.0" xmlns:mdb="http://standards.iso.org/iso/19115/-3/mdb/1.0" xmlns:ns42="http://www.opengis.net/fes/2.0" xmlns:ns43="http://www.opengis.net/swes/2.0" xmlns:ns44="http://www.opengis.net/om/2.0" xmlns:ns45="http://www.opengis.net/sampling/2.0" xmlns:ns46="http://www.opengis.net/samplingSpatial/2.0" xmlns:ns47="http://www.w3.org/2005/08/addressing" xmlns:ns48="http://www.opengis.net/swe/2.0" xmlns:ns49="http://docs.oasis-open.org/wsn/t-1" xmlns:ns50="http://www.opengis.net/gml/" xmlns:ns51="http://www.opengis.net/sensorML/1.0.1" version="1.0.0" updateSequence="1580811556088" xsi:schemaLocation="http://www.opengis.net/sos/1.0 http://schemas.opengis.net/sos/1.0.0/sosAll.xsd http://www.opengis.net/sampling/1.0 http://schemas.opengis.net/sampling/1.0.0/sampling.xsd">
   <ows:ServiceIdentification>
     <ows:Title>Constellation SOS Server</ows:Title>
     <ows:Abstract>Constellation SOS Server</ows:Abstract>
@@ -188,8 +188,6 @@
       <ows:Parameter name="responseFormat">
         <ows:AllowedValues>
           <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
-          <ows:Value>http://www.opengis.net/om/2.0</ows:Value>
-          <ows:Value>application/json;subtype="http://www.opengis.net/om/2.0"</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="resultModel">
@@ -403,7 +401,12 @@
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:10"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <ns9:observedProperty>
+          <ns31:Phenomenon ns39:id="depth">
+            <ns39:description>the depth in water</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:depth</ns39:name>
+          </ns31:Phenomenon>
+        </ns9:observedProperty>
         <ns9:featureOfInterest xlink:href="station-001"/>
         <ns9:featureOfInterest xlink:href="station-002"/>
         <ns9:responseFormat>text/xml; subtype="om/1.0.0"</ns9:responseFormat>
@@ -420,11 +423,23 @@
         <ns9:time>
           <ns39:TimePeriod>
             <ns39:beginPosition>2001-01-01</ns39:beginPosition>
-            <ns39:endPosition></ns39:endPosition>
+            <ns39:endPosition indeterminatePosition="now"></ns39:endPosition>
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
+            <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component>
+              <ns31:Phenomenon ns39:id="temperature">
+                <ns39:description>the temperature in celcius degree</ns39:description>
+                <ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
+              </ns31:Phenomenon>
+            </ns31:component>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <ns9:responseFormat>text/xml; subtype="om/1.0.0"</ns9:responseFormat>
@@ -445,7 +460,14 @@
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:3"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
+            <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <ns9:featureOfInterest xlink:href="station-001"/>
@@ -467,7 +489,14 @@
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:4"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
+            <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <ns9:featureOfInterest xlink:href="station-001"/>
@@ -489,7 +518,14 @@
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
+            <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <ns9:featureOfInterest xlink:href="station-002"/>
@@ -538,7 +574,14 @@
           </ns39:TimePeriod>
         </ns9:time>
         <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:8"/>
-        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
+            <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <ns9:featureOfInterest xlink:href="station-006"/>

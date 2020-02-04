@@ -84,7 +84,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
@@ -471,7 +470,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       null,
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
         exLaunched = false;
         try {
             worker.getObservation(request);
@@ -497,7 +496,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:36"),
                                       null,
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
         exLaunched = false;
         try {
             worker.getObservation(request);
@@ -518,7 +517,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:hotness"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         exLaunched = false;
         try {
@@ -540,7 +539,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       Arrays.asList("NIMP"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         exLaunched = false;
         try {
@@ -572,7 +571,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -656,7 +655,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -693,7 +692,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -730,7 +729,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -754,7 +753,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -775,7 +774,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -800,7 +799,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -825,7 +824,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -847,7 +846,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:depth"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -884,7 +883,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -931,7 +930,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       Arrays.asList("station-002"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -969,7 +968,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       Arrays.asList("station-002"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -988,7 +987,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       new BBOXType(null, 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -1025,7 +1024,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       new BBOXType(null, 66000.0, 1730000.0, 67000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
@@ -1056,7 +1055,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:8"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
         OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
 
@@ -1100,7 +1099,7 @@ public abstract class SOS2WorkerTest {
                                       null,
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       Arrays.asList("station-006"),
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
         assertEquals(2, result.getMember().size());
@@ -1165,7 +1164,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:2"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
         OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
 
@@ -1810,7 +1809,7 @@ public abstract class SOS2WorkerTest {
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
                                       nullList,
-                                      "text/xml; subtype=\"om/1.0.0\"");
+                                      "http://www.opengis.net/om/2.0");
 
         GetObservationResponseType resultGO = (GetObservationResponseType) worker.getObservation(requestGO);
 

@@ -7,6 +7,7 @@
       "definition" : "m"
     },
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "resultTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
     "@iot.id" : "urn:ogc:object:observation:template:GEOM:3-0",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Datastreams(urn:ogc:object:observation:template:GEOM:3-0)/Things",

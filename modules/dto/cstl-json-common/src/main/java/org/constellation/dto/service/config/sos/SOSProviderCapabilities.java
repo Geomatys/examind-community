@@ -19,7 +19,9 @@
 package org.constellation.dto.service.config.sos;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -27,7 +29,7 @@ import java.util.List;
  */
 public class SOSProviderCapabilities {
 
-    public List<String> responseFormats = new ArrayList<>();
+    public Map<String, List<String>> responseFormats = new HashMap<>();
 
     public List<String> responseModes= new ArrayList<>();
 

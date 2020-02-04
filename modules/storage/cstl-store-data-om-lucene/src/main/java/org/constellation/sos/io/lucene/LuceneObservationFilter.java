@@ -72,6 +72,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     protected final String phenomenonIdBase;
 
     protected boolean getFoi = false;
+    protected boolean getPhen = false;
 
     private static final String OR_OPERATOR = " OR ";
 
@@ -133,6 +134,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     public void initFilterGetPhenomenon() throws DataStoreException {
         luceneRequest = new StringBuilder("type:phenomenon");
         getFoi = false;
+        getPhen = true;
         eventTimes.clear();
     }
 
@@ -190,7 +192,14 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         if (phenomenon != null && !allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
             luceneRequest.append(" AND( ");
             for (String p : phenomenon) {
-                luceneRequest.append(" observed_property:\"").append(p).append('"').append(OR_OPERATOR);
+                if (getPhen) {
+                    if (p.startsWith(phenomenonIdBase)) {
+                        p = p.substring(phenomenonIdBase.length());
+                    }
+                    luceneRequest.append(" id:\"").append(p).append('"').append(OR_OPERATOR);
+                } else {
+                    luceneRequest.append(" observed_property:\"").append(p).append('"').append(OR_OPERATOR);
+                }
 
             }
             luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());

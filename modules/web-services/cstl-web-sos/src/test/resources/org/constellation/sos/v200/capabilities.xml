@@ -263,9 +263,7 @@
       </ows:Parameter>
       <ows:Parameter name="responseFormat">
         <ows:AllowedValues>
-          <ows:Value>text/xml; subtype="om/1.0.0"</ows:Value>
           <ows:Value>http://www.opengis.net/om/2.0</ows:Value>
-          <ows:Value>application/json;subtype="http://www.opengis.net/om/2.0"</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
     </ows:Operation>
@@ -528,7 +526,7 @@
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-2">
               <gml:beginPosition>2001-01-01</gml:beginPosition>
-              <gml:endPosition/>
+              <gml:endPosition indeterminatePosition="now"/>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>

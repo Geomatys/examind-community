@@ -77,6 +77,8 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
     private Path foiDirectory;
 
+    private Path phenDirectory;
+
     private Path observationTemplateDirectory;
 
     private boolean template = false;
@@ -99,6 +101,11 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                 observationDirectory = dataDirectory.resolve("observations");
                 if (!Files.exists(observationDirectory)) {
                     Files.createDirectories(observationDirectory);
+                }
+
+                phenDirectory = dataDirectory.resolve("phenomenons");
+                if (!Files.exists(phenDirectory)) {
+                    Files.createDirectories(phenDirectory);
                 }
 
                 observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
@@ -173,6 +180,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         int nbObservation = 0;
         int nbTemplate    = 0;
         int nbfoi         = 0;
+        int nbPhen        = 0;
         try {
             final Unmarshaller unmarshaller = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
@@ -187,6 +195,8 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             template = false;
 
             nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi", procs);
+
+            nbPhen = indexDirectory(phenDirectory, nbPhen, unmarshaller, writer, "phenomenon", procs);
 
             indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
             indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
@@ -263,6 +273,11 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                         }
 
                         nbObservation++;
+
+                    } else if (obj instanceof Phenomenon) {
+                        indexDocument(writer, obj);
+
+
                     } else {
                         LOGGER.info("The "+type+" file " + observationFile.getFileName().toString()
                                 + " does not contains an observation:" + obj);
@@ -391,6 +406,15 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                doc.add(new Field("offering", off , ft));
             }
 
+            // add a default meta field to make searching all documents easy
+            doc.add(new Field("metafile", "doc", ft));
+
+        } else if (obj instanceof Phenomenon) {
+
+            Phenomenon feat = (Phenomenon) obj;
+            doc.add(new Field("id", feat.getId(), ft));
+            doc.add(new Field("type", "phenomenon" , ft));
+            
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
         } else {

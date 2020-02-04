@@ -436,7 +436,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=7)
     public void testSOSGetCapabilitiesSOAP() throws Exception {
-
+        initPool();
         URL getCapsUrl;
         try {
             getCapsUrl = new URL(SOS_DEFAULT);

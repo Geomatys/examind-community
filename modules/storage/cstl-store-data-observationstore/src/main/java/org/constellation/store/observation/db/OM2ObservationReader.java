@@ -911,7 +911,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<String> getResponseFormats() throws DataStoreException {
-        return Arrays.asList(RESPONSE_FORMAT_V100_XML, RESPONSE_FORMAT_V200_XML, RESPONSE_FORMAT_V200_JSON);
+    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
+        return RESPONSE_FORMAT;
     }
 }
