@@ -18,7 +18,6 @@
  */
 package com.examind.repository.filesystem;
 
-import static com.examind.repository.filesystem.FileSystemUtilities.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
+
 import org.constellation.dto.Data;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.exception.ConstellationPersistenceException;
@@ -36,6 +36,11 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static com.examind.repository.filesystem.FileSystemUtilities.PROVIDER_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
+import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
+import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
 
 /**
  *
@@ -219,12 +224,13 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
 
             Path providerDir = getDirectory(PROVIDER_DIR);
             Path providerFile = providerDir.resolve(provider.getId() + ".xml");
-            try {
-                Files.delete(providerFile);
-            } catch (IOException ex) {
-                throw new ConstellationPersistenceException(ex);
-            }
-
+            if (Files.exists(providerFile)) {
+                try {
+                    Files.delete(providerFile);
+                } catch (IOException ex) {
+                    throw new ConstellationPersistenceException(ex);
+                }
+            } else LOGGER.warning(String.format("Inconsistent state: file for provider %d does not exist !", id));
             byId.remove(provider.getId());
             byName.remove(provider.getIdentifier());
 

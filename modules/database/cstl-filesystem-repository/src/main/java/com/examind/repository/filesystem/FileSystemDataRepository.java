@@ -18,7 +18,6 @@
  */
 package com.examind.repository.filesystem;
 
-import static com.examind.repository.filesystem.FileSystemUtilities.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -31,6 +30,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
+
+import org.opengis.util.GenericName;
+
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.util.NamesExt;
+
 import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.dto.ProviderBrief;
@@ -39,11 +44,16 @@ import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.StyleRepository;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.util.NamesExt;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.opengis.util.GenericName;
 import org.springframework.stereotype.Component;
+
+import static com.examind.repository.filesystem.FileSystemUtilities.DATA_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.DATA_X_DATA_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.PROVIDER_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
+import static com.examind.repository.filesystem.FileSystemUtilities.getIntegerList;
+import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
+import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
 
 /**
  *
@@ -436,11 +446,13 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
 
             Path dataDir = getDirectory(DATA_DIR);
             Path dataFile = dataDir.resolve(data.getId() + ".xml");
-            try {
-                Files.delete(dataFile);
-            } catch (IOException ex) {
-                throw new ConstellationPersistenceException(ex);
-            }
+            if (Files.exists(dataFile)) {
+                try {
+                    Files.delete(dataFile);
+                } catch (IOException ex) {
+                    throw new ConstellationPersistenceException(ex);
+                }
+            } else LOGGER.warning(String.format("Inconsistent state: file for data %d does not exist !", id));
 
             byId.remove(data.getId());
             String providerIdentifier = providerMapping.get(data.getProviderId());

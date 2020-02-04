@@ -18,7 +18,6 @@
  */
 package com.examind.repository.filesystem;
 
-import static com.examind.repository.filesystem.FileSystemUtilities.*;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -29,12 +28,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
+
 import org.constellation.dto.DataSet;
 import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static com.examind.repository.filesystem.FileSystemUtilities.DATASET_DIR;
+import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
+import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
+import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
 
 /**
  *
@@ -172,11 +177,13 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
             Path dataDir = getDirectory(DATASET_DIR);
             Path dataFile = dataDir.resolve(dataset.getId() + ".xml");
-            try {
-                Files.delete(dataFile);
-            } catch (IOException ex) {
-                throw new ConstellationPersistenceException(ex);
-            }
+            if (Files.exists(dataFile)) {
+                try {
+                    Files.delete(dataFile);
+                } catch (IOException ex) {
+                    throw new ConstellationPersistenceException(ex);
+                }
+            } else LOGGER.warning(String.format("Inconsistent state: file for provider %d does not exist !", id));
 
             byId.remove(dataset.getId());
             byName.remove(dataset.getIdentifier());
