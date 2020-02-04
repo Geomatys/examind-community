@@ -19,21 +19,6 @@
 
 package org.constellation.dto.portrayal;
 
-import org.apache.sis.util.ArraysExt;
-import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.display2d.GO2Hints;
-import org.geotoolkit.display2d.service.OutputDef;
-import org.geotoolkit.display2d.service.PortrayalExtension;
-import org.geotoolkit.factory.Hints;
-
-import javax.imageio.spi.IIORegistry;
-import javax.imageio.spi.ImageWriterSpi;
-import javax.imageio.spi.ServiceRegistry;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +27,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageWriterSpi;
+import javax.imageio.spi.ServiceRegistry;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import org.apache.sis.util.ArraysExt;
+import org.apache.sis.util.logging.Logging;
+import org.geotoolkit.display2d.GO2Hints;
+import org.geotoolkit.display2d.service.OutputDef;
+import org.geotoolkit.display2d.service.PortrayalExtension;
+import org.geotoolkit.factory.Hints;
 
 /**
  *
@@ -91,8 +90,11 @@ public class WMSPortrayal {
     /**
      * Set the rendering order,order by symbolizer is longer but gives nicer results for vector
      * datas, values are : {@link #RENDERING_ORDER_FEATURE} or {@link #RENDERING_ORDER_SYMBOLIZER}.
+     *
+     * @deprecated, not used anymore, use Feature type style in SLD to order rendering.
      */
     @XmlElement(name="Rendering-order")
+    @Deprecated
     private String renderingOrder;
 
     /**
@@ -212,17 +214,6 @@ public class WMSPortrayal {
             }
         }
 
-        //renderingOrder
-        if (renderingOrder != null && !renderingOrder.isEmpty()) {
-            if (RENDERING_ORDER_SYMBOLIZER.equalsIgnoreCase(renderingOrder)) {
-                hints.put(GO2Hints.KEY_SYMBOL_RENDERING_ORDER, GO2Hints.SYMBOL_RENDERING_PRIME);
-            } else if (RENDERING_ORDER_FEATURE.equalsIgnoreCase(renderingOrder)) {
-                hints.put(GO2Hints.KEY_SYMBOL_RENDERING_ORDER, GO2Hints.SYMBOL_RENDERING_SECOND);
-            } else {
-                LOGGER.log(Level.WARNING, "Rendering order value not valid : {0}. Can be \"feature\" or \"symbolizer\".", renderingOrder);
-            }
-        }
-
         //generalize
         hints.put(GO2Hints.KEY_GENERALIZE, generalize);
         //generalize factor
@@ -266,16 +257,6 @@ public class WMSPortrayal {
                 rendering = RENDERING_QUALITY;
             } else if (render.equals(RenderingHints.VALUE_RENDER_SPEED)) {
                 rendering = RENDERING_SPEED;
-            }
-        }
-
-        //rendering order
-        if (hints.containsKey(GO2Hints.KEY_SYMBOL_RENDERING_ORDER)) {
-            final Object renderOrder = hints.get(GO2Hints.KEY_SYMBOL_RENDERING_ORDER);
-            if (renderOrder.equals(GO2Hints.SYMBOL_RENDERING_PRIME)) {
-                renderingOrder = RENDERING_ORDER_SYMBOLIZER;
-            } else if (renderOrder.equals(GO2Hints.SYMBOL_RENDERING_SECOND)) {
-                renderingOrder = RENDERING_ORDER_FEATURE;
             }
         }
 
