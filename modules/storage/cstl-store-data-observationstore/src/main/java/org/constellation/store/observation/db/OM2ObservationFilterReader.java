@@ -59,6 +59,7 @@ import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
+import org.opengis.filter.expression.Literal;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -91,23 +92,31 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeEquals(final Object time) throws DataStoreException {
+    public void setTimeEquals( Object time) throws DataStoreException {
+        if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+            time = ((Literal)time).getValue();
+        }
         if (time instanceof Period) {
             final Period tp    = (Period) time;
             final String begin = getTimeValue(tp.getBeginning().getDate());
             final String end   = getTimeValue(tp.getEnding().getDate());
 
             // we request directly a multiple observation or a period observation (one measure during a period)
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
             sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
             sqlRequest.append(" \"time_end\"='").append(end).append("') ");
             obsJoin = true;
+            firstFilter = false;
         // if the temporal object is a timeInstant
         } else if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
             //sqlRequest.append("AND (\"time_begin\"='").append(position).append("' AND \"time_end\"='").append(position).append("') ");
-            sqlMeasureRequest.append("AND (\"$time\"='").append(position).append("') ");
+            sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
             obsJoin = true;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
@@ -119,14 +128,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeBefore(final Object time) throws DataStoreException  {
+    public void setTimeBefore(Object time) throws DataStoreException  {
+        if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+            time = ((Literal)time).getValue();
+        }
         // for the operation before the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
-            sqlRequest.append("AND (\"time_begin\"<='").append(position).append("')");
-            sqlMeasureRequest.append("AND (\"$time\"<='").append(position).append("')");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
+            sqlRequest.append(" \"time_begin\"<='").append(position).append("')");
+            sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -137,14 +155,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeAfter(final Object time) throws DataStoreException {
+    public void setTimeAfter(Object time) throws DataStoreException {
+        if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+            time = ((Literal)time).getValue();
+        }
         // for the operation after the temporal object must be an timeInstant
         if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
-            sqlRequest.append("AND (\"time_end\">='").append(position).append("')");
-            sqlMeasureRequest.append("AND (\"$time\">='").append(position).append("')");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
+            sqlRequest.append(" \"time_end\">='").append(position).append("')");
+            sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -155,12 +182,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeDuring(final Object time) throws DataStoreException {
+    public void setTimeDuring(Object time) throws DataStoreException {
+        if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
+            time = ((Literal)time).getValue();
+        }
         if (time instanceof Period) {
             final Period tp    = (Period) time;
             final String begin = getTimeValue(tp.getBeginning().getDate());
             final String end   = getTimeValue(tp.getEnding().getDate());
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
 
             // the multiple observations included in the period
             sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<='").append(end).append("')");
@@ -177,8 +211,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // the multiple observations which overlaps the whole period
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
 
-            sqlMeasureRequest.append("AND (\"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+            sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);

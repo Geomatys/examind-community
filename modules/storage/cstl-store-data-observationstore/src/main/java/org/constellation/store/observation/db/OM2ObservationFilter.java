@@ -437,16 +437,25 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             final String end   = getTimeValue(tp.getEnding().getDate());
 
             // we request directly a multiple observation or a period observation (one measure during a period)
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
             sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
             sqlRequest.append(" \"time_end\"='").append(end).append("') ");
 
             obsJoin = true;
+            firstFilter = false;
         // if the temporal object is a timeInstant
         } else if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
 
             // case 1 a single observation
             sqlRequest.append("(\"time_begin\"='").append(position).append("' AND \"time_end\" IS NULL)");
@@ -456,6 +465,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
 
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -471,12 +481,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
 
             // the single and multpile observations which begin after the bound
             sqlRequest.append("(\"time_begin\"<='").append(position).append("'))");
 
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -492,7 +507,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (time instanceof Instant) {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
 
             // the single and multpile observations which begin after the bound
             sqlRequest.append("(\"time_begin\">='").append(position).append("')");
@@ -501,6 +520,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
 
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -516,7 +536,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             final Period tp    = (Period) time;
             final String begin = getTimeValue(tp.getBeginning().getDate());
             final String end   = getTimeValue(tp.getEnding().getDate());
-            sqlRequest.append("AND (");
+            if (firstFilter) {
+                sqlRequest.append(" ( ");
+            } else {
+                sqlRequest.append("AND ( ");
+            }
 
             // the multiple observations included in the period
             sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<= '").append(end).append("')");
@@ -534,6 +558,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">= '").append(end).append("'))");
 
             obsJoin = true;
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);

@@ -345,7 +345,7 @@ public class SOSworker extends SensorWorker {
             // we initialize the O&M reader/writer/filter
             if (omProvider != null) {
                 //we initialize the variables depending on the Reader capabilities
-                SOSProviderCapabilities pc = omProvider.getCapabilities();
+                SOSProviderCapabilities pc  = getProviderCapabilities();
                 this.acceptedResponseMode   = pc.responseModes;
                 this.acceptedResponseFormat = pc.responseFormats;
             } else {
@@ -519,7 +519,7 @@ public class SOSworker extends SensorWorker {
                 final Collection<String> offNames    = omProvider.getOfferingNames(stQuery, hints);
                 TemporalGeometricPrimitive eventTime = omProvider.getTime(currentVersion);
 
-                queryableResultProperties.addAll(omProvider.getCapabilities().queryableResultProperties);
+                queryableResultProperties.addAll(getProviderCapabilities().queryableResultProperties);
 
                 // the list of offering names
                 go.updateParameter(OFFERING, offNames);
@@ -980,7 +980,7 @@ public class SOSworker extends SensorWorker {
             }
 
             // we clone the filter for this request
-            final SOSProviderCapabilities pc     = omProvider.getCapabilities();
+            final SOSProviderCapabilities pc     = getProviderCapabilities();
             final List<String> featureOfInterest = new ArrayList<>(requestObservation.getFeatureIds());
 
             // if the request is a spatial operator
@@ -1231,7 +1231,7 @@ public class SOSworker extends SensorWorker {
             }
 
             // we clone the filter for this request
-            final SOSProviderCapabilities pc = omProvider.getCapabilities();
+            final SOSProviderCapabilities pc = getProviderCapabilities();
 
              // if the request is a spatial operator
             BBOX bboxFilter = null;

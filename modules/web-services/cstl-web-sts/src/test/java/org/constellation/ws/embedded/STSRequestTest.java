@@ -589,6 +589,22 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-top2-ct.json");
         assertEquals(expResult, result);
+
+        String filter = "resultTime ge 2005-01-01T00:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-time.json");
+        assertEquals(expResult, result);
+
+        filter = "resultTime le 2005-01-01T00:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-time2.json");
+        assertEquals(expResult, result);
+
+
     }
 
     @Test
@@ -739,19 +755,31 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-all.json");
         assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=17)
+    public void getLocationsGeoFilterTest() throws Exception {
+        initPool();
 
         String filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
-        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+        URL getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
-        result = getStringResponse(getFoiUrl) + "\n";
-        expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox.json");
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox.json");
         assertEquals(expResult, result);
+    }
 
-        filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
-        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+    @Test
+    @Order(order=18)
+    public void getLocationsFilterTest() throws Exception {
+        initPool();
 
-        result = getStringResponse(getFoiUrl) + "\n";
-        expResult = getStringFromFile("com/examind/sts/embedded/loc-temp.json");
+        String filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/loc-temp.json");
         assertEquals(expResult, result);
 
         filter = "Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature or Thing/Datastream/ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:depth".replace(" ", "%20");
@@ -780,6 +808,33 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-temp-foi6.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=19)
+    public void getLocationsTimeFilterTest() throws Exception {
+        initPool();
+
+        String filter = "Thing/Datastream/resultTime ge 2005-01-01T00:00:00Z".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/loc-time.json");
+        assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/resultTime le 2005-01-01T00:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-time2.json");
+        assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/resultTime ge 2005-01-01T00:00:00Z and Thing/Datastream/resultTime le 2008-01-01T00:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-time3.json");
         assertEquals(expResult, result);
     }
 

@@ -81,6 +81,7 @@ import org.opengis.filter.Id;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.Or;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
@@ -904,14 +905,19 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             return;
         }
 
+        // actually there is no OR or AND filter properly supported
         if (filter instanceof And) {
             for (Filter f : ((And) filter).getChildren()) {
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
             }
-        } else
+
+        } else if (filter instanceof Or) {
+            for (Filter f : ((Or) filter).getChildren()) {
+                handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
+            }
 
             // The operation Time Equals
-        if (filter instanceof TEquals) {
+        } else if (filter instanceof TEquals) {
             final TEquals tf = (TEquals) filter;
 
             // we get the property name (not used for now)

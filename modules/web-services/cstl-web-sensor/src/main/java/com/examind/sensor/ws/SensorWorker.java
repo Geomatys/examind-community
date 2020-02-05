@@ -38,6 +38,7 @@ import org.constellation.provider.SensorProvider;
 import static com.examind.sensor.ws.SensorUtils.BoundMatchEnvelope;
 import static com.examind.sensor.ws.SensorUtils.getIDFromObject;
 import static com.examind.sensor.ws.SensorUtils.samplingPointMatchEnvelope;
+import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.ws.AbstractWorker;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.gml.xml.AbstractFeature;
@@ -161,13 +162,6 @@ public abstract class SensorWorker extends AbstractWorker {
         return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
     }
 
-    protected List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
-        final SimpleQuery subquery = new SimpleQuery();
-        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
-        subquery.setFilter(filter);
-        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
-    }
-
     protected List<String> getFeaturesOfInterestForBBOX(List<Offering> offerings, final Envelope e, String version) throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
         for (Offering off : offerings) {
@@ -176,7 +170,17 @@ public abstract class SensorWorker extends AbstractWorker {
         return results;
     }
 
-    protected List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException {
+   /**
+    * TODO set protected (Filter parser issue).
+    */
+    public SOSProviderCapabilities getProviderCapabilities() throws ConstellationStoreException {
+        return omProvider.getCapabilities();
+    }
+
+    /**
+    * TODO set protected (Filter parser issue).
+    */
+    public List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException {
         List<String> results = new ArrayList<>();
         final List<SamplingFeature> stations = new ArrayList<>();
         if (offname != null) {
@@ -209,6 +213,13 @@ public abstract class SensorWorker extends AbstractWorker {
             }
         }
         return results;
+    }
+
+    private List<SamplingFeature> getFeaturesOfInterestForOffering(String offname, String version) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        final PropertyIsEqualTo filter = ff.equals(ff.property("offering"), ff.literal(offname));
+        subquery.setFilter(filter);
+        return omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
     }
 
     protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {

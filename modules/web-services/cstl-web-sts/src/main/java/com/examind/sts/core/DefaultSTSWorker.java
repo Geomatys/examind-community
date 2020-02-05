@@ -57,7 +57,6 @@ import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.gml.xml.v321.MeasureType;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -116,14 +115,10 @@ import org.geotoolkit.swe.xml.Quantity;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.geometry.Envelope;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -310,24 +305,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (req.getFilter() != null) {
-            String filterStr = req.getFilter();
-            if (filterStr != null) {
-                String[] parts;
-                if (filterStr.contains(" or ")) {
-                    parts = filterStr.split(" or ");
-                } else if (filterStr.contains(" and ")) {
-                    parts = filterStr.split(" and ");
-                } else {
-                    parts = new String[] {filterStr};
-                }
-                if (parts.length == 1) {
-                    filters.addAll(parseStringFilter(parts[0]));
-                } else {
-                    for (String part : parts) {
-                        filters.addAll(parseStringFilter(part));
-                    }
-                }
-            }
+            OdataFilterParser parser = new OdataFilterParser(this);
+            filters.add(parser.parserFilter(req.getFilter()));
+
         }
         if (applyPagination) {
             if (req.getTop() != null) {
@@ -344,80 +324,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             subquery.setFilter(ff.and(filters));
         }
         return subquery;
-    }
-
-    private List<Filter> parseStringFilter(String filterStr) throws CstlServiceException {
-        if (filterStr.startsWith("st_contains(location, geography'")) {
-            String geomStr = filterStr.substring(32);
-            int i = geomStr.indexOf("'");
-            if (i != -1) {
-                geomStr = geomStr.substring(0, i);
-                WKTReader reader = new WKTReader();
-                try {
-                    Geometry geom = reader.read(geomStr);
-                    geom.setUserData(CommonCRS.WGS84.geographic());
-                    Envelope e = JTS.toEnvelope(geom);
-                    try {
-                        if (omProvider.getCapabilities().isBoundedObservation) {
-                            return Arrays.asList(((FilterFactory2) ff).bbox(ff.property("location"), e));
-                        } else {
-                            org.geotoolkit.gml.xml.Envelope gmlEnv = new EnvelopeType(e);
-                            List<String> fois = getFeaturesOfInterestForBBOX((String) null, gmlEnv, "2.0.0");
-                            if (!fois.isEmpty()) {
-                                List<Filter> results = new ArrayList<>();
-                                for (String foi : fois) {
-                                    results.add(ff.equals(ff.property("featureOfInterest"), ff.literal(foi)));
-                                }
-                                return results;
-                            } else {
-                                return Arrays.asList(ff.equals(ff.property("featureOfInterest"), ff.literal("unexisting-foi")));
-                            }
-                        }
-                    } catch (ConstellationStoreException ex) {
-                        throw new CstlServiceException(ex);
-                    }
-                } catch (ParseException ex) {
-                    throw new CstlServiceException("malformed spatial filter geometry", INVALID_PARAMETER_VALUE, "FILTER");
-                }
-            } else {
-                throw new CstlServiceException("malformed spatial filter", INVALID_PARAMETER_VALUE, "FILTER");
-            }
-        } else if (filterStr.startsWith("st_")) {
-            throw new CstlServiceException("Only st_contains filter supported for now", INVALID_PARAMETER_VALUE, "FILTER");
-        } else if (filterStr.contains(" eq ")) {
-            int pos = filterStr.indexOf(" eq ");
-            String property = filterStr.substring(0, pos);
-            String[] properties = property.split("/");
-            if (properties.length >= 2) {
-                if (properties[properties.length - 1].equals("id")) {
-                    String literal = filterStr.substring(pos + 4, filterStr.length());
-                    String realProperty = getSupportedProperties(properties[properties.length - 2]);
-                    System.out.println("property:" + realProperty);
-                    System.out.println("literal:" + literal);
-                    return Arrays.asList(ff.equals(ff.property(realProperty), ff.literal(literal)));
-                } else {
-                    throw new CstlServiceException("malformed or unknow filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
-                }
-            } else {
-                throw new CstlServiceException("malformed filter propertyName. was expecting something/id ", INVALID_PARAMETER_VALUE, "FILTER");
-            }
-        } else {
-            throw new CstlServiceException("malformed or unknow filter", INVALID_PARAMETER_VALUE, "FILTER");
-        }
-    }
-
-    private String getSupportedProperties(String property) throws CstlServiceException {
-        switch(property.toLowerCase()) {
-            case "thing"             : return "procedure";
-            case "sensor"            : return "procedure";
-            case "location"          : return "procedure";
-            case "observedproperty"  : return "observedProperty";
-            case "datastream"        : return "observationId";
-            case "multidatastream"   : return "observationId";
-            case "observation"       : return "observationId";
-            case "featureofinterest" : return "featureOfInterest";
-        }
-        throw new CstlServiceException("Unexpected property name:" + property, INVALID_PARAMETER_VALUE, "FILTER");
     }
 
     @Override
@@ -855,12 +761,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return results;
     }
 
-    /**
-     * TODO
-     *
-     * @param to
-     * @return
-     */
     private String temporalObjToString(TemporalObject to) {
         if (to instanceof Period) {
             Period tp = (Period) to;
