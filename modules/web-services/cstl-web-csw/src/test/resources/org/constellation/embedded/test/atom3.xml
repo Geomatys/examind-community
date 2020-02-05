@@ -5,7 +5,6 @@
         xmlns:a="http://www.w3.org/2005/Atom"
         xmlns:os="http://a9.com/-/spec/opensearch/1.1/"
         xmlns:dc="http://purl.org/dc/elements/1.1/">
-<<<<<<< HEAD
   <a:id>http://localhost:9090/WS/csw/default?</a:id>
   <a:title>Examind Opensearch service</a:title>
   <a:author/>
@@ -34,39 +33,39 @@
             Spatial coverage: Tile
             Temporal coverage: 1-Day
             Product Unit : Kelvin</a:summary>
-        <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
-        <georss:box>-180.0 -90.0 180.0 90.0</georss:box>
-    </a:entry>
-    <a:entry>
-        <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
-        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
-        <a:title>Lorem ipsum</a:title>
-        <a:category term="Tourism--Greece"/>
-        <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>
-    </a:entry>
-    <a:entry>
-        <a:id>urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd</a:id>
-        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
-        <a:summary>Proin sit amet justo. In justo. Aenean adipiscing nulla id tellus.</a:summary>
-        <georss:box>13.754 60.042 17.92 68.41</georss:box>
-    </a:entry>
-    <a:entry>
-        <a:id>urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493</a:id>
-        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
-        <a:title>Maecenas enim</a:title>
-        <a:category term="Marine sediments"/>
-        <a:summary>Pellentesque tempus magna non sapien fringilla blandit.</a:summary>
-    </a:entry>
-    <a:entry>
-        <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
-        <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-        <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
-        <a:title>Ut facilisis justo ut lacus</a:title>
-        <a:category term="Vegetation"/>
-    </a:entry>
+    <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
+    <georss:box>-180.0 -90.0 180.0 90.0</georss:box>
+  </a:entry>
+  <a:entry>
+    <a:id>urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:title>Lorem ipsum</a:title>
+    <a:category term="Tourism--Greece"/>
+    <a:summary>Quisque lacus diam, placerat mollis, pharetra in, commodo sed, augue. Duis iaculis arcu vel arcu.</a:summary>
+  </a:entry>
+  <a:entry>
+    <a:id>urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:summary>Proin sit amet justo. In justo. Aenean adipiscing nulla id tellus.</a:summary>
+    <georss:box>13.754 60.042 17.92 68.41</georss:box>
+  </a:entry>
+  <a:entry>
+    <a:id>urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:66ae76b7-54ba-489b-a582-0f0633d96493&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:title>Maecenas enim</a:title>
+    <a:category term="Marine sediments"/>
+    <a:summary>Pellentesque tempus magna non sapien fringilla blandit.</a:summary>
+  </a:entry>
+  <a:entry>
+    <a:id>urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4</a:id>
+    <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:title>Ut facilisis justo ut lacus</a:title>
+    <a:category term="Vegetation"/>
+  </a:entry>
     <os:totalResults>13</os:totalResults>
     <os:startIndex>1</os:startIndex>
     <os:itemsPerPage>5</os:itemsPerPage>
