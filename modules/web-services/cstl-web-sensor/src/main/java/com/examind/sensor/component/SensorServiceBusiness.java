@@ -43,9 +43,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import org.constellation.sos.ws.SOSUtils;
-import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.util.NamedId;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -314,7 +312,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public void writeProcedure(final Integer id, final String sensorID, final AbstractGeometry location, final String parent, final String type, final String omType) throws ConfigurationException {
+    public void writeProcedure(final Integer id, final String sensorID, final org.opengis.geometry.Geometry location, final String parent, final String type, final String omType) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
             pr.writeProcedure(sensorID, location, parent, type, omType);
@@ -323,7 +321,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public boolean updateSensorLocation(final Integer serviceId, final String sensorID, final AbstractGeometry location) throws ConfigurationException {
+    public boolean updateSensorLocation(final Integer serviceId, final String sensorID, final org.opengis.geometry.Geometry location) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(serviceId);
         try {
             pr.updateProcedureLocation(sensorID, location);
@@ -372,14 +370,6 @@ public class SensorServiceBusiness {
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
-    }
-
-    public boolean buildDatasource(final Integer serviceID, final String schemaPrefix) throws ConfigurationException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        if (omProvider != null && omProvider.getMainStore() instanceof SOSDatabaseObservationStore) {
-            return true;
-        }
-        return false;
     }
 
     protected Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {

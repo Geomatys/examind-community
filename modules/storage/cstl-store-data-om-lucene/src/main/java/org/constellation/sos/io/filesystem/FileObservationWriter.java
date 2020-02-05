@@ -33,7 +33,7 @@ import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.swes.xml.ObservationTemplate;
+import org.geotoolkit.observation.model.ObservationTemplate;
 import org.opengis.observation.Observation;
 
 import javax.xml.bind.JAXBException;

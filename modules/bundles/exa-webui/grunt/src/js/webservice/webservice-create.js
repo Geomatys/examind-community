@@ -347,19 +347,11 @@ angular.module('cstl-webservice-create', [
             });
             Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId,  self.id + '-' + self.type + '-om').then(
             function() {
-                 buildOmDatasource();
+                 //buildOmDatasource();
             },
             function() {
                 Growl('error','Error','Unable to link O&M provider');
             });
-        }
-        function buildOmDatasource() {
-            Examind.sensorServices.build(webserviceFactory.serviceId, self.guiConfig.schema).then(
-                function() {},
-                function() {
-                    Growl('error','Error','Unable to build OM2 datasource');
-                }
-            );
         }
 
         //init the source

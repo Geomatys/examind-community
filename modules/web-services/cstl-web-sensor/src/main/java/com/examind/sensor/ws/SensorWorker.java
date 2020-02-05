@@ -42,7 +42,6 @@ import org.constellation.ws.AbstractWorker;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.observation.ObservationStore;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -72,10 +71,8 @@ public abstract class SensorWorker extends AbstractWorker {
     protected Integer smlProviderID;
 
     /**
-     * The Observation provider TODO; find a way to remove the omStore calls
+     * The Observation provider
      */
-    @Deprecated
-    protected ObservationStore omStore;
     protected ObservationProvider omProvider;
 
     /**
@@ -107,10 +104,9 @@ public abstract class SensorWorker extends AbstractWorker {
                     if (p instanceof SensorProvider) {
                         smlProviderID = providerID;
                     }
-                    // store may implements the 2 interface
+                    // provider may implements the 2 interface
                     if (p instanceof ObservationProvider) {
                         omProvider = (ObservationProvider) p;
-                        omStore = (ObservationStore) p.getMainStore();
                     }
                 } else {
                     startError("Unable to instanciate the provider:" + providerID, null);

@@ -44,7 +44,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;
@@ -1430,7 +1429,7 @@ public class SOSworker extends SensorWorker {
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
-        } catch (DataStoreException | ConstellationStoreException ex) {
+        } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         } finally {
             LOGGER.log(Level.INFO, "GetFeatureOfInterest processed in {0}ms", (System.currentTimeMillis() - start));
@@ -1615,7 +1614,7 @@ public class SOSworker extends SensorWorker {
         return result;
     }
 
-    private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws DataStoreException, ConstellationStoreException, CstlServiceException {
+    private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws ConstellationStoreException, CstlServiceException {
         final Envelope e = getEnvelopeFromBBOX(currentVersion, bbox);
         if (e != null && e.isCompleteEnvelope2D()) {
 
@@ -1751,23 +1750,22 @@ public class SOSworker extends SensorWorker {
 
             // and we record the position of the piezometer
             final AbstractGeometry position = Utils.getSensorPosition(process);
-            if (omStore != null && omStore.getWriter() != null) {
 
-                //we assign the new capteur id to the observation template
-                temp.setProcedure(sensorId);
-                temp.setName(UUID.randomUUID().toString());
+            //we assign the new capteur id to the observation template
+            temp.setProcedure(sensorId);
+            temp.setName(UUID.randomUUID().toString());
 
+            if (omProvider != null) {
                 //we write the observation template in the O&amp;M database
-                omStore.getWriter().writeObservationTemplate(temp);
-
+                omProvider.writeTemplate(temp.getObservation(), sensorId, temp.getFullObservedProperties(), temp.getFeatureOfInterest());
                 omProvider.writeLocation(sensorId, (Geometry) position);
-
                 assignedOffering = addSensorToOffering(sensorId, temp, currentVersion);
+                
             } else {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
             }
 
-        } catch(DataStoreException | ConfigurationException | ConstellationStoreException ex) {
+        } catch(ConfigurationException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
 
@@ -2106,7 +2104,7 @@ public class SOSworker extends SensorWorker {
      *
      * @throws CstlServiceException If an error occurs during the the storage of offering in the datasource.
      */
-    private String addSensorToOffering(final String num, final ObservationTemplate template, final String version) throws CstlServiceException, ConstellationStoreException, DataStoreException {
+    private String addSensorToOffering(final String num, final ObservationTemplate template, final String version) throws CstlServiceException, ConstellationStoreException {
 
         final String offeringName = "offering-" + num;
         final Offering offering   = omProvider.getOffering(offeringName, version);

@@ -995,18 +995,6 @@ function Examind($http, url) {
         },
 
         /**
-         * Build an O&M database.
-         *
-         * @returns {Promise}
-         */
-        build : function(id, schema) {
-            return self.request({
-                method: 'GET',
-                url: 'SensorService/' + id + '/' + schema+ '/build'
-                });
-        },
-
-        /**
          * Return Sensor tree.
          *
          * @returns {Promise}

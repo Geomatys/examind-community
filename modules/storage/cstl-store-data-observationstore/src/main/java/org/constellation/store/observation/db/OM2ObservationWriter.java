@@ -41,7 +41,7 @@ import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.swe.xml.SimpleDataRecord;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.swe.xml.v101.PhenomenonType;
-import org.geotoolkit.swes.xml.ObservationTemplate;
+import org.geotoolkit.observation.model.ObservationTemplate;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.opengis.observation.Measure;
 import org.opengis.observation.Observation;
@@ -115,7 +115,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         } else  {
             try(final Connection c = source.getConnection()) {
                 writeProcedure(template.getProcedure(), null, null, null, null, c);
-                for (PhenomenonProperty phen : template.getFullObservedProperties()) {
+                for (PhenomenonProperty phen : template.getObservedProperties()) {
                     writePhenomenon(phen, c, true);
                 }
                 return null;

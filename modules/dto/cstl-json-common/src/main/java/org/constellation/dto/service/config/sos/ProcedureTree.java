@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import org.opengis.geometry.Geometry;
 
 /**
  *
@@ -48,11 +49,13 @@ public class ProcedureTree {
     private Double miny;
     private Double maxy;
 
+    private Geometry geom;
+
     public ProcedureTree() {
 
     }
 
-    public ProcedureTree(String id, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields) {
+    public ProcedureTree(String id, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
         this.id = id;
         this.type = type;
         this.omType = omType;
@@ -65,6 +68,7 @@ public class ProcedureTree {
         this.maxx = maxx;
         this.miny = miny;
         this.maxy = maxy;
+        this.geom = geom;
     }
 
     /**
@@ -221,6 +225,20 @@ public class ProcedureTree {
         this.omType = omType;
     }
 
+    /**
+     * @return the geom
+     */
+    public Geometry getGeom() {
+        return geom;
+    }
+
+    /**
+     * @param geom the geom to set
+     */
+    public void setGeom(Geometry geom) {
+        this.geom = geom;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[ProcedureTree]\n");
@@ -248,6 +266,9 @@ public class ProcedureTree {
         }
         if (maxy != null) {
             sb.append("maxy=").append(maxy).append("\n");
+        }
+        if (geom != null) {
+            sb.append("geom=").append(geom).append("\n");
         }
         if (fields != null) {
             sb.append("fields:");
@@ -282,6 +303,7 @@ public class ProcedureTree {
                    Objects.equals(this.fields,       that.fields)   &&
                    Objects.equals(this.children,     that.children)   &&
                    Objects.equals(this.omType,       that.omType)   &&
+                   Objects.equals(this.geom,         that.geom)   &&
                    Objects.equals(this.type,         that.type);
         }
         return false;
@@ -301,6 +323,7 @@ public class ProcedureTree {
         hash = 11 * hash + Objects.hashCode(this.maxx);
         hash = 11 * hash + Objects.hashCode(this.miny);
         hash = 11 * hash + Objects.hashCode(this.maxy);
+        hash = 11 * hash + Objects.hashCode(this.geom);
         return hash;
     }
 }

@@ -34,17 +34,15 @@ import org.constellation.dto.Sensor;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.SimpleValue;
+import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
-import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
-import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
@@ -88,17 +86,6 @@ public class SensorServiceRestAPI {
         final Integer providerId = providerBusiness.getIDFromIdentifier(providerID);
         serviceBusiness.linkServiceAndProvider(serviceId, providerId);
         return new ResponseEntity(AcknowlegementType.success("Provider correctly linked"), OK);
-    }
-
-    @RequestMapping(value="/SensorService/{id}/{schema}/build", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity buildDatasourceOM(final @PathVariable("id") Integer serviceId, final @PathVariable("schema") String schema) throws Exception {
-        final AcknowlegementType ack;
-        if (sensorServiceBusiness.buildDatasource(serviceId, schema)) {
-            ack = AcknowlegementType.success("O&M datasource created");
-        } else {
-            ack = AcknowlegementType.failure("error while creating O&M datasource");
-        }
-        return new ResponseEntity(ack, OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = PUT, produces = APPLICATION_JSON_VALUE)
@@ -163,12 +150,20 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry location) throws Exception {
+    public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry gmlLocation) throws Exception {
         AcknowlegementType response;
-        if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
-            response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
+        Geometry location = null;
+        if (gmlLocation instanceof Geometry) {
+            location = (Geometry) gmlLocation;
+            if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
+                response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
+            } else {
+                response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
+            }
+        } else if (gmlLocation != null) {
+            response =  new AcknowlegementType("Failure", "GML Geometry can not be casted as Opengis one: " + gmlLocation);
         } else {
-            response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
+            response =  new AcknowlegementType("Failure", "GML Geometry is null");
         }
         return new ResponseEntity(response, OK);
     }
@@ -232,21 +227,20 @@ public class SensorServiceRestAPI {
         if (providerId != null) {
 
             final DataProvider provider = DataProviders.getProvider(providerId);
-            final ObservationStore store = SOSUtils.getObservationStore(provider);
-            final ExtractionResult result;
-            if (store != null) {
-                result = store.getResults();
+            if (provider instanceof ObservationProvider) {
+                final ObservationProvider omProvider = (ObservationProvider) provider;
+                final ExtractionResult result = omProvider.extractResults();
+
+                // import in O&M database
+                sensorServiceBusiness.importObservations(serviceId, result.getObservations(), result.getPhenomenons());
+
+                // SensorML generation
+                for (ProcedureTree process : result.getProcedures()) {
+                    sensorBusiness.generateSensorForData(dataID, process,  getSensorProviderId(serviceId), null);
+                    updateSensorLocation(serviceId, process);
+                }
             } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
-            }
-
-            // import in O&M database
-            sensorServiceBusiness.importObservations(serviceId, result.observations, result.phenomenons);
-
-            // SensorML generation
-            for (ProcedureTree process : result.procedures) {
-                sensorBusiness.generateSensorForData(dataID, toDto(process),  getSensorProviderId(serviceId), null);
-                updateSensorLocation(serviceId, process);
+                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider for now"), OK);
             }
 
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the Sensor Service"), OK);
@@ -257,31 +251,13 @@ public class SensorServiceRestAPI {
 
     private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
         //record location
-        final AbstractGeometry geom = process.spatialBound.getGeometry("2.0.0");
+        final Geometry geom = process.getGeom();
         if (geom != null) {
-            sensorServiceBusiness.updateSensorLocation(serviceId, process.id, geom);
+            sensorServiceBusiness.updateSensorLocation(serviceId, process.getId(), geom);
         }
-        for (ProcedureTree child : process.children) {
+        for (ProcedureTree child : process.getChildren()) {
             updateSensorLocation(serviceId, child);
         }
-    }
-
-    private org.constellation.dto.service.config.sos.ProcedureTree toDto(ExtractionResult.ProcedureTree pt) {
-        GeoSpatialBound bound = pt.spatialBound;
-        org.constellation.dto.service.config.sos.ProcedureTree result  = new org.constellation.dto.service.config.sos.ProcedureTree(pt.id,
-                                                  pt.type,
-                                                  pt.omType,
-                                                  bound.dateStart,
-                                                  bound.dateEnd,
-                                                  bound.minx,
-                                                  bound.maxx,
-                                                  bound.miny,
-                                                  bound.maxy,
-                                                  pt.fields);
-        for (ExtractionResult.ProcedureTree child: pt.children) {
-            result.getChildren().add(toDto(child));
-        }
-        return result;
     }
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
@@ -290,19 +266,18 @@ public class SensorServiceRestAPI {
 
         if (providerId != null) {
             final DataProvider provider = DataProviders.getProvider(providerId);
-            final ObservationStore store = SOSUtils.getObservationStore(provider);
-            final ExtractionResult result;
-            if (store != null) {
-                result = store.getResults();
-            } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
-            }
+            if (provider instanceof ObservationProvider) {
+                final ObservationProvider omProvider = (ObservationProvider) provider;
+                final ExtractionResult result = omProvider.extractResults();
 
-            // remove from O&M database
-            for (Observation obs : result.observations) {
-                if (obs.getName() != null) {
-                    sensorServiceBusiness.removeSingleObservation(serviceId, obs.getName().getCode());
+                // remove from O&M database
+                for (Observation obs : result.getObservations()) {
+                    if (obs.getName() != null) {
+                        sensorServiceBusiness.removeSingleObservation(serviceId, obs.getName().getCode());
+                    }
                 }
+            } else {
+                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider for now"), OK);
             }
 
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the Sensor Service"), OK);
@@ -312,10 +287,10 @@ public class SensorServiceRestAPI {
     }
 
     private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
-        final AbstractGeometry geom = process.spatialBound.getGeometry("2.0.0");
-        sensorServiceBusiness.writeProcedure(id, process.id, geom, parent, process.type, process.omType);
-        for (ProcedureTree child : process.children) {
-            writeProcedures(id, child, process.id);
+        final Geometry geom = process.getGeom();
+        sensorServiceBusiness.writeProcedure(id, process.getId(), geom, parent, process.getType(), process.getOmType());
+        for (ProcedureTree child : process.getChildren()) {
+            writeProcedures(id, child, process.getId());
         }
     }
 
@@ -355,21 +330,16 @@ public class SensorServiceRestAPI {
         for (Integer providerId : providerIDs) {
             final DataProvider provider = DataProviders.getProvider(providerId);
             if (provider instanceof ObservationProvider) {
-                final ObservationStore store = (ObservationStore) ((ObservationProvider) provider).getMainStore();
-                final ExtractionResult result;
-                if (store != null) {
-                    result = store.getResults(sensorID, sensorIds);
-                } else {
-                    return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
-                }
+                final ObservationProvider omProvider = (ObservationProvider) provider;
+                final ExtractionResult result = omProvider.extractResults(sensorID, sensorIds);
 
                 // update sensor location
-                for (ProcedureTree process : result.procedures) {
+                for (ProcedureTree process : result.getProcedures()) {
                     writeProcedures(sid, process, null);
                 }
 
                 // import in O&M database
-                sensorServiceBusiness.importObservations(sid, result.observations, result.phenomenons);
+                sensorServiceBusiness.importObservations(sid, result.getObservations(), result.getPhenomenons());
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);
             }

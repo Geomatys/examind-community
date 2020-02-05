@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
+import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
@@ -102,6 +103,8 @@ public interface ObservationProvider extends DataProvider {
 
     void writeProcedure(final String procedureID, final Object position, final String parent, final String type, final String omType) throws ConstellationStoreException;
 
+    void writeTemplate(final Observation templateV100, String procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException;
+
     void updateProcedureLocation(final String procedureID, final Object position) throws ConstellationStoreException;
 
     void updateOffering(Offering offering) throws ConstellationStoreException;
@@ -110,4 +113,6 @@ public interface ObservationProvider extends DataProvider {
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
 
+    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
+    ExtractionResult extractResults() throws ConstellationStoreException;
 }

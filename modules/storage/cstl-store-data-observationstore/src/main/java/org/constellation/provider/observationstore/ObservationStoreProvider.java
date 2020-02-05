@@ -65,7 +65,8 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.geotoolkit.observation.model.ObservationTemplate;
+import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -264,32 +265,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     public List<ProcedureTree> getProcedures() throws ConstellationStoreException {
         List<ProcedureTree> results = new ArrayList<>();
         try {
-            List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
-            for (ExtractionResult.ProcedureTree pt : procedures) {
+            for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt : store.getProcedures()) {
                 results.add(toDto(pt));
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
         return results;
-    }
-
-    private ProcedureTree toDto(ExtractionResult.ProcedureTree pt) {
-        GeoSpatialBound bound = pt.spatialBound;
-        ProcedureTree result  = new ProcedureTree(pt.id,
-                                                  pt.type,
-                                                  pt.omType,
-                                                  bound.dateStart,
-                                                  bound.dateEnd,
-                                                  bound.minx,
-                                                  bound.maxx,
-                                                  bound.miny,
-                                                  bound.maxy,
-                                                  pt.fields);
-        for (ExtractionResult.ProcedureTree child: pt.children) {
-            result.getChildren().add(toDto(child));
-        }
-        return result;
     }
 
     @Override
@@ -646,6 +628,26 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
+
+    @Override
+    public void writeTemplate(Observation templateV100, String procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException {
+        try {
+            final List<PhenomenonProperty> obsProps = new ArrayList<>();
+            for (Object obsProp : observedProperties) {
+                if (obsProp instanceof PhenomenonProperty) {
+                    PhenomenonProperty pp = (PhenomenonProperty)obsProp;
+                    obsProps.add(pp);
+                } else {
+                    throw new ClassCastException("Not a phenomenonProperty");
+                }
+            }
+
+            store.getWriter().writeObservationTemplate(new ObservationTemplate(procedure, obsProps, featureOfInterest, templateV100));
+        } catch (DataStoreException ex) {
+             throw new ConstellationStoreException(ex);
+        }
+    }
+
     @Override
     public String writeObservation(Observation observation) throws ConstellationStoreException {
         try {
@@ -806,6 +808,60 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
+    }
+
+    @Override
+    public ExtractionResult extractResults() throws ConstellationStoreException {
+        try {
+            ExtractionResult results = toDto(store.getResults());
+            return results;
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public ExtractionResult extractResults(String affectedSensorID, List<String> sensorIds) throws ConstellationStoreException {
+        try {
+            ExtractionResult results = toDto(store.getResults(affectedSensorID, sensorIds));
+            return results;
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    private ExtractionResult toDto(org.geotoolkit.sos.netcdf.ExtractionResult ext) {
+        final List<ProcedureTree> procedures = new ArrayList<>();
+        for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt: ext.procedures) {
+            procedures.add(toDto(pt));
+        }
+        return new ExtractionResult(ext.observations, ext.phenomenons, procedures);
+    }
+
+    private ProcedureTree toDto(org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt) {
+        GeoSpatialBound bound = pt.spatialBound;
+        final AbstractGeometry gmlGeom = bound.getGeometry("2.0.0");
+        Geometry geom = null;
+        if (gmlGeom instanceof Geometry) {
+            geom = (Geometry) gmlGeom;
+        } else if (gmlGeom != null) {
+            LOGGER.log(Level.WARNING, "GML Geometry can not be casted as Opengis one:{0}", gmlGeom);
+        }
+        ProcedureTree result  = new ProcedureTree(pt.id,
+                                                  pt.type,
+                                                  pt.omType,
+                                                  bound.dateStart,
+                                                  bound.dateEnd,
+                                                  bound.minx,
+                                                  bound.maxx,
+                                                  bound.miny,
+                                                  bound.maxy,
+                                                  pt.fields,
+                                                  geom);
+        for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree child: pt.children) {
+            result.getChildren().add(toDto(child));
+        }
+        return result;
     }
 
     private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
