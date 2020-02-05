@@ -72,12 +72,12 @@ import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V2
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_FOI_TYPES;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_OBS_TYPES;
 import static org.constellation.api.ServiceConstants.*;
-import static org.constellation.sos.ws.SOSUtils.BoundMatchEnvelope;
-import static org.constellation.sos.ws.SOSUtils.extractTimeBounds;
-import static org.constellation.sos.ws.SOSUtils.getCollectionBound;
-import static org.constellation.sos.ws.SOSUtils.getIDFromObject;
-import static org.constellation.sos.ws.SOSUtils.isCompleteEnvelope3D;
-import static org.constellation.sos.ws.SOSUtils.samplingPointMatchEnvelope;
+import static com.examind.sensor.ws.SensorUtils.BoundMatchEnvelope;
+import static com.examind.sensor.ws.SensorUtils.extractTimeBounds;
+import static com.examind.sensor.ws.SensorUtils.getCollectionBound;
+import static com.examind.sensor.ws.SensorUtils.getIDFromObject;
+import static com.examind.sensor.ws.SensorUtils.isCompleteEnvelope3D;
+import static com.examind.sensor.ws.SensorUtils.samplingPointMatchEnvelope;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
@@ -165,9 +165,8 @@ import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.sos.ws.SOSUtils;
+import com.examind.sensor.ws.SensorUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
-import org.geotoolkit.observation.Utils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -1196,7 +1195,7 @@ public class SOSworker extends SensorWorker {
                 }
                 procedure        = ((Process) template.getProcedure()).getHref();
                 time             = template.getSamplingTime();
-                final String foi = SOSUtils.extractFOID(template);
+                final String foi = SensorUtils.extractFOID(template);
                 if (foi != null) {
                     fois.add(foi);
                 }
@@ -1749,7 +1748,7 @@ public class SOSworker extends SensorWorker {
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
             // and we record the position of the piezometer
-            final AbstractGeometry position = Utils.getSensorPosition(process);
+            final AbstractGeometry position = SensorMLUtilities.getSensorPosition(process);
 
             //we assign the new capteur id to the observation template
             temp.setProcedure(sensorId);
@@ -1760,7 +1759,7 @@ public class SOSworker extends SensorWorker {
                 omProvider.writeTemplate(temp.getObservation(), sensorId, temp.getFullObservedProperties(), temp.getFeatureOfInterest());
                 omProvider.writeLocation(sensorId, (Geometry) position);
                 assignedOffering = addSensorToOffering(sensorId, temp, currentVersion);
-                
+
             } else {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
             }

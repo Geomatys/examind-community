@@ -17,12 +17,11 @@
  * limitations under the License.
  */
 
-package org.constellation.sos.ws;
+package com.examind.sensor.ws;
 
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.util.ReflectionUtilities;
@@ -32,7 +31,6 @@ import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.sml.xml.AbstractComponents;
 import org.geotoolkit.sml.xml.AbstractProcess;
 import org.geotoolkit.sml.xml.AbstractProcessChain;
@@ -58,12 +56,10 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,25 +68,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
-import org.constellation.provider.DataProvider;
 import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.xml.AbstractObservation;
 
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSmlID;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
-import org.geotoolkit.data.om.netcdf.NetcdfObservationStore;
-import org.geotoolkit.observation.Utils;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
-import org.opengis.observation.CompoundPhenomenon;
 import org.opengis.observation.Phenomenon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -98,18 +87,14 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public final class SOSUtils {
+public final class SensorUtils {
 
     /**
      * use for debugging purpose
      */
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.sos");
+    private static final Logger LOGGER = Logging.getLogger("com.examind.sensor.ws");
 
-    private SOSUtils() {}
-
-    public static Timestamp getTimestampValue(final Date time) throws ObservationStoreException {
-        return Timestamp.valueOf(Utils.getTimeValue(time));
-    }
+    private SensorUtils() {}
 
     /**
      * depracted by org.geotoolkit.observation.Utils.getTimeValue
@@ -479,59 +464,6 @@ public final class SOSUtils {
             AbstractObservation aobs = (AbstractObservation) obs;
             FeatureProperty featProp = aobs.getPropertyFeatureOfInterest();
             return featProp.getHref();
-        }
-        return null;
-    }
-
-    public static String getInfos(DataProvider provider) {
-        final DataStore store = provider.getMainStore();
-        if(store instanceof ObservationStore){
-            final ObservationStore obsStore = (ObservationStore) store;
-            return getInfos(obsStore);
-        }else{
-            return "";
-        }
-    }
-
-    public static String getInfos(ObservationStore obsStore) {
-        final StringBuilder infos = new StringBuilder();
-        if (obsStore.getReader() != null) {
-            infos.append(obsStore.getReader().getInfos()).append(" loaded.\n");
-        } else {
-            infos.append("No O&M reader loaded.\n");
-        }
-        if (obsStore.getFilter() != null) {
-            infos.append(obsStore.getFilter().getInfos()).append(" loaded.\n");
-        } else {
-            infos.append("No O&M filter loaded.\n");
-        }
-        if (obsStore.getWriter() != null) {
-            infos.append(obsStore.getWriter().getInfos()).append(" loaded.\n");
-        } else {
-            infos.append("No O&M writer loaded.\n");
-        }
-        return infos.toString();
-    }
-
-    public static ObservationStore getObservationStore(final DataProvider omProvider) {
-        if (omProvider.isSensorAffectable()) {
-
-            if (omProvider.getMainStore() instanceof ObservationStore) {
-                return (ObservationStore) omProvider.getMainStore();
-
-            } else if (omProvider.getMainStore() instanceof ResourceOnFileSystem) {
-                try {
-                    final ResourceOnFileSystem dfStore = (ResourceOnFileSystem) omProvider.getMainStore();
-                    final Path[] files = dfStore.getComponentFiles();
-                    //for now handle only one file
-                    if (files.length > 0) {
-                        final Path f = files[0];
-                        return new NetcdfObservationStore(f);
-                    }
-                } catch (DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Error while retrieving file from datastore:" + omProvider.getId(), ex);
-                }
-            }
         }
         return null;
     }

@@ -42,7 +42,7 @@ import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
-import org.constellation.sos.ws.SOSUtils;
+import com.examind.sensor.ws.SensorUtils;
 import org.constellation.util.NamedId;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
@@ -149,7 +149,7 @@ public class SensorServiceBusiness {
                 final String parentID = tree.getParent().getIdentifier();
                 if (!"root".equals(parentID)) {
                     final AbstractSensorML sml = (AbstractSensorML) sensorBusiness.getSensorMetadata(parentID);
-                    SOSUtils.removeComponent(sml, sensorID);
+                    SensorUtils.removeComponent(sml, sensorID);
                     sensorBusiness.updateSensorMetadata(parentID, sml);
                 }
             }
@@ -190,7 +190,7 @@ public class SensorServiceBusiness {
                 final String smlType  = getSensorMLType(sml);
                 final String smlID    = getSmlID(sml);
                 t                     = new SensorMLTree(sensor.getId(), smlID, smlType, null, null);
-                final List<SensorMLTree> children = SOSUtils.getChildren(sml);
+                final List<SensorMLTree> children = SensorUtils.getChildren(sml);
                 t.setChildren(children);
             } else {
                 LOGGER.log(Level.WARNING, "Unable to retrieve Sensor Metadata for:{0}", sensor.getIdentifier());
@@ -231,9 +231,9 @@ public class SensorServiceBusiness {
             final SensorMLTree root          = getSensorTree(serviceId);
             final SensorMLTree current       = root.find(sensorID);
             if (current != null) {
-                return SOSUtils.getPhenomenonFromSensor(current, pr, decompose);
+                return SensorUtils.getPhenomenonFromSensor(current, pr, decompose);
             } else {
-                return SOSUtils.getPhenomenonFromSensor(sensorID, pr, decompose);
+                return SensorUtils.getPhenomenonFromSensor(sensorID, pr, decompose);
             }
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
@@ -252,7 +252,7 @@ public class SensorServiceBusiness {
     public boolean importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
         final ObservationProvider writer = getOMProvider(id);
         try {
-            final Object objectFile = SOSUtils.unmarshallObservationFile(observationFile);
+            final Object objectFile = SensorUtils.unmarshallObservationFile(observationFile);
             if (objectFile instanceof Observation) {
                 writer.writeObservation((Observation)objectFile);
             } else if (objectFile instanceof ObservationCollection) {
@@ -337,7 +337,7 @@ public class SensorServiceBusiness {
             final SensorMLTree root          = getSensorTree(id);
             final SensorMLTree current       = root.find(sensorID);
             if (current != null) {
-                final List<Geometry> jtsGeometries = SOSUtils.getJTSGeometryFromSensor(current, provider);
+                final List<Geometry> jtsGeometries = SensorUtils.getJTSGeometryFromSensor(current, provider);
                 if (jtsGeometries.size() == 1) {
                     final WKTWriter writer = new WKTWriter();
                     return writer.write(jtsGeometries.get(0));

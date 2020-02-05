@@ -830,12 +830,22 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
     }
 
+    @Override
+    public ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException {
+        try {
+            ExtractionResult results = toDto(store.getResults(affectedSensorID, sensorIds, existingPhenomenons, existingSamplingFeatures));
+            return results;
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
     private ExtractionResult toDto(org.geotoolkit.sos.netcdf.ExtractionResult ext) {
         final List<ProcedureTree> procedures = new ArrayList<>();
         for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt: ext.procedures) {
             procedures.add(toDto(pt));
         }
-        return new ExtractionResult(ext.observations, ext.phenomenons, procedures);
+        return new ExtractionResult(ext.observations, ext.phenomenons, ext.featureOfInterest, procedures);
     }
 
     private ProcedureTree toDto(org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt) {

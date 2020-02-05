@@ -34,7 +34,6 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.data.sensor.FileSystemSensorStore;
 import org.constellation.dto.ProviderBrief;
 import static org.constellation.dto.service.config.DataSourceType.FILESYSTEM;
 import static org.constellation.dto.service.config.DataSourceType.OM2;
@@ -44,7 +43,8 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.store.observation.db.SOSDatabaseObservationStore;
+import org.constellation.provider.ObservationProvider;
+import org.constellation.provider.SensorProvider;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.TransactionStatus;
@@ -92,7 +92,7 @@ public class SensorConfigurationUpgrade {
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
                             DataProvider sdp = DataProviders.getProvider(sp.getId());
-                            if (sdp.getMainStore() instanceof FileSystemSensorStore) {
+                            if (sdp instanceof SensorProvider) {
                                 final ParameterValueGroup source  = sdp.getSource();
                                 final List<ParameterValueGroup> choices = source.groups("choice");
                                 if (!choices.isEmpty()) {
@@ -156,7 +156,7 @@ public class SensorConfigurationUpgrade {
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
                             DataProvider sdp = DataProviders.getProvider(sp.getId());
-                            if (sdp.getMainStore() instanceof SOSDatabaseObservationStore) {
+                            if (sdp instanceof ObservationProvider) {
                                 final ParameterValueGroup source  = sdp.getSource();
                                 providerID = source.groups("choice").stream()
                                         .flatMap(choice -> choice.groups("SOSDBParameters").stream())

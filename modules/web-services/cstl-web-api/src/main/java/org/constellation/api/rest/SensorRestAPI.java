@@ -34,6 +34,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +46,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import org.apache.commons.io.IOUtils;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.IWSEngine;
 import org.constellation.business.IDataBusiness;
@@ -63,7 +66,6 @@ import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.sos.ws.SOSUtils;
 import org.constellation.ws.ISOSConfigurer;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
@@ -72,6 +74,12 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
+import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.gml.GeometrytoJTS;
+import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -571,7 +579,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        jtsGeometries.addAll(SOSUtils.getJTSGeometryFromSensor(current, (ObservationProvider) prov));
+                        jtsGeometries.addAll(getJTSGeometryFromSensor(current, (ObservationProvider) prov));
                     } else {
                         LOGGER.warning("Searching sensor location on a non-observation provider");
                     }
@@ -595,6 +603,37 @@ public class SensorRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
+    }
+
+    /**
+     * TODO this methode is duplicated from SensorUtils
+     */
+    public static List<Geometry> getJTSGeometryFromSensor(final SensorMLTree sensor, final ObservationProvider omProvider) throws ConstellationStoreException, FactoryException, TransformException {
+        if ("Component".equals(sensor.getType())) {
+            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
+            if (geom != null) {
+                Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
+                // reproject to CRS:84
+                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
+                return Arrays.asList(JTS.transform(jtsGeometry, mt));
+            }
+        } else {
+            final List<Geometry> geometries = new ArrayList<>();
+
+            // add the root geometry if there is one
+            final AbstractGeometry geom = (AbstractGeometry) omProvider.getSensorLocation(sensor.getIdentifier(), "2.0.0");
+            if (geom != null) {
+                Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
+                // reproject to CRS:84
+                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
+                geometries.add(JTS.transform(jtsGeometry, mt));
+            }
+            for (SensorMLTree child : sensor.getChildren()) {
+                geometries.addAll(getJTSGeometryFromSensor(child, omProvider));
+            }
+            return geometries;
+        }
+        return new ArrayList<>();
     }
 
     private ISOSConfigurer getConfigurer() throws NotRunningServiceException {

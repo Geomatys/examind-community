@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
@@ -40,13 +39,10 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.sos.ws.SOSUtils;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.gml.xml.v321.AbstractGeometryType;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.parameter.GeneralParameterValue;
@@ -56,6 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.net.URI;
+import java.util.Collections;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.SensorReference;
@@ -67,7 +66,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.opengis.observation.Observation;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
@@ -333,7 +333,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ===========================================================================*/
 
         try {
-            final ObservationStore sosStore = getSOSObservationStore(sosServ.getId());
+            final ObservationProvider omProvider = getOMProvider(sosServ.getId());
             boolean reload = false;
             for (final Integer dataId : dataToIntegrate) {
 
@@ -341,7 +341,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                 // ajout d'un capteur au SOS
                 for (Integer sensorID : ids) {
-                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, sosStore);
+                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, omProvider);
                     LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
                     reload = true;
                 }
@@ -350,7 +350,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 serviceBusiness.restart(sosServ.getId());
             }
 
-        } catch (ConfigurationException | ConstellationStoreException | DataStoreException | SQLException ex) {
+        } catch (ConfigurationException | ConstellationStoreException | SQLException ex) {
             throw new ProcessException(ex.getMessage(), this ,ex);
         }
 
@@ -379,13 +379,21 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return ids;
     }
 
-    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, ObservationStore sosStore) throws ConfigurationException, DataStoreException{
+    private List<SamplingFeature> getFeatureOfInterestForProcedure(String procedure, ObservationProvider provider) throws ConstellationStoreException {
+        final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
+        final SimpleQuery subquery = new SimpleQuery();
+        final Filter filter = ff.equals(ff.property("procedure"), ff.literal(procedure));
+        subquery.setFilter(filter);
+        return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
+    }
+
+    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, ObservationProvider omServiceProvider) throws ConfigurationException, ConstellationStoreException {
         int nbObservationInserted                 = 0;
         final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
         final List<String> alreadyLinked          = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
-        final Set<Phenomenon> existingPhenomenons = new HashSet<>(sosStore.getReader().getPhenomenons("1.0.0"));
-        final Set<SamplingFeature> existingFois   = new HashSet<>(sosStore.getReader().getFeatureOfInterestForProcedure(sensor.getIdentifier(), "2.0.0"));
+        final Set<Phenomenon> existingPhenomenons = new HashSet<>(omServiceProvider.getPhenomenon(new SimpleQuery(), Collections.singletonMap("version", "1.0.0")));
+        final Set<SamplingFeature> existingFois   = new HashSet<>(getFeatureOfInterestForProcedure(sensor.getIdentifier(), omServiceProvider));
         final Set<Integer> providerIDs            = new HashSet<>();
         final List<String> sensorIds              = new ArrayList<>();
 
@@ -412,27 +420,27 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             final DataProvider provider;
             try {
                 provider = DataProviders.getProvider(providerId);
-                final ObservationStore store = SOSUtils.getObservationStore(provider);
                 final ExtractionResult result;
-                if (store != null) {
-                    result = store.getResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
+                if (provider instanceof ObservationProvider) {
+                    ObservationProvider omProvider = (ObservationProvider) provider;
+                    result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
 
-                    existingPhenomenons.addAll(result.phenomenons);
-                    existingFois.addAll(result.featureOfInterest);
+                    existingPhenomenons.addAll(result.getPhenomenons());
+                    existingFois.addAll(result.getFeatureOfInterest());
 
                     // update sensor location
-                    for (ExtractionResult.ProcedureTree process : result.procedures) {
+                    for (ProcedureTree process : result.getProcedures()) {
                         writeProcedures(sosRef.getId(), process, null);
                     }
-                    result.observations.stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
+                    result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
 
                     // import in O&M database
-                    sensorServBusiness.importObservations(sosRef.getId(), result.observations, result.phenomenons);
-                    nbObservationInserted = nbObservationInserted + result.observations.size();
+                    sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
+                    nbObservationInserted = nbObservationInserted + result.getObservations().size();
                 } else {
-                    LOGGER.info("Failure : Available only on Observation provider (and netCDF coverage) for now");
+                    LOGGER.info("Failure : Available only on Observation provider for now");
                 }
-            } catch (DataStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                 LOGGER.warning(ex.getMessage());
             }
         }
@@ -440,28 +448,22 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     }
 
 
-    private void writeProcedures(final Integer id, final ExtractionResult.ProcedureTree process, final String parent) throws ConfigurationException {
-        final AbstractGeometryType geom = (AbstractGeometryType) process.spatialBound.getGeometry("2.0.0");
-        sensorServBusiness.writeProcedure(id, process.id, geom, parent, process.type, process.omType);
-        for (ExtractionResult.ProcedureTree child : process.children) {
-            writeProcedures(id, child, process.id);
+    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
+        sensorServBusiness.writeProcedure(id, process.getId(), process.getGeom(), parent, process.getType(), process.getOmType());
+        for (ProcedureTree child : process.getChildren()) {
+            writeProcedures(id, child, process.getId());
         }
     }
 
-    protected DataProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
+    protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p.getMainStore() instanceof ObservationStore){
+            if(p instanceof ObservationProvider){
                 // TODO for now we only take one provider by type
-                return p;
+                return (ObservationProvider) p;
             }
         }
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
-    }
-
-    private ObservationStore getSOSObservationStore(final Integer serviceID) throws ConfigurationException {
-        final DataProvider omProvider = getOMProvider(serviceID);
-        return SOSUtils.getObservationStore(omProvider);
     }
 }

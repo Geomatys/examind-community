@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
 import org.constellation.dto.service.config.sos.ExtractionResult;
@@ -113,6 +114,7 @@ public interface ObservationProvider extends DataProvider {
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
 
-    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
     ExtractionResult extractResults() throws ConstellationStoreException;
+    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
+    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException;
 }

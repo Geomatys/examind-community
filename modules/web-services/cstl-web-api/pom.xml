@@ -76,11 +76,6 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-observationstore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
             <artifactId>cstl-store-data-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -219,6 +214,12 @@
                 </exclusion>
             </exclusions>
             <scope>test</scope>
-    </dependency>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-data-observationstore</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

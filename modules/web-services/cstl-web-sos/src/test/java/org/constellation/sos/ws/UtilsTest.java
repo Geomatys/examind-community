@@ -19,6 +19,7 @@
 
 package org.constellation.sos.ws;
 
+import com.examind.sensor.ws.SensorUtils;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.util.Util;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -46,6 +47,7 @@ import java.util.List;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
+import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -106,14 +108,14 @@ public class UtilsTest {
     public void getSensorPositionTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/system.xml"));
-        AbstractGeometry result = Utils.getSensorPosition(sensor);
+        AbstractGeometry result = SensorMLUtilities.getSensorPosition(sensor);
         DirectPositionType posExpResult = new DirectPositionType("urn:ogc:crs:EPSG:27582", 2, Arrays.asList(65400.0,1731368.0));
         PointType expResult = new PointType(posExpResult);
 
         assertEquals(expResult, result);
 
         sensor    = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sml/component.xml"));
-        result    = Utils.getSensorPosition(sensor);
+        result    = SensorMLUtilities.getSensorPosition(sensor);
         expResult = null;
 
         assertEquals(expResult, result);
@@ -192,7 +194,7 @@ public class UtilsTest {
         observations.add(obs2);
         observations.add(obs3);
 
-        Envelope result = SOSUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
+        Envelope result = SensorUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
 
         EnvelopeType expResult = new EnvelopeType(null, new DirectPositionType(-180.0, -90.0), new DirectPositionType(180.0, 90.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
@@ -217,7 +219,7 @@ public class UtilsTest {
         observations.add(obs2);
         observations.add(obs3);
 
-        result = SOSUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
+        result = SensorUtils.getCollectionBound("1.0.0", observations, "urn:ogc:def:crs:EPSG::4326");
 
         expResult = new EnvelopeType(null, new DirectPositionType(-10.0, -10.0), new DirectPositionType(20.0, 15.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);

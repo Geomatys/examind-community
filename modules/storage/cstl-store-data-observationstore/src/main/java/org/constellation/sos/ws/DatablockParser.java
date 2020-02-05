@@ -39,12 +39,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static org.constellation.sos.ws.SOSUtils.getTimestampValue;
-
-// Constellation dependencies
-// Geotk dependencies
-// GeoAPI dependencies
+import org.geotoolkit.observation.ObservationStoreException;
+import org.geotoolkit.observation.Utils;
 
 /**
  *
@@ -54,6 +50,9 @@ public class DatablockParser {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
 
+    private static Timestamp getTimestampValue(final Date time) throws ObservationStoreException {
+        return Timestamp.valueOf(Utils.getTimeValue(time));
+    }
 
     public static Values getResultValues(final Timestamp tBegin, final Timestamp tEnd, final DataArray array, final List<Filter> eventTimes) throws DataStoreException {
         Values values;

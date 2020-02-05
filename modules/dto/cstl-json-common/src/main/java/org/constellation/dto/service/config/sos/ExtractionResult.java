@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
+import org.opengis.observation.sampling.SamplingFeature;
 
 /**
  *
@@ -35,16 +36,19 @@ public class ExtractionResult {
 
     private List<ProcedureTree> procedures = new ArrayList<>();
 
+    private List<SamplingFeature> featureOfInterest = new ArrayList<>();
+
     public ExtractionResult() {
 
     }
 
-    public ExtractionResult(List<Observation> observations, List<Phenomenon> phenomenons, List<ProcedureTree> procedures) {
+    public ExtractionResult(List<Observation> observations, List<Phenomenon> phenomenons, List<SamplingFeature> featureOfInterest, List<ProcedureTree> procedures) {
         this.observations = observations;
         this.phenomenons = phenomenons;
         this.procedures = procedures;
+        this.featureOfInterest = featureOfInterest;
     }
-    
+
     /**
      * @return the observations
      */
@@ -85,5 +89,19 @@ public class ExtractionResult {
      */
     public void setProcedures(List<ProcedureTree> procedures) {
         this.procedures = procedures;
+    }
+
+    /**
+     * @return the featureOfInterest
+     */
+    public List<SamplingFeature> getFeatureOfInterest() {
+        return featureOfInterest;
+    }
+
+    /**
+     * @param featureOfInterest the featureOfInterest to set
+     */
+    public void setFeatureOfInterest(List<SamplingFeature> featureOfInterest) {
+        this.featureOfInterest = featureOfInterest;
     }
 }
