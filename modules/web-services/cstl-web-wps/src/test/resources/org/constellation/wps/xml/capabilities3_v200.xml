@@ -138,6 +138,11 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:crosses</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clusterhull</ows:Title>
+            <ows:Abstract>Return the cluster hull based on FeatureCollection geometries</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:convexhull</ows:Title>
             <ows:Abstract>Return the convex hull based on FeatureCollection geometries</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:convexhull</ows:Identifier>

@@ -233,6 +233,11 @@
             <ows:Abstract> Returns true if this geometry source (geom1) crosses the specified geometry (geom2).</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clusterhull</ows:Title>
+            <ows:Abstract>Return the cluster hull based on FeatureCollection geometries</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:convexhull</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:convexhull</ows:Title>
             <ows:Abstract>Return the convex hull based on FeatureCollection geometries</ows:Abstract>

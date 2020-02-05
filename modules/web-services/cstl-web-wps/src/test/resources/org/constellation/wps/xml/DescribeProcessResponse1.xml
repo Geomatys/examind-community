@@ -2515,6 +2515,132 @@
     </ProcessOutputs>
   </ProcessDescription>
   <ProcessDescription wps:processVersion="1.0.0">
+    <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull</ns9:Identifier>
+    <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:clusterhull</ows:Title>
+    <ows:Abstract xml:lang="fr-FR">Return the cluster hull based on FeatureCollection geometries</ows:Abstract>
+    <DataInputs>
+      <Input minOccurs="1" maxOccurs="1">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:input:feature_set_in</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Feature_set_in</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Input Feature Set</ows:Abstract>
+        <ComplexData maximumMegabytes="100">
+          <Default>
+            <Format>
+              <MimeType>application/geo+json</MimeType>
+              <Encoding>utf-8</Encoding>
+            </Format>
+          </Default>
+          <Supported>
+            <Format>
+              <MimeType>application/geo+json</MimeType>
+              <Encoding>utf-8</Encoding>
+            </Format>
+            <Format>
+              <MimeType>application/gml+xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>application/gml+xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/gml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/gml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+          </Supported>
+        </ComplexData>
+      </Input>
+      <Input minOccurs="1" maxOccurs="1">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:input:tolerance_value</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Tolerance_value</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Measure of tolerance used</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+          <ows:AnyValue/>
+        </LiteralData>
+      </Input>
+      <Input minOccurs="0" maxOccurs="1">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:input:tolerance_unit</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Tolerance_unit</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Unit of tolerance used</ows:Abstract>
+        <LiteralData>
+          <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+          <ows:AllowedValues/>
+          <DefaultValue>m</DefaultValue>
+        </LiteralData>
+      </Input>
+    </DataInputs>
+    <ProcessOutputs>
+      <Output>
+        <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clusterhull:output:feature_set_out</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Feature_set_out</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Cluster hull feature set</ows:Abstract>
+        <ComplexOutput>
+          <Default>
+            <Format>
+              <MimeType>application/geo+json</MimeType>
+              <Encoding>utf-8</Encoding>
+            </Format>
+          </Default>
+          <Supported>
+            <Format>
+              <MimeType>application/geo+json</MimeType>
+              <Encoding>utf-8</Encoding>
+            </Format>
+            <Format>
+              <MimeType>application/gml+xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>application/gml+xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/gml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/gml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.1.1/base/feature.xsd</Schema>
+            </Format>
+            <Format>
+              <MimeType>text/xml</MimeType>
+              <Encoding>utf-8</Encoding>
+              <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+            </Format>
+          </Supported>
+        </ComplexOutput>
+      </Output>
+    </ProcessOutputs>
+  </ProcessDescription>
+  <ProcessDescription wps:processVersion="1.0.0">
     <ns9:Identifier>urn:exa:wps:geotoolkit::vector:convexhull</ns9:Identifier>
     <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:convexhull</ows:Title>
     <ows:Abstract xml:lang="fr-FR">Return the convex hull based on FeatureCollection geometries</ows:Abstract>
