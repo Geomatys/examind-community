@@ -1140,19 +1140,15 @@ public class ProviderBusiness implements IProviderBusiness {
         */
         } else {
 
-            final Set<GenericName> keys = provider.getKeys();
+            final Set<GenericName> keys = new HashSet<>(provider.getKeys());
 
             // Remove no longer existing data.
             for (final org.constellation.dto.Data data : previousData) {
-                boolean found = false;
-                for (final GenericName key : keys) {
-                    if (NamesExt.match(key, NamesExt.create(data.getNamespace(),data.getName()))) {
-                            found = true;
-                            break;
-                        }
-                }
-                if (!found) {
+                final Data indexedDataName = provider.get(data.getNamespace(), data.getName());
+                if (indexedDataName == null) {
                     dataBusiness.missingData(new QName(data.getNamespace(), data.getName()), provider.getId());
+                } else {
+                    keys.remove(indexedDataName); // Data already exists. We do not want to re-integrate it.
                 }
             }
 
@@ -1160,37 +1156,28 @@ public class ProviderBusiness implements IProviderBusiness {
             for (final GenericName key : keys) {
                 final QName name = new QName(NamesExt.getNamespace(key), key.tip().toString());
 
-                boolean found = false;
-                for (final org.constellation.dto.Data data : previousData) {
-                    if (NamesExt.match(key, NamesExt.create(data.getNamespace(),data.getName()))) {
-                        found = true;
-                        break;
+                DataType type = provider.getDataType();
+                String subType  = null;
+                boolean included = true;
+                Boolean rendered = null;
+                try {
+                    Data providerData = provider.get(key);
+                    if (providerData != null) {
+                        type     = providerData.getDataType();
+                        subType  = providerData.getSubType();
+                        rendered = providerData.isRendered();
                     }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.FINER, ex.getMessage(), ex);
                 }
-                if (!found) {
-                    DataType type = provider.getDataType();
-                    String subType  = null;
-                    boolean included = true;
-                    Boolean rendered = null;
-                    try {
-                        Data providerData = provider.get(key);
-                        if (providerData != null) {
-                            type     = providerData.getDataType();
-                            subType  = providerData.getSubType();
-                            rendered = providerData.isRendered();
-                        }
-                    } catch (Exception ex) {
-                        LOGGER.log(Level.FINER, ex.getMessage(), ex);
-                    }
 
-                    Integer dataId = dataBusiness.create(name,
-                            pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
-                            included, rendered, subType, null, hideNewData, owner);
+                Integer dataId = dataBusiness.create(name,
+                        pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
+                        included, rendered, subType, null, hideNewData, owner);
 
 
-                    if (datasetId != null) {
-                        dataBusiness.updateDataDataSetId(dataId, datasetId);
-                    }
+                if (datasetId != null) {
+                    dataBusiness.updateDataDataSetId(dataId, datasetId);
                 }
             }
         }
