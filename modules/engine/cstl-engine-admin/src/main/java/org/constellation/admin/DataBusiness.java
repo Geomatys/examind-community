@@ -461,7 +461,7 @@ public class DataBusiness implements IDataBusiness {
                 db.setOwner(user.get().getLogin());
             }
 
-            if (fetchDataDescription) {
+            if (Boolean.TRUE.equals(fetchDataDescription)) {
                 try {
                     final DataProvider provider = DataProviders.getProvider(data.getProviderId());
                     final org.constellation.provider.Data layer = provider.get(data.getNamespace(), data.getName());
