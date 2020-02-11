@@ -33,6 +33,7 @@ import org.apache.sis.util.Static;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.binding.ChannelSelection;
 import org.constellation.json.binding.DynamicRangeSymbolizer;
+import org.constellation.json.binding.IsolineSymbolizer;
 import org.constellation.json.binding.LineSymbolizer;
 import org.constellation.json.binding.PointSymbolizer;
 import org.constellation.json.binding.PolygonSymbolizer;
@@ -192,6 +193,7 @@ public final class StyleUtilities extends Static {
         greySelection.setGreyChannel(grey);
         DEFAULT_GREY_RASTER_SYMBOLIZER.setChannelSelection(greySelection);
     }
+    public static final IsolineSymbolizer DEFAULT_ISOLIGNE_SYMBOLIZER   = new IsolineSymbolizer();
 
     /**
      * Determines if the {@link Class} passed in arguments is assignable

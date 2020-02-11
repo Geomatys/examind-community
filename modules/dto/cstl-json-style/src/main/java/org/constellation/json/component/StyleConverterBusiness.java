@@ -24,6 +24,7 @@ import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.json.binding.CellSymbolizer;
 import org.constellation.json.binding.DynamicRangeSymbolizer;
+import org.constellation.json.binding.IsolineSymbolizer;
 import org.constellation.json.binding.LineSymbolizer;
 import org.constellation.json.binding.PieSymbolizer;
 import org.constellation.json.binding.PointSymbolizer;
@@ -100,6 +101,8 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
                     result.getSymbolizers().add(new PieSymbolizer((org.geotoolkit.display2d.ext.pie.PieSymbolizer)symbolizer));
                 } else if (symbolizer instanceof org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer){
                     result.getSymbolizers().add(new DynamicRangeSymbolizer((org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer) symbolizer));
+                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer){
+                    result.getSymbolizers().add(new IsolineSymbolizer((org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer) symbolizer));
                 }
             }
             if (rule.getFilter() != null) {

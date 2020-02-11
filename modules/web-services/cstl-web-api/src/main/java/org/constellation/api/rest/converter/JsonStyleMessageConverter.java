@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.constellation.json.binding.CellSymbolizer;
 import org.constellation.json.binding.DynamicRangeSymbolizer;
+import org.constellation.json.binding.IsolineSymbolizer;
 import org.constellation.json.binding.LineSymbolizer;
 import org.constellation.json.binding.PieSymbolizer;
 import org.constellation.json.binding.PointSymbolizer;
@@ -85,6 +86,7 @@ public class JsonStyleMessageConverter implements HttpMessageConverter<Style> {
                                 new NamedType(RasterSymbolizer.class,"raster"),
                                 new NamedType(CellSymbolizer.class,"cell"),
                                 new NamedType(PieSymbolizer.class,"pie"),
+                                new NamedType(IsolineSymbolizer.class,"isoline"),
                                 new NamedType(DynamicRangeSymbolizer.class,"dynamicrange"));
 
         return mapper;

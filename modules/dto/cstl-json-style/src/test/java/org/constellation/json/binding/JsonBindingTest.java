@@ -44,11 +44,12 @@ public class JsonBindingTest {
                                 new NamedType(RasterSymbolizer.class,"raster"),
                                 new NamedType(CellSymbolizer.class,"cell"),
                                 new NamedType(PieSymbolizer.class,"pie"),
+                                new NamedType(IsolineSymbolizer.class,"isoline"),
                                 new NamedType(DynamicRangeSymbolizer.class,"dynamicrange"));
     }
 
     @Test
-    public void unmashallingTest() throws IOException {
+    public void unmarshallingTest() throws IOException {
 
         WrapperInterval result = objectMapper.readValue(getResourceAsStream("org/constellation/json/binding/wrapper1.json"), WrapperInterval.class);
         Assert.assertNotNull(result);
@@ -60,6 +61,24 @@ public class JsonBindingTest {
         Assert.assertNotNull(result.getStyle());
         Assert.assertNotNull(result.getIntervalValues());
 
+    }
+
+    @Test
+    public void marshallingTest() throws IOException {
+        RasterSymbolizer rs = new RasterSymbolizer();
+        rs.setColorMap(new ColorMap());
+        rs.setOpacity(1.0);
+        TextSymbolizer ts = new TextSymbolizer();
+        ts.setName("text-symbolize");
+        LineSymbolizer ls = new LineSymbolizer();
+        ls.setName("ls-symbolize");
+        IsolineSymbolizer isolineSymb = new IsolineSymbolizer();
+        isolineSymb.setIsolineOnly(true);
+        isolineSymb.setLineSymbolizer(ls);
+        isolineSymb.setRasterSymbolizer(rs);
+        isolineSymb.setTextSymbolizer(ts);
+        isolineSymb.setName("style-isoline");
+        objectMapper.writeValue(System.out, isolineSymb);
     }
 
     public static InputStream getResourceAsStream(final String url) {
