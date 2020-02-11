@@ -836,6 +836,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/loc-time3.json");
         assertEquals(expResult, result);
+
+        filter = "Thing/Datastream/resultTime ge 2005-01-01T00:00:00.356Z and Thing/Datastream/resultTime le 2008-01-01T00:00:00.254Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/loc-time3.json");
+        assertEquals(expResult, result);
     }
 
 

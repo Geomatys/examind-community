@@ -19,6 +19,7 @@
 package com.examind.sts.core;
 
 import com.examind.sensor.ws.SensorWorker;
+import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_2_FORMATTER;
 import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_FORMATTER;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -198,19 +199,23 @@ public class OdataFilterParser {
     private TemporalObject parseTemporalObj(String to) throws CstlServiceException {
         int index = to.indexOf('/');
         if (index != -1) {
-            try {
-                Date begin = ISO_8601_FORMATTER.parse(to.substring(0, index));
-                Date end   = ISO_8601_FORMATTER.parse(to.substring(index + 1));
-                return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
-            } catch (java.text.ParseException ex) {
-                throw new CstlServiceException("Error while parsing date value");
-            }
+            Date begin = parseDate(to.substring(0, index));
+            Date end   = parseDate(to.substring(index + 1));
+            return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
         } else {
+            Date d = parseDate(to);
+            return GMLXmlFactory.createTimeInstant("3.2.1", d);
+        }
+    }
+
+    private Date parseDate(String str) throws CstlServiceException {
+        try {
+            return ISO_8601_FORMATTER.parse(str);
+        } catch (java.text.ParseException ex) {
             try {
-                Date d = ISO_8601_FORMATTER.parse(to);
-                return GMLXmlFactory.createTimeInstant("3.2.1", d);
-            } catch (java.text.ParseException ex) {
-                throw new CstlServiceException("Error while parsing date value:" + to);
+                return ISO_8601_2_FORMATTER.parse(str);
+            } catch (java.text.ParseException e) {
+                throw new CstlServiceException("Error while parsing date value:" + str);
             }
         }
     }

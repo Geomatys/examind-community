@@ -142,8 +142,10 @@ import org.springframework.context.annotation.Scope;
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    public static final SimpleDateFormat ISO_8601_2_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     static {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+        ISO_8601_2_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private final Map<String, String> defaultHints = new HashMap<>();
