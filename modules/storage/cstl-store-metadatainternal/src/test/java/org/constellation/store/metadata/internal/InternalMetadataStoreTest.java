@@ -179,6 +179,63 @@ public class InternalMetadataStoreTest {
     }
 
     @Test
+    public void getDiffToISOTest() throws Exception {
+        RecordInfo results = inStore1.getMetadata("L2-SST", MetadataType.ISO_19115);
+        Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        System.out.println("\n\n\n\n\n\n\n\n");
+        String result = NodeUtilities.getStringFromNode(results.node);
+        System.out.println(result);
+        System.out.println("\n\n\n\n\n\n\n\n");
+
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-SST.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
+    }
+
+    @Test
+    public void getDiffToISO2Test() throws Exception {
+        RecordInfo results = inStore1.getMetadata("dif-1", MetadataType.ISO_19115);
+        Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        System.out.println("\n\n\n\n\n\n\n\n");
+        String result = NodeUtilities.getStringFromNode(results.node);
+        System.out.println(result);
+        System.out.println("\n\n\n\n\n\n\n\n");
+
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-dif-1.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
+    }
+
+    @Test
+    public void getDiffToCSW2Test() throws Exception {
+        RecordInfo results = inStore1.getMetadata("dif-1", MetadataType.DUBLINCORE_CSW202);
+        Assert.assertEquals(MetadataType.DUBLINCORE_CSW202, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        System.out.println("\n\n\n\n\n\n\n\n");
+        String result = NodeUtilities.getStringFromNode(results.node);
+        System.out.println(result);
+        System.out.println("\n\n\n\n\n\n\n\n");
+
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/dif-1-FDC.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
+    }
+
+    @Test
     public void getISOToCSW2Test() throws Exception {
         RecordInfo results = inStore1.getMetadata("42292_5p_19900609195600", MetadataType.DUBLINCORE_CSW202);
         Assert.assertEquals(MetadataType.DUBLINCORE_CSW202, results.actualFormat);

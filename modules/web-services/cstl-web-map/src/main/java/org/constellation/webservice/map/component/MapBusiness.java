@@ -27,25 +27,14 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
+
+import org.opengis.style.Style;
+import org.opengis.util.FactoryException;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.GridCoverageResource;
-import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import static org.constellation.api.StatisticState.STATE_COMPLETED;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.StatInfo;
-import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.exception.TargetNotFoundException;
-import org.constellation.portrayal.PortrayalResponse;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DefaultCoverageData;
-import org.constellation.provider.GeoData;
-import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -61,10 +50,25 @@ import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.style.Style;
-import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
+
+import org.constellation.business.IDataBusiness;
+import org.constellation.business.IStyleBusiness;
+import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.exception.TargetNotFoundException;
+import org.constellation.portrayal.PortrayalResponse;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
+import org.constellation.provider.DefaultCoverageData;
+import org.constellation.provider.GeoData;
+import org.constellation.ws.CstlServiceException;
 import org.springframework.stereotype.Component;
+
+import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.StatisticState.STATE_COMPLETED;
 
 /**
  *
