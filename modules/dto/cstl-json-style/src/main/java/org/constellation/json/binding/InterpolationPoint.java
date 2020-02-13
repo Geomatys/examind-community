@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.constellation.json.binding;
 
 import org.constellation.json.util.StyleUtilities;
@@ -35,28 +34,33 @@ import static org.constellation.json.util.StyleUtilities.literal;
  */
 public final class InterpolationPoint implements StyleElement<org.geotoolkit.style.function.InterpolationPoint> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Number data  = null;
+    private Number data = null;
     private String color = "#000000";
 
     public InterpolationPoint() {
     }
 
+    public InterpolationPoint(Number data, String color) {
+        this.color = color;
+        this.data = data;
+    }
+
     public InterpolationPoint(final org.geotoolkit.style.function.InterpolationPoint interpolationPoint) {
         ensureNonNull("interpolationPoint", interpolationPoint);
         double value = interpolationPoint.getData().doubleValue();
-        if(Double.isNaN(value)){
+        if (Double.isNaN(value)) {
             data = null;
-        }else {
+        } else {
             data = value;
         }
-		if(interpolationPoint.getValue() instanceof DefaultLiteral){
-			final Object obj = ((DefaultLiteral)interpolationPoint.getValue()).getValue();
-			if(obj instanceof Color){
+        if (interpolationPoint.getValue() instanceof DefaultLiteral) {
+            final Object obj = ((DefaultLiteral) interpolationPoint.getValue()).getValue();
+            if (obj instanceof Color) {
                 color = StyleUtilities.toHex((Color) obj);
-			}
-		}
+            }
+        }
     }
 
     public Number getData() {

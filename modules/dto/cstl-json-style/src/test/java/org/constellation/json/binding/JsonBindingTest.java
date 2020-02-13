@@ -23,8 +23,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import org.geotoolkit.sld.xml.Specification;
+import org.geotoolkit.sld.xml.StyleXmlIO;
+import org.geotoolkit.style.DefaultMutableRule;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,6 +39,7 @@ import org.junit.Test;
  */
 public class JsonBindingTest {
 
+    private final StyleXmlIO sldParser = new StyleXmlIO();
     private final ObjectMapper objectMapper = new ObjectMapper();
     public JsonBindingTest() {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -64,14 +70,24 @@ public class JsonBindingTest {
     }
 
     @Test
-    public void marshallingTest() throws IOException {
+    public void marshallingTest() throws Exception {
         RasterSymbolizer rs = new RasterSymbolizer();
         rs.setColorMap(new ColorMap());
         rs.setOpacity(1.0);
         TextSymbolizer ts = new TextSymbolizer();
         ts.setName("text-symbolize");
+        ts.setLabel("hello");
         LineSymbolizer ls = new LineSymbolizer();
         ls.setName("ls-symbolize");
+        Interpolate f = new Interpolate();
+        f.setPoints(Arrays.asList(new InterpolationPoint(-10.0,  "#0000FF"),
+                                  new InterpolationPoint(-8.829, "#0600F9"),
+                                  new InterpolationPoint(-5,     "#0600D2"),
+                                  new InterpolationPoint(-1,     "#0611D2")));
+        f.setPropertyName("value");
+        Stroke stroke = new Stroke();
+        stroke.setFunction(f);
+        ls.setStroke(stroke);
         IsolineSymbolizer isolineSymb = new IsolineSymbolizer();
         isolineSymb.setIsolineOnly(true);
         isolineSymb.setLineSymbolizer(ls);
@@ -79,6 +95,17 @@ public class JsonBindingTest {
         isolineSymb.setTextSymbolizer(ts);
         isolineSymb.setName("style-isoline");
         objectMapper.writeValue(System.out, isolineSymb);
+
+        org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer geotkSymb =
+                (org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer) isolineSymb.toType();
+        DefaultMutableRule rule = new DefaultMutableRule();
+        rule.symbolizers().add(geotkSymb);
+
+        sldParser.writeRule(System.out, rule, Specification.SymbologyEncoding.V_1_1_0);
+
+        stroke = new Stroke(geotkSymb.getLineSymbolizer().getStroke());
+        objectMapper.writeValue(System.out, stroke);
+
     }
 
     public static InputStream getResourceAsStream(final String url) {

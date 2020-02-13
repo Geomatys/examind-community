@@ -20,7 +20,6 @@
 package org.constellation.json.binding;
 
 import org.constellation.json.util.StyleUtilities;
-import org.geotoolkit.cql.CQL;
 import org.opengis.filter.expression.Expression;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;

@@ -19,12 +19,10 @@
 
 package org.constellation.json.binding;
 
+import java.awt.Color;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.json.util.StyleUtilities;
-import org.geotoolkit.cql.CQL;
 import org.opengis.filter.expression.Expression;
-
-import java.awt.*;
 import java.util.logging.Logger;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
@@ -32,6 +30,7 @@ import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.literal;
 import static org.constellation.json.util.StyleUtilities.parseExpression;
 import static org.constellation.json.util.StyleUtilities.toHex;
+import org.geotoolkit.style.function.DefaultInterpolate;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -45,6 +44,7 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.json.binding");
 
     private String color   = "#000000";
+    private Function function;
     private String opacity = "1.0";
     private String width   = "1.0";
     private boolean dashed = false;
@@ -58,8 +58,12 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
 
     public Stroke(final org.opengis.style.Stroke stroke) {
         ensureNonNull("stroke", stroke);
-        final Color col = stroke.getColor().evaluate(null, Color.class);
-        color = toHex(col);
+        if (stroke.getColor() instanceof org.geotoolkit.style.function.Interpolate) {
+            function = new Interpolate((org.geotoolkit.style.function.Interpolate)stroke.getColor());
+        } else {
+            final Color col = stroke.getColor().evaluate(null, Color.class);
+            color = toHex(col);
+        }
         final Expression opacityExp = stroke.getOpacity();
         if(opacityExp != null){
             opacity = StyleUtilities.toCQL(opacityExp);
@@ -144,10 +148,24 @@ public final class Stroke implements StyleElement<org.opengis.style.Stroke> {
         this.lineCap = lineCap;
     }
 
+    public Function getFunction() {
+        return function;
+    }
+
+    public void setFunction(Function function) {
+        this.function = function;
+    }
+
     @Override
     public org.opengis.style.Stroke toType() {
+        Expression exp;
+        if (function != null) {
+            exp = function.toType();
+        } else {
+            exp = literal(this.color);
+        }
         return SF.stroke(
-                literal(this.color),
+                exp,
                 parseExpression(opacity),
                 parseExpression(this.width),
                 literal(this.lineJoin),

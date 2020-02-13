@@ -30,8 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.json.util.StyleFactories.FF;
 import static org.constellation.json.util.StyleFactories.SF;
 import static org.constellation.json.util.StyleUtilities.listType;
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.expression.PropertyName;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -42,11 +45,13 @@ public final class Interpolate implements Function {
 
     private static final long serialVersionUID = 1L;
 
-    private List<InterpolationPoint> points = new ArrayList<InterpolationPoint>();
+    private List<InterpolationPoint> points = new ArrayList<>();
 
     private Double interval;
 
     private String nanColor;
+
+    private String propertyName;
 
     public Interpolate() {
     }
@@ -66,6 +71,9 @@ public final class Interpolate implements Function {
                 }
             }
             this.interval = (double) interpolate.getInterpolationPoints().size();
+        }
+        if (interpolate.getLookupValue() instanceof PropertyName) {
+            propertyName = ((PropertyName)interpolate.getLookupValue()).getPropertyName();
         }
     }
 
@@ -134,23 +142,36 @@ public final class Interpolate implements Function {
     }
 
 
-    public double getInterval() {
+    @Override
+    public Double getInterval() {
         return interval;
     }
 
+    @Override
     public void setInterval(Double interval) {
         this.interval = interval;
     }
 
 
+    @Override
     public String getNanColor() {
         return nanColor;
     }
 
+    @Override
     public void setNanColor(String nanColor) {
         this.nanColor = nanColor;
     }
 
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+    }
+
+    @Override
     public org.opengis.filter.expression.Function toType() {
 
         //remove nan point if exists because it is added later, and it cause error for max/min values
@@ -167,7 +188,13 @@ public final class Interpolate implements Function {
             nanPoint.setData(Double.NaN);
             points.add(nanPoint);
         }
-        return SF.interpolateFunction(StyleConstants.DEFAULT_CATEGORIZE_LOOKUP,
+        Expression lookup;
+        if (propertyName != null && !propertyName.isEmpty()) {
+            lookup = FF.property(propertyName);
+        } else {
+            lookup = StyleConstants.DEFAULT_CATEGORIZE_LOOKUP;
+        }
+        return SF.interpolateFunction(lookup,
                 listType(points),
                 Method.COLOR,
                 Mode.LINEAR,

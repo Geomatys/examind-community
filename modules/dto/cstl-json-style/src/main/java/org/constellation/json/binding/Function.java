@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.constellation.json.binding;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -26,23 +25,22 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @author Fabien Bernard (Geomatys).
  * @version 0.9
  * @since 0.9
- * 
- * ColorMap function. 
- * Interval and NanColor getter/setter are here to ensure 
+ *
+ * ColorMap function. Interval and NanColor getter/setter are here to ensure
  * implementation have methods.
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@function")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@function")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value=Interpolate.class, name="interpolate"),
-        @JsonSubTypes.Type(value=Categorize.class, name="categorize")
+    @JsonSubTypes.Type(value = Interpolate.class, name = "interpolate"),
+    @JsonSubTypes.Type(value = Categorize.class, name = "categorize")
 })
 public interface Function extends StyleElement<org.opengis.filter.expression.Function> {
-	
-	public double getInterval();
 
-	public void setInterval(Double interval);
-	
+    public Double getInterval();
+
+    public void setInterval(Double interval);
+
     public String getNanColor();
 
-	public void setNanColor(String nanColor);
+    public void setNanColor(String nanColor);
 }

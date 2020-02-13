@@ -131,8 +131,8 @@ public class Categorize implements Function {
         //init final threshold map and coefficient
         final Map<Expression, Expression> valuesRecompute = new HashMap<>();
         if (nanColor != null) {
-            valuesRecompute.put(new DefaultLiteral<Double>(Double.NaN),
-                                new DefaultLiteral<Color>(Color.decode(nanColor)));
+            valuesRecompute.put(new DefaultLiteral<>(Double.NaN),
+                                new DefaultLiteral<>(Color.decode(nanColor)));
         }
 
         if (min != null && max != null) {
@@ -145,7 +145,7 @@ public class Categorize implements Function {
                 for (int i = 0; i < nbPoints; i++) {
                     double val = min + (coefficient * i);
                     Color color = categorize.evaluate(val, Color.class);
-                    valuesRecompute.put(new DefaultLiteral<Double>(val), new DefaultLiteral<Color>(color));
+                    valuesRecompute.put(new DefaultLiteral<>(val), new DefaultLiteral<>(color));
                 }
             }
         }
@@ -167,22 +167,27 @@ public class Categorize implements Function {
         return recomputePoints;
     }
 
-    public double getInterval() {
+    @Override
+    public Double getInterval() {
         return interval;
     }
 
+    @Override
     public void setInterval(Double interval) {
         this.interval = interval;
     }
 
+    @Override
     public String getNanColor() {
         return nanColor;
     }
 
+    @Override
     public void setNanColor(String nanColor) {
         this.nanColor = nanColor;
     }
 
+    @Override
     public org.opengis.filter.expression.Function toType() {
 
         //remove nan point if exists because it is added later, and it cause error for max/min values
@@ -197,10 +202,10 @@ public class Categorize implements Function {
         // create first threshold map to create first categorize function.
         Map<Expression, Expression> values = new HashMap<>(0);
         if (nanColor != null) {
-            values.put(new DefaultLiteral<Double>(Double.NaN),
-                    new DefaultLiteral<String>(nanColor));
+            values.put(new DefaultLiteral<>(Double.NaN),
+                    new DefaultLiteral<>(nanColor));
         }
-        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY,new DefaultLiteral<String>("#00ffffff"));
+        values.put(StyleConstants.CATEGORIZE_LESS_INFINITY,new DefaultLiteral<>("#00ffffff"));
         for (final InterpolationPoint ip : points) {
             values.put(new DefaultLiteral<Double>(ip.getData().doubleValue()),
                     new DefaultLiteral<String>(ip.getColor()));
