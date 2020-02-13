@@ -768,6 +768,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final String identifierValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Entry_ID/dif:Short_Name");
             addCharacterStringNode(doc, root, "fileIdentifier", identifierValue);
 
+            addCodelistNode(doc, root, "hierarchyLevel", "MD_ScopeCode", "series");
+
             final List<Node> contactNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Personnel");
             if (!contactNodes.isEmpty()) {
                 for (Node contactNode : contactNodes) {

@@ -13,6 +13,7 @@
     <a:id>L2-LST</a:id>
     <a:link href="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=L2-LST&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
     <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=L2-LST&amp;outputschema=http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" rel="alternate" type="application/xml" title="Native format"/>
+    <a:link href="http://localhost:9090/WS/csw/default?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=L2-LST&amp;outputschema=http://www.isotc211.org/2005/gmd" rel="alternate" type="application/vnd.iso.19139-2+xml" title="ISO format"/>
     <a:link href="https://gportal.jaxa.jp/" rel="enclosure"/>
     <a:title>GCOM-C/SGLI L2 Land surface temperature</a:title>
     <a:author>

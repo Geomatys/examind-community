@@ -49,6 +49,7 @@ import org.geotoolkit.csw.xml.Record;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.dublincore.xml.AbstractSimpleLiteral;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
+import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.ogc.xml.FilterXmlFactory;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
@@ -387,6 +388,15 @@ public class CSWUtils {
         return entry;
     }
 
+    /**
+     * @deprecated remove when the information will be availlable in RecordInfo.isISOTransformable
+     */
+    @Deprecated
+    private static boolean isISOconvertible(MetadataType mode) {
+        // for now only DIF is applicable
+        return  mode ==  MetadataType.DIF;
+     }
+
     public static EntryType getEntryFromRecordInfo(String serviceUrl, RecordInfo record, String entrySearchLink) {
 
         ISODateParser parser = new ISODateParser();
@@ -404,6 +414,12 @@ public class CSWUtils {
         String outputschema = record.originalFormat.namespace;
         String cswUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", outputschema);
         entry.addLink(new LinkType(cswUrl, "Native format", "alternate", "application/xml"));
+
+        // if an iso transformation is available add alternate link
+        if (isISOconvertible(record.originalFormat)) {
+            String cswISOUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", MetadataType.ISO_19115.namespace);
+            entry.addLink(new LinkType(cswISOUrl, "ISO format", "alternate", "application/vnd.iso.19139-2+xml"));
+        }
 
         final List<String> relationValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:references");
         if (entrySearchLink != null) {

@@ -3,6 +3,9 @@
     <fileIdentifier xmlns="http://www.isotc211.org/2005/gmd">
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">L2-SST</CharacterString>
     </fileIdentifier>
+    <hierarchyLevel xmlns="http://www.isotc211.org/2005/gmd">
+        <MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="series">series</MD_ScopeCode>
+    </hierarchyLevel>
     <dateStamp xmlns="http://www.isotc211.org/2005/gmd">
         <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-11-18</DateTime>
     </dateStamp>

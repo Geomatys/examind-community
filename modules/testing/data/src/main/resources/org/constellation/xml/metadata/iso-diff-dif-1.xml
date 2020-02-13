@@ -3,6 +3,9 @@
     <fileIdentifier>
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">id-1</CharacterString>
     </fileIdentifier>
+    <hierarchyLevel xmlns="http://www.isotc211.org/2005/gmd">
+        <MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="series">series</MD_ScopeCode>
+    </hierarchyLevel>
     <contact>
         <CI_ResponsibleParty>
             <organisationName>
