@@ -627,9 +627,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                         final Phenomenon phen         = getPhenomenon("1.0.0", observedProperty, c);
                         final List<Field> fields      = readFields(procedure, c);
-                        final Field timeField         = getTimeField(procedure);
-                        if (timeField != null) {
-                            fields.remove(timeField);
+                        final Field mainField         = getMainField(procedure);
+                        if (mainField != null && "Time".equals(mainField.fieldType)) {
+                            fields.remove(mainField);
                         }
                         // aggregate phenomenon mode
                         if (fields.size() > 1) {
@@ -668,13 +668,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String name        = rs.getString("identifier");
                     final int pid            = getPIDFromProcedure(procedure, c);
                     final List<Field> fields = readFields(procedure, c);
-                    final Field timeField    = getTimeField(procedure);
+                    final Field mainField = getMainField(procedure);
+                    boolean isTimeField   = false;
+                    if (mainField != null) {
+                        isTimeField = "Time".equals(mainField.fieldType);
+                    }
                     final String sqlRequest;
-                    if (timeField != null) {
+                    if (isTimeField) {
                         sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", timeField.fieldName)
+                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
                                 + "ORDER BY m.\"id\"";
-                        fields.remove(timeField);
+                        fields.remove(mainField);
                     } else {
                         sqlRequest = "SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
                     }

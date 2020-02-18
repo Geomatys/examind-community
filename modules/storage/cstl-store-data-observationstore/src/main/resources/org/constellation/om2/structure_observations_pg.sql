@@ -3,7 +3,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.4');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.6');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 

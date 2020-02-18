@@ -258,14 +258,16 @@ public class OM2BaseReader {
                         final String description = rs.getString(5);
 
                         // hack for valid phenomenon ID in 1.0.0 static fields
-                        if (phenID.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
-                            name = "latitude";
-                        } else if (phenID.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
-                            name = "longitude";
-                        } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
-                            name = "samplingTime";
-                        } else if (phenID.startsWith(phenomenonIdBase)) {
-                            name = phenID.substring(phenomenonIdBase.length());
+                        if (phenID != null) {
+                            if (phenID.equals("http://mmisw.org/ont/cf/parameter/latitude")) {
+                                name = "latitude";
+                            } else if (phenID.equals("http://mmisw.org/ont/cf/parameter/longitude")) {
+                                name = "longitude";
+                            } else if (phenID.equals("http://www.opengis.net/def/property/OGC/0/SamplingTime")) {
+                                name = "samplingTime";
+                            } else if (phenID.startsWith(phenomenonIdBase)) {
+                                name = phenID.substring(phenomenonIdBase.length());
+                            }
                         }
                         return buildPhenomenon(version, phenID, name, description);
                     }

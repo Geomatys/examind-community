@@ -55,10 +55,14 @@ import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.netcdf.OMUtils;
+import static org.geotoolkit.sos.netcdf.OMUtils.PRESSION_FIELD;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
+import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.Phenomenon;
+import org.geotoolkit.swe.xml.Quantity;
+import org.geotoolkit.swe.xml.UomProperty;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
@@ -210,6 +214,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     if (header.equals(mainColumn)) {
                         mainIndex = i;
                         if (header.equals(dateColumn)) dateIndex = i;
+                        if ("Profile".equals(observationType))  measureFields.add(header);
                     } else if (header.equals(foiColumn)) {
                         foiIndex = i;
                         ignoredFields.add(i);
@@ -258,7 +263,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 switch (observationType) {
                     case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
                     case "Trajectory": datarecord = OMUtils.getDataRecordTrajectory("2.0.0", fields);break;
-                    case "Profile"   : datarecord = OMUtils.getDataRecordProfile("2.0.0", fields);   break;
+                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);   break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 
@@ -280,6 +285,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 // -- single observation related variables --
                 int currentCount                      = 0;
                 String currentFoi                     = null;
+                Long currentTime                      = null;
                 GeoSpatialBound currentSpaBound = new GeoSpatialBound();
                 // builder of measure string
                 MeasureStringBuilder msb = new MeasureStringBuilder();
@@ -288,6 +294,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 // -- previous variables leading to new observations --
                 String previousFoi = null;
+                Long previousTime  = null;
 
                 while (it.hasNext()) {
                     count++;
@@ -314,14 +321,24 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         continue;
                     }
 
-                    // look for current foi
+                    // look for current foi (for observation separation)
                     if (foiIndex != -1) {
                         currentFoi = line[foiIndex];
                     }
 
+                    // look for current date (for observation separation)
+                    if (dateIndex != mainIndex) {
+                        try {
+                            currentTime = sdf.parse(line[dateIndex]).getTime();
+                        } catch (ParseException ex) {
+                            LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
+                            continue;
+                        }
+                    }
 
                     // closing current observation and starting new one
-                    if (previousFoi != null && !previousFoi.equals(currentFoi)) {
+                    if (previousFoi != null  && !previousFoi.equals(currentFoi) ||
+                        previousTime != null && !previousTime.equals(currentTime)) {
 
                         final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                         obsCpt++;
@@ -354,6 +371,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     }
 
                     previousFoi = currentFoi;
+                    previousTime = currentTime;
                     currentCount++;
 
 
@@ -481,6 +499,16 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public void close() throws DataStoreException {
         // do nothing
+    }
+
+    public static AbstractDataRecord getDataRecordProfile(final String version, final List<Field> phenomenons) {
+        final List<AnyScalar> fields = new ArrayList<>();
+        for (Field phenomenon : phenomenons) {
+            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
+        }
+        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 
     @Override

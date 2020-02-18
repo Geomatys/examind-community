@@ -338,6 +338,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             if (forMds) {
                 hints.put("includeIDInDataBlock", "true");
+                hints.put("includeTimeForProfile", "true");
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
@@ -766,7 +767,21 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private String temporalObjToString(TemporalObject to) {
         if (to instanceof Period) {
             Period tp = (Period) to;
-            return ISO_8601_FORMATTER.format(tp.getBeginning().getDate()) + '/' + ISO_8601_FORMATTER.format(tp.getEnding().getDate());
+            StringBuilder sb = new StringBuilder();
+            if (tp.getBeginning().getDate() != null) {
+                sb.append(ISO_8601_FORMATTER.format(tp.getBeginning().getDate()));
+            } else if (tp.getBeginning().getTemporalPosition() != null &&
+                       tp.getBeginning().getTemporalPosition().getIndeterminatePosition() != null){
+                sb.append(tp.getBeginning().getTemporalPosition().getIndeterminatePosition().name());
+            }
+            sb.append('/');
+            if (tp.getEnding().getDate() != null) {
+                sb.append(ISO_8601_FORMATTER.format(tp.getEnding().getDate()));
+            } else if (tp.getEnding().getTemporalPosition() != null &&
+                       tp.getEnding().getTemporalPosition().getIndeterminatePosition() != null){
+                sb.append(tp.getEnding().getTemporalPosition().getIndeterminatePosition().name());
+            }
+            return sb.toString();
         } else if (to instanceof Instant) {
             Instant tp = (Instant) to;
             return ISO_8601_FORMATTER.format(tp.getDate());
@@ -1085,6 +1100,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             subquery.setFilter(pe);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeIDInDataBlock", "true");
+            hints.put("includeTimeForProfile", "true");
             return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();
