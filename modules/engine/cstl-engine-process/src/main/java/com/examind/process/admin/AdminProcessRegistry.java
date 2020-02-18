@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.logging.Logger;
-import javax.imageio.spi.ServiceRegistry;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
@@ -47,7 +47,7 @@ public class AdminProcessRegistry extends AbstractProcessingRegistry {
      * @return
      */
     private static synchronized ProcessDescriptor[] findDescriptors() {
-        final Iterator<AdminProcessDescriptor> ite = ServiceRegistry.lookupProviders(AdminProcessDescriptor.class);
+        final Iterator<AdminProcessDescriptor> ite = ServiceLoader.load(AdminProcessDescriptor.class).iterator();
         final List<ProcessDescriptor> descriptors = new ArrayList<>();
         while (ite.hasNext()) {
             descriptors.add((ProcessDescriptor) ite.next());

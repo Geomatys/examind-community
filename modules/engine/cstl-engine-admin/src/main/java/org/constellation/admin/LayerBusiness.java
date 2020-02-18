@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.imageio.spi.ServiceRegistry;
+import java.util.ServiceLoader;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -686,7 +686,7 @@ public class LayerBusiness implements ILayerBusiness {
     private MapFactory getMapFactory(final String impl) throws ConfigurationException {
         if (mapFactories == null) {
             mapFactories = new HashMap<>();
-            final Iterator<MapFactory> ite = ServiceRegistry.lookupProviders(MapFactory.class);
+            final Iterator<MapFactory> ite = ServiceLoader.load(MapFactory.class).iterator();
             while (ite.hasNext()) {
                 MapFactory currentFactory = ite.next();
                 mapFactories.put(impl, currentFactory);

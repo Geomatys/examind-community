@@ -19,7 +19,6 @@
 package org.constellation.map.featureinfo;
 
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
@@ -52,7 +51,6 @@ import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
-import javax.imageio.spi.ServiceRegistry;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.Raster;
@@ -79,7 +77,7 @@ public final class FeatureInfoUtilities extends Static {
     public static FeatureInfoFormat[] getAllFeatureInfoFormat() {
 
         final Set<FeatureInfoFormat> infoFormats = new HashSet<>();
-        final Iterator<FeatureInfoFormat> ite = ServiceRegistry.lookupProviders(FeatureInfoFormat.class);
+        final Iterator<FeatureInfoFormat> ite = ServiceLoader.load(FeatureInfoFormat.class).iterator();
         while (ite.hasNext()) {
             infoFormats.add(ite.next());
         }

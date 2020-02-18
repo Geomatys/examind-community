@@ -18,14 +18,18 @@
  */
 package org.constellation.security;
 
-import javax.imageio.spi.ServiceRegistry;
 
+import java.util.ServiceLoader;
+
+/**
+ * TODO: Use Spring configuration instead of Service loader
+ */
 public class SecurityManagerHolder {
 
     /**
      * Security manager.
      */
-    private static final SecurityManager INSTANCE = ServiceRegistry.lookupProviders(org.constellation.security.SecurityManager.class).next();
+    private static final SecurityManager INSTANCE = ServiceLoader.load(SecurityManager.class).iterator().next();
 
     public static SecurityManager getInstance() {
         return INSTANCE;

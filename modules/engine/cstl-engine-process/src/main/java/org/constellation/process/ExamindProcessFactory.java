@@ -26,11 +26,12 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.identification.Identification;
 
-import javax.imageio.spi.ServiceRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
+
 import org.geotoolkit.processing.AbstractProcessingRegistry;
 
 /**
@@ -68,7 +69,7 @@ public class ExamindProcessFactory extends AbstractProcessingRegistry {
      * @return
      */
     private static synchronized ProcessDescriptor[] findDescriptors() {
-        final Iterator<ProcessDescriptor> ite = ServiceRegistry.lookupProviders(ProcessDescriptor.class);
+        final Iterator<ProcessDescriptor> ite = ServiceLoader.load(ProcessDescriptor.class).iterator();
         final List<ProcessDescriptor> descriptors = new ArrayList<>();
         while (ite.hasNext()) {
             descriptors.add(ite.next());
