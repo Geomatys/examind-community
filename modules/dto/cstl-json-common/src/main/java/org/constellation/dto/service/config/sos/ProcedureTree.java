@@ -20,7 +20,10 @@ package org.constellation.dto.service.config.sos;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import org.opengis.geometry.Geometry;
 
@@ -50,6 +53,8 @@ public class ProcedureTree {
     private Double maxy;
 
     private Geometry geom;
+
+    private Map<Date, Geometry> historicalLocations = new HashMap<>();
 
     public ProcedureTree() {
 
@@ -239,6 +244,20 @@ public class ProcedureTree {
         this.geom = geom;
     }
 
+    /**
+     * @return the historicalLocations
+     */
+    public Map<Date, Geometry> getHistoricalLocations() {
+        return historicalLocations;
+    }
+
+    /**
+     * @param historicalLocations the historicalLocations to set
+     */
+    public void setHistoricalLocations(Map<Date, Geometry> historicalLocations) {
+        this.historicalLocations = historicalLocations;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[ProcedureTree]\n");
@@ -271,13 +290,19 @@ public class ProcedureTree {
             sb.append("geom=").append(geom).append("\n");
         }
         if (fields != null) {
-            sb.append("fields:");
+            sb.append("fields:\n");
             for (String field : fields) {
                 sb.append(field).append("\n");
             }
         }
+        if (historicalLocations != null) {
+            sb.append("historical Locations:\n");
+            for (Entry<Date, Geometry> hl : historicalLocations.entrySet()) {
+                sb.append(hl.getKey()).append(" => ").append(hl.getValue()).append("\n");
+            }
+        }
         if (children != null) {
-            sb.append("children:");
+            sb.append("children:\n");
             for (ProcedureTree child : children) {
                 sb.append(child.id).append("\n");
             }
@@ -304,6 +329,7 @@ public class ProcedureTree {
                    Objects.equals(this.children,     that.children)   &&
                    Objects.equals(this.omType,       that.omType)   &&
                    Objects.equals(this.geom,         that.geom)   &&
+                   Objects.equals(this.historicalLocations, that.historicalLocations)   &&
                    Objects.equals(this.type,         that.type);
         }
         return false;
@@ -324,6 +350,7 @@ public class ProcedureTree {
         hash = 11 * hash + Objects.hashCode(this.miny);
         hash = 11 * hash + Objects.hashCode(this.maxy);
         hash = 11 * hash + Objects.hashCode(this.geom);
+        hash = 11 * hash + Objects.hashCode(this.historicalLocations);
         return hash;
     }
 }

@@ -43,6 +43,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import com.examind.sensor.ws.SensorUtils;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.util.NamedId;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
@@ -312,10 +313,10 @@ public class SensorServiceBusiness {
         }
     }
 
-    public void writeProcedure(final Integer id, final String sensorID, final org.opengis.geometry.Geometry location, final String parent, final String type, final String omType) throws ConfigurationException {
+    public void writeProcedure(final Integer id, final ProcedureTree procedure) throws ConfigurationException {
         final ObservationProvider pr = getOMProvider(id);
         try {
-            pr.writeProcedure(sensorID, location, parent, type, omType);
+            pr.writeProcedure(procedure);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

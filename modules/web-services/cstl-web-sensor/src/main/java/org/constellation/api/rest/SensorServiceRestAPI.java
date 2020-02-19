@@ -286,14 +286,6 @@ public class SensorServiceRestAPI {
         }
     }
 
-    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
-        final Geometry geom = process.getGeom();
-        sensorServiceBusiness.writeProcedure(id, process.getId(), geom, parent, process.getType(), process.getOmType());
-        for (ProcedureTree child : process.getChildren()) {
-            writeProcedures(id, child, process.getId());
-        }
-    }
-
     @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
@@ -335,7 +327,7 @@ public class SensorServiceRestAPI {
 
                 // update sensor location
                 for (ProcedureTree process : result.getProcedures()) {
-                    writeProcedures(sid, process, null);
+                    sensorServiceBusiness.writeProcedure(sid, process);
                 }
 
                 // import in O&M database

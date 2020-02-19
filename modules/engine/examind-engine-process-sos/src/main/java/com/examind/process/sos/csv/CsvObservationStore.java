@@ -18,6 +18,7 @@
 package com.examind.process.sos.csv;
 
 import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIByGeom;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildGeom;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -31,18 +32,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -55,7 +61,6 @@ import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.netcdf.OMUtils;
-import static org.geotoolkit.sos.netcdf.OMUtils.PRESSION_FIELD;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -195,7 +200,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 /*
                 1- filter prepare spatial/time column indices from ordinary fields
-                  --  lat/lon fields are added only in measure for trajectory observation
+                 -  lat/lon fields are added only in measure for trajectory observation
                 ================================================================*/
                 int mainIndex = -1;
                 int dateIndex = -1;
@@ -279,7 +284,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int count = 0;
 
                 // spatial / temporal boundaries
-                final GeoSpatialBound globalSpaBound = new GeoSpatialBound();
                 final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
 
                 // -- single observation related variables --
@@ -291,6 +295,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 MeasureStringBuilder msb = new MeasureStringBuilder();
                 // memorize positions to compute FOI
                 final List<DirectPosition> positions = new ArrayList<>();
+                final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
 
                 // -- previous variables leading to new observations --
                 String previousFoi = null;
@@ -326,7 +331,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         currentFoi = line[foiIndex];
                     }
 
-                    // look for current date (for observation separation)
+                    // look for current date (for non timeseries observation separation)
                     if (dateIndex != mainIndex) {
                         try {
                             currentTime = sdf.parse(line[dateIndex]).getTime();
@@ -351,7 +356,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         }
                         final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                         result.addFeatureOfInterest(sp);
-                        globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
+                        //result.spatialBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
                         result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                          sp,                            // foi
@@ -380,10 +385,11 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     ==================================*/
 
                     // update temporal interval
+                    Long millis = null;
                     if (dateIndex != -1) {
                         try {
-                            final long millis = sdf.parse(line[dateIndex]).getTime();
-                            globalSpaBound.addDate(millis);
+                            millis = sdf.parse(line[dateIndex]).getTime();
+                            result.spatialBound.addDate(millis);
                             currentSpaBound.addDate(millis);
                         } catch (ParseException ex) {
                             LOGGER.warning(String.format("Problem parsing date for date field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
@@ -398,8 +404,17 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
                         if (!positions.contains(pos)) {
                             positions.add(pos);
+                            if (millis != null) {
+                                if (historicalPositions.containsKey(millis)) {
+                                    historicalPositions.get(millis).add(pos);
+                                } else {
+                                    List<DirectPosition> hpos = new ArrayList<>();
+                                    hpos.add(pos);
+                                    historicalPositions.put(millis, hpos);
+                                }
+                            }
                         }
-                        globalSpaBound.addXYCoordinate(longitude, latitude);
+                        result.spatialBound.addXYCoordinate(longitude, latitude);
                         currentSpaBound.addXYCoordinate(longitude, latitude);
                     }
 
@@ -422,8 +437,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         // assume that is a date otherwise
                         } else {
                             try {
-                                final long millis = sdf.parse(line[mainIndex]).getTime();
-                                msb.appendDate(millis);
+                                final long m = sdf.parse(line[mainIndex]).getTime();
+                                msb.appendDate(m);
                             } catch (ParseException ex) {
                                 LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line[mainIndex]));
                                 continue;
@@ -464,7 +479,8 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 }
                 final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                 result.addFeatureOfInterest(sp);
-                globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
+
+                //result.spatialBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
                 result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                  sp,                            // foi
@@ -476,13 +492,13 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                                                                  currentSpaBound.getTimeObject("2.0.0"))   // time
                 );
 
-
-
-                result.spatialBound.merge(globalSpaBound);
+                for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+                    result.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
+                }
 
                 // build procedure tree
                 final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                procedure.spatialBound.merge(globalSpaBound);
+                procedure.spatialBound.merge(result.spatialBound);
                 result.procedures.add(procedure);
 
                 return result;
@@ -553,60 +569,26 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
             // at least one line is expected to contain headers information
             if (it.hasNext()) {
 
-                // prepare spatial/time column indices
+                // prepare time column indices
                 int dateIndex = -1;
-                int latitudeIndex = -1;
-                int longitudeIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
                 for (int i = 0; i < headers.length; i++) {
                     final String header = headers[i];
-
                     if (dateColumn.equals(header)) {
                         dateIndex = i;
-                    } else if (latitudeColumn.equals(header)) {
-                        latitudeIndex = i;
-                    } else if (longitudeColumn.equals(header)) {
-                        longitudeIndex = i;
                     }
                 }
-
-                Date minDate = null;
-                Date maxDate = null;
 
                 while (it.hasNext()) {
                     final String[] line = it.next();
-
                     // update temporal information
                     if (dateIndex != -1) {
                         final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
-                        if (minDate == null && maxDate == null) {
-                            minDate = dateParse;
-                            maxDate = dateParse;
-                        } else {
-                            if(minDate == null || minDate.compareTo(dateParse) > 0) {
-                                minDate = dateParse;
-                            } else if (maxDate == null || maxDate.compareTo(dateParse) < 0) {
-                                maxDate = dateParse;
-                            }
-                        }
-                    }
-
-                    // update spatial information
-                    if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        result.addXYCoordinate(
-                                Double.parseDouble(line[longitudeIndex]),
-                                Double.parseDouble(line[latitudeIndex]));
+                        result.addDate(dateParse);
                     }
                 }
-
-                // set temporal interval
-                if (minDate != null && maxDate != null) {
-                    result.dateStart = minDate;
-                    result.dateEnd = maxDate;
-                }
-
                 return result.getTimeObject("2.0.0");
             }
             throw new DataStoreException("csv headers not found");
@@ -629,14 +611,11 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     @Override
     public ObservationReader getReader() {
-//        return new CsvObservationReader(dataFile, analyze);
         throw new UnsupportedOperationException();
     }
 
     @Override
     public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
-
-
         // open csv file
         try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
@@ -672,26 +651,15 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 // procedure tree instanciation
                 final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
 
-                Date minDate = null;
-                Date maxDate = null;
-
                 while (it.hasNext()) {
-                    final String[] line = it.next();
+                    final String[] line   = it.next();
+                    AbstractGeometry geom = null;
+                    Date dateParse        = null;
 
                     // update temporal interval
                     if (dateIndex != -1) {
                         try {
-                            final Date dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
-                            if (minDate == null && maxDate == null) {
-                                minDate = dateParse;
-                                maxDate = dateParse;
-                            } else {
-                                if(minDate.compareTo(dateParse) > 0) {
-                                    minDate = dateParse;
-                                } else if (maxDate.compareTo(dateParse) < 0) {
-                                    maxDate = dateParse;
-                                }
-                            }
+                            dateParse = new SimpleDateFormat(this.dateFormat).parse(line[dateIndex]);
                         } catch (ParseException ex) {
                             LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line[dateIndex]));
                             continue;
@@ -700,15 +668,14 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        procedureTree.spatialBound.addXYCoordinate(
-                                Double.parseDouble(line[longitudeIndex]), Double.parseDouble(line[latitudeIndex]));
+                        try {
+                            DirectPosition dp = new GeneralDirectPosition(Double.parseDouble(line[longitudeIndex]), Double.parseDouble(line[latitudeIndex]));
+                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
+                        } catch (NumberFormatException ex) {
+                            LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
+                        }
                     }
-                }
-
-                // set temporal interval
-                if (minDate != null && maxDate != null) {
-                    procedureTree.spatialBound.dateStart = minDate;
-                    procedureTree.spatialBound.dateEnd = maxDate;
+                    procedureTree.spatialBound.addLocation(dateParse, geom);
                 }
 
                 return Collections.singletonList(procedureTree);

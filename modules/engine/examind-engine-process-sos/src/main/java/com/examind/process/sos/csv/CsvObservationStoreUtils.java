@@ -18,6 +18,8 @@ package com.examind.process.sos.csv;
 
 import java.util.List;
 import java.util.Set;
+import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.netcdf.OMUtils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -27,6 +29,18 @@ import org.opengis.geometry.DirectPosition;
  * @author Guilhem Legal (Geomatys)
  */
 public class CsvObservationStoreUtils {
+
+    public static AbstractGeometry buildGeom(final List<DirectPosition> positions) {
+        final AbstractGeometry sp;
+        if (positions.isEmpty()) {
+            return null;
+        } else if (positions.size() > 1) {
+            sp = GMLXmlFactory.buildLineString("3.2.1", null, "EPSG:4326", positions);
+        } else {
+            sp = GMLXmlFactory.buildPoint("3.2.1", null, "EPSG:4326", positions.get(0));
+        }
+        return sp;
+    }
 
     public static SamplingFeature buildFOIByGeom(String foiID, final List<DirectPosition> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {
         final SamplingFeature sp;

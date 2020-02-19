@@ -44,35 +44,21 @@ import static org.constellation.sos.io.lucene.SOSLuceneObservationStoreFactory.P
 import static org.constellation.sos.io.lucene.SOSLuceneObservationStoreFactory.SENSOR_ID_BASE;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.util.NamesExt;
-import org.geotoolkit.gml.GMLUtilities;
-import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.AbstractRing;
-import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.gml.xml.LineString;
-import org.geotoolkit.gml.xml.Point;
-import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
-import org.opengis.geometry.Geometry;
 import org.opengis.metadata.Metadata;
-import org.opengis.observation.AnyFeature;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalObject;
 import org.opengis.util.GenericName;
 
 /**
@@ -188,10 +174,8 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
                 if (!result.phenomenons.contains(phen)) {
                     result.phenomenons.add(phen);
                 }
-                appendTime(o.getSamplingTime(), result.spatialBound);
-                appendTime(o.getSamplingTime(), procedure.spatialBound);
-                appendGeometry(o.getFeatureOfInterest(), result.spatialBound);
-                appendGeometry(o.getFeatureOfInterest(), procedure.spatialBound);
+                result.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
+                procedure.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
                 result.observations.add(o);
             }
         }
@@ -219,65 +203,10 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
                     procedure.fields.add(field);
                 }
             }
-            appendTime(obs.getSamplingTime(), procedure.spatialBound);
-            appendGeometry(obs.getFeatureOfInterest(), procedure.spatialBound);
+            procedure.spatialBound.appendLocation(obs.getSamplingTime(), obs.getFeatureOfInterest());
         }
         return result;
     }
-
-    private void appendTime(final TemporalObject time, final GeoSpatialBound spatialBound) {
-        if (time instanceof Instant) {
-            final Instant i = (Instant) time;
-            spatialBound.addDate(i.getDate());
-        } else if (time instanceof Period) {
-            final Period p = (Period) time;
-            spatialBound.addDate(p.getBeginning().getDate());
-            spatialBound.addDate(p.getEnding().getDate());
-        }
-    }
-
-    private void appendGeometry(final AnyFeature feature, final GeoSpatialBound spatialBound){
-        if (feature instanceof SamplingFeature) {
-            final SamplingFeature sf = (SamplingFeature) feature;
-            final Geometry geom = sf.getGeometry();
-            final AbstractGeometry ageom;
-            if (geom instanceof AbstractGeometry) {
-                ageom = (AbstractGeometry)geom;
-            } else if (geom != null) {
-                ageom = GMLUtilities.getGMLFromISO(geom);
-            } else {
-                ageom = null;
-            }
-            spatialBound.addGeometry(ageom);
-            spatialBound.addGeometry(ageom);
-            extractBoundary(ageom, spatialBound);
-            extractBoundary(ageom, spatialBound);
-        }
-    }
-
-    private void extractBoundary(final AbstractGeometry geom, final GeoSpatialBound spatialBound) {
-        if (geom instanceof Point) {
-            final Point p = (Point) geom;
-            if (p.getPos() != null) {
-                spatialBound.addXCoordinate(p.getPos().getOrdinate(0));
-                spatialBound.addYCoordinate(p.getPos().getOrdinate(1));
-            }
-        } else if (geom instanceof LineString) {
-            final LineString ls = (LineString) geom;
-            final Envelope env = ls.getBounds();
-            if (env != null) {
-                spatialBound.addXCoordinate(env.getMinimum(0));
-                spatialBound.addXCoordinate(env.getMaximum(0));
-                spatialBound.addYCoordinate(env.getMinimum(1));
-                spatialBound.addYCoordinate(env.getMaximum(1));
-            }
-        } else if (geom instanceof Polygon) {
-            final Polygon p = (Polygon) geom;
-            AbstractRing ext = p.getExterior().getAbstractRing();
-            // TODO
-        }
-    }
-
 
     @Override
     public void close() throws DataStoreException {
@@ -299,8 +228,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
         final ExtractionResult result = new ExtractionResult();
-        result.spatialBound.initBoundary();
-        appendTime(reader.getEventTime("2.0.0"), result.spatialBound);
+        result.spatialBound.addTime(reader.getEventTime("2.0.0"));
         return result.spatialBound.getTimeObject("2.0.0");
     }
 

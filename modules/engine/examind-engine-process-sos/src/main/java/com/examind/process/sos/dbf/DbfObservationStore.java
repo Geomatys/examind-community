@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
@@ -46,6 +47,7 @@ import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.data.dbf.DbaseFileReader.Row;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -519,10 +521,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
             // at least one line is expected to contain headers information
             if (headers != null) {
 
-                // prepare spatial/time column indices
+                // prepare time column indices
                 int dateIndex = -1;
-                int latitudeIndex = -1;
-                int longitudeIndex = -1;
 
                 // read headers
                 for (int i = 0; i < headers.getNumFields(); i++) {
@@ -530,15 +530,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
                     if (dateColumn.equals(header)) {
                         dateIndex = i;
-                    } else if (latitudeColumn.equals(header)) {
-                        latitudeIndex = i;
-                    } else if (longitudeColumn.equals(header)) {
-                        longitudeIndex = i;
                     }
                 }
-
-                Date minDate = null;
-                Date maxDate = null;
 
                 while (reader.hasNext()) {
                     final Row line = reader.next();
@@ -556,32 +549,9 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         } else {
                             throw new ClassCastException("Unhandled date type");
                         }
-                        if (minDate == null && maxDate == null) {
-                            minDate = dateParse;
-                            maxDate = dateParse;
-                        } else {
-                            if(minDate == null || minDate.compareTo(dateParse) > 0) {
-                                minDate = dateParse;
-                            } else if (maxDate == null || maxDate.compareTo(dateParse) < 0) {
-                                maxDate = dateParse;
-                            }
-                        }
-                    }
-
-                    // update spatial information
-                    if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        result.addXYCoordinate(
-                                (Double)(line.read(longitudeIndex)),
-                                (Double)(line.read(latitudeIndex)));
+                        result.addDate(dateParse);
                     }
                 }
-
-                // set temporal interval
-                if (minDate != null && maxDate != null) {
-                    result.dateStart = minDate;
-                    result.dateEnd = maxDate;
-                }
-
                 return result.getTimeObject("2.0.0");
             }
             throw new DataStoreException("dbf headers not found");
@@ -649,17 +619,16 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 // procedure tree instanciation
                 final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
 
-                Date minDate = null;
-                Date maxDate = null;
-
                 while (reader.hasNext()) {
                     final Row line = reader.next();
+
+                    Date dateParse        = null;
+                    AbstractGeometry geom = null;
 
                     // update temporal interval
                     if (dateIndex != -1) {
                         try {
                             final Object dateObj = line.read(dateIndex);
-                            final Date dateParse;
                             if (dateObj instanceof Double) {
                                 dateParse = dateFromDouble((Double)dateObj);
                             } else if (dateObj instanceof String) {
@@ -669,16 +638,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                             } else {
                                 throw new ClassCastException("Unhandled date type");
                             }
-                            if (minDate == null && maxDate == null) {
-                                minDate = dateParse;
-                                maxDate = dateParse;
-                            } else {
-                                if(minDate.compareTo(dateParse) > 0) {
-                                    minDate = dateParse;
-                                } else if (maxDate.compareTo(dateParse) < 0) {
-                                    maxDate = dateParse;
-                                }
-                            }
+                            procedureTree.spatialBound.addDate(dateParse);
                         } catch (ClassCastException ex) {
                             LOGGER.warning(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
                             continue;
@@ -687,16 +647,14 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        procedureTree.spatialBound.addXYCoordinate(
-                                (Double)line.read(longitudeIndex),
-                                (Double)line.read(latitudeIndex));
+                        try {
+                            DirectPosition dp = new GeneralDirectPosition((Double)line.read(longitudeIndex), (Double)line.read(latitudeIndex));
+                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
+                        } catch (NumberFormatException ex) {
+                            LOGGER.warning(String.format("Problem parsing lat/lon field at line %d.", count));
+                        }
                     }
-                }
-
-                // set temporal interval
-                if (minDate != null && maxDate != null) {
-                    procedureTree.spatialBound.dateStart = minDate;
-                    procedureTree.spatialBound.dateEnd = maxDate;
+                    procedureTree.spatialBound.addLocation(dateParse, geom);
                 }
 
                 return Collections.singletonList(procedureTree);

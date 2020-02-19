@@ -363,11 +363,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final Integer providerId    = dataBusiness.getDataProvider(dataId);
         final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
         final DataProvider provider = DataProviders.getProvider(providerId);
-        final List<ProcedureTree> procedures;
         final List<Integer> ids = new ArrayList<>();
 
         if (provider instanceof ObservationProvider) {
-            procedures = ((ObservationProvider)provider).getProcedures();
+            final List<ProcedureTree> procedures = ((ObservationProvider)provider).getProcedures();
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {
@@ -420,17 +419,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             final DataProvider provider;
             try {
                 provider = DataProviders.getProvider(providerId);
-                final ExtractionResult result;
                 if (provider instanceof ObservationProvider) {
                     ObservationProvider omProvider = (ObservationProvider) provider;
-                    result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
+                    final ExtractionResult result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
 
                     existingPhenomenons.addAll(result.getPhenomenons());
                     existingFois.addAll(result.getFeatureOfInterest());
 
                     // update sensor location
                     for (ProcedureTree process : result.getProcedures()) {
-                        writeProcedures(sosRef.getId(), process, null);
+                        sensorServBusiness.writeProcedure(sosRef.getId(), process);
                     }
                     result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
 
@@ -445,14 +443,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         return nbObservationInserted;
-    }
-
-
-    private void writeProcedures(final Integer id, final ProcedureTree process, final String parent) throws ConfigurationException {
-        sensorServBusiness.writeProcedure(id, process.getId(), process.getGeom(), parent, process.getType(), process.getOmType());
-        for (ProcedureTree child : process.getChildren()) {
-            writeProcedures(id, child, process.getId());
-        }
     }
 
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {

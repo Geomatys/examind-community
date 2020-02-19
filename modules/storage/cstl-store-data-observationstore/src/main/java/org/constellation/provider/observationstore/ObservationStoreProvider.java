@@ -25,9 +25,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -606,14 +608,21 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public void writeProcedure(String procedureID, Object position, String parent, String type, String omType) throws ConstellationStoreException {
-        if (position != null && !(position instanceof AbstractGeometry)) {
+    public void writeProcedure(ProcedureTree procedure) throws ConstellationStoreException {
+        writeProcedure(procedure, null);
+    }
+
+    private void writeProcedure(ProcedureTree procedure, String parent) throws ConstellationStoreException {
+        if (procedure.getGeom() != null && !(procedure.getGeom() instanceof AbstractGeometry)) {
             throw new ConstellationStoreException("Unexpected geometry type. GML geometry expected.");
         }
         try {
-            store.getWriter().writeProcedure(procedureID, (AbstractGeometry) position, parent, type, omType);
+            store.getWriter().writeProcedure(procedure.getId(), (AbstractGeometry) procedure.getGeom(), parent, procedure.getType(), procedure.getOmType());
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
+        }
+        for (ProcedureTree child : procedure.getChildren()) {
+            writeProcedure(child, procedure.getId());
         }
     }
 
@@ -869,6 +878,19 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                                                   bound.maxy,
                                                   pt.fields,
                                                   geom);
+
+        final Map<Date, Geometry> historicalLocations = new HashMap<>();
+        for (Entry<Date, AbstractGeometry> entry : pt.spatialBound.getHistoricalLocations().entrySet()) {
+            final AbstractGeometry hGmlGeom = entry.getValue();
+            Geometry hgeom = null;
+            if (hGmlGeom instanceof Geometry) {
+                hgeom = (Geometry) hGmlGeom;
+            } else if (hGmlGeom != null) {
+                LOGGER.log(Level.WARNING, "GML Geometry can not be casted as Opengis one:{0}", hGmlGeom);
+            }
+            historicalLocations.put(entry.getKey(), hgeom);
+        }
+        result.setHistoricalLocations(historicalLocations);
         for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree child: pt.children) {
             result.getChildren().add(toDto(child));
         }
