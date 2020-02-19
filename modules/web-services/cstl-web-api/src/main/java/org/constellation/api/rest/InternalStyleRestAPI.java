@@ -69,6 +69,7 @@ import org.constellation.dto.StyleBrief;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
+import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.style.DefaultLineSymbolizer;
 import org.geotoolkit.style.DefaultPointSymbolizer;
@@ -166,6 +167,14 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             final RasterSymbolizer rasterSymbolizer = (RasterSymbolizer) symbolizer;
                             if(rasterSymbolizer.getColorMap() != null){
                                 function = rasterSymbolizer.getColorMap().getFunction();
+                                break search;
+                            }
+                        } else if (symbolizer instanceof IsolineSymbolizer) {
+                            final IsolineSymbolizer isolineSymbolizer = (IsolineSymbolizer) symbolizer;
+                            if (isolineSymbolizer.getLineSymbolizer() != null &&
+                                isolineSymbolizer.getLineSymbolizer().getStroke() != null &&
+                                isolineSymbolizer.getLineSymbolizer().getStroke().getColor() instanceof Function) {
+                                function = (Function) isolineSymbolizer.getLineSymbolizer().getStroke().getColor();
                                 break search;
                             }
                         }
