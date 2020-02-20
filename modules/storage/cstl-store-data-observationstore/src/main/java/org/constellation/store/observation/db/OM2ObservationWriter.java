@@ -70,6 +70,7 @@ import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
 import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
 import org.geotoolkit.gml.xml.v321.ReferenceType;
+import org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.opengis.referencing.operation.TransformException;
@@ -114,7 +115,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             return writeObservation(template.getObservation());
         } else  {
             try(final Connection c = source.getConnection()) {
-                writeProcedure(template.getProcedure(), null, null, null, null, c);
+                writeProcedure(new ProcedureTree(template.getProcedure(), null, null), null, c);
                 for (PhenomenonProperty phen : template.getObservedProperties()) {
                     writePhenomenon(phen, c, true);
                 }
@@ -215,7 +216,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
             final org.geotoolkit.observation.xml.Process procedure = (org.geotoolkit.observation.xml.Process)observation.getProcedure();
             final String procedureID = procedure.getHref();
-            final int pid = writeProcedure(procedureID, null, null, null, null, c);
+            final int pid = writeProcedure(new ProcedureTree(procedureID, null, null), null, c);
             stmt.setString(6, procedureID);
             final org.geotoolkit.sampling.xml.SamplingFeature foi = (org.geotoolkit.sampling.xml.SamplingFeature)observation.getFeatureOfInterest();
             final String foiID;
@@ -398,18 +399,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     @Override
-    public void writeProcedure(final String procedureID, final AbstractGeometry position, final String parent, final String type, final String omType) throws DataStoreException {
+    public void writeProcedure(final ProcedureTree procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            writeProcedure(procedureID, position, parent, type, omType, c);
+            writeProcedure(procedure, null, c);
         } catch (SQLException | FactoryException ex) {
             throw new DataStoreException("Error while inserting procedure.", ex);
         }
     }
 
-    private int writeProcedure(final String procedureID,  final AbstractGeometry position, final String parent, final String type, final String omType, final Connection c) throws SQLException, FactoryException, DataStoreException {
+    private int writeProcedure(final ProcedureTree procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
         int pid;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
-            stmtExist.setString(1, procedureID);
+            stmtExist.setString(1, procedure.id);
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
                     try(final Statement stmt = c.createStatement();
@@ -421,7 +422,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?)")) {
-                        stmtInsert.setString(1, procedureID);
+                        stmtInsert.setString(1, procedure.id);
+                        AbstractGeometry position = procedure.spatialBound.getGeometry("2.0.0");
                         if (position != null) {
                             Geometry pt = GeometrytoJTS.toJTS(position, false);
                             int srid = pt.getSRID();
@@ -440,13 +442,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else {
                             stmtInsert.setNull(5, java.sql.Types.VARCHAR);
                         }
-                        if (type != null) {
-                            stmtInsert.setString(6, type);
+                        if (procedure.type != null) {
+                            stmtInsert.setString(6, procedure.type);
                         } else {
                             stmtInsert.setNull(6, java.sql.Types.VARCHAR);
                         }
-                        if (omType != null) {
-                            stmtInsert.setString(7, omType);
+                        if (procedure.omType != null) {
+                            stmtInsert.setString(7, procedure.omType);
                         } else {
                             stmtInsert.setNull(7, java.sql.Types.VARCHAR);
                         }
@@ -456,6 +458,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     pid = rs.getInt(1);
                 }
             }
+        }
+        for (ProcedureTree child : procedure.children) {
+            writeProcedure(procedure, procedure.id, c);
         }
         return pid;
     }

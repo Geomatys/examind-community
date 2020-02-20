@@ -52,6 +52,7 @@ import org.constellation.api.CommonConstants;
 import static java.nio.file.StandardOpenOption.*;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.xml.AbstractObservation;
+import org.geotoolkit.sos.netcdf.ExtractionResult;
 
 
 /**
@@ -323,8 +324,8 @@ public class FileObservationWriter implements ObservationWriter {
     }
 
     @Override
-    public void writeProcedure(final String procedureID, final AbstractGeometry position, final String parent, final String type, final String omType) throws DataStoreException {
-         // do nothing
+    public void writeProcedure(ExtractionResult.ProcedureTree procedure) throws DataStoreException {
+        // do nothing
     }
 
     /**

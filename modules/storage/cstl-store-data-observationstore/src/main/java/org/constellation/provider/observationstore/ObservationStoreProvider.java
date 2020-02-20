@@ -69,6 +69,7 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationTemplate;
 import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.geotoolkit.gml.GMLUtilities;
 import org.geotoolkit.sos.netcdf.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -609,20 +610,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     @Override
     public void writeProcedure(ProcedureTree procedure) throws ConstellationStoreException {
-        writeProcedure(procedure, null);
-    }
-
-    private void writeProcedure(ProcedureTree procedure, String parent) throws ConstellationStoreException {
-        if (procedure.getGeom() != null && !(procedure.getGeom() instanceof AbstractGeometry)) {
-            throw new ConstellationStoreException("Unexpected geometry type. GML geometry expected.");
-        }
         try {
-            store.getWriter().writeProcedure(procedure.getId(), (AbstractGeometry) procedure.getGeom(), parent, procedure.getType(), procedure.getOmType());
+            store.getWriter().writeProcedure(toGeotk(procedure));
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex);
-        }
-        for (ProcedureTree child : procedure.getChildren()) {
-            writeProcedure(child, procedure.getId());
         }
     }
 
@@ -895,6 +886,36 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             result.getChildren().add(toDto(child));
         }
         return result;
+    }
+
+    private org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree toGeotk(ProcedureTree pt) {
+        if (pt != null) {
+            org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree result =
+                    new org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree(pt.getId(), pt.getType(), pt.getOmType(), pt.getFields());
+            result.spatialBound.addDate(pt.getDateStart());
+            result.spatialBound.addDate(pt.getDateEnd());
+            AbstractGeometry hgeom = null;
+            if (pt.getGeom() instanceof AbstractGeometry) {
+                hgeom = (AbstractGeometry) pt.getGeom();
+            } else if (pt.getGeom() != null) {
+                hgeom = GMLUtilities.getGMLFromISO(pt.getGeom());
+            }
+            result.spatialBound.addGeometry(hgeom);
+            for (Entry<Date, Geometry> entry : pt.getHistoricalLocations().entrySet()) {
+                AbstractGeometry cgeom = null;
+                if (entry.getValue() instanceof AbstractGeometry) {
+                    cgeom = (AbstractGeometry) entry.getValue();
+                } else if (pt.getGeom() != null) {
+                    cgeom = GMLUtilities.getGMLFromISO(entry.getValue());
+                }
+                result.spatialBound.addLocation(entry.getKey(), cgeom);
+            }
+            for (ProcedureTree child : pt.getChildren()) {
+                result.children.add(toGeotk(child));
+            }
+            return result;
+        }
+        return null;
     }
 
     private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final int mode, Map<String, String> hints) throws ConstellationStoreException, DataStoreException {
