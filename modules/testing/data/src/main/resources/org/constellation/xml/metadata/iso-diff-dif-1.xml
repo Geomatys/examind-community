@@ -3,7 +3,10 @@
     <fileIdentifier>
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">id-1</CharacterString>
     </fileIdentifier>
-    <hierarchyLevel xmlns="http://www.isotc211.org/2005/gmd">
+    <language>
+        <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+    </language>
+    <hierarchyLevel>
         <MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="series">series</MD_ScopeCode>
     </hierarchyLevel>
     <contact>
@@ -217,7 +220,7 @@
                             <date>
                                 <CI_Date>
                                     <date>
-                                        <Date xmlns="http://www.isotc211.org/2005/gco">2016-08-10</Date>
+                                        <DateTime xmlns="http://www.isotc211.org/2005/gco">2016-08-10T00:00:00</DateTime>
                                     </date>
                                     <dateType>
                                         <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>
@@ -310,7 +313,7 @@
                     <temporalElement>
                         <EX_TemporalExtent>
                             <extent>
-                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
+                                <TimePeriod xmlns:ns0="http://www.opengis.net/gml/3.2" ns0:id="timeperiod1" xmlns="http://www.opengis.net/gml/3.2">
                                     <beginPosition>2010-12-01T12:00:00Z</beginPosition>
                                     <endPosition>2010-12-02T23:00:00Z</endPosition>
                                 </TimePeriod>

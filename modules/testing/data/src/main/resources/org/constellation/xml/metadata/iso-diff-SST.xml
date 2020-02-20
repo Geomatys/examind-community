@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MI_Metadata xmlns="http://www.isotc211.org/2005/gmi">
+<MI_Metadata xmlns="http://www.isotc211.org/2005/gmi" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmi https://data.noaa.gov/resources/iso19139/schema.xsd">
     <fileIdentifier xmlns="http://www.isotc211.org/2005/gmd">
         <CharacterString xmlns="http://www.isotc211.org/2005/gco">L2-SST</CharacterString>
     </fileIdentifier>
+    <language xmlns="http://www.isotc211.org/2005/gmd">
+        <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+    </language>
     <hierarchyLevel xmlns="http://www.isotc211.org/2005/gmd">
         <MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="series">series</MD_ScopeCode>
     </hierarchyLevel>
+    <contact xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown" xmlns="http://www.isotc211.org/2005/gmd"/>
     <dateStamp xmlns="http://www.isotc211.org/2005/gmd">
-        <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-11-18</DateTime>
+        <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-11-18T00:00:00</DateTime>
     </dateStamp>
     <identificationInfo xmlns="http://www.isotc211.org/2005/gmd">
         <MD_DataIdentification>
@@ -19,7 +23,7 @@
                     <date>
                         <CI_Date>
                             <date>
-                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-01-01</DateTime>
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-01-01T00:00:00</DateTime>
                             </date>
                             <dateType>
                                 <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</CI_DateTypeCode>
@@ -105,7 +109,7 @@
                             <date>
                                 <CI_Date>
                                     <date>
-                                        <Date xmlns="http://www.isotc211.org/2005/gco">2016-08-10</Date>
+                                        <DateTime xmlns="http://www.isotc211.org/2005/gco">2016-08-10T00:00:00</DateTime>
                                     </date>
                                     <dateType>
                                         <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>
@@ -113,7 +117,7 @@
                                 </CI_Date>
                             </date>
                             <collectiveTitle>
-                                <CharacterString  xmlns="http://www.isotc211.org/2005/gco">Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)</CharacterString>
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)</CharacterString>
                             </collectiveTitle>
                         </CI_Citation>
                     </thesaurusName>
@@ -138,6 +142,9 @@
                     </keyword>
                 </MD_Keywords>
             </descriptiveKeywords>
+            <language>
+                <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+            </language>
             <topicCategory>
                 <MD_TopicCategoryCode>climatologyMeteorologyAtmosphere</MD_TopicCategoryCode>
             </topicCategory>
@@ -178,7 +185,7 @@
                     <temporalElement>
                         <EX_TemporalExtent>
                             <extent>
-                                <TimePeriod xmlns="http://www.opengis.net/gml/3.2">
+                                <TimePeriod xmlns:ns0="http://www.opengis.net/gml/3.2" ns0:id="timeperiod1" xmlns="http://www.opengis.net/gml/3.2">
                                     <beginPosition>2018-01-01T00:00:00.000Z</beginPosition>
                                     <endPosition/>
                                 </TimePeriod>
@@ -219,6 +226,7 @@
                             <title>
                                 <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Observation Mission.Climate</CharacterString>
                             </title>
+                            <date xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>
                         </CI_Citation>
                     </citation>
                     <identifier>
@@ -228,6 +236,9 @@
                             </code>
                         </MD_Identifier>
                     </identifier>
+                    <description>
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Observation Mission.Climate</CharacterString>
+                    </description>
                     <instrument>
                         <MI_Instrument>
                             <citation>
@@ -235,6 +246,7 @@
                                     <title>
                                         <CharacterString xmlns="http://www.isotc211.org/2005/gco">Second Generation Global Imager</CharacterString>
                                     </title>
+                                    <date xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>
                                 </CI_Citation>
                             </citation>
                             <identifier>
@@ -244,6 +256,7 @@
                                     </code>
                                 </MD_Identifier>
                             </identifier>
+                            <type xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>
                         </MI_Instrument>
                     </instrument>
                 </MI_Platform>

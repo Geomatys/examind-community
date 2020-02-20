@@ -768,10 +768,12 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final String identifierValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Entry_ID/dif:Short_Name");
             addCharacterStringNode(doc, root, "fileIdentifier", identifierValue);
 
+            addCodelistNode(doc, root, "language", "LanguageCode", "eng");
             addCodelistNode(doc, root, "hierarchyLevel", "MD_ScopeCode", "series");
 
             final List<Node> contactNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Personnel");
-            if (!contactNodes.isEmpty()) {
+            boolean hasContact = !contactNodes.isEmpty();
+            if (hasContact) {
                 for (Node contactNode : contactNodes) {
                     String role = NodeUtilities.getFirstValueFromPath(contactNode, "/dif:Personnel/dif:Role");
                     if ("METADATA AUTHOR".equals(role)) {
@@ -799,7 +801,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                             contact.appendChild(ciResp);
 
                             String uuid  = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/@uuid");
-                            addAttribute(doc, ciResp, "uuid", uuid);
+                            addAttribute(ciResp, "uuid", uuid);
 
                             String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
                             String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
@@ -825,12 +827,14 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                         }
                     }
                 }
+            } else {
+                addNullNode(doc, root, GMD, "contact");
             }
 
-            final String metaCreation = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Creation");
-            final String metaLastUpda = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision");
-            final String dataCreation = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Creation");
-            final String dataLastUpda = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Last_Revision");
+            final String metaCreation = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Creation"));
+            final String metaLastUpda = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Metadata_Last_Revision"));
+            final String dataCreation = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Creation"));
+            final String dataLastUpda = addTimeToDate(NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Metadata_Dates/dif:Data_Last_Revision"));
             if (notNullDate(metaLastUpda)) {
                 addDateTimeNode(doc, root, "dateStamp", metaLastUpda);
             } else {
@@ -893,7 +897,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                 dIdent.appendChild(poc);
                                 final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                 poc.appendChild(ciResp);
-                                addAttribute(doc, ciResp, "uuid", orguuid);
+                                addAttribute(ciResp, "uuid", orguuid);
                                 addCharacterStringNode(doc, ciResp, "organisationName", orgName);
                                 addCharacterStringNode(doc, ciResp, "positionName", "DATA CENTER CONTACT");
 
@@ -908,7 +912,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                 dIdent.appendChild(poc);
                                 final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                 poc.appendChild(ciResp);
-                                addAttribute(doc, ciResp, "uuid", orguuid);
+                                addAttribute(ciResp, "uuid", orguuid);
                                 String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
                                 String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
                                 String lName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Last_Name");
@@ -994,7 +998,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 thCit.appendChild(date);
                 final Node dateType = doc.createElementNS(GMD, "CI_Date");
                 date.appendChild(dateType);
-                addDateNode(doc, dateType, "date", "2016-08-10");
+                addDateTimeNode(doc, dateType, "date", "2016-08-10T00:00:00");
                 addCodelistNode(doc, dateType, "dateType", "CI_DateTypeCode", "revision");
                 addCharacterStringNode(doc, thCit, "collectiveTitle", "Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)");
             }
@@ -1026,6 +1030,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
             final String langValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Dataset_Language");
             if (langValue != null) {
                 addCodelistNode(doc, dIdent, "language", "LanguageCode", langValue); // TODO ISO code
+            } else {
+                addCodelistNode(doc, dIdent, "language", "LanguageCode", "eng");
             }
 
             final List<String> categoryValues = NodeUtilities.getValuesFromPath(metadata, "/dif:DIF/dif:ISO_Topic_Category");
@@ -1114,7 +1120,9 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 final Node ext = doc.createElementNS(GMD, "extent");
                 tempEx.appendChild(ext);
                 final Node tp = doc.createElementNS(GML, "TimePeriod");
+                addAttributeNS(tp, "http://www.opengis.net/gml/3.2", "id", "timeperiod1");
                 ext.appendChild(tp);
+
                 final Node beg = doc.createElementNS(GML, "beginPosition");
                 beg.setTextContent(beginValue);
                 final Node end = doc.createElementNS(GML, "endPosition");
@@ -1167,7 +1175,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                     final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                     contact.appendChild(ciResp);
 
-                                    addAttribute(doc, ciResp, "uuid", orguuid);
+                                    addAttribute(ciResp, "uuid", orguuid);
 
                                     //addCharacterStringNode(doc, ciResp, "organisationName", NodeUtilities.getFirstValueFromPath(groupNode, "dif:Name"));
                                     addCharacterStringNode(doc, ciResp, "organisationName", orgName);
@@ -1185,7 +1193,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                     final Node ciResp = doc.createElementNS(GMD, "CI_ResponsibleParty");
                                     contact.appendChild(ciResp);
 
-                                    addAttribute(doc, ciResp, "uuid", orguuid);
+                                    addAttribute(ciResp, "uuid", orguuid);
 
                                     String fName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:First_Name");
                                     String mName = NodeUtilities.getFirstValueFromPath(personNode, "/dif:Contact_Person/dif:Middle_Name");
@@ -1291,6 +1299,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                         final Node ciPlatCit = doc.createElementNS(GMD, "CI_Citation");
                         platCit.appendChild(ciPlatCit);
                         addCharacterStringNode(doc, ciPlatCit, "title", longName);
+                        addNullNode(doc, ciPlatCit, GMD, "date");
+
                     }
                     if (shortName != null) {
                         final Node platId = doc.createElementNS(GMI, "identifier");
@@ -1299,6 +1309,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                         platId.appendChild(mdPlatId);
                         addCharacterStringNode(doc, mdPlatId, "code", shortName);
                     }
+                    addCharacterStringNode(doc, miPlatf, GMI, "description", longName);
                     List<Node> instrumentNodes = NodeUtilities.getNodeFromPath(platformNode, "/dif:Instrument");
                     for (Node instrumentNode : instrumentNodes) {
                         final Node inst = doc.createElementNS(GMI, "instrument");
@@ -1314,6 +1325,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                             final Node ciInstCit = doc.createElementNS(GMD, "CI_Citation");
                             instCit.appendChild(ciInstCit);
                             addCharacterStringNode(doc, ciInstCit, "title", instLongName);
+                            addNullNode(doc, ciInstCit, GMD, "date");
                         }
                         if (shortName != null) {
                             final Node InstId = doc.createElementNS(GMI, "identifier");
@@ -1322,6 +1334,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                             InstId.appendChild(mdInstId);
                             addCharacterStringNode(doc, mdInstId, "code", instShortName);
                         }
+                        //final Node instType = doc.createElementNS(GMI, "type");
+                        //final Node instTypeCode = doc.createElementNS(GMI, "MI_SensorTypeCode");
+                        //instType.appendChild(instTypeCode);
+                        //miInst.appendChild(instType);
+                        addNullNode(doc, miInst, GMI, "type");
 
                     }
 
@@ -1356,6 +1373,10 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         addGCONode(doc, root, nodeName, value, GCO, "Date");
     }
 
+    private void addCharacterStringNode(Document doc, Node root, String nodeNmsp, String nodeName, String value) {
+        addGCONode(doc, root, nodeNmsp, nodeName, value, GCO, "CharacterString");
+    }
+
     private void addCharacterStringNode(Document doc, Node root, String nodeName, String value) {
         addGCONode(doc, root, nodeName, value, GCO, "CharacterString");
     }
@@ -1369,8 +1390,11 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     }
 
     private void addGCONode(Document doc, Node root, String nodeName, String value, String gcoNmsp, String gcoType) {
+        addGCONode(doc, root, GMD, nodeName, value, gcoNmsp, gcoType);
+    }
+    private void addGCONode(Document doc, Node root, String nodeNmsp, String nodeName, String value, String gcoNmsp, String gcoType) {
         if (value != null) {
-            final Node node = doc.createElementNS(GMD, nodeName);
+            final Node node = doc.createElementNS(nodeNmsp, nodeName);
             final Node val = doc.createElementNS(gcoNmsp, gcoType);
             val.setTextContent(value);
             node.appendChild(val);
@@ -1378,9 +1402,21 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
         }
     }
 
-    private void addAttribute(Document doc, Node root, String attName, String value) {
+    private void addNullNode(Document doc, Node root, String nmsp, String nodeName) {
+        final Node node = doc.createElementNS(nmsp, nodeName);
+        addAttributeNS(node, GCO, "nilReason", "unknown");
+        root.appendChild(node);
+    }
+
+    private void addAttribute(Node root, String attName, String value) {
         if (value != null) {
             ((Element)root).setAttribute(attName, value);
+        }
+    }
+
+    private void addAttributeNS(Node root, String nmsp, String attName, String value) {
+        if (value != null) {
+            ((Element)root).setAttributeNS(nmsp, attName, value);
         }
     }
 
@@ -1399,6 +1435,13 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
 
     private boolean notNullDate(String dateValue) {
         return dateValue != null && !"unknown".equalsIgnoreCase(dateValue);
+    }
+
+    private String addTimeToDate(String date) {
+        if (notNullDate(date) && !date.contains("T")) {
+            return date + "T00:00:00";
+        }
+        return date;
     }
 
     private void buildDiffAddress(Document doc, Node ciResp, Node difNode, String url, String parent) {
