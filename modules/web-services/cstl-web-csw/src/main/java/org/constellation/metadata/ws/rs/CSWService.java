@@ -630,7 +630,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             filters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "GeographicDescriptionCode", lit, true));
         }
 
-        if (bbox != null) {
+        if (bbox != null && !bbox.isEmpty()) {
             String[] parts = bbox.split(",");
             if (parts.length == 5) {
                 try {
@@ -647,7 +647,7 @@ public class CSWService extends OGCWebService<CSWworker> {
                 throw new CstlServiceException("Bbox parameter must be of the form minx,miny,maxx,maxy,crs.", INVALID_PARAMETER_VALUE, "bbox");
             }
         }
-        if (geometry != null) {
+        if (geometry != null && !geometry.isEmpty()) {
             if (spRelation == null) {
                 spRelation = "Intersects";
             }
@@ -676,7 +676,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
         }
 
-        if (lat != null && lon != null && radius != null) {
+        if (lat != null && lon != null && radius != null && !lat.isEmpty() && !lon.isEmpty() && !radius.isEmpty()) {
             try {
                 String relation = "DWithin";
                 double latD     = Double.parseDouble(lat);
@@ -689,11 +689,11 @@ public class CSWService extends OGCWebService<CSWworker> {
                 throw new CstlServiceException("Proximity parameters must be Numbers (lat,lon,radius):" + ex.getMessage(), INVALID_PARAMETER_VALUE, "bbox");
             }
 
-        } else if (lat != null || lon != null || radius != null) {
+        } else if ((lat != null && !lat.isEmpty()) || (lon != null && !lon.isEmpty()) || (radius != null && !radius.isEmpty())) {
             throw new CstlServiceException("The 3 parameters must be definied lat, lon, radius for a distance filter.", INVALID_PARAMETER_VALUE);
         }
 
-        if (time != null) {
+        if (time != null && !time.isEmpty() && !time.equals("/")) {
             int separator = time.indexOf("/");
             if (separator != -1) {
                 if (trelation == null) {
