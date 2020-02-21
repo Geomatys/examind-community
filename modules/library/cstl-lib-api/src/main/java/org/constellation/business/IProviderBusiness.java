@@ -174,6 +174,8 @@ public interface IProviderBusiness {
 
     int createZXYPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException;
 
+    int createGPKGPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException;
+
     /**
      * Generates a pyramid conform for data.
      * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.

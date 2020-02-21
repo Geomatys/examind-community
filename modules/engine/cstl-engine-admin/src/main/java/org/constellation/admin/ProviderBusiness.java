@@ -86,10 +86,6 @@ import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
-import org.geotoolkit.storage.multires.DefiningPyramid;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.image.interpolation.InterpolationCase;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
@@ -97,6 +93,10 @@ import org.geotoolkit.process.Process;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.storage.multires.DefiningPyramid;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
@@ -668,6 +668,12 @@ public class ProviderBusiness implements IProviderBusiness {
         } catch (IOException ex) {
             throw new ConstellationException(ex);
         }
+    }
+
+    @Override
+    @Transactional
+    public int createGPKGPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException {
+        throw new ConstellationException("Unsupported format, format available only in Examind-Server");
     }
 
     /**
