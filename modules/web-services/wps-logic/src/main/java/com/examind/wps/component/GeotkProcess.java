@@ -123,7 +123,7 @@ public class GeotkProcess implements WPSProcess {
     private final static Logger LOGGER = Logging.getLogger("com.examind.wps.component");
     private final ProcessDescriptor descriptor;
     private final URI schemaFolder;
-    private final String schemaURL;
+    private String schemaURL;
     private final List<JobControlOptions> controlOptions;
     private final List<DataTransmissionMode> outTransmissions;
     private final Map<String, Object> userMap;
@@ -180,6 +180,10 @@ public class GeotkProcess implements WPSProcess {
         } else {
             userMap = configuration.getUserMap();
         }
+    }
+
+    public void setSchemaURL(final String schemaURL) {
+        this.schemaURL = schemaURL;
     }
 
     public void setPreConsumers(final Collection<ProcessPreConsumer> preConsumers) {

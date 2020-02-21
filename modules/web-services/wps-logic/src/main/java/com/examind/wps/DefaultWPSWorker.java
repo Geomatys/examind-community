@@ -469,6 +469,9 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 webappURL = webappURL.substring(0, index+name.length());
                 this.productURL = webappURL + "/"+PATH_PRODUCTS_NAME;
                 this.schemaURL = webappURL + "/"+PATH_PRODUCTS_NAME+"/"+PATH_SCHEMA_NAME;
+                for (WPSProcess p : processList.values()) {
+                    if (p instanceof GeotkProcess) ((GeotkProcess) p).setSchemaURL(schemaURL);
+                }
             } else {
                 LOGGER.log(Level.WARNING, "Wrong service URL.");
             }
