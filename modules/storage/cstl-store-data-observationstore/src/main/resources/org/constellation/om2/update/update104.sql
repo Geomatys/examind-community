@@ -1,7 +1,7 @@
 CREATE TABLE "$SCHEMAom"."historical_locations" (
     "procedure"         character varying(200) NOT NULL,
     "time"              timestamp NOT NULL,
-    "location"          varchar (10000) for bit data
+    "location"          varchar (32672) for bit data
 );
 
 ALTER TABLE "$SCHEMAom"."historical_locations" ADD CONSTRAINT hl_pk PRIMARY KEY ("procedure", "time");

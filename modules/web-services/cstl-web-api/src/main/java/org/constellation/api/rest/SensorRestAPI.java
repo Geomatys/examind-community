@@ -297,7 +297,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         final List<ProcedureTree> procedures;
         try {
             if (provider instanceof ObservationProvider) {
-                procedures = ((ObservationProvider)provider).getProcedures();
+                procedures = ((ObservationProvider)provider).getProcedureTrees(null, Collections.EMPTY_MAP);
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
             }

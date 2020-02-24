@@ -574,8 +574,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
      */
     @Override
     public ObservationReader getReader() {
-//        return new DbfObservationReader(dataFile, analyze);
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     @Override
@@ -671,7 +670,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
      */
     @Override
     public ObservationFilterReader getFilter() {
-        throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
+        return null;
     }
 
     /**
@@ -679,7 +678,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
      */
     @Override
     public ObservationWriter getWriter() {
-        throw new UnsupportedOperationException("Writing is not supported on this observation store.");
+        return null;
     }
 
     private static final long TIME_AT_2000;

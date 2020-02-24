@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -580,6 +581,14 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public AbstractGeometry getSensorLocation(String sensorID, String version) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet in this implementation.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 

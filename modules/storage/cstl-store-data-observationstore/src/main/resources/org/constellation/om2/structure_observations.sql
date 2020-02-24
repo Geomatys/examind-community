@@ -4,7 +4,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.6');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.7');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -61,7 +61,7 @@ CREATE TABLE "$SCHEMAom"."observed_properties" (
 
 CREATE TABLE "$SCHEMAom"."procedures" (
     "id"     character varying(200) NOT NULL,
-    "shape"  varchar (10000) for bit data,
+    "shape"  varchar (32672) for bit data,
     "crs"    integer,
     "pid"    integer NOT NULL,
     "parent" character varying(200),
@@ -83,14 +83,15 @@ CREATE TABLE "$SCHEMAom"."sampling_features" (
     "name"             character varying(200),
     "description"      character varying(200),
     "sampledfeature"   character varying(200),
-    "shape"            varchar (10000) for bit data,
+    "shape"            varchar (32672) for bit data,
     "crs"              integer
 );
 
 CREATE TABLE "$SCHEMAom"."historical_locations" (
     "procedure"         character varying(200) NOT NULL,
     "time"              timestamp NOT NULL,
-    "location"          varchar (10000) for bit data
+    "location"          varchar (32672) for bit data,
+    "crs"               integer
 );
 
 -- USED ONLY FOR V100 SOS --

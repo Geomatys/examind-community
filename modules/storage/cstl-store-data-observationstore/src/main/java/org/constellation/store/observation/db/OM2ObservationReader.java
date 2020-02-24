@@ -60,6 +60,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -85,7 +86,6 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_JSON;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.opengis.observation.Process;
@@ -557,6 +557,46 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } catch (SQLException | FactoryException  | ParseException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public Map<Date, AbstractGeometry> getSensorLocations(final String sensorID, final String version) throws DataStoreException {
+        final Map<Date, AbstractGeometry> results = new HashMap<>();
+        try(final Connection c = source.getConnection()) {
+
+            try(final PreparedStatement stmt = (isPostgres) ?
+                    c.prepareStatement("SELECT \"time\", st_asBinary(\"location\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?") :
+                    c.prepareStatement("SELECT \"time\", \"location\", \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?")) {
+                stmt.setString(1, sensorID);
+                try(final ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        final Date d = rs.getTimestamp(1);
+                        final byte[] b = rs.getBytes(2);
+                        final int srid = rs.getInt(3);
+                        final CoordinateReferenceSystem crs;
+                        if (srid != 0) {
+                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                        } else {
+                            crs = defaultCRS;
+                        }
+                        final Geometry geom;
+                        if (b != null) {
+                            WKBReader reader = new WKBReader();
+                            geom             = reader.read(b);
+                        } else {
+                            return null;
+                        }
+
+                        final String gmlVersion = getGMLVersion(version);
+                        results.put(d, JTStoGeometry.toGML(gmlVersion, geom, crs));
+                    }
+                }
+            }
+
+        } catch (SQLException | FactoryException  | ParseException ex) {
+            throw new DataStoreException(ex.getMessage(), ex);
+        }
+        return results;
     }
 
     /**

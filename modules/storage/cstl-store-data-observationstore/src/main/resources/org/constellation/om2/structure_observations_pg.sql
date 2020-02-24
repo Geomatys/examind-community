@@ -3,7 +3,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.6');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.7');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -88,7 +88,8 @@ CREATE TABLE "$SCHEMAom"."sampling_features" (
 CREATE TABLE "$SCHEMAom"."historical_locations" (
     "procedure"         character varying(200) NOT NULL,
     "time"              timestamp NOT NULL,
-    "location"          geometry
+    "location"          geometry,
+    "crs"               integer
 );
 
 -- USED ONLY FOR V100 SOS --

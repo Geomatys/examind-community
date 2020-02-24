@@ -56,6 +56,8 @@ import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetHistoricalLocationById;
+import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetLocations;
 import org.geotoolkit.sts.GetMultiDatastreamById;
@@ -175,6 +177,14 @@ public class STSService extends OGCWebService<STSWorker> {
                 final GetLocationById model = (GetLocationById) request;
                 return new ResponseObject(worker.getLocationById(model), MediaType.APPLICATION_JSON_UTF8);
 
+            } else if (request instanceof GetHistoricalLocations) {
+                final GetHistoricalLocations model = (GetHistoricalLocations) request;
+                return new ResponseObject(worker.getHistoricalLocations(model), MediaType.APPLICATION_JSON_UTF8);
+
+            } else if (request instanceof GetHistoricalLocationById) {
+                final GetHistoricalLocationById model = (GetHistoricalLocationById) request;
+                return new ResponseObject(worker.getHistoricalLocationById(model), MediaType.APPLICATION_JSON_UTF8);
+
             } else if (request instanceof GetSensors) {
                 final GetSensors model = (GetSensors) request;
                 return new ResponseObject(worker.getSensors(model), MediaType.APPLICATION_JSON_UTF8);
@@ -282,6 +292,10 @@ public class STSService extends OGCWebService<STSWorker> {
            request = new GetSensorById();
         } else if (STR_GETCAPABILITIES.equalsIgnoreCase(requestName)) {
            request = new GetCapabilities();
+        } else if (STR_GETHISTORICALLOCATIONS.equalsIgnoreCase(requestName)) {
+           request = new GetHistoricalLocations();
+        } else if (STR_GETHISTORICALLOCATION_BYID.equalsIgnoreCase(requestName)) {
+           request = new GetHistoricalLocationById();
         }
         if (request instanceof AbstractSTSRequest) {
             AbstractSTSRequest sRequest = (AbstractSTSRequest) request;
@@ -1055,6 +1069,144 @@ public class STSService extends OGCWebService<STSWorker> {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
                 request.getExtraFlag().put("orig-path", req.getPathInfo());
                 return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})", method = RequestMethod.GET)
+    public ResponseEntity getHistoricalLocationById(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequestById request = (AbstractSTSRequestById) adaptQuery(STR_GETHISTORICALLOCATION_BYID, worker);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+
+    @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})/Things", method = RequestMethod.GET)
+    public ResponseEntity getThingsForHistoricalLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETTHINGS, worker);
+                int pos = id.lastIndexOf('-');
+                if (pos != -1) {
+                    String sensorId = id.substring(0, pos);
+                    String timeStr = id.substring(pos + 1); // not neccesary for finding thing
+                    request.getExtraFilter().put("procedure", sensorId);
+                    request.getExtraFlag().put("orig-path", req.getPathInfo());
+                    return treatIncomingRequest(request).getResponseEntity(response);
+                }
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Locations({id:[^\\)]+})/HistoricalLocations", method = RequestMethod.GET)
+    public ResponseEntity getHistoricalLocationForLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                int pos = id.lastIndexOf('-');
+
+                // single historical location
+                if (pos != -1) {
+                    String sensorId = id.substring(0, pos);
+                    String timeStr = id.substring(pos + 1);
+                    request.getExtraFilter().put("procedure", sensorId);
+                    request.getExtraFlag().put("orig-path", req.getPathInfo());
+                    request.getExtraFlag().put("hloc-time", timeStr);
+                    return treatIncomingRequest(request).getResponseEntity(response);
+
+                // sensor location
+                } else {
+                    request.getExtraFilter().put("procedure", id);
+                    request.getExtraFlag().put("orig-path", req.getPathInfo());
+                    request.getExtraFlag().put("hloc-time", "no-time");
+                    return treatIncomingRequest(request).getResponseEntity(response);
+                }
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path = "Things({id:[^\\)]+})/HistoricalLocations", method = RequestMethod.GET)
+    public ResponseEntity getHistoricalLocationForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETHISTORICALLOCATIONS, worker);
+                request.getExtraFilter().put("procedure", id);
+                request.getExtraFlag().put("orig-path", req.getPathInfo());
+                return treatIncomingRequest(request).getResponseEntity(response);
+
+            } catch (IllegalArgumentException ex) {
+                return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
+            } catch (CstlServiceException ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+
+
+    @RequestMapping(path = "HistoricalLocations({id:[^\\)]+})/Locations", method = RequestMethod.GET)
+    public ResponseEntity getLocationsForHistoricalLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker);
+                int pos = id.lastIndexOf('-');
+                if (pos != -1) {
+                    String sensorId = id.substring(0, pos);
+                    String timeStr = id.substring(pos + 1);
+                    request.getExtraFilter().put("procedure", sensorId);
+                    request.getExtraFlag().put("hloc-time", timeStr);
+                    return treatIncomingRequest(request).getResponseEntity(response);
+                }
             } catch (IllegalArgumentException ex) {
                 return processExceptionResponse(new CstlServiceException(ex), null, worker).getResponseEntity(response);
             } catch (CstlServiceException ex) {

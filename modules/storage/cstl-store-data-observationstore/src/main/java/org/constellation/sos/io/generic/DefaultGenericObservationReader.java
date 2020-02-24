@@ -59,7 +59,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +74,6 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.exception.ConstellationMetadataException;
-import org.geotoolkit.observation.xml.v200.OMProcessPropertyType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDirectPosition;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildLineString;
@@ -820,6 +819,14 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
     @Override
     public AbstractGeometry getSensorLocation(String sensorID, String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     /**

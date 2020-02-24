@@ -19,6 +19,12 @@ INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',  x'0000000
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',  x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile');
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10', x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries');
 
+
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-11 00:00:00.0', x'0000000001414721e3e3c47123c1341d38f21784f0', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-22 00:00:00.0', x'00000000014144f902f95b5e67c13b3ac452c1ca80', 27582);
+
+
 INSERT INTO "om"."sampling_features" VALUES ('station-001', '10972X0137-PONT' , 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140efef0000000000413a6b2800000000', 27582);
 INSERT INTO "om"."sampling_features" VALUES ('station-002', '10972X0137-PLOUF', 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140140000000000004024000000000000',  4326);
 INSERT INTO "om"."sampling_features" VALUES ('station-003', '66685X4587-WARP',  'Station Thermale',  'urn:-sandre:object:bdrhf:123X', x'000000000140f1490000000000413cdd4b00000000', 27582);

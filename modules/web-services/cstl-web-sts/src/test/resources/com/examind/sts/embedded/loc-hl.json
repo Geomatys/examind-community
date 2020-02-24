@@ -1,0 +1,18 @@
+{
+  "name" : "urn:ogc:object:sensor:GEOM:2-977439600000",
+  "description" : "urn:ogc:object:sensor:GEOM:2-977439600000",
+  "encodingType" : "application/vnd.geo+json",
+  "location" : {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "type" : "Point",
+      "coordinates" : [ 11.000000004394957, 18.99999999995756 ]
+    },
+    "properties" : { }
+  },
+  "@iot.id" : "urn:ogc:object:sensor:GEOM:2-977439600000",
+  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)",
+  "Things@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)/Things",
+  "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)/HistoricalLocations"
+}

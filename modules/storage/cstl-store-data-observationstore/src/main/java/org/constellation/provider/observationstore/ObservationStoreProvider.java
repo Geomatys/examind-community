@@ -266,11 +266,20 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public List<ProcedureTree> getProcedures() throws ConstellationStoreException {
+    public List<ProcedureTree> getProcedureTrees(Query q, final Map<String,String> hints) throws ConstellationStoreException {
         List<ProcedureTree> results = new ArrayList<>();
         try {
-            for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt : store.getProcedures()) {
-                results.add(toDto(pt));
+            if (getCapabilities().hasFilter) {
+                Collection<String> matchs = getProcedureNames(q, hints);
+                // TODO optimize
+                for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt : store.getProcedures()) {
+                    if (matchs.contains(pt.id)) {
+                        results.add(toDto(pt));
+                    }
+                }
+
+            } else {
+              store.getProcedures().stream().forEach(p -> results.add(toDto(p)));
             }
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -371,18 +380,19 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             capabilities = new SOSProviderCapabilities();
             try {
                 ObservationReader reader = store.getReader();
-                capabilities.responseFormats = reader.getResponseFormats();
-                final List<String> arm = new ArrayList<>();
-                reader.getResponseModes().stream().forEach((rm) -> {
-                    arm.add(rm.value());
-                });
-                capabilities.responseModes = arm;
+                if (reader != null) {
+                    capabilities.responseFormats = reader.getResponseFormats();
+                    reader.getResponseModes().stream().forEach(rm -> capabilities.responseModes.add(rm.value()));
+                }
                 ObservationFilterReader filter = store.getFilter();
                 if (filter != null) {
                     capabilities.queryableResultProperties = filter.supportedQueryableResultProperties();
                     capabilities.isBoundedObservation      = filter.isBoundedObservation();
                     capabilities.computeCollectionBound    = filter.computeCollectionBound();
                     capabilities.isDefaultTemplateTime     = filter.isDefaultTemplateTime();
+                    capabilities.hasFilter                 = true;
+                } else {
+                    capabilities.hasFilter                 = false;
                 }
             } catch (DataStoreException ex) {
                 throw new ConstellationStoreException(ex);
@@ -851,7 +861,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
 
     private ProcedureTree toDto(org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt) {
         GeoSpatialBound bound = pt.spatialBound;
-        final AbstractGeometry gmlGeom = bound.getGeometry("2.0.0");
+        final AbstractGeometry gmlGeom = bound.getLastGeometry("2.0.0");
         Geometry geom = null;
         if (gmlGeom instanceof Geometry) {
             geom = (Geometry) gmlGeom;
@@ -908,7 +918,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 } else if (pt.getGeom() != null) {
                     cgeom = GMLUtilities.getGMLFromISO(entry.getValue());
                 }
-                result.spatialBound.addLocation(entry.getKey(), cgeom);
+                result.spatialBound.getHistoricalLocations().put(entry.getKey(), cgeom);
             }
             for (ProcedureTree child : pt.getChildren()) {
                 result.children.add(toGeotk(child));

@@ -302,6 +302,8 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 }
                 result.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
                 procedure.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
+                procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(o.getProcedure().getHref(), "2.0.0"));
+                
                 result.observations.add(o);
             }
         }
@@ -333,6 +335,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 }
             }
             procedure.spatialBound.appendLocation(obs.getSamplingTime(), obs.getFeatureOfInterest());
+            procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(o.getProcedure().getHref(), "2.0.0"));
         }
         return result;
     }

@@ -366,7 +366,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final List<Integer> ids = new ArrayList<>();
 
         if (provider instanceof ObservationProvider) {
-            final List<ProcedureTree> procedures = ((ObservationProvider)provider).getProcedures();
+            final List<ProcedureTree> procedures = ((ObservationProvider)provider).getProcedureTrees(null, Collections.EMPTY_MAP);
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {

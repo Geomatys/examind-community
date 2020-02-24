@@ -40,4 +40,6 @@ public class SOSProviderCapabilities {
     public boolean computeCollectionBound = false;
 
     public boolean isDefaultTemplateTime = false;
+
+    public boolean hasFilter = false;
 }

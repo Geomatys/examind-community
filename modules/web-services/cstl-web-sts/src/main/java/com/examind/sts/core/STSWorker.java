@@ -27,6 +27,7 @@ import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetHistoricalLocationById;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetLocations;
@@ -113,6 +114,8 @@ public interface STSWorker extends Worker {
     void addFeatureOfInterest(FeatureOfInterest foi) throws CstlServiceException;
 
     HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations gh) throws CstlServiceException;
+
+    HistoricalLocation getHistoricalLocationById(GetHistoricalLocationById gh) throws CstlServiceException;
 
     void addHistoricalLocation(HistoricalLocation HistoricalLocation) throws CstlServiceException;
 

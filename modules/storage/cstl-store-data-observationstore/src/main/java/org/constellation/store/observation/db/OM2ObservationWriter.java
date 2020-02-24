@@ -64,6 +64,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
@@ -423,7 +424,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?)")) {
                         stmtInsert.setString(1, procedure.id);
-                        AbstractGeometry position = procedure.spatialBound.getGeometry("2.0.0");
+                        AbstractGeometry position = procedure.spatialBound.getLastGeometry("2.0.0");
                         if (position != null) {
                             Geometry pt = GeometrytoJTS.toJTS(position, false);
                             int srid = pt.getSRID();
@@ -454,13 +455,34 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                         stmtInsert.executeUpdate();
                     }
+
+                    // write locations
+                    for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                        try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {
+                            stmtInsert.setString(1, procedure.id);
+                            stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
+                            if (entry.getValue() != null) {
+                                Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
+                                int srid = pt.getSRID();
+                                if (srid == 0) {
+                                    srid = 4326;
+                                }
+                                stmtInsert.setBytes(3, getGeometryBytes(pt));
+                                stmtInsert.setInt(4, srid);
+                            } else {
+                                stmtInsert.setNull(3, java.sql.Types.BINARY);
+                                stmtInsert.setNull(4, java.sql.Types.INTEGER);
+                            }
+                            stmtInsert.executeUpdate();
+                        }
+                    }
                 } else {
                     pid = rs.getInt(1);
                 }
             }
         }
         for (ProcedureTree child : procedure.children) {
-            writeProcedure(procedure, procedure.id, c);
+            writeProcedure(child, procedure.id, c);
         }
         return pid;
     }
@@ -932,6 +954,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         + "WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");
                      final PreparedStatement stmtFoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_foi\" "
                              + "WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");
+                     final PreparedStatement stmtHl  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?");
                      final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?");
                      final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");
                      final PreparedStatement stmtProcDesc = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?")) {
@@ -941,6 +964,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     stmtFoi.setString(1, procedureID);
                     stmtFoi.executeUpdate();
+
+                    stmtHl.setString(1, procedureID);
+                    stmtHl.executeUpdate();
 
                     stmtMes.setString(1, procedureID);
                     stmtMes.executeUpdate();

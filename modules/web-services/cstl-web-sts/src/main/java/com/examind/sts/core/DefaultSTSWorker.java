@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -66,6 +68,7 @@ import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetHistoricalLocationById;
 import org.geotoolkit.sts.GetHistoricalLocations;
 import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetLocations;
@@ -1258,6 +1261,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
+    private List<ProcedureTree> getHistoricalLocationsForSensor(String sensorId) throws ConstellationStoreException {
+        final SimpleQuery subquery = new SimpleQuery();
+        Id filter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
+        subquery.setFilter(filter);
+        return omProvider.getProcedureTrees(subquery, new HashMap<>());
+    }
+
+
     @Override
     public void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException {
         assertTransactionnal();
@@ -1270,20 +1281,49 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         BigDecimal count = null;
         String iotNextLink = null;
         try {
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
-            if (req.getCount()) {
-                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
-            }
-            List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
-            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
-            for (Process proc : procs) {
-                String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
-                org.constellation.dto.Sensor s = null;
-                if (sensorIds.contains(sensorId)) {
-                    s = sensorBusiness.getSensor(sensorId);
+            String timeStr = req.getExtraFlag().get("hloc-time");
+            Date d = null;
+            if (timeStr != null) {
+                try {
+                    d = new Date(Long.parseLong(timeStr));
+                } catch (NumberFormatException ex) {
+                    LOGGER.warning("Unable to parse timestamp value of the historical location");
                 }
-                Location location = buildLocation(req, sensorId, s);
-                locations.add(location);
+            }
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+
+            // for a historical location
+            if (d != null) {
+                List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
+                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+                for (ProcedureTree proc : procs) {
+                    String sensorId = ((ProcedureTree)proc).getId();
+                    org.constellation.dto.Sensor s = null;
+                    if (sensorIds.contains(sensorId)) {
+                        s = sensorBusiness.getSensor(sensorId);
+                    }
+                    if (proc.getHistoricalLocations().containsKey(d)) {
+                        Location location = buildLocation(req, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
+                        locations.add(location);
+                    }
+                }
+
+            // latest sensor locations
+            } else {
+                if (req.getCount()) {
+                    count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+                }
+                List<Process> procs = omProvider.getProcedures(subquery, new HashMap<>());
+                List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+                for (Process proc : procs) {
+                    String sensorId = ((org.geotoolkit.observation.xml.Process)proc).getHref();
+                    org.constellation.dto.Sensor s = null;
+                    if (sensorIds.contains(sensorId)) {
+                        s = sensorBusiness.getSensor(sensorId);
+                    }
+                    Location location = buildLocation(req, sensorId, s, null, null);
+                    locations.add(location);
+                }
             }
 
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/Locations");
@@ -1416,7 +1456,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             thing = thing.datastreamsIotNavigationLink(selfLink + "/Datastreams");
         }
 
-         if (StringUtilities.containsIgnoreCase(req.getExpand(), "MultiDatastreams")) {
+        if (StringUtilities.containsIgnoreCase(req.getExpand(), "MultiDatastreams")) {
             List<org.opengis.observation.Observation> linkedTemplates = getMultiDatastreamForSensor(sensorID);
             for (org.opengis.observation.Observation template : linkedTemplates) {
                 thing.addMultiDatastreamsItem(buildMultiDatastream(req, (AbstractObservation) template));
@@ -1424,6 +1464,18 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else {
             thing = thing.multiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");
         }
+        if (StringUtilities.containsIgnoreCase(req.getExpand(), "HistoricalLocations")) {
+            List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorID);
+            for (ProcedureTree proc : procs) {
+                for (Entry<Date, org.opengis.geometry.Geometry> entry : proc.getHistoricalLocations().entrySet()) {
+                    HistoricalLocation location = buildHistoricalLocation(req, sensorID, s, entry.getKey(), (AbstractGeometry) entry.getValue());
+                    thing = thing.addHistoricalLocationsItem(location);
+                }
+            }
+        } else {
+            thing = thing.historicalLocationsIotNavigationLink(selfLink + "/HistoricalLocations");
+        }
+
         return thing;
     }
 
@@ -1431,11 +1483,129 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Location getLocationById(GetLocationById req) throws CstlServiceException {
         try {
             if (req.getId() != null) {
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(req.getId());
-                if (s == null) {
-                    return buildLocation(req, req.getId(), null);
-                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
-                    return buildLocation(req, req.getId(), s);
+                String locId = req.getId();
+                String sensorId;
+                Date d = null;
+                int pos = locId.lastIndexOf('-');
+
+                // try to find a historical location
+                if (pos != -1) {
+                    sensorId = locId.substring(0, pos);
+                    String timeStr = locId.substring(pos + 1);
+                    try {
+                        d = new Date(Long.parseLong(timeStr));
+                        List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorId);
+                        for (ProcedureTree proc : procs) {
+                            org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                            if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), sensorId) && proc.getHistoricalLocations().containsKey(d)) {
+                                return buildLocation(req, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
+                            }
+                        }
+                        return null;
+                    } catch (NumberFormatException ex) {
+                        // fal back to sensor location
+                        sensorId = locId;
+                    }
+                } else {
+                    sensorId = locId;
+                }
+
+                // sensor location
+                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                    return buildLocation(req, req.getId(), s, null, null);
+                }
+            }
+            return null;
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    @Override
+    public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
+        final List<HistoricalLocation> locations = new ArrayList<>();
+        BigDecimal count = null;
+        String iotNextLink = null;
+        try {
+            String timeStr = req.getExtraFlag().get("hloc-time");
+            Date d = null;
+            if (timeStr != null) {
+                if (timeStr.equals("no-time")) {
+                    // no historical location for sensor location
+                    d = new Date(0);
+                } else {
+                    try {
+                        d = new Date(Long.parseLong(timeStr));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.warning("Unable to parse timestamp value of the historical location");
+                    }
+                }
+            }
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+            }
+            List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
+            List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
+            for (ProcedureTree proc : procs) {
+                String sensorId = ((ProcedureTree)proc).getId();
+                org.constellation.dto.Sensor s = null;
+                if (sensorIds.contains(sensorId)) {
+                    s = sensorBusiness.getSensor(sensorId);
+                }
+                if (d != null) {
+                    if (proc.getHistoricalLocations().containsKey(d)) {
+                        HistoricalLocation location = buildHistoricalLocation(req, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
+                        locations.add(location);
+                    }
+                } else {
+                    for (Entry<Date, org.opengis.geometry.Geometry> entry : proc.getHistoricalLocations().entrySet()) {
+                        HistoricalLocation location = buildHistoricalLocation(req, sensorId, s, entry.getKey(), (AbstractGeometry) entry.getValue());
+                        locations.add(location);
+                    }
+                }
+            }
+
+            iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/HistoricalLocations");
+
+        } catch (ConfigurationException | ConstellationStoreException ex) {
+            throw new CstlServiceException(ex);
+        }
+        return new HistoricalLocationsResponse().value(locations).iotCount(count).iotNextLink(iotNextLink);
+    }
+
+    @Override
+    public HistoricalLocation getHistoricalLocationById(GetHistoricalLocationById req) throws CstlServiceException {
+        try {
+            if (req.getId() != null) {
+                String hlid = req.getId();
+                int pos = hlid.lastIndexOf('-');
+                if (pos != -1) {
+                    String sensorId = hlid.substring(0, pos);
+                    String timeStr = hlid.substring(pos + 1);
+
+                    final SimpleQuery subquery = new SimpleQuery();
+                    Id filter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
+                    subquery.setFilter(filter);
+                    List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
+                    if (!procs.isEmpty()) {
+                        ProcedureTree proc = procs.get(0);
+                        try {
+                            Date d = new Date(Long.parseLong(timeStr));
+                            org.opengis.geometry.Geometry geom = proc.getHistoricalLocations().get(d);
+                            if (geom != null) {
+                                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                                if (s == null) {
+                                    return buildHistoricalLocation(req, sensorId, null, d, (AbstractGeometry) geom);
+                                } else  if (sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                                    return buildHistoricalLocation(req, s.getIdentifier(), s, d, (AbstractGeometry) geom);
+                                }
+                            }
+                        } catch (NumberFormatException ex) {
+                            LOGGER.warning("Unable to parse timestamp value of the historical location");
+                        }
+                    }
                 }
             }
             return null;
@@ -1488,14 +1658,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
     }
 
-    private Location buildLocation(STSRequest req, String sensorID, org.constellation.dto.Sensor s) throws ConstellationStoreException {
+    private Location buildLocation(STSRequest req, String sensorID, org.constellation.dto.Sensor s, Date d, AbstractGeometry historicalGeom) throws ConstellationStoreException {
         String selfLink = getServiceUrl();
-        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + sensorID + ")";
+        final String locID;
+        if (d != null) {
+            locID = sensorID + '-' + d.getTime();
+        } else {
+            locID = sensorID;
+        }
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/Locations(" + locID + ")";
         Location result = new Location();
-        result.setIotId(sensorID);
-        result.setDescription(sensorID);
+        result.setIotId(locID);
+        result.setDescription(locID);
         result.setEncodingType("application/vnd.geo+json");
-        result.setName(sensorID);
+        result.setName(locID);
 
          if (StringUtilities.containsIgnoreCase(req.getExpand(), "Things")) {
             result.addThingsItem(buildThing(req, sensorID, s));
@@ -1510,13 +1686,21 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         result.setIotSelfLink(selfLink);
-        Object geomS = omProvider.getSensorLocation(sensorID, "2.0.0");
-        if (geomS instanceof AbstractGeometry) {
+        AbstractGeometry locGeom = null;
+        if (historicalGeom == null) {
+            Object geomS = omProvider.getSensorLocation(sensorID, "2.0.0");
+            if (geomS instanceof AbstractGeometry) {
+                locGeom = (AbstractGeometry) geomS;
+            }
+        } else {
+            locGeom = historicalGeom;
+        }
+
+        if (locGeom != null) {
             try {
                 CoordinateReferenceSystem crs = CommonCRS.WGS84.geographic();
-                AbstractGeometry geomGML = (AbstractGeometry)geomS;
-                CoordinateReferenceSystem geomCrs = geomGML.getCoordinateReferenceSystem(false);
-                Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)geomGML);
+                CoordinateReferenceSystem geomCrs = locGeom.getCoordinateReferenceSystem(false);
+                Geometry jts = GeometrytoJTS.toJTS(locGeom);
                 if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
                     try {
                         jts = JTS.transform(jts, crs);
@@ -1532,6 +1716,30 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 LOGGER.log(Level.WARNING, "Eror while transforming foi geometry", ex);
             }
         }
+        return result;
+    }
+
+    private HistoricalLocation buildHistoricalLocation(STSRequest req, String sensorID, org.constellation.dto.Sensor s, Date d, AbstractGeometry geomS) throws ConstellationStoreException {
+        String hlid = sensorID + "-" + d.getTime();
+        String selfLink = getServiceUrl();
+        selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + hlid + ")";
+        HistoricalLocation result = new HistoricalLocation();
+        result.setIotId(hlid);
+        result.setTime(ISO_8601_FORMATTER.format(d));
+
+         if (StringUtilities.containsIgnoreCase(req.getExpand(), "Things")) {
+            result = result.thing(buildThing(req, sensorID, s));
+        } else {
+            result = result.thingIotNavigationLink(selfLink + "/Things");
+        }
+
+        if (StringUtilities.containsIgnoreCase(req.getExpand(), "Locations")) {
+            result = result.addLocationsItem(buildLocation(req, sensorID, s, d, geomS));
+        } else {
+            result = result.locationsIotNavigationLink(selfLink + "/Locations");
+        }
+
+        result.setIotSelfLink(selfLink);
         return result;
     }
 
@@ -1571,11 +1779,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     @Override
     public void addFeatureOfInterest(FeatureOfInterest foi) throws CstlServiceException {
         assertTransactionnal();
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

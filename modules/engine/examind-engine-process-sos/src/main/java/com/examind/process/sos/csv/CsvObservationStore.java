@@ -356,7 +356,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         }
                         final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                         result.addFeatureOfInterest(sp);
-                        //result.spatialBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
                         result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                          sp,                            // foi
@@ -479,8 +478,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 }
                 final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
                 result.addFeatureOfInterest(sp);
-
-                //result.spatialBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
                 result.observations.add(OMUtils.buildObservation(oid,                           // id
                                                                  sp,                            // foi
@@ -611,7 +608,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     @Override
     public ObservationReader getReader() {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     @Override
@@ -692,7 +689,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     @Override
     public ObservationFilterReader getFilter() {
-        throw new UnsupportedOperationException("Filtering is not supported on this observation store.");
+        return null;
     }
 
     /**
@@ -700,6 +697,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     @Override
     public ObservationWriter getWriter() {
-        throw new UnsupportedOperationException("Writing is not supported on this observation store.");
+        return null;
     }
 }
