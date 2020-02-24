@@ -44,9 +44,7 @@ public class ProgressTest extends AbstractProcess {
         try {
             fireProcessStarted("Start process");
             Thread.sleep(2000);
-            if (isCanceled()) {
-                throw new ProcessException("Canceled By user", this);
-            }
+            stopIfDismissed();
             fireProgressing("step 1", 20f, false);
             waitAndcheckCanceled(5000);
             fireProgressing("step 2", 40f, false);
@@ -65,9 +63,7 @@ public class ProgressTest extends AbstractProcess {
 
     private void waitAndcheckCanceled(int ms) throws ProcessException, InterruptedException {
         for (int i = 0; i<ms; i = i + 100) {
-            if (isCanceled()) {
-                throw new ProcessException("Canceled By user", this);
-            }
+            stopIfDismissed();
             Thread.sleep(100);
         }
     }

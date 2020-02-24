@@ -975,7 +975,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                     LOGGER.log(Level.WARNING, "Process " + processDesc.getIdentifier() + " has failed.", ex);
                     report = new ExceptionReport("Process error : " + ex.getLocalizedMessage(), null, null, null);
                 } catch (TimeoutException ex) {
-                    ((AbstractProcess) process).cancelProcess();
+                    ((AbstractProcess) process).dismissProcess();
                     future.cancel(true);
 
                     report = new ExceptionReport("Process execution timeout. This process is too long and had been canceled,"

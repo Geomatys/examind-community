@@ -95,7 +95,7 @@ public class ExecutionInfo {
         }
         Callable process = processMap.get(jobId).callable;
         if (process instanceof AbstractProcess) {
-            ((AbstractProcess) process).cancelProcess();
+            ((AbstractProcess) process).dismissProcess();
             statusMap.remove(jobId);
             processMap.remove(jobId);
             resultMap.remove(jobId);

@@ -62,9 +62,7 @@ public class ProgressTest extends AbstractCstlProcess {
 
     private void waitAndcheckCanceled(int ms) throws ProcessException, InterruptedException {
         for (int i = 0; i<ms; i = i + 100) {
-            if (isCanceled()) {
-                throw new ProcessException("Canceled By user", this);
-            }
+            stopIfDismissed();
             Thread.sleep(100);
         }
     }

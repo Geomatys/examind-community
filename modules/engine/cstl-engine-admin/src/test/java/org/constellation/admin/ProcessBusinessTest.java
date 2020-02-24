@@ -253,7 +253,7 @@ public class ProcessBusinessTest {
 
         task = tasks.get(0);
 
-        Assert.assertEquals("FAILED", task.getState());
+        Assert.assertEquals("CANCELLED", task.getState());
 
 
         // verify that the process is still scheduler, and will still be launched

@@ -162,7 +162,7 @@ public class RunProactive extends AbstractCstlProcess {
             Job status;
             String currentReport;
             do {
-                if (isCanceled()) {
+                if (isDimissed()) {
                     sched.cancelJob(sessionId, jobId);
                     throw new DismissProcessException("The process has been dismissed", this);
                 }
