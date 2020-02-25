@@ -622,19 +622,52 @@ public class DefaultCoverageData extends AbstractData implements CoverageData {
         try {
             GridGeometry gg = getGeometry();
             if (gg != null) {
-                GridExtent extent = gg.getExtent();
-                int[] subSample = new int[extent.getDimension()];
-                subSample[0] = Math.round(extent.getSize(0) * 0.05f);
-                subSample[1] = Math.round(extent.getSize(1) * 0.05f);
-                for (int i = 2; i < extent.getDimension(); i++) {
-                    subSample[i] = Math.toIntExact(extent.getSize(i));
-                }
-                gg = gg.derive().subsample(subSample).build();
+                if (gg.isDefined(GridGeometry.EXTENT)) {
+                    GridExtent extent = gg.getExtent();
+                    int[] subSample = new int[extent.getDimension()];
+                    subSample[0] = Math.round(extent.getSize(0) * 0.05f);
+                    subSample[1] = Math.round(extent.getSize(1) * 0.05f);
+                    for (int i = 2; i < extent.getDimension(); i++) {
+                        subSample[i] = Math.toIntExact(extent.getSize(i));
+                    }
+                    gg = gg.derive().subsample(subSample).build();
 
-                final GridCoverage cov = ref.read(gg);
-                final org.geotoolkit.process.Process process = new Statistics(cov, false);
-                process.addListener(new DataStatisticsListener(dataId, dataRepository));
-                process.call();
+                    final GridCoverage cov = ref.read(gg);
+                    final org.geotoolkit.process.Process process = new Statistics(cov, false);
+                    process.addListener(new DataStatisticsListener(dataId, dataRepository));
+                    process.call();
+                } else if (gg.isDefined(GridGeometry.ENVELOPE)) {
+                    final Envelope env = gg.getEnvelope();
+
+                    // find horizontal crs and it's index.
+                    final List<SingleCRS> areaCrsComponents = CRS.getSingleComponents(env.getCoordinateReferenceSystem());
+                    int areaHorizontalIndex = 0;
+                    int areaHorizontalOffset = 0;
+                    for (int n=areaCrsComponents.size(); areaHorizontalIndex < n; areaHorizontalIndex++) {
+                        SingleCRS areaCmpCrs = areaCrsComponents.get(areaHorizontalIndex);
+                        if (CRS.isHorizontalCRS(areaCmpCrs)) {
+                            break;
+                        }
+                        areaHorizontalOffset += areaCmpCrs.getCoordinateSystem().getDimension();
+                    }
+
+                    final long[] low = new long[env.getDimension()];
+                    final long[] high = new long[env.getDimension()];
+                    for (int i=0;i<high.length;i++) {
+                        if (i == areaHorizontalOffset || i == areaHorizontalOffset+1) {
+                            //horizontal crs
+                            high[i] = 1000;
+                        } else {
+                            //make a single slice
+                            high[i] = 1;
+                        }
+                    }
+                    final GridGeometry query = new GridGeometry(new GridExtent(null, low, high, true), env);
+                    final GridCoverage cov = ref.read(query);
+                    final org.geotoolkit.process.Process process = new Statistics(cov, false);
+                    process.addListener(new DataStatisticsListener(dataId, dataRepository));
+                    process.call();
+                }
             }
         } catch(Throwable ex) {
             //we tryed
