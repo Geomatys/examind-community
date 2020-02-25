@@ -600,7 +600,7 @@ public class DataRestAPI extends AbstractRestAPI{
         } else if ("dataset".equals(f.getField()) || "provider_id".equals(f.getField()) || "id".equals(f.getField())) {
             try {
                 final int parentId = Integer.valueOf(value);
-                return new AbstractMap.SimpleEntry<>("parent", parentId);
+                return new AbstractMap.SimpleEntry<>(f.getField(), parentId);
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Filter by " + f.getField() + " value should be an integer: " + ex.getLocalizedMessage(), ex);
                 return null;
