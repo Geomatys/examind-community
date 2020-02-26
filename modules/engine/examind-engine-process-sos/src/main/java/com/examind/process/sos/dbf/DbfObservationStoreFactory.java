@@ -32,6 +32,7 @@ import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.ProbeResult;
@@ -90,13 +91,6 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     @Override
     public DbfObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-
-        return create(params);
-    }
-
-    @Override
-    public DbfObservationStore create(final ParameterValueGroup params) throws DataStoreException {
-
         final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 
         final URI uri = (URI) params.parameter(DbaseFileProvider.PATH.getName().toString()).getValue();

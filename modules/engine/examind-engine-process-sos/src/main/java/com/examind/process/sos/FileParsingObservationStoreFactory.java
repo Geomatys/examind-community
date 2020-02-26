@@ -18,9 +18,16 @@ package com.examind.process.sos;
 
 import java.util.logging.Logger;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import static org.apache.sis.storage.DataStoreProvider.LOCATION;
+import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
+import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
+import org.opengis.parameter.ParameterNotFoundException;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -87,4 +94,31 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(Boolean.class, false);
 
+    @Override
+    public DataStore open(StorageConnector sc) throws DataStoreException {
+        GeneralParameterDescriptor desc;
+        try {
+            desc = getOpenParameters().descriptor(LOCATION);
+        } catch (ParameterNotFoundException e) {
+            throw new DataStoreException("Unsupported input");
+        }
+
+        if (!(desc instanceof ParameterDescriptor)) {
+            throw new DataStoreException("Unsupported input");
+        }
+
+        try {
+            final Object locationValue = sc.getStorageAs(((ParameterDescriptor)desc).getValueClass());
+            final ParameterValueGroup params = getOpenParameters().createValue();
+            params.parameter(LOCATION).setValue(locationValue);
+
+            if (canProcess(params)) {
+                return open(params);
+            }
+        } catch(IllegalArgumentException ex) {
+            throw new DataStoreException("Unsupported input:" + ex.getMessage());
+        }
+
+        throw new DataStoreException("Unsupported input");
+    }
 }

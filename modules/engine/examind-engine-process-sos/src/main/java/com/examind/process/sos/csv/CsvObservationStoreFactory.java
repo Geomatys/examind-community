@@ -114,11 +114,6 @@ public class CsvObservationStoreFactory extends FileParsingObservationStoreFacto
 
     @Override
     public CsvObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-        return create(params);
-    }
-
-    @Override
-    public CsvObservationStore create(final ParameterValueGroup params) throws DataStoreException {
 
         final String measureColumnsSeparator = (String) params.parameter(MEASURE_COLUMNS_SEPARATOR.getName().toString()).getValue();
 

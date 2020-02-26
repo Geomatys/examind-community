@@ -24,6 +24,9 @@ import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
@@ -88,8 +91,13 @@ public class SOSLuceneObservationStoreFactory extends AbstractObservationStoreFa
     }
 
     @Override
-    public SOSLuceneObservationStore create(ParameterValueGroup params) throws DataStoreException {
-        return new SOSLuceneObservationStore(params);
+    public ProbeResult probeContent(StorageConnector sc) throws DataStoreException {
+        return ProbeResult.UNSUPPORTED_STORAGE;
+    }
+
+    @Override
+    public DataStore open(StorageConnector sc) throws DataStoreException {
+        throw new DataStoreException("StorageConnector not supported.");
     }
 
 }

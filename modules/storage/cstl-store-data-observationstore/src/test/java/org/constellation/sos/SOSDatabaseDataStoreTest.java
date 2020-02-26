@@ -22,16 +22,16 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
+import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
@@ -39,7 +39,6 @@ import org.geotoolkit.feature.xml.GMLConvention;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.util.GenericName;
@@ -69,12 +68,11 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             exec.run(sql);
             exec.run(getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
-            final Map params = new HashMap<>();
-            params.put("dbtype", "OM");
-            params.put(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString(), "derby");
-            params.put(SOSDatabaseObservationStoreFactory.DERBYURL.getName().toString(), url);
+            DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) SOSDatabaseObservationStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SGBDTYPE).setValue("derby");
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.DERBYURL).setValue(url);
 
-            store = DataStores.open(params);
+            store = new SOSDatabaseObservationStore(parameters);
 
             final String nsOM = "http://www.opengis.net/sampling/1.0";
             final String nsGML = "http://www.opengis.net/gml";
