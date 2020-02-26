@@ -503,6 +503,7 @@ public class DataBusiness implements IDataBusiness {
             db.setStatsState(data.getStatsState());
             db.setRendered(data.getRendered());
             db.setHidden(data.getHidden());
+            db.setIncluded(data.getIncluded());
 
             for (final Data d : linkedDataList) {
                 if("pyramid".equalsIgnoreCase(d.getSubtype()) &&
@@ -674,7 +675,7 @@ public class DataBusiness implements IDataBusiness {
             }
 
             // what about elevations?
-            
+
             db.setDimensions(dimensions);
             dataSummaries.add(db);
         }
@@ -824,8 +825,9 @@ public class DataBusiness implements IDataBusiness {
                     layerRepository.delete(layerID);
                 }
 
-                // 2. remove link with dataset
+                // 2. remove link with dataset / hide data
                 data.setDatasetId(null);
+                data.setHidden(true);
                 dataRepository.update(data);
 
 
@@ -873,7 +875,7 @@ public class DataBusiness implements IDataBusiness {
                         final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerIdentifier);
                         IOUtilities.deleteRecursively(provDir);
                     } catch (IOException e) {
-                        LOGGER.warning("Error during delete data on FS for provider: " + providerIdentifier);
+                        LOGGER.log(Level.WARNING, "Error during delete data on FS for provider: {0}", providerIdentifier);
                     }
                 }
 
@@ -1096,7 +1098,7 @@ public class DataBusiness implements IDataBusiness {
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(uploadDirectory, tokenExpiredFilter)) {
             for (Path path : stream) {
-                LOGGER.info(path.getFileName() + " expired");
+                LOGGER.log(Level.INFO, "{0} expired", path.getFileName());
                 IOUtilities.deleteSilently(path);
             }
         } catch (IOException e) {
