@@ -330,7 +330,7 @@ public class RunPBS extends AbstractCstlProcess {
 	    // Wait until the end of the PBS job (with qstat status on pbs_job_id = pbsJobId)
 	    do {
 
-		if (isCanceled()) {
+		if (isDimissed()) {
 		    if (pbsJobId != null) {
 			String dismissCommand = "qdel " + pbsJobId;
 

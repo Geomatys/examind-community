@@ -45,8 +45,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.util.ArraysExt;
 import org.apache.sis.util.collection.BackingStoreException;
-
-import org.geotoolkit.db.postgres.PostgresFeatureStore;
+import org.geotoolkit.db.postgres.PostgresStore;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
@@ -92,7 +91,7 @@ public class DataStoreProvider extends AbstractDataProvider {
      * Component allowing to acquire underlying data store in a thread-safe way.
      */
     final SafeAccess storage;
-    
+
     public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
         storage = new SafeAccess(this);
@@ -201,8 +200,8 @@ public class DataStoreProvider extends AbstractDataProvider {
     public void removeAll() {
         try (Session session = storage.write()) {
             final DataStore store = session.handle().store;
-                if (store instanceof PostgresFeatureStore) {
-                    final PostgresFeatureStore pgStore = (PostgresFeatureStore) store;
+                if (store instanceof PostgresStore) {
+                    final PostgresStore pgStore = (PostgresStore) store;
                     final String dbSchema = pgStore.getDatabaseSchema();
                     if (dbSchema != null && !dbSchema.isEmpty()) {
                         pgStore.dropPostgresSchema(dbSchema);

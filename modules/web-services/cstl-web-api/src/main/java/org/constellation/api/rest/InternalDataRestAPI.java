@@ -62,7 +62,7 @@ import org.constellation.provider.ISO19110Builder;
 import org.constellation.util.Util;
 import org.geotoolkit.client.AbstractClientProvider;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
-import org.geotoolkit.db.AbstractJDBCFeatureStoreFactory;
+import org.geotoolkit.db.AbstractJDBCProvider;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.apache.sis.storage.DataStore;
@@ -581,7 +581,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                         if (!contains(resourceTypes, VECTOR)) continue;
                         break;
                     case "jdbc"   :
-                        if (!(p instanceof AbstractJDBCFeatureStoreFactory)) continue;
+                        if (!(p instanceof AbstractJDBCProvider)) continue;
                         break;
                     case "service":
                         if (!(p instanceof AbstractClientProvider)) continue;
