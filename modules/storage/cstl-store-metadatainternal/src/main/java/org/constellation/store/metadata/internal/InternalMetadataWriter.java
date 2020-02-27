@@ -23,8 +23,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -79,7 +77,13 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
     @Override
     public boolean storeMetadata(Node original) throws MetadataIoException {
         final String identifier = Utils.findIdentifier(original);
-        return replaceMetadata(identifier, original);
+        if (!internalMetadataBusiness.existMetadata(identifier)) {
+            String xml = getStringFromNode(original);
+            internalMetadataBusiness.storeMetadata(identifier, xml);
+            return true;
+        } else {
+            return replaceMetadata(identifier, original);
+        }
     }
 
     @Override
@@ -94,6 +98,13 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
 
     @Override
     public boolean replaceMetadata(String metadataID, Node original) throws MetadataIoException {
+        String xml = getStringFromNode(original);
+        String newIdentifier = Utils.findIdentifierNode(original);
+        internalMetadataBusiness.updateMetadata(metadataID, newIdentifier, xml);
+        return true;
+    }
+
+    private String getStringFromNode(Node n) throws MetadataIoException {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
             tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -102,13 +113,10 @@ public class InternalMetadataWriter extends AbstractMetadataWriter {
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             StringWriter sw = new StringWriter();
             StreamResult sr = new StreamResult(sw);
-            transformer.transform(new DOMSource(original),sr);
-
-            String newIdentifier = Utils.findIdentifierNode(original);
-            internalMetadataBusiness.updateMetadata(metadataID, newIdentifier, sw.toString());
-            return true;
+            transformer.transform(new DOMSource(n),sr);
+            return sw.toString();
         } catch (TransformerException ex) {
-            throw new MetadataIoException("Unable to write the file.", ex, NO_APPLICABLE_CODE);
+            throw new MetadataIoException("Unable to transform node.into XML string", ex, NO_APPLICABLE_CODE);
         }
     }
 

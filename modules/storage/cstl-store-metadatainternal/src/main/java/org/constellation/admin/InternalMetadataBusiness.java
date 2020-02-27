@@ -65,7 +65,12 @@ public class InternalMetadataBusiness implements IInternalMetadataBusiness{
         InternalMetadata metadata = new InternalMetadata();
         metadata.setMetadataIso(metadataXMl);
         metadata.setMetadataId(metadataID);
-        metadata.setId(metadataRepository.create(meta));
+        Metadata global = metadataRepository.findByMetadataId(metadataID);
+        if (global != null) {
+            metadata.setId(global.getId());
+        } else {
+            metadata.setId(metadataRepository.create(meta));
+        }
         intMetadataRepository.create(metadata);
     }
 
