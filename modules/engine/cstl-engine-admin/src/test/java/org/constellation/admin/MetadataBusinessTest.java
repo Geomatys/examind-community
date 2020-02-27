@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.metadata.MetadataLightBrief;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.NodeUtilities;
 
@@ -95,6 +96,33 @@ public class MetadataBusinessTest {
 
         Assert.assertEquals(expResult, result);
     }
+
+    @Test
+    public void createMetadataError() throws Exception {
+        int providerID = metadataBusiness.getDefaultInternalProviderID();
+        boolean exlanched = false;
+        try {
+            metadataBusiness.updateMetadata("whatever", NodeUtilities.getNodeFromString(ERROR_XML), null, null, null, null, providerID, "DOC");
+        }catch (ConfigurationException e) {
+            exlanched = true;
+        }
+        Assert.assertTrue(exlanched);
+
+    }
+
+
+     private static final String ERROR_XML =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+"<gmd:MD_ERROR xmlns:gco=\"http://www.isotc211.org/2005/gco\"\n" +
+"                 xmlns:gmd=\"http://www.isotc211.org/2005/gmd\"\n" +
+"                 xmlns:fra=\"http://www.cnig.gouv.fr/2005/fra\"\n" +
+"                 xmlns:gmx=\"http://www.isotc211.org/2005/gmx\"\n" +
+"                 xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n" +
+"                 xmlns:gml=\"http://www.opengis.net/gml\">\n" +
+"    <gmd:fileIdentifier>\n" +
+"        <gco:CharacterString>error</gco:CharacterString>\n" +
+"    </gmd:fileIdentifier>\n" +
+"</gmd:MD_ERROR>";
 
 
     private static final String BIG_XML =

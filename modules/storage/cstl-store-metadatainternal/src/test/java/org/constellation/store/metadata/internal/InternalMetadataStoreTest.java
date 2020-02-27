@@ -18,6 +18,7 @@
  */
 package org.constellation.store.metadata.internal;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -252,6 +253,17 @@ public class InternalMetadataStoreTest {
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
         comparator.ignoreComments = true;
         comparator.compare();
+    }
+
+    @Test
+    public void storeDeleteMetadataTest() throws Exception {
+        InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/meta6.xml");
+        Node n = NodeUtilities.getNodeFromStream(in);
+        boolean result = inStore1.storeMetadata(n);
+        Assert.assertTrue(result);
+
+        result = inStore1.deleteMetadata("CTDF02");
+        Assert.assertTrue(result);
     }
 
     @AfterClass

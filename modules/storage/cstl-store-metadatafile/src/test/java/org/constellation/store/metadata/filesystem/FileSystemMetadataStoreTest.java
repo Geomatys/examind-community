@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.w3c.dom.Node;
 
 /**
  *
@@ -181,11 +183,48 @@ public class FileSystemMetadataStoreTest {
 
     }
 
+    @Test
+    public void storeMetadataTest() throws Exception {
+        InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/meta6.xml");
+        Node n = NodeUtilities.getNodeFromStream(in);
+        boolean result = fsStore1.storeMetadata(n);
+        Assert.assertTrue(result);
+
+        result = fsStore1.deleteMetadata("CTDF02");
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void getMetadataErrorTest() throws Exception {
+        RecordInfo result = fsStore1.getMetadata("unknow", MetadataType.NATIVE);
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void storeMetadataErrorTest() throws Exception {
+        Node n = NodeUtilities.getNodeFromReader(new StringReader(ERROR_XML));
+        boolean result = fsStore1.storeMetadata(n);
+        Assert.assertTrue(result);
+    }
+
     @AfterClass
     public static void tearDownClass() throws Exception {
         fsStore1.destroyFileIndex();
         ConfigDirectory.shutdownTestEnvironement("FileSystemMetadataStoreTest");
     }
+
+    private static final String ERROR_XML =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+        "<gmd:MD_ERROR xmlns:gco=\"http://www.isotc211.org/2005/gco\"\n" +
+        "                 xmlns:gmd=\"http://www.isotc211.org/2005/gmd\"\n" +
+        "                 xmlns:fra=\"http://www.cnig.gouv.fr/2005/fra\"\n" +
+        "                 xmlns:gmx=\"http://www.isotc211.org/2005/gmx\"\n" +
+        "                 xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n" +
+        "                 xmlns:gml=\"http://www.opengis.net/gml\">\n" +
+        "    <gmd:fileIdentifier>\n" +
+        "        <gco:CharacterString>error</gco:CharacterString>\n" +
+        "    </gmd:fileIdentifier>\n" +
+        "</gmd:MD_ERROR>";
 
     public static void writeDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
 

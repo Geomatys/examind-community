@@ -182,7 +182,7 @@ public class FileSystemMetadataStore extends AbstractCstlMetadataStore implement
     }
 
     @Override
-    public void close() throws DataStoreException {
+    public void close() {
         if (reader != null) reader.destroy();
         if (writer != null) writer.destroy();
     }
