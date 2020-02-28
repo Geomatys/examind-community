@@ -40,15 +40,19 @@ import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.feature.FeatureExt;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
@@ -56,24 +60,31 @@ import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
+import org.constellation.dto.DataDescription;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.importdata.ResourceData;
 import org.constellation.dto.importdata.ResourceStore;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.nio.PathExtensionVisitor;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.geotoolkit.storage.feature.AbstractFolderFeatureStoreFactory;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
+import org.geotoolkit.feature.FeatureExt;
+import org.geotoolkit.io.wkt.PrjFiles;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
-import org.apache.sis.storage.GridCoverageResource;
+import org.geotoolkit.storage.feature.FeatureStore;
+import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
+import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.Extent;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.metadata.extent.GeographicExtent;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -82,18 +93,6 @@ import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
-import org.apache.sis.referencing.CommonCRS;
-import org.constellation.dto.DataDescription;
-import org.constellation.dto.ProviderBrief;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.repository.ProviderRepository;
-import org.geotoolkit.storage.feature.FeatureStore;
-import org.geotoolkit.storage.memory.ExtendedFeatureStore;
-import org.geotoolkit.io.wkt.PrjFiles;
-import org.opengis.metadata.extent.Extent;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.metadata.extent.GeographicExtent;
 
 
 /**
@@ -275,7 +274,6 @@ public final class DataProviders extends Static{
 
         //search and sort possible file feature stores
         final List<FileFeatureStoreFactory> factories = new ArrayList(DataStores.getProviders(FileFeatureStoreFactory.class));
-        final List<AbstractFolderFeatureStoreFactory> folderFactories = new ArrayList(DataStores.getProviders(AbstractFolderFeatureStoreFactory.class));
         Collections.sort(factories, factoryComparator);
 
         //find factory which can support the given file
@@ -291,21 +289,9 @@ public final class DataProviders extends Static{
 
                     validFactory = (DataStoreProvider) f;
 
-                    if (importFromDirectory) {
-                        //check if we have a folder factory available
-                        for (AbstractFolderFeatureStoreFactory ff : folderFactories) {
-                            if (ff.getSingleFileFactory() == f) {
-                                validFactory = ff;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!(validFactory instanceof AbstractFolderFeatureStoreFactory)) {
-                        //change data url to point directly to matching file
-                        final SortedSet<Path> files = extensions.get(ext);
-                        dataPath = files.iterator().next().toAbsolutePath().toString();
-                    }
+                    //change data url to point directly to matching file
+                    final SortedSet<Path> files = extensions.get(ext);
+                    dataPath = files.iterator().next().toAbsolutePath().toString();
                     break search;
                 }
             }
