@@ -20,16 +20,16 @@ package org.constellation.api.rest;
 
 /**
  * List of known error or message codes.
- * 
+ *
  * @author Johann Sorel (Geomatys)
  */
 public final class I18nCodes {
-    
+
     /**
      * Used for internal unexpected server exceptions.
      */
     public static final String API_MSG_SERVER_ERROR = "api.msg.error.serverError";
-    
+
     /**
      * User and roles message codes.
      */
@@ -39,7 +39,7 @@ public final class I18nCodes {
         /** When action failed if the specified user is the last administrator. */
         public static final String LAST_ADMIN = "api.msg.error.user.lastAdmin";
     }
-    
+
     /**
      * Styles message codes.
      */
@@ -48,13 +48,14 @@ public final class I18nCodes {
         public static final String NOT_FOUND = "api.msg.error.style.notFound";
         /** When trying to create a style with an id which already exist. */
         public static final String ALREADY_EXIST = "api.msg.error.style.alreadyExist";
-        
+
         //INTERNAL
         /** Cannot get interpolation palette because the function of colormap is unrecognized. */
         public static final String NOT_COLORMAP = "api.msg.error.internal.style.notColorMap";
+        public static final String RULE_NOT_FOUND = "api.msg.error.internal.style.rule.notFound";
         /** When a parameter is not valid */
         public static final String INVALID_ARGUMENT = "api.msg.error.internal.style.invalidArgument";
-        
+
     }
-    
+
 }

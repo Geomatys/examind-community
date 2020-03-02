@@ -24,15 +24,14 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.constellation.test.utils.SpringTestRunner;
@@ -41,7 +40,6 @@ import org.geotoolkit.storage.AbstractReadingTests;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.junit.runner.RunWith;
 import org.locationtech.jts.geom.Geometry;
@@ -81,13 +79,15 @@ public class OM2DataStoreTest extends AbstractReadingTests{
                 exec.run(sql);
                 exec.run(getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
-                final Map params = new HashMap<>();
-                params.put("identifier", "om2");
-                params.put("dbtype", "OM2");
-                params.put(OM2FeatureStoreFactory.SGBDTYPE.getName().toString(), "derby");
-                params.put(OM2FeatureStoreFactory.DERBYURL.getName().toString(), url);
+                DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) OM2FeatureStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
+                parameters.getOrCreate(OM2FeatureStoreFactory.IDENTIFIER).setValue("om2");
+                parameters.getOrCreate(OM2FeatureStoreFactory.DBTYPE).setValue("OM2");
+                parameters.getOrCreate(OM2FeatureStoreFactory.SGBDTYPE).setValue("derby");
+                parameters.getOrCreate(OM2FeatureStoreFactory.DERBYURL).setValue(url);
 
-                store = DataStores.open(params);
+                OM2FeatureStoreFactory factory = new OM2FeatureStoreFactory();
+
+                store =  factory.open(parameters);
 
                 final String nsCstl = "http://constellation.org/om2";
                 final String nsGML = "http://www.opengis.net/gml";

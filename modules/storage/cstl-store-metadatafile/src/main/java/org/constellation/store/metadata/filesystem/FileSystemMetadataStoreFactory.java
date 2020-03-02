@@ -31,7 +31,7 @@ import org.apache.sis.storage.StorageConnector;
 import static org.constellation.store.metadata.CstlMetadataStoreDescriptors.EXTRA_QUERYABLE;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataStore;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.storage.Bundle;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
@@ -54,7 +54,12 @@ public class FileSystemMetadataStoreFactory extends DataStoreProvider {
      /** factory identification **/
     public static final String NAME = "FilesystemMetadata";
 
-    public static final ParameterDescriptor<String> IDENTIFIER = DataStoreFactory.createFixedIdentifier(NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER = new ParameterBuilder()
+                    .addName("identifier")
+                    .addName(Bundle.formatInternational(Bundle.Keys.paramIdentifierAlias))
+                    .setRemarks(Bundle.formatInternational(Bundle.Keys.paramIdentifierRemarks))
+                    .setRequired(true)
+                    .createEnumerated(String.class, new String[]{NAME}, NAME);
 
     public static final ParameterDescriptor<Map> CONFIG_PARAMS = BUILDER
             .addName("config-params")

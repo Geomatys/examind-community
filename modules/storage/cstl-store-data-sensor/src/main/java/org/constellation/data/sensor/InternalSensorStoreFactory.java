@@ -21,8 +21,12 @@ package org.constellation.data.sensor;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
+import org.geotoolkit.observation.Bundle;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
@@ -38,12 +42,17 @@ import org.opengis.parameter.ParameterValueGroup;
         capabilities = {Capability.READ, Capability.WRITE},
         resourceTypes = {})
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
-public class InternalSensorStoreFactory extends DataStoreFactory {
+public class InternalSensorStoreFactory extends DataStoreProvider {
 
      /** factory identification **/
     public static final String NAME = "cstlsensor";
 
-    public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER = new ParameterBuilder()
+                    .addName("identifier")
+                    .addName(Bundle.formatInternational(Bundle.Keys.paramIdentifierAlias))
+                    .setRemarks(Bundle.formatInternational(Bundle.Keys.paramIdentifierRemarks))
+                    .setRequired(true)
+                    .createEnumerated(String.class, new String[]{NAME}, NAME);
 
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
@@ -65,12 +74,16 @@ public class InternalSensorStoreFactory extends DataStoreFactory {
 
     @Override
     public InternalSensorStore open(ParameterValueGroup params) throws DataStoreException {
-        ensureCanProcess(params);
         return new InternalSensorStore(params);
     }
 
     @Override
-    public InternalSensorStore create(ParameterValueGroup params) throws DataStoreException {
-        throw new DataStoreException("Not supported.");
+    public ProbeResult probeContent(StorageConnector connector) throws DataStoreException {
+        return ProbeResult.UNSUPPORTED_STORAGE;
+    }
+
+    @Override
+    public DataStore open(StorageConnector connector) throws DataStoreException {
+        throw new UnsupportedOperationException("StorageConnector not supported.");
     }
 }

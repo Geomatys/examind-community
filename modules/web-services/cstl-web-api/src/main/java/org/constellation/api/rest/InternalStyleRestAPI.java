@@ -158,9 +158,11 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             }
             // search related rule
             Function function = null;
+            boolean ruleFound = false;
             search:
             for (final MutableRule mutableRule : mutableRules) {
                 if (mutableRule.getName().equalsIgnoreCase(ruleName)) {
+                    ruleFound = true;
                     for (final Symbolizer symbolizer : mutableRule.symbolizers()) {
                         // search raster symbolizer and return function
                         if (symbolizer instanceof RasterSymbolizer) {
@@ -181,6 +183,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                     }
                     break search;
                 }
+            }
+            if (!ruleFound) {
+                return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.RULE_NOT_FOUND).build();
             }
 
             if(function instanceof Categorize){

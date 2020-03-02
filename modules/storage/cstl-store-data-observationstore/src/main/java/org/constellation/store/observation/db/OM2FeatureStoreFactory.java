@@ -39,9 +39,13 @@ import java.io.IOException;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.ProbeResult;
+import org.apache.sis.storage.StorageConnector;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.storage.DataStoreFactory;
+import org.geotoolkit.observation.Bundle;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterNotFoundException;
@@ -64,13 +68,19 @@ import org.opengis.parameter.ParameterNotFoundException;
                         MultiPoint.class,
                         MultiLineString.class,
                         MultiPolygon.class})
-public class OM2FeatureStoreFactory extends DataStoreFactory {
+public class OM2FeatureStoreFactory extends DataStoreProvider {
 
     /** factory identification **/
     public static final String NAME = "om2";
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
-    public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
+
+    public static final ParameterDescriptor<String> IDENTIFIER = new ParameterBuilder()
+                    .addName("identifier")
+                    .addName(Bundle.formatInternational(Bundle.Keys.paramIdentifierAlias))
+                    .setRemarks(Bundle.formatInternational(Bundle.Keys.paramIdentifierRemarks))
+                    .setRequired(true)
+                    .createEnumerated(String.class, new String[]{NAME}, NAME);
 
     /**
      * Parameter for database port
@@ -174,10 +184,9 @@ public class OM2FeatureStoreFactory extends DataStoreFactory {
         return PARAMETERS_DESCRIPTOR;
     }
 
-    @Override
     public boolean canProcess(final ParameterValueGroup params) {
         try {
-            boolean valid = super.canProcess(params);
+            boolean valid = true; //super.canProcess(params);
             if (valid) {
                 Object value = params.parameter(DBTYPE.getName().toString()).getValue();
                 if ("OM2".equals(value)) {
@@ -198,7 +207,9 @@ public class OM2FeatureStoreFactory extends DataStoreFactory {
 
     @Override
     public OM2FeatureStore open(final ParameterValueGroup params) throws DataStoreException {
-        ensureCanProcess(params);
+        if (!canProcess(params)) {
+            throw new DataStoreException("Parameter values not supported by this factory.");
+        }
         try{
             //create a datasource
             final BasicDataSource dataSource = new BasicDataSource();
@@ -252,5 +263,15 @@ public class OM2FeatureStoreFactory extends DataStoreFactory {
             final String db    = (String) params.parameter(DATABASE.getName().toString()).getValue();
             return "jdbc:postgresql" + "://" + host + ":" + port + "/" + db;
         }
+    }
+
+    @Override
+    public ProbeResult probeContent(StorageConnector sc) throws DataStoreException {
+        return ProbeResult.UNSUPPORTED_STORAGE;
+    }
+
+    @Override
+    public DataStore open(StorageConnector sc) throws DataStoreException {
+        throw new DataStoreException("StorageConnector not supported.");
     }
 }

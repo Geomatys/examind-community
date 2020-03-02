@@ -77,7 +77,7 @@ public class ProviderBusinessTest {
     }
 
     @Test
-    public void createFromDataStoreFactory() throws ConfigurationException, IOException, URISyntaxException {
+    public void createFromDataStoreProvider() throws ConfigurationException, IOException, URISyntaxException {
         final String id = "myProvider";
         final DataStoreProvider cvgFactory = new FileCoverageProvider();
         final ParameterValueGroup config = cvgFactory.getOpenParameters().createValue();

@@ -69,7 +69,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.geotoolkit.storage.feature.AbstractFolderFeatureStoreFactory;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
 import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.util.NamesExt;
@@ -549,11 +548,9 @@ public final class DataProviders extends Static{
 
         int i = 1;
         for (DataStoreProvider provider : providers) {
-            boolean geotk = provider instanceof DataStoreFactory;
             String currentStoreId = provider.getOpenParameters().getName().getCode();
             ResourceStore rsStore = new ResourceStore(currentStoreId, p.toUri().toString(), new ArrayList<>(), true);
             sb.append(i).append(": PROVIDER ID: ").append(currentStoreId).append(" ");
-            if (!geotk) sb.append("(not geotk) ");
             sb.append(provider.getClass());
             i++;
 
