@@ -19,11 +19,7 @@
 
 
     <dependencies>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-database-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-engine-admin</artifactId>
@@ -74,19 +70,7 @@
             <artifactId>cstl-web-base</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-dbf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-shapefile</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-owc</artifactId>
@@ -138,6 +122,16 @@
         <dependency>
             <groupId>com.ryantenney.metrics</groupId>
             <artifactId>metrics-spring</artifactId>
+        </dependency>
+
+        <!-- those 2 depencies should be removed with the old add data -->
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-feature-dbf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-feature-shapefile</artifactId>
         </dependency>
 
         <!-- test dependencies -->

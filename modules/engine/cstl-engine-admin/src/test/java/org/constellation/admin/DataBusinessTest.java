@@ -38,6 +38,7 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
+import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
@@ -186,6 +187,16 @@ public class DataBusinessTest {
         Assert.assertTrue(db.getDataDescription() instanceof FeatureDataDescription);
         FeatureDataDescription desc = (FeatureDataDescription) db.getDataDescription();
         Assert.assertEquals(3, desc.getProperties().size());
+
+        ParameterValues results = dataBusiness.getVectorDataColumns(db.getId());
+        ParameterValues expected = new ParameterValues();
+        expected.getValues().put("FID","FID");
+        expected.getValues().put("sis:identifier","sis:identifier");
+        expected.getValues().put("sis:envelope","sis:envelope");
+        expected.getValues().put("ADDRESS","ADDRESS");
+        expected.getValues().put("sis:geometry","sis:geometry");
+        expected.getValues().put("the_geom","the_geom");
+        Assert.assertEquals(expected, results);
 
     }
 

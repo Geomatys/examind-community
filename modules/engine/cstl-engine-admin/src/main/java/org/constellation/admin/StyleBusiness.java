@@ -178,16 +178,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Creates a new style into a style provider instance.
-     *
-     * @param providerId
-     *            the style provider identifier
-     * @param style
-     *            the style body
-     * @throws TargetNotFoundException
-     *             if the style with the specified identifier can't be found
-     * @throws ConfigurationException
-     *             if the operation has failed for any reason
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -197,11 +188,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Returns the list of available styles as {@link StyleBrief} object.
-     *
-     * @param category
-     * @return a {@link List} of {@link StyleBrief} instances
-     * @throws org.constellation.exception.ConstellationException
+     * {@inheritDoc}
      */
     @Override
     public List<StyleBrief> getAvailableStyles(final String category) throws ConstellationException {
@@ -209,20 +196,13 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Returns the list of available styles as {@link StyleBrief} object for the
-     * style provider with the specified identifier.
-     *
-     * @param providerId
-     * @param category
-     * @throws TargetNotFoundException
-     *             if the style provider does not exist
-     * @return a {@link List} of {@link StyleBrief} instances
+     * {@inheritDoc}
      */
     @Override
-    public List<StyleBrief> getAvailableStyles(final String providerId, final String category) throws ConstellationException {
+    public List<StyleBrief> getAvailableStyles(final String providerId, final String type) throws ConstellationException {
         final Integer provider = providerId!=null ? nameToId(providerId) : null;
         final List<Style> styles;
-        if (category == null) {
+        if (type == null) {
             if (provider==null) {
                 styles = styleRepository.findAll();
             } else {
@@ -230,9 +210,9 @@ public class StyleBusiness implements IStyleBusiness {
             }
         } else {
             if (provider==null) {
-                styles = styleRepository.findByType(category);
+                styles = styleRepository.findByType(type);
             } else {
-                styles = styleRepository.findByTypeAndProvider(provider, category);
+                styles = styleRepository.findByTypeAndProvider(provider, type);
             }
         }
         final List<StyleBrief> beans = new ArrayList<>();
@@ -272,16 +252,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Gets and returns the {@link MutableStyle} that matches with the specified
-     * identifier.
-     *
-     * @param providerId
-     *            the style provider identifier
-     * @param styleName
-     *            the style identifier
-     * @return the {@link MutableStyle} instance
-     * @throws TargetNotFoundException
-     *             if the style with the specified identifier can't be found
+     * {@inheritDoc}
      */
     @Override
     public org.opengis.style.Style getStyle(final String providerId, final String styleName) throws TargetNotFoundException {
@@ -290,16 +261,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Gets and returns the {@link MutableStyle} that matches with the specified
-     * identifier.
-     *
-     * @param providerId
-     *            the style provider identifier
-     * @param styleName
-     *            the style identifier
-     * @return the {@link Style} instance
-     * @throws TargetNotFoundException
-     *             if the style with the specified providerId and styleName can't be found
+     * {@inheritDoc}
      */
     @Override
     public Integer getStyleId(final String providerId, final String styleName) throws TargetNotFoundException {
@@ -307,12 +269,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Gets and returns the {@link MutableStyle} that matches with the specified id.
-     *
-     * @param styleId style entity id.
-     * @return the {@link MutableStyle} instance
-     * @throws TargetNotFoundException
-     *             if the style with the specified identifier can't be found
+     * {@inheritDoc}
      */
     @Override
     public org.opengis.style.Style getStyle(int styleId) throws TargetNotFoundException {
@@ -324,15 +281,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Flag that returns if style exists for given provider and style name.
-     *
-     * @param providerId
-     *            the style provider identifier
-     * @param styleName
-     *            the style identifier
-     * @return boolean
-     * @throws TargetNotFoundException
-     *             if the provider with the specified identifier can't be found
+     * {@inheritDoc}
      */
     @Override
     public boolean existsStyle(final String providerId, final String styleName) throws TargetNotFoundException {
@@ -345,11 +294,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Flag that returns if style exists for given identifier.
-     *
-     * @param styleId
-     *            the style identifier
-     * @return boolean
+     * {@inheritDoc}
      */
     @Override
     public boolean existsStyle(final int styleId) {
@@ -384,16 +329,11 @@ public class StyleBusiness implements IStyleBusiness {
     /**
      * Creates or updates a style into/from a style provider instance.
      *
-     * @param providerId
-     *            the style provider identifier
-     * @param styleName
-     *            the style identifier
-     * @param style
-     *            the new style body
-     * @throws TargetNotFoundException
-     *             if the style with the specified identifier can't be found
-     * @throws ConfigurationException
-     *             if the operation has failed for any reason
+     * @param providerId The style provider identifier
+     * @param styleName The style identifier
+     * @param style The new style body
+     * @throws TargetNotFoundException if the style with the specified identifier can't be found
+     * @throws ConfigurationException  if the operation has failed for any reason
      */
     @Transactional
     private synchronized Style createOrUpdateStyle(final String providerId, String styleName, final MutableStyle style) throws ConfigurationException {
@@ -465,17 +405,9 @@ public class StyleBusiness implements IStyleBusiness {
     public void deleteAll() throws ConfigurationException {
         styleRepository.deleteAll();
     }
+
     /**
-     * Links a style resource to an existing data resource.
-     *
-     * @param styleId
-     *            the style identifier
-     * @param dataId
-     *            the data identifier
-     * @throws TargetNotFoundException
-     *             if the style or Data with the specified identifier can't be found
-     * @throws ConfigurationException
-     *             if the operation has failed for any reason
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -488,16 +420,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Unlink a style resource from an existing data resource.
-     *
-     * @param styleId
-     *            the style identifier
-     * @param dataId
-     *            the data identifier
-     * @throws TargetNotFoundException
-     *             if the style or Data with the specified identifier can't be found
-     * @throws ConfigurationException
-     *             if the operation has failed for any reason
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -535,7 +458,7 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
 
-    protected MutableStyle parseStyle(final String name, final String xml) {
+    protected org.opengis.style.Style parseStyle(final String name, final String xml) {
         MutableStyle value = null;
         StringReader sr = new StringReader(xml);
         final String baseErrorMsg = "SLD Style ";
@@ -708,15 +631,15 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Transform a {@link MutableStyle} instance into a {@link String} instance.
+     * Transform a {@link org.opengis.style.Style} instance into a {@link String} instance.
      *
      * @param style
      *            the style to be written
      * @return a {@link String} instance
      * @throws IOException
-     *             on error while writing {@link MutableStyle} XML
+     *             on error while writing {@link org.opengis.style.Style} XML
      */
-    private static String writeStyle(final MutableStyle style) throws IOException {
+    private static String writeStyle(final org.opengis.style.Style style) throws IOException {
         ensureNonNull("style", style);
         final StyleXmlIO util = new StyleXmlIO();
         try {

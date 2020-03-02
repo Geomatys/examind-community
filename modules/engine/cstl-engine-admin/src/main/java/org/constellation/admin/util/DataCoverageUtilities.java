@@ -21,9 +21,7 @@ package org.constellation.admin.util;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.DataStores;
 

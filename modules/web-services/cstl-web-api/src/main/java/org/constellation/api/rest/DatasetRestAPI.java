@@ -38,7 +38,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
-import org.constellation.database.api.jooq.tables.pojos.Dataset;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -378,7 +377,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Build {@link DataSetBrief} instance from {@link Dataset}
+     * Build {@link DataSetBrief} instance.
      * @param dataSetId given dataset object.
      * @return {@link DataSetBrief} built from the given dataset.
      */

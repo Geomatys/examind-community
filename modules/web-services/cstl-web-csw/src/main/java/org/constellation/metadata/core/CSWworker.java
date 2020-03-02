@@ -336,7 +336,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (!(ds instanceof MetadataStore)) {
             throw new ConfigurationException("Linked metadata provider is not a Metadata store");
         }
-        final MetadataStore originalStore = (MetadataStore) DataProviders.getProvider(providerId).getMainStore();
+        final MetadataStore originalStore = (MetadataStore) ds;
         mdStore = new MetadataStoreWrapper(getId(), originalStore, configuration.getCustomparameters(), providerId);
 
         profile = configuration.getProfile();

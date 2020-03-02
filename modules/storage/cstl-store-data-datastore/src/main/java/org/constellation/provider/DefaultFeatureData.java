@@ -102,7 +102,7 @@ import org.opengis.util.InternationalString;
  *
  * @author Johann Sorel (Geomatys)
  */
-public class DefaultFeatureData extends AbstractData implements FeatureData {
+public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
 
 
     protected static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory();

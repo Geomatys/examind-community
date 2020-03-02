@@ -19,14 +19,12 @@
 package org.constellation.provider;
 
 import java.awt.Dimension;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import org.constellation.exception.ConstellationStoreException;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.opengis.geometry.Envelope;
 

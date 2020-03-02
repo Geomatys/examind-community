@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
@@ -86,7 +85,6 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.token.TokenUtils;
-import org.constellation.util.StoreUtilities;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.PropertyType;
@@ -629,22 +627,22 @@ public class DataBusiness implements IDataBusiness {
                 db.setPyramidConformProviderId(providerName);
             }
 
-            org.constellation.provider.Data layer = null;
+            org.constellation.provider.Data provData = null;
 
             try {
                 final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-                layer = provider.get(data.getNamespace(), data.getName());
+                provData = provider.get(data.getNamespace(), data.getName());
             } catch (ConstellationException ex) {
                 LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
             }
 
             try {
-                if (layer != null) {
+                if (provData != null) {
                     StatInfo stats = null;
                     if (DataType.COVERAGE.name().equals(data.getType()) && (data.getRendered() == null || !data.getRendered())) {
                         stats = new StatInfo(data.getStatsState(), data.getStatsResult());
                     }
-                    final DataDescription dataDescription = layer.getDataDescription(stats);
+                    final DataDescription dataDescription = provData.getDataDescription(stats);
                     db.setDataDescription(dataDescription);
                 }
             } catch (ConstellationStoreException e) {
@@ -660,8 +658,8 @@ public class DataBusiness implements IDataBusiness {
             Dimension dim;
             SortedSet<Date> dates=null;
             try {
-                if (layer!= null) {
-                    dates = layer.getAvailableTimes();
+                if (provData!= null) {
+                    dates = provData.getAvailableTimes();
                 }
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Error retrieving dates values for the data: {" + data.getNamespace() + "} " + data.getName(), ex);
@@ -905,33 +903,39 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public ParameterValues getVectorDataColumns(int id) throws ConfigurationException {
         final Data d = dataRepository.findById(id);
-        final DataProvider dataProvider = DataProviders.getProvider(d.getProviderId());
+        if (d != null) {
+            final DataProvider dataProvider = DataProviders.getProvider(d.getProviderId());
+            final org.constellation.provider.Data provData = dataProvider.get(d.getNamespace(), d.getName());
 
-        final List<String> colNames = new ArrayList<>();
-        final String dataName = dataRepository.findById(id).getName();
-        final DataStore store = dataProvider.getMainStore();
-        try {
-            final Resource rs = StoreUtilities.findResource(store, dataName);
-            if (rs instanceof FeatureSet) {
-                final FeatureSet fs = (FeatureSet) rs;
-                final org.opengis.feature.FeatureType ft = fs.getType();
-                for (final PropertyType prop : ft.getProperties(true)) {
-                    colNames.add(prop.getName().toString());
-                }
+            if (provData != null) {
+                final List<String> colNames = new ArrayList<>();
+                try {
+                    final Resource rs = provData.getOrigin();
+                    if (rs instanceof FeatureSet) {
+                        final FeatureSet fs = (FeatureSet) rs;
+                        final org.opengis.feature.FeatureType ft = fs.getType();
+                        for (final PropertyType prop : ft.getProperties(true)) {
+                            colNames.add(prop.getName().toString());
+                        }
 
-                final ParameterValues values = new ParameterValues();
-                final HashMap<String, String> mapVals = new HashMap<>();
-                for (final String colName : colNames) {
-                    mapVals.put(colName, colName);
+                        final ParameterValues values = new ParameterValues();
+                        final HashMap<String, String> mapVals = new HashMap<>();
+                        for (final String colName : colNames) {
+                            mapVals.put(colName, colName);
+                        }
+                        values.setValues(mapVals);
+                        return values;
+                    } else {
+                        throw new ConfigurationException("Not a vector data requested");
+                    }
+                } catch (DataStoreException ex) {
+                    throw new ConfigurationException(ex.getMessage(), ex);
                 }
-                values.setValues(mapVals);
-                return values;
             } else {
-                throw new ConfigurationException("Not a vector data requested");
+                throw new ConfigurationException("Data not found in provider");
             }
-        } catch (DataStoreException ex) {
-            throw new ConfigurationException(ex.getMessage(), ex);
         }
+        throw new ConfigurationException("Data not found for id:" + id);
     }
 
     @Override

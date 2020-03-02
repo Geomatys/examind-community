@@ -102,7 +102,7 @@ import org.opengis.util.GenericName;
  *
  * @author Johann Sorel (Geomatys)
  */
-public class DefaultCoverageData extends AbstractData implements CoverageData {
+public class DefaultCoverageData extends DefaultGeoData implements CoverageData {
 
     private static final MutableStyle DEFAULT =
             new DefaultStyleFactory().style(StyleConstants.DEFAULT_RASTER_SYMBOLIZER);

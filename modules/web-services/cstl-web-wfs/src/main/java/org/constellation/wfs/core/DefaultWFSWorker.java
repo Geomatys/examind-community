@@ -99,7 +99,6 @@ import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.FeatureWriter;
-import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.feature.FeatureExt;
@@ -585,12 +584,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     FeatureSet featureset = fLayer.getOrigin();
-                    DataStore store    = fLayer.getStore();
                     FeatureType ftType = fLayer.getType();
 
-                    if (store instanceof ExtendedFeatureStore) {
-                        store = (DataStore) ((ExtendedFeatureStore) store).getWrapped();
-                    }
                     if (featureset instanceof XmlFeatureSet) {
                         final Map params = (Map) ((XmlFeatureSet) featureset).getSchema();
                         if (params.size() == 1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
@@ -628,10 +623,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 try {
                     FeatureSet featureset = fLayer.getOrigin();
-                    DataStore store    = fLayer.getStore();
                     FeatureType ftType = fLayer.getType();
 
-                    if (store instanceof ExtendedFeatureStore) store = (DataStore) ((ExtendedFeatureStore) store).getWrapped();
                     if (featureset instanceof XmlFeatureSet) {
                         final Map params = ((XmlFeatureSet) featureset).getSchema();
                         if (params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
@@ -1838,7 +1831,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (store instanceof FeatureStore) {
                         try (Stream<Feature> stream = featureCollection.features(false)) {
                             List<Feature> collected = stream.collect(Collectors.toList());
-                            final List<FeatureId> features = ((FeatureStore) layer.getStore()).addFeatures(layerName, collected);
+                            final List<FeatureId> features = ((FeatureStore) store).addFeatures(layerName, collected);
 
                             for (FeatureId fid : features) {
                                 replaced.put(fid.getID(), handle);// get the id of the replaced feature

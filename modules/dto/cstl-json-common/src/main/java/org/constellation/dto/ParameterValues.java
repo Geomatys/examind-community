@@ -22,6 +22,8 @@ package org.constellation.dto;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * @author Legal Guilhem (Geomatys).
@@ -68,5 +70,34 @@ public class ParameterValues {
      */
     public void setValues(HashMap<String,String> values) {
         this.values = values;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("[ParameterValues]\n");
+        if (values != null) {
+            for (Entry<String, String> entry : values.entrySet()) {
+                sb.append("key:").append(entry.getKey()).append(" => ").append(entry.getValue()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj instanceof ParameterValues) {
+            ParameterValues that = (ParameterValues) obj;
+            return Objects.equals(this.values, that.values);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.values);
+        return hash;
     }
 }

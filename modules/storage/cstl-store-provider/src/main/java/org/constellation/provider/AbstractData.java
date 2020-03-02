@@ -21,20 +21,13 @@ package org.constellation.provider;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.ServiceDef.Query;
-import org.geotoolkit.cql.CQL;
-import org.apache.sis.cql.CQLException;
-import org.apache.sis.internal.system.DefaultFactories;
-import org.opengis.filter.FilterFactory;
 import org.geotoolkit.util.DateRange;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.operation.TransformException;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.Resource;
@@ -117,37 +110,6 @@ public abstract class AbstractData implements Data{
             }
         } catch (TransformException ex) {
             throw new ConstellationStoreException(ex);
-        }
-    }
-
-    protected Filter buildCQLFilter(final String cql, final Filter filter) {
-        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
-        try {
-            final Filter cqlfilter = CQL.parseFilter(cql);
-            if (filter != null) {
-                return factory.and(cqlfilter, filter);
-            } else {
-                return cqlfilter;
-            }
-        } catch (CQLException ex) {
-            LOGGER.log(Level.INFO,  ex.getMessage(),ex);
-        }
-        return filter;
-    }
-
-    protected Filter buildDimFilter(final String dimName, final String dimValue, final Filter filter) {
-        final FilterFactory2 factory = (FilterFactory2) DefaultFactories.forBuildin(FilterFactory.class);
-        Object value = dimValue;
-        try {
-            value = Double.parseDouble(dimValue);
-        } catch (NumberFormatException ex) {
-            // not a number
-        }
-        final Filter extraDimFilter = factory.equals(factory.property(dimName), factory.literal(value));
-        if (filter != null) {
-            return factory.and(extraDimFilter, filter);
-        } else {
-            return extraDimFilter;
         }
     }
 
