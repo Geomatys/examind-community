@@ -255,9 +255,11 @@ public final class Util {
             for (final StyleReference ref: refs) {
                 final StyleBrief styleToAdd = new StyleBrief();
                 styleToAdd.setProvider(ref.getProviderIdentifier());
+                styleToAdd.setProviderId(ref.getProviderId());
                 final String styleName = ref.getName();
                 styleToAdd.setName(styleName);
                 styleToAdd.setTitle(styleName);
+                styleToAdd.setId(ref.getId());
                 briefs.add(styleToAdd);
             }
         }
