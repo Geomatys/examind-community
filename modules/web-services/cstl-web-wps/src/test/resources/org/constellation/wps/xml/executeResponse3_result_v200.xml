@@ -3,7 +3,7 @@
   <ns14:Output id="urn:exa:wps:geotoolkit::jts:intersection:output:result_geom">
     <ns14:JobID>ecbc4579-5175-423a-9bce-a7572ec75363</ns14:JobID>
     <ns14:Data mimeType="application/ewkt" encoding="utf-8">
-        SRID=4326;POLYGON ((3 3, 3 4, 4 4, 4 3, 3 3))
+        SRID=4326;POLYGON ((3 3, 4 3, 4 4, 3 4, 3 3))
     </ns14:Data>
   </ns14:Output>
 </ns14:Result>

@@ -266,7 +266,7 @@ public final class TestEnvironment {
 
             ParameterValueGroup choice = getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(),source);
             ParameterValueGroup config = choice.addGroup("gml");
-            config.parameter("path").setValue(p.toUri());
+            config.parameter("location").setValue(p.toUri());
             config.parameter("sparse").setValue(Boolean.TRUE);
             config.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
             config.parameter("xsdtypename").setValue(typeName);
