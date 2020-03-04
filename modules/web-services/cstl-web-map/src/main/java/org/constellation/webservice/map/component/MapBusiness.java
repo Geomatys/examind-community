@@ -68,6 +68,7 @@ import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.apache.sis.util.iso.Names;
 import static org.constellation.api.StatisticState.STATE_COMPLETED;
 
 /**
@@ -194,9 +195,10 @@ public class MapBusiness {
         if (data == null) throw new TargetNotFoundException("Unexisting data: " + dataId);
 
         final DataProvider provider = DataProviders.getProvider(data.getProviderId());
-        final GenericName name = NamesExt.valueOf(data.getName());
+        final GenericName name = Names.createLocalName(data.getNamespace(), ":", data.getName());
         final Data d = provider.get(name);
 
+        if (d == null) throw new ConstellationStoreException("Unable to find a provider data for name:{" + data.getNamespace() +  "}:" +  data.getName());
         if (!(d instanceof GeoData)) throw new ConstellationStoreException("Unable to portray a non GeoData");
         final GeoData layer = (GeoData) d;
 
