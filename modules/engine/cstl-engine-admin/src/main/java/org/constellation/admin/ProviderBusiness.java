@@ -1148,7 +1148,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 if (indexedDataName == null) {
                     dataBusiness.missingData(new QName(data.getNamespace(), data.getName()), provider.getId());
                 } else {
-                    keys.remove(indexedDataName); // Data already exists. We do not want to re-integrate it.
+                    keys.remove(indexedDataName.getName()); // Data already exists. We do not want to re-integrate it.
                 }
             }
 
