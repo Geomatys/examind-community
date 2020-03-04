@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -17,6 +18,7 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureNaming;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
@@ -27,6 +29,7 @@ import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.feature.FeatureStore;
 
 import org.constellation.provider.Data;
+import org.constellation.provider.DataProviders;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
@@ -41,13 +44,15 @@ import org.constellation.provider.DefaultOtherData;
  */
 final class DataStoreHandle implements AutoCloseable {
 
+    protected static final Logger LOGGER = DataProviders.LOGGER;
+
     private static final String SEPARATOR = ":";
 
     final DataStore store;
     private final FeatureNaming<CachedData> index;
     private final LinkedHashSet<GenericName> nameList;
 
-    DataStoreHandle(DataStore store, final Logger logger) throws DataStoreException {
+    DataStoreHandle(DataStore store) throws DataStoreException {
         this.store = store;
         index = new FeatureNaming<>();
         nameList = new LinkedHashSet<>();
@@ -61,7 +66,7 @@ final class DataStoreHandle implements AutoCloseable {
                 index.add(store, indexedName, new CachedData(baseName));
                 nameList.add(baseName);
             } else {
-                logger.warning("DataSet ignored because it is unidentified: "+rs);
+                LOGGER.log(Level.WARNING, "DataSet ignored because it is unidentified: {0}", rs);
             }
         }
     }
@@ -113,11 +118,14 @@ final class DataStoreHandle implements AutoCloseable {
         final Resource rs = store.findResource(dataName);
         final GenericName targetName = rs.getIdentifier()
                 .orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
-        if (rs instanceof org.apache.sis.storage.GridCoverageResource) {
-            return new DefaultCoverageData(targetName, (org.apache.sis.storage.GridCoverageResource) rs, store);
+        if (rs instanceof GridCoverageResource) {
+            return new DefaultCoverageData(targetName, (GridCoverageResource) rs, store);
         } else if (rs instanceof FeatureSet){
             return new DefaultFeatureData(targetName, store, (FeatureSet) rs, null, null, null, null, version);
-        } else return new DefaultOtherData(targetName, rs, store);
+        } else {
+            LOGGER.warning("Unexpected resource class for creating Provider Data:" + rs.getClass().getName());
+            return new DefaultOtherData(targetName, rs, store);
+        }
     }
 
     /**
@@ -140,7 +148,7 @@ final class DataStoreHandle implements AutoCloseable {
             throw e.unwrapOrRethrow(DataStoreException.class);
         }
     }
-    
+
     /**
      * This method tries to define a strict representation of names to allow name comparison without ambiguity. Possible
      * problems are:

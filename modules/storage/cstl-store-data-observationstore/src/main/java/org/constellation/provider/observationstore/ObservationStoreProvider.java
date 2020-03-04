@@ -55,7 +55,6 @@ import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
-import static org.constellation.provider.AbstractDataProvider.getLogger;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
@@ -228,7 +227,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             //Looks like we failed to retrieve the list of featuretypes,
             //the layers won't be indexed and the getCapability
             //won't be able to find thoses layers.
-            getLogger().log(Level.SEVERE, "Failed to retrive list of available feature types.", ex);
+            LOGGER.log(Level.SEVERE, "Failed to retrive list of available feature types.", ex);
         }
     }
 
@@ -246,7 +245,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
 
         if(factoryconfig == null){
-            getLogger().log(Level.WARNING, "No configuration for observation store source.");
+            LOGGER.log(Level.WARNING, "No configuration for observation store source.");
             return null;
         }
         try {
@@ -260,7 +259,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             }
             return (ObservationStore) tmpStore;
         } catch (Exception ex) {
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }

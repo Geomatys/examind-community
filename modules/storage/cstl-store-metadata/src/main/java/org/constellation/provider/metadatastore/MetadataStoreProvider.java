@@ -130,7 +130,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             return new DefaultMetadataData(key, store, metadata.node);
 
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }
@@ -154,7 +154,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             //Looks like we failed to retrieve the list of featuretypes,
             //the layers won't be indexed and the getCapability
             //won't be able to find thoses layers.
-            getLogger().log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
+            LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
         }
     }
 
@@ -172,7 +172,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
         }
 
         if(factoryconfig == null){
-            getLogger().log(Level.WARNING, "No configuration for metadata store source.");
+            LOGGER.log(Level.WARNING, "No configuration for metadata store source.");
             return null;
         }
         try {
@@ -186,7 +186,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             }
             return (MetadataStore) tmpStore;
         } catch (Exception ex) {
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }
@@ -199,7 +199,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.deleteMetadata(key.toString());
             reload();
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
+            LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
     }
@@ -222,7 +222,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             try {
                 store.close();
             } catch (DataStoreException ex) {
-                getLogger().log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
         index.clear();
@@ -256,7 +256,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.storeMetadata(obj);
             reload();
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.INFO, "Unable to store a new sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to store a new sensor in provider:" + id, ex);
         }
         return result;
     }
@@ -269,7 +269,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.replaceMetadata(metadataID, any);
             reload();
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.INFO, "Unable to replace a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to replace a sensor in provider:" + id, ex);
         }
         return result;
     }
@@ -282,7 +282,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.updateMetadata(metadataID, properties);
             reload();
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.INFO, "Unable to update a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to update a sensor in provider:" + id, ex);
         }
         return result;
     }
@@ -295,7 +295,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             result = store.deleteMetadata(metadataID);
             reload();
         } catch (MetadataIoException ex) {
-            getLogger().log(Level.INFO, "Unable to delete a sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to delete a sensor in provider:" + id, ex);
         }
         return result;
     }

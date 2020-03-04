@@ -128,7 +128,7 @@ public class DataStoreProvider extends AbstractDataProvider {
                 return DataType.VECTOR; // unknown
             }
         } else {
-            LOGGER.warning("Unable to find a DatastoreProvider for:" + id);
+            LOGGER.log(Level.WARNING, "Unable to find a DatastoreProvider for:{0}", id);
             return DataType.VECTOR; // unknown
         }
     }
@@ -175,7 +175,7 @@ public class DataStoreProvider extends AbstractDataProvider {
         try (Session session = storage.read()) {
             return session.handle().fetch(key, version);
         } catch (IllegalNameException e) {
-            getLogger().log(Level.FINE, "Queried an unknown name: "+key, e);
+            LOGGER.log(Level.FINE, "Queried an unknown name: "+key, e);
             return null;
         } catch (DataStoreException e) {
             throw new BackingStoreException(e);
@@ -187,9 +187,9 @@ public class DataStoreProvider extends AbstractDataProvider {
         try (Session session = storage.write()) {
             return session.handle().remove(key);
         } catch (IllegalNameException e) {
-            getLogger().log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
+            LOGGER.log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
         } catch (DataStoreException e) {
-            getLogger().log(Level.WARNING, "An error occurred while removing data from provider");
+            LOGGER.log(Level.WARNING, "An error occurred while removing data from provider");
         }
         return false;
     }
@@ -209,7 +209,7 @@ public class DataStoreProvider extends AbstractDataProvider {
                     }
                 }
         } catch (DataStoreException e) {
-            getLogger().log(Level.WARNING, e.getMessage(), e);
+            LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
     }
 
@@ -292,7 +292,7 @@ public class DataStoreProvider extends AbstractDataProvider {
 
             //if the store metadata is still null that means it is not implemented yet
             // so we merge the metadata iso from the reader from each resource
-            getLogger().warning("Heavy-weight analysis for provider metadata initialization");
+            LOGGER.warning("Heavy-weight analysis for provider metadata initialization");
 
             DefaultMetadata metadata = new DefaultMetadata();
             final DefaultDataIdentification ident = new DefaultDataIdentification();

@@ -128,7 +128,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             return new DefaultSensorData(key, store, metadata);
 
         } catch (DataStoreException ex) {
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }
@@ -149,7 +149,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             //Looks like we failed to retrieve the list of featuretypes,
             //the layers won't be indexed and the getCapability
             //won't be able to find thoses layers.
-            getLogger().log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
+            LOGGER.log(Level.SEVERE, "Failed to retrive list of available sensor names.", ex);
         }
     }
 
@@ -167,7 +167,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         }
 
         if(factoryconfig == null){
-            getLogger().log(Level.WARNING, "No configuration for feature store source.");
+            LOGGER.log(Level.WARNING, "No configuration for feature store source.");
             return null;
         }
         try {
@@ -181,7 +181,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             }
             return (AbstractSensorStore) tmpStore;
         } catch (Exception ex) {
-            getLogger().log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }
@@ -194,7 +194,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             result = store.deleteSensor(key.toString());
             reload();
         } catch (DataStoreException ex) {
-            getLogger().log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
+            LOGGER.log(Level.INFO, "Unable to remove " + key.toString() + " from provider.", ex);
         }
         return result;
     }
@@ -245,7 +245,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
         try {
             return store.getNewSensorId();
         } catch (DataStoreException ex) {
-            getLogger().log(Level.INFO, "Unable to acquire a new sensorID from provider.", ex);
+            LOGGER.log(Level.INFO, "Unable to acquire a new sensorID from provider.", ex);
         }
         return null;
     }
@@ -258,7 +258,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             result = store.writeSensor(id, sensor);
             reload();
         } catch (DataStoreException ex) {
-            getLogger().log(Level.INFO, "Unable to insert a new sensor in provider:" + id, ex);
+            LOGGER.log(Level.INFO, "Unable to insert a new sensor in provider:" + id, ex);
         }
         return result;
     }

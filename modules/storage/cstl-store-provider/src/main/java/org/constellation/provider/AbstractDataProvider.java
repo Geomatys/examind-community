@@ -102,10 +102,6 @@ public abstract class AbstractDataProvider implements DataProvider{
         return service;
     }
 
-    public static Logger getLogger() {
-        return LOGGER;
-    }
-
     /**
      * {@inheritDoc}
      */
