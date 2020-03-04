@@ -66,7 +66,7 @@ public class ForcedSampleDimensionsCoverageResource implements GridCoverageResou
         final GridCoverage2D cov2d = CoverageUtilities.toGeotk(baseCoverage);
         final RenderedImage ri = cov2d.getRenderedImage();
         return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
-                dimensions.toArray(new SampleDimension[0]), null, cov2d.getProperties(), null);
+                dimensions.toArray(new SampleDimension[0]), null);
     }
 
     @Override
