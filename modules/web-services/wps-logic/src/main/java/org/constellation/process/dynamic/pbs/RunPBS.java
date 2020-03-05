@@ -28,29 +28,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.util.Util;
 import org.constellation.util.ParamUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessEvent;
 import org.geotoolkit.process.ProcessListener;
 import org.geotoolkit.nio.IOUtilities;
-import java.nio.charset.Charset;
 
 import static org.constellation.process.dynamic.pbs.RunPBSDescriptor.*;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.logging.Level;
 
 /**
  * Process for deploying a PBS process
@@ -62,11 +59,11 @@ public class RunPBS extends AbstractCstlProcess {
     @Autowired
     public IProcessBusiness processBusiness;
 
-    private ParameterDescriptorGroup configurationDescriptor;
+    private final ParameterDescriptorGroup configurationDescriptor;
 
     private ConfgSelfMonitoring configurationSelfMonitoring;
 
-    public RunPBS(final ProcessDescriptor desc, final ParameterValueGroup parameter, 
+    public RunPBS(final ProcessDescriptor desc, final ParameterValueGroup parameter,
 		  final ParameterDescriptorGroup configParameterDescriptor) {
         super(desc, parameter);
 	configurationDescriptor = configParameterDescriptor;
@@ -88,14 +85,14 @@ public class RunPBS extends AbstractCstlProcess {
      * Read and Create a new instance for self monitoring configuration.
      */
     protected ParameterValueGroup readAndAnalyseJSON(final Path jsonfile) throws JsonProcessingException {
-	
+
 	ParameterValueGroup parameterValue = null;
-	
+
 	try {
-	    String jsonResult = null;
+	    final String jsonResult;
 	    // Read the configuration file if the file exists
 	    if (Files.exists(jsonfile)) {
-		   jsonResult = IOUtilities.toString(jsonfile);    
+		   jsonResult = IOUtilities.toString(jsonfile);
 	    }
 	    // If it does not exist => create a default configuration
 	    else {
@@ -103,14 +100,14 @@ public class RunPBS extends AbstractCstlProcess {
 	    }
 
 	    // Transform the string into a ParameterValueGroup
-	    parameterValue=(ParameterValueGroup)ParamUtilities.readParameterJSON(jsonResult, 
+	    parameterValue=(ParameterValueGroup)ParamUtilities.readParameterJSON(jsonResult,
 										 configurationDescriptor);
-    
+
 	    // Loop on parameters
 	    int time_between_Two_qstat = parameterValue.parameter("Time_between_Qstat").intValue();
 	    Map<String, String> status = new HashMap<>();
 
-	    List<ParameterValueGroup> paramList = parameterValue.groups("Status"); 		
+	    List<ParameterValueGroup> paramList = parameterValue.groups("Status");
 	    ParameterDescriptorGroup descStatus = paramList.get(0).getDescriptor();
 	    for (int j = 0 ; j < descStatus.descriptors().size(); j++) {
 		GeneralParameterDescriptor desc = descStatus.descriptors().get(j);
@@ -122,10 +119,10 @@ public class RunPBS extends AbstractCstlProcess {
 
 	    // Instanciate a ConfigSeflMonitoring Object
 	    configurationSelfMonitoring = new ConfgSelfMonitoring(time_between_Two_qstat, status);
-	}   
+	}
 	catch (IOException e) {
-	    e.printStackTrace();
-        }	
+	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
 
 	return parameterValue;
     }
@@ -140,17 +137,17 @@ public class RunPBS extends AbstractCstlProcess {
      */
     @Override
     protected void execute() throws ProcessException {
-	
+
 	//////////////////////////// Build runCommand ///////////////////////
 	String runCommand = "";
 
 	// Two modes for PBS : PBS_COMMAND
 	// _ Monitoring : only a qstat with a pbs_id (id of a PBS job)
 	// _ Execute : qsub on a PBS file with specific arguments
-	
+
 	// Execute mode //
 	if (inputParameters.getValue(PBS_COMMAND).equals("qsub")) {
-	    
+
 	    // Build runCommand with Main Parameters
 	    runCommand =  inputParameters.getValue(PBS_COMMAND) + " -e " + inputParameters.getValue(PBS_ERROR_DIR) + " -o " + inputParameters.getValue(PBS_OUTPUT_DIR);
 
@@ -160,10 +157,10 @@ public class RunPBS extends AbstractCstlProcess {
 	    ParameterDescriptorGroup input = getDescriptor().getInputDescriptor();
 	    for (int i = 0 ; i < input.descriptors().size(); i++) {
 		GeneralParameterDescriptor desc = input.descriptors().get(i);
-		if (!(desc.equals(PBS_ERROR_DIR) || desc.equals(PBS_FILE) || desc.equals(PBS_OUTPUT_DIR) 
-		      || desc.equals(PBS_COMMAND) || desc.equals(PBS_SELF_MONITORING) || 
+		if (!(desc.equals(PBS_ERROR_DIR) || desc.equals(PBS_FILE) || desc.equals(PBS_OUTPUT_DIR)
+		      || desc.equals(PBS_COMMAND) || desc.equals(PBS_SELF_MONITORING) ||
 		      desc.equals(PBS_CONFIG_FILE))) {
-                
+
 		    // Key/Value logic
 		    // Get Value
 		    String ValueVar = (String) inputParameters.getValue((ParameterDescriptor)desc);
@@ -174,28 +171,28 @@ public class RunPBS extends AbstractCstlProcess {
 		    if (pos != -1) {
 			keyVar = desc.getName().getCode().substring(pos + 1);
 		    }
-		
-			
+
+
 		    // If specific arguments (inputs of pbs file)
 		    if (!(keyVar.equals("uid") || keyVar.equals("product_id"))) {
 			if (!runCommand.contains("-v")) {
 			    runCommand = runCommand + " -v ";
 			}
-	    
+
 			runCommand = runCommand + keyVar.toUpperCase() + "=" + "'" + ValueVar + "'" + ",";
 		    }
-	
+
 		    // Set UID if required
 		    if (keyVar.equals("uid")) {
 			if (!runCommand.contains("-v")) {
-			    runCommand = runCommand + " -v ";	
+			    runCommand = runCommand + " -v ";
 			}
-			
+
 			// Create a unique id
 			String uid = UUID.randomUUID().toString();
-			
+
 			runCommand = runCommand + keyVar.toUpperCase() + "=" + "'" + uid + "'" + ",";
-		
+
 		    }
 
 		}
@@ -205,7 +202,7 @@ public class RunPBS extends AbstractCstlProcess {
 		// Remove the last comma
 		runCommand = runCommand.substring(0, runCommand.length() - 1);
 	    }
-	    
+
 	    // Append with PBS_FILE
 	    // Get PBS script directory
 	    String pbsScriptDir  = Application.getProperty(AppProperty.EXA_PBS_SCRIPT_DIR);
@@ -219,13 +216,13 @@ public class RunPBS extends AbstractCstlProcess {
 
 	    // Build runCommand (qstat mode) with only job id as parameter
 	    runCommand =  inputParameters.getValue(PBS_COMMAND) + " -x " ;
-	    
+
 	    // Retrive the PBS-s job Id
 	    ParameterDescriptorGroup input = getDescriptor().getInputDescriptor();
 	    for (int i = 0 ; i < input.descriptors().size(); i++) {
 		GeneralParameterDescriptor desc = input.descriptors().get(i);
-		if (!(desc.equals(PBS_ERROR_DIR) || desc.equals(PBS_FILE) || desc.equals(PBS_OUTPUT_DIR) 
-		      || desc.equals(PBS_COMMAND) || desc.equals(PBS_SELF_MONITORING) || 
+		if (!(desc.equals(PBS_ERROR_DIR) || desc.equals(PBS_FILE) || desc.equals(PBS_OUTPUT_DIR)
+		      || desc.equals(PBS_COMMAND) || desc.equals(PBS_SELF_MONITORING) ||
 		      desc.equals(PBS_CONFIG_FILE))) {
 
 		    // Get Value
@@ -237,16 +234,16 @@ public class RunPBS extends AbstractCstlProcess {
 		    if (pos != -1) {
 			keyVar = desc.getName().getCode().substring(pos + 1);
 		    }
-	
-			
+
+
 		    // If pbs's job id : Add it to the runCommand
 		    if (keyVar.equals("pbs_job_id")) {
 			    runCommand = runCommand + ValueVar;
 		    }
 		}
-				
+
 	    }
-	    
+
 	}
 	// Unknown mode //
 	else {
@@ -256,7 +253,7 @@ public class RunPBS extends AbstractCstlProcess {
 
 	//////////////////////////// Launch runCommand ///////////////////////
 	final List<String> results = new ArrayList<>();
-		
+
 	try {
 	    Runtime rt = Runtime.getRuntime();
 	    Process pr = rt.exec(runCommand);
@@ -272,7 +269,7 @@ public class RunPBS extends AbstractCstlProcess {
 				results.add(line);
 			    }
 			}catch (IOException e) {
-			    e.printStackTrace();
+			    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		    }
 		}).start();
@@ -289,16 +286,16 @@ public class RunPBS extends AbstractCstlProcess {
 	// Get result : pbs command output
 	String result = null;
 	if (results.size() > 0) {
-	    result = results.get(0); 
+	    result = results.get(0);
 	    for (int i = 1; i < results.size(); i++) {
 		result = result + " " + results.get(i);
-	    }	    
+	    }
 	}
 
 	/////////////////////////// Self Monitoring //////////////////////
-	if (inputParameters.getValue(PBS_COMMAND).equals("qsub") && 
+	if (inputParameters.getValue(PBS_COMMAND).equals("qsub") &&
 	    inputParameters.getValue(PBS_SELF_MONITORING).equals("true")) {
-	       
+
 	    String pbsJobId = result;
 
 	    // Put PBS_job_id as output (intermediate output)
@@ -317,7 +314,7 @@ public class RunPBS extends AbstractCstlProcess {
 		readAndAnalyseJSON(pathJson);
 	    }
 	    catch (JsonProcessingException ex) {
-		ex.printStackTrace();
+		LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
 	    }
 
 	    String status = "Running"; // Running or in queue
@@ -332,11 +329,11 @@ public class RunPBS extends AbstractCstlProcess {
 
 	    // Wait until the end of the PBS job (with qstat status on pbs_job_id = pbsJobId)
 	    do {
-		
+
 		if (isCanceled()) {
 		    if (pbsJobId != null) {
 			String dismissCommand = "qdel " + pbsJobId;
-	
+
 			try {
 			    // Launch dismiss command
 			    Runtime rtDel = Runtime.getRuntime();
@@ -352,19 +349,19 @@ public class RunPBS extends AbstractCstlProcess {
 		}
 
 		try {
-		    
+
 		    if (!firstQstat) {
-			// Wait to launch another qstat (in ms => *1000 for conversion) 
-			Thread.sleep(time_between_Two_qstat*1000); 
+			// Wait to launch another qstat (in ms => *1000 for conversion)
+			Thread.sleep(time_between_Two_qstat*1000L);
 		    }
 
 		    firstQstat = false;
 		    resultsMonitoring.clear();
-		    
+
 		    // Launch self monitoring command
 		    Runtime rt = Runtime.getRuntime();
 		    Process pr = rt.exec(selfMonitoringCommand);
-		    
+
 		    new Thread(new Runnable() {
 		    @Override
 		    public void run() {
@@ -375,7 +372,7 @@ public class RunPBS extends AbstractCstlProcess {
 				resultsMonitoring.add(line);
 			    }
 			} catch (IOException e) {
-			    e.printStackTrace();
+			    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		    }
 		}).start();
@@ -385,13 +382,13 @@ public class RunPBS extends AbstractCstlProcess {
 		    }
 
 		    // Get and analyze results of monitoring command
-		    String lineWithJobStatus = resultsMonitoring.get(2); 
+		    String lineWithJobStatus = resultsMonitoring.get(2);
 
 		    status = "Other";
 
 		    // loop on recorded status
 		    for (Map.Entry<String, String> entry : status_qstat.entrySet()) {
-			
+
 			if (lineWithJobStatus.contains(entry.getValue()))
 			    {
 				status = entry.getKey();
@@ -403,7 +400,7 @@ public class RunPBS extends AbstractCstlProcess {
 			// Unknown status => cancel PBS job
 			if (pbsJobId != null) {
 			    String dismissCommand = "qdel " + pbsJobId;
-			    
+
 			    try {
 				// Launch dismiss command
 				Runtime rtExc = Runtime.getRuntime();
@@ -417,11 +414,11 @@ public class RunPBS extends AbstractCstlProcess {
 			throw new ProcessException("Wrong qstat status (not recorded) while executing self monitoring command", this);
 		    }
 
-		    
+
 		} catch (Exception ex) {
 		    throw new ProcessException("Error executing self monitoring command (qstat)", this, ex);
 		}
-		
+
 	    } while (!(status.equals("Finished")));
 
 
@@ -432,13 +429,13 @@ public class RunPBS extends AbstractCstlProcess {
 		    for (GeneralParameterDescriptor desc : output.descriptors()) {
 			if (desc.equals(PBS_OUTPUT_FILE))
 			    {
-				String file_o = inputParameters.getValue(PBS_OUTPUT_DIR) + 
+				String file_o = inputParameters.getValue(PBS_OUTPUT_DIR) +
 				    "/" + pbsJobId + ".OU";
 				outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_o);
 			    }
 			else if (desc.equals(PBS_ERROR_FILE))
 			    {
-				String file_e = inputParameters.getValue(PBS_ERROR_DIR) + 
+				String file_e = inputParameters.getValue(PBS_ERROR_DIR) +
 				    "/" + pbsJobId + ".ER";
 				outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_e);
 			    }
@@ -446,7 +443,7 @@ public class RunPBS extends AbstractCstlProcess {
 		}
 
 	} // End of self monitoring
-		
+
 	//////////////////////////// Assigne output ///////////////////////
 	ParameterDescriptorGroup output = getDescriptor().getOutputDescriptor();
 	for (GeneralParameterDescriptor desc : output.descriptors()) {
@@ -464,11 +461,11 @@ public class RunPBS extends AbstractCstlProcess {
 		}
 		else if (keyVar.equals("pbs_error_file")) {
 		    String file_e = inputParameters.getValue(PBS_ERROR_DIR) + "/" + result + ".ER";
-		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_e);		
+		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(file_e);
 		}
 		else {
 		    outputParameters.getOrCreate((ParameterDescriptor) desc).setValue(result);
-		}	
+		}
 	    }
 	}
     }
@@ -480,10 +477,10 @@ public class RunPBS extends AbstractCstlProcess {
  *
  */
 class ConfgSelfMonitoring {
-    
-    private int timeBetweenQstat;
-    private Map<String, String> statusRecord;
-    
+
+    private final int timeBetweenQstat;
+    private final Map<String, String> statusRecord;
+
     // Constructor
     ConfgSelfMonitoring(int time_Between_Qstat, Map<String, String> status_Record) {
 	timeBetweenQstat = time_Between_Qstat;
@@ -495,9 +492,8 @@ class ConfgSelfMonitoring {
 	return timeBetweenQstat;
     }
 
-    Map<String, String> getStatusRecord()
-    {
+    Map<String, String> getStatusRecord() {
 	return statusRecord;
     }
-    
+
 }

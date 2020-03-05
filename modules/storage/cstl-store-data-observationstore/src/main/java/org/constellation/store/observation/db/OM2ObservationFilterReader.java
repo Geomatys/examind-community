@@ -458,13 +458,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         fieldMap.put(procedure, fields);
                     }
 
-                    final String sqlRequest;
+                    final String measureRequest;
                     if (isTimeField) {
-                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
                                 + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
                                 + "ORDER BY m.\"id\"";
                     } else {
-                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
                     }
                     int timeForProfileIndex = -1;
                     if (includeTimeForProfile && !isTimeField) {
@@ -496,7 +496,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         /*
                          *  BUILD RESULT
                          */
-                        try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
+                        try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
@@ -510,32 +510,32 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                                         Field field = fields.get(i);
                                         String value;
-                                        if (field.fieldType.equals("Time")) {
-                                            Timestamp t = rs2.getTimestamp(field.fieldName);
-                                            synchronized(format2) {
-                                                value = format2.format(t);
-                                            }
-                                            line.append(value).append(encoding.getTokenSeparator());
-                                            if (first) {
-                                                firstTime = value;
-                                                first = false;
-                                            }
-                                            lastTime = value;
-                                        } else if (field.fieldType.equals("Quantity")){
-                                            value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                            if (value != null && !value.isEmpty()) {
-                                                value = Double.toString(rs2.getDouble(field.fieldName));
-                                                emptyLine = false;
-                                                line.append(value);
-                                            }
-                                            line.append(encoding.getTokenSeparator());
-                                        } else {
-                                            value = rs2.getString(field.fieldName);
-                                            if (value != null && !value.isEmpty()) {
-                                                emptyLine = false;
-                                                line.append(value);
-                                            }
-                                            line.append(encoding.getTokenSeparator());
+                                        switch (field.fieldType) {
+                                            case "Time":
+                                                Timestamp t = rs2.getTimestamp(field.fieldName);
+                                                synchronized(format2) {
+                                                    value = format2.format(t);
+                                                }   line.append(value).append(encoding.getTokenSeparator());
+                                                if (first) {
+                                                    firstTime = value;
+                                                    first = false;
+                                                }   lastTime = value;
+                                                break;
+                                            case "Quantity":
+                                                value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                if (value != null && !value.isEmpty()) {
+                                                    value = Double.toString(rs2.getDouble(field.fieldName));
+                                                    emptyLine = false;
+                                                    line.append(value);
+                                                }   line.append(encoding.getTokenSeparator());
+                                                break;
+                                            default:
+                                                value = rs2.getString(field.fieldName);
+                                                if (value != null && !value.isEmpty()) {
+                                                    emptyLine = false;
+                                                    line.append(value);
+                                                }   line.append(encoding.getTokenSeparator());
+                                                break;
                                         }
                                     }
                                     if (!emptyLine) {
@@ -555,7 +555,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         observations.put(procedure + '-' + featureID, observation);
                     } else {
                         String lastTime = null;
-                        try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
+                        try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
@@ -569,28 +569,29 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                                         Field field = fields.get(i);
                                         String value;
-                                        if (field.fieldType.equals("Time")) {
-                                            Timestamp t = rs2.getTimestamp(field.fieldName);
-                                            synchronized(format2) {
-                                                value = format2.format(t);
-                                            }
-                                            lastTime = value;
-                                            line.append(value).append(encoding.getTokenSeparator());
-                                        } else if (field.fieldType.equals("Quantity")){
-                                            value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                                            if (value != null && !value.isEmpty()) {
-                                                value = Double.toString(rs2.getDouble(field.fieldName));
-                                                emptyLine = false;
-                                                line.append(value);
-                                            }
-                                            line.append(encoding.getTokenSeparator());
-                                        } else {
-                                            value = rs2.getString(field.fieldName);
-                                            if (value != null && !value.isEmpty()) {
-                                                emptyLine = false;
-                                                line.append(value);
-                                            }
-                                            line.append(encoding.getTokenSeparator());
+                                        switch (field.fieldType) {
+                                            case "Time":
+                                                Timestamp t = rs2.getTimestamp(field.fieldName);
+                                                synchronized(format2) {
+                                                    value = format2.format(t);
+                                                }   lastTime = value;
+                                                line.append(value).append(encoding.getTokenSeparator());
+                                                break;
+                                            case "Quantity":
+                                                value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                if (value != null && !value.isEmpty()) {
+                                                    value = Double.toString(rs2.getDouble(field.fieldName));
+                                                    emptyLine = false;
+                                                    line.append(value);
+                                                }   line.append(encoding.getTokenSeparator());
+                                                break;
+                                            default:
+                                                value = rs2.getString(field.fieldName);
+                                                if (value != null && !value.isEmpty()) {
+                                                    emptyLine = false;
+                                                    line.append(value);
+                                                }   line.append(encoding.getTokenSeparator());
+                                                break;
                                         }
                                     }
                                     if (!emptyLine) {
@@ -684,7 +685,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      */
                     final Field mainField = getMainField(procedure);
                     boolean isTimeField = false;
-                    final String sqlRequest;
+                    final String measureRequest;
                     if (mainField != null) {
                         isTimeField = "Time".equals(mainField.fieldType);
                         if (isTimeField) {
@@ -693,11 +694,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
 
                     if (isTimeField) {
-                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
                                 + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.toString().replace("$time", mainField.fieldName)
                                 + "ORDER BY m.\"id\"";
                     } else {
-                        sqlRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
+                        measureRequest = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
                     }
 
                     /**
@@ -705,7 +706,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      */
                     List<FieldPhenom> fieldPhen = getPhenomenonFields(phen, fields);
 
-                    try(final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
+                    try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
                         stmt.setInt(1, oid);
                         try(final ResultSet rs2 = stmt.executeQuery()) {
                             while (rs2.next()) {
@@ -772,75 +773,76 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (firstFilter) {
                 request = request.replaceFirst("WHERE", "");
             }
+            LOGGER.info(request);
 
             final StringBuilder values = new StringBuilder();
-            try(final Connection c = source.getConnection()) {
-                try(final Statement currentStatement = c.createStatement()) {
-                    LOGGER.info(request);
-                    final ResultSet rs = currentStatement.executeQuery(request);
-                    final List<Field> fields;
-                    if (!currentFields.isEmpty()) {
-                        fields = new ArrayList<>();
-                        final Field mainField = getMainField(currentProcedure, c);
-                        if (mainField != null) {
-                            fields.add(mainField);
-                        }
-                        for (String f : currentFields) {
-                            final Field field = getFieldForPhenomenon(currentProcedure, f, c);
-                            if (field != null && !fields.contains(field)) {
-                                fields.add(field);
-                            }
-                        }
-                    } else {
-                        fields = readFields(currentProcedure, c);
-                    }
-                    final TextBlock encoding;
-                    if ("text/csv".equals(responseFormat)) {
-                        encoding = getCsvTextEncoding("2.0.0");
-                        // Add the header
-                        for (Field pheno : fields) {
-                            values.append(pheno.fieldDesc).append(',');
-                        }
-                        values.setCharAt(values.length() - 1, '\n');
-                    } else {
-                        encoding = getDefaultTextEncoding("2.0.0");
-                    }
+            try(final Connection c = source.getConnection();
+                final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
 
-                    while (rs.next()) {
-                        StringBuilder line = new StringBuilder();
-                        boolean emptyLine = true;
-                        for (int i = 0; i < fields.size(); i++) {
-                            Field field = fields.get(i);
-                            String value;
-                            if (field.fieldType.equals("Time")) {
+                final List<Field> fields;
+                if (!currentFields.isEmpty()) {
+                    fields = new ArrayList<>();
+                    final Field mainField = getMainField(currentProcedure, c);
+                    if (mainField != null) {
+                        fields.add(mainField);
+                    }
+                    for (String f : currentFields) {
+                        final Field field = getFieldForPhenomenon(currentProcedure, f, c);
+                        if (field != null && !fields.contains(field)) {
+                            fields.add(field);
+                        }
+                    }
+                } else {
+                    fields = readFields(currentProcedure, c);
+                }
+                final TextBlock encoding;
+                if ("text/csv".equals(responseFormat)) {
+                    encoding = getCsvTextEncoding("2.0.0");
+                    // Add the header
+                    for (Field pheno : fields) {
+                        values.append(pheno.fieldDesc).append(',');
+                    }
+                    values.setCharAt(values.length() - 1, '\n');
+                } else {
+                    encoding = getDefaultTextEncoding("2.0.0");
+                }
+
+                while (rs.next()) {
+                    StringBuilder line = new StringBuilder();
+                    boolean emptyLine = true;
+                    for (int i = 0; i < fields.size(); i++) {
+                        Field field = fields.get(i);
+                        String value;
+                        switch (field.fieldType) {
+                            case "Time":
                                 Timestamp t = rs.getTimestamp(field.fieldName);
                                 synchronized(format2) {
                                     value = format2.format(t);
-                                }
-                                line.append(value).append(encoding.getTokenSeparator());
-                            } else if (field.fieldType.equals("Quantity")){
+                                }   line.append(value).append(encoding.getTokenSeparator());
+                                break;
+                            case "Quantity":
                                 value = rs.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
                                 if (value != null && !value.isEmpty()) {
                                     value = Double.toString(rs.getDouble(field.fieldName));
                                     emptyLine = false;
                                     line.append(value);
-                                }
-                                line.append(encoding.getTokenSeparator());
-                            } else {
+                                }   line.append(encoding.getTokenSeparator());
+                                break;
+                            default:
                                 value = rs.getString(field.fieldName);
                                 if (value != null && !value.isEmpty()) {
                                     emptyLine = false;
                                     line.append(value);
-                                }
-                                line.append(encoding.getTokenSeparator());
-                            }
+                                }   line.append(encoding.getTokenSeparator());
+                                break;
                         }
-                        if (!emptyLine) {
-                            values.append(line);
-                            // remove last token separator
-                            values.deleteCharAt(values.length() - 1);
-                            values.append(encoding.getBlockSeparator());
-                        }
+                    }
+                    if (!emptyLine) {
+                        values.append(line);
+                        // remove last token separator
+                        values.deleteCharAt(values.length() - 1);
+                        values.append(encoding.getBlockSeparator());
                     }
                 }
             }
@@ -1025,12 +1027,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else if (mainField.fieldType.equals("Quantity")) {
                     final Double minT = rs.getDouble(1);
                     final Double maxT = rs.getDouble(2);
-                    if (minT != null && maxT != null) {
-                        final long min = minT.longValue();
-                        final long max = maxT.longValue();
-                        result[0] = min;
-                        result[1] = (max - min) / width;
-                    }
+                    final long min    = minT.longValue();
+                    final long max    = maxT.longValue();
+                    result[0] = min;
+                    result[1] = (max - min) / width;
+
                 } else {
                     throw new SQLException("unable to extract bound from a " + mainField.fieldType + " main field.");
                 }

@@ -202,34 +202,15 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     }
 
     public FeatureId getNewFeatureId() {
-        Connection cnx = null;
-        PreparedStatement stmtLastId = null;
-        try {
-            cnx = getConnection();
-            stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
-            final ResultSet result = stmtLastId.executeQuery();
+        try (final Connection cnx = getConnection();
+             final PreparedStatement stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
+             final ResultSet result = stmtLastId.executeQuery()){
             if (result.next()) {
                 final int nb = result.getInt(1) + 1;
                 return new DefaultFeatureId("sampling-point-"+nb);
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, null, ex);
-        } finally {
-            if (stmtLastId != null) {
-                try {
-                    stmtLastId.close();
-                } catch (SQLException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
-            }
-
-            if (cnx != null) {
-                try {
-                    cnx.close();
-                } catch (SQLException ex) {
-                    LOGGER.log(Level.WARNING, null, ex);
-                }
-            }
         }
         return null;
     }
@@ -303,7 +284,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 result.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
                 procedure.spatialBound.appendLocation(o.getSamplingTime(), o.getFeatureOfInterest());
                 procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(o.getProcedure().getHref(), "2.0.0"));
-                
+
                 result.observations.add(o);
             }
         }

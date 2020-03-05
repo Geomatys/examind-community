@@ -138,7 +138,7 @@ public class OM2DatabaseCreator {
             try (final Connection con = source.getConnection()) {
 
                 String version = getVersion(con, schemaPrefix);
-                if (!LAST_VERSION.equals(version)) {
+                if (version != null && !LAST_VERSION.equals(version)) {
                     final ScriptRunner sr = new ScriptRunner(con);
                     switch (version) {
                         case "1.0.0": execute("org/constellation/om2/update/update101.sql", sr, schemaPrefix);

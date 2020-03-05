@@ -233,10 +233,7 @@ import org.springframework.context.annotation.Scope;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class SOSworker extends SensorWorker {
 
-    private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    static {
-        ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    private final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     /**
      * A list of temporary ObservationTemplate
@@ -300,7 +297,8 @@ public class SOSworker extends SensorWorker {
      */
     public SOSworker(final String id) {
         super(id, ServiceDef.Specification.SOS);
-
+        ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        
         if (!isStarted) {
             return;
         }

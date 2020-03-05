@@ -43,6 +43,7 @@ import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.util.Util;
+import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -62,6 +63,7 @@ import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
  *
@@ -398,6 +400,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:5");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
         Assert.assertEquals(expectedIds, resultIds);
+    }
+
+    @Test
+    public void getTimeForTemplateTest() throws Exception {
+        TemporalGeometricPrimitive result = omPr.getTimeForProcedure("2.0.0", "urn:ogc:object:sensor:GEOM:2");
+
+        Assert.assertEquals(new TimeInstantType("2001-01-01"), result);
     }
 
     @Test

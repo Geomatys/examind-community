@@ -34,23 +34,24 @@ import java.sql.Statement;
  * @author Quentin Boileau (Geomatys)
  */
 public class FlywayGenerator {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FlywayGenerator.class);
 
-        public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-            String databaseURL = args[0];
-            String user = args[1];
-            String password = args[2];
-            String update = args[3];
+        String databaseURL = args[0];
+        String user = args[1];
+        String password = args[2];
+        String update = args[3];
 
-            try {
-                Class.forName("org.postgresql.Driver");
-            } catch (ClassNotFoundException ex) {
-                LOGGER.warn(ex.getMessage(), ex);
-            }
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException ex) {
+            LOGGER.warn(ex.getMessage(), ex);
+        }
 
-            final HikariConfig config = createHikariConfig("constellation-generator", null, databaseURL, user, password);
-            final HikariDataSource dataSource = new HikariDataSource(config);
+        final HikariConfig config = createHikariConfig("constellation-generator", null, databaseURL, user, password);
+        try (final HikariDataSource dataSource = new HikariDataSource(config)) {
 
             //Clean database before apply liquidbase scripts
             final String schemaExist = "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'admin';";
@@ -69,23 +70,23 @@ public class FlywayGenerator {
             final Flyway flyway = FlywayUtils.createFlywayConfig(dataSource, true);
             flyway.clean();
             flyway.migrate();
+        }
+    }
 
+    public static HikariConfig createHikariConfig(String poolName, Integer maxPoolSize, String dbUrl, String userName, String password) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(dbUrl);
+
+        config.setUsername(userName);
+        config.setPassword(password);
+
+        if (poolName != null) {
+            config.setPoolName(poolName);
         }
 
-        public static HikariConfig createHikariConfig(String poolName, Integer maxPoolSize, String dbUrl, String userName, String password) {
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(dbUrl);
-
-            config.setUsername(userName);
-            config.setPassword(password);
-
-            if (poolName != null) {
-                config.setPoolName(poolName);
-            }
-
-            if (maxPoolSize != null) {
-                config.setMaximumPoolSize(maxPoolSize);
-            }
-            return config;
+        if (maxPoolSize != null) {
+            config.setMaximumPoolSize(maxPoolSize);
         }
+        return config;
+    }
 }

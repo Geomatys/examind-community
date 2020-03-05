@@ -103,7 +103,7 @@ class SafeAccess {
             return stamp;
 
         } catch (InterruptedException | DataStoreException e) {
-            final String[] args = write ? new String[]{"write", "read"} : new String[]{"read", "write"};
+            final Object[] args = write ? new String[]{"write", "read"} : new String[]{"read", "write"};
             throw new RuntimeException(String.format("Cannot %s data from provider because a %s operation takes a long time", args), e);
         }
     }
