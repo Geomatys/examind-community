@@ -293,12 +293,12 @@ public class DefaultCatalogueHarvester extends CatalogueHarvester {
                         final Node record = CSWUtils.transformToNode(recordObj, marshallerPool);
                         final String metadataID = Utils.findIdentifier(record);
                         try {
-                            if (!store.getWriter().isAlreadyUsedIdentifier(metadataID)) {
-                                if (store.getWriter().storeMetadata(record)) {
+                            if (!store.existMetadata(metadataID)) {
+                                if (store.storeMetadata(record)) {
                                     nbRecordInserted++;
                                 }
                             } else {
-                                if (store.getWriter().replaceMetadata(metadataID, record)) {
+                                if (store.replaceMetadata(metadataID, record)) {
                                     nbRecordUpdated++;
                                 }
                             }

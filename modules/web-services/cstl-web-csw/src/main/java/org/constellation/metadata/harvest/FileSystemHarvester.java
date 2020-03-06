@@ -21,7 +21,6 @@ package org.constellation.metadata.harvest;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
-import org.geotoolkit.metadata.MetadataWriter;
 import org.geotoolkit.nio.IOUtilities;
 import org.w3c.dom.Node;
 
@@ -96,7 +95,7 @@ public class FileSystemHarvester extends CatalogueHarvester {
     private int harvestDirectory(Path dataDirectory) throws CstlServiceException {
         try {
             final Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-            HarvestVisitor visitor = new HarvestVisitor(unmarshaller, store.getWriter());
+            HarvestVisitor visitor = new HarvestVisitor(unmarshaller);
             Files.walkFileTree(dataDirectory, visitor);
             marshallerPool.recycle(unmarshaller);
 
@@ -124,12 +123,10 @@ public class FileSystemHarvester extends CatalogueHarvester {
     private class HarvestVisitor extends SimpleFileVisitor<Path> {
 
         private final Unmarshaller unmarshaller;
-        private final MetadataWriter metadataWriter;
         private int nbRecordInserted;
 
-        public HarvestVisitor(Unmarshaller unmarshaller,  MetadataWriter metadataWriter) {
+        public HarvestVisitor(Unmarshaller unmarshaller) {
             this.unmarshaller = unmarshaller;
-            this.metadataWriter = metadataWriter;
         }
 
         @Override
@@ -144,7 +141,7 @@ public class FileSystemHarvester extends CatalogueHarvester {
 
                     //Temporary ugly patch TODO handle update in CSW
                     try {
-                        if (store.getWriter().storeMetadata((Node) harvested)) {
+                        if (store.storeMetadata((Node) harvested)) {
                             nbRecordInserted++;
                         } else {
                             LOGGER.log(Level.INFO, "The file:{0} has not been recorded", file.toString());

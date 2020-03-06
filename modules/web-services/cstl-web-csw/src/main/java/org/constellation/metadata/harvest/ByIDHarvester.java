@@ -171,7 +171,7 @@ public class ByIDHarvester extends CatalogueHarvester {
                         final Node otherRecord = CSWUtils.transformToNode(otherRecordObj, marshallerPool);
                         //Temporary ugly patch TODO handle update in CSW
                         try {
-                            if (store.getWriter().storeMetadata(otherRecord)) {
+                            if (store.storeMetadata(otherRecord)) {
                                 nbRecordInserted++;
                             } else {
                                 LOGGER.log(Level.INFO, "The record:{0} has not been recorded", identifier);

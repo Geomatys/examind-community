@@ -34,6 +34,8 @@ public class MetadataProviderCapabilities {
 
     public List<QName> supportedTypeNames = new ArrayList<>();
 
+    public boolean writeSupported;
+
     public boolean deleteSupported;
 
     public boolean updateSupported;

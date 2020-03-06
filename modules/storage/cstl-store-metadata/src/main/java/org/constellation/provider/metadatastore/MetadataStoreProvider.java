@@ -109,6 +109,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             capabilities = new MetadataProviderCapabilities();
             final MetadataStore store = getMainStore();
             capabilities.additionalQueryable = store.getAdditionalQueryableQName();
+            capabilities.writeSupported      = store.getWriter() != null;
             capabilities.deleteSupported     = store.deleteSupported();
             capabilities.updateSupported     = store.updateSupported();
             final List<MetadataType> supportedDataTypes = store.getSupportedDataTypes();

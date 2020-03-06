@@ -118,6 +118,11 @@ public class InternalMetadataStoreTest {
     }
 
     @Test
+    public void getEntryCountTest() throws Exception {
+        Assert.assertEquals(15, inStore1.getEntryCount());
+    }
+
+    @Test
     public void getMetadataTest() throws Exception {
         RecordInfo result = inStore1.getMetadata("42292_5p_19900609195600", MetadataType.NATIVE);
         Assert.assertNotNull(result);
