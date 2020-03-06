@@ -16,19 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.metadata.process;
+package org.constellation.process.metadata;
 
 import org.constellation.api.ServiceDef;
 import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
 
-import static org.constellation.metadata.process.RemoveMetadataDescriptor.*;
+import static org.constellation.process.metadata.RemoveMetadataDescriptor.*;
+import org.constellation.ws.ICSWConfigurer;
 import static org.geotoolkit.parameter.Parameters.getOrCreate;
 
 /**
@@ -60,7 +60,7 @@ public class RemoveMetadaProcess extends AbstractCstlProcess {
 
         try {
             final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
-            final CSWConfigurer configurer = (CSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
+            final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             if (configurer.metadataExist(serviceID, metadataID).getStatus().equalsIgnoreCase("Exist")) {
                 configurer.removeRecords(metadataID);
             }

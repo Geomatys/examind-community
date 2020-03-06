@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.constellation.metadata.process;
+package org.constellation.process.metadata;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.SimpleInternationalString;
@@ -28,27 +27,26 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
-import org.w3c.dom.Node;
 
 /**
  *
- * @author Guilhem Legal (Geomatys)
+ * @author Quentin Boileau (Geomatys)
  */
-public class GetMetadataProcessDescriptor extends AbstractProcessDescriptor {
+public class RemoveMetadataDescriptor extends AbstractProcessDescriptor {
     
-    public static final String NAME = "metadata.get";
-    public static final InternationalString ABSTRACT = new SimpleInternationalString("Retrieve a metadata from a CSW service.");
+    public static final String NAME = "metadata.remove";
+    public static final InternationalString ABSTRACT = new SimpleInternationalString("Remove a metadata to a CSW service.");
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String SERVICE_IDENTIFIER_NAME = "service_identifier";
-    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW servicer.";
+    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW service.";
     public static final ParameterDescriptor<String> SERVICE_IDENTIFIER = BUILDER
             .addName(SERVICE_IDENTIFIER_NAME)
             .setRemarks(SERVICE_IDENTIFIER_REMARKS)
             .setRequired(true)
             .create(String.class, null);
-    
+
     public static final String METADATA_ID_NAME = "metadata-id";
     private static final String METADATA_ID_REMARKS = "The metadata identifier.";
     public static final ParameterDescriptor<String> METADATA_ID = BUILDER
@@ -60,30 +58,22 @@ public class GetMetadataProcessDescriptor extends AbstractProcessDescriptor {
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
             .createGroup(SERVICE_IDENTIFIER, METADATA_ID);
-
-    public static final String METADATA_NAME = "metadata";
-    private static final String METADATA_REMARKS = "The metadata object (Node).";
-    public static final ParameterDescriptor<Node> METADATA = BUILDER
-            .addName(METADATA_NAME)
-            .setRemarks(METADATA_REMARKS)
-            .setRequired(false)
-            .create(Node.class, null);
-
+    
      /**Output parameters */
-    public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
-             .createGroup(METADATA);
-
+     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
+             .createGroup();
+    
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
-    public GetMetadataProcessDescriptor() {
+    public RemoveMetadataDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
     }
 
-    public static final ProcessDescriptor INSTANCE = new GetMetadataProcessDescriptor();
+    public static final ProcessDescriptor INSTANCE = new RemoveMetadataDescriptor();
     
     @Override
     public org.geotoolkit.process.Process createProcess(ParameterValueGroup input) {
-        return new GetMetadataProcess(this, input);
+        return new RemoveMetadaProcess(this, input);
     }
 }

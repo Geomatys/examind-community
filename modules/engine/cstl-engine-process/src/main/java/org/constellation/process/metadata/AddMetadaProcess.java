@@ -16,11 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.metadata.process;
+package org.constellation.process.metadata;
 
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -30,8 +29,9 @@ import java.io.File;
 import java.nio.file.Path;
 import org.constellation.admin.SpringHelper;
 
-import static org.constellation.metadata.process.AddMetadataDescriptor.*;
+import static org.constellation.process.metadata.AddMetadataDescriptor.*;
 import org.constellation.ws.CstlServiceException;
+import org.constellation.ws.ICSWConfigurer;
 import org.constellation.ws.Refreshable;
 import org.constellation.ws.IWSEngine;
 import static org.geotoolkit.parameter.Parameters.getOrCreate;
@@ -72,7 +72,7 @@ public class AddMetadaProcess extends AbstractCstlProcess {
         final Boolean refresh   = inputParameters.getValue(REFRESH);
         try {
             final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
-            final CSWConfigurer configurer = (CSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
+            final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             configurer.importRecords(serviceID, metadataFile, metadataFile.getFileName().toString());
             if (refresh) {
                 final Refreshable worker = (Refreshable) engine.getInstance("CSW", serviceID);

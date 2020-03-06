@@ -16,18 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.metadata.process;
+package org.constellation.process.metadata;
 
 import org.constellation.api.ServiceDef;
 import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.metadata.configuration.CSWConfigurer;
-import static org.constellation.metadata.process.GetMetadataProcessDescriptor.INSTANCE;
-import static org.constellation.metadata.process.GetMetadataProcessDescriptor.METADATA;
-import static org.constellation.metadata.process.GetMetadataProcessDescriptor.METADATA_ID;
-import static org.constellation.metadata.process.GetMetadataProcessDescriptor.SERVICE_IDENTIFIER;
+import static org.constellation.process.metadata.GetMetadataProcessDescriptor.INSTANCE;
+import static org.constellation.process.metadata.GetMetadataProcessDescriptor.METADATA;
+import static org.constellation.process.metadata.GetMetadataProcessDescriptor.METADATA_ID;
+import static org.constellation.process.metadata.GetMetadataProcessDescriptor.SERVICE_IDENTIFIER;
 import org.constellation.process.AbstractCstlProcess;
+import org.constellation.ws.ICSWConfigurer;
 import static org.geotoolkit.parameter.Parameters.getOrCreate;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -62,7 +62,7 @@ public class GetMetadataProcess extends AbstractCstlProcess {
 
         try {
             final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
-            final CSWConfigurer configurer = (CSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
+            final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             final Node n = configurer.getMetadata(serviceID, metadataID);
             getOrCreate(METADATA, outputParameters).setValue(n);
         } catch (ConfigurationException ex) {

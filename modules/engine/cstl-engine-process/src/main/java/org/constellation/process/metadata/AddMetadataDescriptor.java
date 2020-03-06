@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.metadata.process;
+package org.constellation.process.metadata;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.SimpleInternationalString;
@@ -28,24 +28,34 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
+import java.nio.file.Path;
+
 /**
  *
- * @author Quentin Boileau (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
-public class RemoveMetadataDescriptor extends AbstractProcessDescriptor {
+public class AddMetadataDescriptor extends AbstractProcessDescriptor {
     
-    public static final String NAME = "metadata.remove";
-    public static final InternationalString ABSTRACT = new SimpleInternationalString("Remove a metadata to a CSW service.");
+    public static final String NAME = "metadata.add";
+    public static final InternationalString ABSTRACT = new SimpleInternationalString("Add a metadata to a CSW service.");
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
     public static final String SERVICE_IDENTIFIER_NAME = "service_identifier";
-    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW service.";
+    private static final String SERVICE_IDENTIFIER_REMARKS = "the identifier of the CSW servicer.";
     public static final ParameterDescriptor<String> SERVICE_IDENTIFIER = BUILDER
             .addName(SERVICE_IDENTIFIER_NAME)
             .setRemarks(SERVICE_IDENTIFIER_REMARKS)
             .setRequired(true)
             .create(String.class, null);
+
+    public static final String METADATA_FILE_NAME = "metadata";
+    private static final String METADATA_FILE_REMARKS = "The metadata to add to CSW.";
+    public static final ParameterDescriptor<Path> METADATA_FILE = BUILDER
+            .addName(METADATA_FILE_NAME)
+            .setRemarks(METADATA_FILE_REMARKS)
+            .setRequired(true)
+            .create(Path.class, null);
 
     public static final String METADATA_ID_NAME = "metadata-id";
     private static final String METADATA_ID_REMARKS = "The metadata identifier.";
@@ -54,11 +64,19 @@ public class RemoveMetadataDescriptor extends AbstractProcessDescriptor {
             .setRemarks(METADATA_ID_REMARKS)
             .setRequired(true)
             .create(String.class, null);
-    
+
+    public static final String REFRESH_NAME = "refresh";
+    private static final String REFRESH_REMARKS = "If set this flag the CSW will be refreshed.";
+    public static final ParameterDescriptor<Boolean> REFRESH = BUILDER
+            .addName(REFRESH_NAME)
+            .setRemarks(REFRESH_REMARKS)
+            .setRequired(true)
+            .create(Boolean.class, Boolean.TRUE);
+
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(SERVICE_IDENTIFIER, METADATA_ID);
-    
+            .createGroup(SERVICE_IDENTIFIER, METADATA_FILE, METADATA_ID, REFRESH);
+
      /**Output parameters */
      public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
              .createGroup();
@@ -66,14 +84,14 @@ public class RemoveMetadataDescriptor extends AbstractProcessDescriptor {
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
-    public RemoveMetadataDescriptor() {
+    public AddMetadataDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
     }
 
-    public static final ProcessDescriptor INSTANCE = new RemoveMetadataDescriptor();
+    public static final ProcessDescriptor INSTANCE = new AddMetadataDescriptor();
     
     @Override
     public org.geotoolkit.process.Process createProcess(ParameterValueGroup input) {
-        return new RemoveMetadaProcess(this, input);
+        return new AddMetadaProcess(this, input);
     }
 }

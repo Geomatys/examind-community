@@ -46,22 +46,12 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
             <artifactId>cstl-json-metadata</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-lib-index-generic</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-         <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-engine-process</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

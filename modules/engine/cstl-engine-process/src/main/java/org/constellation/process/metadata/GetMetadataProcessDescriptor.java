@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.metadata.process;
+
+package org.constellation.process.metadata;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.util.iso.SimpleInternationalString;
@@ -27,17 +28,16 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
-
-import java.nio.file.Path;
+import org.w3c.dom.Node;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class AddMetadataDescriptor extends AbstractProcessDescriptor {
+public class GetMetadataProcessDescriptor extends AbstractProcessDescriptor {
     
-    public static final String NAME = "metadata.add";
-    public static final InternationalString ABSTRACT = new SimpleInternationalString("Add a metadata to a CSW service.");
+    public static final String NAME = "metadata.get";
+    public static final InternationalString ABSTRACT = new SimpleInternationalString("Retrieve a metadata from a CSW service.");
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
@@ -48,15 +48,7 @@ public class AddMetadataDescriptor extends AbstractProcessDescriptor {
             .setRemarks(SERVICE_IDENTIFIER_REMARKS)
             .setRequired(true)
             .create(String.class, null);
-
-    public static final String METADATA_FILE_NAME = "metadata";
-    private static final String METADATA_FILE_REMARKS = "The metadata to add to CSW.";
-    public static final ParameterDescriptor<Path> METADATA_FILE = BUILDER
-            .addName(METADATA_FILE_NAME)
-            .setRemarks(METADATA_FILE_REMARKS)
-            .setRequired(true)
-            .create(Path.class, null);
-
+    
     public static final String METADATA_ID_NAME = "metadata-id";
     private static final String METADATA_ID_REMARKS = "The metadata identifier.";
     public static final ParameterDescriptor<String> METADATA_ID = BUILDER
@@ -64,34 +56,34 @@ public class AddMetadataDescriptor extends AbstractProcessDescriptor {
             .setRemarks(METADATA_ID_REMARKS)
             .setRequired(true)
             .create(String.class, null);
-
-    public static final String REFRESH_NAME = "refresh";
-    private static final String REFRESH_REMARKS = "If set this flag the CSW will be refreshed.";
-    public static final ParameterDescriptor<Boolean> REFRESH = BUILDER
-            .addName(REFRESH_NAME)
-            .setRemarks(REFRESH_REMARKS)
-            .setRequired(true)
-            .create(Boolean.class, Boolean.TRUE);
-
+    
     /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-            .createGroup(SERVICE_IDENTIFIER, METADATA_FILE, METADATA_ID, REFRESH);
+            .createGroup(SERVICE_IDENTIFIER, METADATA_ID);
+
+    public static final String METADATA_NAME = "metadata";
+    private static final String METADATA_REMARKS = "The metadata object (Node).";
+    public static final ParameterDescriptor<Node> METADATA = BUILDER
+            .addName(METADATA_NAME)
+            .setRemarks(METADATA_REMARKS)
+            .setRequired(false)
+            .create(Node.class, null);
 
      /**Output parameters */
-     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
-             .createGroup();
-    
+    public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true)
+             .createGroup(METADATA);
+
     /**
      * Public constructor use by the ServiceRegistry to find and instantiate all ProcessDescriptor.
      */
-    public AddMetadataDescriptor() {
+    public GetMetadataProcessDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);
     }
 
-    public static final ProcessDescriptor INSTANCE = new AddMetadataDescriptor();
+    public static final ProcessDescriptor INSTANCE = new GetMetadataProcessDescriptor();
     
     @Override
     public org.geotoolkit.process.Process createProcess(ParameterValueGroup input) {
-        return new AddMetadaProcess(this, input);
+        return new GetMetadataProcess(this, input);
     }
 }
