@@ -18,11 +18,13 @@
  */
 package org.constellation.provider.metadatastore;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -46,6 +48,8 @@ import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.collection.CloseableIterator;
 
 import org.constellation.api.DataType;
+import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
+import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractDataProvider;
@@ -62,6 +66,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
 
     private final Set<GenericName> index = new LinkedHashSet<>();
     private MetadataStore store;
+    private MetadataProviderCapabilities capabilities = null;
 
     public MetadataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
@@ -96,6 +101,23 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             store = createBaseStore();
         }
         return store;
+    }
+
+    @Override
+    public MetadataProviderCapabilities getCapabilities() throws ConstellationStoreException {
+        if (capabilities == null) {
+            capabilities = new MetadataProviderCapabilities();
+            final MetadataStore store = getMainStore();
+            capabilities.additionalQueryable = store.getAdditionalQueryableQName();
+            capabilities.deleteSupported     = store.deleteSupported();
+            capabilities.updateSupported     = store.updateSupported();
+            final List<MetadataType> supportedDataTypes = store.getSupportedDataTypes();
+            for (MetadataType metaType : supportedDataTypes) {
+                capabilities.supportedTypeNames.addAll(metaType.typeNames);
+                capabilities.acceptedResourceType.add(metaType.namespace);
+            }
+        }
+        return capabilities;
     }
 
     /**
@@ -235,7 +257,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
 
     @Override
     public Path[] getFiles() throws ConstellationException {
-        DataStore currentStore = store;
+        MetadataStore currentStore = getMainStore();
         if (!(currentStore instanceof ResourceOnFileSystem)) {
             throw new ConstellationException("Store is not made of files.");
         }
@@ -246,6 +268,12 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
         } catch (DataStoreException ex) {
             throw new ConstellationException(ex);
         }
+    }
+
+    @Override
+    public Map<String, URI> getConceptMap() {
+        final MetadataStore store = getMainStore();
+        return store.getConceptMap();
     }
 
     @Override

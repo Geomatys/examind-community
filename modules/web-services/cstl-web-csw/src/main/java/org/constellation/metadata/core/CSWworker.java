@@ -126,6 +126,8 @@ import static org.constellation.api.QueryConstants.SERVICE_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IMetadataBusiness;
+import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
+import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.metadata.core.CSWConstants.ALL;
 import static org.constellation.metadata.core.CSWConstants.CSW;
 import static org.constellation.metadata.core.CSWConstants.CSW_FILTER_CAPABILITIES;
@@ -142,7 +144,9 @@ import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.metadata.CSWQueryable.ISO_QUERYABLE;
 import org.constellation.metadata.legacy.MetadataConfigurationUpgrade;
 import org.constellation.metadata.utils.Utils;
+import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.MetadataProvider;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.metadata.MetadataStore;
 import org.constellation.ws.Refreshable;
@@ -190,6 +194,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
 
     private Integer providerId;
 
+    private MetadataProvider metaProvider;
     /**
      * A Database reader.
      */
@@ -321,7 +326,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
      * @throws MetadataIoException If an error occurs while querying the dataSource.
      * @throws IndexingException If an error occurs while initializing the indexation.
      */
-    private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException {
+    private void init() throws MetadataIoException, IndexingException, JAXBException, ConfigurationException, ConstellationStoreException {
 
         // we assign the configuration directory
         final Path configDir = ConfigDirectory.getInstanceDirectory("csw", getId());
@@ -332,10 +337,12 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         if (providerId == null) {
             throw new ConfigurationException("No linked metadata Provider");
         }
+        final DataProvider provider = DataProviders.getProvider(providerId);
         final DataStore ds = DataProviders.getProvider(providerId).getMainStore();
-        if (!(ds instanceof MetadataStore)) {
+        if (!(ds instanceof MetadataStore) || !(provider instanceof MetadataProvider)) {
             throw new ConfigurationException("Linked metadata provider is not a Metadata store");
         }
+        metaProvider = (MetadataProvider) provider;
         final MetadataStore originalStore = (MetadataStore) ds;
         mdStore = new MetadataStoreWrapper(getId(), originalStore, configuration.getCustomparameters(), providerId);
 
@@ -367,25 +374,16 @@ public class CSWworker extends AbstractWorker implements Refreshable {
         } else {
             indexer.destroy();
         }
-        initializeSupportedMetadataTypes();
+        supportedTypeNames    = new ArrayList<>();
+        acceptedResourceType = new ArrayList<>();
+        MetadataProviderCapabilities mpc = metaProvider.getCapabilities();
+        supportedTypeNames.addAll(mpc.supportedTypeNames);
+        acceptedResourceType.addAll(mpc.acceptedResourceType);
+
         initializeSupportedSchemaLanguage();
         initializeRecordSchema();
         initializeAnchorsMap();
         loadCascadedService();
-    }
-
-    /**
-     * Initialize the supported type names in function of the reader capacity.
-     */
-    private void initializeSupportedMetadataTypes() {
-        supportedTypeNames    = new ArrayList<>();
-        acceptedResourceType = new ArrayList<>();
-
-        final List<MetadataType> supportedDataTypes = mdStore.getSupportedDataTypes();
-        for (MetadataType metaType : supportedDataTypes) {
-            supportedTypeNames.addAll(metaType.typeNames);
-            acceptedResourceType.add(metaType.namespace);
-        }
     }
 
     /**
@@ -423,7 +421,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
     private void initializeAnchorsMap() throws JAXBException {
         if (EBRIMMarshallerPool.getInstance() instanceof AnchoredMarshallerPool) {
             final AnchoredMarshallerPool pool = (AnchoredMarshallerPool) EBRIMMarshallerPool.getInstance();
-            final Map<String, URI> concepts = mdStore.getConceptMap();
+            final Map<String, URI> concepts = metaProvider.getConceptMap();
             int nbWord = 0;
             for (Entry<String, URI> entry: concepts.entrySet()) {
                 pool.addAnchor(entry.getKey(),entry.getValue());
@@ -433,7 +431,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
                 LOGGER.log(Level.INFO, "{0} words put in pool.", nbWord);
             }
         } else {
-            LOGGER.severe("NOT an anchoredMarshaller Pool");
+            LOGGER.info("NOT an anchoredMarshaller Pool");
         }
     }
 

@@ -18,7 +18,9 @@
  */
 package org.constellation.provider;
 
+import java.net.URI;
 import java.util.Map;
+import org.constellation.dto.service.config.csw.MetadataProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.w3c.dom.Node;
 
@@ -27,6 +29,10 @@ import org.w3c.dom.Node;
  * @author Guilhem Legal (Geomatys)
  */
 public interface MetadataProvider extends DataProvider {
+
+    MetadataProviderCapabilities getCapabilities()  throws ConstellationStoreException;
+
+    Map<String, URI> getConceptMap();
 
     boolean storeMetadata(final Node obj) throws ConstellationStoreException;
 
