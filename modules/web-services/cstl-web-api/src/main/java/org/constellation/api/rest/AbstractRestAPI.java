@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +41,6 @@ import org.constellation.dto.Filter;
 import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
 import org.constellation.util.Util;
-import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
-import org.geotoolkit.data.dbf.DbaseFileProvider;
-import org.geotoolkit.data.shapefile.ShapefileFeatureStoreFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -63,20 +59,6 @@ public abstract class AbstractRestAPI {
      */
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.rest.api");
 
-    /**
-     * FIXME TO MOVE !!!
-     */
-    protected static final Comparator<FileFeatureStoreFactory> FACTORY_COMPARATOR = new Comparator<FileFeatureStoreFactory>() {
-        @Override
-        public int compare(FileFeatureStoreFactory o1, FileFeatureStoreFactory o2) {
-            return Integer.compare(getPriority(o1), getPriority(o2));
-        }
-        private int getPriority(FileFeatureStoreFactory f){
-            if(f instanceof ShapefileFeatureStoreFactory) return -10;
-            if(f instanceof DbaseFileProvider)     return -9;
-            return 0;
-        }
-    };
 
     protected void assertNotNullOrEmpty(final String param, final Object value) throws ConstellationException {
         if(value == null || (value instanceof  String && ((String)value).isEmpty())){

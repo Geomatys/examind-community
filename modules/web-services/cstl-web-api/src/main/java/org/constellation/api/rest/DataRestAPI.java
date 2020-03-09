@@ -265,7 +265,7 @@ public class DataRestAPI extends AbstractRestAPI{
             // 5. determine the provider type
             String subType;
             if ("vector".equalsIgnoreCase(uploadType)) {
-                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile, FACTORY_COMPARATOR);
+                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile);
                 dataFile           = extracted[0];
                 subType            = extracted[1];
 

@@ -418,7 +418,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
             if ("vector".equalsIgnoreCase(uploadType)) {
 
-                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile, FACTORY_COMPARATOR);
+                String[] extracted = DataProviders.findFeatureFactoryForFiles(dataFile);
                 dataFile             = extracted[0];
                 final String subType = extracted[1];
 

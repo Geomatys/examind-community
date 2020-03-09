@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -263,7 +262,7 @@ public final class DataProviders extends Static{
      * @return
      * @throws IOException
      */
-    public static String[] findFeatureFactoryForFiles(String dataPath, Comparator<FileFeatureStoreFactory> factoryComparator) throws IOException {
+    public static String[] findFeatureFactoryForFiles(String dataPath) throws IOException {
 
         final Path file = IOUtilities.toPath(dataPath);
         final boolean importFromDirectory = Files.isDirectory(file);
@@ -274,7 +273,7 @@ public final class DataProviders extends Static{
 
         //search and sort possible file feature stores
         final List<FileFeatureStoreFactory> factories = new ArrayList(DataStores.getProviders(FileFeatureStoreFactory.class));
-        Collections.sort(factories, factoryComparator);
+        //Collections.sort(factories, factoryComparator);
 
         //find factory which can support the given file
         DataStoreProvider validFactory = null;
