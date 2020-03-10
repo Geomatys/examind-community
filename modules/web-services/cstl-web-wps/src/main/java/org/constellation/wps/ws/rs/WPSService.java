@@ -279,7 +279,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 if (isTextPlain)  {
                     return new ResponseObject(executeResponse.toString(), MediaType.TEXT_PLAIN);
                 } else if (isImage) {
-                    return new ResponseObject(executeResponse.toString(), MediaType.IMAGE_PNG);
+                    return new ResponseObject(executeResponse, MediaType.IMAGE_PNG);
                 } else {
                     String mimeType;
                     // extract raw mimeType
