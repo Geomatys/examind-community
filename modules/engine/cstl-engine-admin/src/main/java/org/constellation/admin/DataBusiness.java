@@ -38,7 +38,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
-import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
@@ -47,6 +46,7 @@ import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IUserBusiness;
+import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
@@ -306,6 +306,8 @@ public class DataBusiness implements IDataBusiness {
     @Override
     public List<DataSummary> getDataSummaryFromDatasetId(final Integer datasetId) throws ConfigurationException {
         final List<Data> dataList = dataRepository.findByDatasetId(datasetId);
+        //sort by name by defaut
+        dataList.sort((Data o1, Data o2) -> String.valueOf(o1.getName()).compareToIgnoreCase(String.valueOf(o2.getName())));
         return getDataSummaryFrom(dataList, null, null);
     }
 
