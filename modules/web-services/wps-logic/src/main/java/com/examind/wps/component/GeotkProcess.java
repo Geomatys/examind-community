@@ -997,7 +997,7 @@ public class GeotkProcess implements WPSProcess {
                                     parameters);
                             WPSUtils.restartWMS(parameters);
                         } else {
-                            LOGGER.log(Level.WARNING, "Can't publish {0} value in a WMS.", outputIdentifier);
+                            LOGGER.log(Level.WARNING, "Can\'t publish {0} value in a WMS.", outputIdentifier);
                         }
 
                     } else {

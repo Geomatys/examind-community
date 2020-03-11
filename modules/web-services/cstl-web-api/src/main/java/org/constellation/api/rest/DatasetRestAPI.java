@@ -137,7 +137,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
 
                 return new ResponseEntity(brief, OK);
             } else {
-                LOGGER.log(Level.WARNING, "Can't create dataset with empty identifier");
+                LOGGER.log(Level.WARNING, "Can\'t create dataset with empty identifier");
                 return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Throwable ex) {

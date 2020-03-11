@@ -104,7 +104,7 @@ class SafeAccess {
 
         } catch (InterruptedException | DataStoreException e) {
             final Object[] args = write ? new String[]{"write", "read"} : new String[]{"read", "write"};
-            throw new RuntimeException(String.format("Cannot %s data from provider because a %s operation takes a long time", args), e);
+            throw new RuntimeException(String.format("Cannot %s data from provider because a %s operation takes a long time", args[0], args[1]), e);
         }
     }
 

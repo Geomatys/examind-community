@@ -634,7 +634,7 @@ public class WPSUtils {
                 }
                 return infos;
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "A parameter custom format definition can't be read.", e);
+                LOGGER.log(Level.WARNING, "A parameter custom format definition can\'t be read.", e);
             }
         }
         return null;
@@ -926,7 +926,7 @@ public class WPSUtils {
             c.setTime(new Date());
             xcal = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
         } catch (DatatypeConfigurationException ex) {
-            LOGGER.log(Level.INFO, "Can't create the creation time of the status.");
+            LOGGER.log(Level.INFO, "Can\'t create the creation time of the status.");
         }
         return xcal;
     }

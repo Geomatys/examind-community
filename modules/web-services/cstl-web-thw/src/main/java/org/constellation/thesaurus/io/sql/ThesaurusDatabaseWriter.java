@@ -87,7 +87,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                     } else if (c.getResource() != null) {
                         writeProperty(uriConcept, property, c.getResource(), connection);
                     } else {
-                        LOGGER.log(Level.WARNING, "About and resource property can't be null.");
+                        LOGGER.log(Level.WARNING, "About and resource property can\'t be null.");
                     }
                 } else if (o instanceof String) {
                     writeProperty(uriConcept, property, (String)o, connection);
@@ -417,7 +417,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                 } else if(child.getResource() != null) {
                     fullChild = getConcept(child.getResource());
                 } else {
-                    LOGGER.log(Level.WARNING, "About and resource property can't be null.");
+                    LOGGER.log(Level.WARNING, "About and resource property can\'t be null.");
                     continue;
                 }
 
