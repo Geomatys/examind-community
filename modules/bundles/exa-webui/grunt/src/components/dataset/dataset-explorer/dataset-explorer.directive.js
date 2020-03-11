@@ -209,7 +209,6 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                     return angular.isObject(datum) && angular.isNumber(datum.id);
                 })
                 .filter(function (datum) {
-
                     // filter by dimensions
                     var isFiltered = false;
 
@@ -218,11 +217,11 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                         var name = names[i];
                         var dimension = datum.dimensions[name];
                         var filter = self.stats[name].filters;
-
                         isFiltered = filter.max < dimension.stats.min || dimension.stats.max < filter.min;
                     }
-
                     return !isFiltered;
+                }).sort(function (a, b) {
+                    return a.name < b.name ? -1 : 1;
                 });
         }, 0);
 
@@ -423,7 +422,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                         var bbox = ol.extent.getIntersection(datum.dataDescription.boundingBox, ol.proj.get("CRS:84").getExtent());
                         var proj = _olView.getProjection();
                         var _bbox = ol.extent.getIntersection(ol.proj.transformExtent(bbox, "CRS:84", proj), proj.getExtent());
-                
+
                         var geom = new ol.geom.Polygon([
                             [
                                 [_bbox[0], _bbox[3]],
