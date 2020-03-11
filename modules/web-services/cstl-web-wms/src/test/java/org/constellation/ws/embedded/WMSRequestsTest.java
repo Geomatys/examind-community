@@ -18,6 +18,7 @@
  */
 package org.constellation.ws.embedded;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -1467,13 +1468,24 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String expResult
-                = "{\"Layer\":\"Lakes\",\"Name\":\"Lakes\",\"ID\":\"Lakes.1\",\"feature\":{\"identifier\":\"Lakes.1\",\"the_geom\":\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\",\"FID\":\"101\",\"NAME\":\"Blue Lake\"}}";
-
         String result = getStringResponse(gfi);
-
         assertNotNull(result);
-        assertEquals(expResult, result);
+
+        // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization.
+        final Map[] binding = new ObjectMapper().readValue(result, Map[].class);
+        assertEquals("A single result should be returned", 1, binding.length);
+        Map record = binding[0];
+        assertEquals("layer property", "Lakes", record.get("layer"));
+        assertEquals("type property", "feature", record.get("type"));
+        record = (Map) record.get("feature");
+        assertEquals("feature type property", "Lakes", record.get("type"));
+        assertEquals("feature identifier property", "Lakes.1", record.get("identifier"));
+        assertEquals("feature NAME property", "Blue Lake", record.get("NAME"));
+        // TODO: proper geometric equality
+        assertEquals("feature geometric property",
+                "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))",
+                record.get("the_geom")
+        );
     }
 
     @Test
@@ -1493,7 +1505,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 = "{\"layers\":[{\"name\":\"SSTMDE200305\",\"data\":[{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[{\"x\":3.8516484760372463E-13,\"y\":0.0},{\"x\":22.915557595600948,\"y\":0.0},{\"x\":22.915557595601836,\"y\":0.0},{\"x\":27.611269657740863,\"y\":0.0},{\"x\":27.611269657741225,\"y\":0.0},{\"x\":38.734410245335305,\"y\":0.0},{\"x\":38.73441024533549,\"y\":0.0},{\"x\":51.33753842087088,\"y\":0.0},{\"x\":53.45249659867336,\"y\":0.0}]}],\"message\":null}]}";
 
         String result = getStringResponse(gfi);
-        System.out.println(result);
         assertNotNull(result);
         assertEquals(expResult, result);
     }

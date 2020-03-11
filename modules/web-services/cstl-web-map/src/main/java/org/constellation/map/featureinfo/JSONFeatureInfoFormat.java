@@ -1,8 +1,8 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind Community - An open source and standard compliant SDI
+ *    https://www.examind.com/en/examind-community-2/about/
  *
- * Copyright 2014 Geomatys.
+ * Copyright 2020 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,32 @@
  */
 package org.constellation.map.featureinfo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.awt.Rectangle;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.opengis.feature.Feature;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.api.DataType;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.map.featureinfo.dto.CoverageInfo;
-import org.constellation.provider.Data;
-import org.constellation.ws.MimeType;
+
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
@@ -51,92 +51,123 @@ import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
-import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.util.DateRange;
-import org.locationtech.jts.geom.Geometry;
-import org.opengis.feature.AttributeType;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureType;
-import org.opengis.feature.PropertyType;
-import org.opengis.util.GenericName;
+
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.constellation.api.DataType;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.map.featureinfo.dto.CoverageInfo;
+import org.constellation.map.featureinfo.dto.FeatureInfo;
+import org.constellation.map.featureinfo.dto.LayerInfo;
+import org.constellation.provider.Data;
+import org.constellation.ws.MimeType;
 
 /**
- * A generic FeatureInfoFormat that produce JSON output for Features and Coverages.
- * Supported mimeTypes are :
+ * Create a list of {@link CoverageInfo} and/or {@link FeatureInfo}. The output is the serialized JSON
+ * text representation of it.
+ *
+ * Notes:
  * <ul>
- *     <li>text/html</li>
+ *     <li>must be used only ONCE</li>
+ *     <li>
+ *         Use custom Jackson serializers for proper management of:
+ *         <ul>
+ *             <li>{@link EnvelopeSerializer Envelopes}</li>
+ *             <li>{@link JTSSerializer JTS Geometries (as WKT)}</li>
+ *             <li>{@link FeatureSerializer Feature association}</li>
+ *         </ul>
+ *     </li>
  * </ul>
  *
- * TODO: Make proper Jackson bindings, do not extend text format which is too constraining.
- *
- * @author Guilhem Legal (Geomatys)
- * @author Johann Sorel (Geomatys)
+ * @author Alexis Manin (Geomatys)
  */
-public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
+public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
+    static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
 
-    private static final ObjectWriter COVERAGE_WRITER = new ObjectMapper()
-            .disable(SerializationFeature.INDENT_OUTPUT)
-            .writerFor(CoverageInfo.class);
+    private static final ObjectWriter WRITER;
+    static {
+        WRITER = new ObjectMapper()
+                .registerModule(new SimpleModule(
+                        "GetFeatureInfo_JSON",
+                        Version.unknownVersion(),
+                        Arrays.asList(new FeatureSerializer(), new JTSSerializer(), new EnvelopeSerializer()))
+                )
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .writerFor(LayerInfo.class);
+    }
 
+    private final List<LayerInfo> infoQueue = new ArrayList<>();
     private GetFeatureInfo gfi;
 
-    public JSONFeatureInfoFormat() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage coverage, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(coverage, context, queryArea);
+    public Object getFeatureInfo(SceneDef sdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
+        if (gfi != null || !infoQueue.isEmpty()) throw new IllegalStateException("Reuse of FeatureInfoFormat object is illegal ! You must create a new instance for each query");
+        this.gfi = getFI;
+        getCandidates(sdef, cdef, searchArea, -1);
 
-        if (results == null) {
-            return;
-        }
-
-        final Resource ref = coverage.getLayer().getResource();
-        final GenericName fullLayerName;
-        try {
-            if (ref.getIdentifier().isPresent()) {
-                fullLayerName = ref.getIdentifier().get().tip();
-            } else {
-                throw new RuntimeException("resource identifier not present");
+        try (final ByteArrayOutputStream buffer = new ByteArrayOutputStream(8192)) {
+            try (final OutputStreamWriter writer = new OutputStreamWriter(buffer, StandardCharsets.UTF_8);
+                 final SequenceWriter sw = WRITER.writeValuesAsArray(writer);
+            ) {
+                sw.writeAll(infoQueue);
             }
-        } catch (DataStoreException e) {
-            throw new RuntimeException(e);      // TODO
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot serialize GetFeatureInfo JSON", e);
         }
-        String layerName = fullLayerName.tip().toString();
-        // TODO: Jackson binding
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(coverageToJSON(fullLayerName, results, gfi, getLayersDetails()));
-
-        if (builder.length() > 0) {
-            List<String> strs = coverages.get(layerName);
-            if (strs == null) {
-                strs = new ArrayList<>();
-                coverages.put(layerName, strs);
-            }
-            strs.add(builder.toString());
-        }
-
     }
 
-    protected static String coverageToJSON(final GenericName fullLayerName,
-            final List<Map.Entry<SampleDimension,Object>> results, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
+    @Override
+    public List<String> getSupportedMimeTypes() {
+        return Arrays.asList(MimeType.APP_JSON, MimeType.APP_JSON_UTF8);
+    }
 
-        Data layerPostgrid = null;
+    @Override
+    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final Feature candidate = graphic.getCandidate();
+        final String layerName = graphic.getLayer().getName();
+        infoQueue.add(new FeatureInfo(layerName, candidate));
+    }
 
-        for (Data layer : layerDetailsList) {
-            if (layer.getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
-                layerPostgrid = layer;
-            }
+    @Override
+    protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final List<Map.Entry<SampleDimension,Object>> results =
+                FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+
+        if (results == null || results.isEmpty()) return;
+
+        final GenericName fullLayerName = JSONFeatureInfoFormat.getFullName(graphic);
+        final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayersDetails());
+        fill(info, results);
+        infoQueue.add(info);
+    }
+
+    static GenericName getFullName(ProjectedCoverage coverage) {
+        final Resource ref = coverage.getLayer().getResource();
+        try {
+            return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
+        } catch (DataStoreException e) {
+            throw new RuntimeException("Cannot extract resource identifier", e);
         }
+    }
+
+    static Optional<Data> select(final GenericName target, DataType type, final List<Data> source) {
+        if (source == null) return Optional.empty();
+        return source.stream()
+                .filter(layer -> layer.getDataType().equals(type) && layer.getName().equals(target))
+                .findAny();
+    }
+
+    protected static CoverageInfo buildCoverageInfo(final GenericName fullLayerName, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
+
+        Data layerPostgrid = select(fullLayerName, DataType.COVERAGE, layerDetailsList).orElse(null);
 
         List<Date> time;
         Double elevation;
@@ -187,9 +218,11 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
 
         final Instant javaTime = time == null || time.isEmpty() ? null : time.get(time.size() - 1).toInstant();
-        final CoverageInfo info = new CoverageInfo(fullLayerName.toString(), javaTime, elevation);
+        return new CoverageInfo(fullLayerName.toString(), javaTime, elevation);
+    }
 
-        final List<CoverageInfo.Sample> outValues = info.getValues();
+    static void fill(CoverageInfo target, final List<Map.Entry<SampleDimension,Object>> results) {
+        final List<CoverageInfo.Sample> outValues = target.getValues();
         for (final Map.Entry<SampleDimension,Object> entry : results) {
             final Object value = entry.getValue();
             if (value instanceof Number) {
@@ -210,175 +243,5 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 LOGGER.log(Level.FINE, "Ignoring unsupported data type: {0}", value == null? "null" : value.getClass().getCanonicalName());
             }
         }
-
-        if (outValues.isEmpty()) {
-            return "";
-        }
-
-        try {
-            return COVERAGE_WRITER.writeValueAsString(info);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Cannot write JSON for GetFeatureInfo of coverage: "+fullLayerName, e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-
-        ///           TODO
-        final StringBuilder builder   = new StringBuilder();
-        final FeatureMapLayer layer   = graphic.getLayer();
-        final Feature feature         = graphic.getCandidate();
-        final FeatureType featureType = feature.getType();
-
-        // feature member  mark
-        builder.append("{");
-
-        // featureType mark
-        if (featureType != null) {
-            String ftLocal = featureType.getName().tip().toString();
-
-            builder.append("\"Layer\":\"").append(layer.getName()).append("\",");
-            builder.append("\"Name\":\"").append(ftLocal).append("\",");
-            builder.append("\"ID\":\"").append(FeatureExt.getId(feature).getID()).append("\",");
-
-            builder.append("\"feature\":");
-            complexAttributetoJSON(builder, feature);
-            builder.append("}");
-        } else {
-            LOGGER.warning("The feature type is null");
-        }
-
-        final String result = builder.toString();
-        if (builder.length() > 0) {
-            final String layerName = layer.getName();
-            List<String> strs = features.get(layerName);
-            if (strs == null) {
-                strs = new ArrayList<>();
-                features.put(layerName, strs);
-            }
-            strs.add(result);
-        }
-    }
-
-    protected static void complexAttributetoJSON(final StringBuilder builder, final Feature feature) {
-        builder.append('{');
-        Collection<? extends PropertyType> attributes = feature.getType().getProperties(true);
-        for (PropertyType pt : attributes) {
-
-            if (pt instanceof AttributeType) {
-                final AttributeType attType = (AttributeType) pt;
-                final GenericName propName = pt.getName();
-                String pLocal = propName.tip().toString();
-                if (pLocal.startsWith("@")) {
-                    pLocal = pLocal.substring(1);
-                }
-
-                final Object value = feature.getPropertyValue(propName.toString());
-
-                if (Geometry.class.isAssignableFrom(attType.getValueClass())) {
-                    builder.append('"').append(pLocal).append("\":");
-                    Geometry geom = (Geometry)value;
-                    builder.append('"').append(geom.toText()).append("\",");
-                } else {
-
-                    if (value instanceof Feature) {
-                        final Feature complex = (Feature) value;
-                        builder.append('"').append(pLocal).append("\":");
-                        complexAttributetoJSON(builder, complex);
-                        builder.append(",");
-
-                    } else {
-                        //simple
-                        if (value instanceof List) {
-                            builder.append('"').append(pLocal).append("\":[");
-
-                            List valueList = (List) value;
-                            for (Object v : valueList) {
-                                if (v != null) {
-                                    final String strValue = value.toString();
-                                    builder.append(strValue).append(",");
-                                }
-                            }
-                            if (!valueList.isEmpty()) {
-                                builder.deleteCharAt(builder.length() - 1);
-                            }
-                            builder.append("],");
-
-                        } else if (value != null) {
-                            final String strValue = value.toString();
-                            builder.append('"').append(pLocal).append("\":\"")
-                                   .append(strValue)
-                                   .append("\",");
-                        }
-                    }
-                }
-            }
-        }
-        if (!attributes.isEmpty()) {
-            builder.deleteCharAt(builder.length() - 1);
-        }
-        builder.append('}');
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object getFeatureInfo(SceneDef sdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
-
-        this.gfi = getFI;
-
-        //fill coverages and features maps
-        getCandidates(sdef, cdef, searchArea, -1);
-
-        // optimization move this filter to getCandidates
-        Integer maxValue = getFeatureCount(getFI);
-        if (maxValue == null) {
-            maxValue = 1;
-        }
-
-        // TODO: Proper Jackson binding. Here, I don't think we're making a proper JSON array.
-
-        final StringBuilder builder = new StringBuilder();
-
-        final Map<String, List<String>> values = new HashMap<>();
-        values.putAll(features);
-        values.putAll(coverages);
-
-        int cpt = 0;
-        String comma = "";
-        for (String layerName : values.keySet()) {
-            for (final String record : values.get(layerName)) {
-                builder.append(comma).append(record);
-                comma = ",";
-                cpt++;
-                if (cpt >= maxValue) break;
-            }
-        }
-
-        String result =  builder.toString();
-        if (cpt > 1) {
-            // add brackets
-            result = "[" + result + "]";
-        }
-        return result;
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getSupportedMimeTypes() {
-        final List<String> mimes = new ArrayList<>();
-
-        //will return map server GML
-        mimes.add(MimeType.APP_JSON);
-        mimes.add(MimeType.APP_JSON_UTF8);
-        return mimes;
     }
 }

@@ -1,20 +1,20 @@
 package org.constellation.map.featureinfo.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.measure.Unit;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.measure.Unit;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A simple JSON representation of a GetFeatureInfo on a single coverage.
  *
  * @implNote Works only for writing.
  */
-public class CoverageInfo {
+public class CoverageInfo implements LayerInfo {
     private final String layer;
     private final Instant time;
     private final Double elevation;

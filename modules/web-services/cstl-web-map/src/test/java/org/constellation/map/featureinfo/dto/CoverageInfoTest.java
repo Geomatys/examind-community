@@ -1,12 +1,13 @@
 package org.constellation.map.featureinfo.dto;
 
+import java.time.Instant;
+
+import org.apache.sis.measure.Units;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.sis.measure.Units;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.time.Instant;
 
 public class CoverageInfoTest {
 
@@ -24,6 +25,7 @@ public class CoverageInfoTest {
         final String strInfo = mapper.writeValueAsString(info);
         final String expectedJson =
                 "{" +
+                    "\"type\":\"coverage\"," +
                     "\"layer\":\"my Layer\"," +
                     "\"elevation\":-13.0," +
                     "\"values\":[" +
