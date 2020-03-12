@@ -182,9 +182,59 @@ public class StyleBusiness implements IStyleBusiness {
      */
     @Override
     @Transactional
-    public StyleBrief createStyle(final String providerId, final org.opengis.style.Style style) throws ConfigurationException {
+    public StyleBrief createStyle(final String providerId, final org.opengis.style.Style styleI) throws ConfigurationException {
         nameToId(providerId);
-        return convertToBrief(createOrUpdateStyle(providerId, style.getName(), (MutableStyle) style));
+        if (styleI instanceof MutableStyle) {
+            MutableStyle style = (MutableStyle) styleI;
+            String styleName = style.getName();
+            // Proceed style name.
+            if (isBlank(styleName)) {
+                if (isBlank(style.getName())) {
+                    throw new ConfigurationException("Unable to create/update the style. No specified style name.");
+                } else {
+                    styleName = style.getName();
+                }
+            } else {
+                style.setName(styleName);
+            }
+            // Retrieve or not the provider instance.
+            final int provider;
+            try{
+                provider = nameToId(providerId);
+            }catch(IllegalArgumentException ex){
+                throw new ConfigurationException("Unable to set the style named \"" + style.getName() + "\". Provider with id \"" + providerId
+                        + "\" not found.");
+            }
+            final StringWriter sw = new StringWriter();
+            final StyleXmlIO util = new StyleXmlIO();
+            try {
+                util.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
+            } catch (JAXBException ex) {
+                throw new ConfigurationException(ex);
+            }
+            final Style s = styleRepository.findByNameAndProvider(provider, styleName);
+            final Style result;
+            if (s != null) {
+                s.setBody(sw.toString());
+                s.setType(getTypeFromMutableStyle(style));
+                styleRepository.update(s);
+                result = s;
+            } else {
+                Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
+                final Style newStyle = new Style();
+                newStyle.setName(styleName);
+                newStyle.setProviderId(provider);
+                newStyle.setType(getTypeFromMutableStyle(style));
+                newStyle.setDate(new Date());
+                newStyle.setBody(sw.toString());
+                newStyle.setOwnerId(userId);
+                newStyle.setId(styleRepository.create(newStyle));
+                result = newStyle;
+            }
+            return convertToBrief(result);
+        } else {
+            throw new ConfigurationException("Style is not an instanceof Mutable style");
+        }
     }
 
     /**
@@ -323,62 +373,6 @@ public class StyleBusiness implements IStyleBusiness {
             styleRepository.update(s);
         } else {
             throw new TargetNotFoundException("Style with identifier \"" + id + "\" does not exist.");
-        }
-    }
-
-    /**
-     * Creates or updates a style into/from a style provider instance.
-     *
-     * @param providerId The style provider identifier
-     * @param styleName The style identifier
-     * @param style The new style body
-     * @throws TargetNotFoundException if the style with the specified identifier can't be found
-     * @throws ConfigurationException  if the operation has failed for any reason
-     */
-    @Transactional
-    private synchronized Style createOrUpdateStyle(final String providerId, String styleName, final MutableStyle style) throws ConfigurationException {
-        // Proceed style name.
-        if (isBlank(styleName)) {
-            if (isBlank(style.getName())) {
-                throw new ConfigurationException("Unable to create/update the style. No specified style name.");
-            } else {
-                styleName = style.getName();
-            }
-        } else {
-            style.setName(styleName);
-        }
-        // Retrieve or not the provider instance.
-        final int provider;
-        try{
-            provider = nameToId(providerId);
-        }catch(IllegalArgumentException ex){
-            throw new ConfigurationException("Unable to set the style named \"" + style.getName() + "\". Provider with id \"" + providerId
-                    + "\" not found.");
-        }
-        final StringWriter sw = new StringWriter();
-        final StyleXmlIO util = new StyleXmlIO();
-        try {
-            util.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
-        } catch (JAXBException ex) {
-            throw new ConfigurationException(ex);
-        }
-        final Style s = styleRepository.findByNameAndProvider(provider, styleName);
-        if (s != null) {
-            s.setBody(sw.toString());
-            s.setType(getTypeFromMutableStyle(style));
-            styleRepository.update(s);
-            return s;
-        } else {
-            Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
-            final Style newStyle = new Style();
-            newStyle.setName(styleName);
-            newStyle.setProviderId(provider);
-            newStyle.setType(getTypeFromMutableStyle(style));
-            newStyle.setDate(new Date());
-            newStyle.setBody(sw.toString());
-            newStyle.setOwnerId(userId);
-            newStyle.setId(styleRepository.create(newStyle));
-            return newStyle;
         }
     }
 

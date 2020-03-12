@@ -71,7 +71,7 @@ public final class CreateProvider extends AbstractCstlProcess {
 
     @Override
     @Transactional
-    protected void execute() throws ProcessException {
+    public void execute() throws ProcessException {
         final String providerType        = inputParameters.getMandatoryValue(PROVIDER_TYPE);
         final ParameterValueGroup source = inputParameters.getMandatoryValue(SOURCE);
 
