@@ -326,7 +326,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 strs = new ArrayList<>();
                 features.put(layerName, strs);
             }
-            strs.add(result.substring(0, result.length()));
+            strs.add(result);
         }
     }
 
