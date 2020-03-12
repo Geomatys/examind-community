@@ -217,6 +217,7 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
     }
 
     protected Connection acquireConnection() throws SQLException {
+        @SuppressWarnings("squid:S2095")
         final Connection c = dataSource.getConnection();
         c.setReadOnly(true);
         c.setAutoCommit(false);

@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.constellation.store.observation.db;
 
 import java.io.IOException;
@@ -92,8 +91,8 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
     private static final String CSTL_NAMESPACE = "http://constellation.org/om2";
     private static final GenericName CSTL_TN_SENSOR = NamesExt.create(CSTL_NAMESPACE, "Sensor");
-    protected static final GenericName ATT_ID = NamesExt.create(CSTL_NAMESPACE,  "id");
-    protected static final GenericName ATT_POSITION = NamesExt.create(CSTL_NAMESPACE,  "position");
+    protected static final GenericName ATT_ID = NamesExt.create(CSTL_NAMESPACE, "id");
+    protected static final GenericName ATT_POSITION = NamesExt.create(CSTL_NAMESPACE, "position");
 
     private final Parameters parameters;
     private final GenericNameIndex<FeatureType> types = new GenericNameIndex<>();
@@ -142,7 +141,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         return components;
     }
 
-    private Connection getConnection() throws SQLException{
+    private Connection getConnection() throws SQLException {
         return source.getConnection();
     }
 
@@ -180,7 +179,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         try {
             cnx = getConnection();
             stmtLastId = cnx.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" ORDER BY \"id\" ASC");
-            try(final ResultSet result = stmtLastId.executeQuery()) {
+            try (final ResultSet result = stmtLastId.executeQuery()) {
                 // keep the last
                 String id = null;
                 while (result.next()) {
@@ -200,8 +199,8 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, null, ex);
-        }finally{
-            if(stmtLastId != null){
+        } finally {
+            if (stmtLastId != null) {
                 try {
                     stmtLastId.close();
                 } catch (SQLException ex) {
@@ -209,7 +208,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                 }
             }
 
-            if(cnx != null){
+            if (cnx != null) {
                 try {
                     cnx.close();
                 } catch (SQLException ex) {
@@ -220,11 +219,9 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         return null;
     }
 
-
     ////////////////////////////////////////////////////////////////////////////
     // Feature Reader //////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-
     private class OMReader implements FeatureReader {
 
         protected final Connection cnx;
@@ -233,7 +230,8 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         private final ResultSet result;
         protected Feature current = null;
 
-        private OMReader(final FeatureType type) throws SQLException{
+        @SuppressWarnings("squid:S2095")
+        private OMReader(final FeatureType type) throws SQLException {
             this.type = type;
             cnx = getConnection();
             final PreparedStatement stmtAll;
@@ -272,13 +270,14 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             return current != null;
         }
 
-        protected void read() throws Exception{
-            if (current != null) return;
+        protected void read() throws Exception {
+            if (current != null) {
+                return;
+            }
 
             if (!result.next()) {
                 return;
             }
-
 
             final String crsStr = result.getString(3);
             Geometry geom = null;
@@ -288,7 +287,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                     try {
                         CoordinateReferenceSystem crs = CRS.forCode("EPSG:" + crsStr);
                         final FeatureTypeBuilder ftb = new FeatureTypeBuilder(type);
-                        ((AttributeTypeBuilder)ftb.getProperty("position")).setCRS(crs);
+                        ((AttributeTypeBuilder) ftb.getProperty("position")).setCRS(crs);
                         type = ftb.build();
                         firstCRS = false;
                     } catch (NoSuchAuthorityCodeException ex) {
@@ -308,8 +307,8 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             final String id = result.getString(1);
             current = type.newInstance();
             current.setPropertyValue(AttributeConvention.IDENTIFIER_PROPERTY.toString(), id);
-            current.setPropertyValue(ATT_ID.toString(),id);
-            current.setPropertyValue(ATT_POSITION.toString(),geom);
+            current.setPropertyValue(ATT_ID.toString(), id);
+            current.setPropertyValue(ATT_POSITION.toString(), geom);
             //props.add(FF.createAttribute(result.getString("description"), (AttributeDescriptor) type.getDescriptor(ATT_DESC), null));
         }
 
@@ -324,7 +323,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         }
 
         @Override
-        public void remove() throws FeatureStoreRuntimeException{
+        public void remove() throws FeatureStoreRuntimeException {
             throw new FeatureStoreRuntimeException("Not supported.");
         }
 
@@ -334,7 +333,7 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
 
         protected Feature candidate = null;
 
-        private OMWriter(final FeatureType type) throws SQLException{
+        private OMWriter(final FeatureType type) throws SQLException {
             super(type);
         }
 
@@ -351,13 +350,13 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
         }
 
         @Override
-        public void remove() throws FeatureStoreRuntimeException{
+        public void remove() throws FeatureStoreRuntimeException {
 
             if (candidate == null) {
                 return;
             }
 
-            try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")){
+            try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")) {
 
                 stmtDelete.setString(1, FeatureExt.getId(candidate).getID());
                 stmtDelete.executeUpdate();
@@ -372,7 +371,6 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
             throw new FeatureStoreRuntimeException("Not supported.");
         }
     }
-
 
     private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
 

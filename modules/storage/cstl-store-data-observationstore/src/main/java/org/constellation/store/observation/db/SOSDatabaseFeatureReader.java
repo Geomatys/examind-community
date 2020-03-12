@@ -38,7 +38,8 @@ class SOSDatabaseFeatureReader implements FeatureReader {
     private CoordinateReferenceSystem crs;
 
     protected final String schemaPrefix;
-
+    
+    @SuppressWarnings("squid:S2095")
     SOSDatabaseFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException {
         this.type = type;
         this.cnx = cnx;
@@ -50,6 +51,7 @@ class SOSDatabaseFeatureReader implements FeatureReader {
             stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");
         }
         result = stmtAll.executeQuery();
+
     }
 
     @Override

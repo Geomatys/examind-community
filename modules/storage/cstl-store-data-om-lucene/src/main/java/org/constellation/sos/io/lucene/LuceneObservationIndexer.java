@@ -184,31 +184,22 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         try {
             final Unmarshaller unmarshaller = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-            final IndexWriter writer = new IndexWriter(new SimpleFSDirectory(getFileDirectory()), conf);
-
-            Map<String, ObjAndOffering> procs = new HashMap<>();
-
-            // getting the objects list and index avery item in the IndexWriter.
-            nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation", procs);
-            template = true;
-            nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template", procs);
-            template = false;
-
-            nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi", procs);
-
-            nbPhen = indexDirectory(phenDirectory, nbPhen, unmarshaller, writer, "phenomenon", procs);
-
-            indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
-            indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
-
-            for (ObjAndOffering po : procs.values()) {
-                indexDocument(writer, po);
+            try (IndexWriter writer = new IndexWriter(new SimpleFSDirectory(getFileDirectory()), conf)) {
+                Map<String, ObjAndOffering> procs = new HashMap<>();
+                // getting the objects list and index avery item in the IndexWriter.
+                nbObservation = indexDirectory(observationDirectory, nbObservation, unmarshaller, writer, "observation", procs);
+                template = true;
+                nbTemplate = indexDirectory(observationTemplateDirectory, nbTemplate, unmarshaller, writer, "template", procs);
+                template = false;
+                nbfoi = indexDirectory(foiDirectory, nbfoi, unmarshaller, writer, "foi", procs);
+                nbPhen = indexDirectory(phenDirectory, nbPhen, unmarshaller, writer, "phenomenon", procs);
+                indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
+                indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
+                for (ObjAndOffering po : procs.values()) {
+                    indexDocument(writer, po);
+                }
+                SOSMarshallerPool.getInstance().recycle(unmarshaller);
             }
-
-            SOSMarshallerPool.getInstance().recycle(unmarshaller);
-
-            // writer.optimize(); no longer justified
-            writer.close();
 
         } catch (CorruptIndexException ex) {
             LOGGER.log(Level.SEVERE,CORRUPTED_SINGLE_MSG + "{0}", ex.getMessage());
@@ -416,7 +407,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             Phenomenon feat = (Phenomenon) obj;
             doc.add(new Field("id", feat.getId(), ft));
             doc.add(new Field("type", "phenomenon" , ft));
-            
+
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
         } else {

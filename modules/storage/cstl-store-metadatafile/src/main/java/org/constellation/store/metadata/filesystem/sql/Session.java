@@ -174,8 +174,7 @@ public class Session implements Closeable {
     public ResultSet getRecordIterator() {
         try {
             final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\" FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
-            return rs;
+            return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
@@ -186,8 +185,7 @@ public class Session implements Closeable {
     public ResultSet getPathIterator() {
         try {
             final PreparedStatement stmt = con.prepareStatement("SELECT \"path\" FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
-            return rs;
+            return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
@@ -198,8 +196,7 @@ public class Session implements Closeable {
     public ResultSet getIterator() {
         try {
             final PreparedStatement stmt = con.prepareStatement("SELECT \"identifier\", \"path\" FROM \"" + schema + "\".\"records\"");
-            final ResultSet rs = stmt.executeQuery();
-            return rs;
+            return stmt.executeQuery();
 
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
@@ -223,8 +220,8 @@ public class Session implements Closeable {
     }
 
     public int clear() {
-        try {
-            final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\"");
+        try (final PreparedStatement stmt = con.prepareStatement("DELETE FROM \"" + schema + "\".\"records\"")) {
+
             return stmt.executeUpdate();
         } catch (SQLException unexpected) {
             LOGGER.log(Level.WARNING, "Unexpected error occurred while reading in csw database schema.", unexpected);
