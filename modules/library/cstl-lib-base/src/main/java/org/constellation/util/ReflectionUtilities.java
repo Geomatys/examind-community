@@ -41,6 +41,7 @@ import org.apache.sis.metadata.iso.ISOMetadata;
 import org.apache.sis.xml.IdentifierSpace;
 
 
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -758,6 +759,7 @@ public final class ReflectionUtilities {
      *
      * @return True if the specified path starts with the type of the metadata
      */
+    @SuppressWarnings("squid:S1872")
     public static boolean pathMatchObjectType(Object metadata, String pathID) {
         if (metadata == null) {return false;}
 
