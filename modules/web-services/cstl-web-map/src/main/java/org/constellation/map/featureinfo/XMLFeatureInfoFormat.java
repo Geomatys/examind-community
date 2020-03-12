@@ -244,7 +244,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 continue;
             }
             String bandName = "band_"+index;
-            String unit = entry.getKey().getUnits() != null ? entry.getKey().getUnits().toString() : null;
+            String unit = entry.getKey().getUnits().isPresent() ? entry.getKey().getUnits().toString() : null;
             if (unit != null) {
                 builder.append(margin).append("<").append(encodeXMLMark(bandName)).append(" unit =\"").append(unit).append("\">");
             } else  {

@@ -161,7 +161,7 @@ public abstract class AbstractRestAPI {
                     value = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
                 }
                 final Optional<CstlUser> optUser = userBusiness.findOne(value);
-                if (optUser != null && optUser.isPresent()) {
+                if (optUser.isPresent()) {
                     final CstlUser user = optUser.get();
                     if (user != null) {
                         return new AbstractMap.SimpleEntry<>(f.getField(), user.getId());

@@ -575,7 +575,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             if (bands != null) {
                 for (SampleDimension band : bands) {
                     final QuantityType quantity = new QuantityType();
-                    if (band.getUnits() != null) {
+                    if (band.getUnits().isPresent()) {
                         quantity.setUom(new UnitReference(band.getUnits().toString()));
                     }
                     // TODO select only one category => which one?
