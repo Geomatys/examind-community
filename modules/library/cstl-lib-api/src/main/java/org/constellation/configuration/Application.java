@@ -68,9 +68,14 @@ public final class Application {
         }
 
         //search for external configuration file
-        final String externalConf = System.getProperty(AppProperty.CSTL_CONFIG.getKey());
+        String extConfKey = AppProperty.CSTL_CONFIG.getKey();
+        String envKey = toEnvConvention(extConfKey);
+        String externalConf = System.getenv(envKey);
+        if (externalConf == null) {
+            externalConf = System.getProperty(extConfKey);
+        }
         if (externalConf != null) {
-            LOGGER.info("Load external configuration from "+externalConf);
+            LOGGER.log(Level.INFO, "Load external configuration from {0}", externalConf);
 
             final Path externalFile = Paths.get(externalConf);
             if (!Files.isRegularFile(externalFile)) {
