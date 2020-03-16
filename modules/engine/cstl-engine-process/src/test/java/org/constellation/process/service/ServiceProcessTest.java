@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.ServiceComplete;
@@ -44,6 +45,8 @@ public abstract class ServiceProcessTest extends AbstractProcessTest {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
+    @Autowired
+    protected IDataBusiness dataBusiness;
     @Autowired
     protected ILayerBusiness layerBusiness;
     @Autowired

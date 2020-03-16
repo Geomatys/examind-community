@@ -159,15 +159,15 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
 
-                dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
+                Integer did = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wcs", "default", config, null, null);
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "default", "wcs", null);
+                layerBusiness.add(did, null, defId, null);
 
                 Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "test",    "wcs", null);
+                layerBusiness.add(did, null, testId, null);
 
 
                 pool = WCSMarshallerPool.getInstance();

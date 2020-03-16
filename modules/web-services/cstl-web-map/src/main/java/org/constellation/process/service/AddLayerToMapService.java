@@ -19,7 +19,6 @@
 package org.constellation.process.service;
 
 import org.constellation.business.ILayerBusiness;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.Layer;
@@ -37,7 +36,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import org.constellation.business.IDataBusiness;
+import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.DataBrief;
 import org.constellation.dto.StyleReference;
+import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
 import org.constellation.util.OGCFilterToDTOTransformer;
@@ -56,6 +59,12 @@ public class AddLayerToMapService extends AbstractCstlProcess {
 
     @Autowired
     protected ILayerBusiness layerBusiness;
+
+    @Autowired
+    protected IDataBusiness dataBusiness;
+
+    @Autowired
+    protected IServiceBusiness serviceBusiness;
 
     AddLayerToMapService(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc, input);
@@ -165,8 +174,14 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         }
 
         try {
-            layerBusiness.add(layerName.tip().toString(), NamesExt.getNamespace(layerName), providerID, layerAlias, serviceInstance, serviceType, newLayer);
-        } catch (ConfigurationException ex) {
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, serviceInstance);
+            if (sid != null) {
+                DataBrief db = dataBusiness.getDataBrief(layerQName, providerID);
+                if (db != null) {
+                    layerBusiness.add(db.getId(), layerAlias, sid, newLayer);
+                }
+            }
+        } catch (ConstellationException ex) {
             throw new ProcessException("Error while saving layer", this, ex);
         }
 

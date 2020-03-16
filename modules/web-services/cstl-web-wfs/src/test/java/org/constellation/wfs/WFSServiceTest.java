@@ -129,14 +129,14 @@ public class WFSServiceTest {
                 omconfig.parameter("derbyurl").setValue(url);
 
                 providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
-                dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, null, null);
+                Integer d = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
 
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-                layerBusiness.add("SamplingPoint",       "http://www.opengis.net/sampling/1.0",  "omSrc",      null, "default", "wfs", null);
+                layerBusiness.add(d, null, defId, null);
 
                 serviceBusiness.start(defId);
 

@@ -148,7 +148,7 @@ public class WFSCIteWorkerTest {
                 pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
 
                 providerBusiness.storeProvider("primGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), "primGMLSrc", "VECTOR", false, true, null, null);
+                Integer d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), "primGMLSrc", "VECTOR", false, true, true, null, null);
 
 
                 source = factory.getProviderDescriptor().createValue();
@@ -162,7 +162,7 @@ public class WFSCIteWorkerTest {
                 pgconfig.parameter("xsdtypename").setValue("EntitéGénérique");
                 pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
                 providerBusiness.storeProvider("entGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),     "entGMLSrc", "VECTOR", false, true, null, null);
+                Integer d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),     "entGMLSrc", "VECTOR", false, true, true, null, null);
 
 
                 source = factory.getProviderDescriptor().createValue();
@@ -176,7 +176,7 @@ public class WFSCIteWorkerTest {
                 pgconfig.parameter("xsdtypename").setValue("AggregateGeoFeature");
                 pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
                 providerBusiness.storeProvider("aggGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), "aggGMLSrc", "VECTOR", false, true, null, null);
+                Integer d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), "aggGMLSrc", "VECTOR", false, true, true, null, null);
 
 
                 final LayerContext config = new LayerContext();
@@ -185,10 +185,10 @@ public class WFSCIteWorkerTest {
 
                 Details details = new Details("default", "default", null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
-                serviceBusiness.create("wfs", "default", config, details, null);
-                layerBusiness.add("AggregateGeoFeature", "http://cite.opengeospatial.org/gmlsf", "aggGMLSrc", null, "default", "wfs", null);
-                layerBusiness.add("PrimitiveGeoFeature", "http://cite.opengeospatial.org/gmlsf", "primGMLSrc", null, "default", "wfs", null);
-                layerBusiness.add("EntitéGénérique",     "http://cite.opengeospatial.org/gmlsf", "entGMLSrc", null, "default", "wfs", null);
+                Integer sid = serviceBusiness.create("wfs", "default", config, details, null);
+                layerBusiness.add(d1, null, sid, null);
+                layerBusiness.add(d2, null, sid, null);
+                layerBusiness.add(d3, null, sid, null);
 
                 worker = new DefaultWFSWorker("default");
                 initialized = true;

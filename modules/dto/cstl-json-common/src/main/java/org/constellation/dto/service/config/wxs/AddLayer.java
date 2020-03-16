@@ -28,6 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @since 0.9
  */
 @XmlRootElement
+@Deprecated
 public class AddLayer {
 
     private String layerAlias;
@@ -39,13 +40,13 @@ public class AddLayer {
     private String providerId;
 
     private String layerId;
-    
+
     private String layerNamespace;
 
     public AddLayer() {
     }
 
-    public AddLayer(final String layerAlias, final String serviceType, final String serviceId, 
+    public AddLayer(final String layerAlias, final String serviceType, final String serviceId,
             final String providerId, final String layerId, final String layerNamespace) {
         this.layerAlias = layerAlias;
         this.serviceType = serviceType;
@@ -108,7 +109,7 @@ public class AddLayer {
     public void setLayerNamespace(String layerNamespace) {
         this.layerNamespace = layerNamespace;
     }
-    
+
     @Override
     public String toString() {
         return "addLayer{" +

@@ -19,7 +19,6 @@
 package org.constellation.process.service;
 
 import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;

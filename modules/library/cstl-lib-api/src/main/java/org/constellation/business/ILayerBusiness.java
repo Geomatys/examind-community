@@ -37,9 +37,6 @@ public interface ILayerBusiness {
 
     Integer add(AddLayer layer) throws ConfigurationException;
 
-    Integer add(String name, String namespace, String providerId, String alias,
-             String serviceId, String serviceType, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException;
-
     Integer add(int dataId, String alias,
              int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException;
 
@@ -72,6 +69,8 @@ public interface ILayerBusiness {
     NameInProvider getFullLayerName(Integer serviceId, Integer layerId, String login) throws ConfigurationException;
 
     void remove(String spec, String serviceId, String layerId, String namespace) throws ConfigurationException;
+
+    void remove(Integer layerId) throws ConfigurationException;
 
     /**
      * Return all layer mapped in {@link LayerSummary} using given style.

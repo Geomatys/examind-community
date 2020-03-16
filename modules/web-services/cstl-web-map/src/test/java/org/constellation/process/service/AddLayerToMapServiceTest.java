@@ -71,6 +71,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
     private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
+    private Integer providerId;
+
     @Before
     public void createProvider() throws ConfigurationException, IOException, URISyntaxException {
 
@@ -103,9 +105,9 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
         shapefileValue.parameter("charset").setValue(Charset.forName("UTF-8"));
         shapefileValue.parameter("load qix").setValue(true);
 
-        final Integer pr = providerBusiness.create("shapeProvider", service.getName(), sourceValue);
+        providerId = providerBusiness.create("shapeProvider", service.getName(), sourceValue);
         try {
-            providerBusiness.createOrUpdateData(pr, null, true);
+            providerBusiness.createOrUpdateData(providerId, null, true);
         } catch (IOException | ConstellationException ex) {
             throw new ConfigurationException(ex.getMessage(),ex);
         }
@@ -224,7 +226,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      * Layer already exist -> replacement
      */
     @Test
-    public void testAddSFLayerToConfiguration3() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration3() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConstellationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
@@ -235,15 +237,14 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             serviceId = createCustomInstance("addLayer3", inputContext);
             startInstance("addLayer3");
 
+            Integer dataId = dataBusiness.getDataId(new QName("Countries"), providerId);
+
             Layer layer = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
             layer.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            layerBusiness.add(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),
-                              NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)),
-                              COUNTRIES_DATA_REF.getProviderOrServiceId(),
+            layerBusiness.add(dataId,
                               null,
-                              "addLayer3",
-                              serviceName.toLowerCase(),
+                              serviceId,
                               layer);
 
 
@@ -290,7 +291,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
      *  Source in loadAllMode and layer already exist in exclude list
      */
      @Test
-    public void testAddSFLayerToConfiguration5() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConfigurationException {
+    public void testAddSFLayerToConfiguration5() throws NoSuchIdentifierException, ProcessException, MalformedURLException, ConstellationException {
         final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
         Integer serviceId = null;
@@ -304,24 +305,22 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             serviceId = createCustomInstance("addLayer5", inputContext);
             startInstance("addLayer5");
 
+            Integer countriesDataId = dataBusiness.getDataId(new QName("Countries"), providerId);
+
             Layer layer1 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
             layer1.setGetFeatureInfoCfgs(gfi);
-            layerBusiness.add(Util.getLayerId(COUNTRIES_DATA_REF).tip().toString(),
-                              NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)),
-                              COUNTRIES_DATA_REF.getProviderOrServiceId(),
+            layerBusiness.add(countriesDataId,
                               null,
-                              "addLayer5",
-                              serviceName.toLowerCase(),
+                              serviceId,
                               layer1);
+
+            Integer cityDataId = dataBusiness.getDataId(new QName("city"), providerId);
 
             Layer layer2 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), "city"));
             layer2.setGetFeatureInfoCfgs(gfi);
-            layerBusiness.add("city",
-                              NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)),
-                              COUNTRIES_DATA_REF.getProviderOrServiceId(),
+            layerBusiness.add(cityDataId,
                               null,
-                              "addLayer5",
-                              serviceName.toLowerCase(),
+                              serviceId,
                               layer2);
 
 

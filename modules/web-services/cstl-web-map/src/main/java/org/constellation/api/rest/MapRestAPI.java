@@ -65,6 +65,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  *
@@ -151,17 +152,52 @@ public class MapRestAPI {
     }
 
     /**
+     * Adds a new layer to a "map" service instance.
+     *
+     * @param spec the service type
+     * @param id the service identifier
+     * @param layer the layer to be added
+     */
+    @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
+        try {
+            Integer layerId = layerBusiness.add(layer.getDataId(), layer.getAlias(), layer.getService(), null);
+            return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
+        } catch(Throwable ex){
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
      * Update an existing layer title to a "map" service instance.
      *
      * @param spec the service type
      * @param id the service identifier
      * @param layer the layer to be added
      */
+    @Deprecated
     @RequestMapping(value="/MAP/{spec}/{id}/layer/title",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateLayerTitle(final @PathVariable("spec") String spec, final @PathVariable("id") String id, final @RequestBody LayerSummary layer) {
         try {
             layerBusiness.updateLayerTitle(layer.getId(), layer.getTitle());
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layer.getName() + "\" successfully added to " + spec + " service \"" + id + "\"."), OK);
+        } catch(Throwable ex){
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Update an existing layer title to a "map" service instance.
+     *
+     * @param spec the service type
+     * @param id the service identifier
+     * @param layer the layer to be added
+     */
+    @RequestMapping(value="/MAP/layer/{layerid}/updateTitle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity updateLayerTitle(final @PathVariable("layerid") Integer layerId, final @RequestParam("title") String title) {
+        try {
+            layerBusiness.updateLayerTitle(layerId, title);
+            return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" title successfully updated."), OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
         }
@@ -174,6 +210,7 @@ public class MapRestAPI {
      * @param serviceId the service identifier
      * @param layerId the layer to remove
      */
+    @Deprecated
     @RequestMapping(value="/MAP/{spec}/{id}/delete/{layerid}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity deleteLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String serviceId, final @PathVariable("layerid") String layerId, final @RequestBody SimpleValue layernmsp) {
         try {
@@ -182,6 +219,21 @@ public class MapRestAPI {
                 namespace = layernmsp.getValue();
             }
             layerBusiness.remove(spec, serviceId, layerId, namespace);
+            return new ResponseEntity(OK);
+        } catch(Throwable ex){
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Remove a layer from a service.
+     *
+     * @param layerId the layer to remove
+     */
+    @RequestMapping(value="/MAP/layer/delete/{layerid}",method=DELETE)
+    public ResponseEntity deleteLayer(final @PathVariable("layerid") Integer layerId) {
+        try {
+            layerBusiness.remove(layerId);
             return new ResponseEntity(OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();

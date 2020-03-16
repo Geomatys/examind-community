@@ -108,21 +108,15 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
+    @Deprecated
     public Integer add(final AddLayer addLayerData) throws ConfigurationException {
         final String name        = addLayerData.getLayerId();
         // Prevents adding empty layer namespace, put null instead
-        final String namespace   = (addLayerData.getLayerNamespace() != null && addLayerData.getLayerNamespace().isEmpty()) ? null : addLayerData.getLayerNamespace();
+        String namespace         = (addLayerData.getLayerNamespace() != null && addLayerData.getLayerNamespace().isEmpty()) ? null : addLayerData.getLayerNamespace();
         final String providerId  = addLayerData.getProviderId();
         final String alias       = addLayerData.getLayerAlias();
         final String serviceId   = addLayerData.getServiceId();
         final String serviceType = addLayerData.getServiceType();
-        return add(name, namespace, providerId, alias, serviceId, serviceType, null);
-    }
-
-    @Override
-    @Transactional
-    public Integer add(final String name, String namespace, final String providerId, final String alias,
-            final String serviceId, final String serviceType, final org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException {
 
         final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(serviceType.toLowerCase(), serviceId);
 
@@ -157,8 +151,8 @@ public class LayerBusiness implements ILayerBusiness {
                     throw new TargetNotFoundException("Unable to find data for namespace:" + namespace+" name:"+name+" provider:"+providerId);
                 }
             }
-            return add(data, alias, service, config);
 
+            return add(data, alias, service, null);
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
         }
@@ -249,6 +243,18 @@ public class LayerBusiness implements ILayerBusiness {
             }
         } else {
             throw new TargetNotFoundException("Unable to find a service:" + serviceId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void remove(final Integer layerId) throws ConfigurationException {
+        final Layer layer = layerRepository.findById(layerId);
+        if (layer != null) {
+            Service serv = serviceBusiness.getServiceById(layer.getService());
+            removeLayer(layer.getId(), serv.getType().toLowerCase(), serv.getIdentifier());
+        } else {
+            throw new TargetNotFoundException("Unable to find a layer: {" + layerId + "}");
         }
     }
 

@@ -163,15 +163,15 @@ public class WCSWorkerOutputTest {
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
 
-                dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
+                Integer did = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 
-                serviceBusiness.create("wcs", "default", config, null, null);
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "default", "wcs", null);
+                Integer sid = serviceBusiness.create("wcs", "default", config, null, null);
+                layerBusiness.add(did, null, sid, null);
 
-                serviceBusiness.create("wcs", "test", config, null, null);
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "test",    "wcs", null);
+                Integer sid2 = serviceBusiness.create("wcs", "test", config, null, null);
+                layerBusiness.add(did, null, sid2, null);
 
 
                 WORKER = new DefaultWCSWorker("default");

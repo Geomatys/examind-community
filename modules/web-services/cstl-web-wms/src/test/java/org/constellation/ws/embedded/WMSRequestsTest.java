@@ -358,6 +358,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 providerBusiness.createOrUpdateData(pid, null, false);
 
                 List<DataBrief> dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
+                Integer aggd = dbs.get(0).getId();
 
                 final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
                 final File outputDir = initDataDirectory();
@@ -376,18 +377,18 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
 
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"), "shapeSrc", "VECTOR", false, true, null, null);
+                Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d2  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d3  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d4  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d5  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d6  = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d7  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, true,null, null);
 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -397,29 +398,28 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "default", "wms", null);
-                layerBusiness.add("martinique", null, "coverageTestSrc2", null, "default", "wms", null);
-                layerBusiness.add("BuildingCenters", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("BasicPolygons", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Bridges", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Streams", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Lakes", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("NamedPlaces", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Buildings", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("RoadSegments", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("DividedRoutes", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Forests", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("MapNeatline", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-                layerBusiness.add("Ponds", "http://www.opengis.net/gml", "shapeSrc", null, "default", "wms", null);
-
-                layerBusiness.add("aggData", null, "AggTestSrc", null, "default", "wms", null);
+                layerBusiness.add(did,  null, defId, null);
+                layerBusiness.add(did2, null, defId, null);
+                layerBusiness.add(d1,   null, defId, null);
+                layerBusiness.add(d2,   null, defId, null);
+                layerBusiness.add(d3,   null, defId, null);
+                layerBusiness.add(d4,   null, defId, null);
+                layerBusiness.add(d5,   null, defId, null);
+                layerBusiness.add(d6,   null, defId, null);
+                layerBusiness.add(d7,   null, defId, null);
+                layerBusiness.add(d8,   null, defId, null);
+                layerBusiness.add(d9,   null, defId, null);
+                layerBusiness.add(d10,  null, defId, null);
+                layerBusiness.add(d11,  null, defId, null);
+                layerBusiness.add(d12,  null, defId, null);
+                layerBusiness.add(aggd, null, defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
-                layerBusiness.add("Lakes", "http://www.opengis.net/gml", "shapeSrc", null, "wms1", "wms", null);
+                layerBusiness.add(d5, null, wm1Id, null);
 
                 final Details serviceEng = new Details();
                 serviceEng.setDescription("Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.");
@@ -455,19 +455,19 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details3.setVersions(Arrays.asList("1.3.0"));
 
                 Integer wm2Id = serviceBusiness.create("wms", "wms2", config3, details3, null);
-                layerBusiness.add("SSTMDE200305", null, "coverageTestSrc", null, "wms2", "wms", null);
-                layerBusiness.add("BuildingCenters", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("BasicPolygons", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Bridges", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Streams", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Lakes", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("NamedPlaces", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Buildings", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("RoadSegments", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("DividedRoutes", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Forests", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("MapNeatline", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
-                layerBusiness.add("Ponds", "http://www.opengis.net/gml", "shapeSrc", null, "wms2", "wms", null);
+                layerBusiness.add(did, null, wm2Id, null);
+                layerBusiness.add(d1,  null, wm2Id, null);
+                layerBusiness.add(d2,  null, wm2Id, null);
+                layerBusiness.add(d3,  null, wm2Id, null);
+                layerBusiness.add(d4,  null, wm2Id, null);
+                layerBusiness.add(d5,  null, wm2Id, null);
+                layerBusiness.add(d6,  null, wm2Id, null);
+                layerBusiness.add(d7,  null, wm2Id, null);
+                layerBusiness.add(d8,  null, wm2Id, null);
+                layerBusiness.add(d9,  null, wm2Id, null);
+                layerBusiness.add(d10, null, wm2Id, null);
+                layerBusiness.add(d11, null, wm2Id, null);
+                layerBusiness.add(d12, null, wm2Id, null);
 
                 final WMSPortrayal port = new WMSPortrayal();
 
