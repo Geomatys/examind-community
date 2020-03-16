@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.ops.xml.OpenSearchMarshallerPool;
 import org.geotoolkit.ops.xml.OpenSearchResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;

@@ -740,10 +740,11 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     @Test
     @Order(order=9)
     public void testCSWOpenSearchTemporal() throws Exception {
+        initServer();
          /**
          * KVP search csw output 6:time instant equals
          */
-        String query = "time=2003-05-09Z";
+        String query = "startDate=2003-05-09Z";
         URL kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
         URLConnection conec = kvpsUrl.openConnection();
 
@@ -768,7 +769,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         /**
          * KVP search csw output 7:time period anyInteracts
          */
-        query = "time=2010-05-09T00:00:00Z/2011-06-14T00:00:00Z";
+        query = "startDate=2010-05-09T00:00:00Z&endDate=2011-06-14T00:00:00Z";
         kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
         conec = kvpsUrl.openConnection();
 
@@ -841,7 +842,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         String strResult = getStringResponse(conec);
         String expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom1.xml"));
-        domCompare(strResult, expResult);
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         query = "startPosition=11";
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
@@ -849,7 +850,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom2.xml"));
-        domCompare(strResult, expResult);
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         /**
          * KVP search atom output 4: full search maxRecords=5
@@ -860,7 +861,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom3.xml"));
-        domCompare(strResult, expResult);
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         query = "maxRecords=5&startPosition=6";
         kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&" + query + "&outputFormat=application/atom%2Bxml&sortby=identifier:asc");
@@ -868,7 +869,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom4.xml"));
-        domCompare(strResult, expResult);
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
 
         /**
          * KVP search atom output 5: full search on collection CSW
@@ -878,7 +879,17 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom5.xml"));
-        domCompare(strResult, expResult);
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
+        
+        /**
+         * KVP search atom output 6: full search with empty parameters
+         */
+        kvpsUrl = new URL(getOpenSearchURL() + "service=CSW&version=3.0.0&q&maxRecords&startPosition&bbox&recordIds&geometry&relation&lat&lon&radius&name&startDate&endDate&trelation&outputFormat=application/atom%2Bxml");
+        conec = kvpsUrl.openConnection();
+
+        strResult = getStringResponse(conec);
+        expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom6.xml"));
+        domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
     }
 
 

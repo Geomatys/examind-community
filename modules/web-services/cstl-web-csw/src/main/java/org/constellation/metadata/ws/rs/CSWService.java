@@ -363,7 +363,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         //we get the value of start position, if not set we put default value "1"
         final String startPos = getParameter(START_POSITION, false);
         Integer startPosition = Integer.valueOf("1");
-        if (startPos != null) {
+        if (startPos != null && !startPos.isEmpty()) {
             try {
                 startPosition = Integer.valueOf(startPos);
             } catch (NumberFormatException e){
@@ -375,7 +375,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         //we get the value of max record, if not set we put default value "10"
         final String maxRec = getParameter(MAX_RECORDS, false);
         Integer maxRecords= Integer.valueOf("10");
-        if (maxRec != null) {
+        if (maxRec != null && !maxRec.isEmpty()) {
             try {
                 maxRecords = Integer.valueOf(maxRec);
             } catch (NumberFormatException e){
@@ -543,7 +543,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         //we get the value of start position, if not set we put default value "1"
         final String startPos = getParameter(START_POSITION, false);
         Integer startPosition = Integer.valueOf("1");
-        if (startPos != null) {
+        if (startPos != null && !startPos.isEmpty()) {
             try {
                 startPosition = Integer.valueOf(startPos);
             } catch (NumberFormatException e){
@@ -555,7 +555,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         //we get the value of max record, if not set we put default value "10"
         final String maxRec = getParameter(MAX_RECORDS, false);
         Integer maxRecords= Integer.valueOf("10");
-        if (maxRec != null) {
+        if (maxRec != null && !maxRec.isEmpty()) {
             try {
                 maxRecords = Integer.valueOf(maxRec);
             } catch (NumberFormatException e){
@@ -604,7 +604,8 @@ public class CSWService extends OGCWebService<CSWworker> {
         final String lon         = getParameter("lon", false);
         final String radius      = getParameter("radius", false);
 
-        final String time        = getParameter("time", false);
+        final String startDate   = getParameter("startDate", false);
+        final String endDate     = getParameter("endDate", false);
         String trelation         = getParameter("trelation", false);
 
         if (searchTerms != null && !searchTerms.isEmpty()) {
@@ -625,7 +626,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
         }
 
-        if (geoName != null) {
+        if (geoName != null && !geoName.isEmpty()) {
             Literal lit = FilterXmlFactory.buildLiteral(filterVersion, geoName);
             filters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "GeographicDescriptionCode", lit, true));
         }
@@ -648,24 +649,24 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
         }
         if (geometry != null && !geometry.isEmpty()) {
-            if (spRelation == null) {
+            if (spRelation == null || spRelation.isEmpty()) {
                 spRelation = "Intersects";
             }
             WKTReader reader = new WKTReader();
             try {
                 Geometry jtsGeom = reader.read(geometry);
                 CoordinateReferenceSystem crs;
-                if (geometryCRS != null) {
+                if (geometryCRS != null && !geometryCRS.isEmpty()) {
                     crs = CRS.forCode(geometryCRS);
                 } else {
                     crs = CommonCRS.WGS84.geographic();
                 }
                 AbstractGeometry geom = JTStoGeometry.toGML(gmlVersion, jtsGeom, crs);
-                if (distance == null) {
+                if (distance == null || distance.isEmpty()) {
                     filters.add(FilterXmlFactory.buildBinarySpatial(filterVersion, spRelation, "ows:BoundingBox", geom));
                 } else {
                     double dist = Double.parseDouble(distance);
-                    if (distanceUOM == null) {
+                    if (distanceUOM == null || distanceUOM.isEmpty()) {
                         distanceUOM = "m";
                     }
                     filters.add(FilterXmlFactory.buildDistanceSpatialFilter(filterVersion, spRelation, "ows:BoundingBox", geom, dist, distanceUOM));
@@ -693,22 +694,23 @@ public class CSWService extends OGCWebService<CSWworker> {
             throw new CstlServiceException("The 3 parameters must be definied lat, lon, radius for a distance filter.", INVALID_PARAMETER_VALUE);
         }
 
-        if (time != null && !time.isEmpty() && !time.equals("/")) {
-            int separator = time.indexOf("/");
-            if (separator != -1) {
+        boolean hasStart = startDate != null && !startDate.isEmpty();
+        boolean hasEnd   = endDate != null && !endDate.isEmpty();
+        if (hasStart || hasEnd ) {
+            if (hasStart && hasEnd) {
                 if (trelation == null) {
                     trelation = "AnyInteracts";
                 }
-                String start = time.substring(0, separator - 1);
-                String end   = time.substring(separator + 1);
-                //timeObj = GMLXmlFactory.createTimePeriod(gmlVersion, "p-1", start, end);
-
-                Literal timeStart = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "start-1", start));
-                Literal timeEnd   = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "end-1", end));
+                Literal timeStart = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "start-1", startDate));
+                Literal timeEnd   = FilterXmlFactory.buildLiteral(filterVersion, GMLXmlFactory.createTimeInstant(gmlVersion, "end-1", endDate));
 
                 filters.add(CSWUtils.BuildTemporalFilter(filterVersion, trelation, timeStart, timeEnd));
 
             } else {
+                String time = startDate;
+                if (time == null) {
+                    time = endDate;
+                }
                 if (trelation == null) {
                     trelation = "TEquals";
                 }
@@ -896,9 +898,11 @@ public class CSWService extends OGCWebService<CSWworker> {
 
     @RequestMapping(path = "/opensearch", method = GET)
     public ResponseEntity openSearchRequest(@PathVariable("serviceId") String serviceId) {
-
         CSWworker worker = getWorker(serviceId);
         if (worker != null) {
+            if (worker.isPrintRequestParameter()) {
+                logParameters();
+            }
             ServiceDef serviceDef = null;
             try {
                 GetRecordsRequest request = createNewOpenSearchGetRecordsRequest();

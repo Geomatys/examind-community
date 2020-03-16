@@ -18,6 +18,7 @@
  */
 package org.constellation.metadata.core;
 
+import java.math.BigInteger;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
@@ -42,20 +43,29 @@ import org.opengis.filter.capability.SpatialOperator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.apache.sis.util.logging.Logging;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Envelope_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._LineString_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Point_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Polygon_QNAME;
+import org.geotoolkit.ops.xml.v110.CompleteQueryType;
 import org.geotoolkit.ops.xml.v110.OpenSearchDescription;
 import org.geotoolkit.ops.xml.v110.Url;
 import org.geotoolkit.opsp.xml.v100.Parameter;
 import org.opengis.filter.capability.FilterCapabilities;
+import org.w3._2005.atom.DateTimeType;
 import org.w3._2005.atom.FeedType;
 import org.w3._2005.atom.PersonType;
 
@@ -67,6 +77,7 @@ import org.w3._2005.atom.PersonType;
  */
 public abstract class CSWConstants {
 
+    public static Logger LOGGER = Logging.getLogger("org.constellation.metadata.core");
     /**
      * Request parameters.
      */
@@ -497,7 +508,13 @@ public abstract class CSWConstants {
         if (currentContact != null) {
             author = new PersonType(currentContact.getFullname(), currentContact.getEmail(), currentContact.getUrl());
         }
-        return new FeedType(serviceUrl, "Examind Opensearch service", author, osUrl);
+        FeedType feed = new FeedType(serviceUrl, "Examind Opensearch service", author, osUrl);
+        try {
+            feed.addUpdated(new DateTimeType(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)GregorianCalendar.getInstance())));
+        } catch (DatatypeConfigurationException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
+        return feed;
     }
 
     public final static Map<String, List<String>> ISO_BRIEF_FIELDS = new HashMap<>();
@@ -520,7 +537,7 @@ public abstract class CSWConstants {
 
     public static final OpenSearchDescription OS_DESCRIPTION;
     static {
-        OS_DESCRIPTION = new OpenSearchDescription("Examind OpenSearch", "Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.");
+        OS_DESCRIPTION = new OpenSearchDescription("Examind", "Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.");
         // Search by bbox returning csw:Record (i.e. GetRecordsResponse)
         String type     = "application/xml";
         String template = "{cswUrl}/opensearch?service=CSW&version=3.0.0&"
@@ -535,12 +552,14 @@ public abstract class CSWConstants {
                         + "lon={geo:lon?}&"
                         + "radius={geo:radius?}&"
                         + "name={geo:name?}&"
-                        + "time={time:start}/{time:end}&"
+                        + "startDate={time:start?}&"
+                        + "endDate={time:end?}&"
                         + "trelation={time:relation?}&"
                         + "outputSchema={outputSchema?}&"
                         + "outputFormat=application/xml";
         Url cswURL = new Url(type, template);
-
+        cswURL.setIndexOffset(new BigInteger("1"));
+        cswURL.setPageOffset(new BigInteger("1"));
 
         List<Parameter> params = new ArrayList<>();
         Parameter param = new Parameter("q", "{searchTerms}",
@@ -595,7 +614,10 @@ public abstract class CSWConstants {
         param = new Parameter("name", "{geo:name}", "Location string e.g. Paris, France");
         params.add(param);
 
-        param = new Parameter("time", "{time:start}/{time:end}", "Start date/End date of the time interval to be compared with the data acquisition time.");
+        param = new Parameter("startDate", "{time:start}", "Start date to be compared with the data acquisition time.");
+        params.add(param);
+        
+        param = new Parameter("endDate", "{time:end}", "End date to be compared with the data acquisition time.");
         params.add(param);
 
         param = new Parameter("trelation", "{time:relation}", "The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)");
@@ -641,15 +663,22 @@ public abstract class CSWConstants {
                  + "lon={geo:lon?}&"
                  + "radius={geo:radius?}&"
                  + "name={geo:name?}&"
-                 + "time={time:start}/{time:end}&"
+                 + "startDate={time:start?}&"
+                 + "endDate={time:end?}&"
                  + "trelation={time:relation?}&"
-                 + "outputFormat=application/atom+xml";
+                 + "outputFormat=application/atom%2Bxml";
         Url atURL = new Url(type, template);
+        atURL.setIndexOffset(new BigInteger("1"));
+        atURL.setPageOffset(new BigInteger("1"));
         atURL.setRel("collection");
         params.remove(outSchemParam);
         atURL.setParameters(new ArrayList<>(params));
         OS_DESCRIPTION.getUrl().add(atURL);
 
+        CompleteQueryType query = new CompleteQueryType();
+        query.setRole("example");
+        query.setSearchTerms("L2");
+        OS_DESCRIPTION.getQuery().add(query);
     }
 
     private CSWConstants() {}

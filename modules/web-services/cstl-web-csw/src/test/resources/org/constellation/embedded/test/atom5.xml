@@ -9,18 +9,21 @@
   <a:title>Examind Opensearch service</a:title>
   <a:author/>
   <a:link href="http://localhost:9090/WS/csw/csw2/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml"/>
-  <a:entry>
-    <a:id>urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58</a:id>
-    <a:link href="http://localhost:9090/WS/csw/csw2/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58&amp;outputformat=application/atom+xml" rel="alternate" type="application/atom+xml" title="Atom format"/>
-    <a:link href="http://localhost:9090/WS/csw/csw2?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
-    <a:link href="http://localhost:9090/WS/csw/urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml" title="Granule search"/>
-    <a:summary>Blabla bla.</a:summary>
-    <georss:box>13.754 60.042 17.92 68.41</georss:box>
-  </a:entry>
-  <os:totalResults>1</os:totalResults>
-  <os:startIndex>1</os:startIndex>
-  <os:itemsPerPage>10</os:itemsPerPage>
   <a:link href="http://localhost:9090/WS/csw/csw2/opensearch?service=CSW&amp;version=3.0.0&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=1" rel="first" type="application/atom+xml"/>
   <a:link href="http://localhost:9090/WS/csw/csw2/opensearch?service=CSW&amp;version=3.0.0&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc" rel="self" type="application/atom+xml"/>
   <a:link href="http://localhost:9090/WS/csw/csw2/opensearch?service=CSW&amp;version=3.0.0&amp;outputFormat=application/atom%2Bxml&amp;sortby=identifier:asc&amp;startPosition=1" rel="last" type="application/atom+xml"/>
+  <a:updated>2018-11-18T00:00:00.000+01:00</a:updated>
+  <os:totalResults>1</os:totalResults>
+  <os:startIndex>1</os:startIndex>
+  <os:itemsPerPage>10</os:itemsPerPage>
+  <os:Query role="request"/>
+  <a:entry>
+    <a:id>urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58</a:id>
+    <a:link href="http://localhost:9090/WS/csw/csw2/opensearch?service=CSW&amp;version=3.0.0&amp;recordIds=urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58&amp;outputformat=application/atom%2Bxml" rel="alternate" type="application/atom+xml" title="Atom format"/>
+    <a:link href="http://localhost:9090/WS/csw/csw2?request=GetRecordbyid&amp;service=CSW&amp;version=3.0.0&amp;id=urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58&amp;outputschema=http://www.opengis.net/cat/csw/2.0.2" rel="alternate" type="application/xml" title="Native format"/>
+    <a:link href="http://localhost:9090/WS/csw/urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58/descriptionDocument.xml" rel="search" type="application/opensearchdescription+xml" title="Granule search"/>
+    <a:summary>Blabla bla.</a:summary>
+    <dc:identifier>urn:uuid:e8df05c2-d923-4a05-acce-2b20a27c0e58</dc:identifier>
+    <georss:box>13.754 60.042 17.92 68.41</georss:box>
+  </a:entry>
 </a:feed>

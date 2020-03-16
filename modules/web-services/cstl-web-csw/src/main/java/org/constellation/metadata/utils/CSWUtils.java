@@ -93,7 +93,7 @@ public class CSWUtils {
 
     private static final String GET_ATOM_BY_ID;
     static {
-        GET_ATOM_BY_ID = "{SURL}/opensearch?service=CSW&version=3.0.0&recordIds={MID}&outputformat=application/atom+xml";
+        GET_ATOM_BY_ID = "{SURL}/opensearch?service=CSW&version=3.0.0&recordIds={MID}&outputformat=application/atom%2Bxml";
     }
 
      /**
@@ -466,7 +466,13 @@ public class CSWUtils {
         final List<String> endValues   = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/csw:TemporalExtent/csw:end");
 
         org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
+        
+        // add dc:identifier
+        if (!identifierValues.isEmpty()) {
+            entry.getAuthorOrCategoryOrContent().add(dcFactory.createIdentifier(new SimpleLiteral(identifierValues.get(0))));
+        }
 
+        // add dc:date
         if (!beginValues.isEmpty() && !endValues.isEmpty()) {
             Date start = parser.parseToDate(beginValues.get(0));
             Date end   = parser.parseToDate(endValues.get(0));

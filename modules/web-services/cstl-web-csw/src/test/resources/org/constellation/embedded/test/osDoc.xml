@@ -1,94 +1,97 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<os:OpenSearchDescription xmlns:os="http://a9.com/-/spec/opensearch/1.1/" xmlns:param="http://a9.com/-/spec/opensearch/extensions/parameters/1.0/">
-    <os:ShortName>Examind OpenSearch</os:ShortName>
-    <os:Description>Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.</os:Description>
-    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputSchema={outputSchema?}&amp;outputFormat=application/xml" type="application/xml">
-        <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
-        <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
-        <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
-        <param:Parameter name="bbox" value="{geo:box}" title="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)"/>
-        <param:Parameter name="recordIds" value="{geo:uid}" title="Metadata identifier"/>
-        <param:Parameter name="geometry" value="{geo:geometry}" title="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)"/>
-        <param:Parameter name="relation" value="{geo:relation}" title="The spatial operator to apply using the value of the geometry parameter. (default value: Intersects)">
-            <param:Option value="Equals"/>
-            <param:Option value="Disjoint"/>
-            <param:Option value="Touches"/>
-            <param:Option value="Within"/>
-            <param:Option value="Overlaps"/>
-            <param:Option value="Crosses"/>
-            <param:Option value="Intersects"/>
-            <param:Option value="Contains"/>
-            <param:Option value="DWithin"/>
-            <param:Option value="Beyond"/>
-        </param:Parameter>
-        <param:Parameter name="lat" value="{geo:lat}" title="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon" minInclusive="-90" maxInclusive="90"/>
-        <param:Parameter name="lon" value="{geo:lon}" title="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat" minInclusive="-90" maxInclusive="90"/>
-        <param:Parameter name="radius" value="{geo:radius}" title="Expressed in meters - should be used with geo:lon and geo:lat" minInclusive="1"/>
-        <param:Parameter name="name" value="{geo:name}" title="Location string e.g. Paris, France"/>
-        <param:Parameter name="time" value="{time:start}/{time:end}" title="Start date/End date of the time interval to be compared with the data acquisition time."/>
-        <param:Parameter name="trelation" value="{time:relation}" title="The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)">
-            <param:Option value="After"/>
-            <param:Option value="Before"/>
-            <param:Option value="Begins"/>
-            <param:Option value="BegunBy"/>
-            <param:Option value="TContains"/>
-            <param:Option value="During"/>
-            <param:Option value="EndedBy"/>
-            <param:Option value="Ends"/>
-            <param:Option value="TEquals"/>
-            <param:Option value="Meets"/>
-            <param:Option value="MetBy"/>
-            <param:Option value="TOverlaps"/>
-            <param:Option value="OverlappedBy"/>
-            <param:Option value="AnyInteracts"/>
-        </param:Parameter>
-        <param:Parameter name="outputSchema" value="{outputSchema}" title="Used to indicate the schema of the output that is generated in response to a GetRecords request.">
-            <param:Option value="http://www.opengis.net/cat/csw/3.0"/>
-            <param:Option value="http://www.isotc211.org/2005/gmd"/>
-            <param:Option value="http://www.opengis.net/cat/csw/2.0.2"/>
-            <param:Option value="http://www.isotc211.org/2005/gfc"/>
-            <param:Option value="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/"/>
-        </param:Parameter>
-    </os:Url>
-    <os:Url template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;time={time:start}/{time:end}&amp;trelation={time:relation?}&amp;outputFormat=application/atom+xml" rel="collection" type="application/atom+xml">
-        <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
-        <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
-        <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
-        <param:Parameter name="bbox" value="{geo:box}" title="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)"/>
-        <param:Parameter name="recordIds" value="{geo:uid}" title="Metadata identifier"/>
-        <param:Parameter name="geometry" value="{geo:geometry}" title="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)"/>
-        <param:Parameter name="relation" value="{geo:relation}" title="The spatial operator to apply using the value of the geometry parameter. (default value: Intersects)">
-            <param:Option value="Equals"/>
-            <param:Option value="Disjoint"/>
-            <param:Option value="Touches"/>
-            <param:Option value="Within"/>
-            <param:Option value="Overlaps"/>
-            <param:Option value="Crosses"/>
-            <param:Option value="Intersects"/>
-            <param:Option value="Contains"/>
-            <param:Option value="DWithin"/>
-            <param:Option value="Beyond"/>
-        </param:Parameter>
-        <param:Parameter name="lat" value="{geo:lat}" title="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon" minInclusive="-90" maxInclusive="90"/>
-        <param:Parameter name="lon" value="{geo:lon}" title="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat" minInclusive="-90" maxInclusive="90"/>
-        <param:Parameter name="radius" value="{geo:radius}" title="Expressed in meters - should be used with geo:lon and geo:lat" minInclusive="1"/>
-        <param:Parameter name="name" value="{geo:name}" title="Location string e.g. Paris, France"/>
-        <param:Parameter name="time" value="{time:start}/{time:end}" title="Start date/End date of the time interval to be compared with the data acquisition time."/>
-        <param:Parameter name="trelation" value="{time:relation}" title="The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)">
-            <param:Option value="After"/>
-            <param:Option value="Before"/>
-            <param:Option value="Begins"/>
-            <param:Option value="BegunBy"/>
-            <param:Option value="TContains"/>
-            <param:Option value="During"/>
-            <param:Option value="EndedBy"/>
-            <param:Option value="Ends"/>
-            <param:Option value="TEquals"/>
-            <param:Option value="Meets"/>
-            <param:Option value="MetBy"/>
-            <param:Option value="TOverlaps"/>
-            <param:Option value="OverlappedBy"/>
-            <param:Option value="AnyInteracts"/>
-        </param:Parameter>
-    </os:Url>
+<os:OpenSearchDescription xmlns:mex="http://standards.iso.org/iso/19115/-3/mex/1.0" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:mrl="http://standards.iso.org/iso/19115/-3/mrl/1.0" xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" xmlns:srv="http://standards.iso.org/iso/19115/-3/srv/2.0" xmlns:gex="http://standards.iso.org/iso/19115/-3/gex/1.0" xmlns:mmi="http://standards.iso.org/iso/19115/-3/mmi/1.0" xmlns:mac="http://standards.iso.org/iso/19115/-3/mac/1.0" xmlns:gmi="http://standards.iso.org/iso/19115/-2/gmi/1.0" xmlns:mdt="http://standards.iso.org/iso/19115/-3/mdt/1.0" xmlns:mas="http://standards.iso.org/iso/19115/-3/mas/1.0" xmlns:om="http://www.opengis.net/om/1.0" xmlns:mcc="http://standards.iso.org/iso/19115/-3/mcc/1.0" xmlns:mdq="http://standards.iso.org/iso/19157/-2/mdq/1.0" xmlns:mri="http://standards.iso.org/iso/19115/-3/mri/1.0" xmlns:mrd="http://standards.iso.org/iso/19115/-3/mrd/1.0" xmlns:cit="http://standards.iso.org/iso/19115/-3/cit/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mco="http://standards.iso.org/iso/19115/-3/mco/1.0" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mrs="http://standards.iso.org/iso/19115/-3/mrs/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:swe="http://www.opengis.net/swe/1.0.1" xmlns:mpc="http://standards.iso.org/iso/19115/-3/mpc/1.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:mrc="http://standards.iso.org/iso/19115/-3/mrc/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lan="http://standards.iso.org/iso/19115/-3/lan/1.0" xmlns:msr="http://standards.iso.org/iso/19115/-3/msr/1.0" xmlns:ns31="http://www.opengis.net/gml" xmlns:gcx="http://standards.iso.org/iso/19115/-3/gcx/1.0" xmlns:mdb="http://standards.iso.org/iso/19115/-3/mdb/1.0" xmlns:ns34="http://earth.esa.int/eop" xmlns:ns35="http://earth.esa.int/opt" xmlns:ns36="http://www.georss.org/georss" xmlns:ns37="http://www.w3.org/2005/Atom" xmlns:ns38="http://www.opengis.net/eop/2.1" xmlns:ns39="http://www.opengis.net/om/2.0" xmlns:ns40="http://www.opengis.net/opt/2.1" xmlns:ns41="http://www.opengis.net/ows/2.0" xmlns:ns42="http://inspire.ec.europa.eu/schemas/inspire_dls/1.0" xmlns:os="http://a9.com/-/spec/opensearch/1.1/" xmlns:param="http://a9.com/-/spec/opensearch/extensions/parameters/1.0/" xmlns:ns45="http://a9.com/-/opensearch/extensions/time/1.0/" xmlns:ns46="http://a9.com/-/opensearch/extensions/geo/1.0/" xmlns:ns47="http://purl.org/dc/elements/1.1/">
+  <os:ShortName>Examind</os:ShortName>
+  <os:Description>Provides interoperable access, following ISO/OGC interface guidelines, to various metadata.</os:Description>
+  <os:Url indexOffset="1" pageOffset="1" template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;startDate={time:start?}&amp;endDate={time:end?}&amp;trelation={time:relation?}&amp;outputSchema={outputSchema?}&amp;outputFormat=application/xml" type="application/xml">
+    <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
+    <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
+    <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
+    <param:Parameter name="bbox" value="{geo:box}" title="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)"/>
+    <param:Parameter name="recordIds" value="{geo:uid}" title="Metadata identifier"/>
+    <param:Parameter name="geometry" value="{geo:geometry}" title="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)"/>
+    <param:Parameter name="relation" value="{geo:relation}" title="The spatial operator to apply using the value of the geometry parameter. (default value: Intersects)">
+      <param:Option value="Equals"/>
+      <param:Option value="Disjoint"/>
+      <param:Option value="Touches"/>
+      <param:Option value="Within"/>
+      <param:Option value="Overlaps"/>
+      <param:Option value="Crosses"/>
+      <param:Option value="Intersects"/>
+      <param:Option value="Contains"/>
+      <param:Option value="DWithin"/>
+      <param:Option value="Beyond"/>
+    </param:Parameter>
+    <param:Parameter name="lat" value="{geo:lat}" title="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon" minInclusive="-90" maxInclusive="90"/>
+    <param:Parameter name="lon" value="{geo:lon}" title="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat" minInclusive="-90" maxInclusive="90"/>
+    <param:Parameter name="radius" value="{geo:radius}" title="Expressed in meters - should be used with geo:lon and geo:lat" minInclusive="1"/>
+    <param:Parameter name="name" value="{geo:name}" title="Location string e.g. Paris, France"/>
+    <param:Parameter name="startDate" value="{time:start}" title="Start date to be compared with the data acquisition time."/>
+    <param:Parameter name="endDate" value="{time:end}" title="End date to be compared with the data acquisition time."/>
+    <param:Parameter name="trelation" value="{time:relation}" title="The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)">
+      <param:Option value="After"/>
+      <param:Option value="Before"/>
+      <param:Option value="Begins"/>
+      <param:Option value="BegunBy"/>
+      <param:Option value="TContains"/>
+      <param:Option value="During"/>
+      <param:Option value="EndedBy"/>
+      <param:Option value="Ends"/>
+      <param:Option value="TEquals"/>
+      <param:Option value="Meets"/>
+      <param:Option value="MetBy"/>
+      <param:Option value="TOverlaps"/>
+      <param:Option value="OverlappedBy"/>
+      <param:Option value="AnyInteracts"/>
+    </param:Parameter>
+    <param:Parameter name="outputSchema" value="{outputSchema}" title="Used to indicate the schema of the output that is generated in response to a GetRecords request.">
+      <param:Option value="http://www.opengis.net/cat/csw/3.0"/>
+      <param:Option value="http://www.isotc211.org/2005/gmd"/>
+      <param:Option value="http://www.opengis.net/cat/csw/2.0.2"/>
+      <param:Option value="http://www.isotc211.org/2005/gfc"/>
+      <param:Option value="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/"/>
+    </param:Parameter>
+  </os:Url>
+  <os:Url indexOffset="1" pageOffset="1" template="http://localhost:9090/WS/csw/default/opensearch?service=CSW&amp;version=3.0.0&amp;q={searchTerms?}&amp;maxRecords={count?}&amp;startPosition={startIndex?}&amp;bbox={geo:box?}&amp;recordIds={geo:uid?}&amp;geometry={geo:geometry?}&amp;relation={geo:relation?}&amp;lat={geo:lat?}&amp;lon={geo:lon?}&amp;radius={geo:radius?}&amp;name={geo:name?}&amp;startDate={time:start?}&amp;endDate={time:end?}&amp;trelation={time:relation?}&amp;outputFormat=application/atom%2Bxml" rel="collection" type="application/atom+xml">
+    <param:Parameter name="q" value="{searchTerms}" title="Textual search in the title, abstract of keyword section of the metadata.  Surround with double quotes for exact match."/>
+    <param:Parameter name="maxRecords" value="{count}" title="Number of results returned per page (default 10)" minInclusive="1"/>
+    <param:Parameter name="startPosition" value="{startIndex}" minInclusive="1"/>
+    <param:Parameter name="bbox" value="{geo:box}" title="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)"/>
+    <param:Parameter name="recordIds" value="{geo:uid}" title="Metadata identifier"/>
+    <param:Parameter name="geometry" value="{geo:geometry}" title="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)"/>
+    <param:Parameter name="relation" value="{geo:relation}" title="The spatial operator to apply using the value of the geometry parameter. (default value: Intersects)">
+      <param:Option value="Equals"/>
+      <param:Option value="Disjoint"/>
+      <param:Option value="Touches"/>
+      <param:Option value="Within"/>
+      <param:Option value="Overlaps"/>
+      <param:Option value="Crosses"/>
+      <param:Option value="Intersects"/>
+      <param:Option value="Contains"/>
+      <param:Option value="DWithin"/>
+      <param:Option value="Beyond"/>
+    </param:Parameter>
+    <param:Parameter name="lat" value="{geo:lat}" title="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon" minInclusive="-90" maxInclusive="90"/>
+    <param:Parameter name="lon" value="{geo:lon}" title="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat" minInclusive="-90" maxInclusive="90"/>
+    <param:Parameter name="radius" value="{geo:radius}" title="Expressed in meters - should be used with geo:lon and geo:lat" minInclusive="1"/>
+    <param:Parameter name="name" value="{geo:name}" title="Location string e.g. Paris, France"/>
+    <param:Parameter name="startDate" value="{time:start}" title="Start date to be compared with the data acquisition time."/>
+    <param:Parameter name="endDate" value="{time:end}" title="End date to be compared with the data acquisition time."/>
+    <param:Parameter name="trelation" value="{time:relation}" title="The temporal operator to apply using the value of the time parameter. (default value: TEquals for single date, AnyInteracts for period)">
+      <param:Option value="After"/>
+      <param:Option value="Before"/>
+      <param:Option value="Begins"/>
+      <param:Option value="BegunBy"/>
+      <param:Option value="TContains"/>
+      <param:Option value="During"/>
+      <param:Option value="EndedBy"/>
+      <param:Option value="Ends"/>
+      <param:Option value="TEquals"/>
+      <param:Option value="Meets"/>
+      <param:Option value="MetBy"/>
+      <param:Option value="TOverlaps"/>
+      <param:Option value="OverlappedBy"/>
+      <param:Option value="AnyInteracts"/>
+    </param:Parameter>
+  </os:Url>
+  <os:Query role="example" searchTerms="L2"/>
 </os:OpenSearchDescription>
