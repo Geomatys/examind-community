@@ -23,13 +23,12 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverage2D;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
-import org.geotoolkit.coverage.grid.GridCoverage2D;
-import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
@@ -62,11 +61,8 @@ public class ForcedSampleDimensionsCoverageResource implements GridCoverageResou
     @Override
     public GridCoverage read(GridGeometry domain, int... range) throws DataStoreException {
         final GridCoverage baseCoverage = base.read(domain, range);
-
-        final GridCoverage2D cov2d = CoverageUtilities.toGeotk(baseCoverage);
-        final RenderedImage ri = cov2d.getRenderedImage();
-        return new GridCoverage2D(cov2d.getName(), ri, cov2d.getGridGeometry(),
-                dimensions.toArray(new SampleDimension[0]), null);
+        final RenderedImage ri = baseCoverage.render(null);
+        return new GridCoverage2D(baseCoverage.getGridGeometry(),dimensions, ri);
     }
 
     @Override
