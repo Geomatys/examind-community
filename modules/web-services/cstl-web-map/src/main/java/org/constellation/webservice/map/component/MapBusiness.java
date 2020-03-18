@@ -20,7 +20,6 @@ package org.constellation.webservice.map.component;
 
 import java.awt.Dimension;
 import java.awt.RenderingHints;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -34,9 +33,8 @@ import org.opengis.util.GenericName;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
-import org.apache.sis.storage.GridCoverageResource;
+
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
-import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -44,16 +42,12 @@ import org.geotoolkit.factory.Hints;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapItem;
-import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.util.NamesExt;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
@@ -61,15 +55,14 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.GeoData;
 import org.constellation.ws.CstlServiceException;
 import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+
 import org.apache.sis.util.iso.Names;
-import static org.constellation.api.StatisticState.STATE_COMPLETED;
 
 /**
  *
@@ -244,23 +237,6 @@ public class MapBusiness {
                 mapItem = layer.getMapLayer(style, null);
             }
 
-            // If no style is available, we'll try to infer one as precise as possible from computed statistics.
-            // TODO: This logic should be part of initial layer creation in DefaultCoverageData
-            if (mapItem instanceof MapLayer) {
-                final MapLayer ml = (MapLayer) mapItem;
-                if (style == null && ml.getResource() instanceof GridCoverageResource) {
-                    final GridCoverageResource res = (GridCoverageResource) ml.getResource();
-                    final String state = data.getStatsState();
-
-                    if (STATE_COMPLETED.equalsIgnoreCase(state)) {
-                        final ImageStatistics stats = DefaultCoverageData.getDataStatistics(new StatInfo(data.getStatsState(), data.getStatsResult()));
-                        mapItem = GO2Utilities.inferStyle(stats, true)
-                                .<MapLayer>map(newStyle -> MapBuilder.createCoverageLayer(res, newStyle))
-                                .orElse(ml);
-                    }
-                }
-            }
-
             final MapContext mapContext = MapBuilder.createContext();
             mapContext.items().add(mapItem);
 
@@ -273,9 +249,11 @@ public class MapBusiness {
             // Create response.
             return new PortrayalResponse(canvasDef, sceneDef, outputDef);
 
-        } catch (IOException | FactoryException | JAXBException | ConstellationStoreException ex) {
-            // TODO: format message to contain rendering parameters.
-            throw new CstlServiceException("Rendering failed for given parameters", ex);
+        } catch (FactoryException | JAXBException | ConstellationStoreException ex) {
+            throw new CstlServiceException(String.format(
+                    "Rendering failed for parameters:%nData: %d%nBbox: %s%nWidth: %d%nHeight: %d%nFilter: %s%n(Style ommitted)",
+                    dataId, bbox, width, height, filter
+            ), ex);
         }
     }
 }
