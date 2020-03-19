@@ -18,9 +18,7 @@
  */
 package org.constellation.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,52 +31,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.coverage.grid.GridDerivation;
-import org.apache.sis.coverage.grid.GridExtent;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
-import org.apache.sis.internal.util.UnmodifiableArrayList;
-import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.measure.NumberRange;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.operation.transform.TransformSeparator;
-import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.util.ArgumentChecks;
-import org.constellation.api.DataType;
-import static org.constellation.api.StatisticState.*;
-import org.constellation.dto.BandDescription;
-import org.constellation.dto.CoverageDataDescription;
-import org.constellation.dto.ProviderPyramidChoiceList;
-import org.constellation.dto.StatInfo;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.util.DataStatisticsListener;
-import org.constellation.provider.util.ImageStatisticDeserializer;
-import org.constellation.repository.DataRepository;
-import org.geotoolkit.coverage.grid.GridGeometryIterator;
-import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.coverage.worldfile.FileCoverageResource;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.map.CoverageMapLayer;
-import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.process.ProcessException;
-import org.geotoolkit.processing.coverage.resample.ResampleProcess;
-import org.geotoolkit.processing.coverage.statistics.Statistics;
-import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
-import org.geotoolkit.style.DefaultStyleFactory;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.style.StyleConstants;
+
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
@@ -92,6 +45,64 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
+
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridDerivation;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
+import org.apache.sis.internal.util.UnmodifiableArrayList;
+import org.apache.sis.measure.MeasurementRange;
+import org.apache.sis.measure.NumberRange;
+import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.parameter.Parameters;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.operation.transform.TransformSeparator;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.collection.BackingStoreException;
+
+import org.geotoolkit.coverage.grid.GridGeometryIterator;
+import org.geotoolkit.coverage.grid.GridIterator;
+import org.geotoolkit.coverage.worldfile.FileCoverageResource;
+import org.geotoolkit.image.io.metadata.SpatialMetadata;
+import org.geotoolkit.map.CoverageMapLayer;
+import org.geotoolkit.map.MapBuilder;
+import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.process.ProcessException;
+import org.geotoolkit.processing.coverage.resample.ResampleProcess;
+import org.geotoolkit.processing.coverage.statistics.Statistics;
+import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
+import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.coverage.ImageStatistics;
+import org.geotoolkit.storage.feature.query.QueryBuilder;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.Pyramids;
+import org.geotoolkit.style.DefaultStyleFactory;
+import org.geotoolkit.style.MutableStyle;
+import org.geotoolkit.style.StyleConstants;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.constellation.api.DataType;
+import org.constellation.dto.BandDescription;
+import org.constellation.dto.CoverageDataDescription;
+import org.constellation.dto.ProviderPyramidChoiceList;
+import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.util.DataStatisticsListener;
+import org.constellation.provider.util.ImageStatisticDeserializer;
+import org.constellation.repository.DataRepository;
+
+import static org.constellation.api.StatisticState.STATE_COMPLETED;
+import static org.constellation.api.StatisticState.STATE_ERROR;
+import static org.constellation.api.StatisticState.STATE_PARTIAL;
+import static org.constellation.api.StatisticState.STATE_PENDING;
 
 /**
  * Regroups information about a {@linkplain Data data}.
@@ -189,7 +200,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
             style = getDefaultStyle();
         }
 
-        final MapLayer layer = MapBuilder.createCoverageLayer(ref, style);
+        final CoverageMapLayer layer = MapBuilder.createCoverageLayer(ref, style);
 
         // EXTRA FILTER extra parameter ////////////////////////////////////////
         if (params != null && layer instanceof CoverageMapLayer) {
@@ -215,12 +226,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
                     }
                 }
                 if (filter != null) {
-                    final CoverageMapLayer cml = (CoverageMapLayer) layer;
-                    try {
-                        cml.setQuery(QueryBuilder.filtered(cml.getResource().getIdentifier().toString(), filter));
-                    } catch (DataStoreException ex) {
-                        LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                    }
+                    layer.setQuery(QueryBuilder.filtered(name.toString(), filter));
                 }
             }
         }
@@ -617,60 +623,56 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
     }
 
     @Override
-    public void computeStatistic(int dataId, DataRepository dataRepository) {
+    public ImageStatistics computeStatistic(int dataId, DataRepository dataRepository) {
         // Hack compute statistic from 5% of the first slice
         try {
             GridGeometry gg = getGeometry();
-            if (gg != null) {
-                if (gg.isDefined(GridGeometry.EXTENT)) {
-                    GridExtent extent = gg.getExtent();
-                    int[] subSample = new int[extent.getDimension()];
-                    subSample[0] = Math.round(extent.getSize(0) * 0.05f);
-                    subSample[1] = Math.round(extent.getSize(1) * 0.05f);
-                    for (int i = 2; i < extent.getDimension(); i++) {
-                        subSample[i] = Math.toIntExact(extent.getSize(i));
-                    }
-                    gg = gg.derive().subsample(subSample).build();
-
-                    final GridCoverage cov = ref.read(gg);
-                    final org.geotoolkit.process.Process process = new Statistics(cov, false);
-                    process.addListener(new DataStatisticsListener(dataId, dataRepository));
-                    process.call();
-                } else if (gg.isDefined(GridGeometry.ENVELOPE)) {
-                    final Envelope env = gg.getEnvelope();
-
-                    // find horizontal crs and it's index.
-                    final List<SingleCRS> areaCrsComponents = CRS.getSingleComponents(env.getCoordinateReferenceSystem());
-                    int areaHorizontalIndex = 0;
-                    int areaHorizontalOffset = 0;
-                    for (int n=areaCrsComponents.size(); areaHorizontalIndex < n; areaHorizontalIndex++) {
-                        SingleCRS areaCmpCrs = areaCrsComponents.get(areaHorizontalIndex);
-                        if (CRS.isHorizontalCRS(areaCmpCrs)) {
-                            break;
-                        }
-                        areaHorizontalOffset += areaCmpCrs.getCoordinateSystem().getDimension();
-                    }
-
-                    final long[] low = new long[env.getDimension()];
-                    final long[] high = new long[env.getDimension()];
-                    for (int i=0;i<high.length;i++) {
-                        if (i == areaHorizontalOffset || i == areaHorizontalOffset+1) {
-                            //horizontal crs
-                            high[i] = 1000;
-                        } else {
-                            //make a single slice
-                            high[i] = 1;
-                        }
-                    }
-                    final GridGeometry query = new GridGeometry(new GridExtent(null, low, high, true), env);
-                    final GridCoverage cov = ref.read(query);
-                    final org.geotoolkit.process.Process process = new Statistics(cov, false);
-                    process.addListener(new DataStatisticsListener(dataId, dataRepository));
-                    process.call();
+            if (gg.isDefined(GridGeometry.EXTENT)) {
+                GridExtent extent = gg.getExtent();
+                int[] subSample = new int[extent.getDimension()];
+                subSample[0] = Math.round(extent.getSize(0) * 0.05f);
+                subSample[1] = Math.round(extent.getSize(1) * 0.05f);
+                for (int i = 2; i < extent.getDimension(); i++) {
+                    subSample[i] = Math.toIntExact(extent.getSize(i));
                 }
+                gg = gg.derive().subsample(subSample).build();
+
+            } else if (gg.isDefined(GridGeometry.ENVELOPE)) {
+                final Envelope env = gg.getEnvelope();
+
+                // find horizontal crs and it's index.
+                final List<SingleCRS> areaCrsComponents = CRS.getSingleComponents(env.getCoordinateReferenceSystem());
+                int areaHorizontalIndex = 0;
+                int areaHorizontalOffset = 0;
+                for (int n=areaCrsComponents.size(); areaHorizontalIndex < n; areaHorizontalIndex++) {
+                    SingleCRS areaCmpCrs = areaCrsComponents.get(areaHorizontalIndex);
+                    if (CRS.isHorizontalCRS(areaCmpCrs)) {
+                        break;
+                    }
+                    areaHorizontalOffset += areaCmpCrs.getCoordinateSystem().getDimension();
+                }
+
+                final long[] low = new long[env.getDimension()];
+                final long[] high = new long[env.getDimension()];
+                for (int i=0;i<high.length;i++) {
+                    if (i == areaHorizontalOffset || i == areaHorizontalOffset+1) {
+                        //horizontal crs
+                        high[i] = 1000;
+                    } else {
+                        //make a single slice
+                        high[i] = 1;
+                    }
+                }
+                gg = new GridGeometry(new GridExtent(null, low, high, true), env);
             }
-        } catch(Throwable ex) {
-            //we tryed
+
+            final GridCoverage cov = ref.read(gg);
+            final org.geotoolkit.process.Process process = new Statistics(cov, false);
+            process.addListener(new DataStatisticsListener(dataId, dataRepository));
+            final Parameters out = Parameters.castOrWrap(process.call());
+            return out.getMandatoryValue(StatisticsDescriptor.OUTCOVERAGE);
+        } catch(Exception ex) {
+            throw new BackingStoreException("Statistics computing failed", ex);
         }
     }
 

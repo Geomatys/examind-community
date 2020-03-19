@@ -18,20 +18,32 @@
  */
 package org.constellation.admin;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.content.ContentInformation;
+import org.opengis.metadata.content.CoverageDescription;
+
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.logging.Logging;
+
+import org.geotoolkit.storage.coverage.CoverageDescriptionAdapter;
+import org.geotoolkit.storage.coverage.ImageStatistics;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+
 import org.constellation.api.DataType;
 import org.constellation.business.IDataCoverageJob;
+import org.constellation.business.IMetadataBusiness;
 import org.constellation.dto.Data;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
 import org.springframework.context.annotation.Primary;
@@ -39,7 +51,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import static org.constellation.api.StatisticState.*;
+
+import static org.constellation.api.StatisticState.STATE_ERROR;
+import static org.constellation.api.StatisticState.STATE_PARTIAL;
+import static org.constellation.api.StatisticState.STATE_PENDING;
 
 /**
  *
@@ -65,6 +80,9 @@ public class DataCoverageJob implements IDataCoverageJob {
      */
     @Inject
     private ProviderRepository providerRepository;
+
+    @Inject
+    private IMetadataBusiness metadataService;
 
     /**
      * {@inheritDoc}
@@ -102,7 +120,10 @@ public class DataCoverageJob implements IDataCoverageJob {
                     }
 
                     if (res instanceof GridCoverageResource) {
-                        dataP.computeStatistic(dataId, dataRepository);
+                        final Object result = dataP.computeStatistic(dataId, dataRepository);
+                        if (result instanceof ImageStatistics) {
+                            updateMetadata((ImageStatistics) result, data);
+                        }
                     }
 
                 } else {
@@ -135,6 +156,26 @@ public class DataCoverageJob implements IDataCoverageJob {
                         dataRepository.updateStatistics(dataChild.getId(), data.getStatsResult(), data.getStatsState());
                     }
                 }
+            }
+        });
+    }
+
+    private void updateMetadata(final ImageStatistics stats, final Data target) {
+        SpringHelper.executeInTransaction(status -> {
+            final Object md;
+            try {
+                md = metadataService.getIsoMetadataForData(target.getId());
+                if (!(md instanceof Metadata))
+                    throw new RuntimeException("Only GeoAPI metadata accepted for statistics update");
+                final ContentInformation adapter = new CoverageDescriptionAdapter(stats);
+                final Collection contentInfo = ((Metadata) md).getContentInfo();
+                // TODO: should we try to merge instead ?
+                contentInfo.removeIf(info -> info instanceof CoverageDescription);
+                contentInfo.add(adapter);
+                metadataService.updateMetadata(((Metadata) md).getFileIdentifier(), md, target.getId(), null, null, null, null, null);
+                return null;
+            } catch (ConfigurationException e) {
+                throw new BackingStoreException(String.format("Cannot update metadata for data %d (%s)", target.getId(), target.getName()), e);
             }
         });
     }

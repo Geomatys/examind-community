@@ -160,8 +160,9 @@ public abstract class AbstractData implements Data{
     }
 
     @Override
-    public void computeStatistic(int dataId, DataRepository dataRepository) {
+    public Object computeStatistic(int dataId, DataRepository dataRepository) {
         //do nothing
+        return null;
     }
 
 }

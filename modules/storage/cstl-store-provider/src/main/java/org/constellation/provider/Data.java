@@ -151,5 +151,14 @@ public interface Data {
 
     String getResourceCRSName() throws ConstellationStoreException;
 
-    void computeStatistic(int dataId, DataRepository dataRepository);
+    /**
+     * Computes and returns data statistics. Beware, this operation could be a heavy one.
+     * TODO: refactor API.
+     *
+     * @param dataId Data Identifier in given repository
+     * @param dataRepository Repository to use to update state of given data.
+     * @return Statistics result. For now, only one implementation exists, and it returns specific
+     * {@link ImageStatistics}.
+     */
+    Object computeStatistic(int dataId, DataRepository dataRepository);
 }
