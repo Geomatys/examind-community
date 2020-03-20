@@ -18,6 +18,64 @@
  */
 package org.constellation.metadata.utils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.opengis.feature.AttributeType;
+import org.opengis.feature.PropertyType;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.citation.Citation;
+import org.opengis.metadata.citation.CitationDate;
+import org.opengis.metadata.citation.DateType;
+import org.opengis.metadata.citation.OnlineResource;
+import org.opengis.metadata.citation.Role;
+import org.opengis.metadata.content.AttributeGroup;
+import org.opengis.metadata.content.ContentInformation;
+import org.opengis.metadata.content.CoverageDescription;
+import org.opengis.metadata.content.RangeDimension;
+import org.opengis.metadata.distribution.DigitalTransferOptions;
+import org.opengis.metadata.distribution.Distribution;
+import org.opengis.metadata.extent.Extent;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.metadata.extent.GeographicDescription;
+import org.opengis.metadata.extent.GeographicExtent;
+import org.opengis.metadata.identification.BrowseGraphic;
+import org.opengis.metadata.identification.CouplingType;
+import org.opengis.metadata.identification.DataIdentification;
+import org.opengis.metadata.identification.DistributedComputingPlatform;
+import org.opengis.metadata.identification.Identification;
+import org.opengis.metadata.identification.KeywordType;
+import org.opengis.metadata.identification.Keywords;
+import org.opengis.metadata.identification.OperationMetadata;
+import org.opengis.metadata.identification.TopicCategory;
+import org.opengis.metadata.spatial.GeometricObjectType;
+import org.opengis.metadata.spatial.SpatialRepresentation;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.InternationalString;
+import org.opengis.util.NameFactory;
+
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.feature.AbstractOperation;
+import org.apache.sis.feature.Features;
+import org.apache.sis.internal.feature.FeatureUtilities;
+import org.apache.sis.internal.storage.MetadataBuilder;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultAddress;
@@ -31,59 +89,44 @@ import org.apache.sis.metadata.iso.constraint.DefaultLegalConstraints;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
 import org.apache.sis.metadata.iso.identification.AbstractIdentification;
+import org.apache.sis.metadata.iso.identification.DefaultBrowseGraphic;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.metadata.iso.identification.DefaultKeywords;
 import org.apache.sis.metadata.iso.identification.DefaultOperationMetadata;
+import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
+import org.apache.sis.metadata.iso.spatial.DefaultGeometricObjects;
+import org.apache.sis.metadata.iso.spatial.DefaultVectorSpatialRepresentation;
+import org.apache.sis.storage.DataSet;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.iso.DefaultInternationalString;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
+
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
-import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
-import org.opengis.metadata.citation.Citation;
-import org.opengis.metadata.citation.CitationDate;
-import org.opengis.metadata.citation.DateType;
-import org.opengis.metadata.citation.OnlineResource;
-import org.opengis.metadata.citation.Role;
-import org.opengis.metadata.content.AttributeGroup;
-import org.opengis.metadata.content.ContentInformation;
-import org.opengis.metadata.content.CoverageDescription;
-import org.opengis.metadata.content.RangeDimension;
-import org.opengis.metadata.distribution.DigitalTransferOptions;
-import org.opengis.metadata.distribution.Distribution;
-import org.opengis.metadata.extent.Extent;
-import org.opengis.metadata.extent.GeographicDescription;
-import org.opengis.metadata.extent.GeographicExtent;
-import org.opengis.metadata.identification.DataIdentification;
-import org.opengis.metadata.identification.Identification;
-import org.opengis.metadata.identification.Keywords;
-import org.opengis.metadata.identification.TopicCategory;
-import org.opengis.metadata.identification.CouplingType;
-import org.opengis.metadata.identification.DistributedComputingPlatform;
-import org.opengis.metadata.identification.OperationMetadata;
-import org.opengis.util.InternationalString;
-import org.opengis.util.NameFactory;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.sis.metadata.iso.identification.DefaultBrowseGraphic;
-import static org.constellation.api.ServiceConstants.*;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.metadata.identification.BrowseGraphic;
-import org.opengis.metadata.identification.KeywordType;
+import static org.constellation.api.ServiceConstants.DELETE_SENSOR;
+import static org.constellation.api.ServiceConstants.DESCRIBE_SENSOR;
+import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import static org.constellation.api.ServiceConstants.GET_FEATURE_OF_INTEREST;
+import static org.constellation.api.ServiceConstants.GET_FEATURE_OF_INTEREST_TIME;
+import static org.constellation.api.ServiceConstants.GET_OBSERVATION;
+import static org.constellation.api.ServiceConstants.GET_OBSERVATION_BY_ID;
+import static org.constellation.api.ServiceConstants.GET_RESULT_TEMPLATE;
+import static org.constellation.api.ServiceConstants.INSERT_OBSERVATION;
+import static org.constellation.api.ServiceConstants.INSERT_RESULT;
+import static org.constellation.api.ServiceConstants.INSERT_RESULT_TEMPLATE;
+import static org.constellation.api.ServiceConstants.INSERT_SENSOR;
 
 
 /**
@@ -118,7 +161,6 @@ public class MetadataFeeder {
         setKeywordsNoType(serviceInfo.getKeywords());
         feedServiceContraint(serviceInfo.getServiceConstraints());
         feedServiceContact(serviceInfo.getServiceContact());
-
     }
 
     protected void feedServiceContraint(final AccessConstraint constraint) {
@@ -1015,6 +1057,24 @@ public class MetadataFeeder {
         return result;
     }
 
+    /**
+     *
+     * @return All found Geographic bounding boxes from current metadata. Note that bounding polygons are ignored.
+     */
+    public Stream<GeographicBoundingBox> getGeographicBBoxes() {
+        return getExtents(eater)
+                .flatMap(extent -> extent.getGeographicElements().stream())
+                .filter(GeographicBoundingBox.class::isInstance)
+                .map(GeographicBoundingBox.class::cast);
+    }
+
+    /**
+     *
+     * @return Any Geographic bbox found, or null.
+     * @deprecated return only one of possibly many boxes defined. Please consider using {@link #getGeographicBBoxes()}
+     * instead. For exact same behavior, you can use {@code getGeographicBBoxes().findAny().orElse(null); }
+     */
+    @Deprecated
     public GeographicBoundingBox getGeographicBoundingBox() {
         final Identification identification = getIdentification(eater);
         if (identification != null) {
@@ -1057,5 +1117,220 @@ public class MetadataFeeder {
                 ((DefaultDataIdentification)identification).setGraphicOverviews(Arrays.asList(bg));
             }
         }
+    }
+
+    public void setCoverageDescription(CoverageDescription newValue, WriteOption copyBehavior) {
+        final Runnable mdInit;
+        final Collection contentInfo = eater.getContentInfo();
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = () -> contentInfo.removeIf(info -> info instanceof CoverageDescription);
+                break;
+            case CREATE_NEW:
+                if (contentInfo.stream().anyMatch(CoverageDescription.class::isInstance)) return;
+                // Clean metadata: initial action is identity
+                mdInit = () -> {};
+                break;
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = () -> {};
+        }
+        mdInit.run();
+        contentInfo.add(newValue);
+    }
+
+    /**
+     *
+     * @param datasource Dataset to use for envelope extraction.
+     * @param copyBehavior How to manage information overlap between newly added envelope and possibly already existing
+     *                     information in target metadata.
+     * @return Extents effectively written in target metadata. Cannot be null, but can be empty. If empty, it means
+     * metadata has not been modified.
+     *
+     * @throws DataStoreException If we cannot extract envelope from datasource.
+     * @throws TransformException DataSet has provided an envelope, but we cannot set it in metadata due to incompatible
+     * reference system (ISO-19115 defines geographic spatial extents, for example).
+     */
+    public Collection<? extends Extent> setExtent(final DataSet datasource, WriteOption copyBehavior) throws DataStoreException, TransformException {
+        try {
+            final Supplier<Optional<Envelope>> envelope = () -> {
+                try {
+                    return datasource.getEnvelope();
+                } catch (DataStoreException e) {
+                    throw new BackingStoreException(e);
+                }
+            };
+            return setExtent(envelope, copyBehavior);
+        } catch (BackingStoreException e) {
+            throw e.unwrapOrRethrow(DataStoreException.class);
+        }
+    }
+
+    /**
+     * See {@link #setExtent(Supplier, WriteOption)}.
+     */
+    public Collection<? extends Extent> setExtent(final Envelope newExtent, WriteOption copyBehavior) throws TransformException {
+        return setExtent(() -> Optional.ofNullable(newExtent), copyBehavior);
+    }
+
+    /**
+     *
+     * @param datasource Component providing envelope to set.
+     * @param copyBehavior How to manage information overlap between newly added envelope and possibly already existing
+     *                     information in target metadata.
+     * @return Extents effectively written in target metadata. Cannot be null, but can be empty. If empty, it means
+     * metadata has not been modified.
+     *
+     * @throws TransformException DataSet has provided an envelope, but we cannot set it in metadata due to incompatible
+     * reference system (ISO-19115 defines geographic spatial extents, for example).
+     */
+    public Collection<? extends Extent> setExtent(final Supplier<Optional<Envelope>> datasource, WriteOption copyBehavior) throws TransformException {
+        final Consumer<DefaultMetadata> mdInit;
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = md -> {
+                    for (Identification ident : md.getIdentificationInfo()) {
+                        ident.getExtents().clear();
+                    }
+                };
+                break;
+            case CREATE_NEW:
+                if (hasExtent(eater)) return Collections.EMPTY_LIST;
+                // Clean metadata: initial action is identity
+                mdInit = md -> {};
+                break;
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = md -> {};
+        }
+
+        final Optional<Envelope> optEnv = datasource.get();
+        if (optEnv.isPresent()) {
+            final MetadataBuilder builder = new MetadataBuilder();
+            builder.addExtent(optEnv.get());
+            final DefaultMetadata md = builder.build(false);
+            final List<? extends Extent> newExtents = getExtents(md).collect(Collectors.toList());
+            if (!newExtents.isEmpty()) {
+                mdInit.accept(eater);
+                getIdentification(eater).getExtents().addAll((List) newExtents);
+                return newExtents;
+            }
+        }
+
+        return Collections.EMPTY_LIST;
+    }
+
+    /**
+     *
+     * @param datasource Spatial resource to build a representation for.
+     * @param copyBehavior What to do if spatial representation is already present in target metadata.
+     * @return Affected spatial representation, if any.
+     * @throws DataStoreException If accessing given datasource fails.
+     */
+    public Optional<SpatialRepresentation> setSpatialRepresentation(DataSet datasource, WriteOption copyBehavior) throws DataStoreException {
+        final Consumer<DefaultMetadata> mdInit;
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = md -> md.getSpatialRepresentationInfo().clear();
+                break;
+            case CREATE_NEW:
+                if (hasExtent(eater)) return Optional.empty();
+                // Clean metadata: initial action is identity
+                mdInit = md -> {};
+                break;
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = md -> {};
+        }
+        final Optional<SpatialRepresentation> newValue;
+        if (datasource instanceof FeatureSet) {
+            newValue = buildSpatialRepresentation((FeatureSet) datasource);
+        } else if (datasource instanceof GridCoverageResource) {
+            newValue = buildSpatialRepresentation((GridCoverageResource) datasource);
+        } else return Optional.empty();
+
+        newValue.ifPresent(spatialRepresentation -> {
+            mdInit.accept(eater);
+            eater.getSpatialRepresentationInfo().add(spatialRepresentation);
+        });
+
+        return newValue;
+    }
+
+    private static Optional<SpatialRepresentation> buildSpatialRepresentation(FeatureSet datasource) throws DataStoreException {
+        final List<DefaultGeometricObjects> geoms = datasource.getType().getProperties(true).stream()
+                .filter(p -> !isALink(p))
+                .flatMap(property -> Features.toAttribute(property).map(Stream::of).orElseGet(Stream::empty))
+                .flatMap(
+                        attribute -> getGeomTypeFromJTS(attribute)
+                                .map(DefaultGeometricObjects::new)
+                                .map(Stream::of)
+                                .orElseGet(Stream::empty)
+                )
+                .collect(Collectors.toList());
+        if (geoms.isEmpty()) return Optional.empty();
+        final DefaultVectorSpatialRepresentation vsr = new DefaultVectorSpatialRepresentation();
+        vsr.getGeometricObjects().addAll(geoms);
+        return Optional.of(vsr);
+    }
+
+    private static Optional<SpatialRepresentation> buildSpatialRepresentation(GridCoverageResource datasource) throws DataStoreException {
+        final GridGeometry geometry = datasource.getGridGeometry();
+        final String description = (geometry.isDefined(GridGeometry.GRID_TO_CRS)) ?
+                geometry.getGridToCRS(PixelInCell.CELL_CENTER).toWKT() : null;
+        final MetadataBuilder builder = new MetadataBuilder();
+        builder.addSpatialRepresentation(description, geometry, geometry.isDefined(GridGeometry.RESOLUTION));
+        return builder.build(false).getSpatialRepresentationInfo().stream()
+                .findAny();
+    }
+
+    private Stream<? extends Extent> getExtents(Metadata md) {
+        return md.getIdentificationInfo().stream()
+                .flatMap(ident -> ident.getExtents().stream());
+    }
+
+    private boolean hasExtent(Metadata md) {
+        return getExtents(md)
+                .findAny()
+                .isPresent();
+    }
+
+    private static Optional<GeometricObjectType> getGeomTypeFromJTS(AttributeType property) {
+        Class binding = property.getValueClass();
+        if (Point.class.isAssignableFrom(binding)) {
+            return Optional.of(GeometricObjectType.POINT);
+        } else if (LineString.class.isAssignableFrom(binding)) {
+            return Optional.of(GeometricObjectType.CURVE);
+        } else if (Polygon.class.isAssignableFrom(binding)) {
+            return Optional.of(GeometricObjectType.SURFACE);
+        } else if (Geometry.class.isAssignableFrom(binding)) return Optional.of(GeometricObjectType.COMPLEX);
+        return Optional.empty();
+    }
+
+    private static boolean isALink(final PropertyType target) {
+        return target instanceof AbstractOperation &&
+                FeatureUtilities.LINK_PARAMS.equals(((AbstractOperation) target).getParameters());
+    }
+
+    /**
+     * Specify what behavior to adopt when adding any information into an existing metadata.
+     */
+    public enum WriteOption {
+        /**
+         * Write information only if it does not already exists into target metadata. Otherwise, no operation is done.
+         */
+        CREATE_NEW,
+        /**
+         * If the information to add/set already exists, it will be deleted before-hand. It should only be deleted if
+         * the new information is present/not empty.
+         */
+        REPLACE_EXISTING,
+        /**
+         * Do not check if the information already exists. Simply add the new one at the end of the corresponding set/category.
+         */
+        APPEND;
     }
 }

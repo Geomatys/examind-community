@@ -55,7 +55,6 @@ import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.measure.NumberRange;
-import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -113,7 +112,7 @@ import static org.constellation.api.StatisticState.STATE_PENDING;
  *
  * @author Johann Sorel (Geomatys)
  */
-public class DefaultCoverageData extends DefaultGeoData implements CoverageData {
+public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> implements CoverageData {
 
     private static final MutableStyle DEFAULT =
             new DefaultStyleFactory().style(StyleConstants.DEFAULT_RASTER_SYMBOLIZER);
@@ -126,19 +125,11 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
             "UP", "DOWN",
             "FUTURE", "PAST"});
 
-    private final GridCoverageResource ref;
     private final DataStore store;
 
-
     public DefaultCoverageData(final GenericName name, final GridCoverageResource ref, final DataStore store){
-        super(name);
-        this.ref = ref;
+        super(name, ref);
         this.store = store;
-    }
-
-    @Override
-    public GridCoverageResource getOrigin() {
-        return ref;
     }
 
     /**
@@ -180,7 +171,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
                 grid = refGrid;
             }
 
-            final GridCoverage cov = ref.read(grid);
+            final GridCoverage cov = origin.read(grid);
             return new ResampleProcess(cov, crs2D, null, null, null).executeNow();
 
         } catch (DataStoreException ex) {
@@ -200,7 +191,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
             style = getDefaultStyle();
         }
 
-        final CoverageMapLayer layer = MapBuilder.createCoverageLayer(ref, style);
+        final CoverageMapLayer layer = MapBuilder.createCoverageLayer(origin, style);
 
         // EXTRA FILTER extra parameter ////////////////////////////////////////
         if (params != null && layer instanceof CoverageMapLayer) {
@@ -330,8 +321,8 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
 
     @Override
     public String getImageFormat() {
-         if (ref instanceof FileCoverageResource) {
-            FileCoverageResource fref = (FileCoverageResource) ref;
+         if (origin instanceof FileCoverageResource) {
+            FileCoverageResource fref = (FileCoverageResource) origin;
             if (fref.getSpi() != null &&
                 fref.getSpi().getMIMETypes() != null &&
                 fref.getSpi().getMIMETypes().length > 0) {
@@ -349,7 +340,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
     @Override
     public List<SampleDimension> getSampleDimensions() throws ConstellationStoreException {
         try {
-            return ref.getSampleDimensions();
+            return origin.getSampleDimensions();
         } catch (CancellationException | DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -366,7 +357,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
     @Override
     public GridGeometry getGeometry() throws ConstellationStoreException {
         try {
-            return ref.getGridGeometry();
+            return origin.getGridGeometry();
         } catch (DataStoreException e) {
             throw new ConstellationStoreException(e.getMessage(), e);
         }
@@ -530,7 +521,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
     public boolean isGeophysic() throws ConstellationStoreException {
         boolean isGeophysic = false;
         try {
-            final List<SampleDimension> dims = ref.getSampleDimensions();
+            final List<SampleDimension> dims = origin.getSampleDimensions();
             if(dims!=null && !dims.isEmpty()){
                 isGeophysic = true;
             }
@@ -589,18 +580,6 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
             }
         }
         return dimensions;
-    }
-
-    @Override
-    public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
-        try {
-            if (ref instanceof GridCoverageResource) {
-                return new DefaultMetadata(ref.getMetadata());
-            }
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-        return null;
     }
 
     @Override
@@ -666,7 +645,7 @@ public class DefaultCoverageData extends DefaultGeoData implements CoverageData 
                 gg = new GridGeometry(new GridExtent(null, low, high, true), env);
             }
 
-            final GridCoverage cov = ref.read(gg);
+            final GridCoverage cov = origin.read(gg);
             final org.geotoolkit.process.Process process = new Statistics(cov, false);
             process.addListener(new DataStatisticsListener(dataId, dataRepository));
             final Parameters out = Parameters.castOrWrap(process.call());

@@ -21,12 +21,17 @@ package org.constellation.provider;
 import java.awt.Dimension;
 import java.util.Date;
 import java.util.List;
-import org.constellation.exception.ConstellationStoreException;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.GridCoverage;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
+
 import org.opengis.geometry.Envelope;
+
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.storage.GridCoverageResource;
+
+import org.geotoolkit.image.io.metadata.SpatialMetadata;
+
+import org.constellation.exception.ConstellationStoreException;
 
 /**
  * Coverage extension of a {@link Data}, which add some methods specific
@@ -37,7 +42,7 @@ import org.opengis.geometry.Envelope;
  *
  * @since 0.4
  */
-public interface CoverageData extends GeoData {
+public interface CoverageData extends GeoData<GridCoverageResource> {
     /**
      */
     String getImageFormat();

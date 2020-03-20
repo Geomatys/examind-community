@@ -18,16 +18,15 @@
  */
 package org.constellation.admin;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 
 import org.opengis.metadata.Metadata;
-import org.opengis.metadata.content.ContentInformation;
 import org.opengis.metadata.content.CoverageDescription;
 
+import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.collection.BackingStoreException;
@@ -42,6 +41,7 @@ import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.dto.Data;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
@@ -163,19 +163,23 @@ public class DataCoverageJob implements IDataCoverageJob {
     private void updateMetadata(final ImageStatistics stats, final Data target) {
         SpringHelper.executeInTransaction(status -> {
             final Object md;
+            final Integer dataId = target.getId();
             try {
-                md = metadataService.getIsoMetadataForData(target.getId());
+                md = metadataService.getIsoMetadataForData(dataId);
+                if (md == null) {
+                    LOGGER.log(Level.WARNING, "Data {0}: cannot update metadata with statistics : metadata not found.", dataId);
+                    return null;
+                }
                 if (!(md instanceof Metadata))
                     throw new RuntimeException("Only GeoAPI metadata accepted for statistics update");
-                final ContentInformation adapter = new CoverageDescriptionAdapter(stats);
-                final Collection contentInfo = ((Metadata) md).getContentInfo();
-                // TODO: should we try to merge instead ?
-                contentInfo.removeIf(info -> info instanceof CoverageDescription);
-                contentInfo.add(adapter);
-                metadataService.updateMetadata(((Metadata) md).getFileIdentifier(), md, target.getId(), null, null, null, null, null);
+                final DefaultMetadata updatedMd = new DefaultMetadata((Metadata) md);
+                final MetadataFeeder feeder = new MetadataFeeder(updatedMd);
+                final CoverageDescription adapter = new CoverageDescriptionAdapter(stats);
+                feeder.setCoverageDescription(adapter, MetadataFeeder.WriteOption.REPLACE_EXISTING);
+                metadataService.updateMetadata(((Metadata) md).getFileIdentifier(), updatedMd, dataId, null, null, null, null, null);
                 return null;
             } catch (ConfigurationException e) {
-                throw new BackingStoreException(String.format("Cannot update metadata for data %d (%s)", target.getId(), target.getName()), e);
+                throw new BackingStoreException(String.format("Cannot update metadata for data %d (%s)", dataId, target.getName()), e);
             }
         });
     }

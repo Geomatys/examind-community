@@ -18,25 +18,27 @@
  */
 package org.constellation.provider;
 
-import java.awt.Dimension;
-import org.apache.sis.measure.MeasurementRange;
-import org.constellation.api.ServiceDef;
-import org.geotoolkit.util.DateRange;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-
 import java.util.Date;
 import java.util.SortedSet;
+
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.util.GenericName;
+
+import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.Resource;
+
+import org.geotoolkit.util.DateRange;
+
 import org.constellation.api.DataType;
+import org.constellation.api.ServiceDef;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
-import org.opengis.util.GenericName;
 
 
 /**
@@ -45,14 +47,9 @@ import org.opengis.util.GenericName;
  * @version $Id$
  * @author Cédric Briançon
  */
-public interface Data {
+public interface Data<T extends Resource> {
 
     String KEY_EXTRA_PARAMETERS = "EXTRA";
-
-    /**
-     * Default legend size, if not specified in the {@code GetLegend} request.
-     */
-    Dimension LEGEND_SIZE = new Dimension(200, 40);
 
     /**
      * Returns the time range of this layer. This method is typically much faster than
@@ -109,7 +106,7 @@ public interface Data {
      * Origin source of this data can be :
      * FeatureSet, GridCoverageResource, ... or null.
      */
-    Resource getOrigin();
+    T getOrigin();
 
     /**
      * Get the source of resource used by this layer.
@@ -147,6 +144,14 @@ public interface Data {
 
     boolean isGeophysic() throws ConstellationStoreException;
 
+    /**
+     *
+     * @return Metadata of the resource associated to this data.
+     * @throws ConstellationStoreException If we cannot access data source.
+     * @deprecated Not used directly, should not be used. Please do {@code getOrigin().getMetadata();}, but check
+     * before-hand if {@link #getOrigin() origin} is not null.
+     */
+    @Deprecated
     DefaultMetadata getResourceMetadata() throws ConstellationStoreException;
 
     String getResourceCRSName() throws ConstellationStoreException;

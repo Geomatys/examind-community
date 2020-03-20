@@ -16,17 +16,20 @@
  */
 package org.constellation.provider.metadatastore;
 
+import org.opengis.geometry.Envelope;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
+
+import org.geotoolkit.metadata.MetadataStore;
+
 import org.constellation.api.DataType;
 import org.constellation.dto.DataDescription;
+import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.MetadataData;
-import org.constellation.dto.StatInfo;
-import org.geotoolkit.metadata.MetadataStore;
-import org.opengis.geometry.Envelope;
-import org.opengis.util.GenericName;
 import org.w3c.dom.Node;
 
 /**
@@ -40,7 +43,7 @@ public class DefaultMetadataData extends AbstractData implements MetadataData {
     private final Node metadata;
 
     public DefaultMetadataData(GenericName name, MetadataStore store, final Node metadata) {
-        super(name);
+        super(name, null);
         this.store = store;
         this.metadata = metadata;
     }

@@ -19,23 +19,27 @@
 package org.constellation.provider.observationstore;
 
 import java.util.Arrays;
+
+import org.opengis.geometry.Envelope;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.constellation.api.DataType;
 import org.apache.sis.storage.Resource;
+
+import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.sos.netcdf.ExtractionResult;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+
+import org.constellation.api.DataType;
 import org.constellation.dto.ObservationDataDescription;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.StoreUtilities;
-import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sos.netcdf.ExtractionResult;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.opengis.geometry.Envelope;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -46,7 +50,7 @@ public class DefaultObservationData extends AbstractData implements ObservationD
     private final ObservationStore store;
 
     public DefaultObservationData(GenericName name, ObservationStore store) {
-        super(name);
+        super(name, findResource(store, name));
         this.store = store;
     }
 
@@ -99,16 +103,11 @@ public class DefaultObservationData extends AbstractData implements ObservationD
         return null;
     }
 
-    /**
-     * Returns a {@linkplain FeatureCollection feature collection} containing all the data.
-     */
-    @Override
-    public Resource getOrigin() {
+    private static Resource findResource(ObservationStore source, GenericName searchedOne) {
         try {
-            return StoreUtilities.findResource((DataStore) store, name.toString());
-        } catch (DataStoreException ex) {
-            throw new IllegalArgumentException("Unable to find a resource:" + name);
+            return StoreUtilities.findResource((DataStore) source, searchedOne.toString());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Unable to find a resource:" + searchedOne, ex);
         }
     }
-
 }

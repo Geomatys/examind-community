@@ -18,25 +18,30 @@
  */
 package org.constellation.provider;
 
-import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.api.ServiceDef.Query;
-import org.geotoolkit.util.DateRange;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.referencing.operation.TransformException;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
+import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.util.logging.Logging;
+
+import org.geotoolkit.util.DateRange;
+
+import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
-import org.opengis.util.GenericName;
 
 
 /**
@@ -45,7 +50,7 @@ import org.opengis.util.GenericName;
  * @author Johann Sorel (Geomatys)
  * @author Cédric Briançon (Geomatys)
  */
-public abstract class AbstractData implements Data{
+public abstract class AbstractData<T extends Resource> implements Data<T> {
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.provider");
 
@@ -53,9 +58,11 @@ public abstract class AbstractData implements Data{
      * Layer name
      */
     protected final GenericName name;
+    protected final T origin;
 
-    public AbstractData(GenericName name){
+    public AbstractData(GenericName name, final T origin) {
         this.name = name;
+        this.origin = origin;
     }
 
     /**
@@ -67,8 +74,8 @@ public abstract class AbstractData implements Data{
     }
 
     @Override
-    public Resource getOrigin(){
-        return null;
+    public T getOrigin() {
+        return origin;
     }
 
     /**
@@ -151,7 +158,11 @@ public abstract class AbstractData implements Data{
 
     @Override
     public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
-        return null;
+        try {
+            return new DefaultMetadata(origin.getMetadata());
+        } catch (DataStoreException e) {
+            throw new ConstellationStoreException(e);
+        }
     }
 
     @Override

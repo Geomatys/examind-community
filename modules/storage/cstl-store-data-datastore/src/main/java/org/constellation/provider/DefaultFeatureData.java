@@ -19,25 +19,6 @@
 package org.constellation.provider;
 
 
-import org.locationtech.jts.geom.GeometryFactory;
-import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
-import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.storage.feature.query.Query;
-import org.geotoolkit.storage.feature.query.QueryBuilder;
-import org.apache.sis.internal.system.DefaultFactories;
-import org.geotoolkit.map.FeatureMapLayer;
-import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapLayer;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.style.RandomStyleBuilder;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -47,42 +28,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.extent.DefaultExtent;
-import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
-import org.apache.sis.metadata.iso.spatial.DefaultGeometricObjects;
-import org.apache.sis.metadata.iso.spatial.DefaultVectorSpatialRepresentation;
-import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataSet;
-import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
-import org.apache.sis.util.iso.SimpleInternationalString;
-import org.constellation.api.DataType;
-import org.constellation.dto.FeatureDataDescription;
-import org.constellation.dto.PropertyDescription;
-import org.constellation.exception.ConstellationStoreException;
-import static org.constellation.provider.AbstractData.LOGGER;
-import org.constellation.util.StoreUtilities;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import static org.geotoolkit.feature.FeatureExt.IS_NOT_CONVENTION;
-import org.constellation.dto.StatInfo;
-import org.geotoolkit.referencing.ReferencingUtilities;
-import org.geotoolkit.style.DefaultDescription;
-import org.geotoolkit.util.NamesExt;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.MultiLineString;
-import org.locationtech.jts.geom.MultiPoint;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
@@ -91,23 +38,55 @@ import org.opengis.feature.IdentifiedType;
 import org.opengis.feature.Operation;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
-import org.opengis.metadata.spatial.GeometricObjectType;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.expression.PropertyName;
+import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.GenericName;
 import org.opengis.util.InternationalString;
+
+import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.internal.storage.query.SimpleQuery;
+import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.measure.MeasurementRange;
+import org.apache.sis.storage.DataSet;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.Resource;
+import org.apache.sis.util.iso.SimpleInternationalString;
+
+import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapBuilder;
+import org.geotoolkit.map.MapLayer;
+import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.storage.feature.FeatureStoreUtilities;
+import org.geotoolkit.storage.feature.query.Query;
+import org.geotoolkit.storage.feature.query.QueryBuilder;
+import org.geotoolkit.style.DefaultDescription;
+import org.geotoolkit.style.MutableStyle;
+import org.geotoolkit.style.RandomStyleBuilder;
+import org.geotoolkit.util.NamesExt;
+
+import org.constellation.api.DataType;
+import org.constellation.dto.FeatureDataDescription;
+import org.constellation.dto.PropertyDescription;
+import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.util.StoreUtilities;
+import org.locationtech.jts.geom.Geometry;
+
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
 /**
  * Default layer details for a datastore type.
  *
  * @author Johann Sorel (Geomatys)
  */
-public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
+public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements FeatureData {
 
-
-    protected static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory();
-    protected static final GeographicBoundingBox DUMMY_BBOX =
-            new DefaultGeographicBoundingBox(-180, 180, -77, +77);
     /**
      * Defines the number of pixels we want to add to the specified coordinates given by
      * the GetFeatureInfo request.
@@ -125,36 +104,23 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
      */
     protected final Date versionDate;
 
-    protected final FeatureSet fs;
-
     /**
      * Build a FeatureLayerDetails with layer name, store, favorite style names, temporal/elevation filters and
      * data version date.
      *
      * @param name layer name
      * @param store FeatureStore
-     * @param favorites style names
      * @param dateStart temporal filter start
      * @param dateEnd temporal filter end
      * @param elevationStart elevation filter start
      * @param elevationEnd elevation filter end
      * @param versionDate data version date of the layer (can be null)
      */
-    public DefaultFeatureData(GenericName name, DataStore store, FeatureSet fs,
+    public DefaultFeatureData(GenericName name, DataStore store, FeatureSet origin,
                                         String dateStart, String dateEnd, String elevationStart, String elevationEnd, Date versionDate){
-        super(name);
-        if(store == null){
-            throw new IllegalArgumentException("FeatureSource can not be null.");
-        }
-        /*try {
-            if (!store.getNames().contains(name)) {
-                throw new IllegalArgumentException("Provided name " + name + " is not in the datastore known names");
-            }
-        } catch (DataStoreException ex) {
-            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
-        }*/
+        super(name, origin);
+        ensureNonNull("Source feature store", store);
 
-        this.fs    = fs;
         this.store = store;
         this.versionDate = versionDate;
 
@@ -196,7 +162,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
      * {@inheritDoc}
      */
     @Override
-    public DataStore getStore(){
+    public DataStore getStore() {
         return store;
     }
 
@@ -271,7 +237,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
             final QueryBuilder query = new QueryBuilder();
             query.setVersionDate(versionDate);
             query.setTypeName(name);
-            FeatureSet subfs = fs.subset(query.buildQuery());
+            FeatureSet subfs = origin.subset(query.buildQuery());
             return FeatureStoreUtilities.getEnvelope(subfs);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -287,7 +253,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
         final SortedSet<Date> dates = new TreeSet<>();
         if (dateStartField != null) {
             try {
-                final AttributeType desc = (AttributeType) dateStartField.evaluate(fs.getType());
+                final AttributeType desc = (AttributeType) dateStartField.evaluate(origin.getType());
 
                 if(desc == null){
                     LOGGER.log(Level.WARNING , "Invalide field : "+ dateStartField + " Doesnt exists in layer :" + name);
@@ -306,7 +272,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
                 builder.setVersionDate(versionDate);
                 final Query query = builder.buildQuery();
 
-                try (Stream<Feature> stream = fs.subset(query).features(false)) {
+                try (Stream<Feature> stream = origin.subset(query).features(false)) {
                     Iterator<Feature> features = stream.iterator();
                     while(features.hasNext()){
                         final Feature sf = features.next();
@@ -334,7 +300,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
         if (elevationStartField != null) {
 
             try {
-                final AttributeType desc = (AttributeType) elevationStartField.evaluate(fs.getType());
+                final AttributeType desc = (AttributeType) elevationStartField.evaluate(origin.getType());
                 if(desc == null){
                     LOGGER.log(Level.WARNING , "Invalid field : "+ elevationStartField + " Does not exist in layer :" + name);
                     return elevations;
@@ -352,7 +318,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
                 builder.setVersionDate(versionDate);
                 final Query query = builder.buildQuery();
 
-                try (Stream<Feature> stream = fs.subset(query).features(false)) {
+                try (Stream<Feature> stream = origin.subset(query).features(false)) {
                     Iterator<Feature> features = stream.iterator();
                     while (features.hasNext()) {
                         final Feature sf = features.next();
@@ -384,34 +350,10 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
     @Override
     public FeatureType getType() throws ConstellationStoreException {
         try {
-            return fs.getType();
+            return origin.getType();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
-    }
-
-    /**
-     * Returns a {@linkplain FeatureSet feature set} containing all the data.
-     */
-    @Override
-    public FeatureSet getOrigin() {
-        /*final QueryBuilder builder = new QueryBuilder();
-        builder.setTypeName(name);
-
-        build query using versionDate if not null and sotre support versioning.
-        if (store instanceof FeatureStore) {
-            FeatureStore fs = (FeatureStore) store;
-            if (fs.getQueryCapabilities().handleVersioning()) {
-
-                if (versionDate != null) {
-                    builder.setVersionDate(versionDate);
-                }
-            }
-            final Query query =  builder.buildQuery();
-            return fs.createSession(false).getFeatureCollection(query);
-        } else {*/
-            return fs;
-        //}
     }
 
 
@@ -425,7 +367,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
         try {
 
             // Acquire data feature type.
-            final FeatureType featureType = fs.getType();
+            final FeatureType featureType = origin.getType();
 
             // Feature attributes description.
             for (PropertyType pt : featureType.getProperties(true)) {
@@ -442,7 +384,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
             final QueryBuilder queryBuilder = new QueryBuilder();
             queryBuilder.setTypeName(getName());
 
-            final Envelope envelope = FeatureStoreUtilities.getEnvelope(fs);
+            final Envelope envelope = FeatureStoreUtilities.getEnvelope(origin);
             DataProviders.fillGeographicDescription(envelope, description);
 
         } catch (DataStoreException ex) {
@@ -458,7 +400,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
             final QueryBuilder qb = new QueryBuilder();
             qb.setProperties(new String[]{property});
             qb.setTypeName(getName());
-            try (Stream<Feature> stream = fs.subset(qb.buildQuery()).features(false)) {
+            try (Stream<Feature> stream = origin.subset(qb.buildQuery()).features(false)) {
                 return stream
                         .map(f -> f.getPropertyValue(property))
                         .toArray();
@@ -477,7 +419,7 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
     @Override
     public String getSubType() throws ConstellationStoreException {
         try {
-            FeatureType fType = fs.getType();
+            FeatureType fType = origin.getType();
             return findGeometryType(fType, null);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -529,56 +471,6 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
     }
 
     @Override
-    public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
-        try {
-            final Resource ft = StoreUtilities.findResource(store, getName().toString());
-
-            final DefaultMetadata md = new DefaultMetadata();
-            final DefaultDataIdentification ident = new DefaultDataIdentification();
-            md.getIdentificationInfo().add(ident);
-
-            if (ft instanceof DataSet) {
-                DataSet ds = (DataSet) ft;
-
-                // envelope extraction
-                Envelope env = FeatureStoreUtilities.getEnvelope(ds);
-                if (env != null) {
-                    env = Envelopes.transform(env, CommonCRS.WGS84.normalizedGeographic());
-                    final DefaultGeographicBoundingBox bbox = new DefaultGeographicBoundingBox(
-                            env.getMinimum(0), env.getMaximum(0), env.getMinimum(1), env.getMaximum(1)
-                    );
-                    final DefaultExtent extent = new DefaultExtent("", bbox, null, null);
-                    ident.getExtents().add(extent);
-                }
-
-                // geometry type extraction
-                if (ft instanceof FeatureSet) {
-                    FeatureSet fs = (FeatureSet) ft;
-                    try {
-                        final List<? extends PropertyType> geometries = fs.getType().getProperties(true).stream()
-                                        .filter(IS_NOT_CONVENTION)
-                                        .filter(AttributeConvention::isGeometryAttribute)
-                                        .collect(Collectors.toList());
-                        for (PropertyType geometry : geometries) {
-                            final GeometricObjectType geomType = getGeomTypeFromJTS(geometry);
-                            if (geomType != null) {
-                                DefaultVectorSpatialRepresentation sr = new DefaultVectorSpatialRepresentation();
-                                sr.getGeometricObjects().add(new DefaultGeometricObjects(geomType));
-                                md.getSpatialRepresentationInfo().add(sr);
-                            }
-                        }
-                    } catch (PropertyNotFoundException ex) {
-                        LOGGER.log(Level.WARNING, "No default Geometry in vector data:{0}", getName());
-                    }
-                }
-            }
-            return md;
-        } catch (DataStoreException | TransformException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
-    @Override
     public String getResourceCRSName() throws ConstellationStoreException {
         try {
             final Resource ft = StoreUtilities.findResource(store, getName().toString());
@@ -596,32 +488,6 @@ public class DefaultFeatureData extends DefaultGeoData implements FeatureData {
             }
         } catch(Exception ex) {
             LOGGER.finer(ex.getMessage());
-        }
-        return null;
-    }
-
-    private static GeometricObjectType getGeomTypeFromJTS(PropertyType defaultGeometry) {
-        if (defaultGeometry != null) {
-            while (defaultGeometry instanceof Operation) {
-                defaultGeometry = (PropertyType) ((Operation) defaultGeometry).getResult();
-            }
-            Class binding = ((AttributeType)defaultGeometry).getValueClass();
-            if (Point.class.equals(binding)) {
-                return GeometricObjectType.POINT;
-            } else if (LineString.class.equals(binding)) {
-                return GeometricObjectType.CURVE;
-            } else if (Polygon.class.equals(binding)) {
-                return GeometricObjectType.SURFACE;
-            } else if (GeometryCollection.class.equals(binding) ||
-                       MultiLineString.class.equals(binding) ||
-                       MultiPoint.class.equals(binding) ||
-                       MultiPolygon.class.equals(binding)) {
-                return GeometricObjectType.COMPLEX;
-            } else if (Geometry.class.equals(binding)) {
-                return GeometricObjectType.COMPLEX;
-            } else if (binding != null) {
-                LOGGER.info("Unexpected default geometry type:" + binding.getName());
-            }
         }
         return null;
     }

@@ -29,45 +29,49 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.util.FactoryException;
+
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.crs.AbstractCRS;
+import org.apache.sis.referencing.cs.AxesConvention;
 import org.apache.sis.util.logging.Logging;
+
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMapContextBusiness;
+import org.constellation.business.IMetadataBusiness;
+import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
+import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.ParameterValues;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
+import org.constellation.dto.StyleBrief;
+import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
+import org.constellation.util.Util;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.apache.sis.referencing.crs.AbstractCRS;
-import org.apache.sis.referencing.cs.AxesConvention;
-import org.constellation.exception.ConstellationException;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IUserBusiness;
-import org.constellation.dto.MapContextDTO;
-import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.StyleBrief;
-import org.constellation.dto.StyleReference;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.metadata.utils.MetadataFeeder;
-import org.constellation.util.Util;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component("cstlMapContextBusiness")
@@ -267,7 +271,13 @@ public class MapContextBusiness implements IMapContextBusiness {
                     continue;
                 }
                 final MetadataFeeder feeder = new MetadataFeeder(metadata);
-                final GeographicBoundingBox geoBBox = feeder.getGeographicBoundingBox();
+                final GeographicBoundingBox geoBBox = feeder.getGeographicBBoxes()
+                        .reduce((b1, b2) -> {
+                            final DefaultGeographicBoundingBox result = new DefaultGeographicBoundingBox(b1);
+                            result.add(b2);
+                            return result;
+                        })
+                        .orElse(null);
                 if (geoBBox == null) {
                     continue;
                 }

@@ -21,6 +21,8 @@ package org.constellation.provider;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.storage.Resource;
+
 import static org.constellation.provider.AbstractData.LOGGER;
 import org.geotoolkit.cql.CQL;
 import org.opengis.filter.Filter;
@@ -32,10 +34,10 @@ import org.opengis.util.GenericName;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class DefaultGeoData extends AbstractData implements GeoData {
+public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T> implements GeoData<T> {
 
-    public DefaultGeoData(GenericName name) {
-        super(name);
+    public DefaultGeoData(GenericName name, T origin) {
+        super(name, origin);
     }
 
     protected Filter buildCQLFilter(final String cql, final Filter filter) {

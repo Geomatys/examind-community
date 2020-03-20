@@ -18,6 +18,8 @@
  */
 package org.constellation.admin;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,9 +27,20 @@ import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.citation.Party;
+import org.opengis.metadata.citation.Role;
+
+import org.apache.sis.metadata.MetadataCopier;
+import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
+import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
+
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
+import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CoverageDataDescription;
@@ -37,6 +50,9 @@ import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
+import org.constellation.provider.Data;
+import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviders;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -45,6 +61,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
@@ -55,11 +72,15 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @ContextConfiguration("classpath:/cstl/spring/test-context.xml")
 public class DataBusinessTest {
 
+    public static final String GEOMATYS = "Geomatys";
     @Autowired
     private IDatasetBusiness datasetBusiness;
 
     @Autowired
     private IDataBusiness dataBusiness;
+
+    @Autowired
+    private IMetadataBusiness metadataBusiness;
 
     @Inject
     protected IProviderBusiness providerBusiness;
@@ -71,6 +92,8 @@ public class DataBusinessTest {
 
     private static int coveragePID;
     private static int vectorPID;
+    public static final QName COVERAGE_NAME = new QName("SSTMDE200305");
+    public static final QName FEATURE_NAME = new QName("BuildingCenters");
 
     @BeforeClass
     public static void initTestDir() {
@@ -128,15 +151,57 @@ public class DataBusinessTest {
         }
     }
 
+    /**
+     * Ensure that a dynamic proxy is overriding data metadata with the one registered in Examind.
+     */
+    @Test
+    public void coverageWrappedForMetadata() throws Exception {
+        DataBrief testData = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+        testMetadataWrapping(testData);
+    }
+
+    @Test
+    public void featureWrappedForMetadata() throws Exception {
+        DataBrief testData = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID);
+        testMetadataWrapping(testData);
+    }
+
+    private void testMetadataWrapping(final DataBrief testData) throws Exception {
+        // Create a metadata
+        dataBusiness.initDataMetadata(testData.getId(), false);
+
+        // Create a copy / modify it / update data related metadata
+        final MetadataCopier mdCopier = new MetadataCopier(null);
+        final Metadata mdCopy = mdCopier.copy(Metadata.class, (Metadata) metadataBusiness.getIsoMetadataForData(testData.getId()));
+        final DefaultResponsibility geomatys = new DefaultResponsibility(Role.AUTHOR, null, new DefaultOrganisation(GEOMATYS, null, null, null));
+        ((Collection)mdCopy.getContacts()).add(geomatys);
+        metadataBusiness.updateMetadata(mdCopy.getFileIdentifier(), mdCopy, testData.getId(), null, null, null, null, null);
+
+        // Ensure SIS resource is overriden to give back Examind metadata.
+        final DataProvider dataProvider = DataProviders.getProvider(testData.getProviderId());
+        final Data data = dataProvider.get(testData.getNamespace(), testData.getName());
+        final Resource r = data.getOrigin();
+        final Metadata resourceMetadata = r.getMetadata();
+
+        Assert.assertTrue(
+                "Metadata not properly overriden",
+                resourceMetadata.getContacts().stream()
+                        .filter(contact -> Role.AUTHOR.equals(contact.getRole()))
+                        .flatMap(contact -> contact.getParties().stream())
+                        .map(Party::getName)
+                        .map(Objects::toString)
+                        .anyMatch(GEOMATYS::equals)
+        );
+    }
+
     @Test
     public void dataCoverageTest() throws Exception {
-        QName dataName = new QName("SSTMDE200305");
-        DataBrief db = dataBusiness.getDataBrief(dataName, coveragePID);
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for SSTMDE200305 stats to complete.....");
         while (db.getStatsState() == null || db.getStatsState().equals("PENDING"))  {
-            db = dataBusiness.getDataBrief(dataName, coveragePID);
+            db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
             Thread.sleep(1000);
         }
         Assert.assertEquals("COMPLETED", db.getStatsState());
@@ -149,8 +214,7 @@ public class DataBusinessTest {
 
     @Test
     public void dataVectorTest() throws Exception {
-        QName dataName = new QName("BuildingCenters");
-        DataBrief db = dataBusiness.getDataBrief(dataName, vectorPID);
+        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID);
         Assert.assertNotNull(db);
         Assert.assertNotNull(db.getDataDescription());
         Assert.assertTrue(db.getDataDescription() instanceof FeatureDataDescription);

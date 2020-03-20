@@ -20,15 +20,19 @@
 package org.constellation.provider;
 
 import java.util.Map;
-import org.constellation.exception.ConstellationStoreException;
+
+import org.apache.sis.storage.Resource;
+
 import org.geotoolkit.map.MapItem;
 import org.geotoolkit.style.MutableStyle;
+
+import org.constellation.exception.ConstellationStoreException;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface GeoData extends Data {
+public interface GeoData<T extends Resource> extends Data<T> {
 
     /**
      * Create a MapItem with the given style and parameters.

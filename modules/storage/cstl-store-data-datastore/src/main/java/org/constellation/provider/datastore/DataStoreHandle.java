@@ -1,16 +1,23 @@
 package org.constellation.provider.datastore;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.xml.namespace.QName;
 
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.storage.DataSet;
@@ -28,11 +35,17 @@ import org.apache.sis.util.iso.Names;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.feature.FeatureStore;
 
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IMetadataBusiness;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
+import org.constellation.repository.DataRepository;
+
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 
 /**
  * Handles communication with an SIS {@link DataStore}.
@@ -46,13 +59,18 @@ final class DataStoreHandle implements AutoCloseable {
 
     protected static final Logger LOGGER = DataProviders.LOGGER;
 
+    static final String METADATA_GETTER_NAME = "getMetadata";
+
     private static final String SEPARATOR = ":";
 
     final DataStore store;
     private final FeatureNaming<CachedData> index;
     private final LinkedHashSet<GenericName> nameList;
 
-    DataStoreHandle(DataStore store) throws DataStoreException {
+    private final String providerName;
+
+    DataStoreHandle(String providerName, DataStore store) throws DataStoreException {
+        this.providerName = providerName;
         this.store = store;
         index = new FeatureNaming<>();
         nameList = new LinkedHashSet<>();
@@ -115,7 +133,7 @@ final class DataStoreHandle implements AutoCloseable {
     }
 
     private Data create(final String dataName, Date version) throws DataStoreException {
-        final Resource rs = store.findResource(dataName);
+        final Resource rs = tryProxify(dataName, store.findResource(dataName));
         final GenericName targetName = rs.getIdentifier()
                 .orElseThrow(() -> new DataStoreException("Only named datasets should be available from provider"));
         if (rs instanceof GridCoverageResource) {
@@ -125,6 +143,72 @@ final class DataStoreHandle implements AutoCloseable {
         } else {
             LOGGER.warning("Unexpected resource class for creating Provider Data:" + rs.getClass().getName());
             return new DefaultOtherData(targetName, rs, store);
+        }
+    }
+
+    private Resource tryProxify(final String dataName, final Resource target) {
+        try {
+            final IMetadataBusiness mdBiz = SpringHelper.getBean(IMetadataBusiness.class);
+            return createProxy(() -> searchRelatedExamindDataRuntimeException(providerName, dataName), target, mdBiz);
+        } catch (Exception e) {
+            DataProviders.LOGGER.log(Level.WARNING, "Cannot proxify resource", e);
+        }
+        return target;
+    }
+
+    /**
+     * Create a Java dynamic proxy, to create a wrapper around a resource. Such a wrapper is needed to provide custom
+     * metadata for the resource.
+     * 
+     * @param dataId An operator providing identifier of the associated resource in Examind system. It should be a fix
+     *               value. However, it can happen that Examind has not any entry in its administration database at the
+     *               time of this call. So, we defer the id computing for the last moment, when metadata is queried.
+     * @param target The resource we want to override metadata for.
+     * @param mdBiz The service able to provide metadata override for given target resource.
+     * @return A proxy instance of the resource provided as input.
+     */
+    static Resource createProxy(IntSupplier dataId, final Resource target, final IMetadataBusiness mdBiz) {
+        return (Resource) Proxy.newProxyInstance(
+                DataStoreHandle.class.getClassLoader(),
+                Arrays.stream(target.getClass().getInterfaces())
+                        .filter(token -> !Cloneable.class.equals(token))
+                        .toArray(size -> new Class[size]),
+                new MetadataDecoration<>(dataId, target, mdBiz)
+        );
+    }
+
+    /**
+     * HACK: That's a hack method to find back target data into Examind administration database. Note that a proper
+     * management would require to completely refactor the system to unify Examind DTO with resource access mecanism.
+     * @param dataName Name of the data to search in Examind database. Must be of the form: [namespace:]codename.
+     * @return
+     * @throws ConstellationException If given name format is not supported, or there's a problem with database access.
+     */
+    private static int searchRelatedExamindData(final String providerName, final String dataName) throws ConstellationException {
+        final DataRepository dataBiz = SpringHelper.getBean(DataRepository.class);
+        final String[] splittedName = dataName.split(SEPARATOR);
+        final QName name;
+        if (splittedName.length < 1) throw new ConstellationException("Invalid data name: "+dataName);
+        else if (splittedName.length == 1) {
+            name = new QName(splittedName[0]);
+        } else if (splittedName.length == 2) {
+            if (splittedName[0].isEmpty()) name = new QName(splittedName[1]);
+            else name = new QName(splittedName[0], splittedName[1]);
+        } else throw new ConstellationException("Unsupported name format: Multiple namespaces in "+dataName);
+        final org.constellation.dto.Data databaseData = dataBiz.findDataFromProvider(name.getNamespaceURI(), name.getLocalPart(), providerName);
+        if (databaseData == null || databaseData.getId() == null)
+            throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
+        return databaseData.getId();
+    }
+
+    /**
+     * See {@link #searchRelatedExamindData(String, String)}
+     */
+    private static int searchRelatedExamindDataRuntimeException(final String providerName, final String dataName) {
+        try {
+            return searchRelatedExamindData(providerName, dataName);
+        } catch (ConstellationException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -200,6 +284,79 @@ final class DataStoreHandle implements AutoCloseable {
                 ref = new WeakReference<>(cached);
             }
             return cached;
+        }
+    }
+
+    /**
+     * Delegates metadata research to Examind database. The aim is to replace input resource Metadata with the one
+     * registered in the system. By doing it, we're able to share user and system information to low-level library.
+     *
+     * Example: primary need is to share image statistics computed by Examind with Geotoolkit renderer.
+     *
+     * @param <T> Resource type wrapped by this proxy.
+     */
+    private static class MetadataDecoration<T extends Resource> implements InvocationHandler {
+
+        final IntSupplier dataId;
+        final T origin;
+        final IMetadataBusiness metadataSource;
+
+        public MetadataDecoration(IntSupplier dataId, T origin, IMetadataBusiness metadataSource) {
+            ensureNonNull("Origin resource", origin);
+            ensureNonNull("Metadata service", metadataSource);
+            this.dataId = dataId;
+            this.origin = origin;
+            this.metadataSource = metadataSource;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            final String methodName = method.getName();
+            switch (methodName) {
+                case METADATA_GETTER_NAME:
+                    return getMetadata();
+                case "toString":
+                    return toString();
+                case "equals":
+                    return equals(args == null || args.length < 1 ? null : args[0]);
+                case "hashCode":
+                    return hashCode();
+            }
+
+            return method.invoke(origin, args);
+        }
+
+        private Metadata getMetadata() throws DataStoreException {
+            try {
+                final int dataId = this.dataId.getAsInt();
+                final Optional<Object> examindMetadata = metadataSource.getIsoMetadatasForData(dataId).stream()
+                        .filter(Metadata.class::isInstance)
+                        .findAny();
+                if (examindMetadata.isPresent()) return (Metadata) examindMetadata.get();
+            } catch (Exception e) {
+                DataProviders.LOGGER.log(Level.WARNING, "Metadata override cannot be fetched. Return original one instead.", e);
+            }
+
+            return origin.getMetadata();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("MetadataDecoration{origin=%s}", origin);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MetadataDecoration<?> that = (MetadataDecoration<?>) o;
+            return origin.equals(that.origin) &&
+                    metadataSource.equals(that.metadataSource);
+        }
+
+        @Override
+        public int hashCode() {
+            return 13 * origin.hashCode(); // Differentiate metadata proxy from original data.
         }
     }
 }

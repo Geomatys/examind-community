@@ -18,15 +18,6 @@
  */
 package org.constellation.metadata.utils;
 
-import org.apache.sis.util.Classes;
-import org.apache.sis.util.iso.SimpleInternationalString;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.util.NodeUtilities;
-import org.constellation.util.ReflectionUtilities;
-import org.opengis.util.InternationalString;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.JAXBElement;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,16 +29,26 @@ import java.util.MissingResourceException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBElement;
+
+import org.opengis.metadata.Metadata;
+import org.opengis.temporal.Instant;
+import org.opengis.util.InternationalString;
+import org.opengis.util.LocalName;
+
 import org.apache.sis.internal.metadata.Merger;
 import org.apache.sis.metadata.ModifiableMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.ISOMetadata;
+import org.apache.sis.util.Classes;
+import org.apache.sis.util.iso.SimpleInternationalString;
+import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.IdentifierSpace;
 
+import org.constellation.util.NodeUtilities;
+import org.constellation.util.ReflectionUtilities;
 import org.constellation.util.Util;
-import org.opengis.metadata.Metadata;
-import org.opengis.temporal.Instant;
-import org.opengis.util.LocalName;
+import org.w3c.dom.Node;
 
 /**
  * Utility methods used in CSW object.
@@ -687,18 +688,16 @@ public final class Utils {
      * @param metadataToMerge
      *
      */
-    public static DefaultMetadata mergeMetadata(final DefaultMetadata fileMetadata, final DefaultMetadata metadataToMerge) {
-        final Metadata first = fileMetadata;
-        final Metadata second = metadataToMerge;
-
-        final DefaultMetadata merged = new DefaultMetadata(first);
+    public static DefaultMetadata mergeMetadata(final Metadata fileMetadata, final Metadata metadataToMerge) {
+        final DefaultMetadata merged = new DefaultMetadata(fileMetadata);
         final Merger merger = new Merger(null) {
             @Override
             protected void merge(ModifiableMetadata target, String propertyName, Object sourceValue, Object targetValue) {
-                // Ignore (TODO: we should probably emit some kind of warnings).
+                // Ignore (TODO: setup merge policy).
+                LOGGER.log(Level.FINE, "Ignoring merge for property {0}", propertyName);
             }
         };
-        merger.copy(second, merged);
+        merger.copy(metadataToMerge, merged);
         return merged;
     }
 }

@@ -5,13 +5,15 @@
  */
 package org.constellation.provider;
 
+import org.opengis.geometry.Envelope;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.Resource;
+
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
-import org.opengis.geometry.Envelope;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -19,19 +21,12 @@ import org.opengis.util.GenericName;
  */
 public class DefaultOtherData extends AbstractData {
 
-    private final Resource ref;
     protected final DataStore store;
 
     public DefaultOtherData(GenericName name, final Resource ref, final DataStore store) {
-        super(name);
-        this.ref = ref;
+        super(name, ref);
         this.store = store;
 
-    }
-
-    @Override
-    public Resource getOrigin(){
-        return ref;
     }
 
     @Override

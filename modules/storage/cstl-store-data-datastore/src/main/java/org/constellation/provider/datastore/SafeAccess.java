@@ -120,7 +120,7 @@ class SafeAccess {
                     /* Provider could have been updated while we were waiting for an exclusive lock. If it's the case,
                      * we do not need to reload it anymore, and we can downgrade the stamp directly.
                      */
-                    if (handle == null) handle = new DataStoreHandle(provider.createBaseStore());
+                    if (handle == null) handle = new DataStoreHandle(provider.getId(), provider.createBaseStore());
                     return handle;
                 });
             }

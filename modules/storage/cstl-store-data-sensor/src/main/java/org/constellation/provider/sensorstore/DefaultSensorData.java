@@ -16,17 +16,20 @@
  */
 package org.constellation.provider.sensorstore;
 
+import org.opengis.geometry.Envelope;
+import org.opengis.util.GenericName;
+
 import org.apache.sis.measure.MeasurementRange;
 import org.apache.sis.storage.DataStore;
+
+import org.geotoolkit.sensor.AbstractSensorStore;
+import org.geotoolkit.sml.xml.AbstractSensorML;
+import org.geotoolkit.sml.xml.SensorMLUtilities;
+
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.SensorData;
-import org.geotoolkit.sensor.AbstractSensorStore;
-import org.geotoolkit.sml.xml.AbstractSensorML;
-import org.geotoolkit.sml.xml.SensorMLUtilities;
-import org.opengis.geometry.Envelope;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -39,7 +42,7 @@ public class DefaultSensorData extends AbstractData implements SensorData {
     private final AbstractSensorML metadata;
 
     public DefaultSensorData(GenericName name, AbstractSensorStore store, final AbstractSensorML metadata) {
-        super(name);
+        super(name, null);
         this.store = store;
         this.metadata = metadata;
     }

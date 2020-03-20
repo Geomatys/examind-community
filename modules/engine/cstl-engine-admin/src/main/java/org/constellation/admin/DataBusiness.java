@@ -30,6 +30,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
+
+import org.opengis.feature.PropertyType;
+import org.opengis.feature.catalog.FeatureCatalogue;
+import org.opengis.metadata.Metadata;
+
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -37,6 +42,10 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
+
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.temporal.util.PeriodUtilities;
+
 import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
@@ -50,20 +59,7 @@ import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.Data;
-import org.constellation.dto.DataBrief;
-import org.constellation.dto.DataDescription;
-import org.constellation.dto.DataSet;
-import org.constellation.dto.DataSummary;
-import org.constellation.dto.Dimension;
-import org.constellation.dto.Layer;
-import org.constellation.dto.ParameterValues;
-import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.ServiceReference;
-import org.constellation.dto.StatInfo;
-import org.constellation.dto.Style;
-import org.constellation.dto.StyleBrief;
+import org.constellation.dto.*;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
@@ -72,6 +68,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.exception.TargetNotFoundException;
+import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -90,6 +87,7 @@ import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.PropertyType;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.metadata.Metadata;
+import org.constellation.util.StoreUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -113,7 +111,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 @Primary
 public class DataBusiness implements IDataBusiness {
 
-
     /**
      * Temporal formatting for layer with TemporalCRS.
      * @TODO Duplicate from {@link org.constellation.map.ws.DefaultWMSWorker}
@@ -127,6 +124,12 @@ public class DataBusiness implements IDataBusiness {
      * Used for debugging purposes.
      */
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+
+    private static List<MetadataFeeding> METADATA_FILL_STRATEGIES = Collections.unmodifiableList(Arrays.asList(
+            (datasource, feeder) -> feeder.setExtent(datasource, MetadataFeeder.WriteOption.CREATE_NEW),
+            (datasource, feeder) -> feeder.setSpatialRepresentation(datasource, MetadataFeeder.WriteOption.CREATE_NEW)
+    ));
+
     /**
      * Injected user business.
      */
@@ -1212,24 +1215,8 @@ public class DataBusiness implements IDataBusiness {
         final DataProvider dataProvider = DataProviders.getProvider(provider.getId());
         final org.constellation.provider.Data dataP = dataProvider.get(data.getNamespace(), data.getName());
 
-        DefaultMetadata extractedMetadata;
-        String crsName = null;
-        switch (dataType.toLowerCase()) {
-            case "raster":
-            case "coverage":
-            case "vector":
-                try {
-                    MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
-                    extractedMetadata = (DefaultMetadata) copier.copy(Metadata.class, dataP.getResourceMetadata());
-                    crsName = dataP.getResourceCRSName();
-                } catch (ConstellationStoreException e) {
-                    LOGGER.log(Level.WARNING, "Error when trying to get resource metadata", e);
-                    extractedMetadata = new DefaultMetadata();
-                }
-                break;
-            default:
-                extractedMetadata = new DefaultMetadata();
-        }
+        final DefaultMetadata extractedMetadata = extractMetadata(dataP);
+        tryFillMetadata(dataP.getOrigin(), extractedMetadata);
 
         //initialize metadata from the template and fill it with properties file
         final String metadataID = MetadataUtilities.getMetadataIdForData(provider.getIdentifier(), data.getNamespace(), data.getName());
@@ -1256,7 +1243,7 @@ public class DataBusiness implements IDataBusiness {
         }
 
         // initialize metadata
-        final String xml = MetadataUtilities.fillMetadataFromProperties(dataType, metadataID, title, crsName, optUser, keywords);
+        final String xml = MetadataUtilities.fillMetadataFromProperties(dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
         final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
 
         DefaultMetadata mergedMetadata;
@@ -1280,6 +1267,34 @@ public class DataBusiness implements IDataBusiness {
 
         //Save metadata
         return updateMetadata(dataId, mergedMetadata, hidden);
+    }
+
+    private void tryFillMetadata(Resource origin, DefaultMetadata target) {
+        if (origin instanceof org.apache.sis.storage.DataSet) {
+            final org.apache.sis.storage.DataSet dataset = (org.apache.sis.storage.DataSet) origin;
+            final MetadataFeeder feeder = new MetadataFeeder(target);
+
+            for (final MetadataFeeding feedStrategy : METADATA_FILL_STRATEGIES) {
+                try {
+                    // If resource already provide extent information do not add it.
+                    feedStrategy.apply(dataset, feeder);
+                } catch (Exception e) {
+                    LOGGER.log(Level.FINE, "Cannot update metadata information", e);
+                }
+            }
+        }
+    }
+
+    private static DefaultMetadata extractMetadata(org.constellation.provider.Data targetData) {
+        try {
+            final Metadata sourceMeta = targetData.getOrigin().getMetadata();
+            final MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
+            return new DefaultMetadata(copier.copy(Metadata.class, sourceMeta));
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Cannot extract resource metadata. Fallback to an empty one", e);
+        }
+
+        return new DefaultMetadata();
     }
 
     /**
@@ -1388,5 +1403,10 @@ public class DataBusiness implements IDataBusiness {
             return data.getDatasetId();
         }
         return null;
+    }
+
+    @FunctionalInterface
+    private interface MetadataFeeding {
+        void apply(final org.apache.sis.storage.DataSet datasource, final MetadataFeeder target) throws Exception;
     }
 }
