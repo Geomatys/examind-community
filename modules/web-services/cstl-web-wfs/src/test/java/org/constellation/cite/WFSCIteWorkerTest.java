@@ -203,7 +203,7 @@ public class WFSCIteWorkerTest {
         assertEquals(1, FeatureStoreUtilities.getCount(collection).intValue());
 
         /**
-         * Test 1 : query on typeName aggragateGeofeature
+         * Test 1 : query on typeName PrimitiveGeoFeature
          */
 
         queries = new ArrayList<>();
@@ -225,11 +225,11 @@ public class WFSCIteWorkerTest {
         assertEquals(5, FeatureStoreUtilities.getCount(collection).intValue());
 
         /**
-         * Test 1 : query on typeName aggragateGeofeature
+         * Test 1 : query on typeName PrimitiveGeoFeature
          */
 
         queries = new ArrayList<>();
-        BBOXType bbox = new BBOXType("http://cite.opengeospatial.org/gmlsf:pointProperty", -12, 30, -6, 60, "urn:ogc:def:crs:EPSG::4326");
+        BBOXType bbox = new BBOXType("http://cite.opengeospatial.org/gmlsf:pointProperty",  30, -12, 60, -6, "urn:ogc:def:crs:EPSG::4326");
 
         /* TODO restore when geotk will be updated
 
