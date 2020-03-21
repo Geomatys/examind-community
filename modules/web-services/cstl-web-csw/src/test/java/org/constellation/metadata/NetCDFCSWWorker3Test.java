@@ -44,8 +44,10 @@ import org.w3c.dom.Node;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.bind.Unmarshaller;
-import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.apache.sis.test.xml.DocumentComparator;
 
@@ -58,6 +60,7 @@ import org.constellation.dto.contact.Details;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.NodeUtilities;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
@@ -79,23 +82,22 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
     @Inject
     private IProviderBusiness providerBusiness;
 
-    private static File dataDirectory;
+    private static Path dataDirectory;
 
     private static boolean initialized = false;
 
+    private static final String confDirName = "NCCSWWorker3Test" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final File configDir = ConfigDirectory.setupTestEnvironement("NCCSWWorkerTest").toFile();
-
-        File CSWDirectory  = new File(configDir, "CSW");
-        CSWDirectory.mkdir();
-        final File instDirectory = new File(CSWDirectory, "default");
-        instDirectory.mkdir();
+        final Path configDir     = ConfigDirectory.setupTestEnvironement(confDirName);
+        final Path CSWDirectory  = configDir.resolve("CSW");
+        final Path instDirectory = CSWDirectory.resolve("default");
+        dataDirectory = instDirectory.resolve("data");
+        Files.createDirectories(dataDirectory);
 
         //we write the data files
-        dataDirectory = new File(instDirectory, "data");
-        dataDirectory.mkdir();
-        writeDataFile(dataDirectory, "2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en");
+        writeResourceDataFile(dataDirectory, "org/constellation/netcdf/2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en.nc");
 
     }
 
@@ -109,7 +111,7 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                 final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
                 Integer pr = providerBusiness.create("NCmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
 
@@ -144,24 +146,32 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
+            configurer.removeIndex("default");
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-        configurer.removeIndex("default");
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-        if (service != null) {
-            service.deleteAll();
+        try {
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
+            if (mdService != null) {
+                mdService.deleteAllMetadata();
+            }
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-        if (provider != null) {
-            provider.removeAll();
-        }
-        final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-        if (mdService != null) {
-            mdService.deleteAllMetadata();
-        }
-        ConfigDirectory.shutdownTestEnvironement("NCCSWWorkerTest");
     }
 
     /**
@@ -368,27 +378,5 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
     @Order(order=3)
     public void getDomainTest() throws Exception {
         //
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
-
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = identifier.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".nc");
-        } else {
-            dataFile = new File(dataDirectory, identifier + ".nc");
-        }
-        FileOutputStream fw = new FileOutputStream(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/netcdf/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(buffer, 0, size);
-        }
-        in.close();
-        fw.close();
     }
 }

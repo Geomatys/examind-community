@@ -19,7 +19,9 @@
 
 package org.constellation.sos.ws;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
@@ -32,7 +34,6 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.sos.io.lucene.LuceneObservationIndexer;
-import static org.constellation.sos.ws.FileSystemSOSWorkerTestUtils.writeDataFile;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
@@ -43,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
+import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 
 /**
  *
@@ -52,9 +54,10 @@ import org.opengis.parameter.ParameterValueGroup;
 public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
     private static boolean initialized = false;
+    private static String configDirName = "LUCSOS2WorkerTest" + UUID.randomUUID().toString();
 
-    private static File instDirectory;
-    private static File configDir;
+    private static Path instDirectory;
+    private static Path configDir;
 
 
     @BeforeClass
@@ -62,87 +65,84 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        configDir = ConfigDirectory.setupTestEnvironement("LUCSOSWorkerTest").toFile();
-
-        File SOSDirectory  = new File(configDir, "SOS");
-        SOSDirectory.mkdir();
-        instDirectory = new File(SOSDirectory, "default");
-        instDirectory.mkdir();
+        configDir          = ConfigDirectory.setupTestEnvironement(configDirName);
+        Path SOSDirectory  = configDir.resolve("SOS");
+        instDirectory      = SOSDirectory.resolve("default");
+        Files.createDirectories(instDirectory);
 
         //we write the data files
-        File offeringDirectory = new File(instDirectory, "offerings");
-        offeringDirectory.mkdir();
+        Path offeringDirectory = instDirectory.resolve("offerings");
+        Files.createDirectories(offeringDirectory);
 
-        File offeringV100Directory = new File(offeringDirectory, "1.0.0");
-        offeringV100Directory.mkdir();
-        writeDataFile(offeringV100Directory, "v100/offering-1.xml", "offering-allSensor", EPSG_VERSION);
+        Path offeringV100Directory = offeringDirectory.resolve("1.0.0");
+        Files.createDirectories(offeringV100Directory);
+        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-1.xml", "offering-allSensor.xml", EPSG_VERSION);
 
-        File offeringV200Directory = new File(offeringDirectory, "2.0.0");
-        offeringV200Directory.mkdir();
-        writeDataFile(offeringV200Directory, "v200/offering-1.xml", "offering-1", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-2.xml", "offering-4", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-3.xml", "offering-3", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-4.xml", "offering-5", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-5.xml", "offering-2", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-6.xml", "offering-6", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-7.xml", "offering-7", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-8.xml", "offering-8", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-9.xml", "offering-9", EPSG_VERSION);
-        writeDataFile(offeringV200Directory, "v200/offering-10.xml", "offering-10", EPSG_VERSION);
+        Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
+        Files.createDirectories(offeringV200Directory);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-1.xml", "offering-1.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-2.xml", "offering-4.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-3.xml", "offering-3.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-4.xml", "offering-5.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-5.xml", "offering-2.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-6.xml", "offering-6.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-7.xml", "offering-7.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-8.xml", "offering-8.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-9.xml", "offering-9.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
 
+        Path phenomenonDirectory = instDirectory.resolve("phenomenons");
+        Files.createDirectories(phenomenonDirectory);
+        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth.xml", "depth.xml", EPSG_VERSION);
+        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-temp.xml",  "temperature.xml", EPSG_VERSION);
+        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth-temp.xml",  "aggregatePhenomenon.xml", EPSG_VERSION);
 
-        File phenomenonDirectory = new File(instDirectory, "phenomenons");
-        phenomenonDirectory.mkdir();
-        writeDataFile(phenomenonDirectory, "phenomenon-depth.xml", "depth", EPSG_VERSION);
-        writeDataFile(phenomenonDirectory, "phenomenon-temp.xml",  "temperature", EPSG_VERSION);
-        writeDataFile(phenomenonDirectory, "phenomenon-depth-temp.xml",  "aggregatePhenomenon", EPSG_VERSION);
+        Path featureDirectory = instDirectory.resolve("features");
+        Files.createDirectories(featureDirectory);
+        writeDataFileEPSG(featureDirectory, "org/constellation/sos/v200/feature1.xml", "station-001.xml", EPSG_VERSION);
+        writeDataFileEPSG(featureDirectory, "org/constellation/sos/v200/feature2.xml", "station-002.xml", EPSG_VERSION);
+        writeDataFileEPSG(featureDirectory, "org/constellation/sos/v200/feature3.xml", "station-006.xml", EPSG_VERSION);
 
-        File featureDirectory = new File(instDirectory, "features");
-        featureDirectory.mkdir();
-        writeDataFile(featureDirectory, "v200/feature1.xml", "station-001", EPSG_VERSION);
-        writeDataFile(featureDirectory, "v200/feature2.xml", "station-002", EPSG_VERSION);
-        writeDataFile(featureDirectory, "v200/feature3.xml", "station-006", EPSG_VERSION);
+        Path observationsDirectory = instDirectory.resolve("observations");
+        Files.createDirectories(observationsDirectory);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation1.xml", "urn:ogc:object:observation:GEOM:304.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation2.xml", "urn:ogc:object:observation:GEOM:305.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation3.xml", "urn:ogc:object:observation:GEOM:406.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation4.xml", "urn:ogc:object:observation:GEOM:307.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation5.xml", "urn:ogc:object:observation:GEOM:507.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation6.xml", "urn:ogc:object:observation:GEOM:801.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationsDirectory, "org/constellation/sos/v200/observation7.xml", "urn:ogc:object:observation:GEOM:901.xml", EPSG_VERSION);
 
-        File observationsDirectory = new File(instDirectory, "observations");
-        observationsDirectory.mkdir();
-        writeDataFile(observationsDirectory, "v200/observation1.xml", "urn:ogc:object:observation:GEOM:304", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation2.xml", "urn:ogc:object:observation:GEOM:305", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation3.xml", "urn:ogc:object:observation:GEOM:406", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation4.xml", "urn:ogc:object:observation:GEOM:307", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation5.xml", "urn:ogc:object:observation:GEOM:507", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation6.xml", "urn:ogc:object:observation:GEOM:801", EPSG_VERSION);
-        writeDataFile(observationsDirectory, "v200/observation7.xml", "urn:ogc:object:observation:GEOM:901", EPSG_VERSION);
+        Path observationTemplatesDirectory = instDirectory.resolve("observationTemplates");
+        Files.createDirectories(observationTemplatesDirectory);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v200/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v200/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:5.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8.xml", EPSG_VERSION);
 
-        File observationTemplatesDirectory = new File(instDirectory, "observationTemplates");
-        observationTemplatesDirectory.mkdir();
-        writeDataFile(observationTemplatesDirectory, "v200/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3", EPSG_VERSION);
-        writeDataFile(observationTemplatesDirectory, "v200/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4", EPSG_VERSION);
-        writeDataFile(observationTemplatesDirectory, "observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:5", EPSG_VERSION);
-        writeDataFile(observationTemplatesDirectory, "observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7", EPSG_VERSION);
-        writeDataFile(observationTemplatesDirectory, "observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8", EPSG_VERSION);
-
-        File sensorDirectory = new File(instDirectory, "sensors");
-        sensorDirectory.mkdir();
-        File sensor1         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:1.xml");
-        sensor1.createNewFile();
-        File sensor2         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:2.xml");
-        sensor2.createNewFile();
-        File sensor3         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:3.xml");
-        sensor3.createNewFile();
-        File sensor4         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:4.xml");
-        sensor4.createNewFile();
-        File sensor5         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:5.xml");
-        sensor5.createNewFile();
-        File sensor6         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:6.xml");
-        sensor6.createNewFile();
-        File sensor7         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:7.xml");
-        sensor7.createNewFile();
-        File sensor8         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:8.xml");
-        sensor8.createNewFile();
-        File sensor9         = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:9.xml");
-        sensor9.createNewFile();
-        File sensor10        = new File(sensorDirectory, "urn:ogc:object:sensor:GEOM:10.xml");
-        sensor10.createNewFile();
+        Path sensorDirectory = instDirectory.resolve("sensors");
+        Files.createDirectories(sensorDirectory);
+        Path sensor1         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ1.xml");
+        Files.createFile(sensor1);
+        Path sensor2         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ2.xml");
+        Files.createFile(sensor2);
+        Path sensor3         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ3.xml");
+        Files.createFile(sensor3);
+        Path sensor4         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ4.xml");
+        Files.createFile(sensor4);
+        Path sensor5         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ5.xml");
+        Files.createFile(sensor5);
+        Path sensor6         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ6.xml");
+        Files.createFile(sensor6);
+        Path sensor7         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ7.xml");
+        Files.createFile(sensor7);
+        Path sensor8         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ8.xml");
+        Files.createFile(sensor8);
+        Path sensor9         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ9.xml");
+        Files.createFile(sensor9);
+        Path sensor10        = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ10.xml");
+        Files.createFile(sensor10);
         pool.recycle(marshaller);
     }
 
@@ -191,12 +191,21 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            LuceneObservationIndexer indexer = new LuceneObservationIndexer(instDirectory, configDir, "", true);
+            SQLRtreeManager.removeTree(indexer.getFileDirectory());
+            indexer.destroy();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        LuceneObservationIndexer indexer = new LuceneObservationIndexer(instDirectory.toPath(), configDir.toPath(), "", true);
-        SQLRtreeManager.removeTree(indexer.getFileDirectory());
-        ConfigDirectory.shutdownTestEnvironement("LUCSOSWorkerTest");
+        try {
+            ConfigDirectory.shutdownTestEnvironement(configDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
     }
 
     /**

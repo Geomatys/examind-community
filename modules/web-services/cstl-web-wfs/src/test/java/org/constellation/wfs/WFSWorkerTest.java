@@ -83,6 +83,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.datastore.DataStoreProviderService;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.junit.Assert.*;
@@ -376,7 +377,7 @@ public class WFSWorkerTest {
         String resultCapa   = sw.toString();
         String gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
         String smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        String expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-ftl.xml");
+        String expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities1-1-0-ftl.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
@@ -392,7 +393,7 @@ public class WFSWorkerTest {
         resultCapa   = sw.toString();
         gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities1-1-0.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
@@ -442,7 +443,7 @@ public class WFSWorkerTest {
         resultCapa   = sw.toString();
         gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        expectedCapa   = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-om.xml");
+        expectedCapa   = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities1-1-0-om.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
@@ -461,7 +462,7 @@ public class WFSWorkerTest {
         resultCapa   = sw.toString();
         gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-si.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities1-1-0-si.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
@@ -480,7 +481,7 @@ public class WFSWorkerTest {
         resultCapa   = sw.toString();
         gmlPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/gml");
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities1-1-0-sp.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities1-1-0-sp.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:gml1", "xmlns:" + gmlPrefix);
@@ -548,7 +549,7 @@ public class WFSWorkerTest {
         StringWriter writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        String expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-3.xml");
+        String expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-3.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         String sresult = writer.toString();
@@ -587,7 +588,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-5.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-5.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -614,7 +615,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-4.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-4.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -640,7 +641,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-4.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-4.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -666,7 +667,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-8.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-8.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -692,7 +693,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-8.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-8.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -720,7 +721,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-6.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-6.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -747,7 +748,7 @@ public class WFSWorkerTest {
         writer = new StringWriter();
         featureWriter.write(result,writer);
 
-        expectedResult = getResourceString("org.constellation.wfs.xml.samplingPointCollection-7.xml");
+        expectedResult = getResourceAsString("org/constellation/wfs/xml/samplingPointCollection-7.xml");
         expectedResult = expectedResult.replace("EPSG_VERSION", EPSG_VERSION);
 
         sresult = writer.toString();
@@ -1375,9 +1376,5 @@ public class WFSWorkerTest {
             return matcher.group(1);
         }
         return null;
-    }
-
-    private String getResourceString(String resource) throws IOException, URISyntaxException {
-        return IOUtilities.toString(IOUtilities.getResourceAsPath(resource));
     }
 }

@@ -55,16 +55,16 @@ import org.junit.runner.RunWith;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -83,6 +83,7 @@ import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.storage.DataStores;
 
 import org.junit.BeforeClass;
@@ -101,21 +102,23 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static File configDirectory;
+    private static Path configDirectory;
 
     private static FileSystemMetadataStore fsStore1;
     private static FileSystemMetadataStore fsStore2;
 
+    private static final String confDirName = "CSWRequestTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement("CSWRequestTest").toFile();
+        configDirectory = ConfigDirectory.setupTestEnvironement(confDirName);
         controllerConfiguration = CSWControllerConfig.class;
     }
 
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
-    public void initPool() {
+    public void initServer() {
         if (!initialized) {
             try {
                 startServer(null);
@@ -129,10 +132,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                     LOGGER.warning(ex.getMessage());
                 }
 
-                final File dataDirectory2 = new File(configDirectory, "dataCsw2");
-                dataDirectory2.mkdir();
+                final Path dataDirectory2 = configDirectory.resolve("dataCsw2");
+                Files.createDirectories(dataDirectory2);
+                writeResourceDataFile(dataDirectory2, "org/constellation/embedded/test/urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml", "urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml");
 
-                writeDataFile(dataDirectory2, "urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58");
 
                 final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 ParameterValueGroup params = factory.getOpenParameters().createValue();
@@ -150,33 +153,32 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
                 serviceBusiness.start(csw2Id);
 
 
-                final File dataDirectory = new File(configDirectory, "dataCsw");
-                dataDirectory.mkdir();
+                final Path dataDirectory = configDirectory.resolve("dataCsw");
+                Files.createDirectories(dataDirectory);
 
-                writeDataFile(dataDirectory, "urn-uuid-19887a8a-f6b0-4a63-ae56-7fba0e17801f");
-                writeDataFile(dataDirectory, "urn-uuid-1ef30a8b-876d-4828-9246-c37ab4510bbd");
-                writeDataFile(dataDirectory, "urn-uuid-66ae76b7-54ba-489b-a582-0f0633d96493");
-                writeDataFile(dataDirectory, "urn-uuid-6a3de50b-fa66-4b58-a0e6-ca146fdd18d4");
-                writeDataFile(dataDirectory, "urn-uuid-784e2afd-a9fd-44a6-9a92-a3848371c8ec");
-                writeDataFile(dataDirectory, "urn-uuid-829babb0-b2f1-49e1-8cd5-7b489fe71a1e");
-                writeDataFile(dataDirectory, "urn-uuid-88247b56-4cbc-4df9-9860-db3f8042e357");
-                writeDataFile(dataDirectory, "urn-uuid-94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
-                writeDataFile(dataDirectory, "urn-uuid-9a669547-b69b-469f-a11f-2d875366bbdc");
-                writeDataFile(dataDirectory, "urn-uuid-e9330592-0932-474b-be34-c3a3bb67c7db");
-                writeDataFile(dataDirectory, "L2-LST");
-                writeDataFile(dataDirectory, "cat-1");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-19887a8a-f6b0-4a63-ae56-7fba0e17801f.xml", "urn-uuid-19887a8a-f6b0-4a63-ae56-7fba0e17801f.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-1ef30a8b-876d-4828-9246-c37ab4510bbd.xml", "urn-uuid-1ef30a8b-876d-4828-9246-c37ab4510bbd.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-66ae76b7-54ba-489b-a582-0f0633d96493.xml", "urn-uuid-66ae76b7-54ba-489b-a582-0f0633d96493.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-6a3de50b-fa66-4b58-a0e6-ca146fdd18d4.xml", "urn-uuid-6a3de50b-fa66-4b58-a0e6-ca146fdd18d4.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-784e2afd-a9fd-44a6-9a92-a3848371c8ec.xml", "urn-uuid-784e2afd-a9fd-44a6-9a92-a3848371c8ec.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-829babb0-b2f1-49e1-8cd5-7b489fe71a1e.xml", "urn-uuid-829babb0-b2f1-49e1-8cd5-7b489fe71a1e.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-88247b56-4cbc-4df9-9860-db3f8042e357.xml", "urn-uuid-88247b56-4cbc-4df9-9860-db3f8042e357.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-94bc9c83-97f6-4b40-9eb8-a8e8787a5c63.xml", "urn-uuid-94bc9c83-97f6-4b40-9eb8-a8e8787a5c63.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-9a669547-b69b-469f-a11f-2d875366bbdc.xml", "urn-uuid-9a669547-b69b-469f-a11f-2d875366bbdc.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/urn-uuid-e9330592-0932-474b-be34-c3a3bb67c7db.xml", "urn-uuid-e9330592-0932-474b-be34-c3a3bb67c7db.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/L2-LST.xml", "L2-LST.xml");
+                writeResourceDataFile(dataDirectory, "org/constellation/embedded/test/cat-1.xml", "cat-1.xml");
 
-                final File subDataDirectory = new File(dataDirectory, "sub1");
-                subDataDirectory.mkdir();
-                writeDataFile(subDataDirectory, "urn-uuid-ab42a8c4-95e8-4630-bf79-33e59241605a");
+                final Path subDataDirectory = dataDirectory.resolve("sub1");
+                Files.createDirectories(subDataDirectory);
+                writeResourceDataFile(subDataDirectory, "org/constellation/embedded/test/urn-uuid-ab42a8c4-95e8-4630-bf79-33e59241605a.xml", "urn-uuid-ab42a8c4-95e8-4630-bf79-33e59241605a.xml");
 
-                final File subDataDirectory2 = new File(dataDirectory, "sub2");
-                subDataDirectory2.mkdir();
-                writeDataFile(subDataDirectory2, "urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2");
-
+                final Path subDataDirectory2 = dataDirectory.resolve("sub2");
+                Files.createDirectories(subDataDirectory2);
+                writeResourceDataFile(subDataDirectory2, "org/constellation/embedded/test/urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml", "urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml");
 
                 params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
                 params.parameter("store-id").setValue("testID");
                 pr = providerBusiness.create("CRmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
@@ -204,6 +206,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
             CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
             configurer.removeIndex("default");
             configurer.removeIndex("csw2");
+         } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
+        try {
             final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
             if (service != null) {
                 service.deleteAll();
@@ -219,13 +225,18 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
             fsStore1.destroyFileIndex();
             fsStore2.destroyFileIndex();
         } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
+        try {
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+
+            File f = new File("derby.log");
+            if (f.exists()) {
+                f.delete();
+            }
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        File f = new File("derby.log");
-        if (f.exists()) {
-            f.delete();
-        }
-        ConfigDirectory.shutdownTestEnvironement("CSWRequestTest");
         stopServer();
     }
 
@@ -241,7 +252,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=1)
     public void testCSWGetCapabilities() throws Exception {
 
-        initPool();
+        initServer();
 
         waitForRestStart(getCswURL());
         waitForRestStart(getCsw2URL());
@@ -321,7 +332,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=2)
     public void testCSWError() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -347,7 +358,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=3)
     public void testCSWGetDomain() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -401,7 +412,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=4)
     public void testCSWGetRecordByID() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -457,7 +468,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=5)
     public void testCSWGetRecords() throws Exception {
 
-        initPool();
+        initServer();
 
         // Creates a valid GetCapabilities url.
         final URL getCapsUrl = new URL(getCswURL());
@@ -502,7 +513,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=6)
     public void testDistributedCSWGetRecords() throws Exception {
 
-        initPool();
+        initServer();
 
         System.out.println("\n\n DISTIBUTED SEARCH \n\n");
         // Creates a valid GetCapabilities url.
@@ -566,7 +577,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Order(order=7)
     public void testDescribeRecords() throws Exception {
 
-        initPool();
+        initServer();
 
         /**
          * Dublin core
@@ -648,7 +659,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=8)
     public void testRestart() throws Exception {
-        initPool();
+        initServer();
 
         pool = new MarshallerPool(JAXBContext.newInstance("org.constellation.dto:"
                         + "org.constellation.dto.service.config.generic:"
@@ -683,8 +694,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=9)
     public void testCSWRefreshIndex() throws Exception {
-
-        initPool();
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return;
+        }
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
@@ -800,8 +813,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=10)
     public void testCSWAddToIndex() throws Exception {
-
-        initPool();
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return;
+        }
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
@@ -818,10 +833,11 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         // build a new metadata file
         RecordType record = new RecordType();
         record.setIdentifier(new SimpleLiteral("urn_test"));
-        File f = new File(configDirectory, "dataCsw/urn_test.xml");
+        Path dd = configDirectory.resolve("dataCsw");
+        Path f = dd.resolve("urn_test.xml");
 
         Marshaller m = pool.acquireMarshaller();
-        m.marshal(record, f);
+        m.marshal(record, f.toFile());
         pool.recycle(m);
 
         // add a metadata to the index
@@ -856,7 +872,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertEquals(14, response.getSearchResults().getNumberOfRecordsMatched());
 
         // restore previous context
-        f.delete();
+        Files.delete(f);
         niUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/default/index/refresh");
         obj = unmarshallJsonResponse(niUrl, AcknowlegementType.class);
 
@@ -883,8 +899,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=11)
     public void testCSWRemoveFromIndex() throws Exception {
-
-        initPool();
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return;
+        }
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
@@ -989,8 +1007,10 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=12)
     public void testCSWRemoveAll() throws Exception {
-
-        initPool();
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return;
+        }
+        initServer();
 
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=2.0.2&service=CSW&typenames=csw:Record");
@@ -1039,7 +1059,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=13)
     public void testListAvailableService() throws Exception {
-        initPool();
+        initServer();
 
         URL niUrl = new URL("http://localhost:" + getCurrentPort() +  "/API/OGC/list");
 
@@ -1067,27 +1087,5 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
 
         Integer dsId = datasetBusiness.createDataset(identifier, null, null);
         datasetBusiness.updateMetadata(dsId, meta, false);
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName) throws IOException {
-
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = resourceName.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".xml");
-        } else {
-            dataFile = new File(dataDirectory, resourceName + ".xml");
-        }
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/embedded/test/" + resourceName + ".xml");
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 }

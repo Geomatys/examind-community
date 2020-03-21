@@ -21,7 +21,6 @@ package org.constellation.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -39,12 +38,10 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
-import org.constellation.exception.ConstellationRuntimeException;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
@@ -82,26 +79,6 @@ public final class Util {
     }
 
     private Util() {}
-
-    /**
-     * This should be a class loader from the main constellation application.
-     */
-    private static final ClassLoader baseClassLoader;
-
-    //we try to load this variable at the start by reading a properties file
-    static {
-        baseClassLoader = Thread.currentThread().getContextClassLoader();
-    }
-
-    public static <T> T copy(Object src, T dst) {
-        try {
-            BeanUtils.copyProperties(dst, src);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new ConstellationRuntimeException(e);
-        }
-        return dst;
-    }
-
 
     /**
      * Obtain the Thread Context ClassLoader.

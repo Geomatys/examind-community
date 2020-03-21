@@ -20,10 +20,6 @@ package org.constellation.sos.ws;
 
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.examind.sensor.configuration.SensorServiceConfigurer;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,11 +28,12 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.inject.Inject;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.util.Util;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.junit.Assert;
 import org.opengis.temporal.TemporalPrimitive;
@@ -56,6 +53,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class SOSConfigurerTest {
 
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
     @Inject
     protected IServiceBusiness serviceBusiness;
     @Inject
@@ -247,21 +245,5 @@ public abstract class SOSConfigurerTest {
         String result = sensorServBusiness.getWKTSensorLocation(sid, "urn:ogc:object:sensor:GEOM:1");
         String expResult = "POINT (-4.144984627896042 42.38798858151254)";
         Assert.assertEquals(expResult, result);
-    }
-
-    public static void writeCommonDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
-
-        File dataFile = new File(dataDirectory, identifier + ".xml");
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 }

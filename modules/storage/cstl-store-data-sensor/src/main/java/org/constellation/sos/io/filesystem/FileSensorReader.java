@@ -109,11 +109,8 @@ public class FileSensorReader implements SensorReader {
      */
     @Override
     public AbstractSensorML getSensor(final String sensorId) throws DataStoreException {
-        Path sensorFile = dataDirectory.resolve(sensorId + ".xml");
-        if (!Files.exists(sensorFile)) {
-            final String sensorIdTmp = sensorId.replace(":", "µ");
-            sensorFile = dataDirectory.resolve(sensorIdTmp + ".xml");
-        }
+        final String fileName = sensorId.replace(':', 'µ') + ".xml";
+        Path sensorFile = dataDirectory.resolve(fileName);
         if (Files.exists(sensorFile)){
             try (InputStream is = Files.newInputStream(sensorFile)) {
                 final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();

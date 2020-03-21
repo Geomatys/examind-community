@@ -47,6 +47,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -443,14 +446,12 @@ public abstract class AbstractGrizzlyServer {
      * @return The root output directory where the data are unzipped.
      * @throws IOException
      */
-    public static File initDataDirectory() throws IOException {
-        final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-        File outputDir = new File(tmpDir, "Constellation");
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
-        }
+    public static Path initDataDirectory() throws IOException {
+        final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        Path outputDir = tmpDir.resolve("Constellation");
+        Files.createDirectories(outputDir);
         try {
-            TestEnvironment.initWorkspaceData(outputDir.toPath());
+            TestEnvironment.initWorkspaceData(outputDir);
         } catch (URISyntaxException e) {
             throw new IOException(e.getMessage(), e);
         }

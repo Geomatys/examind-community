@@ -18,11 +18,10 @@
  */
 package org.constellation.store.metadata.netcdf;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -31,8 +30,8 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.NodeUtilities;
-import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
 import org.geotoolkit.csw.xml.v202.RecordType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
@@ -64,27 +63,24 @@ public class NetCDFMetadataStoreTest {
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.metadata.netcdf");
 
-    private static File dataDirectory;
+    private static Path dataDirectory;
 
     private static boolean initialized = false;
 
     private static NetCDFMetadataStore fsStore1;
 
+     private static final String CONFIG_DIR_NAME = "FileSystemMetadataStoreTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final File configDir = ConfigDirectory.setupTestEnvironement("NetCDFMetadataStoreTest").toFile();
+        final Path configDir     = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        final Path CSWDirectory  = configDir.resolve("CSW");
+        final Path instDirectory = CSWDirectory.resolve("default");
+        dataDirectory = instDirectory.resolve("data");
+        Files.createDirectories(dataDirectory);
 
-        File CSWDirectory  = new File(configDir, "CSW");
-        CSWDirectory.mkdir();
-        final File instDirectory = new File(CSWDirectory, "default");
-        instDirectory.mkdir();
-
-        //we write the data files
-        dataDirectory = new File(instDirectory, "data");
-        dataDirectory.mkdir();
-        writeDataFile(dataDirectory, "2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en");
+        writeResourceDataFile(dataDirectory, "org/constellation/netcdf/2005092200_sst_21-24.en.nc", "2005092200_sst_21-24.en.nc");
         Setup.initialize(null);
-
     }
 
     @PostConstruct
@@ -95,7 +91,7 @@ public class NetCDFMetadataStoreTest {
                 final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
 
                 fsStore1 = (NetCDFMetadataStore) factory.open(params);
                 initialized = true;
@@ -156,30 +152,11 @@ public class NetCDFMetadataStoreTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        fsStore1.close();
-        ConfigDirectory.shutdownTestEnvironement("NetCDFMetadataStoreTest");
-    }
-
-
-    public static void writeDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
-
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = identifier.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".nc");
-        } else {
-            dataFile = new File(dataDirectory, identifier + ".nc");
+        try {
+            fsStore1.close();
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        }  catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        FileOutputStream fw = new FileOutputStream(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/netcdf/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(buffer, 0, size);
-        }
-        in.close();
-        fw.close();
     }
 }

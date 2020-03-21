@@ -27,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
@@ -46,15 +47,20 @@ public abstract class AbstractRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+    
+    private static final String configDir;
+    static {
+        configDir = "RepositoryTest" + UUID.randomUUID().toString();
+    }
 
     @BeforeClass
     public static void beforeClass() {
-        ConfigDirectory.setupTestEnvironement("RepositoryTest");
+        ConfigDirectory.setupTestEnvironement(configDir);
     }
 
     @AfterClass
     public static void shutDown() {
-        ConfigDirectory.shutdownTestEnvironement("RepositoryTest");
+        ConfigDirectory.shutdownTestEnvironement(configDir);
     }
 
     protected CstlUser getOrCreateUser() {

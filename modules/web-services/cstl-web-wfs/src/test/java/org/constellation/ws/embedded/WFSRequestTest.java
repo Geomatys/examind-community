@@ -19,6 +19,7 @@
 
 package org.constellation.ws.embedded;
 
+import java.util.UUID;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
@@ -86,7 +87,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
 import org.geotoolkit.wfs.xml.v200.ActionResultsType;
@@ -94,8 +94,6 @@ import org.geotoolkit.wfs.xml.v200.CreateStoredQueryResponseType;
 import org.geotoolkit.wfs.xml.v200.CreatedOrModifiedFeatureType;
 import org.geotoolkit.wfs.xml.v200.DropStoredQueryResponseType;
 import org.geotoolkit.wfs.xml.v200.StoredQueryListItemType;
-import org.apache.sis.util.logging.Logging;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import static org.constellation.provider.ProviderParameters.SOURCE_ID_DESCRIPTOR;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
@@ -184,10 +182,12 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
     private static Path citeGmlsf0;
     private static Path shapefiles;
 
+    private static final String confDirName = "WFSRequestTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
         controllerConfiguration = WFSControllerConfig.class;
-        File workspace = ConfigDirectory.setupTestEnvironement("WFSRequestTest").toFile();
+        File workspace = ConfigDirectory.setupTestEnvironement(confDirName).toFile();
         primitive = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_PRIMITIVE);
         entity = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_ENTITY);
         aggregate = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_AGGREGATE);
@@ -209,17 +209,15 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final File outputDir = initDataDirectory();
-                String path = outputDir.getAbsolutePath();
-                LOGGER.info("DATA PATH:" + path);
+                final Path rootDir = initDataDirectory();
 
-                final DataProviderFactory featfactory = DataProviders.getFactory("data-store");
+                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
 
                 // Defines a PostGis data provider
                 localdb_active = TestDatabaseHandler.hasLocalDatabase();
                 Integer d1 = null,d2 = null,d3 = null, d4 = null;
                 if (localdb_active) {
-                    final ParameterValueGroup source = featfactory.getProviderDescriptor().createValue();
+                    final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
                     source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("postgisSrc");
 
                     final ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
@@ -245,7 +243,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 }
 
                 // Defines a GML data provider
-                ParameterValueGroup source = featfactory.getProviderDescriptor().createValue();
+                ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("primGMLSrc");
 
                 ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
@@ -260,7 +258,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 Integer d5 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), "primGMLSrc", "VECTOR", false, true, true, null, null);
 
 
-                source = featfactory.getProviderDescriptor().createValue();
+                source = dsFactory.getProviderDescriptor().createValue();
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("entGMLSrc");
 
                 choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
@@ -274,7 +272,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 Integer d6 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),     "entGMLSrc", "VECTOR", false, true, true, null, null);
 
 
-                source = featfactory.getProviderDescriptor().createValue();
+                source = dsFactory.getProviderDescriptor().createValue();
                 source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("aggGMLSrc");
 
                 choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
@@ -291,7 +289,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 d.getKeys();
 
 
-                final ParameterValueGroup sourcef = featfactory.getProviderDescriptor().createValue();
+                final ParameterValueGroup sourcef = dsFactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
 
                 final ParameterValueGroup choice2 = getOrCreate(SOURCE_CONFIG_DESCRIPTOR, sourcef);
@@ -325,7 +323,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 con.close();
                 ds.shutdown();
 
-                final ParameterValueGroup sourceOM = featfactory.getProviderDescriptor().createValue();
+                final ParameterValueGroup sourceOM = dsFactory.getProviderDescriptor().createValue();
                 sourceOM.parameter("id").setValue("omSrc");
 
                 final ParameterValueGroup choiceOM = getOrCreate(SOURCE_CONFIG_DESCRIPTOR, sourceOM);
@@ -425,7 +423,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
                 initialized = true;
             } catch (Exception ex) {
-                Logging.getLogger("org.constellation.ws.embedded").log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -449,13 +447,17 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
             if (provider != null) {
                 provider.removeAll();
             }
-        } catch (ConstellationException ex) {
-            Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WFSRequestTest");
-        File f = new File("derby.log");
-        if (f.exists()) {
-            f.delete();
+        try {
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+            File f = new File("derby.log");
+            if (f.exists()) {
+                f.delete();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
         stopServer();
     }

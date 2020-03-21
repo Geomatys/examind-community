@@ -65,7 +65,7 @@
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/FeaturesOfInterest(station-004)/Observations"
   }, {
     "name" : "44499X4517-TRUC",
-    "description" : "bouée ds le rhone",
+    "description" : "bouee ds le rhone",
     "encodingType" : "application/vnd.geo+json",
     "feature" : {
       "type" : "Feature",

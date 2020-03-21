@@ -18,12 +18,12 @@
  */
 package org.constellation.store.metadata.filesystem;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -32,6 +32,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.DomainValues;
@@ -65,38 +66,40 @@ public class FileSystemMetadataStoreTest {
 
     private static boolean initialized = false;
 
-    private static File dataDirectory;
+    private static Path dataDirectory;
 
     protected static final Logger LOGGER = Logging.getLogger("org.constellation.store.metadata.filesystem");
 
     private static FileSystemMetadataStore fsStore1;
 
+    private static final String CONFIG_DIR_NAME = "FileSystemMetadataStoreTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final File configDir = ConfigDirectory.setupTestEnvironement("FileSystemMetadataStoreTest").toFile();
+        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
 
         //we write the data files
-        dataDirectory = new File(configDir, "data");
-        dataDirectory.mkdir();
-        writeDataFile(dataDirectory, "meta1.xml", "42292_5p_19900609195600");
-        writeDataFile(dataDirectory, "meta2.xml", "42292_9s_19900610041000");
-        writeDataFile(dataDirectory, "meta3.xml", "39727_22_19750113062500");
-        writeDataFile(dataDirectory, "meta4.xml", "11325_158_19640418141800");
-        writeDataFile(dataDirectory, "meta5.xml", "40510_145_19930221211500");
-        writeDataFile(dataDirectory, "meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4");
-        writeDataFile(dataDirectory, "imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
-        writeDataFile(dataDirectory, "ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652");
-        writeDataFile(dataDirectory, "ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076");
-        writeDataFile(dataDirectory, "ebrim3.xml", "urn:motiive:csw-ebrim");
-        //writeDataFile(dataDirectory, "error-meta.xml", "urn:error:file");
-        writeDataFile(dataDirectory, "meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
+        dataDirectory = configDir.resolve("data");
+        Files.createDirectories(dataDirectory);
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim3.xml", "urn:motiive:csw-ebrim.xml");
+        //writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/error-meta.xml", "urn:error:file.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo.xml");
 
         // add DIF metadata
-        writeDataFile(dataDirectory, "NO.009_L2-SST.xml", "L2-SST");
-        writeDataFile(dataDirectory, "NO.021_L2-LST.xml", "L2-LST");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/NO.009_L2-SST.xml", "L2-SST.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/NO.021_L2-LST.xml", "L2-LST.xml");
 
         // prepare an hidden metadata
-        writeDataFile(dataDirectory, "meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258.xml");
     }
 
     @PostConstruct
@@ -107,7 +110,7 @@ public class FileSystemMetadataStoreTest {
                 final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
                 params.parameter("store-id").setValue("testID");
 
                 fsStore1 = (FileSystemMetadataStore) factory.open(params);
@@ -212,12 +215,6 @@ public class FileSystemMetadataStoreTest {
         Assert.assertTrue(result);
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        fsStore1.destroyFileIndex();
-        ConfigDirectory.shutdownTestEnvironement("FileSystemMetadataStoreTest");
-    }
-
     private static final String ERROR_XML =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
         "<gmd:MD_ERROR xmlns:gco=\"http://www.isotc211.org/2005/gco\"\n" +
@@ -231,25 +228,14 @@ public class FileSystemMetadataStoreTest {
         "    </gmd:fileIdentifier>\n" +
         "</gmd:MD_ERROR>";
 
-    public static void writeDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
 
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = identifier.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".xml");
-        } else {
-            dataFile = new File(dataDirectory, identifier + ".xml");
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+        try {
+            fsStore1.destroyFileIndex();
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        }  catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 }

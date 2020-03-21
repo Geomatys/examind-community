@@ -64,9 +64,7 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
@@ -308,27 +306,28 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 }
 
                 // coverage-file datastore
-                final File rootDir = AbstractGrizzlyServer.initDataDirectory();
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final Path rootDir                   = AbstractGrizzlyServer.initDataDirectory();
+                final DataProviderFactory dsFactory  = DataProviders.getFactory("data-store");
+                final ParameterValueGroup sourceCF   = dsFactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
 
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
 
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
                 Integer did = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
 
-                final ParameterValueGroup sourceCF2 = covFilefactory.getProviderDescriptor().createValue();
+                final ParameterValueGroup sourceCF2 = dsFactory.getProviderDescriptor().createValue();
                 sourceCF2.parameter("id").setValue("coverageTestSrc2");
                 final ParameterValueGroup choice4 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF2);
 
                 final ParameterValueGroup srcCFConfig2 = choice4.addGroup("coverage-file");
-
-                srcCFConfig2.parameter("location").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/martinique.tif"));
+                final Path tifFile = rootDir.resolve("org/constellation/data/image/martinique.tif");
+                srcCFConfig2.parameter("location").setValue(tifFile.toUri().toURL());
                 srcCFConfig2.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider("coverageTestSrc2", null, ProviderType.LAYER, "data-store", sourceCF2);
@@ -361,20 +360,14 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 Integer aggd = dbs.get(0).getId();
 
                 final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final File outputDir = initDataDirectory();
                 final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
 
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                String path;
-                if (outputDir.getAbsolutePath().endsWith("org/constellation/ws/embedded/wms111/styles")) {
-                    path = outputDir.getAbsolutePath().substring(0, outputDir.getAbsolutePath().indexOf("org/constellation/ws/embedded/wms111/styles"));
-                } else {
-                    path = outputDir.getAbsolutePath();
-                }
-                shpconfig.parameter("path").setValue(URI.create("file:" + path + "/org/constellation/ws/embedded/wms111/shapefiles"));
 
+                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
+                shpconfig.parameter("path").setValue(shapeDir.toUri());
                 providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
 
                 Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true,null, null);

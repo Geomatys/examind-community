@@ -282,6 +282,8 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
                         LOGGER.info("The "+type+" file " + observationFile.getFileName().toString()
                                 + " does not contains an observation:" + obj);
                     }
+                } catch (JAXBException ex) {
+                    LOGGER.log(Level.WARNING, "Unable to unmarshall the file:" + observationFile.getFileName().toString(), ex);
                 }
             }
         }

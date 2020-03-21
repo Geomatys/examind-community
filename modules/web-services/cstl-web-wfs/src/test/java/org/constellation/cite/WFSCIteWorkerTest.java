@@ -18,7 +18,6 @@
  */
 package org.constellation.cite;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
@@ -116,11 +115,11 @@ public class WFSCIteWorkerTest {
 
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
-        File workspace = ConfigDirectory.setupTestEnvironement("WFSCiteWorkerTest").toFile();
-        primitive = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_PRIMITIVE);
-        entity = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_ENTITY);
-        aggregate = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_AGGREGATE);
-        citeGmlsf0 = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_CITE_GMLSF0);
+        Path workspace = ConfigDirectory.setupTestEnvironement("WFSCiteWorkerTest");
+        primitive = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_PRIMITIVE);
+        entity = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_ENTITY);
+        aggregate = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_AGGREGATE);
+        citeGmlsf0 = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_CITE_GMLSF0);
     }
 
     @PostConstruct

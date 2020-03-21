@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +70,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.api.ServiceConstants.*;
+import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 
 /**
  *
@@ -78,6 +80,8 @@ import static org.constellation.api.ServiceConstants.*;
 public class SOSRequestTest extends AbstractGrizzlyServer {
 
     private static final String SOS_DEFAULT = "http://localhost:9090/WS-SOAP/sos/default";
+
+    private static final String CONFIG_DIR_NAME = "SOSRequestTest" + UUID.randomUUID().toString();
 
     private static boolean initialized = false;
 
@@ -91,7 +95,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("SOSRequestTest").toFile();
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         controllerConfiguration = SOSControllerConfig.class;
     }
 
@@ -128,13 +132,13 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSEND = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
                 Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
-                Object sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A");
+                Object sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A.xml", sensorBusiness);
                 int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
-                sml = writeDataFile("urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626");
+                sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.2626.xml", sensorBusiness);
                 int senId2 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.2626", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
-                sml = writeDataFile("urn-ogc-object-sensor-SunSpot-2");
+                sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-2.xml", sensorBusiness);
                 int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
 
@@ -189,11 +193,15 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        File f = new File("derby.log");
-        if (f.exists()) {
-            f.delete();
+        try {
+            File f = new File("derby.log");
+            if (f.exists()) {
+                f.delete();
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        ConfigDirectory.shutdownTestEnvironement("SOSRequestTest");
         stopServer();
     }
 
@@ -549,20 +557,5 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                                  "2007-05-01T21:53:00,6.55\n";
         result = result.replace("\\n", "\n").replace("\"", "");
         assertEquals(expResult, result);
-    }
-
-    public Object writeDataFile(String resourceName) throws Exception {
-
-        StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream("org/constellation/embedded/test/" + resourceName + ".xml");
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 }

@@ -55,6 +55,7 @@ import javax.xml.bind.JAXBException;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -149,16 +150,17 @@ public class WCSWorkerOutputTest {
                 providerBusiness.removeAll();
 
                 // coverage-sql datastore
-                final File rootDir = AbstractGrizzlyServer.initDataDirectory();
+                final Path rootDir = AbstractGrizzlyServer.initDataDirectory();
 
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+                final ParameterValueGroup sourceCF = dsFactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
 
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
 
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);

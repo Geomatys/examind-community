@@ -39,9 +39,8 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import java.io.File;
-import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreProvider;
@@ -80,7 +79,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void startup() {
         ConfigDirectory.setupTestEnvironement("RestApiRequestsTest");
-        controllerConfiguration = RestApiControllerConfig.class;
+        controllerConfiguration = RestApiTestControllerConfig.class;
     }
 
     /**
@@ -100,7 +99,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 } catch (Exception ex) {}
 
                 // initialize resource file
-                final File rootDir = AbstractGrizzlyServer.initDataDirectory();
+                final Path rootDir = AbstractGrizzlyServer.initDataDirectory();
                 final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
 
                 // coverage-file datastore
@@ -108,7 +107,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 sourceCF.parameter("id").setValue(COVERAGE_PROVIDER);
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider(COVERAGE_PROVIDER, null, ProviderType.LAYER, "data-store", sourceCF);
@@ -120,7 +120,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 sourcef.parameter("id").setValue(SHAPEFILE_PROVIDER);
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(URI.create("file:"+ rootDir.getAbsolutePath() + "/org/constellation/ws/embedded/wms111/shapefiles"));
+                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
+                shpconfig.parameter("path").setValue(shapeDir.toUri());
 
                 providerBusiness.storeProvider(SHAPEFILE_PROVIDER, null, ProviderType.LAYER, "data-store", sourcef);
 
@@ -140,7 +141,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 // observation-file datastore
                 final DataStoreProvider omfactory = DataStores.getProviderById("observationXmlFile");
                 final ParameterValueGroup params = omfactory.getOpenParameters().createValue();
-                params.parameter("path").setValue(new URL("file:"+ rootDir.getAbsolutePath() + "/org/constellation/xml/sos/single-observations.xml"));
+                final Path obsFile = rootDir.resolve("org/constellation/xml/sos/single-observations.xml");
+                params.parameter("path").setValue(obsFile.toUri().toURL());
 
                 Integer omPID = providerBusiness.create(OM_PROVIDER, IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME,params);
                 providerBusiness.createOrUpdateData(omPID, null, false);

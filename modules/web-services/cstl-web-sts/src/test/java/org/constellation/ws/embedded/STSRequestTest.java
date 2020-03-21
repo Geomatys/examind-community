@@ -20,8 +20,6 @@
 package org.constellation.ws.embedded;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.logging.Level;
@@ -37,10 +35,10 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
+import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.gml.GeometrytoJTS;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.PointType;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
@@ -49,7 +47,6 @@ import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.locationtech.jts.geom.Geometry;
@@ -116,13 +113,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 Integer providerSEND = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
                 Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
-                Object sml = writeDataFile("system.xml");
+                Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 Integer senId1 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
-                sml = writeDataFile("component.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
                 Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, providerSEN);
 
-                sml = writeDataFile("system3.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/system3.xml", sensorBusiness);
                 Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
 
@@ -963,20 +960,5 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         sb.append("Binary: ").append(org.apache.commons.codec.binary.Hex.encodeHexString(writer.write(geom))).append('\n');
 
         System.out.println(sb.toString());
-    }
-
-    public Object writeDataFile(String resourceName) throws Exception {
-
-        StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 }

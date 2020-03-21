@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 import org.constellation.metadata.utils.Utils;
 import javax.annotation.PostConstruct;
 import org.constellation.test.utils.SpringTestRunner;
@@ -75,7 +77,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
 
     private static GenericIndexer indexer;
     
-    private static final Path configDirectory  = Paths.get("GenericIndexTest");
+    private static final Path configDirectory  = Paths.get("GenericIndexTest"+ UUID.randomUUID().toString());
     
     private static boolean configured = false;
     
@@ -96,14 +98,18 @@ public class GenericindexTest extends AbstractGenericIndexTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (indexer != null) {
-            indexer.destroy();
+        try {
+            if (indexer != null) {
+                indexer.destroy();
+            }
+            if (indexSearcher != null) {
+                indexSearcher.destroy();
+            }
+            SQLRtreeManager.removeTree(indexer.getFileDirectory());
+            IOUtilities.deleteRecursively(configDirectory);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        if (indexSearcher != null) {
-            indexSearcher.destroy();
-        }
-        SQLRtreeManager.removeTree(indexer.getFileDirectory());
-        IOUtilities.deleteRecursively(configDirectory);
     }
 
     /**

@@ -18,8 +18,10 @@
  */
 package com.examind.process.sos;
 
-import static com.examind.process.sos.SosHarvesterProcessTest.writeDataFile;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -32,6 +34,7 @@ import org.constellation.process.ExamindProcessFactory;
 import org.constellation.process.dynamic.ExamindDynamicProcessFactory;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
@@ -60,11 +63,13 @@ public class HarvesterPreProcessTest {
 
     private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos");
 
+    private static final String confDirName = "HarvesterPreProcessTest" + UUID.randomUUID().toString();
+
     private static boolean initialized = false;
 
-    private static File argoDirectory;
-    private static File fmlwDirectory;
-    private static File mooDirectory;
+    private static Path argoDirectory;
+    private static Path fmlwDirectory;
+    private static Path mooDirectory;
 
     @Inject
     protected IProcessBusiness processBusiness;
@@ -72,24 +77,23 @@ public class HarvesterPreProcessTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
 
-        final File configDir = ConfigDirectory.setupTestEnvironement("HarvesterPreProcessTest").toFile();
-        File dataDirectory  = new File(configDir, "data");
-        argoDirectory       = new File(dataDirectory, "argo-profile");
-        argoDirectory.mkdirs();
-        fmlwDirectory       = new File(dataDirectory, "fmlw-traj");
-        fmlwDirectory.mkdirs();
-        mooDirectory       = new File(dataDirectory, "moo-ts");
-        mooDirectory.mkdirs();
+        final Path configDir = ConfigDirectory.setupTestEnvironement(confDirName);
+        Path dataDirectory  = configDir.resolve("data");
+        argoDirectory       = dataDirectory.resolve("argo-profile");
+        Files.createDirectories(argoDirectory);
+        fmlwDirectory       = dataDirectory.resolve("fmlw-traj");
+        Files.createDirectories(fmlwDirectory);
+        mooDirectory       = dataDirectory.resolve("moo-ts");
+        Files.createDirectories(mooDirectory);
 
-        writeDataFile(argoDirectory, "argo-profiles-2902402-1.csv");
-        writeDataFile(argoDirectory, "argo-profiles-2902402-2.csv");
+        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
+        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-2.csv", "argo-profiles-2902402-2.csv");
 
-        writeDataFile(fmlwDirectory, "tsg-FMLW-1.csv");
-        writeDataFile(fmlwDirectory, "tsg-FMLW-2.csv");
-        writeDataFile(fmlwDirectory, "tsg-FMLW-3.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-2.csv", "tsg-FMLW-1.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-3.csv", "tsg-FMLW-1.csv");
 
-        writeDataFile(mooDirectory, "mooring-buoys-time-series-62069.csv");
-
+        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
     }
 
     @PostConstruct
@@ -110,15 +114,19 @@ public class HarvesterPreProcessTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
+        try {
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+            File mappingFile = new File("mapping.properties");
+            if (mappingFile.exists()) {
+                mappingFile.delete();
+            }
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-        ConfigDirectory.shutdownTestEnvironement("HarvesterPreProcessTest");
     }
 
     @Test
@@ -130,7 +138,7 @@ public class HarvesterPreProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(HarvesterPreProcessDescriptor.TASK_NAME_NAME).setValue(processId);
-        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(argoDirectory.toURI().toString());
+        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(argoDirectory.toUri().toString());
 
         in.parameter(HarvesterPreProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
 
@@ -164,7 +172,7 @@ public class HarvesterPreProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(HarvesterPreProcessDescriptor.TASK_NAME_NAME).setValue(processId);
-        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(fmlwDirectory.toURI().toString());
+        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(fmlwDirectory.toUri().toString());
 
         in.parameter(HarvesterPreProcessDescriptor.OBS_TYPE_NAME).setValue("Trajectory");
 
@@ -198,7 +206,7 @@ public class HarvesterPreProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(HarvesterPreProcessDescriptor.TASK_NAME_NAME).setValue(processId);
-        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toURI().toString());
+        in.parameter(HarvesterPreProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toUri().toString());
 
         in.parameter(HarvesterPreProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
 

@@ -19,6 +19,8 @@
 package com.examind.repository.filesystem;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
@@ -54,8 +56,9 @@ public class FileSystemPropertyRepository implements PropertyRepository {
             if (!Files.isRegularFile(propFile)) {
                 Files.createFile(propFile);
             }
-            properties.load(IOUtilities.open(propFile));
-
+            try(InputStream is = IOUtilities.open(propFile)) {
+                properties.load(is);
+            }
         } catch (IOException ex) {
             Logger.getLogger(FileSystemPropertyRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -111,8 +114,8 @@ public class FileSystemPropertyRepository implements PropertyRepository {
 
         Path configDir = ConfigDirectory.getConfigDirectory();
         Path propFile = configDir.resolve("config.properties");
-        try {
-            properties.store(IOUtilities.openWrite(propFile), "");
+        try (OutputStream out = IOUtilities.openWrite(propFile)){
+            properties.store(out, "");
         } catch (IOException ex) {
             throw new ConstellationPersistenceException(ex);
         }
@@ -124,8 +127,8 @@ public class FileSystemPropertyRepository implements PropertyRepository {
 
         Path configDir = ConfigDirectory.getConfigDirectory();
         Path propFile = configDir.resolve("config.properties");
-        try {
-            properties.store(IOUtilities.openWrite(propFile), "");
+        try (OutputStream out = IOUtilities.openWrite(propFile)){
+            properties.store(out, "");
         } catch (IOException ex) {
             throw new ConstellationPersistenceException(ex);
         }

@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -123,6 +125,8 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 @DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public abstract class SOSWorkerTest {
+
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.sos.ws");
 
     @Inject
     protected IServiceBusiness serviceBusiness;
@@ -2665,11 +2669,4 @@ public abstract class SOSWorkerTest {
         final InputStream fixedStream = new ByteArrayInputStream(content.getBytes(charset));
         return  unmarshaller.unmarshal(fixedStream);
     }
-
-    protected static Reader getResource(String resourceName) throws IOException {
-        String xml = IOUtilities.toString(Util.getResourceAsStream(resourceName));
-        xml = xml.replace("EPSG_VERSION", EPSG_VERSION);
-        return new StringReader(xml);
-    }
-
 }

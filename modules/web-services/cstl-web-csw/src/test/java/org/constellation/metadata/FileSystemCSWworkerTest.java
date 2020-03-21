@@ -26,7 +26,6 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.util.Util;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.AfterClass;
@@ -37,10 +36,9 @@ import org.junit.runner.RunWith;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
@@ -51,6 +49,7 @@ import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -72,37 +71,36 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
 
     private static boolean initialized = false;
 
-    private static File dataDirectory;
+    private static Path dataDirectory;
 
     private static FileSystemMetadataStore fsStore1;
 
+    private static final String confDirName = "FSCSWWorkerTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        final File configDir = ConfigDirectory.setupTestEnvironement("FSCSWWorkerTest").toFile();
-
-        File CSWDirectory  = new File(configDir, "CSW");
-        CSWDirectory.mkdir();
-        final File instDirectory = new File(CSWDirectory, "default");
-        instDirectory.mkdir();
+        final Path configDir     = ConfigDirectory.setupTestEnvironement(confDirName);
+        final Path CSWDirectory  = configDir.resolve("CSW");
+        final Path instDirectory = CSWDirectory.resolve("default");
+        dataDirectory = instDirectory.resolve("data");
+        Files.createDirectories(dataDirectory);
 
         //we write the data files
-        dataDirectory = new File(instDirectory, "data");
-        dataDirectory.mkdir();
-        writeDataFile(dataDirectory, "meta1.xml", "42292_5p_19900609195600");
-        writeDataFile(dataDirectory, "meta2.xml", "42292_9s_19900610041000");
-        writeDataFile(dataDirectory, "meta3.xml", "39727_22_19750113062500");
-        writeDataFile(dataDirectory, "meta4.xml", "11325_158_19640418141800");
-        writeDataFile(dataDirectory, "meta5.xml", "40510_145_19930221211500");
-        writeDataFile(dataDirectory, "meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4");
-        writeDataFile(dataDirectory, "imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
-        writeDataFile(dataDirectory, "ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652");
-        writeDataFile(dataDirectory, "ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076");
-        writeDataFile(dataDirectory, "ebrim3.xml", "urn:motiive:csw-ebrim");
-        //writeDataFile(dataDirectory, "error-meta.xml", "urn:error:file");
-        writeDataFile(dataDirectory, "meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta-19119.xml", "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim1.xml", "000068C3-3B49-C671-89CF-10A39BB1B652.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim2.xml", "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/ebrim3.xml", "urn:motiive:csw-ebrim.xml");
+        //writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/error-meta.xml", "urn:error:file.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo.xml");
 
         // prepare an hidden metadata
-        writeDataFile(dataDirectory, "meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258.xml");
 
         pool = EBRIMMarshallerPool.getInstance();
     }
@@ -119,7 +117,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
                 params.parameter("store-id").setValue("testID");
                 Integer pr = providerBusiness.create("FSmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
@@ -156,22 +154,34 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
         if (worker != null) {
             worker.destroy();
         }
-        CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-        configurer.removeIndex("default");
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-        if (service != null) {
-            service.deleteAll();
+        try {
+            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
+            configurer.removeIndex("default");
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-        if (provider != null) {
-            provider.removeAll();
+        try {
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
+            if (mdService != null) {
+                mdService.deleteAllMetadata();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-        if (mdService != null) {
-            mdService.deleteAllMetadata();
+        try {
+            fsStore1.destroyFileIndex();
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        fsStore1.destroyFileIndex();
-        ConfigDirectory.shutdownTestEnvironement("FSCSWWorkerTest");
     }
 
     /**
@@ -297,27 +307,5 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
         typeCheckUpdate = false;
         super.transactionUpdateTest();
 
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
-
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = identifier.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".xml");
-        } else {
-            dataFile = new File(dataDirectory, identifier + ".xml");
-        }
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 }

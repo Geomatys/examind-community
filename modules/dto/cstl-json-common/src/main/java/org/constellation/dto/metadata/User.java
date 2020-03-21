@@ -1,6 +1,7 @@
 package org.constellation.dto.metadata;
 
 import java.io.Serializable;
+import org.constellation.dto.CstlUser;
 
 /**
  * @author Mehdi Sidhoum (Geomatys).
@@ -25,9 +26,9 @@ public class User implements Serializable {
     private java.lang.String  civility;
     private java.lang.String  title;
     private java.lang.String  locale;
-        
+
     private GroupBrief group;
-    
+
     public User() {}
 
     public User(
@@ -68,6 +69,29 @@ public class User implements Serializable {
         this.civility = civility;
         this.title = title;
         this.locale = locale;
+    }
+
+    public User(CstlUser user) {
+        if (user != null) {
+            this.id = user.getId();
+            this.login = user.getLogin();
+            this.password = user.getPassword();
+            this.firstname = user.getFirstname();
+            this.lastname = user.getLastname();
+            this.email = user.getEmail();
+            this.active = user.getActive();
+            this.avatar = user.getAvatar();
+            this.zip = user.getZip();
+            this.city = user.getCity();
+            this.country = user.getCountry();
+            this.phone = user.getPhone();
+            this.forgotPasswordUuid = user.getForgotPasswordUuid();
+            this.address = user.getAddress();
+            this.additionalAddress = user.getAdditionalAddress();
+            this.civility = user.getCivility();
+            this.title = user.getTitle();
+            this.locale = user.getLocale();
+        }
     }
 
     public java.lang.Integer getId() {
@@ -213,7 +237,7 @@ public class User implements Serializable {
     public void setLocale(java.lang.String locale) {
         this.locale = locale;
     }
-    
+
     public GroupBrief getGroup() {
         return group;
     }

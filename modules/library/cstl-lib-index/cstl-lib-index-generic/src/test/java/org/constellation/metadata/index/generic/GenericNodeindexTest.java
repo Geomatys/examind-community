@@ -38,7 +38,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 import javax.annotation.PostConstruct;
+import static org.constellation.metadata.index.generic.AbstractGenericIndexTest.LOGGER;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
 import static org.junit.Assert.assertEquals;
@@ -60,7 +63,7 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
 
     private static NodeIndexer indexer;
 
-    private static final Path configDirectory  = Paths.get("GenericNodeIndexTest");
+    private static final Path configDirectory  = Paths.get("GenericNodeIndexTest"+ UUID.randomUUID().toString());
 
     private static boolean configured = false;
 
@@ -81,14 +84,18 @@ public class GenericNodeindexTest extends AbstractGenericIndexTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (indexer != null) {
-            indexer.destroy();
+        try {
+            if (indexer != null) {
+                indexer.destroy();
+            }
+            if (indexSearcher != null) {
+                indexSearcher.destroy();
+            }
+            SQLRtreeManager.removeTree(indexer.getFileDirectory());
+            IOUtilities.deleteRecursively(configDirectory);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        if (indexSearcher != null) {
-            indexSearcher.destroy();
-        }
-        SQLRtreeManager.removeTree(indexer.getFileDirectory());
-        IOUtilities.deleteRecursively(configDirectory);
     }
 
     /**

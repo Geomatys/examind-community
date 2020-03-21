@@ -19,12 +19,10 @@
 
 package org.constellation.map.ws.rs;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -32,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -48,7 +47,6 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.core.QueryContext;
 import org.constellation.provider.DataProviders;
@@ -109,10 +107,12 @@ public class WMSServiceTest {
 
     private static final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static boolean initialized = false;
+    
+    private static final String confDirName = "WMSServiceTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void start() {
-        ConfigDirectory.setupTestEnvironement("WMSServiceTest");
+        ConfigDirectory.setupTestEnvironement(confDirName);
     }
 
     @AfterClass
@@ -130,29 +130,28 @@ public class WMSServiceTest {
                 providerBusiness.removeAll();
 
                 // coverage-file datastore
-                final File rootDir                  = AbstractGrizzlyServer.initDataDirectory();
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final Path rootDir                  = AbstractGrizzlyServer.initDataDirectory();
+                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+                final ParameterValueGroup sourceCF  = dsFactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
 
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
 
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
                 Integer d = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
 
-                final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final File outputDir = AbstractGrizzlyServer.initDataDirectory();
-                final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
+                final ParameterValueGroup sourcef = dsFactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
 
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(URI.create("file:" + outputDir.getAbsolutePath() + "/org/constellation/ws/embedded/wms111/shapefiles"));
-
+                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
+                shpconfig.parameter("path").setValue(shapeDir.toUri());
                 providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
 
                 Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true, null, null);
@@ -204,7 +203,6 @@ public class WMSServiceTest {
     @AfterClass
     public static void finish() {
         service.destroy();
-        ConfigDirectory.shutdownTestEnvironement("WMSServiceTest");
         try {
             final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
             if (layerBean != null) {
@@ -222,8 +220,9 @@ public class WMSServiceTest {
             if (provider != null) {
                 provider.removeAll();
             }
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (ConstellationException ex) {
-            Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
     }
 

@@ -20,17 +20,17 @@
 package org.constellation.sos.ws;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
@@ -40,6 +40,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
 
@@ -56,7 +57,8 @@ import org.opengis.parameter.ParameterValueGroup;
 @RunWith(SpringTestRunner.class)
 public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
-    private static File instDirectory;
+    private static final String CONFIG_DIR_NAME = "OM2SOSConfigurerTest" + UUID.randomUUID().toString();
+    private static Path sensorDirectory;
 
     private static DefaultDataSource ds = null;
 
@@ -78,26 +80,16 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
         sr.run(sql);
         sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
 
+        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        Path SOSDirectory    = configDir.resolve("SOS");
+        Path instDirectory   = SOSDirectory.resolve("default");
+        sensorDirectory      = instDirectory.resolve("sensors");
+        Files.createDirectories(sensorDirectory);
 
-        MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-        Marshaller marshaller =  pool.acquireMarshaller();
-
-        final File configDir = ConfigDirectory.setupTestEnvironement("OM2SOSConfigurerTest").toFile();
-
-        File SOSDirectory  = new File(configDir, "SOS");
-        SOSDirectory.mkdirs();
-        instDirectory = new File(SOSDirectory, "default");
-        instDirectory.mkdirs();
-
-
-        File sensorDirectory = new File(instDirectory, "sensors");
-        sensorDirectory.mkdirs();
-        writeCommonDataFile(sensorDirectory, "system.xml",     "urn:ogc:object:sensor:GEOM:1");
-        writeCommonDataFile(sensorDirectory, "component.xml",  "urn:ogc:object:sensor:GEOM:2");
-        writeCommonDataFile(sensorDirectory, "system3.xml",    "urn:ogc:object:sensor:GEOM:5");
-        writeCommonDataFile(sensorDirectory, "system4.xml",    "urn:ogc:object:sensor:GEOM:8");
-
-        pool.recycle(marshaller);
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system.xml",     "urn:ogc:object:sensor:GEOM:1.xml");
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component.xml",  "urn:ogc:object:sensor:GEOM:2.xml");
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system3.xml",    "urn:ogc:object:sensor:GEOM:5.xml");
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system4.xml",    "urn:ogc:object:sensor:GEOM:8.xml");
     }
 
     @PostConstruct
@@ -122,7 +114,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
                 final DataStoreProvider factorySML = DataStores.getProviderById("filesensor");
                 final ParameterValueGroup params = factorySML.getOpenParameters().createValue();
-                params.parameter("data_directory").setValue(new File(instDirectory.getPath() + "/sensors"));
+                params.parameter("data_directory").setValue(sensorDirectory);
                 Integer senPrId = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(senPrId, null, false);
 
@@ -143,24 +135,28 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
+        try {
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+            File mappingFile = new File("mapping.properties");
+            if (mappingFile.exists()) {
+                mappingFile.delete();
+            }
+            if (ds != null) {
+                ds.shutdown();
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
-        }
-        ConfigDirectory.shutdownTestEnvironement("OM2SOSConfigurerTest");
     }
 
     @Test

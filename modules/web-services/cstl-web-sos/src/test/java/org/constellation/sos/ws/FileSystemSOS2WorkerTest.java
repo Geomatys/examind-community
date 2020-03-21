@@ -19,26 +19,21 @@
 
 package org.constellation.sos.ws;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.util.Util;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -53,31 +48,22 @@ import org.opengis.parameter.ParameterValueGroup;
 @RunWith(SpringTestRunner.class)
 public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
-    private static File instDirectory;
+    private static Path sensorDirectory;
+
+    private static String configDirName = "FSSOS2WorkerTest" + UUID.randomUUID().toString();
 
     private static boolean initialized = false;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-        Marshaller marshaller =  pool.acquireMarshaller();
-
-        final File configDir = ConfigDirectory.setupTestEnvironement("FSSOSWorkerTest").toFile();
-
-        File SOSDirectory  = new File(configDir, "SOS");
-        SOSDirectory.mkdirs();
-        instDirectory = new File(SOSDirectory, "default");
-        instDirectory.mkdirs();
-
-
-        File sensorDirectory = new File(instDirectory, "sensors");
-        sensorDirectory.mkdirs();
-        writeCommonDataFile(sensorDirectory, "system.xml",     "urn:ogc:object:sensor:GEOM:1");
-        writeCommonDataFile(sensorDirectory, "component.xml",  "urn:ogc:object:sensor:GEOM:2");
-        writeCommonDataFile(sensorDirectory, "component2.xml", "urn:ogc:object:sensor:GEOM:3");
-
-        pool.recycle(marshaller);
-
+        final Path configDir = ConfigDirectory.setupTestEnvironement(configDirName);
+        Path SOSDirectory    = configDir.resolve("SOS");
+        Path instDirectory   = SOSDirectory.resolve("default");
+        sensorDirectory      = instDirectory.resolve("sensors");
+        Files.createDirectories(sensorDirectory);
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system.xml",     "urn:ogc:object:sensor:GEOM:1.xml", 'µ');
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component.xml",  "urn:ogc:object:sensor:GEOM:2.xml", 'µ');
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component2.xml", "urn:ogc:object:sensor:GEOM:3.xml", 'µ');
     }
 
     @PostConstruct
@@ -92,7 +78,7 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
                 final DataStoreProvider factory = DataStores.getProviderById("filesensor");
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("data_directory").setValue(new File(instDirectory.getPath() + "/sensors"));
+                params.parameter("data_directory").setValue(sensorDirectory);
                 Integer pr = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
 
@@ -115,7 +101,7 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -127,28 +113,15 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            ConfigDirectory.shutdownTestEnvironement(configDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        ConfigDirectory.shutdownTestEnvironement("FSSOSWorkerTest");
     }
-
-    public static void writeCommonDataFile(File dataDirectory, String resourceName, String identifier) throws IOException {
-
-        File dataFile = new File(dataDirectory, identifier + ".xml");
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
-    }
-
 
     /**
      * Tests the DescribeSensor method

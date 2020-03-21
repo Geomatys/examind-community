@@ -38,6 +38,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -146,9 +147,9 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
             }
 
             if (path == null) {
-                session.putRecord(identifier, f.toAbsolutePath().toString());
+                session.putRecord(identifier, f.toUri().toString());
             } else {
-                session.updateRecord(identifier, f.toAbsolutePath().toString());
+                session.updateRecord(identifier, f.toUri().toString());
             }
 
         } catch (SQLException| IOException | TransformerException ex) {
@@ -287,7 +288,7 @@ public class FileMetadataWriter extends AbstractMetadataWriter {
         try (Session session = source.createSession()) {
             final String path = session.getPathForRecord(identifier);
             if (path != null) {
-                return Paths.get(path);
+                return Paths.get(URI.create(path));
             } else {
                 throw new MetadataIoException("Null path value for identifier:" + identifier, NO_APPLICABLE_CODE);
             }

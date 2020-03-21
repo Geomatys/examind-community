@@ -19,13 +19,12 @@
 package com.examind.process.sos;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -46,6 +45,8 @@ import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
@@ -97,12 +98,12 @@ public class SosHarvesterProcessTest {
     private static boolean initialized = false;
 
     // CSV dir
-    private static File argoDirectory;
-    private static File fmlwDirectory;
-    private static File mooDirectory;
+    private static Path argoDirectory;
+    private static Path fmlwDirectory;
+    private static Path mooDirectory;
 
     // DBF dir
-    private static File ltDirectory;
+    private static Path ltDirectory;
 
     @Inject
     protected IServiceBusiness serviceBusiness;
@@ -118,6 +119,8 @@ public class SosHarvesterProcessTest {
     @Inject
     protected WSEngine wsEngine;
 
+    private static final String CONFIG_DIR_NAME = "SosHarvesterProcessTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         url = "jdbc:derby:memory:SosHarvesterProcess;create=true";
@@ -132,27 +135,27 @@ public class SosHarvesterProcessTest {
         sr.run(sql);
 
 
-        final File configDir = ConfigDirectory.setupTestEnvironement("SosHarvesterProcessTest").toFile();
-        File dataDirectory  = new File(configDir, "data");
-        argoDirectory       = new File(dataDirectory, "argo-profile");
-        argoDirectory.mkdirs();
-        fmlwDirectory       = new File(dataDirectory, "fmlw-traj");
-        fmlwDirectory.mkdirs();
-        mooDirectory       = new File(dataDirectory, "moo-ts");
-        mooDirectory.mkdirs();
-        ltDirectory       = new File(dataDirectory, "lt-ts");
-        ltDirectory.mkdirs();
+        final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        Path dataDirectory  = configDir.resolve("data");
+        argoDirectory       = dataDirectory.resolve("argo-profile");
+        Files.createDirectories(argoDirectory);
+        fmlwDirectory       = dataDirectory.resolve("fmlw-traj");
+        Files.createDirectories(fmlwDirectory);
+        mooDirectory       = dataDirectory.resolve("moo-ts");
+        Files.createDirectories(mooDirectory);
+        ltDirectory       = dataDirectory.resolve("lt-ts");
+        Files.createDirectories(ltDirectory);
 
-        writeDataFile(argoDirectory, "argo-profiles-2902402-1.csv");
+        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
 
-        writeDataFile(fmlwDirectory, "tsg-FMLW-1.csv");
-        writeDataFile(fmlwDirectory, "tsg-FMLW-2.csv");
-        writeDataFile(fmlwDirectory, "tsg-FMLW-3.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-2.csv", "tsg-FMLW-2.csv");
+        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-3.csv", "tsg-FMLW-3.csv");
 
-        writeDataFile(mooDirectory,  "mooring-buoys-time-series-62069.csv");
+        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
 
-        writeDataFileBin(ltDirectory,   "LakeTile_001.dbf");
-        writeDataFileBin(ltDirectory,   "LakeTile_002.dbf");
+        writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
+        writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_002.dbf", "LakeTile_002.dbf");
 
     }
 
@@ -195,18 +198,22 @@ public class SosHarvesterProcessTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
+        try {
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+            File mappingFile = new File("mapping.properties");
+            if (mappingFile.exists()) {
+                mappingFile.delete();
+            }
+            if (ds != null) {
+                ds.shutdown();
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
-        }
-        ConfigDirectory.shutdownTestEnvironement("SosHarvesterProcessTest");
     }
 
     @Test
@@ -224,7 +231,7 @@ public class SosHarvesterProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
-        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(argoDirectory.toURI().toString());
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(argoDirectory.toUri().toString());
 
         in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (YYYY-MM-DDTHH:MI:SSZ)");
         in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("PRES (decibar)");
@@ -268,7 +275,7 @@ public class SosHarvesterProcessTest {
         /*
          * add a new file to integrate and call again the process
          */
-        writeDataFile(argoDirectory, "argo-profiles-2902402-2.csv");
+        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-2.csv", "argo-profiles-2902402-2.csv");
         proc.call();
 
         offp = getOffering(worker, sensorId);
@@ -291,13 +298,14 @@ public class SosHarvesterProcessTest {
         */
 
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult = getResultFile("argo-datablock-values.txt");
+        String expectedResult = getResourceAsString("com/examind/process/sos/argo-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         /*
          * remove the new file and reinsert with REMOVE PREVIOUS
          */
-        new File(argoDirectory, "argo-profiles-2902402-2.csv").delete();
+        Path p = argoDirectory.resolve("argo-profiles-2902402-2.csv");
+        Files.delete(p);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
 
         proc = desc.createProcess(in);
@@ -332,7 +340,7 @@ public class SosHarvesterProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
-        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(fmlwDirectory.toURI().toString());
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(fmlwDirectory.toUri().toString());
 
         in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
         in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
@@ -381,7 +389,7 @@ public class SosHarvesterProcessTest {
         * Verify an inserted profile
         */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult =  getResultFile("tsg-FMLW-datablock-values.txt");
+        String expectedResult =  getResourceAsString("com/examind/process/sos/tsg-FMLW-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
 
@@ -403,7 +411,7 @@ public class SosHarvesterProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
-        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toURI().toString());
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toUri().toString());
 
         in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
         in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
@@ -457,7 +465,7 @@ public class SosHarvesterProcessTest {
         * Verify an inserted profile
         */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult = getResultFile("mooring-datablock-values.txt");
+        String expectedResult = getResourceAsString("com/examind/process/sos/mooring-datablock-values.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
 
@@ -478,7 +486,7 @@ public class SosHarvesterProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
-        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toURI().toString());
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(mooDirectory.toUri().toString());
 
         in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
         in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
@@ -533,7 +541,7 @@ public class SosHarvesterProcessTest {
         * Verify an inserted timeSeries
         */
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult = getResultFile("mooring-datablock-values-2.txt");
+        String expectedResult = getResourceAsString("com/examind/process/sos/mooring-datablock-values-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         /*
@@ -541,7 +549,7 @@ public class SosHarvesterProcessTest {
         */
         observedProperty = "VZMX LEVEL0 (meter)";
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        expectedResult = getResultFile("mooring-datablock-values-3.txt");
+        expectedResult = getResourceAsString("com/examind/process/sos/mooring-datablock-values-3.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         Object obj = worker.getObservation(new GetObservationType("2.0.0", offp.getId(), null, Arrays.asList(sensorId), Arrays.asList(observedProperty), new ArrayList<>(), null));
@@ -574,7 +582,7 @@ public class SosHarvesterProcessTest {
 
         final ParameterValueGroup in = desc.getInputDescriptor().createValue();
         in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
-        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(ltDirectory.toURI().toString());
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(ltDirectory.toUri().toString());
 
         in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationDbfFile");
         in.parameter(SosHarvesterProcessDescriptor.FORMAT_NAME).setValue("application/dbase; subtype=\"om\"");
@@ -625,12 +633,12 @@ public class SosHarvesterProcessTest {
         */
         String foi = "54008001708";
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        String expectedResult = getResultFile("LakeTile_foi-1.txt");
+        String expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-1.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
         foi = "54008001586";
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
-        expectedResult = getResultFile("LakeTile_foi-2.txt");
+        expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
     }
@@ -645,44 +653,5 @@ public class SosHarvesterProcessTest {
             }
         }
         return offp;
-    }
-
-    public static String getResultFile(String resourceName) throws IOException {
-        InputStream in = Util.getResourceAsStream("com/examind/process/sos/" + resourceName);
-        return IOUtilities.toString(in);
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName) throws IOException {
-
-        final File dataFile = new File(dataDirectory, resourceName);
-
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("com/examind/process/sos/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
-    }
-
-    public static void writeDataFileBin(File dataDirectory, String resourceName) throws IOException {
-
-        final File dataFile = new File(dataDirectory, resourceName);
-
-        FileOutputStream fw = new FileOutputStream(dataFile);
-        InputStream in = Util.getResourceAsStream("com/examind/process/sos/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(buffer);
-        }
-        in.close();
-        fw.close();
     }
 }

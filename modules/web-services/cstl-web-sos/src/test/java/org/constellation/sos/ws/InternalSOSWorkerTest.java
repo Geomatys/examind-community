@@ -19,9 +19,8 @@
 
 package org.constellation.sos.ws;
 
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -33,7 +32,7 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.util.Util;
+import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,9 +49,11 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;
 
+    private static final String CONFIG_DIR_NAME = "InternalSOSWorkerTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        ConfigDirectory.setupTestEnvironement("InternalSOSWorkerTest");
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -69,10 +70,10 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
-                Object sml = writeCommonDataFile("system.xml");
+                Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, null, sml, Long.MIN_VALUE, provider);
 
-                sml = writeCommonDataFile("component.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", null, null, sml, Long.MIN_VALUE, provider);
 
 
@@ -96,7 +97,7 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
             }
 
         } catch (Exception ex) {
-            Logger.getLogger(InternalSOSWorkerTest.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -108,27 +109,15 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
-        ConfigDirectory.shutdownTestEnvironement("InternalSOSWorkerTest");
     }
-
-    public Object writeCommonDataFile(String resourceName) throws Exception {
-
-        StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        return sensorBusiness.unmarshallSensor(fw.toString());
-    }
-
 
     /**
      * Tests the DescribeSensor method

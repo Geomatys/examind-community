@@ -18,11 +18,12 @@
  */
 package org.constellation.admin;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -75,13 +76,14 @@ public class DataBusinessTest {
     private static boolean initialized = false;
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
+    private static final String confDirName = "DataBusinessTest" + UUID.randomUUID().toString();
 
     private static int coveragePID;
     private static int vectorPID;
 
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("DataBusinessTest");
+        ConfigDirectory.setupTestEnvironement(confDirName);
     }
 
     @AfterClass
@@ -99,9 +101,9 @@ public class DataBusinessTest {
             if (dsBus != null) {
                 dsBus.removeAllDatasets();
             }
-            ConfigDirectory.shutdownTestEnvironement("DataBusinessTest");
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
         } catch (ConstellationException ex) {
-            Logging.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -123,29 +125,29 @@ public class DataBusinessTest {
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                final File rootDir = initDataDirectory();
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final Path rootDir = initDataDirectory();
+                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
+                
+                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
 
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 coveragePID = providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
 
                 providerBusiness.createOrUpdateData(coveragePID, dsId, false);
 
-                final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final File outputDir = initDataDirectory();
-                final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
+                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
+                
+                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
-
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(URI.create("file:" + outputDir.getAbsolutePath() + "/org/constellation/ws/embedded/wms111/shapefiles"));
+                shpconfig.parameter("path").setValue(shapeDir.toUri());
 
                 vectorPID = providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
 
@@ -201,14 +203,14 @@ public class DataBusinessTest {
     }
 
 
-    public static File initDataDirectory() throws IOException {
-        final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-        File outputDir = new File(tmpDir, "Constellation");
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
+    public static Path initDataDirectory() throws IOException {
+        final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        Path outputDir = tmpDir.resolve("Constellation");
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
         }
         try {
-            TestEnvironment.initWorkspaceData(outputDir.toPath());
+            TestEnvironment.initWorkspaceData(outputDir);
         } catch (URISyntaxException e) {
             throw new IOException(e.getMessage(), e);
         }

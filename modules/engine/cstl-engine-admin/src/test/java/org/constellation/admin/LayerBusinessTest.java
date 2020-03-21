@@ -18,10 +18,8 @@
  */
 package org.constellation.admin;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +33,6 @@ import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
@@ -102,40 +99,36 @@ public class LayerBusinessTest {
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
 
-
-
                 // dataset
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                final File rootDir = initDataDirectory();
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final Path rootDir = initDataDirectory();
+                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
+                
+                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-
-                srcCFConfig.parameter("path").setValue(new URL("file:" + rootDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 coveragePID = providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
-
                 providerBusiness.createOrUpdateData(coveragePID, dsId, false);
 
-                final DataProviderFactory ffactory = DataProviders.getFactory("data-store");
-                final File outputDir = initDataDirectory();
-                final ParameterValueGroup sourcef = ffactory.getProviderDescriptor().createValue();
+                // shapefile datastore
+                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
                 sourcef.parameter("id").setValue("shapeSrc");
 
+                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
+                
                 final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
                 final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(URI.create("file:" + outputDir.getAbsolutePath() + "/org/constellation/ws/embedded/wms111/shapefiles"));
+                shpconfig.parameter("path").setValue(shapeDir.toUri());
 
                 vectorPID = providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
-
                 providerBusiness.createOrUpdateData(vectorPID, dsId, false);
-
 
                 initialized = true;
             } catch (Exception ex) {

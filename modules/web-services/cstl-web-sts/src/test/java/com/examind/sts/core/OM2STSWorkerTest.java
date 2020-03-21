@@ -19,15 +19,15 @@
 package com.examind.sts.core;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
@@ -43,6 +43,7 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.util.Util;
 import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
@@ -116,6 +117,10 @@ public class OM2STSWorkerTest {
 
     protected static final String URL = "http://test.geomatys.com";
 
+    private static final String CONFIG_DIR_NAME = "OM2STSWorkerTest" + UUID.randomUUID().toString();
+
+    public static Logger LOGGER = Logging.getLogger("com.examind.sts.core");
+
     @BeforeClass
     public static void setUpClass() throws Exception {
         url = "jdbc:derby:memory:OM2STSTest2;create=true";
@@ -134,7 +139,7 @@ public class OM2STSWorkerTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        ConfigDirectory.setupTestEnvironement("OM2STSWorkerTest");
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
 
         pool.recycle(marshaller);
     }
@@ -170,16 +175,16 @@ public class OM2STSWorkerTest {
                 final ParameterValueGroup params = senfactory.getOpenParameters().createValue();
                 Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
 
-                Object sml = writeCommonDataFile("system.xml");
+                Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
-                sml = writeCommonDataFile("component.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, provider);
 
-                sml = writeCommonDataFile("system3.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/system3.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
-                sml = writeCommonDataFile("system4.xml");
+                sml = unmarshallSensorResource("org/constellation/xml/sml/system4.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
 
                 serviceBusiness.linkServiceAndProvider(sid, provider);
@@ -189,33 +194,36 @@ public class OM2STSWorkerTest {
                     sensorBusiness.addSensorToService(sid, sensor.getId());
                 });
 
-
                 worker = new DefaultSTSWorker("default");
                 worker.setServiceUrl(URL);
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("com.examind.sts.core").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+            File mappingFile = new File("mapping.properties");
+            if (mappingFile.exists()) {
+                mappingFile.delete();
+            }
+            if (ds != null) {
+                ds.shutdown();
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
-        }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
-        }
-        ConfigDirectory.shutdownTestEnvironement("OM2STSWorkerTest");
     }
 
 
@@ -1106,20 +1114,5 @@ public class OM2STSWorkerTest {
         expesult.addLink("FeaturesOfInterest", "http://test.geomatys.com/sts/default/FeaturesOfInterest");
 
         Assert.assertEquals(expesult, result);
-    }
-
-    public Object writeCommonDataFile(String resourceName) throws Exception {
-
-        StringWriter fw = new StringWriter();
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/sml/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        return sensorBusiness.unmarshallSensor(fw.toString());
     }
 }

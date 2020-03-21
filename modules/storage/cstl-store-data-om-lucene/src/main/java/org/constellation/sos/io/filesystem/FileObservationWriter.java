@@ -124,7 +124,8 @@ public class FileObservationWriter implements ObservationWriter {
         if (observation == null) {
             return null;
         }
-        final Path observationFile = observationTemplateDirectory.resolve(observation.getName() + FILE_EXTENSION);
+        String fileName = observation.getName().getCode().replace(':', 'µ');
+        final Path observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
         return writeObservationToFile(observation, observationFile);
     }
 
@@ -137,10 +138,11 @@ public class FileObservationWriter implements ObservationWriter {
         if (observation instanceof AbstractObservation && observation.getName() == null) {
             ((AbstractObservation)observation).setName(getNewObservationId());
         }
+        String fileName = observation.getName().getCode().replace(':', 'µ');
         if (observation.getName().getCode().startsWith(observationTemplateIdBase)) {
-            observationFile = observationTemplateDirectory.resolve(observation.getName().getCode() + FILE_EXTENSION);
+            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
         } else {
-            observationFile = observationDirectory.resolve(observation.getName().getCode() + FILE_EXTENSION);
+            observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
         }
         return writeObservationToFile(observation, observationFile);
     }
@@ -179,7 +181,8 @@ public class FileObservationWriter implements ObservationWriter {
             long i = IOUtilities.listChildren(observationDirectory).size();
             while (exist) {
                 obsID = observationIdBase + i;
-                final Path newFile = observationDirectory.resolve(obsID);
+                String fileName = obsID.replace(':', 'µ');
+                final Path newFile = observationDirectory.resolve(fileName);
                 exist = Files.exists(newFile);
                 i++;
             }
@@ -205,10 +208,11 @@ public class FileObservationWriter implements ObservationWriter {
     @Override
     public void removeObservation(final String observationID) throws DataStoreException {
         final Path observationFile;
+        String fileName = observationID.replace(':', 'µ');
         if (observationID.startsWith(observationTemplateIdBase)) {
-            observationFile = observationTemplateDirectory.resolve(observationID + FILE_EXTENSION);
+            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
         } else {
-            observationFile = observationDirectory.resolve(observationID + FILE_EXTENSION);
+            observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
         }
         try {
             Files.deleteIfExists(observationFile);
@@ -248,8 +252,8 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating phenomenon directory  "+phenomenonDirectory.toString(), ex);
         }
-
-        final Path phenomenonFile = phenomenonDirectory.resolve(phenomenon.getName() + FILE_EXTENSION);
+        String fileName = phenomenon.getName().getCode().replace(':', 'µ');
+        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
         writeObject(phenomenonFile, phenomenon, "phenomenon");
     }
 
@@ -261,8 +265,8 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating foi directory  "+foiDirectory.toString(), ex);
         }
-
-        final Path foiFile = foiDirectory.resolve(foi.getId() + FILE_EXTENSION);
+        String fileName = foi.getId().replace(':', 'µ');
+        final Path foiFile = foiDirectory.resolve(fileName + FILE_EXTENSION);
         writeObject(foiFile, foi, "foi");
     }
 
@@ -293,8 +297,8 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating offering directory  "+offeringDirectory.toString(), ex);
         }
-
-        final Path offeringFile = offeringDirectory.resolve(offering.getId() + FILE_EXTENSION);
+        String fileName = offering.getId().replace(':', 'µ');
+        final Path offeringFile = offeringDirectory.resolve(fileName + FILE_EXTENSION);
         writeObject(offeringFile, offering, "foi");
         return offering.getId();
     }

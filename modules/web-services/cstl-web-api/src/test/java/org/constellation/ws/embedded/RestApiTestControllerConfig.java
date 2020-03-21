@@ -31,9 +31,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  * @author guilhem
  */
 @Configuration
-public class RestApiControllerConfig  extends WebMvcConfigurationSupport {
+public class RestApiTestControllerConfig  extends WebMvcConfigurationSupport {
 
-    public RestApiControllerConfig() {
+    public RestApiTestControllerConfig() {
 
     }
 

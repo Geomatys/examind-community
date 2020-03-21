@@ -53,7 +53,6 @@ import org.apache.sis.referencing.crs.DefaultVerticalCRS;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.cs.DefaultVerticalCS;
 import org.apache.sis.referencing.datum.DefaultVerticalDatum;
-import org.apache.sis.test.integration.MetadataTest;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.util.iso.SimpleInternationalString;
 import org.apache.sis.xml.MarshallerPool;
@@ -95,7 +94,6 @@ import org.opengis.util.InternationalString;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -117,7 +115,7 @@ import java.util.TimeZone;
 
 import static java.util.Collections.singleton;
 import org.apache.sis.measure.Units;
-import static org.junit.Assume.assumeTrue;
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
@@ -693,16 +691,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         marshaller.marshal(metadata, sw);
         String result = sw.toString();
 
-        InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/meta1.xml");
-        StringWriter out = new StringWriter();
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            out.write(new String(buffer, 0, size));
-        }
-
-        String expResult = out.toString();
+        String expResult = getResourceAsString("org/constellation/xml/metadata/meta1.xml");
         DocumentComparator comparator = new DocumentComparator(expResult, result);
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");

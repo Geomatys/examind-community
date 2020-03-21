@@ -137,7 +137,6 @@ import org.xml.sax.SAXException;
 
 import static org.constellation.util.NodeUtilities.getMetadataFromNode;
 import static org.constellation.util.NodeUtilities.getNodeFromObject;
-import org.constellation.util.Util;
 import org.constellation.ws.IWSEngine;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.parameter.ParameterValueGroup;
@@ -1574,7 +1573,7 @@ public class MetadataBusiness implements IMetadataBusiness {
             toPublishFilter.put("validated",Boolean.TRUE);
             final int toPublish  = metadataRepository.countPublished(false, toPublishFilter);
             final int published  = metadataRepository.countPublished(true, filter);
-            final User userBrief = Util.copy(user, new User());
+            final User userBrief = new User(user);
             briefs.add(new OwnerStatBrief(userBrief, toValidate, toPublish, published));
         }
         return briefs;
@@ -1589,7 +1588,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public List<User> getUsers() {
         final List<User> results = new ArrayList<>();
         for (CstlUser u : userBusiness.findAll()) {
-            results.add(Util.copy(u, new User()));
+            results.add(new User(u));
         }
         return results;
     }
@@ -1598,7 +1597,7 @@ public class MetadataBusiness implements IMetadataBusiness {
     public User getUser(final int id) {
         final Optional<CstlUser> optUser = userBusiness.findById(id);
         if (optUser.isPresent()) {
-            return Util.copy(optUser.get(), new User());
+            return new User(optUser.get());
 
         }
         return null;

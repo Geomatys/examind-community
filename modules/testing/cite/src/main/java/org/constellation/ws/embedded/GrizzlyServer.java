@@ -42,10 +42,7 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.Arrays;
@@ -64,12 +61,9 @@ import org.constellation.dto.Details;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.provider.ProviderFactory;
 
-import static org.constellation.provider.configuration.ProviderParameters.*;
-import static org.constellation.provider.coveragesql.CoverageSQLProviderService.*;
 import static org.constellation.provider.featurestore.FeatureStoreProviderService.SOURCE_CONFIG_DESCRIPTOR;
 import org.constellation.test.utils.TestDatabaseHandler;
 import org.geotoolkit.internal.sql.DefaultDataSource;
-import static org.geotoolkit.utility.parameter.ParametersExt.*;
 import org.geotoolkit.util.sql.DerbySqlScriptRunner;
 
 // Constellation dependencies
@@ -440,28 +434,6 @@ public final class GrizzlyServer {
         if (f.exists()) {
             f.delete();
         }
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName) throws IOException {
-
-        final File dataFile;
-        if (System.getProperty("os.name", "").startsWith("Windows")) {
-            final String windowsIdentifier = resourceName.replace(':', '-');
-            dataFile = new File(dataDirectory, windowsIdentifier + ".xml");
-        } else {
-            dataFile = new File(dataDirectory, resourceName + ".xml");
-        }
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/cite/data/" + resourceName + ".xml");
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 
     /**

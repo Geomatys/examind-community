@@ -18,20 +18,19 @@
  */
 package org.constellation.ws.embedded.wps;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
@@ -41,6 +40,7 @@ import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.test.utils.Order;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
 import org.constellation.ws.embedded.AbstractGrizzlyServer;
@@ -80,11 +80,13 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static File configDirectory;
+    private static Path configDirectory;
+
+    private static final String CONFIG_DIR_NAME = "WPSRequestTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement("WPSRequestTest").toFile();
+        configDirectory = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         controllerConfiguration = WPSControllerConfig.class;
     }
 
@@ -97,11 +99,11 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
                     serviceBusiness.deleteAll();
                 } catch (ConfigurationException ex) {ex.printStackTrace();}
 
-                final File hostedDirectory = new File(configDirectory, "hosted");
-                hostedDirectory.mkdir();
+                final Path hostedDirectory = configDirectory.resolve("hosted");
+                Files.createDirectories(hostedDirectory);
 
-                writeDataFile(hostedDirectory, "inputGeom1.xml");
-                writeDataFile(hostedDirectory, "inputGeom2.xml");
+                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
+                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
 
                 /*publish soap services
                 final WPSService soapService = new WPSService();
@@ -122,21 +124,25 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
                 initialized = true;
             } catch (Exception ex) {
-                Logging.getLogger("org.constellation.ws.embedded.wps").log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
 
     @AfterClass
     public static void shutDown() throws Exception {
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-        if (service != null) {
-            ServiceComplete def = service.getServiceByIdentifierAndType("wps", "default");
-            service.delete(def.getId());
-            ServiceComplete test = service.getServiceByIdentifierAndType("wps", "test");
-            service.delete(test.getId());
+        try {
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                ServiceComplete def = service.getServiceByIdentifierAndType("wps", "default");
+                service.delete(def.getId());
+                ServiceComplete test = service.getServiceByIdentifierAndType("wps", "test");
+                service.delete(test.getId());
+            }
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
-        ConfigDirectory.shutdownTestEnvironement("WPSRequestTest");
         stopServer();
     }
 
@@ -943,22 +949,5 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         Object o = um.unmarshal(is);
         WPSMarshallerPool.getInstance().recycle(um);
         return o;
-    }
-
-    public static void writeDataFile(File dataDirectory, String resourceName) throws IOException {
-
-        final File dataFile = new File(dataDirectory, resourceName);
-
-        FileWriter fw = new FileWriter(dataFile);
-        InputStream in = Util.getResourceAsStream("org/constellation/embedded/test/" + resourceName);
-
-        byte[] buffer = new byte[1024];
-        int size;
-
-        while ((size = in.read(buffer, 0, 1024)) > 0) {
-            fw.write(new String(buffer, 0, size));
-        }
-        in.close();
-        fw.close();
     }
 }

@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.geotoolkit.index.LogicalFilterType;
 import javax.annotation.PostConstruct;
@@ -66,7 +67,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class StopAnalyzerTest extends AbstractAnalyzerTest {
 
-    private static Path configDirectory = Paths.get("StopAnalyzerTest");
+    private static Path configDirectory = Paths.get("StopAnalyzerTest"+ UUID.randomUUID().toString());
 
     private static boolean configured = false;
     
@@ -85,11 +86,15 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (indexSearcher != null) {
-            indexSearcher.destroy();
+        try{
+            if (indexSearcher != null) {
+                indexSearcher.destroy();
+            }
+            SQLRtreeManager.removeTree(indexSearcher.getFileDirectory());
+            IOUtilities.deleteRecursively(configDirectory);
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
         }
-        SQLRtreeManager.removeTree(indexSearcher.getFileDirectory());
-        IOUtilities.deleteRecursively(configDirectory);
     }
     /**
      * Test simple lucene search.

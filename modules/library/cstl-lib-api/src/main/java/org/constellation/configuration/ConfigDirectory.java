@@ -402,13 +402,17 @@ public final class ConfigDirectory {
      */
     private static void deleteRecursively(final Path root) throws IOException {
         if (Files.exists(root)) {
-            if (Files.isRegularFile(root)) {
+            if (!Files.isDirectory(root)) {
                 Files.deleteIfExists(root);
             } else {
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.deleteIfExists(file);
+                        if (!Files.isDirectory(file)) {
+                            Files.deleteIfExists(file);
+                        } else {
+                            deleteRecursively(file);
+                        }
                         return FileVisitResult.CONTINUE;
                     }
 

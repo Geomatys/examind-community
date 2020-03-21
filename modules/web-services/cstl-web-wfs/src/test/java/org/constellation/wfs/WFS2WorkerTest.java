@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
+import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.ProviderType;
@@ -46,7 +48,6 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -95,6 +96,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
+import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.junit.Assert.*;
 
@@ -108,6 +110,8 @@ import static org.junit.Assert.*;
 @DirtiesContext(hierarchyMode = DirtiesContext.HierarchyMode.EXHAUSTIVE,classMode=DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(inheritInitializers = false, locations={"classpath:/cstl/spring/test-context.xml"})
 public class WFS2WorkerTest {
+
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs");
 
     private static final ObjectFactory wfsFactory = new ObjectFactory();
     private static final org.geotoolkit.ogc.xml.v200.ObjectFactory ogcFactory = new org.geotoolkit.ogc.xml.v200.ObjectFactory();
@@ -135,11 +139,13 @@ public class WFS2WorkerTest {
     private static Path shapefiles;
     private static Path geojsons;
 
+    private static final String CONFIG_DIR_NAME = "WFS2WorkerTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
-        File workspace = ConfigDirectory.setupTestEnvironement("WFS2WorkerTest").toFile();
-        shapefiles = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WMS111_SHAPEFILES);
-        geojsons   = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.JSON);
+        Path workspace = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
+        shapefiles = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WMS111_SHAPEFILES);
+        geojsons   = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.JSON);
     }
 
     @PostConstruct
@@ -152,7 +158,7 @@ public class WFS2WorkerTest {
                 providerBusiness.removeAll();
 
                 final DataProviderFactory featfactory = DataProviders.getFactory("data-store");
-                final File outputDir = AbstractGrizzlyServer.initDataDirectory();
+                final Path outputDir = AbstractGrizzlyServer.initDataDirectory();
 
                 /**
                  * SHAPEFILE DATA
@@ -312,18 +318,20 @@ public class WFS2WorkerTest {
             if (provider != null) {
                 provider.removeAll();
             }
-        } catch (ConfigurationException ex) {
-            Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
-        ConfigDirectory.shutdownTestEnvironement("WFS2WorkerTest");
-
-        if (worker != null) {
-            worker.destroy();
-        }
-
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
+        try {
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
+            if (worker != null) {
+                worker.destroy();
+            }
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
     }
 
@@ -354,7 +362,7 @@ public class WFS2WorkerTest {
         String resultCapa   = sw.toString();
         String smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         String fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
-        String expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-ftl.xml");
+        String expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0-ftl.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
@@ -374,7 +382,7 @@ public class WFS2WorkerTest {
         resultCapa   = sw.toString();
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
         fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
@@ -427,7 +435,7 @@ public class WFS2WorkerTest {
 
         resultCapa   = sw.toString();
         fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-om.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0-om.xml");
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
         expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
 
@@ -445,7 +453,7 @@ public class WFS2WorkerTest {
 
         resultCapa   = sw.toString();
         fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-si.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0-si.xml");
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
         expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
 
@@ -463,7 +471,7 @@ public class WFS2WorkerTest {
 
         resultCapa   = sw.toString();
         fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0-sp.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0-sp.xml");
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
         expectedCapa = expectedCapa.replace("fes:", fesPrefix + ':');
 
@@ -481,7 +489,7 @@ public class WFS2WorkerTest {
         resultCapa   = sw.toString();
         fesPrefix    = getAssociatedPrefix(resultCapa, "http://www.opengis.net/fes/2.0");
         smPrefix     = getAssociatedPrefix(resultCapa, "http://www.opengis.net/sampling/1.0");
-        expectedCapa = getResourceString("org.constellation.wfs.xml.WFSCapabilities2-0-0.xml");
+        expectedCapa = getResourceAsString("org/constellation/wfs/xml/WFSCapabilities2-0-0.xml");
         expectedCapa = expectedCapa.replace("xmlns:sampling", "xmlns:" + smPrefix);
         expectedCapa = expectedCapa.replace("sampling:", smPrefix + ':');
         expectedCapa = expectedCapa.replace("xmlns:fes", "xmlns:" + fesPrefix);
@@ -2016,9 +2024,5 @@ public class WFS2WorkerTest {
             return matcher.group(1);
         }
         return null;
-    }
-
-    private String getResourceString(String resource) throws IOException, URISyntaxException {
-        return IOUtilities.toString(IOUtilities.getResourceAsPath(resource));
     }
 }

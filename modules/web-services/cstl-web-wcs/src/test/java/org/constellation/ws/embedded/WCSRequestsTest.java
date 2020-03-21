@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -145,16 +146,17 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final File outputDir = initDataDirectory();
+                final Path rootDir = initDataDirectory();
 
-                final DataProviderFactory covFilefactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = covFilefactory.getProviderDescriptor().createValue();
+                final DataProviderFactory dsfactory = DataProviders.getFactory("data-store");
+                final ParameterValueGroup sourceCF = dsfactory.getProviderDescriptor().createValue();
                 sourceCF.parameter("id").setValue("coverageTestSrc");
                 final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
 
                 final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
 
-                srcCFConfig.parameter("path").setValue(new URL("file:" + outputDir.getAbsolutePath() + "/org/constellation/data/image/SSTMDE200305.png"));
+                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
+                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
                 srcCFConfig.parameter("type").setValue("AUTO");
 
                 providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);

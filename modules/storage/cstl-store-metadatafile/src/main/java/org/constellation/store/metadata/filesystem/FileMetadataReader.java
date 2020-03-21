@@ -267,7 +267,7 @@ public class FileMetadataReader extends DomMetadataReader {
                             final String identifier = getMetadataIdentifier(is);
                             if (identifier != null) {
                                 if (!session.existRecord(identifier)) {
-                                    session.putRecord(identifier, file.toString());
+                                    session.putRecord(identifier, file.toUri().toString());
                                 } else {
                                     LOGGER.warning("File: " + fileName + " excluded, cause: identifier already used");
                                 }

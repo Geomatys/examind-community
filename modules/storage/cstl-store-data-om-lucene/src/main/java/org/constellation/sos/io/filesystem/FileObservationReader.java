@@ -48,7 +48,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +56,6 @@ import java.util.logging.Logger;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -134,6 +132,7 @@ public class FileObservationReader implements ObservationReader {
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(offeringVersionDir)) {
                     for (Path offeringFile : stream) {
                         String offeringName = offeringFile.getFileName().toString();
+                        offeringName = offeringName.replace('µ', ':');
                         offeringName = offeringName.substring(0, offeringName.indexOf(FILE_EXTENSION));
                         offeringNames.add(offeringName);
                     }
@@ -170,7 +169,8 @@ public class FileObservationReader implements ObservationReader {
     public ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
         final Path offeringVersionDir = offeringDirectory.resolve(version);
         if (Files.isDirectory(offeringVersionDir)) {
-            final Path offeringFile = offeringVersionDir.resolve(offeringName + FILE_EXTENSION);
+            String fileName = offeringName.replace(':', 'µ');
+            final Path offeringFile = offeringVersionDir.resolve(fileName + FILE_EXTENSION);
             if (Files.exists(offeringFile)) {
                 try (InputStream is = Files.newInputStream(offeringFile)) {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
@@ -258,6 +258,7 @@ public class FileObservationReader implements ObservationReader {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sensorDirectory)) {
                 for (Path sensorFile : stream) {
                     String sensorName = sensorFile.getFileName().toString();
+                    sensorName = sensorName.replace('µ', ':');
                     sensorName = sensorName.substring(0, sensorName.indexOf(FILE_EXTENSION));
                     sensorNames.add(sensorName);
                 }
@@ -284,6 +285,7 @@ public class FileObservationReader implements ObservationReader {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(phenomenonDirectory)) {
                 for (Path phenomenonFile : stream) {
                     String phenomenonName = phenomenonFile.getFileName().toString();
+                    phenomenonName = phenomenonName.replace('µ', ':');
                     phenomenonName = phenomenonName.substring(0, phenomenonName.indexOf(FILE_EXTENSION));
                     phenomenonNames.add(phenomenonName);
                 }
@@ -324,7 +326,8 @@ public class FileObservationReader implements ObservationReader {
     @Override
     public Phenomenon getPhenomenon(String identifier, String version) throws DataStoreException {
         if (Files.isDirectory(phenomenonDirectory)) {
-            Path phenomenonFile = phenomenonDirectory.resolve(identifier + FILE_EXTENSION);
+            String fileName = identifier.replace(':', 'µ');
+            Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
             if (Files.isRegularFile(phenomenonFile)) {
                 try (InputStream is = Files.newInputStream(phenomenonFile)) {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
@@ -371,7 +374,8 @@ public class FileObservationReader implements ObservationReader {
         if (phenomenonName.contains(phenomenonIdBase)) {
             phenomenonName = phenomenonName.replace(phenomenonIdBase, "");
         }
-        final Path phenomenonFile = phenomenonDirectory.resolve(phenomenonName + FILE_EXTENSION);
+        String fileName = phenomenonName.replace(':', 'µ');
+        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
         return Files.exists(phenomenonFile);
     }
 
@@ -385,6 +389,7 @@ public class FileObservationReader implements ObservationReader {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(foiDirectory)) {
                 for (Path foiFile : stream) {
                     String foiName = foiFile.getFileName().toString();
+                    foiName = foiName.replace('µ', ':');
                     foiName = foiName.substring(0, foiName.indexOf(FILE_EXTENSION));
                     foiNames.add(foiName);
                 }
@@ -400,7 +405,8 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public SamplingFeature getFeatureOfInterest(final String samplingFeatureName, final String version) throws DataStoreException {
-        final Path samplingFeatureFile =foiDirectory.resolve(samplingFeatureName + FILE_EXTENSION);
+        String fileName = samplingFeatureName.replace(':', 'µ');
+        final Path samplingFeatureFile =foiDirectory.resolve(fileName + FILE_EXTENSION);
         if (Files.exists(samplingFeatureFile)) {
             try (InputStream is = Files.newInputStream(samplingFeatureFile)) {
                 final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
@@ -427,9 +433,10 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public Observation getObservation(final String identifier, final QName resultModel, final ResponseModeType mode, final String version) throws DataStoreException {
-        Path observationFile = observationDirectory.resolve(identifier + FILE_EXTENSION);
+        String fileName = identifier.replace(':', 'µ');
+        Path observationFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
         if (!Files.exists(observationFile)) {
-            observationFile = observationTemplateDirectory.resolve(identifier + FILE_EXTENSION);
+            observationFile = observationTemplateDirectory.resolve(fileName + FILE_EXTENSION);
         }
         if (Files.exists(observationFile)) {
             try (InputStream is = Files.newInputStream(observationFile)) {
@@ -457,7 +464,8 @@ public class FileObservationReader implements ObservationReader {
      */
     @Override
     public Object getResult(final String identifier, final QName resultModel, final String version) throws DataStoreException {
-        final Path anyResultFile = observationDirectory.resolve(identifier + FILE_EXTENSION);
+        String fileName = identifier.replace(':', 'µ');
+        final Path anyResultFile = observationDirectory.resolve(fileName + FILE_EXTENSION);
         if (Files.exists(anyResultFile)) {
 
             try (InputStream is = Files.newInputStream(anyResultFile)) {
@@ -492,6 +500,7 @@ public class FileObservationReader implements ObservationReader {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sensorDirectory)) {
                 for (Path sensorFile : stream) {
                     String sensorName = sensorFile.getFileName().toString();
+                    sensorName = sensorName.replace('µ', ':');
                     sensorName = sensorName.substring(0, sensorName.indexOf(FILE_EXTENSION));
                     if (sensorName.equals(href)) {
                         return true;
@@ -515,7 +524,8 @@ public class FileObservationReader implements ObservationReader {
             long i = IOUtilities.listChildren(observationDirectory).size();
             while (exist) {
                 obsID = observationIdBase + i;
-                final Path newFile = observationDirectory.resolve(obsID);
+                String fileName = obsID.replace(':', 'µ');
+                final Path newFile = observationDirectory.resolve(fileName);
                 exist = Files.exists(newFile);
                 i++;
             }

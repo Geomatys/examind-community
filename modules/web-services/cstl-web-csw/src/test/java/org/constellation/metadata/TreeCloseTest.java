@@ -26,7 +26,6 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.ws.MimeType;
-import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.ElementSetType;
 import org.geotoolkit.csw.xml.ResultType;
 import org.geotoolkit.csw.xml.v202.ElementSetNameType;
@@ -47,20 +46,22 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.metadata.CSWworkerTest.LOGGER;
 
-import static org.constellation.metadata.FileSystemCSWworkerTest.writeDataFile;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -90,29 +91,29 @@ public class TreeCloseTest {
 
     private static CSWworker worker;
 
-    private static File configDir;
-    private static File dataDirectory;
+    private static Path configDir;
+    private static Path dataDirectory;
 
     private static FileSystemMetadataStore fsStore1;
 
     private boolean initialized = false;
 
+    private static final String confDirName = "TreeCloseTest" + UUID.randomUUID().toString();
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        configDir = ConfigDirectory.setupTestEnvironement("TreeCloseTest").toFile();
-        File CSWDirectory  = new File(configDir, "data/services/CSW");
-        CSWDirectory.mkdir();
-        final File instDirectory = new File(CSWDirectory, "default");
-        instDirectory.mkdir();
+        configDir                = ConfigDirectory.setupTestEnvironement(confDirName);
+        final Path CSWDirectory  = configDir.resolve("CSW");
+        final Path instDirectory = CSWDirectory.resolve("default");
+        dataDirectory = instDirectory.resolve("data");
+        Files.createDirectories(dataDirectory);
 
         //we write the data files
-        dataDirectory = new File(instDirectory, "data");
-        dataDirectory.mkdir();
-        writeDataFile(dataDirectory, "meta1.xml", "42292_5p_19900609195600");
-        writeDataFile(dataDirectory, "meta2.xml", "42292_9s_19900610041000");
-        writeDataFile(dataDirectory, "meta3.xml", "39727_22_19750113062500");
-        writeDataFile(dataDirectory, "meta4.xml", "11325_158_19640418141800");
-        writeDataFile(dataDirectory, "meta5.xml", "40510_145_19930221211500");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta1.xml", "42292_5p_19900609195600.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta2.xml", "42292_9s_19900610041000.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta3.xml", "39727_22_19750113062500.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta4.xml", "11325_158_19640418141800.xml");
+        writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/meta5.xml", "40510_145_19930221211500.xml");
     }
 
     @PostConstruct
@@ -125,7 +126,7 @@ public class TreeCloseTest {
                 final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
                 LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
                 final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(new File(dataDirectory.getPath()));
+                params.parameter("folder").setValue(dataDirectory);
                 params.parameter("store-id").setValue("testID");
                 Integer pr = providerBusiness.create("TCmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
                 providerBusiness.createOrUpdateData(pr, null, false);
@@ -139,38 +140,50 @@ public class TreeCloseTest {
                 serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider("default", "TCmetadataSrc");
 
-                if (!dataDirectory.isDirectory()) {
+                if (!Files.isDirectory(dataDirectory)) {
                     throw new Exception("the data directory does no longer exist");
                 }
                 worker = new CSWworker("default");
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-        configurer.removeIndex("default");
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-        if (service != null) {
-            service.deleteAll();
-        }
-        final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-        if (provider != null) {
-            provider.removeAll();
-        }
-        final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-        if (mdService != null) {
-            mdService.deleteAllMetadata();
-        }
         if (worker != null) {
             worker.destroy();
         }
-        fsStore1.destroyFileIndex();
-        ConfigDirectory.shutdownTestEnvironement("TreeCloseTest");
+        try {
+            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
+            configurer.removeIndex("default");
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
+        try {
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
+            if (mdService != null) {
+                mdService.deleteAllMetadata();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
+        try {
+            fsStore1.destroyFileIndex();
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
     }
 
     /**

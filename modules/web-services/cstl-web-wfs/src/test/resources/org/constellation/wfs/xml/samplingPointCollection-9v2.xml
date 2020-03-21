@@ -19,7 +19,7 @@
     </wfs:member>
     <wfs:member>
         <sampling:SamplingPoint gml:id="station-005">
-            <gml:description>bouée ds le rhone</gml:description>
+            <gml:description>bouee ds le rhone</gml:description>
             <gml:name>44499X4517-TRUC</gml:name>
             <sampling:sampledFeature>urn:-sandre:object:bdrhf:123X</sampling:sampledFeature>
             <sampling:position>

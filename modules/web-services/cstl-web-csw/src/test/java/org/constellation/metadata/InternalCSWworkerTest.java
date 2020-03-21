@@ -21,6 +21,7 @@
 package org.constellation.metadata;
 
 
+import java.util.UUID;
 import org.constellation.metadata.core.CSWworker;
 import java.util.logging.Level;
 
@@ -37,7 +38,6 @@ import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.Util;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.util.NodeUtilities;
 import org.junit.AfterClass;
@@ -63,10 +63,12 @@ public class InternalCSWworkerTest extends CSWworkerTest {
     private IMetadataBusiness metadataBusiness;
 
     private static boolean initialized = false;
+    
+    private static final String confDirName = "InternalCSWWorkerTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("InternalCSWWorkerTest");
+        ConfigDirectory.setupTestEnvironement(confDirName);
     }
 
     @PostConstruct
@@ -107,30 +109,38 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.metadata").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
+            configurer.removeIndex("default");
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-        configurer.removeIndex("default");
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-        if (service != null) {
-            service.deleteAll();
+        try {
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            if (service != null) {
+                service.deleteAll();
+            }
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            if (provider != null) {
+                provider.removeAll();
+            }
+            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
+            if (mdService != null) {
+                mdService.deleteAllMetadata();
+            }
+            ConfigDirectory.shutdownTestEnvironement(confDirName);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-        if (provider != null) {
-            provider.removeAll();
-        }
-        final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-        if (mdService != null) {
-            mdService.deleteAllMetadata();
-        }
-        ConfigDirectory.shutdownTestEnvironement("InternalCSWWorkerTest");
     }
 
     /**
