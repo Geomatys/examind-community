@@ -1484,36 +1484,37 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             if (req.getId() != null) {
                 String locId = req.getId();
-                String sensorId;
                 Date d = null;
                 int pos = locId.lastIndexOf('-');
 
-                // try to find a historical location
-                if (pos != -1) {
-                    sensorId = locId.substring(0, pos);
-                    String timeStr = locId.substring(pos + 1);
-                    try {
-                        d = new Date(Long.parseLong(timeStr));
-                        List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorId);
-                        for (ProcedureTree proc : procs) {
-                            org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                            if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), sensorId) && proc.getHistoricalLocations().containsKey(d)) {
-                                return buildLocation(req, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
-                            }
-                        }
-                        return null;
-                    } catch (NumberFormatException ex) {
-                        // fal back to sensor location
-                        sensorId = locId;
-                    }
-                } else {
-                    sensorId = locId;
-                }
-
-                // sensor location
-                org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                if (s != null && sensorBusiness.isLinkedSensor(getServiceId(), s.getIdentifier())) {
+                // try to find a sensor location
+                if (sensorBusiness.isLinkedSensor(getServiceId(), locId)) {
+                    final String sensorId = locId;
+                    final org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
                     return buildLocation(req, req.getId(), s, null, null);
+
+                // try to find a historical location
+                } else {
+                    if (pos != -1) {
+                        final String sensorId = locId.substring(0, pos);
+                        String timeStr = locId.substring(pos + 1);
+                        try {
+                            d = new Date(Long.parseLong(timeStr));
+
+                            if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
+                                List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorId);
+                                for (ProcedureTree proc : procs) {
+                                    if (proc.getHistoricalLocations().containsKey(d)) {
+                                        org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                                        return buildLocation(req, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
+                                    }
+                                }
+                            }
+                            return null;
+                        } catch (NumberFormatException ex) {
+                            LOGGER.log(Level.WARNING, "unable to parse a date from historical location id: {0}", timeStr);
+                        }
+                    }
                 }
             }
             return null;
