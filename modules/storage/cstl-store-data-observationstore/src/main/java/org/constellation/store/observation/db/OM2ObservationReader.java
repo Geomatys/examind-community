@@ -570,7 +570,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 stmt.setString(1, sensorID);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
-                        final Date d = rs.getTimestamp(1);
+                        final Date d = new Date(rs.getTimestamp(1).getTime());
                         final byte[] b = rs.getBytes(2);
                         final int srid = rs.getInt(3);
                         final CoordinateReferenceSystem crs;

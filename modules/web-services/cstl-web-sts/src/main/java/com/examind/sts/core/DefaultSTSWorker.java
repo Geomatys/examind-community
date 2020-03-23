@@ -195,6 +195,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.addLink("Observations", selfLink + "/Observations");
         result.addLink("ObservedProperties", selfLink + "/ObservedProperties");
         result.addLink("FeaturesOfInterest", selfLink + "/FeaturesOfInterest");
+        result.addLink("HistoricalLocations", selfLink + "/HistoricalLocations");
         return result;
     }
 

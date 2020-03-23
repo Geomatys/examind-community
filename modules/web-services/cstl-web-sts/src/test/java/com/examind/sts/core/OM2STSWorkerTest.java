@@ -1072,6 +1072,7 @@ public class OM2STSWorkerTest {
         expesult.addLink("Observations", "http://test.geomatys.com/sts/default/Observations");
         expesult.addLink("ObservedProperties", "http://test.geomatys.com/sts/default/ObservedProperties");
         expesult.addLink("FeaturesOfInterest", "http://test.geomatys.com/sts/default/FeaturesOfInterest");
+        expesult.addLink("HistoricalLocations", "http://test.geomatys.com/sts/default/HistoricalLocations");
 
         Assert.assertEquals(expesult, result);
     }
