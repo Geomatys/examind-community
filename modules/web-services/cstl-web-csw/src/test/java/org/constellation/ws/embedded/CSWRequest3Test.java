@@ -85,13 +85,13 @@ import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.csw.xml.v300.RecordType;
 import org.geotoolkit.dublincore.xml.v2.elements.SimpleLiteral;
-import org.apache.sis.storage.DataStoreProvider;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.geotoolkit.storage.DataStores;
 
 import org.junit.BeforeClass;
-import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v300.FederatedSearchResultType;
@@ -142,16 +142,13 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                     LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 }
 
+                final TestResources testResource = initDataDirectory();
+
                 final Path dataDirectory2 = configDirectory.resolve("dataCsw2");
                 Files.createDirectories(dataDirectory2);
                 writeResourceDataFile(dataDirectory2, "org/constellation/embedded/test/urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml", "urn-uuid-e8df05c2-d923-4a05-acce-2b20a27c0e58.xml");
 
-                final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
-                ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory2);
-                params.parameter("store-id").setValue("testID2");
-
-                int pr = providerBusiness.create("metadataSrc2", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                int pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory2, providerBusiness);
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
@@ -165,7 +162,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                 config2.putParameter("collection", "true");
                 config2.putParameter("CSWCascading", "http://localhost:9090/WS/csw/default");
                 Integer csw2Id = serviceBusiness.create("csw", "csw2", config2, d2, null);
-                serviceBusiness.linkCSWAndProvider("csw2", "metadataSrc2");
+                serviceBusiness.linkCSWAndProvider(csw2Id, pr);
                 serviceBusiness.start(csw2Id);
 
                 final Path dataDirectory = configDirectory.resolve("dataCsw");
@@ -189,11 +186,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
                 final Path subDataDirectory2 = Files.createDirectory(dataDirectory.resolve("sub2"));
                 writeResourceDataFile(subDataDirectory2, "org/constellation/embedded/test/urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml", "urn-uuid-a06af396-3105-442d-8b40-22b57a90d2f2.xml");
 
-
-                params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory.toString());
-                params.parameter("store-id").setValue("testID");
-                pr = providerBusiness.create("CRmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness);
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore2 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
@@ -205,7 +198,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
                 final Automatic config = new Automatic();
                 Integer defId = serviceBusiness.create("csw", "default", config, d, null);
-                serviceBusiness.linkCSWAndProvider("default", "CRmetadataSrc");
+                serviceBusiness.linkCSWAndProvider(defId, pr);
                 serviceBusiness.start(defId);
 
                 createDataset("meta1.xml", "42292_5p_19900609195600");

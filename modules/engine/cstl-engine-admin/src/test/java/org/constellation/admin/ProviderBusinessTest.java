@@ -84,7 +84,7 @@ public class ProviderBusinessTest {
         Path path = Files.createTempDirectory("ProviderBusinessTest");
         final URI dataPath = path.toUri();
         config.parameter(FileCoverageProvider.PATH.getName().getCode()).setValue(dataPath);
-        Integer p = pBusiness.create(id, config);
+        Integer p = pBusiness.create(id, IProviderBusiness.SPI_NAMES.DATA_SPI_NAME, config);
         // TODO : Re-activate when auto-generated equals will be done.
         //Assert.assertEquals("Created provider must be equal to read one.", p, pBusiness.getProvider(id));
 

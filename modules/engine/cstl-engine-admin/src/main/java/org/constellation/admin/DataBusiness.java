@@ -755,10 +755,10 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final QName name, final String providerIdentifier,
+    public Integer create(final QName name, final Integer providerId,
                        final String type, final boolean sensorable,
                        final boolean included, final String subType, final String metadataXml) {
-        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml, false, null);
+        return create(name, providerId, type, sensorable, included, null, subType, metadataXml, false, null);
     }
 
     /**
@@ -766,8 +766,8 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml) {
-        return create(name, providerIdentifier, type, sensorable, included, null, subType, metadataXml, false, null);
+    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml) {
+        return create(name, providerId, type, sensorable, included, null, subType, metadataXml, false, null);
     }
 
     /**
@@ -775,9 +775,8 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner) {
-        final Integer provider = providerRepository.findIdForIdentifier(providerIdentifier);
-        if (provider != null) {
+    public Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner) {
+        if (providerId != null) {
             Data data = new Data();
             data.setDate(new Date());
             data.setName(name.getLocalPart());
@@ -790,7 +789,7 @@ public class DataBusiness implements IDataBusiness {
             } else {
                 data.setOwnerId(owner);
             }
-            data.setProviderId(provider);
+            data.setProviderId(providerId);
             data.setSensorable(sensorable);
             data.setType(type);
             data.setSubtype(subType);

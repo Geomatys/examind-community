@@ -24,15 +24,11 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.utils.Order;
 import org.geotoolkit.image.jai.Registry;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 import javax.imageio.ImageIO;
 import javax.imageio.spi.ImageReaderSpi;
@@ -40,24 +36,22 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreProvider;
 
 import org.junit.BeforeClass;
 import org.constellation.dto.DataBrief;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import static org.constellation.api.StatisticState.*;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
-import org.geotoolkit.storage.DataStores;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.junit.Assert;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  * A set of methods that request a Grizzly server which embeds a WMS service.
@@ -72,9 +66,9 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
     private static boolean initialized = false;
 
-    private static final String COVERAGE_PROVIDER = "coverageTestSrc";
-    private static final String SHAPEFILE_PROVIDER = "shapeSrc";
-    private static final String OM_PROVIDER = "omTestSrc";
+    private static Integer coveragePID;
+    private static Integer shapefilePID;
+    private static Integer omPID;
 
     @BeforeClass
     public static void startup() {
@@ -99,52 +93,29 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                 } catch (Exception ex) {}
 
                 // initialize resource file
-                final Path rootDir = AbstractGrizzlyServer.initDataDirectory();
-                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
+                final TestResources testResource = initDataDirectory();
 
-                // coverage-file datastore
-                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue(COVERAGE_PROVIDER);
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                providerBusiness.storeProvider(COVERAGE_PROVIDER, null, ProviderType.LAYER, "data-store", sourceCF);
-                Integer dataId = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
-
+                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer dataId = dataBusiness.create(new QName("SSTMDE200305"), coveragePID, "COVERAGE", false, true, null, null);
 
                 // shapefilefile datastore
-                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue(SHAPEFILE_PROVIDER);
-                final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
-                shpconfig.parameter("path").setValue(shapeDir.toUri());
+                shapefilePID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                providerBusiness.storeProvider(SHAPEFILE_PROVIDER, null, ProviderType.LAYER, "data-store", sourcef);
-
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, null, null);
-                dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     shapefilePID, "VECTOR", false, true, null, null);
+                dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           shapefilePID, "VECTOR", false, true, null, null);
 
                 // observation-file datastore
-                final DataStoreProvider omfactory = DataStores.getProviderById("observationXmlFile");
-                final ParameterValueGroup params = omfactory.getOpenParameters().createValue();
-                final Path obsFile = rootDir.resolve("org/constellation/xml/sos/single-observations.xml");
-                params.parameter("path").setValue(obsFile.toUri().toURL());
-
-                Integer omPID = providerBusiness.create(OM_PROVIDER, IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME,params);
+                omPID = testResource.createProvider(TestResource.OM_XML, providerBusiness);;
                 providerBusiness.createOrUpdateData(omPID, null, false);
 
                 WorldFileImageReader.Spi.registerDefaults(null);
@@ -212,9 +183,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     public void getHistogramRequest() throws Exception {
 
         init();
-        Integer pid = getProviderBusiness().getIDFromIdentifier(COVERAGE_PROVIDER);
-        Assert.assertNotNull("no coverage file provider found", pid);
-        Integer dataId = getDataBusiness().getDataId(new QName("SSTMDE200305"), pid);
+        Assert.assertNotNull("no coverage file provider found", coveragePID);
+        Integer dataId = getDataBusiness().getDataId(new QName("SSTMDE200305"), coveragePID);
         Assert.assertNotNull("no SSTMDE200305 data found", dataId);
 
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/internal/styles/histogram/" + dataId);
@@ -233,9 +203,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     public void generateSensorRequest() throws Exception {
 
         init();
-        Integer pid = getProviderBusiness().getIDFromIdentifier(OM_PROVIDER);
-        Assert.assertNotNull("no OM provider found", pid);
-        List<DataBrief> datas = getDataBusiness().getDataBriefsFromProviderId(pid, null, true, false, null, null, false);
+        Assert.assertNotNull("no observation file provider found", omPID);
+        List<DataBrief> datas = getDataBusiness().getDataBriefsFromProviderId(omPID, null, true, false, null, null, false);
         StringBuilder sb = new StringBuilder();
         if (datas.isEmpty()) {
             sb.append("No data in this provider.");
@@ -243,7 +212,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
             datas.stream().forEach(d ->sb.append('{').append(d.getNamespace()).append('}').append(d.getName()).append(" "));
         }
         System.out.println(sb.toString());
-        Integer dataId = getDataBusiness().getDataId(new QName("http://www.opengis.net/sampling/1.0","single-observations"), pid);
+        Integer dataId = getDataBusiness().getDataId(new QName("http://www.opengis.net/sampling/1.0","single-observations"), omPID);
         Assert.assertNotNull("no single-observations data found", dataId);
 
         final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/sensors/generate/" + dataId);

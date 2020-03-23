@@ -61,6 +61,9 @@ import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.apache.sis.storage.DataStoreProvider;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertEquals;
@@ -123,12 +126,9 @@ public class TreeCloseTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
-                LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory);
-                params.parameter("store-id").setValue("testID");
-                Integer pr = providerBusiness.create("TCmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_FILE, dataDirectory, providerBusiness);
                 providerBusiness.createOrUpdateData(pr, null, false);
                 fsStore1 = (FileSystemMetadataStore) DataProviders.getProvider(pr).getMainStore();
 
@@ -137,8 +137,8 @@ public class TreeCloseTest {
                 configuration.setProfile("discovery");
                 configuration.putParameter("transactionSecurized", "false");
 
-                serviceBusiness.create("csw", "default", configuration, null, null);
-                serviceBusiness.linkCSWAndProvider("default", "TCmetadataSrc");
+                Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
+                serviceBusiness.linkCSWAndProvider(sid, pr);
 
                 if (!Files.isDirectory(dataDirectory)) {
                     throw new Exception("the data directory does no longer exist");

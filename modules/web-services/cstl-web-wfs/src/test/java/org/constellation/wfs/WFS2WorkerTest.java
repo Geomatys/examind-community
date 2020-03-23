@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,7 +41,6 @@ import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -51,14 +49,12 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.FeatureData;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
@@ -66,7 +62,6 @@ import org.constellation.wfs.core.WFSWorker;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.ValueCollectionWrapper;
 import org.constellation.ws.CstlServiceException;
-import org.constellation.ws.embedded.AbstractGrizzlyServer;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
@@ -75,8 +70,6 @@ import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamValueCollectionWriter;
 import org.geotoolkit.gml.xml.v321.DirectPositionType;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v200.*;
 import org.geotoolkit.referencing.CRS;
@@ -88,7 +81,6 @@ import org.geotoolkit.wfs.xml.v200.Title;
 import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -99,6 +91,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
 import static org.junit.Assert.*;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 
 /**
@@ -134,18 +127,11 @@ public class WFS2WorkerTest {
 
     private XmlFeatureWriter featureWriter;
 
-    private XmlFeatureWriter valueWriter;
-
-    private static Path shapefiles;
-    private static Path geojsons;
-
     private static final String CONFIG_DIR_NAME = "WFS2WorkerTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
-        Path workspace = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-        shapefiles = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WMS111_SHAPEFILES);
-        geojsons   = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.JSON);
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -157,82 +143,43 @@ public class WFS2WorkerTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataProviderFactory featfactory = DataProviders.getFactory("data-store");
-                final Path outputDir = AbstractGrizzlyServer.initDataDirectory();
+                final TestResources testResource = initDataDirectory();
 
                 /**
                  * SHAPEFILE DATA
                  */
-                final ParameterValueGroup sourcef = featfactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
-
-                final ParameterValueGroup choice2 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice2.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(shapefiles.toUri());
-
-                providerShpId = providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
+                providerShpId = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
                 if(providerShpId==null){
                     throw new Exception("Failed to create shapefile provider");
                 }
 
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Bridges"),         "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Streams"),         "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Lakes"),           "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d13 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces"),     "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d14 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Buildings"),       "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d15 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "RoadSegments"),    "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d16 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "DividedRoutes"),   "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d17 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Forests"),         "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d18 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, true,null, null);
-                Integer d19 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Ponds"),           "shapeSrc", "VECTOR", false, true, true,null, null);
+                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "BuildingCenters"), providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "BasicPolygons"),   providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Bridges"),         providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Streams"),         providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Lakes"),           providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d13 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "NamedPlaces"),     providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d14 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Buildings"),       providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d15 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "RoadSegments"),    providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d16 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "DividedRoutes"),   providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d17 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Forests"),         providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d18 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "MapNeatline"),     providerShpId, "VECTOR", false, true, true,null, null);
+                Integer d19 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "Ponds"),           providerShpId, "VECTOR", false, true, true,null, null);
 
                 /**
                  * SOS DB DATA
                  */
-                final String url = "jdbc:derby:memory:TestWFS2WorkerOM";
-                final DefaultDataSource ds = new DefaultDataSource(url + ";create=true");
-                final Connection con = ds.getConnection();
-                final DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-                String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-                sql = sql.replace("$SCHEMA", "");
-                sr.run(sql);
-                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-                con.close();
-                ds.shutdown();
-
-                final ParameterValueGroup sourceOM = featfactory.getProviderDescriptor().createValue();
-                sourceOM.parameter("id").setValue("omSrc");
-
-                final ParameterValueGroup choiceOM = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceOM);
-                final ParameterValueGroup omconfig = choiceOM.addGroup("SOSDBParameters");
-                omconfig.parameter("sgbdtype").setValue("derby");
-                omconfig.parameter("derbyurl").setValue(url);
-
-                providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
-                Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
+                Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
 
                 /**
                  * GEOJSON DATA
                  */
-                final ParameterValueGroup sourcegjs = featfactory.getProviderDescriptor().createValue();
-                sourcegjs.parameter("id").setValue("geojsonSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcegjs);
-                final ParameterValueGroup gjsconfig = choice3.addGroup("GeoJSONParameters");
-                gjsconfig.parameter("path").setValue(geojsons.resolve("feature.json").toUri());
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                Integer d21 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "feature"), pid, "VECTOR", false, true, true, null, null);
 
-                providerBusiness.storeProvider("geojsonSrc", null, ProviderType.LAYER, "data-store", sourcegjs);
-                Integer d21 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "feature"), "geojsonSrc", "VECTOR", false, true, true, null, null);
-
-                final ParameterValueGroup sourcegjs2 = featfactory.getProviderDescriptor().createValue();
-                sourcegjs2.parameter("id").setValue("geojsonSrc2");
-                final ParameterValueGroup choice4 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcegjs2);
-                final ParameterValueGroup gjsconfig2 = choice4.addGroup("GeoJSONParameters");
-                gjsconfig2.parameter("path").setValue(geojsons.resolve("featureCollection.json").toUri());
-
-                providerBusiness.storeProvider("geojsonSrc2", null, ProviderType.LAYER, "data-store", sourcegjs2);
-                Integer d22 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "featureCollection"), "geojsonSrc2", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness);
+                Integer d22 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "featureCollection"), pid, "VECTOR", false, true, true, null, null);
 
 
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","BuildingCenters"));

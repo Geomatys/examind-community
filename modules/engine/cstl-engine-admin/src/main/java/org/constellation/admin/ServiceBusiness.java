@@ -732,17 +732,11 @@ public class ServiceBusiness implements IServiceBusiness {
 
     @Override
     @Transactional
-    public void linkCSWAndProvider(String serviceID, String providerID) {
-        final Integer service   = serviceRepository.findIdByIdentifierAndType(serviceID, "csw");
-        final Integer provider = providerRepository.findIdForIdentifier(providerID);
-        if (service != null && provider != null) {
-            if (!serviceRepository.isLinkedMetadataProviderAndService(service, provider)) {
-                serviceRepository.linkMetadataProvider(service, provider, true);
+    public void linkCSWAndProvider(Integer serviceID, Integer providerID) {
+        if (serviceID != null && providerID != null) {
+            if (!serviceRepository.isLinkedMetadataProviderAndService(serviceID, providerID)) {
+                serviceRepository.linkMetadataProvider(serviceID, providerID, true);
             }
-        } else if (service == null) {
-            LOGGER.log(Level.WARNING, "Unexisting service:{0}", serviceID);
-        } else if (provider == null) {
-            LOGGER.log(Level.WARNING, "Unexisting provider:{0}", providerID);
         }
     }
 

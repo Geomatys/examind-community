@@ -27,12 +27,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.ProviderType;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.ProviderBrief;
 import static org.constellation.dto.service.config.DataSourceType.FILESYSTEM;
@@ -42,10 +41,12 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
+import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
+import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.SensorProvider;
-import org.geotoolkit.storage.DataStores;
+import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -118,11 +119,16 @@ public class SensorConfigurationUpgrade {
                         }
 
                         if (providerID == null) {
-                            final DataStoreProvider factory = DataStores.getProviderById("filesensor");
-                            final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                            params.parameter("data_directory").setValue(smlConf.getDataDirectory());
+                            final String providerIdentifier = UUID.randomUUID().toString();
+                            final DataProviderFactory factory = DataProviders.getFactory("sensor-store");
+                            final ParameterValueGroup sourcef = factory.getProviderDescriptor().createValue();
+                            sourcef.parameter("id").setValue(providerIdentifier);
 
-                            providerID = providerBusiness.create(UUID.randomUUID().toString(), SPI_NAMES.SENSOR_SPI_NAME, params);
+                            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), sourcef);
+                            final ParameterValueGroup fsConfig = choice.addGroup("filesensor");
+                            fsConfig.parameter("data_directory").setValue(smlConf.getDataDirectory());
+
+                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.SENSOR, "sensor-store", fsConfig);
                             try {
                                 providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {
@@ -178,21 +184,24 @@ public class SensorConfigurationUpgrade {
                         }
 
                         if (providerID == null) {
-                            final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
-                            final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
+                            String providerIdentifier = UUID.randomUUID().toString();
+                            final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
+                            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
+                            source.parameter("id").setValue(providerIdentifier);
+                            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
 
+                            final ParameterValueGroup dbConfig = choice.addGroup("observationSOSDatabase");
                             dbConfig.parameter("sgbdtype").setValue("postgres");
                             dbConfig.parameter("host").setValue(omConf.getBdd().getHostName());
                             dbConfig.parameter("database").setValue(omConf.getBdd().getDatabaseName());
                             dbConfig.parameter("user").setValue(omConf.getBdd().getUser());
                             dbConfig.parameter("password").setValue(omConf.getBdd().getPassword());
+                            dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+                            dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+                            dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+                            dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
 
-                            dbConfig.parameter("phenomenon-id-base").setValue(config.getPhenomenonIdBase());
-                            dbConfig.parameter("observation-template-id-base").setValue(config.getObservationTemplateIdBase());
-                            dbConfig.parameter("observation-id-base").setValue(config.getObservationIdBase());
-                            dbConfig.parameter("sensor-id-base").setValue(config.getSensorIdBase());
-
-                           providerID = providerBusiness.create(UUID.randomUUID().toString(), dbConfig);
+                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "observation-store", source);
                         }
 
                         serviceBusiness.linkServiceAndProvider(id, providerID);

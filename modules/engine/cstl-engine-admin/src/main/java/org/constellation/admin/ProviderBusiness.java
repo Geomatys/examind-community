@@ -327,15 +327,6 @@ public class ProviderBusiness implements IProviderBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final String id, ParameterValueGroup spiConfiguration) throws ConfigurationException {
-        return create(id, SPI_NAMES.DATA_SPI_NAME, spiConfiguration);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
     public Integer create(final String id, SPI_NAMES spiName, ParameterValueGroup spiConfiguration) throws ConfigurationException {
         if (getIDFromIdentifier(id) != null) {
             throw new ConfigurationException("A provider already exists for name "+id);
@@ -1172,7 +1163,7 @@ public class ProviderBusiness implements IProviderBusiness {
                 }
 
                 Integer dataId = dataBusiness.create(name,
-                        pr.getIdentifier(), type.name(), provider.isSensorAffectable(),
+                        pr.getId(), type.name(), provider.isSensorAffectable(),
                         included, rendered, subType, null, hideNewData, owner);
 
 

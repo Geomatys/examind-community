@@ -25,10 +25,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -37,14 +35,15 @@ import org.constellation.sos.io.lucene.LuceneObservationIndexer;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 /**
  *
@@ -173,15 +172,9 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSLucene");
-                final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
-                dbConfig.parameter("data-directory").setValue(instDirectory);
-                dbConfig.parameter("config-directory").setValue(configDir);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer pid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pid = testResource.createProviderWithPath(TestResource.OM_LUCENE, configDir, providerBusiness);
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("transactional");

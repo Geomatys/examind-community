@@ -26,9 +26,6 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.featureinfo.CSVFeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.process.ExamindProcessFactory;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ProviderParameters;
 import org.constellation.util.DataReference;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -37,23 +34,24 @@ import org.geotoolkit.process.ProcessFinder;
 import org.junit.*;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.NoSuchIdentifierException;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.List;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.StyleReference;
 import org.geotoolkit.util.NamesExt;
 import org.constellation.exception.ConstellationException;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -67,7 +65,7 @@ import static org.junit.Assert.assertTrue;
 public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
     private static final String PROCESS_NAME = "service.add_layer";
-    private static final DataReference COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, "shapeProvider", "Countries");
+    private static DataReference COUNTRIES_DATA_REF;
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
     private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
 
@@ -77,37 +75,12 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     public void createProvider() throws ConfigurationException, IOException, URISyntaxException {
 
         //setup data
-        Path shapes = workingDirectory.resolve("data/shapefiles");
-        if (!Files.exists(shapes)) {
-            shapes = IOUtilities.copyResource("data/shapefiles", null, workingDirectory, true);
-        }
-
-        ParameterDescriptorGroup sourceDesc = null;
-        DataProviderFactory service = null;
-        final Collection<DataProviderFactory> availableLayerServices = DataProviders.getFactories();
-        for (DataProviderFactory tmpService: availableLayerServices) {
-            if ("data-store".equals(tmpService.getName())) {
-                service = tmpService;
-            }
-        }
-        sourceDesc = service.getProviderDescriptor();
-
-
-        final ParameterValueGroup sourceValue = sourceDesc.createValue();
-        sourceValue.parameter(ProviderParameters.SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("shapeProvider");
-
-        final ParameterValueGroup choiceValue = sourceValue.groups("choice").get(0);
-        final ParameterValueGroup shapefileValue = choiceValue.addGroup("ShapefileParametersFolder");
-        shapefileValue.parameter("path").setValue(shapes.toUri());
-        shapefileValue.parameter("recursive").setValue(true);
-        shapefileValue.parameter("memory mapped buffer").setValue(true);
-        shapefileValue.parameter("create spatial index").setValue(true);
-        shapefileValue.parameter("charset").setValue(Charset.forName("UTF-8"));
-        shapefileValue.parameter("load qix").setValue(true);
-
-        providerId = providerBusiness.create("shapeProvider", service.getName(), sourceValue);
+        final TestResources testResource = initDataDirectory();
+        providerId = testResource.createProvider(TestResource.SHAPEFILES, providerBusiness);
         try {
             providerBusiness.createOrUpdateData(providerId, null, true);
+            ProviderBrief pb = providerBusiness.getProvider(providerId);
+            COUNTRIES_DATA_REF = DataReference.createProviderDataReference(DataReference.PROVIDER_LAYER_TYPE, pb.getIdentifier(), "Countries");
         } catch (IOException | ConstellationException ex) {
             throw new ConfigurationException(ex.getMessage(),ex);
         }
@@ -115,7 +88,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
 
     @After
     public void destroyProvider() throws ConfigurationException {
-        providerBusiness.removeProvider("shapeProvider");
+        providerBusiness.removeProvider(providerId);
     }
 
     @AfterClass

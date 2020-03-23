@@ -22,7 +22,6 @@ package org.constellation.map.ws.rs;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -41,7 +40,6 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -49,15 +47,12 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.map.core.QueryContext;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConstellationException;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
+import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.ws.Worker;
-import org.constellation.ws.embedded.AbstractGrizzlyServer;
 import org.constellation.ws.rs.AbstractWebService;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.wms.xml.GetFeatureInfo;
@@ -70,13 +65,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.geometry.Envelope;
-import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  * Testing wms service value parsing.
@@ -107,7 +102,7 @@ public class WMSServiceTest {
 
     private static final Map<String, String[]> kvpMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static boolean initialized = false;
-    
+
     private static final String confDirName = "WMSServiceTest" + UUID.randomUUID().toString();
 
     @BeforeClass
@@ -129,43 +124,26 @@ public class WMSServiceTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
+                final TestEnvironment.TestResources testResource = initDataDirectory();
+
                 // coverage-file datastore
-                final Path rootDir                  = AbstractGrizzlyServer.initDataDirectory();
-                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF  = dsFactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
+                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer d = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
 
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
+                pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
-                Integer d = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, null, null);
-
-                final ParameterValueGroup sourcef = dsFactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
-
-                final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
-                shpconfig.parameter("path").setValue(shapeDir.toUri());
-                providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
-
-                Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d2  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d3  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d4  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d5  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d6  = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d7  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, true, null, null);
+                Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
+                Integer d2  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d3  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d4  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d5  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d6  = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d7  = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       pid, "VECTOR", false, true, true, null, null);
+                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
+                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 

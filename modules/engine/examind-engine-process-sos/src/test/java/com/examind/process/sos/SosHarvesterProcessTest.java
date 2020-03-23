@@ -21,7 +21,6 @@ package com.examind.process.sos;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -29,7 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.WSEngine;
 import org.constellation.business.IDatasetBusiness;
@@ -45,14 +43,13 @@ import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.sos.xml.Capabilities;
@@ -63,7 +60,6 @@ import org.geotoolkit.sos.xml.v200.GetObservationResponseType;
 import org.geotoolkit.sos.xml.v200.GetObservationType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.v200.DataArrayPropertyType;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -90,10 +86,6 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 public class SosHarvesterProcessTest {
 
     private static final Logger LOGGER = Logging.getLogger("com.examind.process.sos");
-
-    private static DefaultDataSource ds = null;
-
-    private static String url;
 
     private static boolean initialized = false;
 
@@ -123,17 +115,6 @@ public class SosHarvesterProcessTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        url = "jdbc:derby:memory:SosHarvesterProcess;create=true";
-        ds = new DefaultDataSource(url);
-
-        Connection con = ds.getConnection();
-
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.setEncoding("UTF-8");
-        String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sql = sql.replace("$SCHEMA", "");
-        sr.run(sql);
-
 
         final Path configDir = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         Path dataDirectory  = configDir.resolve("data");
@@ -169,15 +150,9 @@ public class SosHarvesterProcessTest {
                 providerBusiness.removeAll();
                 datasourceBusiness.deleteAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
-                final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
-                dbConfig.parameter("sgbdtype").setValue("derby");
-                dbConfig.parameter("derbyurl").setValue(url);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer pid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -206,9 +181,6 @@ public class SosHarvesterProcessTest {
             File mappingFile = new File("mapping.properties");
             if (mappingFile.exists()) {
                 mappingFile.delete();
-            }
-            if (ds != null) {
-                ds.shutdown();
             }
             ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {

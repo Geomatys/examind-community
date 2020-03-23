@@ -23,28 +23,23 @@ import java.io.File;
 import java.sql.Connection;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Unmarshaller;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -83,20 +78,9 @@ public class GenericPostgridSOS2WorkerTest extends SOS2WorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-                Unmarshaller unmarshaller = pool.acquireUnmarshaller();
-                Automatic OMConfiguration = (Automatic) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/sos/generic-config.xml"));
-                OMConfiguration.getBdd().setConnectURL(url);
-                pool.recycle(unmarshaller);
+                final TestResources testResource = initDataDirectory();
 
-                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSGeneric");
-                final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
-                dbConfig.parameter("Configuration").setValue(OMConfiguration);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer omPid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer omPid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();

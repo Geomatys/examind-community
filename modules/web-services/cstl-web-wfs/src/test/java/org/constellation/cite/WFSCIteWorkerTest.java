@@ -21,7 +21,6 @@ package org.constellation.cite;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,16 +37,11 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.api.ProviderType;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.Details;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
-import static org.constellation.provider.ProviderParameters.SOURCE_ID_DESCRIPTOR;
-import static org.constellation.provider.ProviderParameters.getOrCreate;
-import static org.constellation.provider.datastore.DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.constellation.wfs.core.WFSWorker;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
@@ -73,12 +67,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 
 /**
@@ -108,18 +102,9 @@ public class WFSCIteWorkerTest {
 
     private static boolean initialized = false;
 
-    private static Path primitive;
-    private static Path entity;
-    private static Path aggregate;
-    private static Path citeGmlsf0;
-
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
-        Path workspace = ConfigDirectory.setupTestEnvironement("WFSCiteWorkerTest");
-        primitive = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_PRIMITIVE);
-        entity = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_ENTITY);
-        aggregate = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_AGGREGATE);
-        citeGmlsf0 = TestEnvironment.initWorkspaceData(workspace, TestEnvironment.TestResources.WFS110_CITE_GMLSF0);
+        ConfigDirectory.setupTestEnvironement("WFSCiteWorkerTest");
     }
 
     @PostConstruct
@@ -131,51 +116,18 @@ public class WFSCIteWorkerTest {
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
+                final TestResources testResource = initDataDirectory();
 
-                final DataProviderFactory factory = DataProviders.getFactory("data-store");
-
-                // Defines a GML data provider
-                ParameterValueGroup source = factory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("primGMLSrc");
-
-                ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                ParameterValueGroup pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(primitive.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("PrimitiveGeoFeature");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-
-                providerBusiness.storeProvider("primGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), "primGMLSrc", "VECTOR", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness);
+                Integer d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
 
 
-                source = factory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("entGMLSrc");
-
-                choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(entity.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("EntitéGénérique");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-                providerBusiness.storeProvider("entGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),     "entGMLSrc", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.WFS110_ENTITY, providerBusiness);
+                Integer d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"), pid, "VECTOR", false, true, true, null, null);
 
 
-                source = factory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("aggGMLSrc");
-
-                choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(aggregate.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("AggregateGeoFeature");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-                providerBusiness.storeProvider("aggGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), "aggGMLSrc", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness);
+                Integer d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
 
 
                 final LayerContext config = new LayerContext();

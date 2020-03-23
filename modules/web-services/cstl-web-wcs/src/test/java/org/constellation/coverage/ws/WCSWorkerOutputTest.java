@@ -54,8 +54,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.awt.image.RenderedImage;
 import java.io.File;
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,18 +67,14 @@ import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
-import org.constellation.ws.embedded.AbstractGrizzlyServer;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import org.geotoolkit.image.jai.Registry;
 import org.junit.AfterClass;
@@ -92,11 +86,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 
 /**
@@ -150,22 +144,10 @@ public class WCSWorkerOutputTest {
                 providerBusiness.removeAll();
 
                 // coverage-sql datastore
-                final Path rootDir = AbstractGrizzlyServer.initDataDirectory();
+                final TestResources testResource = initDataDirectory();
 
-                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = dsFactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
-
-                Integer did = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 

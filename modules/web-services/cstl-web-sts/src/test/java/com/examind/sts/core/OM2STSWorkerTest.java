@@ -19,7 +19,6 @@
 package com.examind.sts.core;
 
 import java.io.File;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,27 +29,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.xml.bind.Marshaller;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
-import org.constellation.util.Util;
 import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
@@ -83,7 +77,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -107,10 +100,6 @@ public class OM2STSWorkerTest {
     @Inject
     protected ISensorBusiness sensorBusiness;
 
-    private static DefaultDataSource ds = null;
-
-    private static String url;
-
     private static boolean initialized = false;
 
     protected static STSWorker worker;
@@ -123,25 +112,7 @@ public class OM2STSWorkerTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        url = "jdbc:derby:memory:OM2STSTest2;create=true";
-        ds = new DefaultDataSource(url);
-
-        Connection con = ds.getConnection();
-
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.setEncoding("UTF-8");
-        String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sql = sql.replace("$SCHEMA", "");
-        sr.run(sql);
-        sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-
-
-        MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-        Marshaller marshaller =  pool.acquireMarshaller();
-
         ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
-
-        pool.recycle(marshaller);
     }
 
     @PostConstruct
@@ -153,15 +124,9 @@ public class OM2STSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
-                final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
-                dbConfig.parameter("sgbdtype").setValue("derby");
-                dbConfig.parameter("derbyurl").setValue(url);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer pid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pid = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
 
                 //we write the configuration file
                 final SOSConfiguration configuration = new SOSConfiguration();
@@ -171,25 +136,23 @@ public class OM2STSWorkerTest {
                 Integer sid = serviceBusiness.create("sts", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, pid);
 
-                final DataStoreProvider senfactory = DataStores.getProviderById("cstlsensor");
-                final ParameterValueGroup params = senfactory.getOpenParameters().createValue();
-                Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                pid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/component.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/system3.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/system4.xml", sensorBusiness);
-                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, provider);
+                sensorBusiness.create("urn:ogc:object:sensor:GEOM:8", "system", "timeseries", null, sml, Long.MIN_VALUE, pid);
 
-                serviceBusiness.linkServiceAndProvider(sid, provider);
+                serviceBusiness.linkServiceAndProvider(sid, pid);
 
-                List<Sensor> sensors = sensorBusiness.getByProviderId(provider);
+                List<Sensor> sensors = sensorBusiness.getByProviderId(pid);
                 sensors.stream().forEach((sensor) -> {
                     sensorBusiness.addSensorToService(sid, sensor.getId());
                 });
@@ -216,9 +179,6 @@ public class OM2STSWorkerTest {
             File mappingFile = new File("mapping.properties");
             if (mappingFile.exists()) {
                 mappingFile.delete();
-            }
-            if (ds != null) {
-                ds.shutdown();
             }
             ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {

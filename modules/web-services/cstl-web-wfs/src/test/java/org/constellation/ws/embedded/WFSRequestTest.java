@@ -29,18 +29,12 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.test.utils.Order;
-import org.constellation.test.utils.TestEnvironment;
-import org.constellation.util.Util;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v110.FeatureIdType;
 import org.geotoolkit.ows.xml.v110.ExceptionReport;
@@ -79,8 +73,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Path;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -95,16 +87,10 @@ import org.geotoolkit.wfs.xml.v200.CreatedOrModifiedFeatureType;
 import org.geotoolkit.wfs.xml.v200.DropStoredQueryResponseType;
 import org.geotoolkit.wfs.xml.v200.StoredQueryListItemType;
 import org.constellation.provider.DataProvider;
-import static org.constellation.provider.ProviderParameters.SOURCE_ID_DESCRIPTOR;
-import static org.constellation.provider.ProviderParameters.getOrCreate;
-import static org.constellation.provider.datastore.DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR;
 import org.constellation.test.utils.TestDatabaseHandler;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
-import static org.geotoolkit.db.AbstractJDBCFeatureStoreFactory.DATABASE;
-import static org.geotoolkit.db.AbstractJDBCFeatureStoreFactory.HOST;
-import static org.geotoolkit.db.AbstractJDBCFeatureStoreFactory.PASSWORD;
-import static org.geotoolkit.db.AbstractJDBCFeatureStoreFactory.SCHEMA;
-import static org.geotoolkit.db.AbstractJDBCFeatureStoreFactory.USER;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -114,7 +100,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
@@ -176,23 +162,12 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static boolean localdb_active = true;
 
-    private static Path primitive;
-    private static Path entity;
-    private static Path aggregate;
-    private static Path citeGmlsf0;
-    private static Path shapefiles;
-
-    private static final String confDirName = "WFSRequestTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "WFSRequestTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() throws IOException, URISyntaxException {
         controllerConfiguration = WFSControllerConfig.class;
-        File workspace = ConfigDirectory.setupTestEnvironement(confDirName).toFile();
-        primitive = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_PRIMITIVE);
-        entity = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_ENTITY);
-        aggregate = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_AGGREGATE);
-        citeGmlsf0 = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WFS110_CITE_GMLSF0);
-        shapefiles = TestEnvironment.initWorkspaceData(workspace.toPath(), TestEnvironment.TestResources.WMS111_SHAPEFILES);
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
@@ -209,130 +184,52 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final Path rootDir = initDataDirectory();
-
-                final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+                final TestResources testResource = initDataDirectory();
 
                 // Defines a PostGis data provider
                 localdb_active = TestDatabaseHandler.hasLocalDatabase();
                 Integer d1 = null,d2 = null,d3 = null, d4 = null;
                 if (localdb_active) {
-                    final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
-                    source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("postgisSrc");
-
-                    final ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                    final ParameterValueGroup pgconfig = choice.addGroup("PostgresParameters");
-                    pgconfig.parameter(DATABASE .getName().getCode()).setValue(TestDatabaseHandler.testProperties.getProperty("feature_db_name"));
-                    pgconfig.parameter(HOST     .getName().getCode()).setValue(TestDatabaseHandler.testProperties.getProperty("feature_db_host"));
-                    pgconfig.parameter(SCHEMA   .getName().getCode()).setValue(TestDatabaseHandler.testProperties.getProperty("feature_db_schema"));
-                    pgconfig.parameter(USER     .getName().getCode()).setValue(TestDatabaseHandler.testProperties.getProperty("feature_db_user"));
-                    pgconfig.parameter(PASSWORD .getName().getCode()).setValue(TestDatabaseHandler.testProperties.getProperty("feature_db_pass"));
-
-                    //add a custom sql query layer
-                    final ParameterValueGroup layer = source.addGroup("Layer");
-                    layer.parameter("name").setValue("CustomSQLQuery");
-                    layer.parameter("language").setValue("CUSTOM-SQL");
-                    layer.parameter("statement").setValue("SELECT name as nom, \"pointProperty\" as geom FROM \"PrimitiveGeoFeature\" ");
-
-                    providerBusiness.storeProvider("postgisSrc", null, ProviderType.LAYER, "data-store", source);
-
-                    d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "AggregateGeoFeature"), "postgisSrc", "VECTOR", false, true, true, null, null);
-                    d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "PrimitiveGeoFeature"), "postgisSrc", "VECTOR", false, true, true, null, null);
-                    d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "EntitéGénérique"),     "postgisSrc", "VECTOR", false, true, true, null, null);
-                    d4 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "CustomSQLQuery"),      "postgisSrc", "VECTOR", false, true, true, null, null);
+                    Integer pid = testResource.createProvider(TestResource.FEATURE_DATABASE, providerBusiness);
+                    d1 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
+                    d2 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
+                    d3 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "EntitéGénérique"),     pid, "VECTOR", false, true, true, null, null);
+                    d4 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf2", "CustomSQLQuery"),      pid, "VECTOR", false, true, true, null, null);
                 }
 
                 // Defines a GML data provider
-                ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("primGMLSrc");
-
-                ParameterValueGroup choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                ParameterValueGroup pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(primitive.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("PrimitiveGeoFeature");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-
-                providerBusiness.storeProvider("primGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d5 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), "primGMLSrc", "VECTOR", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.WFS110_PRIMITIVE, providerBusiness);
+                Integer d5 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "PrimitiveGeoFeature"), pid, "VECTOR", false, true, true, null, null);
 
 
-                source = dsFactory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("entGMLSrc");
-
-                choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(entity.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("EntitéGénérique");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-                providerBusiness.storeProvider("entGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d6 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),     "entGMLSrc", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.WFS110_ENTITY, providerBusiness);
+                Integer d6 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "EntitéGénérique"),  pid, "VECTOR", false, true, true, null, null);
 
 
-                source = dsFactory.getProviderDescriptor().createValue();
-                source.parameter(SOURCE_ID_DESCRIPTOR.getName().getCode()).setValue("aggGMLSrc");
-
-                choice = getOrCreate(SOURCE_CONFIG_DESCRIPTOR,source);
-                pgconfig = choice.addGroup("gml");
-                pgconfig.parameter("path").setValue(aggregate.toUri());
-                pgconfig.parameter("sparse").setValue(Boolean.TRUE);
-                pgconfig.parameter("xsd").setValue(citeGmlsf0.toUri().toURL());
-                pgconfig.parameter("xsdtypename").setValue("AggregateGeoFeature");
-                pgconfig.parameter("longitudeFirst").setValue(Boolean.TRUE);
-                int pid = providerBusiness.storeProvider("aggGMLSrc", null, ProviderType.LAYER, "data-store", source);
-                Integer d7 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), "aggGMLSrc", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.WFS110_AGGREGATE, providerBusiness);
+                Integer d7 = dataBusiness.create(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature"), pid, "VECTOR", false, true, true, null, null);
 
                 DataProvider d = DataProviders.getProvider(pid);
                 d.getKeys();
 
 
-                final ParameterValueGroup sourcef = dsFactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
+                pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
-                final ParameterValueGroup choice2 = getOrCreate(SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice2.addGroup("ShapefileParametersFolder");
+                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true, null, null);
+                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           pid, "VECTOR", false, true, true, null, null);
+                Integer d13 = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d14 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       pid, "VECTOR", false, true, true, null, null);
+                Integer d15 = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    pid, "VECTOR", false, true, true, null, null);
+                Integer d16 = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   pid, "VECTOR", false, true, true, null, null);
+                Integer d17 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         pid, "VECTOR", false, true, true, null, null);
+                Integer d18 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true, null, null);
+                Integer d19 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true, null, null);
 
-                shpconfig.parameter("path").setValue(shapefiles.toUri());
-
-                providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
-
-                Integer d8  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d9  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BasicPolygons"),   "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d10 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Bridges"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Streams"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Lakes"),           "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d13 = dataBusiness.create(new QName("http://www.opengis.net/gml", "NamedPlaces"),     "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d14 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Buildings"),       "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d15 = dataBusiness.create(new QName("http://www.opengis.net/gml", "RoadSegments"),    "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d16 = dataBusiness.create(new QName("http://www.opengis.net/gml", "DividedRoutes"),   "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d17 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Forests"),         "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d18 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     "shapeSrc", "VECTOR", false, true, true, null, null);
-                Integer d19 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           "shapeSrc", "VECTOR", false, true, true, null, null);
-
-                final String url = "jdbc:derby:memory:TestWFSRequestOM";
-                final DefaultDataSource ds = new DefaultDataSource(url + ";create=true");
-                Connection con = ds.getConnection();
-                DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-                String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-                sql = sql.replace("$SCHEMA", "");
-                sr.run(sql);
-                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-                con.close();
-                ds.shutdown();
-
-                final ParameterValueGroup sourceOM = dsFactory.getProviderDescriptor().createValue();
-                sourceOM.parameter("id").setValue("omSrc");
-
-                final ParameterValueGroup choiceOM = getOrCreate(SOURCE_CONFIG_DESCRIPTOR, sourceOM);
-                final ParameterValueGroup omconfig = choiceOM.addGroup("SOSDBParameters");
-                omconfig.parameter("sgbdtype").setValue("derby");
-                omconfig.parameter("derbyurl").setValue(url);
-
-                providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
-                Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, true, null, null);
+                pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
+                Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -451,7 +348,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
             File f = new File("derby.log");
             if (f.exists()) {
                 f.delete();

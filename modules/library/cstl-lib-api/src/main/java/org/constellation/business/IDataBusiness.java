@@ -74,7 +74,7 @@ public interface IDataBusiness {
      * TODO seems only used by Junit tests, should not be public in DataBusiness API.
      *
      * @param name data name to create.
-     * @param providerIdentifier provider identifier.
+     * @param providerId provider identifier.
      * @param type data type.
      * @param sensorable flag that indicates if data is sensorable.
      * @param included flag that indicates if data is included.
@@ -83,12 +83,12 @@ public interface IDataBusiness {
      * @deprecated seems only used by Junit tests use {@link #create(javax.xml.namespace.QName, String, String, boolean, boolean, Boolean, String, String)}
      * instead.
      */
-    Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, String subType, String metadataXml);
+    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, String subType, String metadataXml);
 
     /**
      * Proceed to create a new data for given parameters.
      * @param name data name to create.
-     * @param providerIdentifier provider identifier.
+     * @param providerId provider identifier.
      * @param type data type.
      * @param sensorable flag that indicates if data is sensorable.
      * @param included flag that indicates if data is included.
@@ -96,12 +96,12 @@ public interface IDataBusiness {
      * @param subType data subType.
      * @param metadataXml metadata of data.
      */
-    Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml);
+    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml);
 
     /**
      * Proceed to create a new data for given parameters.
      * @param name data name to create.
-     * @param providerIdentifier provider identifier.
+     * @param providerId provider identifier.
      * @param type data type.
      * @param sensorable flag that indicates if data is sensorable.
      * @param included flag that indicates if data is included.
@@ -111,7 +111,7 @@ public interface IDataBusiness {
      * @param hidden flag that indicates if data is hidden.
      * @param owner the owner id, or {@code null} if you want to use the current logged user.
      */
-    Integer create(QName name, String providerIdentifier, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner);
+    Integer create(QName name, Integer providerId, String type, boolean sensorable, boolean included, Boolean rendered, String subType, String metadataXml, boolean hidden, Integer owner);
 
     /**
      * Proceed to remove data for given provider.

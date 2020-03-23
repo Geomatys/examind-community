@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.test.utils.TestEnvironment;
 import org.constellation.util.Util;
 import org.geotoolkit.image.io.XImageIO;
 
@@ -42,13 +41,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -424,25 +419,6 @@ public abstract class AbstractGrizzlyServer {
 //            assumeNoException(ex);
 //        }
         return image;
-    }
-
-    /**
-     * Initializes the data directory in unzipping the jar containing the resources
-     * into a temporary directory.
-     *
-     * @return The root output directory where the data are unzipped.
-     * @throws IOException
-     */
-    public static Path initDataDirectory() throws IOException {
-        final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
-        Path outputDir = tmpDir.resolve("Constellation");
-        Files.createDirectories(outputDir);
-        try {
-            TestEnvironment.initWorkspaceData(outputDir);
-        } catch (URISyntaxException e) {
-            throw new IOException(e.getMessage(), e);
-        }
-        return outputDir;
     }
 
     protected static void postRequestObject(URLConnection conec, Object request) throws IOException, JAXBException {

@@ -38,8 +38,11 @@ import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
-import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.storage.DataStores;
+import org.constellation.api.ProviderType;
+import org.constellation.business.IMetadataBusiness;
+import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.ProviderParameters;
+import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -57,6 +60,9 @@ public class MetadataConfigurationUpgrade {
     private IProviderBusiness providerBusiness;
 
     @Inject
+    private IMetadataBusiness metadataBusiness;
+
+    @Inject
     private IClusterBusiness clusterBusiness;
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.metadata.legacy");
@@ -65,25 +71,25 @@ public class MetadataConfigurationUpgrade {
         SpringHelper.injectDependencies(this);
     }
 
-    public void upgradeConfiguration(final String id) throws ConfigurationException {
+    public void upgradeConfiguration(final Integer id) throws ConfigurationException {
 
         Lock lock = clusterBusiness.acquireLock("upgrade-csw-configuration");
         lock.lock();
         LOGGER.fine("LOCK Acquired on cluster: upgrade-csw-configuration");
 
         try {
-            final Object object = serviceBusiness.getConfiguration("csw", id);
+            final Object object = serviceBusiness.getConfiguration(id);
             if (object instanceof Automatic) {
                 final Automatic config = (Automatic) object;
 
                 if (config.getFormat() != null) {
 
                     LOGGER.info("-- UPGRADING CSW CONFIGURATION -- ");
-                    final String providerID;
+                    final Integer providerID;
 
                     if (FILESYSTEM.getName().equals(config.getFormat())) {
 
-                        String candidatePID = null;
+                        Integer candidatePID = null;
                         // Look for an already existing provider
                         for (ProviderBrief sp : providerBusiness.getProviders()) {
                             try {
@@ -97,7 +103,7 @@ public class MetadataConfigurationUpgrade {
                                         if (fconfig != null) {
                                             final Object dataDir = fconfig.parameter("folder").getValue();
                                             if (dataDir != null && dataDir.equals(config.getDataDirectory())) {
-                                                candidatePID = sp.getIdentifier();
+                                                candidatePID = sp.getId();
                                                 LOGGER.info("Found a previous FS Metadata provider matching");
                                                 break;
                                             }
@@ -112,15 +118,19 @@ public class MetadataConfigurationUpgrade {
                         }
 
                         if (candidatePID == null) {
-                            providerID = UUID.randomUUID().toString();
-                            final DataStoreProvider factory = DataStores.getProviderById("FilesystemMetadata");
-                            final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                            params.parameter("folder").setValue(config.getDataDirectory());
-                            params.parameter("store-id").setValue(providerID);
+                            final String providerIdentifier = UUID.randomUUID().toString();
+                            final DataProviderFactory factory = DataProviders.getFactory("metadata-store");
+                            final ParameterValueGroup sourcef = factory.getProviderDescriptor().createValue();
+                            sourcef.parameter("id").setValue(providerIdentifier);
 
-                            Integer pr = providerBusiness.create(providerID, IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), sourcef);
+                            final ParameterValueGroup fsConfig = choice.addGroup("FilesystemMetadata");
+                            fsConfig.parameter("folder").setValue(config.getDataDirectory());
+                            fsConfig.parameter("store-id").setValue(providerIdentifier);
+
+                            providerID = providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "metadata-store", fsConfig);
                             try {
-                                providerBusiness.createOrUpdateData(pr, null, false);
+                                providerBusiness.createOrUpdateData(providerID, null, false);
                             } catch (IOException | ConstellationException ex) {
                                 throw new ConfigurationException(ex);
                             }
@@ -128,7 +138,7 @@ public class MetadataConfigurationUpgrade {
                             providerID = candidatePID;
                         }
                     } else if (INTERNAL.getName().equals(config.getFormat())) {
-                        providerID = "default-internal-metadata";
+                        providerID = metadataBusiness.getDefaultInternalProviderID();
                     } else {
                         return;
                     }
@@ -137,7 +147,7 @@ public class MetadataConfigurationUpgrade {
                         @Override
                         protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                             try {
-                                serviceBusiness.setConfiguration("csw", id, config);
+                                serviceBusiness.setConfiguration(id, config);
                                 serviceBusiness.linkCSWAndProvider(id, providerID);
                             } catch (ConfigurationException ex) {
                                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

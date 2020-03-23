@@ -59,14 +59,14 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
-import org.apache.sis.storage.DataStoreProvider;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.NodeUtilities;
-import org.geotoolkit.storage.DataStores;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Ignore;
-import org.opengis.parameter.ParameterValueGroup;
 
 
 /**
@@ -108,11 +108,9 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("NetCDFMetadata");
-                LOGGER.log(Level.INFO, "Metadata Factory choosed:{0}", factory.getClass().getName());
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("folder").setValue(dataDirectory);
-                Integer pr = providerBusiness.create("NCmetadataSrc", IProviderBusiness.SPI_NAMES.METADATA_SPI_NAME, params);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pr = testResource.createProviderWithPath(TestResource.METADATA_NTCDF, dataDirectory, providerBusiness);
                 providerBusiness.createOrUpdateData(pr, null, false);
 
                 //we write the configuration file
@@ -126,8 +124,8 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
                                         new Contact(), new AccessConstraint(),
                                         true, "eng");
 
-                serviceBusiness.create("csw", "default", configuration, d, null);
-                serviceBusiness.linkCSWAndProvider("default", "NCmetadataSrc");
+                Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
+                serviceBusiness.linkCSWAndProvider(sid, pr);
 
                 pool = EBRIMMarshallerPool.getInstance();
                 fillPoolAnchor((AnchoredMarshallerPool) pool);

@@ -18,9 +18,7 @@
  */
 package org.constellation.admin;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,6 @@ import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.test.utils.TestEnvironment;
 import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -51,6 +48,7 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
@@ -70,7 +68,7 @@ public class DatasourceBusinessTest {
     @BeforeClass
     public static void initTestDir() throws IOException {
         ConfigDirectory.setupTestEnvironement("DatasourceBusinessTest");
-        rootDir = initDataDirectory();
+        rootDir = initDataDirectory().outputDir;
     }
 
     @AfterClass
@@ -136,7 +134,7 @@ public class DatasourceBusinessTest {
         datasourceBusiness.recordSelectedPath(ds);
 
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds, Integer.MAX_VALUE);
-        Assert.assertEquals(12, paths.size());
+        Assert.assertEquals(14, paths.size());
     }
 
     @Test
@@ -195,19 +193,5 @@ public class DatasourceBusinessTest {
         }
 
         return prop;
-    }
-
-    public static Path initDataDirectory() throws IOException {
-        final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-        File outputDir = new File(tmpDir, "Constellation");
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
-        }
-        try {
-            TestEnvironment.initWorkspaceData(outputDir.toPath());
-        } catch (URISyntaxException e) {
-            throw new IOException(e.getMessage(), e);
-        }
-        return outputDir.toPath();
     }
 }

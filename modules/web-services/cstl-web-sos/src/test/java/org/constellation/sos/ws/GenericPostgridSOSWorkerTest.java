@@ -21,31 +21,21 @@ package org.constellation.sos.ws;
 
 
 import java.io.File;
-import java.sql.Connection;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Unmarshaller;
-import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.util.logging.Logging;
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.util.Util;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.storage.DataStores;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -55,22 +45,11 @@ import org.opengis.parameter.ParameterValueGroup;
 @RunWith(SpringTestRunner.class)
 public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
 
-    private static DefaultDataSource ds = null;
-
     private static boolean initialized = false;
 
-    private static String url;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        url = "jdbc:derby:memory:GPGTest;create=true";
-        ds = new DefaultDataSource(url);
-
-        Connection con = ds.getConnection();
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.run(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-
         ConfigDirectory.setupTestEnvironement("GPGSOSWorkerTest");
 
     }
@@ -84,27 +63,13 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
+                final TestResources testResource = initDataDirectory();
 
-
-                MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
-                Unmarshaller unmarshaller = pool.acquireUnmarshaller();
-                Automatic OMConfiguration = (Automatic) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/sos/generic-config.xml"));
-                OMConfiguration.getBdd().setConnectURL(url);
-                pool.recycle(unmarshaller);
-
-                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSGeneric");
-                final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
-                dbConfig.parameter("Configuration").setValue(OMConfiguration);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer pid = providerBusiness.create("omSrc", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
+                Integer pid = testResource.createProvider(TestResource.OM_GENERIC_DB, providerBusiness);
 
                 final SOSConfiguration configuration = new SOSConfiguration();
                 configuration.setProfile("discovery");
                 configuration.getParameters().put("transactionSecurized", "false");
-
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
                 serviceBusiness.linkServiceAndProvider(sid, pid);
@@ -115,7 +80,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 initialized = true;
             }
         } catch (Exception ex) {
-            Logging.getLogger("org.constellation.sos.ws").log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
@@ -127,21 +92,22 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
+        try {
+            if (worker != null) {
+                worker.destroy();
+            }
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+            File mappingFile = new File("mapping.properties");
+            if (mappingFile.exists()) {
+                mappingFile.delete();
+            }
+            ConfigDirectory.shutdownTestEnvironement("GPGSOSWorkerTest");
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
-        }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-        if (ds != null) {
-            ds.shutdown();
-        }
-        ConfigDirectory.shutdownTestEnvironement("GPGSOSWorkerTest");
     }
 
 

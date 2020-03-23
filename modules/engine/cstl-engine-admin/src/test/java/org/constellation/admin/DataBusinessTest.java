@@ -18,11 +18,6 @@
  */
 package org.constellation.admin;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +26,6 @@ import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -41,20 +35,17 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
-import org.constellation.test.utils.TestEnvironment;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
@@ -118,41 +109,17 @@ public class DataBusinessTest {
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
-
-
+                final TestResources testResource = initDataDirectory();
 
                 // dataset
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                final Path rootDir = initDataDirectory();
-                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
-                
-                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                coveragePID = providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
-
+                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
                 providerBusiness.createOrUpdateData(coveragePID, dsId, false);
 
-                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
-                
-                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
-                final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(shapeDir.toUri());
-
-                vectorPID = providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
-
+                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
                 providerBusiness.createOrUpdateData(vectorPID, dsId, false);
-
 
                 initialized = true;
             } catch (Exception ex) {
@@ -201,20 +168,4 @@ public class DataBusinessTest {
         Assert.assertEquals(expected, results);
 
     }
-
-
-    public static Path initDataDirectory() throws IOException {
-        final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
-        Path outputDir = tmpDir.resolve("Constellation");
-        if (!Files.exists(outputDir)) {
-            Files.createDirectories(outputDir);
-        }
-        try {
-            TestEnvironment.initWorkspaceData(outputDir);
-        } catch (URISyntaxException e) {
-            throw new IOException(e.getMessage(), e);
-        }
-        return outputDir;
-    }
-
 }

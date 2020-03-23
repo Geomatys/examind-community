@@ -25,21 +25,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -76,10 +75,9 @@ public class FileSystemSOS2WorkerTest extends SOS2WorkerTest {
                 providerBusiness.removeAll();
                 sensorBusiness.deleteAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("filesensor");
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                params.parameter("data_directory").setValue(sensorDirectory);
-                Integer pr = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                final TestResources testResource = initDataDirectory();
+
+                Integer pr = testResource.createProviderWithPath(TestResource.SENSOR_FILE, sensorDirectory, providerBusiness);
                 providerBusiness.createOrUpdateData(pr, null, false);
 
                 final SOSConfiguration configuration = new SOSConfiguration();

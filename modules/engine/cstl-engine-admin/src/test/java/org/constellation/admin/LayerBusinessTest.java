@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,8 +27,6 @@ import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.util.logging.Logging;
-import static org.constellation.admin.DataBusinessTest.initDataDirectory;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -42,20 +39,18 @@ import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConstellationException;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
@@ -98,36 +93,17 @@ public class LayerBusinessTest {
                 //Initialize geotoolkit
                 ImageIO.scanForPlugins();
                 org.geotoolkit.lang.Setup.initialize(null);
+                final TestResources testResource = initDataDirectory();
 
                 // dataset
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                final Path rootDir = initDataDirectory();
-                final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
-                
-                final ParameterValueGroup sourceCF = dataStorefactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                coveragePID = providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
+                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
                 providerBusiness.createOrUpdateData(coveragePID, dsId, false);
 
                 // shapefile datastore
-                final ParameterValueGroup sourcef = dataStorefactory.getProviderDescriptor().createValue();
-                sourcef.parameter("id").setValue("shapeSrc");
-
-                Path shapeDir = rootDir.resolve("org/constellation/ws/embedded/wms111/shapefiles");
-                
-                final ParameterValueGroup choice = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourcef);
-                final ParameterValueGroup shpconfig = choice.addGroup("ShapefileParametersFolder");
-                shpconfig.parameter("path").setValue(shapeDir.toUri());
-
-                vectorPID = providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", sourcef);
+                vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
                 providerBusiness.createOrUpdateData(vectorPID, dsId, false);
 
                 initialized = true;

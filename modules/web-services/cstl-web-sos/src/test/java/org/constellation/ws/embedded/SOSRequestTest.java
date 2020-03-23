@@ -22,13 +22,10 @@ package org.constellation.ws.embedded;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.SpringHelper;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ObservationFilter;
@@ -36,9 +33,6 @@ import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.ScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.xml.v100.ObservationCollectionType;
 import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.ows.xml.v110.Operation;
@@ -53,15 +47,16 @@ import org.geotoolkit.sos.xml.v100.GetFeatureOfInterest;
 import org.geotoolkit.sos.xml.v100.GetObservation;
 import org.geotoolkit.sos.xml.v200.CapabilitiesType;
 import org.geotoolkit.sos.xml.v200.GetCapabilitiesType;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.api.ServiceConstants.*;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 
 /**
@@ -104,23 +99,11 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                     LOGGER.warning(ex.getMessage());
                 }
 
-                final String url = "jdbc:derby:memory:TestOM2;create=true";
-                final DefaultDataSource ds = new DefaultDataSource(url);
-                Connection con = ds.getConnection();
+                final TestResources testResource = initDataDirectory();
 
-                final ScriptRunner exec = new ScriptRunner(con);
-                String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-                sql = sql.replace("$SCHEMA", "");
-                exec.run(sql);
-                exec.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-                con.close();
-
-
-                final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                Integer providerSEN = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
-                Integer providerSEND = providerBusiness.create("sensor-default", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
-                Integer providerSENT = providerBusiness.create("sensor-test", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                Integer providerSEN  = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
+                Integer providerSEND = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
+                Integer providerSENT = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
 
                 Object sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-0014.4F01.0000.261A.xml", sensorBusiness);
                 int senId1 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:0014.4F01.0000.261A", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
@@ -131,18 +114,8 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sml = unmarshallSensorResource("org/constellation/embedded/test/urn-ogc-object-sensor-SunSpot-2.xml", sensorBusiness);
                 int senId3 = sensorBusiness.create("urn:ogc:object:sensor:SunSpot:2", "system", null, null, sml, Long.MIN_VALUE, providerSEN);
 
-
-                final DataStoreProvider omfactory = DataStores.getProviderById("observationSOSDatabase");
-                final ParameterValueGroup dbConfig = omfactory.getOpenParameters().createValue();
-                dbConfig.parameter("sgbdtype").setValue("derby");
-                dbConfig.parameter("derbyurl").setValue(url);
-                dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-                dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-                dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-                dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-                Integer providerOMD = providerBusiness.create("om-default", IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
-                Integer providerOMT = providerBusiness.create("om-test",    IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME, dbConfig);
-
+                Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
+                Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
 
                 final SOSConfiguration sosconf = new SOSConfiguration();
                 sosconf.setProfile("transactional");

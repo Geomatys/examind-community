@@ -24,22 +24,15 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.api.ProviderType;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.utils.SpringTestRunner;
-import org.constellation.util.Util;
 import org.constellation.wfs.ws.rs.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.WFSService;
 import org.constellation.ws.rs.AbstractWebService;
-import org.geotoolkit.internal.sql.DefaultDataSource;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.annotation.PostConstruct;
@@ -49,15 +42,17 @@ import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.sql.Connection;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
 
 import org.apache.sis.util.logging.Logging;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -93,9 +88,13 @@ public class WFSServiceTest {
 
     private static boolean initialized = false;
 
+    private static final String CONFIG_DIR_NAME = "WFSServiceTest" + UUID.randomUUID().toString();
+
+    private static final Logger LOGGER = Logging.getLogger("org.constellation.wfs");
+
     @BeforeClass
     public static void initTestDir() {
-        ConfigDirectory.setupTestEnvironement("WFSServiceTest");
+        ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
     }
 
     @PostConstruct
@@ -107,29 +106,10 @@ public class WFSServiceTest {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataProviderFactory featfactory = DataProviders.getFactory("data-store");
+                final TestResources testResource = initDataDirectory();
 
-                final String url = "jdbc:derby:memory:TestWFSServiceOM";
-                final DefaultDataSource ds = new DefaultDataSource(url + ";create=true");
-                Connection con = ds.getConnection();
-                DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-                String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-                sql = sql.replace("$SCHEMA", "");
-                sr.run(sql);
-                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-                con.close();
-                ds.shutdown();
-
-                final ParameterValueGroup sourceOM = featfactory.getProviderDescriptor().createValue();
-                sourceOM.parameter("id").setValue("omSrc");
-
-                final ParameterValueGroup choiceOM = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceOM);
-                final ParameterValueGroup omconfig = choiceOM.addGroup("SOSDBParameters");
-                omconfig.parameter("sgbdtype").setValue("derby");
-                omconfig.parameter("derbyurl").setValue(url);
-
-                providerBusiness.storeProvider("omSrc", null, ProviderType.LAYER, "data-store", sourceOM);
-                Integer d = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), "omSrc", "VECTOR", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
+                Integer d = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -154,21 +134,25 @@ public class WFSServiceTest {
 
                 initialized = true;
             } catch (Exception ex) {
-                Logging.getLogger("org.constellation.wfs").log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, "Error while initializing test:" + ex.getMessage(), ex);
             }
         }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        ConfigDirectory.shutdownTestEnvironement("WFSServiceTest");
+        try {
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
 
-        if (service != null) {
-            service.destroy();
-        }
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
+            if (service != null) {
+                service.destroy();
+            }
+            File derbyLog = new File("derby.log");
+            if (derbyLog.exists()) {
+                derbyLog.delete();
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

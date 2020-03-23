@@ -328,7 +328,7 @@ public interface IServiceBusiness {
 
     Integer getCSWLinkedProviders(final String serviceID);
 
-    void linkCSWAndProvider(String serviceID, String providerID);
+    void linkCSWAndProvider(Integer serviceID, Integer providerID);
 
     List<String> getLinkedThesaurusUri(Integer id) throws ConfigurationException;
 

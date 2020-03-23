@@ -22,23 +22,21 @@ package org.constellation.sos.ws;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import org.apache.sis.storage.DataStoreProvider;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -66,9 +64,9 @@ public class InternalSOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final DataStoreProvider factory = DataStores.getProviderById("cstlsensor");
-                final ParameterValueGroup params = factory.getOpenParameters().createValue();
-                Integer provider = providerBusiness.create("sensorSrc", IProviderBusiness.SPI_NAMES.SENSOR_SPI_NAME, params);
+                final TestResources testResource = initDataDirectory();
+
+                Integer provider = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness);
 
                 Object sml = unmarshallSensorResource("org/constellation/xml/sml/system.xml", sensorBusiness);
                 sensorBusiness.create("urn:ogc:object:sensor:GEOM:1", "system", null, null, sml, Long.MIN_VALUE, provider);

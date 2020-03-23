@@ -20,10 +20,8 @@ package org.constellation.ws.embedded;
 
 // J2SE dependencies
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,19 +33,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
-import org.constellation.api.ProviderType;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.datastore.DataStoreProviderService;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
@@ -71,8 +66,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 // JUnit dependencies
 
@@ -146,22 +141,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                final Path rootDir = initDataDirectory();
+                final TestResources testResource = initDataDirectory();
 
-                final DataProviderFactory dsfactory = DataProviders.getFactory("data-store");
-                final ParameterValueGroup sourceCF = dsfactory.getProviderDescriptor().createValue();
-                sourceCF.parameter("id").setValue("coverageTestSrc");
-                final ParameterValueGroup choice3 = ProviderParameters.getOrCreate(DataStoreProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceCF);
-
-                final ParameterValueGroup srcCFConfig = choice3.addGroup("FileCoverageStoreParameters");
-
-                final Path pngFile = rootDir.resolve("org/constellation/data/image/SSTMDE200305.png");
-                srcCFConfig.parameter("path").setValue(pngFile.toUri().toURL());
-                srcCFConfig.parameter("type").setValue("AUTO");
-
-                providerBusiness.storeProvider("coverageTestSrc", null, ProviderType.LAYER, "data-store", sourceCF);
-
-                Integer did = dataBusiness.create(new QName("SSTMDE200305"), "coverageTestSrc", "COVERAGE", false, true, true, null, null);
+                Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
 
                 final LayerContext config = new LayerContext();
 

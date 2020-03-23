@@ -82,20 +82,6 @@ public interface IProviderBusiness {
      *
      * @param id The identifier (name) to give to the created provider.
      * @param spiConfiguration The configuration needed for spi parameter to open a valid data source.
-     * @return  A new Provider ID.
-     *
-     * @throws ConfigurationException If a provider already exists with the given name, or if the configuration is invalid.
-     *
-     * @deprecated : Following procedure will be removed once the new DataStoreSource system will be created.
-     */
-    Integer create(final String id, ParameterValueGroup spiConfiguration) throws ConfigurationException;
-
-    /**
-     * Create and save a provider object with given identifier. Input spi and configuration must be org.apache.sis.storage.DataStoreProvider
-     * and its proper configuration filled from org.apache.sis.storage.DataStoreProvider#getParametersDescriptor().
-     *
-     * @param id The identifier (name) to give to the created provider.
-     * @param spiConfiguration The configuration needed for spi parameter to open a valid data source.
      * @param spiName The name of spi (data-store, sensor-store, ...)
      * @return  A new Provider ID.
      *

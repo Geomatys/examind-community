@@ -63,7 +63,7 @@ public class InternalCSWworkerTest extends CSWworkerTest {
     private IMetadataBusiness metadataBusiness;
 
     private static boolean initialized = false;
-    
+
     private static final String confDirName = "InternalCSWWorkerTest" + UUID.randomUUID().toString();
 
     @BeforeClass
@@ -79,31 +79,31 @@ public class InternalCSWworkerTest extends CSWworkerTest {
                 providerBusiness.removeAll();
                 metadataBusiness.deleteAllMetadata();
 
-                int internalProviderID = metadataBusiness.getDefaultInternalProviderID();
+                int internalPID = metadataBusiness.getDefaultInternalProviderID();
                 pool = EBRIMMarshallerPool.getInstance();
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
 
                 //we write the data files
-                writeMetadata("meta1.xml",         "42292_5p_19900609195600", internalProviderID);
-                writeMetadata("meta2.xml",         "42292_9s_19900610041000", internalProviderID);
-                writeMetadata("meta3.xml",         "39727_22_19750113062500", internalProviderID);
-                writeMetadata("meta4.xml",         "11325_158_19640418141800", internalProviderID);
-                writeMetadata("meta5.xml",         "40510_145_19930221211500", internalProviderID);
-                writeMetadata("meta-19119.xml",    "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4", internalProviderID);
-                writeMetadata("imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX", internalProviderID);
-                writeMetadata("ebrim1.xml",        "000068C3-3B49-C671-89CF-10A39BB1B652", internalProviderID);
-                writeMetadata("ebrim2.xml",        "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076", internalProviderID);
-                writeMetadata("ebrim3.xml",        "urn:motiive:csw-ebrim", internalProviderID);
-                writeMetadata("meta13.xml",        "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo", internalProviderID);
+                writeMetadata("meta1.xml",         "42292_5p_19900609195600", internalPID);
+                writeMetadata("meta2.xml",         "42292_9s_19900610041000", internalPID);
+                writeMetadata("meta3.xml",         "39727_22_19750113062500", internalPID);
+                writeMetadata("meta4.xml",         "11325_158_19640418141800", internalPID);
+                writeMetadata("meta5.xml",         "40510_145_19930221211500", internalPID);
+                writeMetadata("meta-19119.xml",    "mdweb_2_catalog_CSW Data Catalog_profile_inspire_core_service_4", internalPID);
+                writeMetadata("imageMetadata.xml", "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX", internalPID);
+                writeMetadata("ebrim1.xml",        "000068C3-3B49-C671-89CF-10A39BB1B652", internalPID);
+                writeMetadata("ebrim2.xml",        "urn:uuid:3e195454-42e8-11dd-8329-00e08157d076", internalPID);
+                writeMetadata("ebrim3.xml",        "urn:motiive:csw-ebrim", internalPID);
+                writeMetadata("meta13.xml",        "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo", internalPID);
 
-                writeMetadata("meta7.xml",         "MDWeb_FR_SY_couche_vecteur_258", internalProviderID, true);
+                writeMetadata("meta7.xml",         "MDWeb_FR_SY_couche_vecteur_258", internalPID, true);
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.putParameter("transactionSecurized", "false");
 
-                serviceBusiness.create("csw", "default", configuration, null, null);
-                serviceBusiness.linkCSWAndProvider("default", "default-internal-metadata");
+                Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
+                serviceBusiness.linkCSWAndProvider(sid, internalPID);
 
                 worker = new CSWworker("default");
                 initialized = true;
