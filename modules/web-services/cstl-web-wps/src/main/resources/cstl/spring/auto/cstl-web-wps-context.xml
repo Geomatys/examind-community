@@ -6,12 +6,6 @@
 
    <context:component-scan base-package="org.constellation.wps.component, com.examind.wps"  />
 
-   <!--wss:binding url="/WS-SOAP/wps/*">
-      <wss:service>
-          <ws:service bean="#WPSService"/>
-      </wss:service>
-  </wss:binding>
-  <bean id="WPSService" class="org.constellation.wps.ws.soap.WPSService"/-->
-  <bean name="WPSConfigurer" class="org.constellation.wps.configuration.WPSConfigurer" scope="prototype" />
+   <bean name="WPSConfigurer" class="org.constellation.wps.configuration.WPSConfigurer" scope="prototype" />
 
 </beans>

@@ -53,7 +53,6 @@ public final class TestEnvironment {
         XML_METADATA("org/constellation/xml/metadata"),
         XML_SML("org/constellation/xml/sml"),
         XML_SOS("org/constellation/xml/sos"),
-        XML_WPS("org/constellation/xml/wps"),
 
         //json files
         JSON("org/constellation/ws/embedded/json");

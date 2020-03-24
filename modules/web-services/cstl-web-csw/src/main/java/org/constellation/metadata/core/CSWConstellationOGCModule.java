@@ -35,9 +35,4 @@ public class CSWConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
-    @Override
-    public boolean isSoapService() {
-        return true;
-    }
-
 }

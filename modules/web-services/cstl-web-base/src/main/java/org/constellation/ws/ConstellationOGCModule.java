@@ -21,9 +21,7 @@ package org.constellation.ws;
 public interface ConstellationOGCModule {
 
     String getName();
-    
-    boolean isRestService();
 
-    boolean isSoapService();
+    boolean isRestService();
 
 }

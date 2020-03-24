@@ -172,9 +172,6 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
     private final HashMap<String, HashSet<String>> tmsIdBinding = new HashMap<>();
     private final ReentrantReadWriteLock tmsBindingLock = new ReentrantReadWriteLock();
 
-    /**
-     * Instanciates the working class for a SOAP client, that do request on a SOAP PEP service.
-     */
     public DefaultWMTSWorker(final String id) {
         super(id, ServiceDef.Specification.WMTS);
         if (isStarted) {

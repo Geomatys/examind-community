@@ -35,9 +35,4 @@ public class SOSConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
-    @Override
-    public boolean isSoapService() {
-        return true;
-    }
-    
 }

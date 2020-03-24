@@ -19,7 +19,6 @@
     <ows:Profile>http://www.opengis.net/spec/SOS/2.0/conf/resultInsertion</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/SOS/2.0/conf/resultRetrieval</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/SOS/2.0/conf/spatialFilteringProfile</ows:Profile>
-    <ows:Profile>http://www.opengis.net/spec/SOS/2.0/conf/soap</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/OMXML/2.0/conf/samplingPoint</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/OMXML/2.0/conf/samplingCurve</ows:Profile>
     <ows:Profile>http://www.opengis.net/spec/OMXML/2.0/conf/observation</ows:Profile>

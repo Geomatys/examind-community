@@ -20,17 +20,12 @@
 package org.constellation.ws.embedded;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IProviderBusiness;
@@ -39,10 +34,8 @@ import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
-import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestFile;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -64,7 +57,6 @@ import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNoException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,8 +70,6 @@ import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorRes
  */
 @RunWith(TestRunner.class)
 public class SOSRequestTest extends AbstractGrizzlyServer {
-
-    private static final String SOS_DEFAULT = "http://localhost:9090/WS-SOAP/sos/default";
 
     private static final String CONFIG_DIR_NAME = "SOSRequestTest" + UUID.randomUUID().toString();
 
@@ -441,84 +431,6 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
     /**
      */
-    @Test
-    @Order(order=7)
-    public void testSOSGetCapabilitiesSOAP() throws Exception {
-        initPool();
-        URL getCapsUrl;
-        try {
-            getCapsUrl = new URL(SOS_DEFAULT);
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
-        URLConnection conec = getCapsUrl.openConnection();
-        postRequestFile(conec, "org/constellation/xml/sos/GetCapabilitiesSOAP.xml", "application/soap+xml");
-
-        String result    = getStringResponse(conec);
-        String expResult = org.geotoolkit.nio.IOUtilities.toString(
-                Util.getResourceAsStream("org/constellation/xml/sos/GetCapabilitiesResponseSOAP.xml"));
-
-        // try to fix an error with gml
-        String gmlPrefix = null;
-        final Pattern p  = Pattern.compile("xmlns[^\"]+\"[^\"]+\"");
-        final Matcher m  = p.matcher(result) ;
-        while (m.find()) {
-            String s = m.group();
-            String namespace = s.substring(s.indexOf('"') + 1, s.length() - 1);
-            String prefix = s.substring(6, s.indexOf('='));
-            if (namespace.equals("http://www.opengis.net/gml")) {
-                gmlPrefix = prefix;
-            }
-        }
-
-        if (gmlPrefix != null) {
-            LOGGER.log(Level.INFO, "GML Prefix found:{0}", gmlPrefix);
-            if (!gmlPrefix.equals("gml")) {
-                result = result.replace(gmlPrefix + ':', "gml:");
-                result = result.replace("xmlns:" + gmlPrefix + '=', "xmlns:gml=");
-                result = result.replace("xmlns:gml=\"http://www.opengis.net/gml/3.2\"", "");
-            }
-        } else {
-            LOGGER.info("No GML Prefix found.");
-        }
-
-        domCompare(expResult, result);
-    }
-
-    @Test
-    @Order(order=8)
-    public void testSOSGetFeatureOfInterestSOAP() throws Exception {
-        // Creates a valid GetObservation url.
-        final URL getCapsUrl = new URL(SOS_DEFAULT);
-
-        // for a POST request
-        URLConnection conec = getCapsUrl.openConnection();
-
-        postRequestFile(conec, "org/constellation/xml/sos/GetFeatureOfInterestSOAP.xml", "application/soap+xml");
-
-        String result    = getStringResponse(conec);
-        String expResult = getStringFromFile("org/constellation/xml/sos/GetFeatureOfInterestResponseSOAP.xml");
-        expResult = expResult.replace("EPSG_VERSION", EPSG_VERSION);
-
-        //System.out.println("GFI SOAP 1 result:\n" + result);
-
-        domCompare(expResult, result);
-
-        conec = getCapsUrl.openConnection();
-
-        postRequestFile(conec, "org/constellation/xml/sos/GetFeatureOfInterestSOAP2.xml", "application/soap+xml");
-
-        result    = getStringResponse(conec);
-        expResult = getStringFromFile("org/constellation/xml/sos/GetFeatureOfInterestResponseSOAP2.xml");
-        expResult = expResult.replace("EPSG_VERSION", EPSG_VERSION);
-
-        //System.out.println("GFI SOAP 2 result:\n" + result);
-
-        domCompare(result, expResult);
-    }
-
     @Test
     @Order(order=9)
     public void testSOSAPIGetObservation() throws Exception {

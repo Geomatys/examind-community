@@ -20,7 +20,6 @@ package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.constellation.ws.rs.FixedWSSpringServlet;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.test.utils.TestEnvironment;
@@ -228,18 +227,6 @@ public abstract class AbstractGrizzlyServer {
         return servletBean;
     }
 
-
-    /**
-     * Manually register a JAX WS servlet
-     * @return
-     */
-    @Bean
-    public ServletRegistrationBean ogcServiceSOAPServlet() {
-        ServletRegistrationBean reg = new ServletRegistrationBean(new FixedWSSpringServlet(),"/WS-SOAP/*");
-        reg.setName("WS-SOAP");
-        reg.setLoadOnStartup(1);
-        return reg;
-    }
 
     /**
      * Manually register a dispatcher servlet with the selected controllers

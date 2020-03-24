@@ -21,7 +21,7 @@ package org.constellation.ws.rs;
 /**
  * Interface of all web services.
  * <p>
- * Consider using {@link AbstractWebService} for REST/SOAP services.
+ * Consider using {@link AbstractWebService} for REST services.
  * </p>
  *
  * @author Johann Sorel(Geomatys)

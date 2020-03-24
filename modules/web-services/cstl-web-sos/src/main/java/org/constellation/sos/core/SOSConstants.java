@@ -424,7 +424,7 @@ public final class SOSConstants {
         PROFILES_V200.add("http://www.opengis.net/spec/SOS/2.0/conf/resultInsertion");
         PROFILES_V200.add("http://www.opengis.net/spec/SOS/2.0/conf/resultRetrieval");
         PROFILES_V200.add("http://www.opengis.net/spec/SOS/2.0/conf/spatialFilteringProfile");
-        PROFILES_V200.add("http://www.opengis.net/spec/SOS/2.0/conf/soap");
+        //PROFILES_V200.add("http://www.opengis.net/spec/SOS/2.0/conf/soap");
         //PROFILES_V200.add("http://www.opengis.net/spec/SWE/2.0/conf/uml-block-components");
         //PROFILES_V200.add("http://www.opengis.net/spec/SWE/2.0/conf/uml-record-components");
         //PROFILES_V200.add("http://www.opengis.net/spec/SWE/2.0/conf/xsd-record-components");

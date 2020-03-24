@@ -34,10 +34,4 @@ public class WCSConstellationOGCModule implements ConstellationOGCModule {
     public boolean isRestService() {
         return true;
     }
-
-    @Override
-    public boolean isSoapService() {
-        return false;
-    }
-    
 }

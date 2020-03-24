@@ -193,10 +193,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
 /**
- * Worker for the WCS services in Constellation which services both the REST and
- * SOAP facades by issuing appropriate responses.
+ * Worker for the WCS services in Constellation which services both the REST
+ * facades by issuing appropriate responses.
  * <p>
- * The classes implementing the REST or SOAP facades to this service will have
+ * The classes implementing the REST facades to this service will have
  * processed the requests sufficiently to ensure that all the information
  * conveyed by the HTTP request is in one of the fields of the object passed
  * to the worker methods as a parameter.

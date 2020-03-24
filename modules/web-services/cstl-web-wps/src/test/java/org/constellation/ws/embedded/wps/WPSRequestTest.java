@@ -105,11 +105,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
 
-                /*publish soap services
-                final WPSService soapService = new WPSService();
-                SpringHelper.injectDependencies(soapService);
-                grizzly.getCstlServer().addSOAPService("wps", soapService);*/
-
                 final List<ProcessFactory> process = Arrays.asList(new ProcessFactory("geotoolkit", true));
                 final Processes processes = new Processes(process);
                 final ProcessContext config = new ProcessContext(processes);
@@ -863,83 +858,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getStProUrl);
         expected = getStringFromFile("org/constellation/wps/xml/EX_status1_v200.xml");
         domCompare(result, expected);
-
-    }
-
-    /**
-     * No more SOAP available
-     */
-    @Ignore
-    @Order(order = 12)
-    public void testWPSGetCapabilitiesSOAP() throws Exception {
-
-        initWPSServer();
-        //waitForSoapStart("wps");
-
-        // Creates a valid GetCapabilities url.
-        URL getCapsUrl;
-        try {
-            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS-SOAP/wps/default?");
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
-        URLConnection conec = getCapsUrl.openConnection();
-        postRequestFile(conec, "org/constellation/xml/wps/GetCapabilitiesSOAP.xml", "application/soap+xml");
-
-        final String result    = getStringResponse(conec);
-        final String expResult = getStringFromFile("org/constellation/xml/wps/GetCapabilitiesResponseSOAP.xml");
-
-        domCompare(result, expResult);
-    }
-
-    /**
-     * No more SOAP available
-     */
-    @Ignore
-    @Order(order = 13)
-    public void testWPSDescribeProcessSOAP() throws Exception {
-        URL url;
-        try {
-            url = new URL("http://localhost:"+ getCurrentPort() +"/WS-SOAP/wps/default?");
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
-        URLConnection conec = url.openConnection();
-        postRequestFile(conec, "org/constellation/xml/wps/DescribeProcessSOAP.xml", "application/soap+xml");
-
-        final String result    = getStringResponse(conec);
-        final String expResult = getStringFromFile("org/constellation/xml/wps/DescribeProcessResponseSOAP.xml");
-
-        domCompare(result, expResult);
-
-    }
-
-    /**
-     * No more SOAP available
-     */
-    @Ignore
-    @Order(order = 14)
-    public void testWPSExecuteSOAP() throws Exception {
-
-        URL getCapsUrl;
-        try {
-            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS-SOAP/wps/default?");
-        } catch (MalformedURLException ex) {
-            assumeNoException(ex);
-            return;
-        }
-
-        URLConnection conec = getCapsUrl.openConnection();
-        postRequestFile(conec, "org/constellation/xml/wps/ExecuteSOAP.xml", "application/soap+xml");
-
-        final String result    = getStringResponse(conec);
-        final String expResult = getStringFromFile("org/constellation/xml/wps/ExecuteResponseSOAP.xml");
-
-        domCompare(result, expResult, Arrays.asList("creationTime"));
 
     }
 

@@ -35,9 +35,4 @@ public class WFSConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
-    @Override
-    public boolean isSoapService() {
-        return false;
-    }
-    
 }

@@ -35,9 +35,4 @@ public class THWConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
-    @Override
-    public boolean isSoapService() {
-        return true;
-    }
-    
 }

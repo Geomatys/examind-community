@@ -32,7 +32,7 @@ import org.constellation.exception.NotRunningServiceException;
 public interface IWSEngine {
 
     /**
-     * Return a map of the registred OGC services and their endpoint protocols (SOAP, REST).
+     * Return a map of the registred OGC services and their endpoint protocols (REST,...).
      *
      * @return
      */
@@ -42,7 +42,7 @@ public interface IWSEngine {
      * Add a service type to the list of registered service if it is not already registered.
      *
      * @param specification A service type (CSW, SOS, WMS, ...).
-     * @param protocol A service protocol (REST, SOAP)
+     * @param protocol A service protocol (REST,...)
      */
     void registerService(final String specification, final String protocol);
 

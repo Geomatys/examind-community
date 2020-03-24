@@ -118,7 +118,6 @@
         <load-on-startup>1</load-on-startup>
         <async-supported>true</async-supported>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>ogcws</servlet-name>
         <url-pattern>/WS/*</url-pattern>
@@ -146,16 +145,6 @@
     <servlet-mapping>
         <servlet-name>examindapi</servlet-name>
         <url-pattern>/API/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- SOAP SERVLET -->
-    <servlet>
-        <servlet-name>jaxws-servlet</servlet-name>
-        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSSpringServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>jaxws-servlet</servlet-name>
-        <url-pattern>/WS-SOAP/*</url-pattern>
     </servlet-mapping>
 
     <!-- webdav server servlet -->

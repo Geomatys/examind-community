@@ -60,7 +60,7 @@ public class WSEngine implements IWSEngine {
     private final Map<String, Map<String, Worker>> WORKERS_MAP = new HashMap<>();
 
     /**
-     * A map of the registred OGC services and their endpoint protocols (SOAP, REST).
+     * A map of the registred OGC services and their endpoint protocols (REST).
      */
     private final Map<String, List<String>> REGISTERED_SERVICE = new HashMap<>();
 
@@ -180,6 +180,10 @@ public class WSEngine implements IWSEngine {
         return response;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public synchronized void shutdownInstance(final String specification, final String serviceID) {
         final Map<String, Worker> workersMap = WORKERS_MAP.get(specification.toLowerCase());
         if (workersMap != null) {

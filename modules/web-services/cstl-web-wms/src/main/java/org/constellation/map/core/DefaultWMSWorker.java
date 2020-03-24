@@ -187,10 +187,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
 /**
- * A WMS worker for a local WMS service which handles requests from either REST
- * or SOAP facades and issues appropriate responses.
+ * A WMS worker for a local WMS service which handles requests from REST
+ * facades and issues appropriate responses.
  * <p>
- * The classes implementing the REST or SOAP facades to this service will have
+ * The classes implementing the REST facade to this service will have
  * processed the requests sufficiently to ensure that all the information
  * conveyed by the HTTP request is either in the method call parameters or is
  * in one of the fields of the parent class which holds instances of the

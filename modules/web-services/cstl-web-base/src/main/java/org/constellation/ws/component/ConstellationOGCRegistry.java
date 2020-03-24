@@ -43,7 +43,6 @@ public class ConstellationOGCRegistry {
             final String modName = ogcMod.getName().toUpperCase();
             LOGGER.info(String.format("\t* %-5s (%s)", modName , moduleEntry.getKey()));
             if(ogcMod.isRestService()) wsengine.registerService(modName, "REST");
-            if(ogcMod.isSoapService()) wsengine.registerService(modName, "SOAP");
 
             // Start service instances
             startInstances(modName);

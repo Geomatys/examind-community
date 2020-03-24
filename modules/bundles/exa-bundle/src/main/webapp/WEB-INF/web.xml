@@ -149,16 +149,6 @@
         <url-pattern>/API/*</url-pattern>
     </servlet-mapping>
 
-    <!-- SOAP SERVLET -->
-    <servlet>
-        <servlet-name>jaxws-servlet</servlet-name>
-        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSSpringServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>jaxws-servlet</servlet-name>
-        <url-pattern>/WS-SOAP/*</url-pattern>
-    </servlet-mapping>
-
     <!-- webdav server servlet -->
     <servlet>
         <servlet-name>milton</servlet-name>

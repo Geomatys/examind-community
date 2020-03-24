@@ -34,10 +34,4 @@ public class WMTSConstellationOGCModule implements ConstellationOGCModule {
     public boolean isRestService() {
         return true;
     }
-
-    @Override
-    public boolean isSoapService() {
-        return true;
-    }
-
 }

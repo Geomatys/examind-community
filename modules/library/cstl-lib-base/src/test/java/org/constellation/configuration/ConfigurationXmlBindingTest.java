@@ -102,7 +102,6 @@ public class ConfigurationXmlBindingTest {
         instances.put("WMS", prot1);
         ArrayList<String> prot2 = new ArrayList<>();
         prot2.add("REST");
-        prot2.add("SOAP");
         instances.put("WPS", prot2);
         ServiceReport report = new ServiceReport(instances);
 
@@ -115,7 +114,6 @@ public class ConfigurationXmlBindingTest {
                 "    <ns2:availableServices>" + '\n' +
                 "        <ns2:name>WPS</ns2:name>" + '\n' +
                 "        <ns2:protocol>REST</ns2:protocol>" + '\n' +
-                "        <ns2:protocol>SOAP</ns2:protocol>" + '\n' +
                 "    </ns2:availableServices>" + '\n' +
                 "    <ns2:availableServices>" + '\n' +
                 "        <ns2:name>WMS</ns2:name>" + '\n' +

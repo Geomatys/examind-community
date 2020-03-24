@@ -21,7 +21,6 @@ package org.constellation;
 import com.bradmcevoy.http.MiltonServlet;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
-import com.sun.xml.ws.transport.http.servlet.WSSpringServlet;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,13 +42,10 @@ import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.DispatcherServlet;
 /**
  *
@@ -204,34 +200,6 @@ public class Examind extends SpringBootServletInitializer {
     public CstlInstaller cstlInstaller() {
         return new CstlInstaller();
     }
-
-    /**
-     * Manually register a JAX WS servlet
-     * @return
-     */
-    @Bean
-    public ServletRegistrationBean ogcServiceSOAPServlet() {
-        WSSpringServlet servlet = new WSSpringServlet() {
-            @Override
-            public void destroy() {
-                WebApplicationContext wac =
-                WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-                if (wac instanceof ConfigurableApplicationContext) {
-                    ConfigurableApplicationContext gwac = (ConfigurableApplicationContext) wac;
-                    if (gwac.isRunning()) {
-                        gwac.close();
-                    }
-                }
-
-            }
-
-        };
-        ServletRegistrationBean reg = new ServletRegistrationBean(servlet,"/WS-SOAP/*");
-        reg.setName("WS-SOAP");
-        reg.setLoadOnStartup(1);
-        return reg;
-    }
-
 
     @Bean
     public ServletRegistrationBean webdavServlet() {
