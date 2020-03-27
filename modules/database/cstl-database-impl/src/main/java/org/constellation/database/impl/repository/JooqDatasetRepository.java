@@ -261,7 +261,7 @@ public class JooqDatasetRepository extends AbstractJooqRespository<DatasetRecord
         if ("owner".equals(key)) {
             return DATASET.OWNER.equal((Integer) value);
         } else if ("id".equals(key)) {
-            return DATA.ID.equal((Integer) value);
+            return DATASET.ID.equal((Integer) value);
         } else if ("term".equals(key)) {
             String likeExpr = '%' + (String)value + '%';
              Field<Integer> countNamedData = countNamedData(DATASET.ID, likeExpr);

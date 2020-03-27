@@ -40,6 +40,8 @@ import static com.examind.repository.filesystem.FileSystemUtilities.DATASET_DIR;
 import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory;
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
+import java.util.AbstractMap;
+import java.util.Arrays;
 
 /**
  *
@@ -220,6 +222,20 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
 
     @Override
     public Map.Entry<Integer, List<DataSet>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (sortEntry == null) {
+            if (filterMap == null || filterMap.isEmpty()) {
+                return new AbstractMap.SimpleEntry<>(byId.size(), new ArrayList(byId.values()));
+            // only id filter handled for now
+            } else if (filterMap.size() == 1 && filterMap.containsKey("id")) {
+                Integer id = (Integer) filterMap.get("id");
+                DataSet ds = byId.get(id);
+                if (ds != null) {
+                    return new AbstractMap.SimpleEntry<>(1, Arrays.asList(ds));
+                } else {
+                    return new AbstractMap.SimpleEntry<>(0, new ArrayList<>());
+                }
+            }
+        }
+        throw new UnsupportedOperationException("Complex search not supported yet (only byId search supported)");
     }
 }

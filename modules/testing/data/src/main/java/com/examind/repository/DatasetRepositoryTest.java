@@ -18,7 +18,10 @@
  */
 package com.examind.repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataSet;
@@ -77,6 +80,37 @@ public class DatasetRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals(s.getId(), datasetRepository.findIdForIdentifier("ds1"));
 
         Assert.assertTrue(datasetRepository.findAll().contains(s));
+
+
+        /**
+         * search full
+         */
+        Map<String, Object> filterMap = new HashMap<>();
+        Entry<String, String> sortEntry = null;
+        Entry<Integer, List<DataSet>> results = datasetRepository.filterAndGet(filterMap, sortEntry, 1, 10);
+
+        Assert.assertEquals(new Integer(1), results.getKey());
+        Assert.assertEquals(1, results.getValue().size());
+        Assert.assertEquals(s, results.getValue().get(0));
+
+        /**
+         * search by id
+         */
+        filterMap.put("id", did);
+        results = datasetRepository.filterAndGet(filterMap, sortEntry, 1, 10);
+
+        Assert.assertEquals(new Integer(1), results.getKey());
+        Assert.assertEquals(1, results.getValue().size());
+        Assert.assertEquals(s, results.getValue().get(0));
+
+        /**
+         * search by wrong id
+         */
+        filterMap.put("id", 999666);
+        results = datasetRepository.filterAndGet(filterMap, sortEntry, 1, 10);
+
+        Assert.assertEquals(new Integer(0), results.getKey());
+        Assert.assertEquals(0, results.getValue().size());
 
         /**
          * dataset deletion
