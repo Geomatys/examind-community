@@ -105,7 +105,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     protected final Date versionDate;
 
     /**
-     * Build a FeatureLayerDetails with layer name, store, favorite style names, temporal/elevation filters and
+     * Build a FeatureData with layer name, store, favorite style names, temporal/elevation filters and
      * data version date.
      *
      * @param name layer name

@@ -181,6 +181,10 @@ public class WFS2WorkerTest {
                 pid = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness);
                 Integer d22 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "featureCollection"), pid, "VECTOR", false, true, true, null, null);
 
+                // for aliased layer
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                Integer d23 = dataBusiness.create(new QName("http://www.opengis.net/gml/3.2", "feature"), pid, "VECTOR", false, true, true, null, null);
+
 
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","BuildingCenters"));
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","BasicPolygons"));
@@ -197,6 +201,7 @@ public class WFS2WorkerTest {
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","Ponds"));
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","feature"));
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","featureCollection"));
+                ALL_TYPES.add(new QName("JS2"));
                 Collections.sort(ALL_TYPES, new QNameComparator());
 
 
@@ -220,6 +225,7 @@ public class WFS2WorkerTest {
                 layerBusiness.add(d20, null, sid, null);
                 layerBusiness.add(d21, null, sid, null);
                 layerBusiness.add(d22, null, sid, null);
+                layerBusiness.add(d23,"JS2", sid, null);
 
                 pool = WFSMarshallerPool.getInstance();
 
@@ -1215,6 +1221,22 @@ public class WFS2WorkerTest {
         }
         assertEquals(expResult, result);
 
+        /*
+         * Test 2 : describe Feature type Sampling point
+         */
+        typeNames = new ArrayList<>();
+        typeNames.add(new QName("JS2"));
+        request = new DescribeFeatureTypeType("WFS", "2.0.0", null, typeNames, "text/xml; subtype=\"gml/3.2.1\"");
+
+        result = (Schema) worker.describeFeatureType(request);
+
+        expResult = (Schema) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/wfs/xsd/JS2-2.xsd"));
+        // fix for equlity on empty list / null list
+        for (ComplexType type : expResult.getComplexTypes()) {
+            type.getAttributeOrAttributeGroup();
+        }
+        assertEquals(expResult, result);
+
         XSDMarshallerPool.getInstance().recycle(unmarshaller);
     }
 
@@ -1943,6 +1965,32 @@ public class WFS2WorkerTest {
 
         domCompare(
                 IOUtilities.getResourceAsPath("org.constellation.wfs.xml.featureCollection-1v2.xml"),
+                sresult);
+
+        /*
+         * Test 3 : query on typeName JS2 with propertyName = {FID}
+         */
+        queries = new ArrayList<>();
+        pe = new PropertyIsEqualToType(new LiteralType("Plaza Road Park"), "name", Boolean.TRUE);
+        filter = new FilterType(pe);
+        queries.add(new QueryType(filter,  Arrays.asList(new QName("JS2")), null));
+        request = new GetFeatureType("WFS", "2.0.0", null, null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/xml; subtype=\"gml/3.2.1\"");
+
+        result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+        assertEquals("3.2.1", wrapper.getGmlVersion());
+
+        writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(
+                IOUtilities.getResourceAsPath("org.constellation.wfs.xml.JS2-v2.xml"),
                 sresult);
 
     }

@@ -396,8 +396,7 @@ public class WMSService extends GridWebService<WMSWorker> {
               String infoFormat  = getParameter(KEY_INFO_FORMAT, false);
         final String strFeatureCount = getParameter(KEY_FEATURE_COUNT, false);
         final List<String> queryLayers = StringUtilities.toStringList(strQueryLayers);
-        final List<String> queryableLayers = MapUtilities.areQueryableLayers(queryLayers, null);
-        final List<GenericName> namedQueryableLayers = parseNamespaceLayerList(queryableLayers);
+        final List<GenericName> namedQueryableLayers = parseNamespaceLayerList(queryLayers);
         if (infoFormat == null) {
             infoFormat = MimeType.TEXT_XML;
         }

@@ -42,8 +42,8 @@
         <ows:Operation name="GetCapabilities">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
-                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
+                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
+                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
                 </ows:HTTP>
             </ows:DCP>
             <ows:Parameter name="AcceptVersions">
@@ -59,8 +59,8 @@
         <ows:Operation name="DescribeFeatureType">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
-                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
+                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
+                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
                 </ows:HTTP>
             </ows:DCP>
             <ows:Parameter name="outputFormat">
@@ -76,8 +76,8 @@
         <ows:Operation name="GetFeature">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
-                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
+                    <ows:Get xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
+                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
                 </ows:HTTP>
             </ows:DCP>
             <ows:Parameter name="resultType">
@@ -100,7 +100,7 @@
         <ows:Operation name="Transaction">
             <ows:DCP>
                 <ows:HTTP>
-                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/test1?"/>
+                    <ows:Post xlink:href="http://geomatys.com/constellation/WS/wfs/default?"/>
                 </ows:HTTP>
             </ows:DCP>
             <ows:Parameter name="inputFormat">
@@ -188,6 +188,17 @@
             <ows:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
                 <ows:LowerCorner>-0.0024 -0.0014</ows:LowerCorner>
                 <ows:UpperCorner>0.0018 0.0042</ows:UpperCorner>
+            </ows:WGS84BoundingBox>
+        </wfs:FeatureType>
+        <wfs:FeatureType>
+            <wfs:Name>JS2</wfs:Name>
+            <wfs:Title>JS2</wfs:Title>
+            <wfs:DefaultSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:DefaultSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
+            <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
+            <ows:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+                <ows:LowerCorner>-80.72487831115721 35.2553619492954</ows:LowerCorner>
+                <ows:UpperCorner>-80.70324897766113 35.27035945142482</ows:UpperCorner>
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         <wfs:FeatureType>

@@ -37,12 +37,9 @@ import org.geotoolkit.style.MutableStyle;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
 import org.constellation.business.ClusterMessage;
@@ -167,32 +164,6 @@ public abstract class LayerWorker extends AbstractWorker {
         }
     }
 
-    protected List<Layer> getConfigurationLayers(final String login, final List<GenericName> layerNames) {
-        final List<Layer> layerConfigs = new ArrayList<>();
-        for (GenericName layerName : layerNames) {
-            Layer l = getConfigurationLayer(layerName, login);
-            layerConfigs.add(l);
-        }
-        return layerConfigs;
-    }
-
-    protected Layer getConfigurationLayer(final GenericName layerName, final String login) {
-        if (layerName != null && layerName.tip().toString()!= null) {
-            final QName qname = new QName(NamesExt.getNamespace(layerName), layerName.tip().toString());
-            return getConfigurationLayer(qname, login);
-        }
-        return null;
-    }
-
-    protected Layer getConfigurationLayer(final QName layerName, final String login) {
-        try {
-            return layerBusiness.getLayer(getServiceId(), layerName.getLocalPart(), layerName.getNamespaceURI(), login);
-        } catch (ConfigurationException e) {
-            LOGGER.log(Level.FINE, "No layer is exactly named as queried. Search using alias will start now", e);
-        }
-        return null;
-    }
-
     protected List<NameInProvider> getConfigurationLayerNames(final String login) {
         try {
             return layerBusiness.getLayerNames(getServiceId(), login);
@@ -202,15 +173,6 @@ public abstract class LayerWorker extends AbstractWorker {
         return new ArrayList<>();
     }
 
-    protected FilterAndDimension getLayerFilterDimensions(final GenericName layerName, final String login) {
-        try {
-            return layerBusiness.getLayerFilterDimension(getServiceId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while getting filter and dimension for layer", ex);
-        }
-        return new FilterAndDimension();
-    }
-
     protected FilterAndDimension getLayerFilterDimensions(final Integer layerId) {
         try {
             return layerBusiness.getLayerFilterDimension(layerId);
@@ -218,68 +180,6 @@ public abstract class LayerWorker extends AbstractWorker {
             LOGGER.log(Level.WARNING, "Error while getting filter and dimension for layer", ex);
         }
         return new FilterAndDimension();
-    }
-
-    /**
-     * @param login
-     *
-     * @return map of additional informations for each layer declared in the
-     * layer context.
-     */
-    public List<Layer> getConfigurationLayers(final String login) {
-        try {
-            return layerBusiness.getLayers(getServiceId(), login);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Error while getting layers", ex);
-        }
-        return new ArrayList<>();
-    }
-
-
-    /**
-     * Return all layers details in LayerProviders from there names.
-     * @param login
-     * @param layerNames
-     * @return a list of LayerDetails
-     * @throws CstlServiceException
-     */
-    protected List<Data> getLayerReferences(final String login, final Collection<GenericName> layerNames) throws CstlServiceException {
-        final List<Data> layerRefs = new ArrayList<>();
-        for (GenericName layerName : layerNames) {
-            layerRefs.add(getLayerReference(login, layerName));
-        }
-        return layerRefs;
-    }
-
-    protected Data getLayerReference(final Layer layer) throws CstlServiceException {
-        return getData(new NameInProvider(layer.getId(), NamesExt.create(layer.getName()), layer.getProviderID(), null, layer.getAlias()));
-    }
-
-    protected Data getLayerReference(final String login, final QName layerName) throws CstlServiceException {
-        return getLayerReference(login, NamesExt.create(layerName));
-    }
-
-    /**
-     * Search layer real name and return the LayerDetails from LayerProvider.
-     *
-     * @param login
-     * @param layerName
-     * @return a LayerDetails
-     * @throws CstlServiceException
-     */
-    protected Data getLayerReference(final String login, final GenericName layerName) throws CstlServiceException {
-        LOGGER.log(Level.FINE, "Login = {0} ; layerName = {1}", new Object[]{login, layerName});
-        final Data layerRef;
-        final NameInProvider fullName = getFullLayerName(login, layerName);
-        if (fullName != null) {
-            layerRef = getData(fullName);
-            if (layerRef == null) {
-                throw new CstlServiceException("Unable to find  the Layer named:{"+NamesExt.getNamespace(layerName) + '}' + layerName.tip().toString()+ " in the provider proxy", NO_APPLICABLE_CODE);
-            }
-        } else {
-            throw new CstlServiceException("Unknown Layer name:" + layerName, LAYER_NOT_DEFINED);
-        }
-        return layerRef;
     }
 
     /**
@@ -293,7 +193,7 @@ public abstract class LayerWorker extends AbstractWorker {
      *
      * @return a complete Name indentifier of the layer or {@code null}
      */
-    protected NameInProvider getFullLayerName(final String login, final GenericName name) {
+    private NameInProvider getFullLayerName(final String login, final GenericName name) {
         if (name == null) {
             return null;
         }
@@ -303,35 +203,6 @@ public abstract class LayerWorker extends AbstractWorker {
             LOGGER.log(Level.INFO, "Error while getting layer name:{0}", ex.getMessage());
         }
         return null;
-    }
-
-    protected Map<GenericName, List<StyleReference>> getLayersStyles(final String login, final List<GenericName> layerNames) {
-        final Map<GenericName, List<StyleReference>> results = new LinkedHashMap<>();
-        for (GenericName layerName : layerNames) {
-            results.put(layerName, getLayerStyles(login, layerName));
-        }
-        return results;
-    }
-
-    protected List<StyleReference> getLayerStyles(final String login, final GenericName layerName) {
-        List<StyleReference> results = new ArrayList<>();
-        try {
-            results.addAll(layerBusiness.getLayerStyles(getServiceId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login));
-        } catch (ConstellationException ex) {
-             LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
-        }
-        return results;
-    }
-
-
-    protected List<StyleReference> getLayerStyles(final Integer layerId) {
-        List<StyleReference> results = new ArrayList<>();
-        try {
-            results.addAll(layerBusiness.getLayerStyles(layerId));
-        } catch (ConstellationException ex) {
-             LOGGER.log(Level.INFO, "Error while getting layer styles:{0}", ex.getMessage());
-        }
-        return results;
     }
 
     protected MutableStyle getStyle(final StyleReference styleReference) throws CstlServiceException {
@@ -416,6 +287,64 @@ public abstract class LayerWorker extends AbstractWorker {
         }else{
             LOGGER.log(Level.FINE, "Provider with name = {0}", nip.name);
             return provider.get(nip.name);
+        }
+    }
+
+    protected List<LayerCache> getLayerCaches(final String login) throws CstlServiceException {
+        List<LayerCache> results = new ArrayList<>();
+        try {
+            List<NameInProvider> nips = layerBusiness.getLayerNames(getServiceId(), login);
+            for (NameInProvider nip : nips) {
+                results.add(getLayerCache(nip, login));
+            }
+            return results;
+        } catch (ConfigurationException ex) {
+            throw new CstlServiceException(ex);
+        }
+    }
+
+    protected List<LayerCache> getLayerCaches(final String login, final Collection<GenericName> names) throws CstlServiceException {
+        List<LayerCache> results = new ArrayList<>();
+        for (GenericName name : names) {
+            results.add(getLayerCache(login, name));
+        }
+        return results;
+    }
+
+    protected LayerCache getLayerCache(final String login, GenericName name) throws CstlServiceException {
+        NameInProvider nip = getFullLayerName(login, name);
+        if (nip != null) {
+            return getLayerCache(nip, login);
+        } else {
+            throw new CstlServiceException("Unknown Layer name:" + name, LAYER_NOT_DEFINED);
+        }
+    }
+
+    private LayerCache getLayerCache(NameInProvider nip, String login) throws CstlServiceException {
+        Data data = getData(nip);
+        if (data != null) {
+            final GenericName layerName;
+            if (nip.alias != null) {
+                layerName = NamesExt.create(nip.alias);
+            } else {
+                layerName = nip.name;
+            }
+            List<StyleReference> styles = new ArrayList<>();
+            Layer configuration;
+            try {
+                styles.addAll(layerBusiness.getLayerStyles(nip.layerId));
+                configuration = layerBusiness.getLayer(nip.layerId, login);
+            } catch (ConstellationException ex) {
+               throw new CstlServiceException(ex);
+            }
+            return new LayerCache(
+                    nip.layerId,
+                    layerName,
+                    data,
+                    styles,
+                    configuration);
+        } else {
+            throw new CstlServiceException("Unable to find  the Layer named:{" + NamesExt.getNamespace(nip.name) + '}' + nip.name.tip().toString() + " in the provider proxy", NO_APPLICABLE_CODE);
         }
     }
 }

@@ -41,8 +41,6 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
@@ -50,6 +48,7 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
+import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -71,7 +70,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
-import org.opengis.feature.FeatureType;
 import org.opengis.feature.PropertyType;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -155,24 +153,13 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if (results == null) {
             return;
         }
-
-        final Resource ref = coverage.getLayer().getResource();
-        final GenericName fullLayerName;
-        try {
-            if (ref.getIdentifier().isPresent()) {
-                fullLayerName = ref.getIdentifier().get().tip();
-            } else {
-                throw new RuntimeException("resource identifier not present");
-            }
-        } catch (DataStoreException e) {
-            throw new RuntimeException(e);      // TODO
-        }
+        final GenericName fullLayerName = getNameForCoverageLayer(coverage.getLayer());
         String layerName = fullLayerName.tip().toString();
 
-        List<String> strs = coverages.get(layerName);
+        List<String> strs = coverages.get(fullLayerName);
         if (strs == null) {
-            strs = new ArrayList<String>();
-            coverages.put(layerName, strs);
+            strs = new ArrayList<>();
+            coverages.put(fullLayerName, strs);
         }
 
         StringBuilder builder = new StringBuilder();
@@ -192,12 +179,12 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         builder.append("\t<").append(layerName).append("_layer").append(endMark)
                 .append("\t\t<").append(layerName).append("_feature").append(endMark);
 
-        final List<Data> layerDetailsList = getLayersDetails();
-        Data layerPostgrid = null;
+        final List<LayerCache> layers = getLayers();
+        Data data = null;
 
-        for (Data layer : layerDetailsList) {
-            if (layer.getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
-                layerPostgrid = layer;
+        for (LayerCache layer : layers) {
+            if (layer.getData().getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
+                data = layer.getData();
             }
         }
 
@@ -250,9 +237,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
              * leverage the database index.
              */
             DateRange dates = null;
-            if (layerPostgrid != null) {
+            if (data != null) {
                 try {
-                    dates = layerPostgrid.getDateRange();
+                    dates = data.getDateRange();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                 }
@@ -271,9 +258,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                     .append("</elevation>").append("\n");
         } else {
             SortedSet<Number> elevs = null;
-            if (layerPostgrid != null) {
+            if (data != null) {
                 try {
-                    elevs = layerPostgrid.getAvailableElevations();
+                    elevs = data.getAvailableElevations();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     elevs = null;
@@ -292,8 +279,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
 
         MeasurementRange[] ranges = null;
-        if (layerPostgrid != null) {
-            ranges = layerPostgrid.getSampleValueRanges();
+        if (data != null) {
+            ranges = data.getSampleValueRanges();
         }
         if (ranges != null && ranges.length > 0) {
             final MeasurementRange range = ranges[0];
@@ -322,14 +309,14 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final StringBuilder builder   = new StringBuilder();
         final FeatureMapLayer layer   = graphic.getLayer();
         final Feature feature         = graphic.getCandidate();
-        final FeatureType featureType = feature.getType();
+        final GenericName layerName   = getNameForFeatureLayer(layer);
         String margin                 = "\t";
 
         if (mode == 0) {
 
             // featureType mark
-            if (featureType != null) {
-                final String ftLocal = featureType.getName().tip().toString();
+            if (layerName != null) {
+                final String ftLocal = layerName.tip().toString();
                 builder.append(margin).append("<").append(encodeXMLMark(ftLocal)).append("_feature").append(">\n");
 
                 margin += "\t";
@@ -349,9 +336,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             margin += "\t";
 
             // featureType mark
-            if (featureType != null) {
-                String ftLocal = featureType.getName().tip().toString();
-                String ftPrefix  = acquirePrefix(NamesExt.getNamespace(featureType.getName()));
+            if (layerName != null) {
+                String ftLocal   = layerName.tip().toString();
+                String ftPrefix  = acquirePrefix(NamesExt.getNamespace(layerName));
 
                 builder.append(margin).append('<').append(ftPrefix).append(ftLocal).append(">\n");
                 margin += "\t";
@@ -373,7 +360,6 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         final String result = builder.toString();
         if (builder.length() > 0) {
-            final String layerName = layer.getName();
             List<String> strs = features.get(layerName);
             if (strs == null) {
                 strs = new ArrayList<>();
@@ -523,7 +509,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             builder.append(">\n");
         }
 
-        final Map<String, List<String>> values = new HashMap<>();
+        final Map<GenericName, List<String>> values = new HashMap<>();
         values.putAll(features);
         values.putAll(coverages);
 
@@ -533,14 +519,14 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             maxValue = 1;
         }
 
-        for (String layerName : values.keySet()) {
-
+        for (GenericName fullLayerName : values.keySet()) {
+            String layerName = fullLayerName.tip().toString();
             if (mode == 0) {
                 builder.append("<").append(encodeXMLMark(layerName)).append("_layer").append(">\n");
             }
 
             int cpt = 0;
-            for (final String record : values.get(layerName)) {
+            for (final String record : values.get(fullLayerName)) {
                 builder.append(record);
                 cpt++;
                 if (cpt >= maxValue) break;

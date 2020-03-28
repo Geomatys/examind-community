@@ -208,17 +208,24 @@ public class MapRestAPI {
      *
      * @param spec service type.
      * @param serviceId the service identifier
-     * @param layerId the layer to remove
+     * @param layerName the layer to remove
      */
     @Deprecated
-    @RequestMapping(value="/MAP/{spec}/{id}/delete/{layerid}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity deleteLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String serviceId, final @PathVariable("layerid") String layerId, final @RequestBody SimpleValue layernmsp) {
+    @RequestMapping(value="/MAP/{spec}/{id}/delete/{layerName}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteLayer(final @PathVariable("spec") String spec, final @PathVariable("id") String serviceId, final @PathVariable("layerName") String layerName, final @RequestBody SimpleValue layernmsp) {
         try {
             String namespace = null;
             if (layernmsp != null && !layernmsp.getValue().isEmpty()) {
                 namespace = layernmsp.getValue();
             }
-            layerBusiness.remove(spec, serviceId, layerId, namespace);
+            final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(spec, serviceId);
+            if (sid != null) {
+                final NameInProvider nip = layerBusiness.getFullLayerName(sid,
+                                                                          layerName,
+                                                                          namespace,
+                                                                          securityManager.getCurrentUserLogin());
+                layerBusiness.remove(nip.layerId);
+            }
             return new ResponseEntity(OK);
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"/>
+  <xs:element xmlns="" xmlns:gml="http://www.opengis.net/gml" type="JS2Type" substitutionGroup="gml:_Feature" name="JS2"/>
+  <xs:complexType name="JS2Type">
+    <xs:complexContent>
+      <xs:extension xmlns:gml="http://www.opengis.net/gml" base="gml:AbstractFeatureType">
+        <xs:sequence>
+          <xs:element type="gml:PolygonPropertyType" nillable="false" minOccurs="1" maxOccurs="1" name="geometry"/>
+          <xs:element type="xs:string" nillable="false" minOccurs="1" maxOccurs="1" name="name"/>
+          <xs:element type="xs:string" nillable="false" minOccurs="1" maxOccurs="1" name="id"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

@@ -45,6 +45,7 @@ import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
 import org.opengis.feature.PropertyType;
+import org.opengis.util.GenericName;
 import org.opengis.util.InternationalString;
 
 /**
@@ -64,7 +65,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         private final List<String> values = new ArrayList<>();
     }
 
-    private final Map<String,LayerResult> results = new HashMap<>();
+    private final Map<GenericName,LayerResult> results = new HashMap<>();
 
 
     public HTMLFeatureInfoFormat() {
@@ -85,7 +86,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final FeatureMapLayer layer = graphic.getLayer();
-        final String layerName = layer.getName();
+        final GenericName layerName = getNameForFeatureLayer(layer);
 
         final Feature feature = graphic.getCandidate();
 
@@ -93,7 +94,7 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if(result==null){
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName;
+            result.layerName = layerName.tip().toString();
             results.put(layerName, result);
         }
 
@@ -193,22 +194,13 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final String layerName;
-        try {
-            if (graphic.getLayer().getResource().getIdentifier().isPresent()) {
-                layerName = graphic.getLayer().getResource().getIdentifier().get().tip().toString();
-            } else {
-                throw new RuntimeException("resource identifier not present");
-            }
-        } catch (DataStoreException e) {
-            throw new RuntimeException(e);      // TODO
-        }
+        final GenericName layerName = getNameForCoverageLayer(graphic.getLayer());
 
         LayerResult result = results.get(layerName);
         if(result==null){
             //first feature of this type
             result = new LayerResult();
-            result.layerName = layerName;
+            result.layerName = layerName.tip().toString();
             results.put(layerName, result);
         }
 

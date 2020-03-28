@@ -121,6 +121,10 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static final String WFS_GETCAPABILITIES_ERROR_URL = "request=GetCapabilities&version=1.3.0&service=WFS";
 
+    private static final String WFS_GETFEATURE_URL_ALIAS = "request=getFeature&service=WFS&version=1.1.0&typename=JS2";
+
+    private static final String WFS_GETFEATURE_URL_ALIAS_V2 = "request=getFeature&service=WFS&version=2.0.0&&typenames=JS2";
+
     private static final String WFS_GETFEATURE_URL = "request=getFeature&service=WFS&version=1.1.0&"
             + "typename=sa:SamplingPoint&namespace=xmlns(sa=http://www.opengis.net/sampling/1.0)&"
             + "filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%20xmlns:gml=%22http://www.opengis.net/gml%22%3E"
@@ -231,6 +235,10 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 pid = testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness);
                 Integer d20 = dataBusiness.create(new QName("http://www.opengis.net/sampling/1.0", "SamplingPoint"), pid, "VECTOR", false, true, true, null, null);
 
+                // for aliased layer
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                Integer d23 = dataBusiness.create(new QName("http://www.opengis.net/gml", "feature"), pid, "VECTOR", false, true, true, null, null);
+
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
                 config.getCustomParameters().put("transactional", "true");
@@ -261,6 +269,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 layerBusiness.add(d17,   null, defId, null);
                 layerBusiness.add(d18,   null, defId, null);
                 layerBusiness.add(d19,   null, defId, null);
+                layerBusiness.add(d23,   "JS2", defId, null);
 
                 Integer testId = serviceBusiness.create("wfs", "test", config, null, null);
                 layerBusiness.add(d5, null, testId, null);
@@ -759,6 +768,43 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
         assertEquals("10972X0137-PONT", sp.getName().getCode());
     }
 
+    /**
+     */
+    @Test
+    @Order(order=4)
+    public void testWFSGetFeatureAliasedGET() throws Exception {
+        initPool();
+        URL getfeatsUrl;
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        Object obj = unmarshallResponse(getfeatsUrl);
+
+        assertTrue(obj instanceof FeatureCollectionType);
+
+        FeatureCollectionType feat = (FeatureCollectionType) obj;
+        assertEquals(1, feat.getFeatureMember().size());
+
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_URL_ALIAS_V2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        obj = unmarshallResponse(getfeatsUrl);
+
+        assertTrue("was:" + obj, obj instanceof org.geotoolkit.wfs.xml.v200.FeatureCollectionType);
+
+        org.geotoolkit.wfs.xml.v200.FeatureCollectionType feat2 = (org.geotoolkit.wfs.xml.v200.FeatureCollectionType) obj;
+        assertEquals(1, feat2.getMember().size());
+
+    }
+
     @Test
     @Order(order=5)
     public void testWFSGetFeatureGET2() throws Exception {
@@ -829,7 +875,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         Schema schema = (Schema) obj;
 
-        assertEquals(3, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
 
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_DESCRIBE_FEATURE_TYPE_URL_V2);
@@ -1152,14 +1198,12 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
             return;
         }
 
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>><" + getStringResponse(getfeatsUrl.openConnection()));
-
         Object obj = unmarshallResponse(getfeatsUrl);
 
         assertTrue(obj instanceof Schema);
 
         Schema schema = (Schema) obj;
-        assertEquals(3, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
 
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/schema");

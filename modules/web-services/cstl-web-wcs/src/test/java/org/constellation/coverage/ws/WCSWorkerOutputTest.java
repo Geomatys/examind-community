@@ -112,6 +112,7 @@ public class WCSWorkerOutputTest {
      * The layer to test.
      */
     private static final String LAYER_TEST = "SSTMDE200305";
+    private static final String LAYER_ALIAS = "aliased";
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -149,14 +150,15 @@ public class WCSWorkerOutputTest {
                 Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
                 Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
 
+                // second data for alias
+                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer did2 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+
                 final LayerContext config = new LayerContext();
 
                 Integer sid = serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add(did, null, sid, null);
-
-                Integer sid2 = serviceBusiness.create("wcs", "test", config, null, null);
-                layerBusiness.add(did, null, sid2, null);
-
+                layerBusiness.add(did2, "aliased", sid, null);
 
                 WORKER = new DefaultWCSWorker("default");
                 // Default instanciation of the worker' servlet context and uri context.
@@ -231,21 +233,20 @@ public class WCSWorkerOutputTest {
 
         // Verifies that the test layer is present into the GetCapabilities response.
         boolean find = false;
+        boolean findA = false;
         final List<CoverageOfferingBriefType> offerings = getCaps.getContentMetadata().getCoverageOfferingBrief();
         assertFalse(offerings.isEmpty());
         for (CoverageOfferingBriefType offering : offerings) {
-            for (JAXBElement<String> string : offering.getRest()) {
-                if (string.getName().getLocalPart().equalsIgnoreCase("name") &&
-                    string.getValue().equals(LAYER_TEST))
-                {
-                    find = true;
+            for (JAXBElement<String> element : offering.getRest()) {
+                if (element.getName().getLocalPart().equalsIgnoreCase("name")) {
+                    if (element.getValue().equals(LAYER_TEST)) find = true;
+                    else if (element.getValue().equals(LAYER_ALIAS)) findA = true;
                 }
             }
         }
         // Not found in the list of coverage offerings, there is a mistake here.
-        if (!find) {
-            fail("Unable to find the layer "+ LAYER_TEST +" in the GetCapabilities document.");
-        }
+        if (!find)  fail("Unable to find the layer "+ LAYER_TEST +" in the GetCapabilities document.");
+        if (!findA) fail("Unable to find the layer "+ LAYER_ALIAS +" in the GetCapabilities document.");
 
         request = new GetCapabilitiesType("1.0.0", "WCS", "/WCS_Capabilities/Capability", null);
         getCaps = (WCSCapabilitiesType) WORKER.getCapabilities(request);
@@ -284,36 +285,78 @@ public class WCSWorkerOutputTest {
         assertNotNull(response);
         assertTrue(response instanceof CoverageDescription);
 
+        boolean find = false;
+        boolean findA = false;
+
         final CoverageDescription descCov = (CoverageDescription) response;
         // Verifies that the test layer is present into the DescribeCoverage response.
         for (CoverageOfferingType offering : descCov.getCoverageOffering()) {
-            for (JAXBElement<String> string : offering.getRest()) {
-                if (string.getName().getLocalPart().equalsIgnoreCase("name") &&
-                    string.getValue().equals(LAYER_TEST))
-                {
-                    final SpatialDomainType spatialDomain = (SpatialDomainType) offering.getDomainSet()
-                            .getContent().get(0).getValue();
-                    final TimeSequenceType temporalDomain = (TimeSequenceType) offering.getDomainSet()
-                            .getContent().get(1).getValue();
-                    // Builds expected spatial domain
-                    final List<DirectPositionType> pos = new ArrayList<>();
-                    pos.add(new DirectPositionType(-180.0, -90.0));
-                    pos.add(new DirectPositionType(180.0, 90.0));
-                    final EnvelopeType expectedEnvelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
-                    // Builds expected temporal domain
-                    final List<TimePositionType> expectedTimes =
-                            Collections.singletonList(new TimePositionType("2003-05-16T00:00:00Z"));
-                    // Do assertions
-                    assertEquals(expectedEnvelope, spatialDomain.getEnvelope());
-                    // assertEquals(expectedTimes, temporalDomain.getTimePositionOrTimePeriod());
-                    /*
-                     * All tests have succeed on that specific layer, we can now stop this test.
-                     */
-                    return;
+            for (JAXBElement<String> element : offering.getRest()) {
+                if (element.getName().getLocalPart().equalsIgnoreCase("name")) {
+                    if (element.getValue().equals(LAYER_TEST)) {
+
+                        final SpatialDomainType spatialDomain = (SpatialDomainType) offering.getDomainSet()
+                                .getContent().get(0).getValue();
+                        final TimeSequenceType temporalDomain = (TimeSequenceType) offering.getDomainSet()
+                                .getContent().get(1).getValue();
+                        // Builds expected spatial domain
+                        final List<DirectPositionType> pos = new ArrayList<>();
+                        pos.add(new DirectPositionType(-180.0, -90.0));
+                        pos.add(new DirectPositionType(180.0, 90.0));
+                        final EnvelopeType expectedEnvelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
+                        // Builds expected temporal domain
+                        final List<TimePositionType> expectedTimes =
+                                Collections.singletonList(new TimePositionType("2003-05-16T00:00:00Z"));
+                        // Do assertions
+                        assertEquals(expectedEnvelope, spatialDomain.getEnvelope());
+                        // assertEquals(expectedTimes, temporalDomain.getTimePositionOrTimePeriod());
+                        find = true;
+                    }
                 }
             }
         }
-        fail("Unable to find the layer "+ LAYER_TEST +" in the DescribeCoverage document.");
+        if (!find)  fail("Unable to find the layer "+ LAYER_TEST +" in the DescribeCoverage document.");
+    }
+
+    @Test
+    public void testDescribeCoverageAlias() throws JAXBException, CstlServiceException {
+
+        final DescribeCoverage request = new DescribeCoverageType(LAYER_ALIAS);
+        final DescribeCoverageResponse response = WORKER.describeCoverage(request);
+        assertNotNull(response);
+        assertTrue(response instanceof CoverageDescription);
+
+        boolean find = false;
+        boolean findA = false;
+
+        final CoverageDescription descCov = (CoverageDescription) response;
+        // Verifies that the test layer is present into the DescribeCoverage response.
+        for (CoverageOfferingType offering : descCov.getCoverageOffering()) {
+            for (JAXBElement<String> element : offering.getRest()) {
+                if (element.getName().getLocalPart().equalsIgnoreCase("name")) {
+                    if (element.getValue().equals(LAYER_ALIAS)) {
+
+                        final SpatialDomainType spatialDomain = (SpatialDomainType) offering.getDomainSet()
+                                .getContent().get(0).getValue();
+                        final TimeSequenceType temporalDomain = (TimeSequenceType) offering.getDomainSet()
+                                .getContent().get(1).getValue();
+                        // Builds expected spatial domain
+                        final List<DirectPositionType> pos = new ArrayList<>();
+                        pos.add(new DirectPositionType(-180.0, -90.0));
+                        pos.add(new DirectPositionType(180.0, 90.0));
+                        final EnvelopeType expectedEnvelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
+                        // Builds expected temporal domain
+                        final List<TimePositionType> expectedTimes =
+                                Collections.singletonList(new TimePositionType("2003-05-16T00:00:00Z"));
+                        // Do assertions
+                        assertEquals(expectedEnvelope, spatialDomain.getEnvelope());
+                        // assertEquals(expectedTimes, temporalDomain.getTimePositionOrTimePeriod());
+                        find = true;
+                    }
+                }
+            }
+        }
+        if (!find)  fail("Unable to find the layer "+ LAYER_ALIAS +" in the DescribeCoverage document.");
     }
 
     /**

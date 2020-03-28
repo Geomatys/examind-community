@@ -22,6 +22,7 @@ import java.awt.*;
 import java.util.List;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
+import org.constellation.ws.LayerCache;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -75,16 +76,16 @@ public interface FeatureInfoFormat {
     public GetFeatureInfoCfg getConfiguration();
 
     /**
-     * Set the list of {@link Data} from which the {@link SceneDef}
+     * Set the list of {@link LayerCache} from which the {@link SceneDef}
      * {@link org.geotoolkit.map.MapContext} was build.
      * @param layers
      */
-    public void setLayersDetails(List<Data> layers);
+    public void setLayers(List<LayerCache> layers);
 
     /**
-     * Get the list of {@link Data} from which the {@link SceneDef}
+     * Get the list of {@link LayerCache} from which the {@link SceneDef}
      * {@link org.geotoolkit.map.MapContext} was build.
      * @return layers or null
      */
-    public List<Data> getLayersDetails();
+    public List<LayerCache> getLayers();
 }

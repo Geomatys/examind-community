@@ -18,6 +18,7 @@
  */
 package org.constellation.map.core;
 
+import org.constellation.ws.LayerCache;
 import com.codahale.metrics.annotation.Timed;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -36,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.measure.Unit;
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -169,7 +168,6 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
-import org.opengis.feature.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
 import org.opengis.geometry.Envelope;
@@ -261,7 +259,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     /**
      * Return a description of layers specified in the user's request.
      *
-     * TODO: Does this actually do anything? why does this never access LayerDetails?
+     * TODO: Does this actually do anything? why does this never access Data?
      * TODO: Is this broken?
      *
      * @param descLayer The {@linkplain DescribeLayer describe layer} request.
@@ -338,30 +336,30 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         //Build the list of layers
         final List<AbstractLayer> outputLayers = new ArrayList<>();
-        final List<Layer> layers = getConfigurationLayers(userLogin);
+        final List<LayerCache> layers = getLayerCaches(userLogin);
 
-       for (Layer configLayer : layers) {
-            final Data layer = getLayerReference(configLayer);
+       for (LayerCache layer : layers) {
+            final Data data = layer.getData();
 
-            if (layer == null) {
-                LOGGER.log(Level.WARNING, "Unable to find a provider data correspounding to layer:{0}", configLayer.getIdentifier());
+            if (data == null) {
+                LOGGER.log(Level.WARNING, "Unable to find a provider data correspounding to layer:{0}", layer.getName());
                 continue;
             }
 
-            if (!layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
+            if (!data.isQueryable(ServiceDef.Query.WMS_ALL)) {
                 continue;
             }
 
             // Get default CRS for the layer supported crs.
             final Envelope layerNativeEnv;
             try {
-                layerNativeEnv = layer.getEnvelope();
+                layerNativeEnv = data.getEnvelope();
                 if (layerNativeEnv == null) {
-                    LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", layer);
+                    LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", data);
                     continue;
                 }
             } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, ex, () -> "Cannot get envelope for layer "+layer);
+                LOGGER.log(Level.WARNING, ex, () -> "Cannot get envelope for layer "+data);
                 continue;
             }
 
@@ -375,12 +373,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                    }
                }
            } catch (FactoryException ex) {
-               LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + layer.getName(), ex);
+               LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + data.getName(), ex);
            }
 
             GeographicBoundingBox inputGeoBox;
             try {
-                inputGeoBox = layer.getGeographicBoundingBox();
+                inputGeoBox = data.getGeographicBoundingBox();
             } catch (ConstellationStoreException exception) {
                 throw new CstlServiceException(exception, NO_APPLICABLE_CODE);
             }
@@ -425,7 +423,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
              * Dimension: the available date
              */
             try {
-                final SortedSet<Date> dates = layer.getAvailableTimes();
+                final SortedSet<Date> dates = data.getAvailableTimes();
                 if (!dates.isEmpty()) {
                     final PeriodUtilities periodFormatter = new PeriodUtilities(ISO8601_FORMAT);
                     final String defaut = ISO8601_FORMAT.format(dates.last());
@@ -434,14 +432,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     dimensions.add(dim);
                 }
             } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :"+ layer.getName(), ex);
+                LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :"+ data.getName(), ex);
             }
 
             /*
              * Dimension: the available elevation
              */
             try {
-               final SortedSet<Number> elevations = layer.getAvailableElevations();
+               final SortedSet<Number> elevations = data.getAvailableElevations();
                if (!elevations.isEmpty()) {
                    // Define elevation unit as a CRS identifier. See Annex C.2
                    String unit = null;
@@ -458,13 +456,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                    dimensions.add(dim);
                }
            } catch (ConstellationStoreException ex) {
-               LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :" + layer.getName(), ex);
+               LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :" + data.getName(), ex);
            }
 
             /*
              * Dimension: the dimension range
              */
-            final MeasurementRange<?>[] ranges = layer.getSampleValueRanges();
+            final MeasurementRange<?>[] ranges = data.getSampleValueRanges();
             /* If the layer has only one sample dimension, then we can apply the dim_range
              * parameter. Otherwise it can be a multiple sample dimensions layer, and we
              * don't apply the dim_range.
@@ -490,8 +488,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             //-- execute only if it is a CoverageData
             Double nativeResolutionX = null;
             Double nativeResolutionY = null;
-            if (layer instanceof CoverageData) {
-                final CoverageData covdata = (CoverageData) layer;
+            if (data instanceof CoverageData) {
+                final CoverageData covdata = (CoverageData) data;
                 try {
                     for (org.constellation.dto.Dimension d : covdata.getSpecialDimensions()) {
                         dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(),
@@ -508,9 +506,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             // Verify extra dimensions
-            if (!configLayer.getDimensions().isEmpty()) {
-               if (layer instanceof GeoData) {
-                   final GeoData geoLayer = (GeoData) layer;
+            if (!layer.getConfiguration().getDimensions().isEmpty()) {
+               if (data instanceof GeoData) {
+                   final GeoData geoLayer = (GeoData) data;
                    try {
                        final MapItem mi = geoLayer.getMapLayer(null, null);
                        applyLayerFiltersAndDims(mi, userLogin);
@@ -559,28 +557,14 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
              * LegendUrl generation
              * TODO: Use a StringBuilder or two
              */
-            final String layerName;
-
-            //Use layer alias from config if exist.
-            if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-                layerName = configLayer.getAlias();
-            } else {
-                // If not, we fallback on layer strict name.
-                final QName fullName = configLayer.getName();
-                final String ns = fullName.getNamespaceURI().trim();
-                if (ns != null && !ns.isEmpty()) {
-                    layerName = ns + ':' + fullName.getLocalPart();
-                } else {
-                    layerName = fullName.getLocalPart();
-                }
-            }
+            final String layerName      = layer.getName().toString();
             final String beginLegendUrl = getServiceUrl() + "REQUEST=GetLegendGraphic&VERSION=1.1.1&FORMAT=";
             final String legendUrlGif   = beginLegendUrl + MimeType.IMAGE_GIF + "&LAYER=" + layerName;
             final String legendUrlPng   = beginLegendUrl + MimeType.IMAGE_PNG + "&LAYER=" + layerName;
-            final String queryable      = (layer.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
+            final String queryable      = (data.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
             final String _abstract;
             final String keyword;
-            if (layer instanceof CoverageData) {
+            if (data instanceof CoverageData) {
                 _abstract = "Coverage data";
                 keyword   = "Coverage data";
             } else {
@@ -613,7 +597,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                             rightHanded.getMaximum(0),
                             rightHanded.getMaximum(1), nativeResolutionX, nativeResolutionY);
                     } catch (TransformException ex) {
-                        LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :"+ layer.getName(), ex);
+                        LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :"+ data.getName(), ex);
                     }
                 }
 
@@ -640,7 +624,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             }
             // we build a Style Object
-            final List<StyleReference> stylesName = configLayer.getStyles();
+            final List<StyleReference> stylesName = layer.getStyles();
             final List<org.geotoolkit.wms.xml.Style> styles = new ArrayList<>();
             if (stylesName != null && !stylesName.isEmpty()) {
                 // For each styles defined for the layer, get the dimension of the getLegendGraphic response.
@@ -648,7 +632,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     final MutableStyle ms = getStyle(styleName);
                     String legendUrlPng2 =  legendUrlPng+"&STYLE="+ styleName.getName();
                     String legendUrlGif2 =  legendUrlGif+"&STYLE="+ styleName.getName();
-                    final org.geotoolkit.wms.xml.Style style = convertMutableStyleToWmsStyle(queryVersion, ms, layer, legendUrlPng2, legendUrlGif2);
+                    final org.geotoolkit.wms.xml.Style style = convertMutableStyleToWmsStyle(queryVersion, ms, data, legendUrlPng2, legendUrlGif2);
                     styles.add(style);
                 }
             }
@@ -672,7 +656,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 ((List) outputLayerO.getBoundingBox()).add(0, nativeBBox);
             }
 
-            final AbstractLayer outputLayer = customizeLayer(queryVersion, outputLayerO, configLayer, currentLanguage);
+            final AbstractLayer outputLayer = customizeLayer(queryVersion, outputLayerO, layer.getConfiguration(), currentLanguage);
             outputLayers.add(outputLayer);
         }
 
@@ -846,9 +830,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @param version
      * @param outputLayer
      * @param configLayer
-     * @param layerDetails
-     * @param legendUrlPng
-     * @param legendUrlGif
+     * @param language
      * @return
      * @throws CstlServiceException
      */
@@ -936,22 +918,22 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      *
      * @param currentVersion
      * @param ms
-     * @param layerDetails
+     * @param data
      * @param legendUrlPng
      * @param legendUrlGif
      * @return
      */
-    private org.geotoolkit.wms.xml.Style convertMutableStyleToWmsStyle(final String currentVersion, final MutableStyle ms, final Data layerDetails,
+    private org.geotoolkit.wms.xml.Style convertMutableStyleToWmsStyle(final String currentVersion, final MutableStyle ms, final Data data,
             final String legendUrlPng, final String legendUrlGif)
     {
-        if (!(layerDetails instanceof GeoData)) {
+        if (!(data instanceof GeoData)) {
             return null;
         }
         AbstractOnlineResource or = createOnlineResource(currentVersion, legendUrlPng);
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
         final Dimension dimension;
         try {
-            dimension = DefaultLegendService.legendPreferredSize(lt, ((GeoData)layerDetails).getMapLayer(ms, null));
+            dimension = DefaultLegendService.legendPreferredSize(lt, ((GeoData)data).getMapLayer(ms, null));
         } catch (ConstellationStoreException ex) {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return null;
@@ -987,30 +969,27 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         // 1. SCENE
         //       -- get the List of layer references
         final String userLogin             = getUserLogin();
-        final List<GenericName> layerNames        = getFI.getQueryLayers();
-        final List<Data> layerRefs;
-        final List<Layer> layerConfig;
-        final Map<GenericName, List<StyleReference>> layerStyles;
+        final List<GenericName> layerNames = getFI.getQueryLayers();
+        final List<LayerCache> layersCache;
         try {
-            layerRefs = getLayerReferences(userLogin, layerNames);
-            layerConfig = getConfigurationLayers(userLogin, layerNames);
-            layerStyles = getLayersStyles(userLogin, layerNames);
+            layersCache = getLayerCaches(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             throw new CstlServiceException(ex, LAYER_NOT_DEFINED, KEY_LAYERS.toLowerCase());
         }
 
-        for (Data layer : layerRefs) {
+        for (LayerCache layer : layersCache) {
             if (!layer.isQueryable(ServiceDef.Query.WMS_GETINFO)) {
                 throw new CstlServiceException("You are not allowed to request the layer \""+
                         layer.getName() +"\".", LAYER_NOT_QUERYABLE, KEY_LAYERS.toLowerCase());
             }
         }
+
         //       -- build an equivalent style List
         //TODO: clean up the SLD vs. style logic
         final List<String> styleNames   = getFI.getStyles();
         final StyledLayerDescriptor sld = getFI.getSld();
 
-        final List<MutableStyle> styles        = getStyles(layerStyles, sld, styleNames);
+        final List<MutableStyle> styles        = getStyles(layersCache, sld, styleNames);
         //       -- create the rendering parameter Map
         final Double elevation                 = getFI.getElevation();
         final List<Date> time                  = getFI.getTime();
@@ -1021,7 +1000,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layerRefs, styles, params);
+            final MapContext context = PortrayalUtil.createContext(layersCache, styles, params);
             sdef.setContext(context);
             //apply layercontext filters
             applyLayerFiltersAndDims(context, userLogin);
@@ -1030,7 +1009,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         // 2. VIEW
-        final Envelope refEnv = buildRequestedViewEnvelope(getFI, layerRefs);
+        final Envelope refEnv = buildRequestedViewEnvelope(getFI, layersCache);
         final double azimuth = getFI.getAzimuth();
 
         // 3. CANVAS
@@ -1077,8 +1056,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         //search custom FeatureInfoFormat
         Layer config = null;
-        if (layerRefs.size() == 1) {
-            config = layerConfig.get(0);
+        if (layersCache.size() == 1) {
+            config = layersCache.get(0).getConfiguration();
         }
 
         FeatureInfoFormat featureInfo = null;
@@ -1094,7 +1073,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         try {
             //give the layerRef list used by some FIF
-            featureInfo.setLayersDetails(layerRefs);
+            featureInfo.setLayers(layersCache);
             final Object result = featureInfo.getFeatureInfo(sdef, cdef, selectionArea, getFI);
             return new AbstractMap.SimpleEntry<>(infoFormat, result);
         } catch (PortrayalException ex) {
@@ -1115,19 +1094,18 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     @Override
     public PortrayalResponse getLegendGraphic(final GetLegendGraphic getLegend) throws CstlServiceException {
         isWorking();
-        final String userLogin   = getUserLogin();
-        final Data data = getLayerReference(userLogin, getLegend.getLayer());
-        final List<StyleReference> layerStyles = getLayerStyles(userLogin, getLegend.getLayer());
-        final String layerName = data.getName().toString();
-        if (!data.isQueryable(ServiceDef.Query.WMS_ALL)) {
+        final String userLogin  = getUserLogin();
+        final LayerCache layer  = getLayerCache(userLogin, getLegend.getLayer());
+        final String layerName = layer.getName().toString();
+        if (!layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
             throw new CstlServiceException("You are not allowed to request the layer \""+
                     layerName +"\".", LAYER_NOT_QUERYABLE, KEY_LAYER.toLowerCase());
         }
 
-        if (!(data instanceof GeoData)) {
+        if (!(layer.getData() instanceof GeoData)) {
             throw new CstlServiceException("Unable to extract legend from a non GeoData");
         }
-        final GeoData layer = (GeoData) data;
+        final GeoData data = (GeoData) layer.getData();
 
         final Integer width  = getLegend.getWidth();
         final Integer height = getLegend.getHeight();
@@ -1184,7 +1162,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = (MutableStyle) emptyNameMutableLayers.get(0).styles().get(0);
                 }
             } else if (style != null && !style.isEmpty()) {
-                for (StyleReference ref : layerStyles) {
+                for (StyleReference ref : layer.getStyles()) {
                     if(style.equals(ref.getName())) {
                         ms = getStyle(ref);
                         break;
@@ -1192,12 +1170,12 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 }
             } else {
                 // No sld given, we use the style.
-                if (!layerStyles.isEmpty()) {
-                    final StyleReference styleRef = layerStyles.get(0);
+                if (!layer.getStyles().isEmpty()) {
+                    final StyleReference styleRef = layer.getStyles().get(0);
                     ms = getStyle(styleRef);
                 }
             }
-            image = WMSUtilities.getLegendGraphic(layer.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
         } catch (PortrayalException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1250,15 +1228,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 throw new CstlServiceException("Too many layers requested, limit is "+layerLimit);
             }
         }
-        final List<Data> layerRefs;
-        final Map<GenericName, List<StyleReference>> layerStyles;
+        final List<LayerCache> layersCache;
         try{
-            layerRefs = getLayerReferences(userLogin, layerNames);
-            layerStyles = getLayersStyles(userLogin, layerNames);
+            layersCache = getLayerCaches(userLogin, layerNames);
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, LAYER_NOT_DEFINED,  KEY_LAYERS.toLowerCase());
         }
-        for (Data layer : layerRefs) {
+        for (LayerCache layer : layersCache) {
             if (!layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
                 throw new CstlServiceException("You are not allowed to request the layer \""+
                         layer.getName() +"\".", LAYER_NOT_QUERYABLE, KEY_LAYERS.toLowerCase());
@@ -1271,7 +1247,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         List<MutableStyle> styles;
         try {
-            styles = getStyles(layerStyles, sld, styleNames);
+            styles = getStyles(layersCache, sld, styleNames);
         } catch (CstlServiceException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, STYLE_NOT_DEFINED, null);
         }
@@ -1292,7 +1268,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layerRefs, styles, params);
+            final MapContext context = PortrayalUtil.createContext(layersCache, styles, params);
             //apply layercontext filters
             applyLayerFiltersAndDims(context, userLogin);
 
@@ -1302,7 +1278,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         // 2. VIEW
-        final Envelope refEnv = buildRequestedViewEnvelope(getMap, layerRefs);
+        final Envelope refEnv = buildRequestedViewEnvelope(getMap, layersCache);
         final double azimuth = getMap.getAzimuth();
 
         // 3. CANVAS
@@ -1353,7 +1329,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return view Envelope 2D, 3D or 4D depending of dimensions of layers and request.
      * @throws CstlServiceException
      */
-    public Envelope buildRequestedViewEnvelope(GetMap request, List<Data> layers) throws CstlServiceException {
+    public Envelope buildRequestedViewEnvelope(GetMap request, List<LayerCache> layers) throws CstlServiceException {
         final Envelope refEnv;
         try {
             //check envelope has positive span only if not a GetFeatureInfo request.
@@ -1374,10 +1350,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     By default, select default time of first layer. Maybe we should
                     not create a 3D envelope, and let renderer get default slices.
                  */
-                for (Data layer : layers) {
-                    final SortedSet<Date> layerTimes = layer.getAvailableTimes();
-                    if (!layerTimes.isEmpty()) {
-                        time[0] = time[1] = layerTimes.first();
+                for (LayerCache layer : layers) {
+                    final Date first = layer.getFirstDate();
+                    if (first != null) {
+                        time[0] = time[1] = first;
                         break;
                     }
                 }
@@ -1388,18 +1364,18 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             VerticalCRS  vCrs;
             if (requestElevation != null) {
                 vertical[0] = vertical[1] = requestElevation;
-                vCrs = CRS.getVerticalComponent(layers.get(0).getEnvelope().getCoordinateReferenceSystem(), true);
+                vCrs = CRS.getVerticalComponent(layers.get(0).getCoordinateReferenceSystem(), true);
             } else {
                 vCrs = null;
                 /*
                     By default, select default elevation of first layer. Maybe we should
                     not create a 3D envelope, and let renderer get default slices.
                  */
-                for (Data layer : layers) {
-                    final SortedSet<Number> elevations = layer.getAvailableElevations();
-                    if (!elevations.isEmpty()) {
-                        vertical[0] = vertical[1] = elevations.first().doubleValue();
-                        vCrs = CRS.getVerticalComponent(layer.getEnvelope().getCoordinateReferenceSystem(), true);
+                for (LayerCache layer : layers) {
+                    final Number first = layer.getFirstElevation();
+                    if (first != null) {
+                        vertical[0] = vertical[1] = first.doubleValue();
+                        vCrs = CRS.getVerticalComponent(layer.getCoordinateReferenceSystem(), true);
                         break;
                     }
                 }
@@ -1527,15 +1503,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return null;
     }
 
-    private List<MutableStyle> getStyles(final Map<GenericName, List<StyleReference>> layersStyles, final StyledLayerDescriptor sld, final List<String> styleNames) throws CstlServiceException {
+    private List<MutableStyle> getStyles(final List<LayerCache> layers, final StyledLayerDescriptor sld, final List<String> styleNames) throws CstlServiceException {
         final List<MutableStyle> results = new ArrayList<>();
         int i = 0;
-        for (Entry<GenericName, List<StyleReference>> layerStyles : layersStyles.entrySet()) {
-            final List<StyleReference> styles = layerStyles.getValue();
+        for (LayerCache layer : layers) {
+            final List<StyleReference> styles = layer.getStyles();
             final MutableStyle style;
             if (sld != null) {
                 //try to use the provided SLD
-                style = extractStyle(layerStyles.getKey(), styles, sld);
+                style = extractStyle(layer.getName(), styles, sld);
             } else if (styleNames != null && styleNames.size() > i && styleNames.get(i) != null && !styleNames.get(i).isEmpty()) {
                 //try to grab the style if provided
                 //a style has been given for this layer, try to use it
@@ -1578,8 +1554,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
         if(item instanceof FeatureMapLayer){
             final FeatureMapLayer fml = (FeatureMapLayer)item;
-            final FeatureType type = fml.getResource().getType();
-            final FilterAndDimension layerFnD = getLayerFilterDimensions(type.getName(), userLogin);
+            Integer lid = (Integer) fml.getUserProperties().get("layerId");
+            final FilterAndDimension layerFnD = getLayerFilterDimensions(lid);
             if (layerFnD.getFilter() != null) {
                 Filter filterGt = Filter.INCLUDE;
                 try {

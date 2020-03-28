@@ -56,7 +56,6 @@ import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
-import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
@@ -66,6 +65,7 @@ import org.constellation.portrayal.PortrayalUtil;
 import org.constellation.provider.Data;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
+import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -276,22 +276,16 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             // and the list of matrix set
             final HashMap<String, TileMatrixSet> tileSets = new HashMap<>();
 
-            final List<Layer> declaredLayers = getConfigurationLayers(userLogin);
+            final List<LayerCache> layers = getLayerCaches(userLogin);
 
-            for (final Layer configLayer : declaredLayers) {
-                final Data details = getLayerReference(configLayer);
-                if (details == null) {
-                    LOGGER.log(Level.WARNING, "No data can be found for name : "+configLayer.getName());
+            for (final LayerCache layer : layers) {
+                final Data data = layer.getData();
+                if (data == null) {
+                    LOGGER.log(Level.WARNING, "No data can be found for name : "+layer.getName());
                     continue;
                 }
-                final String name;
-                if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-                    name = configLayer.getAlias();
-                } else {
-                    name = configLayer.getName().getLocalPart();
-                }
-
-                final Object origin = details.getOrigin();
+                final String name = layer.getName().tip().toString();
+                final Object origin = data.getOrigin();
                 if (!(origin instanceof MultiResolutionResource)) {
                     //WMTS only handle PyramidalModel
                     LOGGER.log(Level.WARNING, "Layer {0} has not a PyramidalModel origin. It will not be included in capabilities", name);
@@ -601,12 +595,11 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final GetTile getTile       = request.getGetTile();
         final String userLogin      = getUserLogin();
         final GenericName layerName = Util.parseLayerName(getTile.getLayer());
-        final Data layerRef = getLayerReference(userLogin, layerName);
-        final Layer configLayer     = getConfigurationLayer(layerName, userLogin);
+        final LayerCache layer      = getLayerCache(userLogin, layerName);
 
         // build an equivalent style List
         final String styleName        = getTile.getStyle();
-        final StyleReference styleRef = Util.findStyleReference(styleName, configLayer.getStyles());
+        final StyleReference styleRef = Util.findStyleReference(styleName, layer.getStyles());
         final MutableStyle style      = getStyle(styleRef);
 
 
@@ -637,7 +630,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final SceneDef sdef = new SceneDef();
 
         try {
-            final MapContext context = PortrayalUtil.createContext(layerRef, style, params);
+            final MapContext context = PortrayalUtil.createContext(layer, style, params);
             sdef.setContext(context);
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -678,10 +671,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
         FeatureInfoFormat featureInfo = null;
         try {
-            featureInfo = FeatureInfoUtilities.getFeatureInfoFormat( getConfiguration(), configLayer, infoFormat);
-        } catch (ClassNotFoundException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        } catch (ConfigurationException ex) {
+            featureInfo = FeatureInfoUtilities.getFeatureInfoFormat( getConfiguration(), layer.getConfiguration(), infoFormat);
+        } catch (ClassNotFoundException | ConfigurationException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
@@ -740,14 +731,14 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         }
 
         try {
-            final Data details = getLayerReference(userLogin, layerName);
-            if (details == null) {
+            final Data data = getLayerCache(userLogin, layerName).getData();
+            if (data == null) {
                 throw new CstlServiceException("Operation request contains an invalid parameter value, "
                         + "No layer for name : " + layerName,
                         INVALID_PARAMETER_VALUE, "layerName");
             }
 
-            final Object origin = details.getOrigin();
+            final Object origin = data.getOrigin();
             if (!(origin instanceof MultiResolutionResource)) {
                 //WMTS only handle PyramidalCoverageReference
                 throw new CstlServiceException("Operation request contains an invalid parameter value, "

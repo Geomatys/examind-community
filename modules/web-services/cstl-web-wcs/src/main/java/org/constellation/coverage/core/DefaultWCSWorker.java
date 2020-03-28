@@ -87,7 +87,7 @@ import org.constellation.coverage.ws.rs.GridCoverageNCWriter;
 import org.constellation.coverage.ws.rs.GridCoverageWriter;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.contact.Details;
-import org.constellation.dto.service.config.wxs.Layer;
+import org.constellation.dto.service.config.wxs.FormatURL;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.portrayal.CstlPortrayalService;
 import org.constellation.portrayal.PortrayalUtil;
@@ -98,6 +98,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.ExceptionCode;
 import static org.constellation.ws.ExceptionCode.AXIS_LABEL_INVALID;
 import static org.constellation.ws.ExceptionCode.INVALID_SUBSETTING;
+import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.MultiPart;
@@ -263,42 +264,30 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final List<CoverageInfo> coverageOfferings = new ArrayList<>();
         for (String coverage : request.getIdentifier()) {
 
-            final GenericName tmpName = parseCoverageName(coverage);
-            final Data layerRef = getLayerReference(userLogin, tmpName);
-            if (layerRef.getDataType().equals(DataType.VECTOR)) {
+            final GenericName name = parseCoverageName(coverage);
+            final LayerCache layer = getLayerCache(userLogin, name);
+            if (layer.getData().getDataType().equals(DataType.VECTOR)) {
                 throw new CstlServiceException("The requested layer is vectorial. WCS is not able to handle it.",
                         LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
             }
-            if (!(layerRef instanceof CoverageData)) {
+            if (!(layer.getData() instanceof CoverageData)) {
                 // Should not occurs, since we have previously verified the type of layer.
                 throw new CstlServiceException("The requested layer is not a coverage. WCS is not able to handle it.",
                         LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
             }
 
-            final CoverageData coverageRef = (CoverageData) layerRef;
-            if (!coverageRef.isQueryable(ServiceDef.Query.WCS_ALL)) {
+            if (!layer.isQueryable(ServiceDef.Query.WCS_ALL)) {
                 throw new CstlServiceException("You are not allowed to request the layer \"" +
                         coverage + "\".", LAYER_NOT_QUERYABLE, KEY_COVERAGE.toLowerCase());
             }
 
-            final Layer configLayer = getConfigurationLayer(tmpName, userLogin);
-            final GenericName fullCoverageName = coverageRef.getName();
-            final String coverageName;
-            if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-                coverageName = configLayer.getAlias().trim().replaceAll(" ", "_");
-            } else {
-                if (NamesExt.getNamespace(fullCoverageName) != null && !NamesExt.getNamespace(fullCoverageName).isEmpty()) {
-                    coverageName = NamesExt.getNamespace(fullCoverageName) + ':' + fullCoverageName.tip().toString();
-                } else {
-                    coverageName = fullCoverageName.tip().toString();
-                }
-            }
+
             if (version.equals("1.0.0")) {
-                coverageOfferings.add(describeCoverage100(coverageName, coverageRef));
+                coverageOfferings.add(describeCoverage100(layer));
             } else if (version.equals("1.1.1")) {
-                coverageOfferings.add(describeCoverage111(coverageName, coverageRef));
+                coverageOfferings.add(describeCoverage111(layer));
             } else if (version.equals("2.0.1")) {
-                coverageOfferings.add(describeCoverage200(coverageName, coverageRef));
+                coverageOfferings.add(describeCoverage200(layer));
             } else {
                 throw new CstlServiceException("The version number specified for this GetCoverage request " +
                         "is not handled.", NO_APPLICABLE_CODE, QueryConstants.VERSION_PARAMETER.toLowerCase());
@@ -316,17 +305,18 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      *
      * @throws CstlServiceException
      */
-    private CoverageInfo describeCoverage100(final String coverageName, final CoverageData coverageRef) throws CstlServiceException {
-
+    private CoverageInfo describeCoverage100(final LayerCache layer) throws CstlServiceException {
         try {
-            final GeographicBoundingBox inputGeoBox = coverageRef.getGeographicBoundingBox();
+            final String coverageName = layer.getName().tip().toString();
+            final CoverageData data = (CoverageData) layer.getData();
+            final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
 
             final List<EnvelopeType> envelopes = new ArrayList<>();
 
             final LonLatEnvelopeType llenvelope;
             final EnvelopeType envelope;
             if (inputGeoBox != null) {
-                final SortedSet<Number> elevations = coverageRef.getAvailableElevations();
+                final SortedSet<Number> elevations = data.getAvailableElevations();
                 final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, elevations);
                 llenvelope = new LonLatEnvelopeType(pos, "urn:ogc:def:crs:OGC:1.3:CRS84");
                 envelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
@@ -340,14 +330,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final EnvelopeType nativeEnvelope = getGMLEnvelope(coverageRef.getEnvelope());
+            final EnvelopeType nativeEnvelope = getGMLEnvelope(data.getEnvelope());
             if (nativeEnvelope != null && !envelopes.contains(nativeEnvelope)) {
                 envelopes.add(nativeEnvelope);
             }
 
             GridType grid = null;
             try {
-                SpatialMetadata meta = coverageRef.getSpatialMetadata();
+                SpatialMetadata meta = data.getSpatialMetadata();
                 if (meta != null) {
                     RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
                     if (brutGrid != null) {
@@ -376,7 +366,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 new org.geotoolkit.wcs.xml.v100.SpatialDomainType(envelopes, Arrays.asList(grid));
 
             // temporal metadata
-            final List<Object> times = WCSUtils.formatDateList(coverageRef.getAvailableTimes());
+            final List<Object> times = WCSUtils.formatDateList(data.getAvailableTimes());
             final DomainSetType domainSet = new DomainSetType(spatialDomain, times);
             //TODO complete
             final RangeSetType rangeSet = new RangeSetType(null, coverageName, coverageName, null, null, null, null);
@@ -385,7 +375,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             supCRS.addNativeCRSs(nativeEnvelope.getSrsName());
 
             // supported formats
-            String nativeFormat = coverageRef.getImageFormat();
+            String nativeFormat = data.getImageFormat();
             if (nativeFormat == null || nativeFormat.isEmpty()) {
                 nativeFormat = "unknown";
             }
@@ -460,9 +450,11 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      *
      * @throws CstlServiceException
      */
-    private CoverageInfo describeCoverage111(final String coverageName, final CoverageData coverageRef) throws CstlServiceException {
+    private CoverageInfo describeCoverage111(final LayerCache layer) throws CstlServiceException {
         try {
-            final GeographicBoundingBox inputGeoBox = coverageRef.getGeographicBoundingBox();
+            final String coverageName = layer.getName().tip().toString();
+            final CoverageData data = (CoverageData) layer.getData();
+            final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
 
             WGS84BoundingBoxType outputBBox = null;
             if (inputGeoBox != null) {
@@ -471,14 +463,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final BoundingBoxType nativeEnvelope = new BoundingBoxType(coverageRef.getEnvelope());
+            final BoundingBoxType nativeEnvelope = new BoundingBoxType(data.getEnvelope());
 
             GridCrsType grid = null;
             try {
                 SpatialMetadata meta = WCSUtils.adapt(
-                        coverageRef.getSpatialMetadata(),
-                        coverageRef.getGeometry(),
-                        coverageRef.getSampleDimensions().toArray(new SampleDimension[0])
+                        data.getSpatialMetadata(),
+                        data.getGeometry(),
+                        data.getSampleDimensions().toArray(new SampleDimension[0])
                 );
                 RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
                 if (brutGrid != null) {
@@ -498,7 +490,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final List<String> keywords = Arrays.asList("WCS", coverageName);
 
             // temporal metadata
-            final List<Object> times = WCSUtils.formatDateList(coverageRef.getAvailableTimes());
+            final List<Object> times = WCSUtils.formatDateList(data.getAvailableTimes());
             final CoverageDomainType domain = new CoverageDomainType(spatial, times);
 
             //supported interpolations
@@ -529,20 +521,21 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      *
      * @throws CstlServiceException
      */
-    private org.geotoolkit.wcs.xml.v200.CoverageDescriptionType describeCoverage200(final String coverageName, final CoverageData coverageRef) throws CstlServiceException {
+    private org.geotoolkit.wcs.xml.v200.CoverageDescriptionType describeCoverage200(final LayerCache layer) throws CstlServiceException {
         try {
-
+            final String coverageName = layer.getName().tip().toString();
+            final CoverageData data = (CoverageData) layer.getData();
             /*
              * Spatial metadata
              */
-            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(coverageRef.getEnvelope());
+            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(data.getEnvelope());
 
             org.geotoolkit.gml.xml.v321.GridType grid = null;
             try {
                 SpatialMetadata meta = WCSUtils.adapt(
-                        coverageRef.getSpatialMetadata(),
-                        coverageRef.getGeometry(),
-                        coverageRef.getSampleDimensions().toArray(new SampleDimension[0])
+                        data.getSpatialMetadata(),
+                        data.getGeometry(),
+                        data.getSampleDimensions().toArray(new SampleDimension[0])
                 );
 
                 RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
@@ -570,7 +563,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // spatial metadata
             final org.geotoolkit.gml.xml.v321.DomainSetType domain = new org.geotoolkit.gml.xml.v321.DomainSetType(grid);
 
-            final List<SampleDimension> bands = coverageRef.getSampleDimensions();
+            final List<SampleDimension> bands = data.getSampleDimensions();
             final List<Field> fields = new ArrayList<>();
             if (bands != null) {
                 for (SampleDimension band : bands) {
@@ -603,7 +596,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 dataRecord = null;
             }
             final DataRecordPropertyType rangeType = new DataRecordPropertyType(dataRecord);
-            final ServiceParametersType serviceParametersType = new ServiceParametersType(new QName("GridCoverage"), coverageRef.getImageFormat());
+            final ServiceParametersType serviceParametersType = new ServiceParametersType(new QName("GridCoverage"), data.getImageFormat());
             org.geotoolkit.wcs.xml.v200.CoverageDescriptionType result = new org.geotoolkit.wcs.xml.v200.CoverageDescriptionType(coverageName, nativeEnvelope, domain, rangeType, serviceParametersType);
             result.setId(coverageName);
             return result;
@@ -687,22 +680,22 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         WCSConstant.applyProfile(version, si);
 
         final List<CoverageInfo> offBrief = new ArrayList<>();
-        final List<Layer> layers = getConfigurationLayers(userLogin);
+        final List<LayerCache> layers = getLayerCaches(userLogin);
         try {
-            for (Layer configLayer : layers) {
-                final Data layer = getLayerReference(configLayer);
+            for (LayerCache layer : layers) {
+                final Data data = layer.getData();
 
-                if (layer == null) {
-                    throw new CstlServiceException("There is no existing layer named:" + configLayer.getName());
+                if (data == null) {
+                    throw new CstlServiceException("There is no existing layer named:" + layer.getName());
                 }
 
-                if (layer.getDataType().equals(DataType.VECTOR)) {
+                if (data.getDataType().equals(DataType.VECTOR)) {
                     continue;
                 }
                 if (!layer.isQueryable(ServiceDef.Query.WCS_ALL)) {
                     continue;
                 }
-                if (layer.getGeographicBoundingBox() == null) {
+                if (data.getGeographicBoundingBox() == null) {
                     // The coverage does not contain geometric information, we do not want this coverage
                     // in the capabilities response.
                     continue;
@@ -710,25 +703,29 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
                 final CoverageInfo co;
                 if (version.equals("1.0.0")) {
-                    co = getCoverageInfo100(layer, configLayer);
+                    co = getCoverageInfo100(layer);
                 } else {
-                    co = getCoverageInfo(version, layer, configLayer);
+                    co = getCoverageInfo(version, layer);
                 }
                 /*
                 * coverage brief customisation
                  */
-                if (configLayer.getTitle() != null) {
-                    co.setTitle(configLayer.getTitle());
+                final String title = layer.getConfiguration().getTitle();
+                if (title != null) {
+                    co.setTitle(title);
                 }
-                if (configLayer.getAbstrac() != null) {
-                    co.setAbstract(configLayer.getAbstrac());
+                final String abs = layer.getConfiguration().getAbstrac();
+                if (abs != null) {
+                    co.setAbstract(abs);
                 }
-                if (configLayer.getKeywords() != null && !configLayer.getKeywords().isEmpty()) {
-                    co.setKeywordValues(configLayer.getKeywords());
+                final List<String> kws = layer.getConfiguration().getKeywords();
+                if (kws != null && !kws.isEmpty()) {
+                    co.setKeywordValues(kws);
                 }
-                if (configLayer.getMetadataURL() != null && !configLayer.getMetadataURL().isEmpty() && configLayer.getMetadataURL().get(0).getOnlineResource() != null) {
+                final List<FormatURL> metadataUrls = layer.getConfiguration().getMetadataURL();
+                if (metadataUrls != null && !metadataUrls.isEmpty() && metadataUrls.get(0).getOnlineResource() != null) {
                     // TODO handle multiple metadata URL
-                    co.setMetadata(configLayer.getMetadataURL().get(0).getOnlineResource().getValue());
+                    co.setMetadata(metadataUrls.get(0).getOnlineResource().getValue());
                 }
                 offBrief.add(co);
             }
@@ -752,24 +749,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      * @throws CstlServiceException
      * @throws JAXBException when unmarshalling the default GetCapabilities file.
      */
-    private CoverageInfo getCoverageInfo100(final Data layer, final Layer configLayer) throws ConstellationStoreException {
+    private CoverageInfo getCoverageInfo100(final LayerCache layer) throws ConstellationStoreException {
 
-        final GenericName fullLayerName = layer.getName();
-        final String layerName;
-        if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-            layerName = configLayer.getAlias().trim().replaceAll(" ", "_");
-        } else {
-            if (NamesExt.getNamespace(fullLayerName) != null && !NamesExt.getNamespace(fullLayerName).isEmpty()) {
-                layerName = NamesExt.getNamespace(fullLayerName) + ':' + fullLayerName.tip().toString();
-            } else {
-                layerName = fullLayerName.tip().toString();
-            }
-        }
-        final GeographicBoundingBox inputGeoBox = layer.getGeographicBoundingBox();
-        final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, layer.getAvailableElevations());
+        final String layerName = layer.getName().tip().toString();
+        final GeographicBoundingBox inputGeoBox = layer.getData().getGeographicBoundingBox();
+        final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, layer.getData().getAvailableElevations());
         final LonLatEnvelopeType outputBBox = new LonLatEnvelopeType(pos, "urn:ogc:def:crs:OGC:1.3:CRS84");
 
-        final SortedSet<Date> dates = layer.getAvailableTimes();
+        final SortedSet<Date> dates = layer.getData().getAvailableTimes();
         if (dates != null && dates.size() >= 2) {
             /*
              * Adds the first and last date available, since in the WCS GetCapabilities,
@@ -796,20 +783,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      *
      * @throws CstlServiceException
      */
-    private CoverageInfo getCoverageInfo(final String version, final Data layer, final Layer configLayer) throws ConstellationStoreException {
+    private CoverageInfo getCoverageInfo(final String version, final LayerCache layer) throws ConstellationStoreException {
 
-        final CoverageData coverageLayer = (CoverageData) layer;
-        final String identifier;
-        if (configLayer.getAlias() != null && !configLayer.getAlias().isEmpty()) {
-            identifier = configLayer.getAlias().trim().replaceAll(" ", "_");
-        } else {
-            identifier = coverageLayer.getName().tip().toString();
-        }
-
-        final String title = coverageLayer.getName().tip().toString();
+        final CoverageData data = (CoverageData) layer.getData();
+        final String identifier = layer.getName().tip().toString();
+        final String title      = identifier;
         final String remark = "";
 
-        final GeographicBoundingBox inputGeoBox = coverageLayer.getGeographicBoundingBox();
+        final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
         final BoundingBox outputBBox = WCSXmlFactory.buildWGS84BoundingBox(version, inputGeoBox);
         final String coverageSubType = "GridCoverage";
         return WCSXmlFactory.createCoverageInfo(version, identifier, title,
@@ -852,23 +833,22 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     KEY_COVERAGE.toLowerCase());
         }
         final GenericName tmpName = parseCoverageName(request.getCoverage());
-        final Data tmplayerRef = getLayerReference(userLogin, tmpName);
-        if (!tmplayerRef.isQueryable(ServiceDef.Query.WCS_ALL) || tmplayerRef.getDataType().equals(DataType.VECTOR)) {
+        final LayerCache layer = getLayerCache(userLogin, tmpName);
+        if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getData().getDataType().equals(DataType.VECTOR)) {
             throw new CstlServiceException("You are not allowed to request the layer \"" +
-                    tmplayerRef.getName() + "\".", INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
+                    layer.getName() + "\".", INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
         }
-        if (!(tmplayerRef instanceof CoverageData)) {
+        if (!(layer.getData() instanceof CoverageData)) {
             // Should not occurs, since we have previously verified the type of layer.
             throw new CstlServiceException("The requested layer is not a coverage. WCS is not able to handle it.",
                     LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
         }
-        final CoverageData layerRef = (CoverageData) tmplayerRef;
-        final List<StyleReference> layerStyles = getLayerStyles(userLogin, tmpName);
+        final CoverageData data = (CoverageData) layer.getData();
 
         // TODO : if no subsetting is done, and queried output format is the same as queried data, we could directly
         // send back original data file. It would be far less complex, and far more optimized.
         if ("2.0.1".equals(inputVersion)) {
-            return getCoverage200(request, layerRef, layerStyles);
+            return getCoverage200(request, layer);
         }
 
         Date date = null;
@@ -923,9 +903,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // Ensures the requested envelope has, at least, a part that intersects the valid envelope
             // for the coverage.
             try {
-                final GeographicBoundingBox geoBbox = layerRef.getGeographicBoundingBox();
+                final GeographicBoundingBox geoBbox = data.getGeographicBoundingBox();
                 if (geoBbox == null) {
-                    throw new CstlServiceException("The request coverage \""+ layerRef.getName() +"\" has" +
+                    throw new CstlServiceException("The request coverage \""+ layer.getName() +"\" has" +
                                                    " no geometric information.", NO_APPLICABLE_CODE);
                 }
                 final GeneralEnvelope validGeoEnv = new GeneralEnvelope(geoBbox);
@@ -953,9 +933,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else {
             // We take the envelope from the data provider. That envelope can be a little bit imprecise.
             try {
-                final GeographicBoundingBox geoBbox = layerRef.getGeographicBoundingBox();
+                final GeographicBoundingBox geoBbox = data.getGeographicBoundingBox();
                 if (geoBbox == null) {
-                    throw new CstlServiceException("The request coverage \""+ layerRef.getName() +"\" has" +
+                    throw new CstlServiceException("The request coverage \""+ layer.getName() +"\" has" +
                                                    " no geometric information.", NO_APPLICABLE_CODE);
                 }
                 envelope = new JTSEnvelope2D(geoBbox.getWestBoundLongitude(), geoBbox.getEastBoundLongitude(),
@@ -1014,7 +994,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                final GridCoverage gridCov = layerRef.getCoverage(refEnvel, size, elevation, date);
+                final GridCoverage gridCov = data.getCoverage(refEnvel, size, elevation, date);
                 image = gridCov.render(null);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1031,8 +1011,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(GEOTIFF) || format.equalsIgnoreCase(TIFF) || format.equalsIgnoreCase(TIF)) {
             try {
                 GeotiffResponse response = new GeotiffResponse();
-                response.metadata = layerRef.getSpatialMetadata();
-                response.coverage = layerRef.getCoverage(refEnvel, size, elevation, date);
+                response.metadata = data.getSpatialMetadata();
+                response.coverage = data.getCoverage(refEnvel, size, elevation, date);
                 return response;
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1050,15 +1030,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final SceneDef sdef = new SceneDef();
 
             final MutableStyle style;
-            if (!layerStyles.isEmpty()) {
-                final StyleReference styleName = layerStyles.get(0);
+            if (!layer.getStyles().isEmpty()) {
+                final StyleReference styleName = layer.getStyles().get(0);
                 final MutableStyle incomingStyle = getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {
                 style = null;
             }
             try {
-                final MapContext context = PortrayalUtil.createContext(layerRef, style, renderParameters);
+                final MapContext context = PortrayalUtil.createContext(layer, style, renderParameters);
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1097,7 +1077,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
     }
 
-    private Object getCoverage200(final GetCoverage request, final CoverageData layerRef, final List<StyleReference> styles) throws CstlServiceException {
+    private Object getCoverage200(final GetCoverage request, final LayerCache layer) throws CstlServiceException {
         boolean isMultiPart = false;
         if (request.getMediaType() != null) {
             if (request.getMediaType().equals("multipart/mixed")) {
@@ -1106,19 +1086,17 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 throw new CstlServiceException("Only multipart/mixed is supported for mediaType parameter", INVALID_PARAMETER_VALUE);
             }
         }
-
+        final CoverageData data = (CoverageData) layer.getData();
         final SpatialMetadata metadata;
-        final GridCoverageResource ref = (GridCoverageResource) layerRef.getOrigin();
+        final GridCoverageResource ref = (GridCoverageResource) data.getOrigin();
         final GridGeometry gridGeometry;
 
         final CoordinateReferenceSystem crs;
         try {
             gridGeometry = ref.getGridGeometry();
             crs = gridGeometry.getCoordinateReferenceSystem();
-            metadata = layerRef.getSpatialMetadata();
-        } catch (ConstellationStoreException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        } catch (DataStoreException ex) {
+            metadata = data.getSpatialMetadata();
+        } catch (ConstellationStoreException | DataStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
@@ -1198,7 +1176,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
-                final GridCoverage coverage = layerRef.getCoverage(readEnv, null, null, null);
+                final GridCoverage coverage = data.getCoverage(readEnv, null, null, null);
                 image = coverage.render(null);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1209,12 +1187,12 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(MimeType.NETCDF)) {
 
             try {
-                final GridCoverage coverage = layerRef.getCoverage(readEnv, null, null, null);
+                final GridCoverage coverage = data.getCoverage(readEnv, null, null, null);
                 final SimpleEntry response = new SimpleEntry(coverage, metadata);
                 if (isMultiPart) {
-                    final File img = File.createTempFile(layerRef.getName().tip().toString(), ".nc");
+                    final File img = File.createTempFile(layer.getName().tip().toString(), ".nc");
                     GridCoverageNCWriter.writeInStream(response, new FileOutputStream(img));
-                    final String xml = buildXmlPart(describeCoverage200(layerRef.getName().tip().toString(), layerRef), format);
+                    final String xml = buildXmlPart(describeCoverage200(layer), format);
                     final MultiPart multiPart = new MultiPart();
                     multiPart.bodyPart("application/xml", xml)
                             .bodyPart(format, img);
@@ -1230,7 +1208,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(MimeType.IMAGE_TIFF)) {
             try {
                 final GeotiffResponse response = new GeotiffResponse();
-                response.coverage = layerRef.getCoverage(readEnv, null, null, null);
+                response.coverage = data.getCoverage(readEnv, null, null, null);
                 response.metadata = metadata;
                 if (request.getExtension() instanceof ExtensionType) {
                     final ExtensionType ext = (ExtensionType) request.getExtension();
@@ -1270,7 +1248,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
                 if (isMultiPart) {
                     final File img = GridCoverageWriter.writeInFile(response);
-                    final String xml = buildXmlPart(describeCoverage200(layerRef.getName().tip().toString(), layerRef), format);
+                    final String xml = buildXmlPart(describeCoverage200(layer), format);
                     final MultiPart multiPart = new MultiPart();
                     multiPart.bodyPart("application/xml", xml)
                             .bodyPart(format, img);
@@ -1290,15 +1268,15 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final SceneDef sdef = new SceneDef();
 
             final MutableStyle style;
-            if (!styles.isEmpty()) {
-                final StyleReference styleName = styles.get(0);
+            if (!layer.getStyles().isEmpty()) {
+                final StyleReference styleName = layer.getStyles().get(0);
                 final MutableStyle incomingStyle = getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {
                 style = null;
             }
             try {
-                final MapContext context = PortrayalUtil.createContext(layerRef, style, new HashMap<>());
+                final MapContext context = PortrayalUtil.createContext(layer, style, new HashMap<>());
                 sdef.setContext(context);
             } catch (ConstellationStoreException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);

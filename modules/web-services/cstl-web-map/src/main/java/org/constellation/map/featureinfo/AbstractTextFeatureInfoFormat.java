@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.Resource;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.ProjectedFeature;
@@ -35,6 +33,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
+import org.opengis.util.GenericName;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -44,10 +43,9 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
     /**
      * Contains the values for all coverage layers requested.
      */
-    protected final Map<String, List<String>> coverages = new HashMap<>();
+    protected final Map<GenericName, List<String>> coverages = new HashMap<>();
 
-
-    protected final Map<String, List<String>> features = new HashMap<>();
+    protected final Map<GenericName, List<String>> features = new HashMap<>();
 
     /**
      * {@inheritDoc}
@@ -60,17 +58,7 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
         if (results == null) {
             return;
         }
-        final Resource ref = graphic.getLayer().getResource();
-        final String layerName;
-        try {
-            if (ref.getIdentifier().isPresent()) {
-                layerName = ref.getIdentifier().get().tip().toString();
-            } else {
-                throw new RuntimeException("resource identifier not present");
-            }
-        } catch (DataStoreException e) {
-            throw new RuntimeException(e);      // TODO
-        }
+        final GenericName layerName = getNameForCoverageLayer(graphic.getLayer());
         List<String> strs = coverages.get(layerName);
         if (strs == null) {
             strs = new ArrayList<>();
@@ -118,7 +106,7 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
 
         final String result = builder.toString();
         if (builder.length() > 0 && result.endsWith(";")) {
-            final String layerName = layer.getName();
+            final GenericName layerName = getNameForFeatureLayer(layer);
             List<String> strs = features.get(layerName);
             if (strs == null) {
                 strs = new ArrayList<>();

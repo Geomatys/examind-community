@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.Resource;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
+import org.constellation.ws.LayerCache;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display.SearchArea;
 import org.geotoolkit.display.canvas.RenderingContext;
@@ -40,7 +43,9 @@ import org.geotoolkit.display2d.service.VisitDef;
 import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
+import org.geotoolkit.util.NamesExt;
 import org.opengis.display.primitive.Graphic;
+import org.opengis.util.GenericName;
 
 /**
  * @author Quentin Boileau (Geomatys)
@@ -63,9 +68,9 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     private GetFeatureInfoCfg configuration;
 
     /**
-     * MapContext Layers details
+     * Layers informations
      */
-    private List<Data> layersDetails;
+    private List<LayerCache> layers;
 
     /**
      * {@inheritDoc}
@@ -87,16 +92,16 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    public List<Data> getLayersDetails() {
-        return layersDetails;
+    public List<LayerCache> getLayers() {
+        return layers;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setLayersDetails(List<Data> layers) {
-        this.layersDetails = layers;
+    public void setLayers(List<LayerCache> layers) {
+        this.layers = layers;
     }
 
     /**
@@ -207,4 +212,26 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         return null;
     }
 
+    protected GenericName getNameForFeatureLayer(FeatureMapLayer ml) {
+        final GenericName layerName ;
+        if (ml.getUserProperties().containsKey("layerName")) {
+            layerName = (GenericName) ml.getUserProperties().get("layerName");
+        } else {
+            layerName = NamesExt.create(ml.getName());
+        }
+        return layerName;
+    }
+
+    protected GenericName getNameForCoverageLayer(MapLayer ml) {
+        if (ml.getUserProperties().containsKey("layerName")) {
+            return (GenericName) ml.getUserProperties().get("layerName");
+        } else {
+            final Resource ref = ml.getResource();
+            try {
+                return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
+            } catch (DataStoreException e) {
+                throw new RuntimeException("Cannot extract resource identifier", e);
+            }
+        }
+    }
 }

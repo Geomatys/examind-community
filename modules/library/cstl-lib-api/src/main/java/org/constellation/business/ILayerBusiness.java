@@ -37,8 +37,7 @@ public interface ILayerBusiness {
 
     Integer add(AddLayer layer) throws ConfigurationException;
 
-    Integer add(int dataId, String alias,
-             int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException;
+    Integer add(int dataId, String alias, int serviceId, Layer config) throws ConfigurationException;
 
     /**
      * Update the title of a lyer
@@ -58,17 +57,22 @@ public interface ILayerBusiness {
 
     List<Integer> getLayerIds(Integer layerId, String userLogin) throws ConfigurationException;
 
-    Layer getLayer(Integer serviceId, String name, String namespace, String login) throws ConfigurationException;
-
-    FilterAndDimension getLayerFilterDimension(Integer serviceId, String name, String namespace, String login) throws ConfigurationException;
+    /**
+     * Get a single layer from service spec and identifier and layer name and namespace.
+     *
+     * @param layerId layer identifier
+     * @param login login for security check
+     *
+     * @return Layer
+     * @throws ConfigurationException
+     */
+    Layer getLayer(Integer layerId, String login) throws ConfigurationException;
 
     FilterAndDimension getLayerFilterDimension(Integer layerId) throws ConfigurationException;
 
     NameInProvider getFullLayerName(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException;
 
     NameInProvider getFullLayerName(Integer serviceId, Integer layerId, String login) throws ConfigurationException;
-
-    void remove(String spec, String serviceId, String layerId, String namespace) throws ConfigurationException;
 
     void remove(Integer layerId) throws ConfigurationException;
 
@@ -97,8 +101,6 @@ public interface ILayerBusiness {
      * @return the list of light {@link DataBrief}.
      */
     List<LayerSummary> getLayerRefFromStyleId(final Integer styleId);
-
-    List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConstellationException;
 
     List<StyleReference> getLayerStyles(Integer layerId) throws ConstellationException;
 

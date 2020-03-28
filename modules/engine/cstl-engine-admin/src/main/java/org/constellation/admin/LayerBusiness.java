@@ -230,24 +230,6 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void remove(final String spec, final String serviceId, final String name, final String namespace) throws ConfigurationException {
-        final Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec.toLowerCase(), serviceId);
-        if (service != null) {
-             Layer layer = (namespace != null && !namespace.isEmpty())?
-                    layerRepository.findByServiceIdAndLayerName(service, name, namespace) :
-                    layerRepository.findByServiceIdAndLayerName(service, name);
-            if (layer != null) {
-                removeLayer(layer.getId(), spec.toLowerCase(), serviceId);
-            } else {
-                throw new TargetNotFoundException("Unable to find a layer: {" + namespace + "}" + name);
-            }
-        } else {
-            throw new TargetNotFoundException("Unable to find a service:" + serviceId);
-        }
-    }
-
-    @Override
-    @Transactional
     public void remove(final Integer layerId) throws ConfigurationException {
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
@@ -402,44 +384,28 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     /**
-     * Get a single layer from service spec and identifier and layer name and namespace.
+     * Get a single layer from its identifier.
      *
-     * @param spec service type
-     * @param identifier service identifier
-     * @param name layer name
-     * @param namespace layer namespace
+     * @param LayerId  layer identifier
      * @param login login for security check
-     * @return org.constellation.dto.Layer
+     *
+     * @return org.constellation.dto.service.config.wxs.Layer
+     *
      * @throws ConfigurationException
+     * @throws TargetNotFoundException if the layer does not exist.
      */
     @Override
-    public org.constellation.dto.service.config.wxs.Layer getLayer(final Integer serviceId, final String nameOrAlias,
-                                                          final String namespace, final String login) throws ConfigurationException {
-        Layer layer;
-        if (namespace != null && !namespace.isEmpty()) {
-            //1. search by name and namespace
-            layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
-        } else {
-            //2. search by alias
-            layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
-
-            //3. search by single name
-            if  (layer == null) {
-                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias);
-            }
-        }
-
+    public org.constellation.dto.service.config.wxs.Layer getLayer(final Integer LayerId, final String login) throws ConfigurationException {
+        Layer layer = layerRepository.findById(LayerId);
         if (layer != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+            final LayerSecurityFilter securityFilter = getSecurityFilter(layer.getService());
             if (securityFilter.allowed(login, layer.getId())) {
                 return toLayerConfig(layer);
             } else {
                 throw new ConfigurationException("Not allowed to see this layer.");
             }
         } else {
-             // if layer is null, maybe the service does not exist.
-            serviceBusiness.ensureExistingInstance(serviceId);
-            throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
+            throw new TargetNotFoundException("Unable to find a layer:" + LayerId);
         }
 
     }
@@ -508,40 +474,6 @@ public class LayerBusiness implements ILayerBusiness {
     }
 
     @Override
-    public FilterAndDimension getLayerFilterDimension(final Integer serviceId, final String nameOrAlias, final String namespace, final String login) throws ConfigurationException {
-
-        Layer layer;
-        if (namespace != null && !namespace.isEmpty()) {
-            //1. search by name and namespace
-            layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
-        } else {
-            //2. search by alias
-            layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
-
-            //3. search by single name
-            if  (layer == null) {
-                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias);
-            }
-        }
-
-        if (layer != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-            if (securityFilter.allowed(login, layer.getId())) {
-                org.constellation.dto.service.config.wxs.Layer layerConfig = readLayerConfiguration(layer.getConfig());
-                if (layerConfig != null) {
-                    return new FilterAndDimension(layerConfig.getFilter(), layerConfig.getDimensions());
-                }
-            } else {
-                throw new ConfigurationException("Not allowed to see this layer.");
-            }
-        } else {
-             // if layer is null, maybe the service does not exist.
-             serviceBusiness.ensureExistingInstance(serviceId);
-        }
-        return new FilterAndDimension();
-    }
-
-    @Override
     public FilterAndDimension getLayerFilterDimension(final Integer layerId) throws ConfigurationException {
 
         Layer layer = layerRepository.findById(layerId);
@@ -554,38 +486,6 @@ public class LayerBusiness implements ILayerBusiness {
              throw new TargetNotFoundException("Unable to find a layer:" + layerId);
         }
         return new FilterAndDimension();
-    }
-
-    @Override
-    public List<StyleReference> getLayerStyles(Integer serviceId, String nameOrAlias, String namespace, String login) throws ConfigurationException {
-
-
-        Integer layerId;
-        if (namespace != null && !namespace.isEmpty()) {
-            //1. search by name and namespace
-            layerId = layerRepository.findIdByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
-        } else {
-            //2. search by alias
-            layerId = layerRepository.findIdByServiceIdAndAlias(serviceId, nameOrAlias);
-
-            //3. search by single name
-            if  (layerId == null) {
-                layerId = layerRepository.findIdByServiceIdAndLayerName(serviceId, nameOrAlias);
-            }
-        }
-
-        if (layerId != null) {
-            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-            if (securityFilter.allowed(login, layerId)) {
-                return styleRepository.fetchByLayerId(layerId);
-            } else {
-                throw new ConfigurationException("Not allowed to see this layer.");
-            }
-        } else {
-            // if layer is null, maybe the service does not exist.
-             serviceBusiness.ensureExistingInstance(serviceId);
-            throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
-        }
     }
 
     @Override

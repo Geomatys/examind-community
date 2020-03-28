@@ -133,7 +133,7 @@ public interface DataProvider{
 
     /**
      * Get the data related to the given key in given version.
-     * @return LayerDetails if it is in the data provider, or null if not.
+     * @return Data if it is in the data provider, or null if not.
      */
     Data get(GenericName key, Date version);
 

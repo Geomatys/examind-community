@@ -19,6 +19,7 @@
 package org.constellation.process.service;
 
 import org.constellation.business.ILayerBusiness;
+import org.constellation.dto.NameInProvider;
 import org.constellation.dto.ServiceReference;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.Layer;
@@ -83,8 +84,12 @@ public class RemoveLayerFromMapService extends AbstractCstlProcess {
             } catch (RuntimeException ex) {
                //do nothing
             }
-            oldLayer = layerBusiness.getLayer(serviceRef.getId(), layerName.tip().toString(), NamesExt.getNamespace(layerName), login);
-            layerBusiness.remove(serviceRef.getType(), serviceRef.getIdentifier(), layerName.tip().toString(), NamesExt.getNamespace(layerName));
+            final NameInProvider nip = layerBusiness.getFullLayerName(serviceRef.getId(),
+                                                                      layerName.tip().toString(),
+                                                                      NamesExt.getNamespace(layerName),
+                                                                      login);
+            oldLayer = layerBusiness.getLayer(nip.layerId, login);
+            layerBusiness.remove(nip.layerId);
         } catch (ConfigurationException ex) {
             throw new ProcessException("Error while saving layer", this, ex);
         }

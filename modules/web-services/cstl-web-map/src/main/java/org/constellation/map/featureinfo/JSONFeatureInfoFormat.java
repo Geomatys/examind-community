@@ -40,8 +40,6 @@ import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 
 import org.geotoolkit.display.PortrayalException;
@@ -66,7 +64,9 @@ import org.constellation.map.featureinfo.dto.CoverageInfo;
 import org.constellation.map.featureinfo.dto.FeatureInfo;
 import org.constellation.map.featureinfo.dto.LayerInfo;
 import org.constellation.provider.Data;
+import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
+import org.geotoolkit.map.FeatureMapLayer;
 
 /**
  * Create a list of {@link CoverageInfo} and/or {@link FeatureInfo}. The output is the serialized JSON
@@ -132,8 +132,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
     @Override
     protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final Feature candidate = graphic.getCandidate();
-        final String layerName = graphic.getLayer().getName();
-        infoQueue.add(new FeatureInfo(layerName, candidate));
+        FeatureMapLayer ml = graphic.getLayer();
+        final GenericName layerName = getNameForFeatureLayer(ml);
+        infoQueue.add(new FeatureInfo(layerName.tip().toString(), candidate));
     }
 
     @Override
@@ -143,31 +144,23 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
         if (results == null || results.isEmpty()) return;
 
-        final GenericName fullLayerName = JSONFeatureInfoFormat.getFullName(graphic);
-        final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayersDetails());
+        final GenericName fullLayerName = getNameForCoverageLayer(graphic.getLayer());
+        final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayers());
         fill(info, results);
         infoQueue.add(info);
     }
 
-    static GenericName getFullName(ProjectedCoverage coverage) {
-        final Resource ref = coverage.getLayer().getResource();
-        try {
-            return ref.getIdentifier().orElseThrow(() -> new RuntimeException("Cannot extract resource identifier"));
-        } catch (DataStoreException e) {
-            throw new RuntimeException("Cannot extract resource identifier", e);
-        }
-    }
-
-    static Optional<Data> select(final GenericName target, DataType type, final List<Data> source) {
+    static Optional<LayerCache> select(final GenericName target, DataType type, final List<LayerCache> source) {
         if (source == null) return Optional.empty();
         return source.stream()
-                .filter(layer -> layer.getDataType().equals(type) && layer.getName().equals(target))
+                .filter(layer -> layer.getData().getDataType().equals(type) && layer.getName().equals(target))
                 .findAny();
     }
 
-    protected static CoverageInfo buildCoverageInfo(final GenericName fullLayerName, final GetFeatureInfo gfi, final List<Data> layerDetailsList) {
+    protected static CoverageInfo buildCoverageInfo(final GenericName fullLayerName, final GetFeatureInfo gfi, final List<LayerCache> layers) {
 
-        Data layerPostgrid = select(fullLayerName, DataType.COVERAGE, layerDetailsList).orElse(null);
+        Optional<LayerCache> layer = select(fullLayerName, DataType.COVERAGE, layers);
+        Data data = layer.isPresent() ? layer.get().getData() : null;
 
         List<Date> time;
         Double elevation;
@@ -188,9 +181,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
              * leverage the database index.
              */
             DateRange dates = null;
-            if (layerPostgrid != null) {
+            if (data != null) {
                 try {
-                    dates = layerPostgrid.getDateRange();
+                    dates = data.getDateRange();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                 }
@@ -204,9 +197,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
         if (elevation == null) {
             SortedSet<Number> elevs = null;
-            if (layerPostgrid != null) {
+            if (data != null) {
                 try {
-                    elevs = layerPostgrid.getAvailableElevations();
+                    elevs = data.getAvailableElevations();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     elevs = null;

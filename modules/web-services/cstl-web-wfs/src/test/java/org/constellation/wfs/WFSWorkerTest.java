@@ -28,8 +28,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
@@ -168,6 +166,10 @@ public class WFSWorkerTest {
                 pid = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness);
                 Integer d22 = dataBusiness.create(new QName("http://www.opengis.net/gml", "featureCollection"), pid, "VECTOR", false, true, true, null, null);
 
+                // for aliased layer
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                Integer d23 = dataBusiness.create(new QName("http://www.opengis.net/gml", "feature"), pid, "VECTOR", false, true, true, null, null);
+
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put("transactionSecurized", "false");
@@ -190,44 +192,7 @@ public class WFSWorkerTest {
                 layerBusiness.add(d20,     null, defId, null);
                 layerBusiness.add(d21,     null, defId, null);
                 layerBusiness.add(d22,     null, defId, null);
-
-                Integer testId = serviceBusiness.create("wfs", "test", config, null, null);
-
-                layerBusiness.add(d20,   null, testId, null);
-                layerBusiness.add(d8 ,   null, testId, null);
-                layerBusiness.add(d9 ,   null, testId, null);
-                layerBusiness.add(d10,   null, testId, null);
-                layerBusiness.add(d11,   null, testId, null);
-                layerBusiness.add(d12,   null, testId, null);
-                layerBusiness.add(d13,   null, testId, null);
-                layerBusiness.add(d14,   null, testId, null);
-                layerBusiness.add(d15,   null, testId, null);
-                layerBusiness.add(d16,   null, testId, null);
-                layerBusiness.add(d17,   null, testId, null);
-                layerBusiness.add(d18,   null, testId, null);
-                layerBusiness.add(d19,   null, testId, null);
-
-
-                final LayerContext config2 = new LayerContext();
-                config2.getCustomParameters().put("transactionSecurized", "false");
-                config2.getCustomParameters().put("transactional", "true");
-
-                Integer sid2 = serviceBusiness.create("wfs", "test1", config, null, null);
-                layerBusiness.add(d8,      null, sid2, null);
-                layerBusiness.add(d9,      null, sid2, null);
-                layerBusiness.add(d10,     null, sid2, null);
-                layerBusiness.add(d11,     null, sid2, null);
-                layerBusiness.add(d12,     null, sid2, null);
-                layerBusiness.add(d13,     null, sid2, null);
-                layerBusiness.add(d14,     null, sid2, null);
-                layerBusiness.add(d15,     null, sid2, null);
-                layerBusiness.add(d16,     null, sid2, null);
-                layerBusiness.add(d17,     null, sid2, null);
-                layerBusiness.add(d18,     null, sid2, null);
-                layerBusiness.add(d19,     null, sid2, null);
-                layerBusiness.add(d20,     null, sid2, null);
-                layerBusiness.add(d21,     null, sid2, null);
-                layerBusiness.add(d22,     null, sid2, null);
+                layerBusiness.add(d23,    "JS2", defId, null);
 
                 pool = WFSMarshallerPool.getInstance();
 
@@ -243,10 +208,10 @@ public class WFSWorkerTest {
                 final StoredQueryDescriptionType des1 = new StoredQueryDescriptionType("nameQuery", "Name query" , "filter on name for samplingPoint", param, queryEx);
                 descriptions.add(des1);
                 final StoredQueries queries = new StoredQueries(descriptions);
-                serviceBusiness.setExtraConfiguration("wfs", "test1", "StoredQueries.xml", queries, pool);
+                serviceBusiness.setExtraConfiguration("wfs", "default", "StoredQueries.xml", queries, pool);
 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();
-                worker = new DefaultWFSWorker("test1");
+                worker = new DefaultWFSWorker("default");
                 worker.setServiceUrl("http://geomatys.com/constellation/WS/");
                 initialized = true;
             } catch (Exception ex) {
@@ -1027,6 +992,25 @@ public class WFSWorkerTest {
         assertEquals(expResult, result);
 
         XSDMarshallerPool.getInstance().recycle(unmarshaller);
+
+        /**
+         * Test 3 : describe Feature type JS2 (aliased)
+         */
+        typeNames = new ArrayList<>();
+        typeNames.add(new QName("JS2"));
+        request = new DescribeFeatureTypeType("WFS", "1.1.0", null, typeNames, "text/gml; subtype=\"gml/3.1.1\"");
+
+        result = (Schema) worker.describeFeatureType(request);
+
+        expResult = (Schema) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/wfs/xsd/JS2.xsd"));
+        // fix for equlity on empty list / null list
+        for (ComplexType type : expResult.getComplexTypes()) {
+            type.getAttributeOrAttributeGroup();
+        }
+
+        assertEquals(expResult, result);
+
+        XSDMarshallerPool.getInstance().recycle(unmarshaller);
     }
 
     /**
@@ -1240,7 +1224,7 @@ public class WFSWorkerTest {
         FeatureSetWrapper wrapper = (FeatureSetWrapper) resultGF;
 
         final Map<String, String> expResult = new HashMap<>();
-        expResult.put("http://www.opengis.net/gml", "http://geomatys.com/constellation/WS/wfs/test1?request=DescribeFeatureType&version=1.1.0&service=WFS&namespace=xmlns(ns1=http://www.opengis.net/gml)&typename=ns1:NamedPlaces");
+        expResult.put("http://www.opengis.net/gml", "http://geomatys.com/constellation/WS/wfs/default?request=DescribeFeatureType&version=1.1.0&service=WFS&namespace=xmlns(ns1=http://www.opengis.net/gml)&typename=ns1:NamedPlaces");
         assertEquals(wrapper.getSchemaLocations(), expResult);
 
     }
@@ -1298,6 +1282,34 @@ public class WFSWorkerTest {
                 IOUtilities.getResourceAsPath("org.constellation.wfs.xml.featureCollection-1.xml"),
                 sresult);
 
+    }
+
+    @Test
+    @Order(order=13)
+    public void getFeatureGJsonAliasedTest() throws Exception {
+
+        /*
+         * Test 1 : query on typeName feature
+        */
+        List<QueryType> queries = new ArrayList<>();
+        queries.add(new QueryType(null, Arrays.asList(new QName("JS2")), null));
+        GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+
+        Object result = worker.getFeature(request);
+
+        assertTrue(result instanceof FeatureSetWrapper);
+        FeatureSetWrapper wrapper = (FeatureSetWrapper) result;
+        result = wrapper.getFeatureSet().get(0);
+        assertEquals("3.1.1", wrapper.getGmlVersion());
+
+        StringWriter writer = new StringWriter();
+        featureWriter.write(result,writer);
+
+        String sresult = writer.toString();
+        sresult = sresult.replaceAll("timeStamp=\"[^\"]*\" ", "timeStamp=\"\" ");
+
+        domCompare(IOUtilities.getResourceAsPath("org.constellation.wfs.xml.JS2.xml"),
+                sresult);
     }
 
     public static void domCompare(final Object actual, final Object expected) throws Exception {

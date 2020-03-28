@@ -206,13 +206,13 @@ public final class TestEnvironment {
         try {
             final DataProviderFactory factory = DataProviders.getFactory("data-store");
             final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue("shapeSrc");
-
+            String providerIdentifier = "shapeSrc" + UUID.randomUUID().toString();
+            source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("ShapefileParametersFolder");
             config.parameter("path").setValue(p.toUri());
 
-            return providerBusiness.storeProvider("shapeSrc", null, ProviderType.LAYER, "data-store", source);
+            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
@@ -320,7 +320,7 @@ public final class TestEnvironment {
     }
 
     private static Integer createCoverageFileProvider(IProviderBusiness providerBusiness, Path pngFile) {
-        final String providerIdentifier = "coverageTestSrc";
+        final String providerIdentifier = "coverageTestSrc-" + UUID.randomUUID().toString();
         try {
             final DataProviderFactory dataStorefactory = DataProviders.getFactory("data-store");
 
@@ -338,7 +338,7 @@ public final class TestEnvironment {
     }
 
     private static Integer createTifProvider(IProviderBusiness providerBusiness, Path tifFile) {
-        final String providerIdentifier = "coverageTest2Src";
+        final String providerIdentifier = "coverageTiffSrc-" + UUID.randomUUID().toString();
         try {
             final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
             final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();

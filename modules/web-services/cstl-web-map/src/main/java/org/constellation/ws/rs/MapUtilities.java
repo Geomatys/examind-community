@@ -18,9 +18,7 @@
  */
 package org.constellation.ws.rs;
 
-import org.apache.sis.util.Version;
 import org.apache.sis.util.logging.Logging;
-import org.constellation.dto.service.config.wxs.Layer;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
 import org.geotoolkit.sld.xml.Specification;
 import org.geotoolkit.sld.xml.StyleXmlIO;
@@ -30,7 +28,6 @@ import javax.xml.bind.JAXBException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,36 +38,6 @@ import java.util.logging.Logger;
 public class MapUtilities {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.ws.rs");
-
-    /**
-     * Verify that all layers are queryable for a {@code GetFeatureInfo}.
-     *
-     * @param queryLayers A list of requested layer names
-     * @param version The version of the WMS service.
-     * @return The same list as provided if all layers are queryable.
-     *
-     * todo The method {@code Layer#isQueryable} is not valid. It should verify in the
-     *       database if a layer is queryable, meaning if a layer is queryable by a
-     *       {@code GetFeatureInfo} request. Either rename the {@code Layer#isQueryable}
-     *       or create a new one that provides this information.
-     */
-    public static List<String> areQueryableLayers(final List<String> queryLayers,
-                                final Version version)
-    {
-        /* Do nothing for the moment, waiting for a method in {@link Layer} in order to
-         * handle the queryable attribute for a {@link Layer}.
-         */
-
-        /*final NamedLayerDP dp = NamedLayerDP.getInstance();
-        for (String layerName : queryLayers) {
-            final LayerDetails layer = dp.get(layerName);
-            if (!layer.isQueryable(Service.WMS)) {
-                throw new WMSWebServiceException("Layer "+ layerName +" is not queryable",
-                        WMSExceptionCode.LAYER_NOT_QUERYABLE, version);
-            }
-        }*/
-        return queryLayers;
-    }
 
     public static MutableStyledLayerDescriptor toSLD(final String sldBody, final String sldURL,
                                                      final Specification.StyledLayerDescriptor version) throws MalformedURLException {

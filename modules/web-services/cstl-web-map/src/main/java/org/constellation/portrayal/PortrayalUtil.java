@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.GeoData;
+import org.constellation.ws.LayerCache;
 
 
 /**
@@ -47,7 +48,7 @@ import org.constellation.provider.GeoData;
 public final class PortrayalUtil {
 
 
-    public static MapContext createContext(Data layerRef, MutableStyle styleRef,
+    public static MapContext createContext(LayerCache layerRef, MutableStyle styleRef,
             Map<String,Object> renderingParameters) throws ConstellationStoreException{
         return createContext(Collections.singletonList(layerRef),
                  Collections.singletonList(styleRef),
@@ -55,15 +56,16 @@ public final class PortrayalUtil {
 
     }
 
-    public static MapContext createContext(List<Data> layerRefs, List<MutableStyle> styleRefs,
+    public static MapContext createContext(List<LayerCache> layerRefs, List<MutableStyle> styleRefs,
             Map<String,Object> renderingParameters ) throws ConstellationStoreException {
 
     	assert ( layerRefs.size() == styleRefs.size() );
         final MapContext context = MapBuilder.createContext();
 
         for (int i = 0; i < layerRefs.size(); i++) {
-            if (layerRefs.get(i) instanceof GeoData) {
-                final GeoData layerRef = (GeoData) layerRefs.get(i);
+            final LayerCache layer = layerRefs.get(i);
+            if (layer.getData() instanceof GeoData) {
+                final GeoData layerRef = (GeoData) layer.getData();
                 final MutableStyle style = styleRefs.get(i);
 
                 assert (null != layerRef);
@@ -73,10 +75,12 @@ public final class PortrayalUtil {
                 if (mapLayer == null) {
                     throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layerRef.getName());
                 }
-                if(mapLayer instanceof MapLayer){
-                    ((MapLayer)mapLayer).setSelectable(true);
+                if (mapLayer instanceof MapLayer) {
+                    ((MapLayer) mapLayer).setSelectable(true);
                 }
                 mapLayer.setVisible(true);
+                mapLayer.getUserProperties().put("layerId", layer.getId());
+                mapLayer.getUserProperties().put("layerName", layer.getName());
                 context.items().add(mapLayer);
             } else {
                 throw new ConstellationStoreException("Could not create a Context for a non Geo data: " + layerRefs.get(i).getName());

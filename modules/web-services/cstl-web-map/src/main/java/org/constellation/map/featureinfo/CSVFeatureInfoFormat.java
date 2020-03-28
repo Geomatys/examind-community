@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -74,7 +73,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final FeatureMapLayer layer = graphic.getLayer();
-        final String layerName = layer.getName();
+        final String layerName = getNameForFeatureLayer(layer).tip().toString();
 
         final Feature feature = graphic.getCandidate();
         final Collection<? extends PropertyType> descs = feature.getType().getProperties(true);
@@ -124,17 +123,7 @@ public class CSVFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             return;
         }
 
-        final String layerName;
-        try {
-            if (graphic.getLayer().getResource().getIdentifier().isPresent()) {
-                layerName = graphic.getLayer().getResource().getIdentifier().get().tip().toString();
-            } else {
-                throw new RuntimeException("resource identifier not present");
-            }
-        } catch (DataStoreException e) {
-            throw new RuntimeException(e);      // TODO
-        }
-
+        final String layerName = getNameForCoverageLayer(graphic.getLayer()).tip().toString();
         LayerResult result = results.get(layerName);
         if(result==null){
             //first feature of this type

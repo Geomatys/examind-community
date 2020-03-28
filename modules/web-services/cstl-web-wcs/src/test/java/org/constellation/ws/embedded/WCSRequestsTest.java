@@ -87,6 +87,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
      * The layer to test.
      */
     private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
+    private static final GenericName LAYER_ALIAS = NamesExt.create("aliased");
 
     /**
      * URLs which will be tested on the server.
@@ -108,6 +109,11 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "coverage="+ LAYER_TEST;
 
+    private static final String WCS_GETCOVERAGE_ALIAS ="request=GetCoverage&service=WCS&version=1.0.0&" +
+                                      "format=image/png&width=1024&height=512&" +
+                                      "crs=EPSG:4326&bbox=-180,-90,180,90&" +
+                                      "coverage="+ LAYER_ALIAS;
+
     private static final String WCS_GETCOVERAGE_MATRIX ="request=GetCoverage&service=WCS&version=1.0.0&" +
                                       "format=matrix&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
@@ -118,6 +124,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     private static final String WCS_GETCAPABILITIES2 ="request=GetCapabilities&service=WCS&version=1.0.0";
 
     private static final String WCS_DESCRIBECOVERAGE ="request=DescribeCoverage&coverage=SSTMDE200305&service=wcs&version=1.0.0";
+    private static final String WCS_DESCRIBECOVERAGE_ALIAS ="request=DescribeCoverage&coverage=" + LAYER_ALIAS + "&service=wcs&version=1.0.0";
 
     private static boolean initialized = false;
 
@@ -146,10 +153,15 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 Integer pid = testResource.createProvider(TestResource.PNG, providerBusiness);
                 Integer did = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
 
+                // second data for alias
+                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer did2 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add(did, null, defId, null);
+                layerBusiness.add(did2, "aliased", defId, null);
 
                 Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
                 layerBusiness.add(did, null, testId, null);
@@ -214,7 +226,6 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=1)
     public void testWCSWrongRequest() throws Exception {
-
         initLayerList();
 
         // Creates an intentional wrong url, regarding the WCS version 1.0.0 standard
@@ -262,10 +273,33 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=2)
     public void testWCSGetCoverage() throws Exception {
+        initLayerList();
         // Creates a valid GetCoverage url.
         final URL getCoverageUrl;
         try {
             getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get the coverage from the url.
+        final BufferedImage image = getImageFromURL(getCoverageUrl, "image/png");
+
+        // Test on the returned image.
+        assertFalse (ImageTesting.isImageEmpty(image));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512,  image.getHeight());
+        assertTrue  (ImageTesting.getNumColors(image) > 8);
+    }
+
+    @Test
+    @Order(order=2)
+    public void testWCSGetCoverageAlias() throws Exception {
+        // Creates a valid GetCoverage url.
+        final URL getCoverageUrl;
+        try {
+            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_ALIAS);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -333,6 +367,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(coverages);
         assertFalse(coverages.isEmpty());
         boolean layerTestFound = false;
+        boolean layerAliasFound = false;
         for (CoverageOfferingBriefType coverage : coverages) {
             for (JAXBElement<String> elem : coverage.getRest()) {
                 if (elem.getValue().equals(LAYER_TEST.tip().toString())) {
@@ -343,10 +378,21 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                     assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
                     assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
                 }
+                if (elem.getValue().equals(LAYER_ALIAS.tip().toString())) {
+                    layerAliasFound = true;
+                    final LonLatEnvelopeType env = coverage.getLonLatEnvelope();
+                    assertTrue(env.getPos().get(0).getValue().get(0) == -180d);
+                    assertTrue(env.getPos().get(0).getValue().get(1) ==  -90d);
+                    assertTrue(env.getPos().get(1).getValue().get(0) ==  180d);
+                    assertTrue(env.getPos().get(1).getValue().get(1) ==   90d);
+                }
             }
         }
         if (layerTestFound == false) {
             throw new AssertionError("The layer \""+ LAYER_TEST +"\" was not found in the returned GetCapabilities.");
+        }
+        if (layerAliasFound == false) {
+            throw new AssertionError("The layer \""+ LAYER_ALIAS +"\" was not found in the returned GetCapabilities.");
         }
 
         Get get = (Get) responseCaps.getCapability().getRequest().getGetCapabilities().getDCP().get(0).getHTTP().getRealGetOrPost().get(0);
@@ -395,7 +441,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Order(order=5)
     public void testWCSDescribeCoverage() throws Exception {
         // Creates a valid DescribeCoverage url.
-        final URL getCapsUrl;
+        URL getCapsUrl;
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE);
         } catch (MalformedURLException ex) {
@@ -405,14 +451,33 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WCSCapabilitiesType.
-        final Object obj = unmarshallResponse(getCapsUrl);
+        Object obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof CoverageDescription);
 
-        final CoverageDescription responseDesc = (CoverageDescription)obj;
+        CoverageDescription responseDesc = (CoverageDescription)obj;
         assertNotNull(responseDesc);
-        final List<CoverageOfferingType> coverageOffs = responseDesc.getCoverageOffering();
+        List<CoverageOfferingType> coverageOffs = responseDesc.getCoverageOffering();
         assertFalse (coverageOffs.isEmpty());
         assertEquals(LAYER_TEST.tip().toString(), coverageOffs.get(0).getRest().get(1).getValue());
+        // TODO: add more tests on returned XML doc
+
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to marshall something from the response returned by the server.
+        // The response should be a WCSCapabilitiesType.
+        obj = unmarshallResponse(getCapsUrl);
+        assertTrue(obj instanceof CoverageDescription);
+
+        responseDesc = (CoverageDescription)obj;
+        assertNotNull(responseDesc);
+        coverageOffs = responseDesc.getCoverageOffering();
+        assertFalse (coverageOffs.isEmpty());
+        assertEquals(LAYER_ALIAS.tip().toString(), coverageOffs.get(0).getRest().get(1).getValue());
         // TODO: add more tests on returned XML doc
     }
 

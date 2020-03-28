@@ -139,7 +139,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
 
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName) {
-        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+        return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
     }
 
     @Override
@@ -155,10 +155,10 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
         if (namespace != null) {
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName))
-                    .and(LAYER.NAMESPACE.eq(namespace)).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+                    .and(LAYER.NAMESPACE.eq(namespace)).and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
         } else {
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.isNull())
-                    .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+                    .and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
         }
     }
 

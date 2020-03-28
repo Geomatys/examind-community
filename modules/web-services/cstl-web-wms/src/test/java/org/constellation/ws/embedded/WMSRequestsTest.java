@@ -107,6 +107,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
 import org.opengis.parameter.ParameterValue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.opengis.parameter.GeneralParameterDescriptor;
 
 /**
  * A set of methods that request a Grizzly server which embeds a WMS service.
@@ -123,6 +124,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * The layer to test.
      */
     private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
+    private static final GenericName COV_ALIAS = NamesExt.create("SST");
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -167,57 +169,132 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "srs=EPSG:4326&bbox=-180,-90,180,90&"
             + "styles=&layers=";
 
-    private static final String WMS_GETFEATUREINFO = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
-            + "format=image/png&width=1024&height=512&"
-            + "srs=EPSG:4326&bbox=-180,-90,180,90&"
+    private static final String WMS_GETFEATUREINFO_PLAIN_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
             + "layers=" + LAYER_TEST + "&styles=&"
             + "query_layers=" + LAYER_TEST + "&info_format=text/plain&"
-            + "X=300&Y=200";
+            + "X=169&Y=20";
 
-    private static final String WMS_GETFEATUREINFO2 = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+    private static final String WMS_GETFEATUREINFO_PLAIN_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + COV_ALIAS + "&styles=&"
+            + "query_layers=" + COV_ALIAS + "&info_format=text/plain&"
+            + "X=169&Y=20";
+
+    private static final String WMS_GETFEATUREINFO_GML_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + LAYER_TEST + "&styles=&"
+            + "query_layers=" + LAYER_TEST + "&info_format=application/vnd.ogc.gml&"
+            + "X=169&Y=20";
+
+    private static final String WMS_GETFEATUREINFO_GML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + COV_ALIAS + "&styles=&"
+            + "query_layers=" + COV_ALIAS + "&info_format=application/vnd.ogc.gml&"
+            + "X=169&Y=20";
+
+    private static final String WMS_GETFEATUREINFO_PLAIN_FEAT = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=200&height=100&"
             + "srs=CRS:84&BbOx=0,-0.0020,0.0040,0&"
             + "layers=Lakes&styles=&"
             + "query_layers=Lakes&info_format=text/plain&"
             + "X=60&Y=60";
 
-    private static final String WMS_GETFEATUREINFO3 = "QuErY_LaYeRs=BasicPolygons&I=50&"
+    private static final String WMS_GETFEATUREINFO_PLAIN_FEAT2 = "QuErY_LaYeRs=BasicPolygons&I=50&"
             + "LaYeRs=BasicPolygons&StYlEs=&WiDtH=100&CrS=CRS:84&"
             + "ReQuEsT=GetFeatureInfo&InFo_fOrMaT=text/plain&BbOx=-2,2,2,6"
             + "&HeIgHt=100&J=50&VeRsIoN=1.3.0&FoRmAt=image/gif";
 
-    private static final String WMS_GETFEATUREINFO4 = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+    private static final String WMS_GETFEATUREINFO_GML_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.gml&"
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
 
-    private static final String WMS_GETFEATUREINFO5 = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+    private static final String WMS_GETFEATUREINFO_HTML_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=text/html&"
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
 
-    private static final String WMS_GETFEATUREINFO6 = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
+     private static final String WMS_GETFEATUREINFO_HTML_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + LAYER_TEST + "&styles=&"
+            + "query_layers=" + LAYER_TEST + "&info_format=text/html&"
+            + "X=169&Y=20";
+
+     private static final String WMS_GETFEATUREINFO_HTML_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + COV_ALIAS + "&styles=&"
+            + "query_layers=" + COV_ALIAS + "&info_format=text/html&"
+            + "X=169&Y=20";
+
+
+    private static final String WMS_GETFEATUREINFO_JSON_FEAT = "QuErY_LaYeRs=Lakes&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
 
-    private static final String WMS_GETFEATUREINFO7 = "QuErY_LaYeRs=" + LAYER_TEST + "&BbOx=0,-0.0020,0.0040,0&"
+    private static final String WMS_GETFEATUREINFO_PROFILE_COV = "QuErY_LaYeRs=" + LAYER_TEST + "&BbOx=0,-0.0020,0.0040,0&"
             + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json;%20subtype=profile&"
             + "X=60&StYlEs=&LaYeRs=" + LAYER_TEST + "&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60&PROFILE=LINESTRING(-61.132875680921%2014.81104016304,%20-60.973573923109%2014.673711061478,%20-60.946108102796%2014.706670045853,%20-60.915895700453%2014.610539674759,%20-60.882936716078%2014.48145031929)";
 
+    private static final String WMS_GETFEATUREINFO_JSON_FEAT_ALIAS = "QuErY_LaYeRs=JS1&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
+            + "X=60&StYlEs=&LaYeRs=JS1&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2 = "QuErY_LaYeRs=JS2&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&"
+            + "FoRmAt=image/gif&ReQuEsT=GetFeatureInfo&"
+            + "VeRsIoN=1.1.1&InFo_fOrMaT=application/json&"
+            + "X=60&StYlEs=&LaYeRs=JS2&"
+            + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
+
+    private static final String WMS_GETFEATUREINFO_JSON_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + LAYER_TEST + "&styles=&"
+            + "query_layers=" + LAYER_TEST + "&info_format=application/json&"
+            + "X=169&Y=20";
+
+    private static final String WMS_GETFEATUREINFO_JSON_COV_ALIAS = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
+            + "format=image/png&width=256&height=256&"
+            + "srs=EPSG:4326&bbox=-180,-90,-90,0&"
+            + "layers=" + COV_ALIAS + "&styles=&"
+            + "query_layers=" + COV_ALIAS + "&info_format=application/json&"
+            + "X=169&Y=20";
+
+
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=" + LAYER_TEST + "&format=image/png&version=1.1.0";
+
+    private static final String WMS_GETLEGENDGRAPHIC_ALIAS = "request=GetLegendGraphic&service=wms&"
+            + "width=200&height=40&layer=JS1&format=image/png&version=1.1.0";
+
+    private static final String WMS_GETLEGENDGRAPHIC_ALIAS2 = "request=GetLegendGraphic&service=wms&"
+            + "width=200&height=40&layer=JS2&format=image/png&version=1.1.0";
 
     private static final String WMS_DESCRIBELAYER = "request=DescribeLayer&service=WMS&"
             + "version=1.1.1&layers=" + LAYER_TEST;
 
     private static final String WMS_GETMAP2
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/png&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
+
+    private static final String WMS_GETMAP_ALIAS
+            = "HeIgHt=100&LaYeRs=JS1&FoRmAt=image/png&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&VeRsIoN=1.3.0&WiDtH=100";
+
+    private static final String WMS_GETMAP_ALIAS2
+            = "HeIgHt=100&LaYeRs=JS2&FoRmAt=image/png&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-80.72487831115721,35.2553619492954,-80.70324897766113,35.27035945142482&VeRsIoN=1.3.0&WiDtH=100";
 
     private static final String WMS_GETMAP_BMP
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/bmp&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
@@ -317,32 +394,35 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 pid = testResource.createProvider(TestResource.TIF, providerBusiness);
                 Integer did2 = dataBusiness.create(new QName("martinique"), pid, "COVERAGE", false, true, null, null);
 
-                // aggregated source
+                // alias on coverage data
+                pid = testResource.createProvider(TestResource.PNG, providerBusiness);
+                Integer did3 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
+
+                // aggregated datastore
                 final DataProviderFactory aggfactory = DataProviders.getFactory("computed-resource");
                 final ParameterValueGroup sourceAgg = aggfactory.getProviderDescriptor().createValue();
                 sourceAgg.parameter("id").setValue("aggSrc");
-
                 final ParameterValueGroup choiceAgg = ProviderParameters.getOrCreate(ComputedResourceProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceAgg);
+                final ParameterValueGroup configAgg = choiceAgg.addGroup("AggregatedCoverageProvider");
 
-                final ParameterValueGroup srcCFConfigAgg = choiceAgg.addGroup("AggregatedCoverageProvider");
-
-                ParameterValue p = (ParameterValue) srcCFConfigAgg.getDescriptor().descriptor("data_ids").createValue();
+                final GeneralParameterDescriptor dataIdsDesc = configAgg.getDescriptor().descriptor("data_ids");
+                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
                 p.setValue(did);
-                srcCFConfigAgg.values().add(p);
-                ParameterValue p2 = (ParameterValue) srcCFConfigAgg.getDescriptor().descriptor("data_ids").createValue();
+                configAgg.values().add(p);
+                ParameterValue p2 = (ParameterValue) dataIdsDesc.createValue();
                 p2.setValue(did2);
-                srcCFConfigAgg.values().add(p2);
+                configAgg.values().add(p2);
 
-                srcCFConfigAgg.parameter("DataName").setValue("aggData");
-                srcCFConfigAgg.parameter("ResultCRS").setValue("EPSG:4326");
-                srcCFConfigAgg.parameter("mode").setValue("ORDER");
+                configAgg.parameter("DataName").setValue("aggData");
+                configAgg.parameter("ResultCRS").setValue("EPSG:4326");
+                configAgg.parameter("mode").setValue("ORDER");
 
                 pid = providerBusiness.storeProvider("AggTestSrc", null, ProviderType.LAYER, "computed-resource", sourceAgg);
                 providerBusiness.createOrUpdateData(pid, null, false);
-
                 List<DataBrief> dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
                 Integer aggd = dbs.get(0).getId();
 
+                // shapefile datastore
                 pid = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
 
                 Integer d1  = dataBusiness.create(new QName("http://www.opengis.net/gml", "BuildingCenters"), pid, "VECTOR", false, true, true,null, null);
@@ -358,6 +438,17 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 Integer d11 = dataBusiness.create(new QName("http://www.opengis.net/gml", "MapNeatline"),     pid, "VECTOR", false, true, true,null, null);
                 Integer d12 = dataBusiness.create(new QName("http://www.opengis.net/gml", "Ponds"),           pid, "VECTOR", false, true, true,null, null);
 
+                // we add two times a new geojson provider in order to create 2 layer with same name but different alias
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                providerBusiness.createOrUpdateData(pid, null, false);
+                dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
+                Integer d13 = dbs.get(0).getId();
+
+                pid = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness);
+                providerBusiness.createOrUpdateData(pid, null, false);
+                dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
+                Integer d14 = dbs.get(0).getId();
+
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
@@ -368,6 +459,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 layerBusiness.add(did,  null, defId, null);
                 layerBusiness.add(did2, null, defId, null);
+                layerBusiness.add(did3, "SST", defId, null);
                 layerBusiness.add(d1,   null, defId, null);
                 layerBusiness.add(d2,   null, defId, null);
                 layerBusiness.add(d3,   null, defId, null);
@@ -381,6 +473,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 layerBusiness.add(d11,  null, defId, null);
                 layerBusiness.add(d12,  null, defId, null);
                 layerBusiness.add(aggd, null, defId, null);
+                layerBusiness.add(d13,  "JS1", defId, null);
+                layerBusiness.add(d14,  "JS2", defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
@@ -793,6 +887,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order = 11)
     public void testWMSGetCapabilities() throws JAXBException, Exception {
+        initLayerList();
 
         // Creates a valid GetCapabilities url.
         URL getCapsUrl;
@@ -968,9 +1063,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoPlainCoveragePng() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
+        URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -978,15 +1073,28 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult = "SSTMDE200305\n"
                 + "0;\n"
-                + "0.0;\n\n";
+                + "193.0;\n\n";
 
         String result = getStringResponse(gfi);
 
         assertNotNull(expResult);
         assertEquals(expResult, result);
 
-        // the result here is probably false
-        // now i get 0.0 here ? assertTrue   (value.startsWith("210.0")); // I d'ont know why but before the test was => (value.startsWith("28.5"));
+         try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "SST\n"
+                + "0;\n"
+                + "193.0;\n\n";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
     }
 
     /**
@@ -1001,7 +1109,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO2);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1025,7 +1133,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO3);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT2);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1044,12 +1152,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order = 16)
-    public void testWMSGetFeatureInfoGMLShapeGif() throws Exception {
+    public void testWMSGetFeatureInfoGMLGif() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
+        URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO4);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_FEAT);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1071,6 +1179,68 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "</msGMLOutput>";
 
         String result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+                    "<SSTMDE200305_layer>\n" +
+                    "	<SSTMDE200305_layer>\n" +
+                    "		<SSTMDE200305_feature>\n" +
+                    "			<gml:boundedBy>\n" +
+                    "				<gml:Box srsName=\"CRS:84\">\n" +
+                    "					<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
+                    "				</gml:Box>\n" +
+                    "			</gml:boundedBy>\n" +
+                    "			<x>-120.41015625</x>\n" +
+                    "			<y>-7.20703125</y>\n" +
+                    "			<variable>0</variable>\n" +
+                    "			<value>193.0</value>\n" +
+                    "		</SSTMDE200305_feature>\n" +
+                    "	</SSTMDE200305_layer>\n" +
+                    "</SSTMDE200305_layer>\n" +
+                    "</msGMLOutput>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<msGMLOutput xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+                    "<SST_layer>\n" +
+                    "	<SST_layer>\n" +
+                    "		<SST_feature>\n" +
+                    "			<gml:boundedBy>\n" +
+                    "				<gml:Box srsName=\"CRS:84\">\n" +
+                    "					<gml:coordinates>-120.41015625,-7.20703125 -120.41015625,-7.20703125</gml:coordinates>\n" +
+                    "				</gml:Box>\n" +
+                    "			</gml:boundedBy>\n" +
+                    "			<x>-120.41015625</x>\n" +
+                    "			<y>-7.20703125</y>\n" +
+                    "			<variable>0</variable>\n" +
+                    "			<value>193.0</value>\n" +
+                    "		</SST_feature>\n" +
+                    "	</SST_layer>\n" +
+                    "</SST_layer>\n" +
+                    "</msGMLOutput>";
+
+        result = getStringResponse(gfi);
 
         assertNotNull(result);
         assertEquals(expResult, result);
@@ -1370,9 +1540,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoHTMLShape() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        final URL gfi;
+        URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO5);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_FEAT);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1427,6 +1597,100 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertNotNull(result);
         assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<html>\n" +
+                    "    <head>\n" +
+                    "        <title>GetFeatureInfo HTML output</title>\n" +
+                    "    </head>\n" +
+                    "    <style>\n" +
+                    "ul{\n" +
+                    "               margin-top: 0;\n" +
+                    "               margin-bottom: 0px;\n" +
+                    "           }\n" +
+                    "           .left-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:350px;\n" +
+                    "               overflow:auto;\n" +
+                    "               white-space:nowrap;\n" +
+                    "           }\n" +
+                    "           .right-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:600px;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }\n" +
+                    "           .values{\n" +
+                    "               text-overflow: ellipsis;\n" +
+                    "               white-space:nowrap;\n" +
+                    "               display:block;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }    </style>\n" +
+                    "    <body>\n" +
+                    "<h2>SSTMDE200305</h2><br/><div><div class=\"left-part\"><ul>\n" +
+                    "<li>\n" +
+                    "0</li>\n" +
+                    "</ul>\n" +
+                    "</div><div class=\"right-part\">193.0<br/>\n" +
+                    "</div></div><br/>    </body>\n" +
+                    "</html>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult = "<html>\n" +
+                    "    <head>\n" +
+                    "        <title>GetFeatureInfo HTML output</title>\n" +
+                    "    </head>\n" +
+                    "    <style>\n" +
+                    "ul{\n" +
+                    "               margin-top: 0;\n" +
+                    "               margin-bottom: 0px;\n" +
+                    "           }\n" +
+                    "           .left-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:350px;\n" +
+                    "               overflow:auto;\n" +
+                    "               white-space:nowrap;\n" +
+                    "           }\n" +
+                    "           .right-part{\n" +
+                    "               display:inline-block;\n" +
+                    "               width:600px;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }\n" +
+                    "           .values{\n" +
+                    "               text-overflow: ellipsis;\n" +
+                    "               white-space:nowrap;\n" +
+                    "               display:block;\n" +
+                    "               overflow: hidden;\n" +
+                    "           }    </style>\n" +
+                    "    <body>\n" +
+                    "<h2>SST</h2><br/><div><div class=\"left-part\"><ul>\n" +
+                    "<li>\n" +
+                    "0</li>\n" +
+                    "</ul>\n" +
+                    "</div><div class=\"right-part\">193.0<br/>\n" +
+                    "</div></div><br/>    </body>\n" +
+                    "</html>";
+
+        result = getStringResponse(gfi);
+
+        assertNotNull(result);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -1436,7 +1700,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO6);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1469,7 +1733,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
         try {
-            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO7);
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV);
         } catch (MalformedURLException ex) {
             assumeNoException(ex);
             return;
@@ -1484,7 +1748,159 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order = 28)
+    public void testWMSGetFeatureInfoJSONAlias() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult
+                = "[{\"type\":\"feature\",\"layer\":\"JS1\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
+
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult
+                = "[{\"type\":\"feature\",\"layer\":\"JS2\",\"feature\":{\"type\":\"feature\",\"envelope\":{\"lowerCorner\":[-80.72487831115721,35.2553619492954],\"upperCorner\":[-80.70324897766113,35.27035945142482]},\"name\":\"Plaza Road Park\",\"geometry\":\"POLYGON ((-80.72487831115721 35.26545403190955, -80.72135925292969 35.26727607954368, -80.71517944335938 35.26769654625573, -80.7125186920166 35.27035945142482, -80.70857048034668 35.268257165144064, -80.70479393005371 35.268397319259996, -80.70324897766113 35.26503355355979, -80.71088790893555 35.2553619492954, -80.71681022644043 35.2553619492954, -80.7150936126709 35.26054831539319, -80.71869850158691 35.26026797976481, -80.72032928466797 35.26061839914875, -80.72264671325684 35.26033806376283, -80.72487831115721 35.26545403190955))\",\"id\":\"feat-gs-001\"}}]";
+
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order = 28)
+    public void testWMSGetFeatureInfoJSONCoverage() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi;
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        String expResult
+                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":193.0,\"unit\":null}],\"time\":null}]";
+
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+
+        try {
+            gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        expResult
+                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":193.0,\"unit\":null}],\"time\":null}]";
+
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        assertEquals(expResult, result);
+    }
+
+
+    @Test
     @Order(order = 29)
+    public void testWMSGetMapALias() throws Exception {
+        initLayerList();
+        // Creates a valid GetMap url.
+        URL getMapUrl;
+        try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(100, image.getWidth());
+        assertEquals(100, image.getHeight());
+
+         try {
+            getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_ALIAS2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(100, image.getWidth());
+        assertEquals(100, image.getHeight());
+    }
+
+    /**
+     * Ensures that a valid GetLegendGraphic request returns indeed a
+     * {@link BufferedImage}.
+     *
+     * @throws java.io.Exception
+     */
+    @Test
+    @Order(order = 30)
+    public void testWMSGetLegendGraphicAlias() throws Exception {
+        initLayerList();
+        // Creates a valid GetLegendGraphic url.
+        URL getLegendUrl;
+        try {
+            getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getLegendUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(200, image.getWidth());
+        assertEquals(40, image.getHeight());
+
+        try {
+            getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETLEGENDGRAPHIC_ALIAS2);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getLegendUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(200, image.getWidth());
+        assertEquals(40, image.getHeight());
+    }
+
+
+    @Test
+    @Order(order = 30)
     public void testNewInstance() throws Exception {
         initLayerList();
 
@@ -1525,7 +1941,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 15, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
@@ -1548,7 +1964,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 30)
+    @Order(order = 31)
     public void testStartInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1581,7 +1997,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 15, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED));
@@ -1591,7 +2007,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Ignore
-    @Order(order = 31)
+    @Order(order = 32)
     public void testConfigureInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1638,7 +2054,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 32)
+    @Order(order = 33)
     public void testStopInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1672,7 +2088,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 15, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
@@ -1681,7 +2097,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 33)
+    @Order(order = 34)
     public void testDeleteInstance() throws Exception {
         pool = GenericDatabaseMarshallerPool.getInstance();
         /*
@@ -1715,7 +2131,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 15, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 18, ServiceStatus.STARTED));
         instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
         instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
         InstanceReport expResult2 = new InstanceReport(instances);
