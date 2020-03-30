@@ -82,12 +82,6 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.token.TokenUtils;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.temporal.util.PeriodUtilities;
-import org.opengis.feature.PropertyType;
-import org.opengis.feature.catalog.FeatureCatalogue;
-import org.opengis.metadata.Metadata;
-import org.constellation.util.StoreUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -1291,7 +1285,9 @@ public class DataBusiness implements IDataBusiness {
             final MetadataCopier copier = new MetadataCopier(MetadataStandard.ISO_19115);
             return new DefaultMetadata(copier.copy(Metadata.class, sourceMeta));
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Cannot extract resource metadata. Fallback to an empty one", e);
+            LOGGER.log(Level.WARNING, "Cannot extract resource metadata. Fallback to an empty one");
+            // Display details only in debug mode.
+            LOGGER.log(Level.FINE, "Cannot extract resource metadata. Fallback to an empty one", e);
         }
 
         return new DefaultMetadata();

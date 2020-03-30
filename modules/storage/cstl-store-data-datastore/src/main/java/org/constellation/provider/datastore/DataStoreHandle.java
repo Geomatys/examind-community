@@ -29,6 +29,7 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
+import org.apache.sis.util.Classes;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.iso.Names;
 
@@ -147,11 +148,12 @@ final class DataStoreHandle implements AutoCloseable {
     }
 
     private Resource tryProxify(final String dataName, final Resource target) {
+        if (target == null) return null;
         try {
             final IMetadataBusiness mdBiz = SpringHelper.getBean(IMetadataBusiness.class);
             return createProxy(() -> searchRelatedExamindDataRuntimeException(providerName, dataName), target, mdBiz);
         } catch (Exception e) {
-            DataProviders.LOGGER.log(Level.WARNING, "Cannot proxify resource", e);
+            LOGGER.log(Level.WARNING, "Cannot proxify resource", e);
         }
         return target;
     }
@@ -170,7 +172,7 @@ final class DataStoreHandle implements AutoCloseable {
     static Resource createProxy(IntSupplier dataId, final Resource target, final IMetadataBusiness mdBiz) {
         return (Resource) Proxy.newProxyInstance(
                 DataStoreHandle.class.getClassLoader(),
-                Arrays.stream(target.getClass().getInterfaces())
+                Arrays.stream(Classes.getLeafInterfaces(target.getClass(), null))
                         .filter(token -> !Cloneable.class.equals(token))
                         .toArray(size -> new Class[size]),
                 new MetadataDecoration<>(dataId, target, mdBiz)

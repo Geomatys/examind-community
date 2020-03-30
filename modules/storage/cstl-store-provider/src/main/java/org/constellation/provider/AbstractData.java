@@ -156,10 +156,11 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
         return false;
     }
 
+    @Deprecated
     @Override
     public DefaultMetadata getResourceMetadata() throws ConstellationStoreException {
         try {
-            return new DefaultMetadata(origin.getMetadata());
+            return origin == null ? new DefaultMetadata() : new DefaultMetadata(origin.getMetadata());
         } catch (DataStoreException e) {
             throw new ConstellationStoreException(e);
         }
