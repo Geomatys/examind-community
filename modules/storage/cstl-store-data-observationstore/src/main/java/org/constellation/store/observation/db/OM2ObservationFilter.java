@@ -1005,7 +1005,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         return fieldPhen;
     }
-
+    
+    @SuppressWarnings("squid:S2695")
     protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
         String request = "SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=? AND \"observed_property\"=?";
         if (foi != null) {
