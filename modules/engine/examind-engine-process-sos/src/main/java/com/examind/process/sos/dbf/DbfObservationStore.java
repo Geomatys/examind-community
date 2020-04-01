@@ -18,6 +18,8 @@
 package com.examind.process.sos.dbf;
 
 import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIById;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordProfile;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordTrajectory;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
@@ -188,7 +190,6 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
                 /*
                 1- filter prepare spatial/time column indices from ordinary fields
-                  --  lat/lon fields are added only in measure for trajectory observation
                 ================================================================*/
                 int mainIndex = -1;
                 int dateIndex = -1;
@@ -214,10 +215,10 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
                     } else if (header.equals(latitudeColumn)) {
                         latitudeIndex = i;
-                        if (!"Trajectory".equals(observationType))  ignoredFields.add(latitudeIndex);
+                        ignoredFields.add(latitudeIndex);
                     } else if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
-                        if (!"Trajectory".equals(observationType)) ignoredFields.add(longitudeIndex);
+                         ignoredFields.add(longitudeIndex);
                     } else if (measureColumns.contains(header)) {
                         measureFields.add(header);
                     } else {
@@ -242,8 +243,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 final AbstractDataRecord datarecord;
                 switch (observationType) {
                     case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                    case "Trajectory": datarecord = OMUtils.getDataRecordTrajectory("2.0.0", fields);break;
-                    case "Profile"   : datarecord = OMUtils.getDataRecordProfile("2.0.0", fields);   break;
+                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields);break;
+                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);   break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 

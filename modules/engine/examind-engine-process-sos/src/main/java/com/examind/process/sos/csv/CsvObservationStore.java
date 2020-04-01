@@ -19,6 +19,8 @@ package com.examind.process.sos.csv;
 
 import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildFOIByGeom;
 import static com.examind.process.sos.csv.CsvObservationStoreUtils.buildGeom;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordProfile;
+import static com.examind.process.sos.csv.CsvObservationStoreUtils.getDataRecordTrajectory;
 import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -64,10 +66,7 @@ import org.geotoolkit.sos.netcdf.OMUtils;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.swe.xml.Quantity;
-import org.geotoolkit.swe.xml.UomProperty;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.DirectPosition;
@@ -200,7 +199,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 /*
                 1- filter prepare spatial/time column indices from ordinary fields
-                 -  lat/lon fields are added only in measure for trajectory observation
                 ================================================================*/
                 int mainIndex = -1;
                 int dateIndex = -1;
@@ -228,10 +226,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
                     } else if (header.equals(latitudeColumn)) {
                         latitudeIndex = i;
-                        if (!"Trajectory".equals(observationType))  ignoredFields.add(latitudeIndex);
+                        ignoredFields.add(latitudeIndex);
                     } else if (header.equals(longitudeColumn)) {
                         longitudeIndex = i;
-                        if (!"Trajectory".equals(observationType)) ignoredFields.add(longitudeIndex);
+                        ignoredFields.add(longitudeIndex);
                     } else if (measureColumns.contains(header)) {
                         measureFields.add(header);
                     } else {
@@ -267,7 +265,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 final AbstractDataRecord datarecord;
                 switch (observationType) {
                     case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                    case "Trajectory": datarecord = OMUtils.getDataRecordTrajectory("2.0.0", fields);break;
+                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields);break;
                     case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);   break;
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
@@ -512,16 +510,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public void close() throws DataStoreException {
         // do nothing
-    }
-
-    public static AbstractDataRecord getDataRecordProfile(final String version, final List<Field> phenomenons) {
-        final List<AnyScalar> fields = new ArrayList<>();
-        for (Field phenomenon : phenomenons) {
-            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
-        }
-        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 
     @Override

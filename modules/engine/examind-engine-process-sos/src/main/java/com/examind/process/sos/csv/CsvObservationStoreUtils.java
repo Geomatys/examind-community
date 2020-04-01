@@ -16,13 +16,20 @@
  */
 package com.examind.process.sos.csv;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.sampling.xml.SamplingFeature;
+import org.geotoolkit.sos.netcdf.Field;
 import org.geotoolkit.sos.netcdf.OMUtils;
+import static org.geotoolkit.sos.netcdf.OMUtils.TIME_FIELD;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.geotoolkit.swe.xml.AbstractDataRecord;
+import org.geotoolkit.swe.xml.AnyScalar;
+import org.geotoolkit.swe.xml.Quantity;
+import org.geotoolkit.swe.xml.UomProperty;
 import org.opengis.geometry.DirectPosition;
 /**
  *
@@ -83,5 +90,26 @@ public class CsvObservationStoreUtils {
             }
         }
         return sp;
+    }
+
+    public static AbstractDataRecord getDataRecordProfile(final String version, final List<Field> phenomenons) {
+        final List<AnyScalar> fields = new ArrayList<>();
+        for (Field phenomenon : phenomenons) {
+            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
+        }
+        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
+    }
+
+    public static AbstractDataRecord getDataRecordTrajectory(final String version, final List<Field> phenomenons) {
+        final List<AnyScalar> fields = new ArrayList<>();
+        fields.add(TIME_FIELD.get(version));
+        for (Field phenomenon : phenomenons) {
+            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.unit, null);
+            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.label, uom, null);
+            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.label, cat));
+        }
+        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 }
