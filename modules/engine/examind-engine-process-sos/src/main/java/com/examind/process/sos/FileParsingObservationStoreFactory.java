@@ -52,7 +52,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName("date format")
             .setRequired(true)
-            .create(String.class, "yyyy-MM-dd'T'hh:mm:ss'Z'");
+            .create(String.class, "yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName("longitude column")

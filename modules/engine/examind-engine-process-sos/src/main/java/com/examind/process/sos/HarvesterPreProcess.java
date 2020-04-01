@@ -191,7 +191,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter DCparam = new Parameter(DATE_COLUMN_NAME, String.class, DATE_COLUMN_DESC, DATE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("time", "date")), headers);
         inputs.add(DCparam);
 
-        final Parameter DFparam = new Parameter(DATE_FORMAT_NAME, String.class, DATE_FORMAT_DESC, DATE_FORMAT_DESC, 1, 1, "yyyy-MM-dd'T'hh:mm:ss'Z'");
+        final Parameter DFparam = new Parameter(DATE_FORMAT_NAME, String.class, DATE_FORMAT_DESC, DATE_FORMAT_DESC, 1, 1, "yyyy-MM-dd'T'HH:mm:ss'Z'");
         inputs.add(DFparam);
 
         final Parameter LatCparam = new Parameter(LONGITUDE_COLUMN_NAME, String.class, LONGITUDE_COLUMN_DESC, LONGITUDE_COLUMN_DESC, 1, 1, guessColumn(headers, Arrays.asList("longitude", "long")), headers);
