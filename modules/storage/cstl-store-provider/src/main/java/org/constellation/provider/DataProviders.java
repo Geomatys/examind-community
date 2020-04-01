@@ -139,8 +139,8 @@ public final class DataProviders extends Static{
      * Use method with Integer id property.
      *
      * @param providerStrId
-     * @return
-     * @throws ConfigurationException
+     * @return DataProvider, never null, exception if not found
+     * @throws ConfigurationException is not found
      * @deprecated
      */
     @Deprecated
