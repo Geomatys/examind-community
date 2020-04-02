@@ -211,6 +211,7 @@
         <ows:AllowedValues>
           <ows:Value>offering-1</ows:Value>
           <ows:Value>offering-10</ows:Value>
+          <ows:Value>offering-11</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -241,6 +242,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="observedProperty">
@@ -504,6 +506,29 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-10">
+              <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
+              <gml:endPosition>2009-05-01T14:03:00.00</gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
+          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+        </sos:ObservationOffering>
+      </ns43:offering>
+      <ns43:offering>
+        <sos:ObservationOffering ns43:id="offering-11">
+          <ns43:identifier>offering-11</ns43:identifier>
+          <ns43:name>offering-11</ns43:name>
+          <ns43:procedure>urn:ogc:object:sensor:GEOM:test-id</ns43:procedure>
+          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
+          <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
+          <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:depth</ns43:observableProperty>
+          <ns43:relatedFeature>
+            <ns43:FeatureRelationship>
+              <ns43:target xlink:href="station-001"/>
+            </ns43:FeatureRelationship>
+          </ns43:relatedFeature>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-11">
               <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
               <gml:endPosition>2009-05-01T14:03:00.00</gml:endPosition>
             </gml:TimePeriod>

@@ -192,6 +192,7 @@ public abstract class SOSConfigurerTest {
         expResults.add("urn:ogc:object:sensor:GEOM:7");
         expResults.add("urn:ogc:object:sensor:GEOM:8");
         expResults.add("urn:ogc:object:sensor:GEOM:9");
+        expResults.add("urn:ogc:object:sensor:GEOM:test-id");
         Assert.assertEquals(expResults, results);
     }
 

@@ -1,5 +1,5 @@
 {
-  "@iot.count" : 62,
+  "@iot.count" : 67,
   "value" : [ {
     "phenomenonTime" : "2000-12-31T23:00:00Z/2000-12-31T23:00:00Z",
     "result" : 12.0,

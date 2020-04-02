@@ -53,7 +53,7 @@ import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     private static boolean initialized = false;
-    private static String configDirName = "LUCSOSWorkerTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "LUCSOSWorkerTest" + UUID.randomUUID().toString();
 
     private static Path instDirectory;
     private static Path configDir;
@@ -63,7 +63,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        configDir          = ConfigDirectory.setupTestEnvironement(configDirName);
+        configDir          = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         Path SOSDirectory  = configDir.resolve("SOS");
         instDirectory      = SOSDirectory.resolve("default");
         Files.createDirectories(instDirectory);
@@ -86,6 +86,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-8.xml", "offering-8.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-9.xml", "offering-9.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-10.xml", "offering-10.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-11.xml", "offering-11.xml", EPSG_VERSION);
 
         Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
         Files.createDirectories(offeringV200Directory);
@@ -99,6 +100,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-8.xml", "offering-8.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-9.xml", "offering-9.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
 
 
         Path phenomenonDirectory = instDirectory.resolve("phenomenons");
@@ -212,7 +214,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(configDirName);
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

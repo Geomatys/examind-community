@@ -216,7 +216,7 @@ public abstract class SOSWorkerTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 10, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 11, result.getContents().getOfferings().size());
 
         /*
          *  TEST 2 : full get capabilities
@@ -235,7 +235,7 @@ public abstract class SOSWorkerTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 10, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 11, result.getContents().getOfferings().size());
         assertNotNull(result);
 
         /*
@@ -309,7 +309,7 @@ public abstract class SOSWorkerTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 10, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", 11, result.getContents().getOfferings().size());
         assertNotNull(result);
 
     }
@@ -2590,7 +2590,7 @@ public abstract class SOSWorkerTest {
         /**
          * Test 1 : getFeatureOfInterestTime with featureID filter
          */
-        TimePeriodType expResult = new TimePeriodType(null, "2007-05-01T02:59:00.00", "2009-05-01T14:00:00.00");
+        TimePeriodType expResult = new TimePeriodType(null, "2007-05-01T02:59:00.00", "2009-05-01T14:03:00.00");
 
         GetFeatureOfInterestTime request = new GetFeatureOfInterestTime("1.0.0", "station-001");
 

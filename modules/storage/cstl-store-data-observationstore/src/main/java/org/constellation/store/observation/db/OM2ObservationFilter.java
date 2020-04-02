@@ -349,10 +349,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (oid.startsWith(observationTemplateIdBase)) {
                         String procedureID = oid.substring(observationTemplateIdBase.length());
                         // look for a field separator
-                        int pos = procedureID.indexOf("-");
+                        int pos = procedureID.lastIndexOf("-");
                         if (pos != -1) {
-                            fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
-                            procedureID = procedureID.substring(0, pos);
+                            try {
+                                fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
+                                procedureID = procedureID.substring(0, pos);
+                            } catch (NumberFormatException ex) {}
                         }
                         if (existProcedure(sensorIdBase + procedureID)) {
                             sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");
@@ -389,10 +391,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                      if (oid.contains(observationTemplateIdBase)) {
                         String procedureID = oid.substring(observationTemplateIdBase.length());
                         // look for a field separator
-                        int pos = procedureID.indexOf("-");
+                        int pos = procedureID.lastIndexOf("-");
                         if (pos != -1) {
-                            fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
-                            procedureID = procedureID.substring(0, pos);
+                            try {
+                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                String tmpProcedureID = procedureID.substring(0, pos);
+                                if (existProcedure(sensorIdBase + tmpProcedureID)) {
+                                    procedureID = tmpProcedureID;
+                                    fieldFilters.add(fieldIdentifier);
+                                }
+                            } catch (NumberFormatException ex) {}
                         }
                         if (existProcedure(sensorIdBase + procedureID)) {
                             sb.append("(o.\"procedure\"='").append(sensorIdBase).append(procedureID).append("') OR");

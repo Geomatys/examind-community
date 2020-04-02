@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
@@ -146,9 +147,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     public static final SimpleDateFormat ISO_8601_2_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    public static final SimpleDateFormat ISO_8601_3_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    public static final SimpleDateFormat ISO_8601_4_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     static {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
         ISO_8601_2_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+        ISO_8601_4_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private final Map<String, String> defaultHints = new HashMap<>();
@@ -621,8 +625,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                                                  .iotSelfLink(selfLink);
 
                         // time
-                        observation = observation.resultTime((String) result.get(1));
-                        observation = observation.phenomenonTime((String) result.get(2));
+                        Date rtime = (Date) result.get(1);
+                        observation = observation.resultTime(ISO_8601_FORMATTER.format(rtime));
+                        Date ptime = (Date) result.get(2);
+                        observation = observation.phenomenonTime(ISO_8601_FORMATTER.format(ptime));
 
                         // feature of interest
                         if (foi != null) {
@@ -703,14 +709,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return result;
     }
 
-    public List<Object> transformDataBlock(String observationId, String values, AbstractEncoding encoding, List<AbstractDataComponent> fields) {
+    public List<Object> transformDataBlock(String observationId, String values, AbstractEncoding encoding, List<AbstractDataComponent> fields) throws ConstellationStoreException {
         List<Object> results = new ArrayList<>();
         if (encoding instanceof TextBlock) {
             TextBlock tb = (TextBlock) encoding;
             String valuesLeft = values;
             int pos = valuesLeft.indexOf(tb.getBlockSeparator());
             while (pos != -1) {
-                String block = valuesLeft.substring(0, pos + 1);
+                String block = valuesLeft.substring(0, pos + tb.getBlockSeparator().length());
                 List<Object> blockValues = new ArrayList<>();
                 int bpos = block.indexOf(tb.getTokenSeparator());
 
@@ -722,8 +728,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                 // then the time of measure (two times)
                 String time = block.substring(0, bpos);
-                blockValues.add(time);
-                blockValues.add(time);
+                Date d;
+                try {
+                    d = OdataFilterParser.parseDate(time);
+                } catch (CstlServiceException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+                blockValues.add(d);
+                blockValues.add(d);
                 block = block.substring(bpos + tb.getTokenSeparator().length());
                 bpos = block.indexOf(tb.getTokenSeparator());
 
@@ -731,8 +743,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 List<Object> measures = new ArrayList<>();
 
                 // skip id and time field
+                int i = 2;
+                String currentSeparator = tb.getTokenSeparator();
                 if (bpos != -1) {
-                    int i = 2;
                     do {
                         AbstractDataComponent compo = fields.get(i);
                         String value = block.substring(0, bpos);
@@ -745,18 +758,39 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         } else {
                             measures.add(value);
                         }
-                        block = block.substring(bpos + tb.getTokenSeparator().length());
+                        block = block.substring(bpos + currentSeparator.length());
                         bpos = block.indexOf(tb.getTokenSeparator());
                         int endpos = block.indexOf(tb.getBlockSeparator());
                         if (bpos == -1) {
                             if (endpos == -1) {
                                 bpos = block.length() -1;
                             } else {
-                                bpos = block.length() - tb.getBlockSeparator().length() - 1;
+                                currentSeparator = tb.getBlockSeparator();
+                                bpos = block.length() - currentSeparator.length();
                             }
                         }
+                        i++;
                     } while (!block.isEmpty());
 
+                // single value
+                } else {
+                    AbstractDataComponent compo = fields.get(i);
+                    int endpos = block.indexOf(tb.getBlockSeparator());
+                     String value;
+                    if (endpos == -1) {
+                       value = block;
+                    } else {
+                       value = block.substring(0, endpos);
+                    }
+                    if (compo instanceof Quantity) {
+                        if (value.isEmpty()) {
+                            measures.add(Float.NaN);
+                        } else {
+                            measures.add(Float.parseFloat(value));
+                        }
+                    } else {
+                        measures.add(value);
+                    }
                 }
                 blockValues.add(measures);
 
@@ -987,13 +1021,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperties") ||
             StringUtilities.containsIgnoreCase(req.getExpand(), "ObservedProperty")) {
             if (obs.getPropertyObservedProperty()!= null && obs.getPropertyObservedProperty().getPhenomenon()!= null) {
-                org.geotoolkit.swe.xml.Phenomenon obsPhen = (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon();
+                Phenomenon obsPhen = (org.geotoolkit.swe.xml.Phenomenon) obs.getPropertyObservedProperty().getPhenomenon();
                 if (obsPhen instanceof CompositePhenomenon) {
-                    // for 2.0.0 issue with referenced phenomenon
-                    CompositePhenomenon compos = (CompositePhenomenon) getPhenomenon(((Phenomenon)obsPhen).getName().getCode(), "1.0.0");
-                    for (org.opengis.observation.Phenomenon phen : compos.getComponent()) {
-                        ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
-                        datastream.addObservedPropertiesItem(mphen);
+                    // Issue 1 - with referenced phenomenon we want the full phenomenon only available in 1.0.0
+                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)obsPhen).getName().getCode(), "1.0.0");
+                    // Issue 2 - with single phenomenon a composite is returned by obs.getPropertyObservedProperty().getPhenomenon()
+                    // its a bug in current geotk
+                    if (p instanceof CompositePhenomenon) {
+                        for (org.opengis.observation.Phenomenon phen : ((CompositePhenomenon)p).getComponent()) {
+                            ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
+                            datastream.addObservedPropertiesItem(mphen);
+                        }
+                    } else {
+                        ObservedProperty phen = buildPhenomenon(req, (Phenomenon) p);
+                        datastream.addObservedPropertiesItem(phen);
                     }
 
                 } else {
@@ -1134,13 +1175,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", "1.0.0"));
             for (org.opengis.observation.Phenomenon sp : sps) {
                 if (sp instanceof CompositePhenomenon) {
-                    // for 2.0.0 issue with referenced phenomenon
-                    CompositePhenomenon compos = (CompositePhenomenon) getPhenomenon(((Phenomenon)sp).getName().getCode(), "1.0.0");
-                    for (org.opengis.observation.Phenomenon phen : compos.getComponent()) {
-                        ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
-                        if (!values.contains(mphen)) {
-                            values.add(mphen);
+                    // Issue 1 - with referenced phenomenon we want the full phenomenon only available in 1.0.0
+                    org.opengis.observation.Phenomenon p = getPhenomenon(((Phenomenon)sp).getName().getCode(), "1.0.0");
+                    // Issue 2 - with single phenomenon a composite is returned by obs.getPropertyObservedProperty().getPhenomenon()
+                    // its a bug in current geotk
+                    if (p instanceof CompositePhenomenon) {
+                        for (org.opengis.observation.Phenomenon phen : ((CompositePhenomenon)p).getComponent()) {
+                            ObservedProperty mphen = buildPhenomenon(req, (Phenomenon) phen);
+                            if (!values.contains(mphen)) {
+                                values.add(mphen);
+                            }
                         }
+                    } else {
+                        ObservedProperty phen = buildPhenomenon(req, (Phenomenon) p);
+                        values.add(phen);
                     }
 
                 } else {

@@ -133,6 +133,7 @@
         <ows:AllowedValues>
           <ows:Value>offering-1</ows:Value>
           <ows:Value>offering-10</ows:Value>
+          <ows:Value>offering-11</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -163,6 +164,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
       <ows:Parameter name="observedProperty">
@@ -409,6 +411,26 @@
         </ns9:observedProperty>
         <ns9:featureOfInterest xlink:href="station-001"/>
         <ns9:featureOfInterest xlink:href="station-002"/>
+        <ns9:responseFormat>text/xml; subtype="om/1.0.0"</ns9:responseFormat>
+        <ns9:resultModel>om:Observation</ns9:resultModel>
+        <ns9:resultModel>om:Measurement</ns9:resultModel>
+        <ns9:responseMode>inline</ns9:responseMode>
+        <ns9:responseMode>resultTemplate</ns9:responseMode>
+      </ns9:ObservationOffering>
+      <ns9:ObservationOffering ns39:id="offering-11">
+        <ns39:name>offering-11</ns39:name>
+        <ns39:boundedBy>
+          <ns39:Null>not_bounded</ns39:Null>
+        </ns39:boundedBy>
+        <ns9:time>
+          <ns39:TimePeriod>
+            <ns39:beginPosition>2009-05-01T13:47:00.00</ns39:beginPosition>
+            <ns39:endPosition>2009-05-01T14:03:00.00</ns39:endPosition>
+          </ns39:TimePeriod>
+        </ns9:time>
+        <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:test-id"/>
+        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <ns9:featureOfInterest xlink:href="station-001"/>
         <ns9:responseFormat>text/xml; subtype="om/1.0.0"</ns9:responseFormat>
         <ns9:resultModel>om:Observation</ns9:resultModel>
         <ns9:resultModel>om:Measurement</ns9:resultModel>

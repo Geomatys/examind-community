@@ -25,10 +25,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.Marshaller;
-import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -41,12 +39,10 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 
 /**
@@ -57,7 +53,7 @@ import static org.constellation.test.utils.TestResourceUtils.writeDataFileEPSG;
 public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
 
     private static boolean initialized = false;
-    private static String configDirName = "LUCSOS2WorkerTest" + UUID.randomUUID().toString();
+    private static final String CONFIG_DIR_NAME = "LUCSOS2WorkerTest" + UUID.randomUUID().toString();
 
     private static Path instDirectory;
     private static Path configDir;
@@ -68,7 +64,7 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
         MarshallerPool pool   = GenericDatabaseMarshallerPool.getInstance();
         Marshaller marshaller =  pool.acquireMarshaller();
 
-        configDir          = ConfigDirectory.setupTestEnvironement(configDirName);
+        configDir          = ConfigDirectory.setupTestEnvironement(CONFIG_DIR_NAME);
         Path SOSDirectory  = configDir.resolve("SOS");
         instDirectory      = SOSDirectory.resolve("default");
         Files.createDirectories(instDirectory);
@@ -93,6 +89,7 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-8.xml", "offering-8.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-9.xml", "offering-9.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
 
         Path phenomenonDirectory = instDirectory.resolve("phenomenons");
         Files.createDirectories(phenomenonDirectory);
@@ -199,7 +196,7 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(configDirName);
+            ConfigDirectory.shutdownTestEnvironement(CONFIG_DIR_NAME);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

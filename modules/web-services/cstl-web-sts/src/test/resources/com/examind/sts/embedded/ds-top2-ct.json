@@ -1,5 +1,5 @@
 {
-  "@iot.count" : 11,
+  "@iot.count" : 12,
   "value" : [ {
     "description" : "urn:ogc:object:observation:template:GEOM:2-1",
     "unitOfMeasure" : {
