@@ -19,10 +19,7 @@
 package com.examind.sts.core;
 
 import com.examind.sensor.ws.SensorWorker;
-import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_2_FORMATTER;
-import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_3_FORMATTER;
-import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_4_FORMATTER;
-import static com.examind.sts.core.DefaultSTSWorker.ISO_8601_FORMATTER;
+import static com.examind.sts.core.STSUtils.parseDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -206,26 +203,6 @@ public class OdataFilterParser {
         } else {
             Date d = parseDate(to);
             return GMLXmlFactory.createTimeInstant("3.2.1", d);
-        }
-    }
-
-    public static Date parseDate(String str) throws CstlServiceException {
-        try {
-            return ISO_8601_FORMATTER.parse(str);
-        } catch (java.text.ParseException ex) {
-            try {
-                return ISO_8601_2_FORMATTER.parse(str);
-            } catch (java.text.ParseException e) {
-                try {
-                    return ISO_8601_3_FORMATTER.parse(str);
-                } catch (java.text.ParseException ex2) {
-                    try {
-                        return ISO_8601_4_FORMATTER.parse(str);
-                    } catch (java.text.ParseException ex3) {
-                        throw new CstlServiceException("Error while parsing date value:" + str);
-                    }
-                }
-            }
         }
     }
 }

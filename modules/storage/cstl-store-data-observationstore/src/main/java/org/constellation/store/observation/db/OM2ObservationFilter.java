@@ -352,8 +352,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         int pos = procedureID.lastIndexOf("-");
                         if (pos != -1) {
                             try {
-                                fieldFilters.add(Integer.parseInt(procedureID.substring(pos + 1)));
-                                procedureID = procedureID.substring(0, pos);
+                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                String tmpProcedureID = procedureID.substring(0, pos);
+                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                    existProcedure(tmpProcedureID)) {
+                                    procedureID = tmpProcedureID;
+                                    fieldFilters.add(fieldIdentifier);
+                                }
                             } catch (NumberFormatException ex) {}
                         }
                         if (existProcedure(sensorIdBase + procedureID)) {
@@ -396,7 +401,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             try {
                                 int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
                                 String tmpProcedureID = procedureID.substring(0, pos);
-                                if (existProcedure(sensorIdBase + tmpProcedureID)) {
+                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                    existProcedure(tmpProcedureID)) {
                                     procedureID = tmpProcedureID;
                                     fieldFilters.add(fieldIdentifier);
                                 }

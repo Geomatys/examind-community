@@ -20,8 +20,9 @@
 package com.examind.sts.core;
 
 import com.examind.sensor.ws.SensorWorker;
+import static com.examind.sts.core.STSUtils.formatDate;
+import static com.examind.sts.core.STSUtils.parseDate;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,9 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.query.SimpleQuery;
@@ -144,16 +143,6 @@ import org.springframework.context.annotation.Scope;
 @Named("STSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
-
-    public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    public static final SimpleDateFormat ISO_8601_2_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    public static final SimpleDateFormat ISO_8601_3_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    public static final SimpleDateFormat ISO_8601_4_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    static {
-        ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-        ISO_8601_2_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-        ISO_8601_4_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
 
     private final Map<String, String> defaultHints = new HashMap<>();
 
@@ -626,9 +615,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                         // time
                         Date rtime = (Date) result.get(1);
-                        observation = observation.resultTime(ISO_8601_FORMATTER.format(rtime));
+                        observation = observation.resultTime(formatDate(rtime));
                         Date ptime = (Date) result.get(2);
-                        observation = observation.phenomenonTime(ISO_8601_FORMATTER.format(ptime));
+                        observation = observation.phenomenonTime(formatDate(ptime));
 
                         // feature of interest
                         if (foi != null) {
@@ -730,7 +719,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 String time = block.substring(0, bpos);
                 Date d;
                 try {
-                    d = OdataFilterParser.parseDate(time);
+                    d = parseDate(time);
                 } catch (CstlServiceException ex) {
                     throw new ConstellationStoreException(ex);
                 }
@@ -807,14 +796,14 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Period tp = (Period) to;
             StringBuilder sb = new StringBuilder();
             if (tp.getBeginning().getDate() != null) {
-                sb.append(ISO_8601_FORMATTER.format(tp.getBeginning().getDate()));
+                sb.append(formatDate(tp.getBeginning().getDate()));
             } else if (tp.getBeginning().getTemporalPosition() != null &&
                        tp.getBeginning().getTemporalPosition().getIndeterminatePosition() != null){
                 sb.append(tp.getBeginning().getTemporalPosition().getIndeterminatePosition().name());
             }
             sb.append('/');
             if (tp.getEnding().getDate() != null) {
-                sb.append(ISO_8601_FORMATTER.format(tp.getEnding().getDate()));
+                sb.append(formatDate(tp.getEnding().getDate()));
             } else if (tp.getEnding().getTemporalPosition() != null &&
                        tp.getEnding().getTemporalPosition().getIndeterminatePosition() != null){
                 sb.append(tp.getEnding().getTemporalPosition().getIndeterminatePosition().name());
@@ -822,7 +811,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             return sb.toString();
         } else if (to instanceof Instant) {
             Instant tp = (Instant) to;
-            return ISO_8601_FORMATTER.format(tp.getDate());
+            return formatDate(tp.getDate());
         } else if (to != null) {
             LOGGER.log(Level.WARNING, "Unexpected temporal object:{0}", to.getClass().getName());
         }
@@ -1775,7 +1764,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + hlid + ")";
         HistoricalLocation result = new HistoricalLocation();
         result.setIotId(hlid);
-        result.setTime(ISO_8601_FORMATTER.format(d));
+        result.setTime(formatDate(d));
 
          if (StringUtilities.containsIgnoreCase(req.getExpand(), "Things")) {
             result = result.thing(buildThing(req, sensorID, s));

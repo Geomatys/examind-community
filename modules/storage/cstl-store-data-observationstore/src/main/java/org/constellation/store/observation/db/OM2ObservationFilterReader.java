@@ -667,11 +667,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     String start = null;
                     if (startTime != null) {
-                        start = format2.format(startTime);
+                        synchronized (format2) {
+                            start = format2.format(startTime);
+                        }
                     }
                     String end = null;
                     if (endTime != null) {
-                        end = format2.format(endTime);
+                        synchronized (format2) {
+                            end = format2.format(endTime);
+                        }
                     }
                     TemporalGeometricPrimitive time = null;
                     if (start != null && end == null) {
@@ -717,7 +721,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         final Timestamp mt = rs2.getTimestamp(mainField.fieldName);
                                         String t = null;
                                         if (mt != null) {
-                                            t = format2.format(mt);
+                                            synchronized(format2) {
+                                                t = format2.format(mt);
+                                            }
                                         }
                                         measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, t);
                                     } else {
