@@ -15,7 +15,7 @@
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:3"/>
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:4"/>
-    <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
+    <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:test-1"/>
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:6"/>
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
     <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:8"/>

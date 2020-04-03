@@ -1299,13 +1299,13 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult, obsResult);
 
         /**
-         *  Test 14: getObservation with procedure urn:ogc:object:sensor:GEOM:5
+         *  Test 14: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = urn:ogc:def:phenomenon:GEOM:aggreagtePhenomenon
          */
         request  = new GetObservation("1.0.0",
                                       "offering-5",
                                       null,
-                                      Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
+                                      Arrays.asList("urn:ogc:object:sensor:GEOM:test-1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       null,
                                       null,
@@ -1339,14 +1339,14 @@ public abstract class SOSWorkerTest {
         assertEquals(expResult, obsResult);
 
         /**
-         *  Test 15: getObservation with procedure urn:ogc:object:sensor:GEOM:5
+         *  Test 15: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = urn:ogc:def:phenomenon:GEOM:aggreagtePhenomenon
          *           with foi                =  10972X0137-PLOUF
          */
         request  = new GetObservation("1.0.0",
                                       "offering-5",
                                       null,
-                                      Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
+                                      Arrays.asList("urn:ogc:object:sensor:GEOM:test-1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       new GetObservation.FeatureOfInterest(Arrays.asList("station-002")),
                                       null,

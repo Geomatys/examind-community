@@ -161,7 +161,7 @@ public class ObservationStoreProviderTest {
         procs.stream().forEach(s -> resultIds.add(s.getId()));
 
         Set<String> expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:sensor:GEOM:5");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
         expectedIds.add("urn:ogc:object:sensor:GEOM:8");
         expectedIds.add("urn:ogc:object:sensor:GEOM:7");
         expectedIds.add("urn:ogc:object:sensor:GEOM:2");
@@ -287,7 +287,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:2");
         expectedIds.add("urn:ogc:object:sensor:GEOM:3");
         expectedIds.add("urn:ogc:object:sensor:GEOM:4");
-        expectedIds.add("urn:ogc:object:sensor:GEOM:5");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
         expectedIds.add("urn:ogc:object:sensor:GEOM:6");
         expectedIds.add("urn:ogc:object:sensor:GEOM:7");
         expectedIds.add("urn:ogc:object:sensor:GEOM:8");
@@ -384,8 +384,8 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:4-0");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-0");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:5-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:5-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-0");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-0");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-0");
@@ -401,7 +401,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id");
         Assert.assertEquals(expectedIds, resultIds);
@@ -441,7 +441,7 @@ public class ObservationStoreProviderTest {
         assertEquals(72, resultIds.size());
 
         SimpleQuery query = new SimpleQuery();
-        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:5"));
+        PropertyIsEqualTo filter = ff.equals(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setFilter(filter);
         resultIds = omPr.getObservationNames(query, MEASUREMENT_QNAME, "inline", Collections.EMPTY_MAP);
 

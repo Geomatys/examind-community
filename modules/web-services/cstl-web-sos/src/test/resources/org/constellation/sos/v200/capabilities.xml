@@ -237,11 +237,11 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
-          <ows:Value>urn:ogc:object:sensor:GEOM:5</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:6</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -611,7 +611,7 @@
         <sos:ObservationOffering ns43:id="offering-5">
           <ns43:identifier>offering-5</ns43:identifier>
           <ns43:name>offering-5</ns43:name>
-          <ns43:procedure>urn:ogc:object:sensor:GEOM:5</ns43:procedure>
+          <ns43:procedure>urn:ogc:object:sensor:GEOM:test-1</ns43:procedure>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</ns43:procedureDescriptionFormat>
           <ns43:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</ns43:procedureDescriptionFormat>
           <ns43:observableProperty>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns43:observableProperty>

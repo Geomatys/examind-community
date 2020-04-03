@@ -159,11 +159,11 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
-          <ows:Value>urn:ogc:object:sensor:GEOM:5</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:6</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:7</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:8</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:9</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:test-1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:test-id</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -456,8 +456,8 @@
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
             <ns31:component>
               <ns31:Phenomenon ns39:id="temperature">
-                <ns39:description>the temperature in celcius degree</ns39:description>
-                <ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
+<ns39:description>the temperature in celcius degree</ns39:description>
+<ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
               </ns31:Phenomenon>
             </ns31:component>
           </ns31:CompositePhenomenon>
@@ -539,7 +539,7 @@
             <ns39:endPosition>2007-05-01T16:59:00.00</ns39:endPosition>
           </ns39:TimePeriod>
         </ns9:time>
-        <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
+        <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:test-1"/>
         <ns9:observedProperty>
           <ns31:CompositePhenomenon dimension="2" ns39:id="aggregatePhenomenon">
             <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>

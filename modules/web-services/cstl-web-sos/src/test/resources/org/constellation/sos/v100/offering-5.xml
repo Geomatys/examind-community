@@ -12,7 +12,7 @@
             <gml:endPosition indeterminatePosition="now"></gml:endPosition>
         </gml:TimePeriod>
     </sos:time>
-    <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
+    <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:test-1"/>
     <sos:observedProperty>
         <swe:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
             <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>

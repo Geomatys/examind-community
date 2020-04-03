@@ -65,7 +65,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
         writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system.xml",     "urn:ogc:object:sensor:GEOM:1.xml");
         writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/component.xml",  "urn:ogc:object:sensor:GEOM:2.xml");
-        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system3.xml",    "urn:ogc:object:sensor:GEOM:5.xml");
+        writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system3.xml",    "urn:ogc:object:sensor:GEOM:test-1.xml");
         writeResourceDataFile(sensorDirectory, "org/constellation/xml/sml/system4.xml",    "urn:ogc:object:sensor:GEOM:8.xml");
     }
 

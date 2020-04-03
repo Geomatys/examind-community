@@ -135,7 +135,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         Files.createDirectories(observationTemplatesDirectory);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v100/observationTemplate-3.xml", "urn:ogc:object:observation:template:GEOM:3.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/v100/observationTemplate-4.xml", "urn:ogc:object:observation:template:GEOM:4.xml", EPSG_VERSION);
-        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:5.xml", EPSG_VERSION);
+        writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-5.xml", "urn:ogc:object:observation:template:GEOM:test-1.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-7.xml", "urn:ogc:object:observation:template:GEOM:7-0.xml", EPSG_VERSION);
         writeDataFileEPSG(observationTemplatesDirectory, "org/constellation/sos/observationTemplate-8.xml", "urn:ogc:object:observation:template:GEOM:8.xml", EPSG_VERSION);
 
@@ -149,7 +149,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         Files.createFile(sensor3);
         Path sensor4         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ4.xml");
         Files.createFile(sensor4);
-        Path sensor5         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ5.xml");
+        Path sensor5         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµtest-1.xml");
         Files.createFile(sensor5);
         Path sensor6         = sensorDirectory.resolve("urnµogcµobjectµsensorµGEOMµ6.xml");
         Files.createFile(sensor6);

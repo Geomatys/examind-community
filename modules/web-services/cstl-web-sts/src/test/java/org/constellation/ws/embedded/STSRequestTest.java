@@ -101,7 +101,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 Integer senId2 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:2", "component", "profile", null, sml, Long.MIN_VALUE, providerSEN);
 
                 sml = unmarshallSensorResource("org/constellation/xml/sml/system3.xml", sensorBusiness);
-                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:5", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
+                Integer senId3 = sensorBusiness.create("urn:ogc:object:sensor:GEOM:test-1", "system", "timeseries", null, sml, Long.MIN_VALUE, providerSEN);
 
                 Integer providerOMD = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
                 Integer providerOMT = testResource.createProvider(TestResource.OM2_DB, providerBusiness);
@@ -334,7 +334,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getDataArrayForDatastreams() throws Exception {
         initPool();
 
-        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:5-0)/Observations?$resultFormat=dataArray");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-0)/Observations?$resultFormat=dataArray");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array.json");

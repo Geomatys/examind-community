@@ -24,12 +24,6 @@
     "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-976489200000)/Locations",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-976489200000)/Things"
   }, {
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:5-1178017140000",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:5-1178017140000)",
-    "time" : "2007-05-01T10:59:00Z",
-    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:5-1178017140000)/Locations",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:5-1178017140000)/Things"
-  }, {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:test-id-1241178420000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-id-1241178420000)",
     "time" : "2009-05-01T11:47:00Z",
@@ -65,6 +59,12 @@
     "time" : "2007-05-01T00:59:00Z",
     "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:3-1177981140000)/Locations",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:3-1177981140000)/Things"
+  }, {
+    "@iot.id" : "urn:ogc:object:sensor:GEOM:test-1-1178017140000",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)",
+    "time" : "2007-05-01T10:59:00Z",
+    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)/Locations",
+    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)/Things"
   }, {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:7-1178031540000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)",

@@ -534,7 +534,7 @@ public abstract class SOS2WorkerTest {
         assertTrue(exLaunched);
 
         /**
-         *  Test 11: getObservation with procedure urn:ogc:object:sensor:GEOM:5
+         *  Test 11: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *          and with wrong foi
          */
         request  = new GetObservationType("2.0.0",
@@ -878,13 +878,13 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult, obsResult);
 
         /**
-         *  Test 14: getObservation with procedure urn:ogc:object:sensor:GEOM:5
+         *  Test 14: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = urn:ogc:def:phenomenon:GEOM:aggreagtePhenomenon
          */
         request  = new GetObservationType("2.0.0",
                                       "offering-5",
                                       null,
-                                      Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
+                                      Arrays.asList("urn:ogc:object:sensor:GEOM:test-1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
@@ -924,14 +924,14 @@ public abstract class SOS2WorkerTest {
         assertEquals(expResult, obsResult);
 
         /**
-         *  Test 15: getObservation with procedure urn:ogc:object:sensor:GEOM:5
+         *  Test 15: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = urn:ogc:def:phenomenon:GEOM:aggreagtePhenomenon
          *           with foi                =  10972X0137-PLOUF
          */
         request  = new GetObservationType("2.0.0",
                                       "offering-5",
                                       null,
-                                      Arrays.asList("urn:ogc:object:sensor:GEOM:5"),
+                                      Arrays.asList("urn:ogc:object:sensor:GEOM:test-1"),
                                       Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"),
                                       Arrays.asList("station-002"),
                                       "http://www.opengis.net/om/2.0");

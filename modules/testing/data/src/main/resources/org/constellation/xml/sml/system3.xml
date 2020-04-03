@@ -1,6 +1,6 @@
 <SensorML xmlns="http://www.opengis.net/sensorML/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:swe="http://www.opengis.net/swe/1.0" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0" xsi:schemaLocation="http://www.opengis.net/sensorML/1.0 D:\Guilhem\DIVERS~1\SOSFUL~1\sml\1.0.0\sensorML.xsd">
     <member xlink:role="urn:x-ogx:def:sensor:OGC:detector">
-        <System gml:id="urn:ogc:object:sensor:GEOM:5">
+        <System gml:id="urn:ogc:object:sensor:GEOM:test-1">
             <gml:description>information about the piezometer</gml:description>
             <gml:name>Piezometer Test</gml:name>
             <keywords>

@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -45,7 +46,10 @@ import org.geotoolkit.sts.json.STSResponse;
 public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("com.examind.sts.ws.rs");
-    private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
+    private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS'Z'");
+    static {
+        DATE_FORM.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

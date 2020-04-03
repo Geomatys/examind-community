@@ -40,14 +40,6 @@
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:4)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:4)/MultiDatastreams"
   }, {
-    "description" : "urn:ogc:object:sensor:GEOM:5",
-    "name" : "urn:ogc:object:sensor:GEOM:5",
-    "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:5",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:5)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:5)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:5)/MultiDatastreams"
-  }, {
     "description" : "urn:ogc:object:sensor:GEOM:6",
     "name" : "urn:ogc:object:sensor:GEOM:6",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
@@ -79,6 +71,14 @@
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:9)",
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:9)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:9)/MultiDatastreams"
+  }, {
+    "description" : "urn:ogc:object:sensor:GEOM:test-1",
+    "name" : "urn:ogc:object:sensor:GEOM:test-1",
+    "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
+    "@iot.id" : "urn:ogc:object:sensor:GEOM:test-1",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:test-1)",
+    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:test-1)/Datastreams",
+    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/Sensors(urn:ogc:object:sensor:GEOM:test-1)/MultiDatastreams"
   }, {
     "description" : "urn:ogc:object:sensor:GEOM:test-id",
     "name" : "urn:ogc:object:sensor:GEOM:test-id",

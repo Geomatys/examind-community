@@ -7,7 +7,7 @@
             <gml:endPosition>2007-05-01T16:59:00.0</gml:endPosition>
         </gml:TimePeriod>
     </om:samplingTime>
-    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:5"/>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:test-1"/>
     <om:observedProperty>
        <swe:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
             <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>

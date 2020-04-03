@@ -187,7 +187,7 @@ public abstract class SOSConfigurerTest {
         expResults.add("urn:ogc:object:sensor:GEOM:2");
         expResults.add("urn:ogc:object:sensor:GEOM:3");
         expResults.add("urn:ogc:object:sensor:GEOM:4");
-        expResults.add("urn:ogc:object:sensor:GEOM:5");
+        expResults.add("urn:ogc:object:sensor:GEOM:test-1");
         expResults.add("urn:ogc:object:sensor:GEOM:6");
         expResults.add("urn:ogc:object:sensor:GEOM:7");
         expResults.add("urn:ogc:object:sensor:GEOM:8");
@@ -200,9 +200,9 @@ public abstract class SOSConfigurerTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
         List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:2",
-                                                "urn:ogc:object:sensor:GEOM:5",
                                                 "urn:ogc:object:sensor:GEOM:7",
-                                                "urn:ogc:object:sensor:GEOM:8");
+                                                "urn:ogc:object:sensor:GEOM:8",
+                                                "urn:ogc:object:sensor:GEOM:test-1");
         Assert.assertEquals(expResults, results);
     }
 
@@ -212,11 +212,11 @@ public abstract class SOSConfigurerTest {
         Set<String> expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:depth");
         Assert.assertEquals(expResults, results);
 
-        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:5", false);
+        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:test-1", false);
         expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
         Assert.assertEquals(expResults, results);
 
-        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:5", true);
+        results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:test-1", true);
         expResults = new HashSet();
         expResults.add("urn:ogc:def:phenomenon:GEOM:temperature");
         expResults.add("urn:ogc:def:phenomenon:GEOM:depth");

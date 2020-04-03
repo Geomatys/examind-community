@@ -17,7 +17,7 @@
 				<IdentifierList>
                                          <identifier name="URN">
                                             <Term definition="urn:ogc:def:identifierType:OGC:uniqueID">
-                                                      <value>urn:ogc:object:sensor:GEOM:5</value>
+                                                      <value>urn:ogc:object:sensor:GEOM:test-1</value>
                                             </Term>
                                         </identifier>
 					<identifier name="supervisorCode">
