@@ -865,7 +865,7 @@ public class ProviderBusiness implements IProviderBusiness {
             createOrUpdateData(outConfigProvider, datasetID, false);
 
             if (covRef.getIdentifier().isPresent()) {
-                name = covRef.getIdentifier().get();
+                name = covRef.getIdentifier().get();//NOSONAR
                 outStore = (XMLCoverageStore) outProvider.getMainStore();
                 outRef = (XMLCoverageResource) outStore.findResource(name.toString());
 

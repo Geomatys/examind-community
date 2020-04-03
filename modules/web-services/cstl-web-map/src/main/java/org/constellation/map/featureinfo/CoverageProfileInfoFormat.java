@@ -144,11 +144,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                     final ProfilLayer l = extract(cdef, getFI, geom, ressource);
                     l.name = layer.getName();
                     if (l.name == null) {
-                        if (ressource.getIdentifier().isPresent()) {
-                            l.name = ressource.getIdentifier().get().tip().toString();
-                        } else {
-                            throw new PortrayalException("resource identifier not present");
-                        }
+                           l.name = ressource.getIdentifier()
+                                   .orElseThrow(() -> new PortrayalException("resource identifier not present")).tip().toString();
                     }
                     profil.layers.add(l);
                 } catch (TransformException | DataStoreException | FactoryException ex) {
@@ -364,7 +361,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final Band band = new Band();
             band.name = String.valueOf(sampleDimension.getName());
             if (sampleDimension.getUnits().isPresent()) {
-                Unit<?> unit = sampleDimension.getUnits().get();
+                Unit<?> unit = sampleDimension.getUnits().get();//NOSONAR
                 band.realUnit = unit;
                 band.unit = unit.getSymbol();
             }
