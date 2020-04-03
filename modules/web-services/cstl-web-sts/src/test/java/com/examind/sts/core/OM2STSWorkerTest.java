@@ -51,6 +51,7 @@ import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
 import org.geotoolkit.sts.GetFeatureOfInterestById;
 import org.geotoolkit.sts.GetFeatureOfInterests;
+import org.geotoolkit.sts.GetLocationById;
 import org.geotoolkit.sts.GetMultiDatastreamById;
 import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservationById;
@@ -64,6 +65,7 @@ import org.geotoolkit.sts.json.Datastream;
 import org.geotoolkit.sts.json.DatastreamsResponse;
 import org.geotoolkit.sts.json.FeatureOfInterest;
 import org.geotoolkit.sts.json.FeatureOfInterestsResponse;
+import org.geotoolkit.sts.json.Location;
 import org.geotoolkit.sts.json.MultiDatastream;
 import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.Observation;
@@ -1544,5 +1546,15 @@ public class OM2STSWorkerTest {
         expesult.addLink("HistoricalLocations", "http://test.geomatys.com/sts/default/HistoricalLocations");
 
         Assert.assertEquals(expesult, result);
+    }
+
+    @Test
+    @Order(order=14)
+    public void getLocationByIdTest() throws Exception {
+        GetLocationById req = new GetLocationById();
+        req.setId("urn:ogc:object:sensor:GEOM:test-1");
+        Location result = worker.getLocationById(req);
+
+        Assert.assertNotNull(result);
     }
 }

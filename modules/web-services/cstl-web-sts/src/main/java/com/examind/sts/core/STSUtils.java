@@ -42,7 +42,7 @@ public class STSUtils {
         ISO_8601_4_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    public static List<SimpleDateFormat> FORMATTERS = Arrays.asList(ISO_8601_FORMATTER, ISO_8601_2_FORMATTER, ISO_8601_3_FORMATTER, ISO_8601_4_FORMATTER);
+    public static List<SimpleDateFormat> FORMATTERS = Arrays.asList(ISO_8601_3_FORMATTER, ISO_8601_FORMATTER, ISO_8601_2_FORMATTER, ISO_8601_4_FORMATTER);
 
     public static Date parseDate(String str) throws CstlServiceException {
         for (SimpleDateFormat format : FORMATTERS) {

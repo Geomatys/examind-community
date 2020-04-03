@@ -1022,7 +1022,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     
     @SuppressWarnings("squid:S2695")
     protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
-        String request = "SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=? AND \"observed_property\"=?";
+        String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=? AND \"observed_property\"=?";
         if (foi != null) {
             request = request + " AND \"foi\"=?";
         }
@@ -1034,12 +1034,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
             try (final ResultSet rs   = stmt.executeQuery()) {
                 if (rs.next()) {
-                    Date begin = rs.getTimestamp(1);
-                    Date end   = rs.getTimestamp(2);
-                    if (begin != null && end != null) {
-                        return SOSXmlFactory.buildTimePeriod(version, begin, end);
-                    } else if (begin != null) {
-                        return SOSXmlFactory.buildTimeInstant(version, begin);
+                    Date minBegin = rs.getTimestamp(1);
+                    Date maxBegin = rs.getTimestamp(2);
+                    Date maxEnd   = rs.getTimestamp(3);
+                    if (minBegin != null && maxEnd != null) {
+                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxEnd);
+                    } else if (minBegin != null && !minBegin.equals(maxBegin)) {
+                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxBegin);
+                    } else if (minBegin != null) {
+                        return SOSXmlFactory.buildTimeInstant(version, minBegin);
                     }
                 }
             }
