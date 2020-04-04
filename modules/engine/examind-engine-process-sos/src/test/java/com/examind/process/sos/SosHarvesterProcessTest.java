@@ -239,8 +239,8 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2018-11-02T07:10:52.00", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-11-13T03:55:49.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
 
@@ -255,8 +255,8 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2018-11-02T07:10:52.00", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-11-27T15:09:17.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-27T15:09:17.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(8, offp.getFeatureOfInterestIds().size());
         Assert.assertEquals(1, offp.getObservedProperties().size());
@@ -291,8 +291,8 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2018-11-02T07:10:52.00", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-11-13T03:55:49.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
     }
@@ -349,7 +349,7 @@ public class SosHarvesterProcessTest {
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
         Assert.assertEquals("2018-10-30", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-10-31T06:42:00.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-10-31T06:42:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(3, offp.getFeatureOfInterestIds().size());
 
@@ -424,8 +424,8 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2018-10-30T00:29:00.00", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-11-30T11:59:00.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-10-30T00:29:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-30T11:59:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
@@ -500,7 +500,7 @@ public class SosHarvesterProcessTest {
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
         Assert.assertEquals("2018-10-30", time.getBeginPosition().getValue());
-        Assert.assertEquals("2018-11-30T12:30:00.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2018-11-30T12:30:00.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         Assert.assertEquals(1, offp.getObservedProperties().size());
@@ -593,8 +593,8 @@ public class SosHarvesterProcessTest {
         Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
         TimePeriodType time = (TimePeriodType) offp.getTime();
 
-        Assert.assertEquals("2022-08-20T01:55:11.00", time.getBeginPosition().getValue());
-        Assert.assertEquals("2022-08-28T10:58:39.00", time.getEndPosition().getValue());
+        Assert.assertEquals("2022-08-20T01:55:11.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2022-08-28T10:58:39.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
 

@@ -384,6 +384,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public List<Observation> getObservations(final Map<String,String> hints) throws DataStoreException {
         boolean includeIDInDataBlock  = false;
         boolean includeTimeForProfile = false;
+        boolean directResultArray     = false;
         String version = "2.0.0";
         if (hints != null) {
             if (hints.containsKey("version")) {
@@ -394,6 +395,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             if (hints.containsKey("includeTimeForProfile")) {
                 includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
+            }
+            if (hints.containsKey("directResultArray")) {
+                directResultArray = Boolean.parseBoolean(hints.get("directResultArray"));
             }
         }
         if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -414,7 +418,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 while (rs.next()) {
                     int nbValue = 0;
-                    StringBuilder values = new StringBuilder();
+                    ResultBuilder values = new ResultBuilder(directResultArray, encoding);
                     final String procedure = rs.getString("procedure");
                     final String featureID = rs.getString("foi");
                     final int oid = rs.getInt("id");
@@ -471,7 +475,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         timeForProfileIndex = includeIDInDataBlock ? 1 : 0;
                     }
 
-                    String firstTime = null;
+                    Date firstTime = null;
                     if (observation == null) {
                         final String obsID = "obs-" + oid;
                         final String timeID = "time-" + oid;
@@ -480,8 +484,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                         final FeatureProperty prop = buildFeatureProperty(version, feature);
                         final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                        firstTime = formatTime(rs.getString("time_begin"));
-                        String lastTime = formatTime(rs.getString("time_end"));
+                        firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                        Date lastTime = dateFromTS(rs.getTimestamp("time_end"));
                         boolean first = true;
                         final List<AnyScalar> scal = new ArrayList<>();
                         for (Field f : fields) {
@@ -500,107 +504,81 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
-                                    StringBuilder line = new StringBuilder();
-                                    boolean emptyLine = true;
+                                    values.newBlock();
                                     for (int i = 0; i < fields.size(); i++) {
 
                                         if (i == timeForProfileIndex) {
-                                            line.append(firstTime).append(encoding.getTokenSeparator());
+                                            values.appendTime(firstTime);
                                         }
 
                                         Field field = fields.get(i);
                                         String value;
                                         switch (field.fieldType) {
                                             case "Time":
-                                                Timestamp t = rs2.getTimestamp(field.fieldName);
-                                                synchronized(format2) {
-                                                    value = format2.format(t);
-                                                }   line.append(value).append(encoding.getTokenSeparator());
+                                                Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
+                                                values.appendTime(t);
                                                 if (first) {
-                                                    firstTime = value;
+                                                    firstTime = t;
                                                     first = false;
-                                                }   lastTime = value;
+                                                }   lastTime = t;
                                                 break;
                                             case "Quantity":
                                                 value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                Double d = Double.NaN;
                                                 if (value != null && !value.isEmpty()) {
-                                                    value = Double.toString(rs2.getDouble(field.fieldName));
-                                                    emptyLine = false;
-                                                    line.append(value);
-                                                }   line.append(encoding.getTokenSeparator());
+                                                    d = rs2.getDouble(field.fieldName);
+                                                }
+                                                values.appendDouble(d);
                                                 break;
                                             default:
-                                                value = rs2.getString(field.fieldName);
-                                                if (value != null && !value.isEmpty()) {
-                                                    emptyLine = false;
-                                                    line.append(value);
-                                                }   line.append(encoding.getTokenSeparator());
+                                                values.appendString(rs2.getString(field.fieldName));
                                                 break;
                                         }
                                     }
-                                    if (!emptyLine) {
-                                        values.append(line);
-                                        // remove last token separator
-                                        values.deleteCharAt(values.length() - 1);
-                                        values.append(encoding.getBlockSeparator());
-                                        nbValue++;
-                                    }
+                                    nbValue = nbValue + values.endBlock();
                                 }
                             }
                         }
 
                         final TemporalGeometricPrimitive time = buildTimePeriod(version, timeID, firstTime, lastTime);
-                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values.toString(), observations.size());
+                        final Object result = buildComplexResult(version, scal, nbValue, encoding, values, observations.size());
                         observation = OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, procedure, result, time);
                         observations.put(procedure + '-' + featureID, observation);
                     } else {
-                        String lastTime = null;
+                        Date lastTime = null;
                         try(final PreparedStatement stmt = c.prepareStatement(measureRequest)) {
                             stmt.setInt(1, oid);
                             try(final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
-                                    StringBuilder line = new StringBuilder();
-                                    boolean emptyLine = true;
+                                    values.newBlock();
                                     for (int i = 0; i < fields.size(); i++) {
 
                                         if (i == timeForProfileIndex) {
-                                            line.append(firstTime).append(encoding.getTokenSeparator());
+                                            values.appendTime(firstTime);
                                         }
 
                                         Field field = fields.get(i);
                                         String value;
                                         switch (field.fieldType) {
                                             case "Time":
-                                                Timestamp t = rs2.getTimestamp(field.fieldName);
-                                                synchronized(format2) {
-                                                    value = format2.format(t);
-                                                }   lastTime = value;
-                                                line.append(value).append(encoding.getTokenSeparator());
+                                                Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
+                                                values.appendTime(t);
+                                                lastTime = t;
                                                 break;
                                             case "Quantity":
                                                 value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                Double d = Double.NaN;
                                                 if (value != null && !value.isEmpty()) {
-                                                    value = Double.toString(rs2.getDouble(field.fieldName));
-                                                    emptyLine = false;
-                                                    line.append(value);
-                                                }   line.append(encoding.getTokenSeparator());
+                                                    d = rs2.getDouble(field.fieldName);
+                                                }
+                                                values.appendDouble(d);
                                                 break;
                                             default:
-                                                value = rs2.getString(field.fieldName);
-                                                if (value != null && !value.isEmpty()) {
-                                                    emptyLine = false;
-                                                    line.append(value);
-                                                }   line.append(encoding.getTokenSeparator());
+                                                values.appendString(rs2.getString(field.fieldName));
                                                 break;
                                         }
                                     }
-                                    if (!emptyLine) {
-                                        values.append(line);
-                                        // remove last token separator
-                                        values.deleteCharAt(values.length() - 1);
-                                        values.append(encoding.getBlockSeparator());
-                                        nbValue++;
-                                    }
+                                    nbValue = nbValue + values.endBlock();
                                 }
                             }
                         }
@@ -609,7 +587,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         final DataArrayProperty result = (DataArrayProperty) (observation).getResult();
                         final DataArray array = result.getDataArray();
                         array.setElementCount(array.getElementCount().getCount().getValue() + nbValue);
-                        array.setValues(array.getValues() + values.toString());
+                        if (directResultArray) {
+                            array.getDataValues().getAny().addAll(values.getDataArray());
+                        } else {
+                            array.setValues(array.getValues() + values.getStringValues());
+                        }
                         ((AbstractObservation) observation).extendSamplingTime(lastTime);
                     }
                 }
@@ -623,19 +605,25 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private String formatTime(String s) {
-        if (s != null) {
-            s = s.replace(' ', 'T');
+    private Date dateFromTS(Timestamp t) {
+        if (t != null) {
+            return new Date(t.getTime());
         }
-        return s;
+        return null;
     }
 
     private DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
-            final TextBlock encoding, final String values, final int cpt) {
+            final TextBlock encoding, final ResultBuilder values, final int cpt) {
         final String arrayID     = "dataArray-" + cpt;
         final String recordID    = "datarecord-" + cpt;
         final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, false, new ArrayList<>(fields));
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values);
+        String stringValues = null;
+        List<Object> dataValues = null;
+        if (values != null) {
+            stringValues = values.getStringValues();
+            dataValues   = values.getDataArray();
+        }
+        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
     }
 
     public List<Observation> getMesurements(final String version) throws DataStoreException {
@@ -652,8 +640,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final ResultSet rs               = currentStatement.executeQuery(request)) {
                 while (rs.next()) {
                     final String procedure = rs.getString("procedure");
-                    final Timestamp startTime = rs.getTimestamp("time_begin");
-                    final Timestamp endTime = rs.getTimestamp("time_end");
+                    final Date startTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    final Date endTime = dateFromTS(rs.getTimestamp("time_end"));
                     final int oid = rs.getInt("id");
                     final String name = rs.getString("identifier");
                     final String obsID = "obs-" + oid;
@@ -718,14 +706,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     TemporalGeometricPrimitive measureTime;
                                     if (isTimeField) {
-                                        final Timestamp mt = rs2.getTimestamp(mainField.fieldName);
-                                        String t = null;
+                                        final Date mt = dateFromTS(rs2.getTimestamp(mainField.fieldName));
+                                        /*String t = null;
                                         if (mt != null) {
                                             synchronized(format2) {
                                                 t = format2.format(mt);
                                             }
-                                        }
-                                        measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, t);
+                                        }*/
+                                        measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, mt);
                                     } else {
                                         measureTime = time;
                                     }
@@ -822,7 +810,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         String value;
                         switch (field.fieldType) {
                             case "Time":
-                                Timestamp t = rs.getTimestamp(field.fieldName);
+                                Date t = dateFromTS(rs.getTimestamp(field.fieldName));
                                 synchronized(format2) {
                                     value = format2.format(t);
                                 }   line.append(value).append(encoding.getTokenSeparator());
@@ -1262,5 +1250,97 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
         return version;
+    }
+
+    private static class ResultBuilder {
+        private final boolean dra;
+        private boolean emptyLine;
+
+        private StringBuilder values;
+        private StringBuilder currentLine;
+        private final TextBlock encoding;
+
+        private List<Object> dataArray;
+        private List<Object> currentArrayLine;
+
+
+        public ResultBuilder(boolean directResultArray, final TextBlock encoding) {
+            this.dra = directResultArray;
+            this.encoding = encoding;
+            if (directResultArray) {
+                dataArray = new ArrayList<>();
+            } else {
+                values = new StringBuilder();
+            }
+        }
+
+        public void newBlock() {
+            if (dra) {
+                currentArrayLine = new ArrayList<>();
+            } else {
+                currentLine = new StringBuilder();
+            }
+            this.emptyLine = true;
+        }
+
+        public void appendTime(Date t) {
+            if (dra) {
+                currentArrayLine.add(t);
+            } else {
+                synchronized(format2) {
+                    currentLine.append(format2.format(t)).append(encoding.getTokenSeparator());
+                }
+            }
+        }
+
+        public void appendDouble(Double d) {
+            if (!d.isNaN()) emptyLine = false;
+            if (dra) {
+                currentArrayLine.add(d);
+            } else {
+                if (!d.isNaN()) {
+                    currentLine.append(Double.toString(d));
+                }
+                currentLine.append(encoding.getTokenSeparator());
+            }
+        }
+
+        public void appendString(String value) {
+            if (value != null && !value.isEmpty()) emptyLine = false;
+            if (dra) {
+                currentArrayLine.add(value);
+            } else {
+                if (value != null && !value.isEmpty()) {
+                    currentLine.append(value);
+                }
+                currentLine.append(encoding.getTokenSeparator());
+            }
+        }
+
+        public int endBlock() {
+            if (!emptyLine) {
+                if (dra) {
+                    dataArray.add(currentArrayLine);
+                } else {
+                    values.append(currentLine);
+                    // remove last token separator
+                    values.deleteCharAt(values.length() - 1);
+                    values.append(encoding.getBlockSeparator());
+                }
+                return 1;
+            }
+            return 0;
+        }
+
+        public String getStringValues() {
+            if (values != null) {
+                return values.toString();
+            }
+            return null;
+        }
+
+        public List<Object> getDataArray() {
+            return dataArray;
+        }
     }
 }

@@ -775,7 +775,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
         final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, false, scal);
 
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.toString());
+        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.toString(), null);
     }
 
     private Object buildMeasureResult(final String identifier, final String version, final Connection c) throws DataStoreException, SQLException {

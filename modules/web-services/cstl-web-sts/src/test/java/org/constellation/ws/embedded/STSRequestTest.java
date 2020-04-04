@@ -894,7 +894,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc2-loc.json");
-        System.out.println(result);
         assertEquals(expResult, result);
     }
 

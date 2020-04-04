@@ -298,7 +298,7 @@ public class SOSworker extends SensorWorker {
     public SOSworker(final String id) {
         super(id, ServiceDef.Specification.SOS);
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        
+
         if (!isStarted) {
             return;
         }
@@ -1539,7 +1539,8 @@ public class SOSworker extends SensorWorker {
                                                null,
                                                structure,
                                                encoding,
-                                               values);
+                                               values,
+                                               null);
         try {
             obs.setName(null); //omStore.getReader().getNewObservationId());
             obs.setResult(array);

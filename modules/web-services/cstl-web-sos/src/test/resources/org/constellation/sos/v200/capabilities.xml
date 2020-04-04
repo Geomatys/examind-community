@@ -506,8 +506,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-10">
-              <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
-              <gml:endPosition>2009-05-01T14:03:00.00</gml:endPosition>
+              <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
+              <gml:endPosition>2009-05-01T14:03:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -529,8 +529,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-11">
-              <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
-              <gml:endPosition>2009-05-01T14:03:00.00</gml:endPosition>
+              <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
+              <gml:endPosition>2009-05-01T14:03:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -574,8 +574,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-3">
-              <gml:beginPosition>2007-05-01T02:59:00.00</gml:beginPosition>
-              <gml:endPosition>2007-05-01T21:59:00.00</gml:endPosition>
+              <gml:beginPosition>2007-05-01T02:59:00.000</gml:beginPosition>
+              <gml:endPosition>2007-05-01T21:59:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -599,8 +599,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-4">
-              <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
-              <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+              <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
+              <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -624,8 +624,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-5">
-              <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
-              <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+              <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
+              <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -672,8 +672,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-8">
-              <gml:beginPosition>2007-05-01T12:59:00.00</gml:beginPosition>
-              <gml:endPosition>2007-05-01T16:59:00.00</gml:endPosition>
+              <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
+              <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -695,8 +695,8 @@
           </ns43:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-9">
-              <gml:beginPosition>2009-05-01T13:47:00.00</gml:beginPosition>
-              <gml:endPosition>2009-05-01T13:47:00.00</gml:endPosition>
+              <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
+              <gml:endPosition>2009-05-01T13:47:00.000</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>

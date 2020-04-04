@@ -567,7 +567,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         Date begin = TemporalUtilities.parseDate("1990-06-05T00:00:00+0200");
         Date end = TemporalUtilities.parseDate("1990-07-02T00:00:00+0200");
-        TimePeriodType period = new TimePeriodType(begin, end);
+        TimePeriodType period = new TimePeriodType(null, begin, end);
         period.setId("extent");
 
         tempExtent.setExtent(period);

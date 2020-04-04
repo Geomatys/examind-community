@@ -336,6 +336,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (forMds) {
                 hints.put("includeIDInDataBlock", "true");
                 hints.put("includeTimeForProfile", "true");
+                hints.put("directResultArray", "true");
                 model = OBSERVATION_QNAME;
             } else {
                 model = MEASUREMENT_QNAME;
@@ -589,35 +590,29 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
         }
 
+        final String observationId = obs.getName().getCode();
         if (obs.getResult() instanceof DataArrayProperty) {
 
             DataArrayProperty arp = (DataArrayProperty) obs.getResult();
-            if (arp.getDataArray() != null
-                    && arp.getDataArray().getPropertyElementType() != null
-                    && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+            if (arp.getDataArray() != null &&
+                arp.getDataArray().getDataValues() != null) {
 
-                DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                    List<AbstractDataComponent> fields = new ArrayList<>();
-                    for (DataComponentProperty dc : dr.getField()) {
-                        fields.add(dc.getValue());
-                    }
-                List<Object> results = transformDataBlock(obs.getName().getCode(), arp.getDataArray().getValues(), arp.getDataArray().getEncoding(),  fields);
+                List<Object> results = arp.getDataArray().getDataValues().getAny();
                 for (Object resultObj : results) {
                     if (resultObj instanceof List) {
                         List result = (List) resultObj;
                         Observation observation = new Observation();
 
-                        String obsId = (String) result.get(0);
+                        String obsId = observationId + '-' + (String) result.get(0);
 
                         String selfLink = baseSelfLink + "/Observations(" + obsId + ")";
                         observation = observation.iotId(obsId)
                                                  .iotSelfLink(selfLink);
 
                         // time
-                        Date rtime = (Date) result.get(1);
-                        observation = observation.resultTime(formatDate(rtime));
-                        Date ptime = (Date) result.get(2);
-                        observation = observation.phenomenonTime(formatDate(ptime));
+                        String rtime = formatDate((Date) result.get(1));
+                        observation = observation.resultTime(rtime);
+                        observation = observation.phenomenonTime(rtime);
 
                         // feature of interest
                         if (foi != null) {
@@ -635,13 +630,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                         // TODO quality
                         // TODO parameters
-
-                        List measures = (List) result.get(3);
+                        List measures = new ArrayList<>();
+                        for (int i = 2; i < result.size(); i++) {
+                            measures.add(result.get(i));
+                        }
                         observation = observation.result(measures);
 
                         observations.add(observation);
                     }
                 }
+            } else {
+                throw new ConstellationStoreException("malformed data array result in observation");
             }
 
         } else if (obs.getResult() instanceof Measure) {
@@ -658,21 +657,34 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         for (org.opengis.observation.Observation ob : obs) {
             AbstractObservation aob = (AbstractObservation)ob;
+            final String observationId = aob.getName().getCode();
 
             if (aob.getResult() instanceof DataArrayProperty) {
                 DataArrayProperty arp = (DataArrayProperty) aob.getResult();
-                if (arp.getDataArray() != null
-                        && arp.getDataArray().getEncoding() != null
-                        && arp.getDataArray().getValues() != null
-                        && arp.getDataArray().getPropertyElementType() != null
-                        && arp.getDataArray().getPropertyElementType().getAbstractRecord() instanceof DataRecord) {
+                if (arp.getDataArray() != null &&
+                    arp.getDataArray().getDataValues() != null) {
 
-                    DataRecord dr = (DataRecord) arp.getDataArray().getPropertyElementType().getAbstractRecord();
-                    List<AbstractDataComponent> fields = new ArrayList<>();
-                    for (DataComponentProperty dc : dr.getField()) {
-                        fields.add(dc.getValue());
+                    List<Object> resultArray = arp.getDataArray().getDataValues().getAny();
+                    List<Object> results = new ArrayList<>();
+                    // reformat the results
+                    for (Object arrayLineO : resultArray) {
+                        List<Object> arrayLine = (List<Object>) arrayLineO;
+                        List<Object> newLine = new ArrayList<>();
+                        // id
+                        newLine.add(observationId + "-" + arrayLine.get(0));
+
+                        // time
+                        Date d = (Date) arrayLine.get(1);
+                        newLine.add(d);
+                        newLine.add(d);
+
+                        List measures = new ArrayList<>();
+                        for (int i = 2; i < arrayLine.size(); i++) {
+                            measures.add(arrayLine.get(i));
+                        }
+                        newLine.add(measures);
+                        results.add(newLine);
                     }
-                    List<Object> results = transformDataBlock(aob.getName().getCode(), arp.getDataArray().getValues(), arp.getDataArray().getEncoding(),  fields);
                     result.getDataArray().addAll(results);
 
                 } else {
@@ -696,99 +708,6 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         }
         return result;
-    }
-
-    public List<Object> transformDataBlock(String observationId, String values, AbstractEncoding encoding, List<AbstractDataComponent> fields) throws ConstellationStoreException {
-        List<Object> results = new ArrayList<>();
-        if (encoding instanceof TextBlock) {
-            TextBlock tb = (TextBlock) encoding;
-            String valuesLeft = values;
-            int pos = valuesLeft.indexOf(tb.getBlockSeparator());
-            while (pos != -1) {
-                String block = valuesLeft.substring(0, pos + tb.getBlockSeparator().length());
-                List<Object> blockValues = new ArrayList<>();
-                int bpos = block.indexOf(tb.getTokenSeparator());
-
-                // first the observation id
-                String oid = block.substring(0, bpos);
-                blockValues.add(observationId + "-" + oid);
-                block = block.substring(bpos + tb.getTokenSeparator().length());
-                bpos = block.indexOf(tb.getTokenSeparator());
-
-                // then the time of measure (two times)
-                String time = block.substring(0, bpos);
-                Date d;
-                try {
-                    d = parseDate(time);
-                } catch (CstlServiceException ex) {
-                    throw new ConstellationStoreException(ex);
-                }
-                blockValues.add(d);
-                blockValues.add(d);
-                block = block.substring(bpos + tb.getTokenSeparator().length());
-                bpos = block.indexOf(tb.getTokenSeparator());
-
-                // the the measure in their own array
-                List<Object> measures = new ArrayList<>();
-
-                // skip id and time field
-                int i = 2;
-                String currentSeparator = tb.getTokenSeparator();
-                if (bpos != -1) {
-                    do {
-                        AbstractDataComponent compo = fields.get(i);
-                        String value = block.substring(0, bpos);
-                        if (compo instanceof Quantity) {
-                            if (value.isEmpty()) {
-                                measures.add(Float.NaN);
-                            } else {
-                                measures.add(Float.parseFloat(value));
-                            }
-                        } else {
-                            measures.add(value);
-                        }
-                        block = block.substring(bpos + currentSeparator.length());
-                        bpos = block.indexOf(tb.getTokenSeparator());
-                        int endpos = block.indexOf(tb.getBlockSeparator());
-                        if (bpos == -1) {
-                            if (endpos == -1) {
-                                bpos = block.length() -1;
-                            } else {
-                                currentSeparator = tb.getBlockSeparator();
-                                bpos = block.length() - currentSeparator.length();
-                            }
-                        }
-                        i++;
-                    } while (!block.isEmpty());
-
-                // single value
-                } else {
-                    AbstractDataComponent compo = fields.get(i);
-                    int endpos = block.indexOf(tb.getBlockSeparator());
-                     String value;
-                    if (endpos == -1) {
-                       value = block;
-                    } else {
-                       value = block.substring(0, endpos);
-                    }
-                    if (compo instanceof Quantity) {
-                        if (value.isEmpty()) {
-                            measures.add(Float.NaN);
-                        } else {
-                            measures.add(Float.parseFloat(value));
-                        }
-                    } else {
-                        measures.add(value);
-                    }
-                }
-                blockValues.add(measures);
-
-                valuesLeft = valuesLeft.substring(pos + tb.getBlockSeparator().length());
-                pos = valuesLeft.indexOf(tb.getBlockSeparator());
-                results.add(blockValues);
-            }
-        }
-        return results;
     }
 
     private String temporalObjToString(TemporalObject to) {
@@ -1135,6 +1054,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeIDInDataBlock", "true");
             hints.put("includeTimeForProfile", "true");
+             hints.put("directResultArray", "true");
             return omProvider.getObservations(subquery, OBSERVATION_QNAME, "inline", null, hints);
         }
         return new ArrayList<>();

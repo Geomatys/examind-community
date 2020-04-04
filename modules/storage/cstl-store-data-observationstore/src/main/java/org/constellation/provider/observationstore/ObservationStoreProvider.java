@@ -800,7 +800,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.setResponseFormat("text/csv");
 
             if (start != null && end != null) {
-                final Period period = new TimePeriodType(new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+                final Period period = new TimePeriodType(null, new Timestamp(start.getTime()), new Timestamp(end.getTime()));
                 localOmFilter.setTimeDuring(period);
             } else if (start != null) {
                 final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
