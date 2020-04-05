@@ -714,18 +714,22 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (to instanceof Period) {
             Period tp = (Period) to;
             StringBuilder sb = new StringBuilder();
-            if (tp.getBeginning().getDate() != null) {
-                sb.append(formatDate(tp.getBeginning().getDate()));
-            } else if (tp.getBeginning().getTemporalPosition() != null &&
-                       tp.getBeginning().getTemporalPosition().getIndeterminatePosition() != null){
-                sb.append(tp.getBeginning().getTemporalPosition().getIndeterminatePosition().name());
+            Instant beginI = tp.getBeginning();
+            Instant endI   = tp.getEnding();
+            Date begin     = beginI.getDate();
+            Date end       = endI.getDate();
+            if (begin != null) {
+                sb.append(formatDate(begin));
+            } else if (beginI.getTemporalPosition() != null &&
+                       beginI.getTemporalPosition().getIndeterminatePosition() != null){
+                sb.append(beginI.getTemporalPosition().getIndeterminatePosition().name());
             }
             sb.append('/');
-            if (tp.getEnding().getDate() != null) {
-                sb.append(formatDate(tp.getEnding().getDate()));
-            } else if (tp.getEnding().getTemporalPosition() != null &&
-                       tp.getEnding().getTemporalPosition().getIndeterminatePosition() != null){
-                sb.append(tp.getEnding().getTemporalPosition().getIndeterminatePosition().name());
+            if (end != null) {
+                sb.append(formatDate(end));
+            } else if (endI.getTemporalPosition() != null &&
+                       endI.getTemporalPosition().getIndeterminatePosition() != null){
+                sb.append(endI.getTemporalPosition().getIndeterminatePosition().name());
             }
             return sb.toString();
         } else if (to instanceof Instant) {
