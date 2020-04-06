@@ -51,8 +51,13 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.examind.sensor.component.SensorServiceBusiness;
+import com.google.common.base.Objects;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.business.IProviderBusiness;
@@ -126,7 +131,13 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final boolean extractUom = inputParameters.getValue(EXTRACT_UOM);
 
 
-        final ServiceProcessReference sosServ = inputParameters.getValue(SERVICE_ID);
+        final List<ServiceProcessReference> services = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param.getDescriptor().getName().getCode().equals(SERVICE_ID.getName().getCode())) {
+                services.add((ServiceProcessReference) ((ParameterValue)param).getValue());
+            }
+        }
+
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(PROCEDURE_ID);
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
@@ -333,25 +344,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ===========================================================================*/
 
         try {
-            final ObservationProvider omProvider = getOMProvider(sosServ.getId());
-            boolean reload = false;
             for (final Integer dataId : dataToIntegrate) {
 
                 List<Integer> ids = generateSensorML(dataId);
 
-                // ajout d'un capteur au SOS
+                // ajout d'un capteur au services
                 for (Integer sensorID : ids) {
-                    nbObsInserted = nbObsInserted + importSensor(sosServ, sensorID, dataId, omProvider);
-                    LOGGER.info(String.format("ajout du capteur %s au service %s", sosServ.getName(), sensorID));
-                    reload = true;
+                    nbObsInserted = nbObsInserted + importSensor(services, sensorID, dataId);
                 }
-            }
-            if (reload) {
-                serviceBusiness.restart(sosServ.getId());
             }
 
         } catch (ConfigurationException | ConstellationStoreException | SQLException ex) {
-            throw new ProcessException(ex.getMessage(), this ,ex);
+            throw new ProcessException(ex.getMessage(), this, ex);
         }
 
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
@@ -386,61 +390,77 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return provider.getFeatureOfInterest(subquery, Collections.singletonMap("version", "2.0.0"));
     }
 
-    private int importSensor(final ServiceProcessReference sosRef, final Integer sensorID, final int dataId, ObservationProvider omServiceProvider) throws ConfigurationException, ConstellationStoreException {
-        int nbObservationInserted                 = 0;
-        final Sensor sensor                       = sensorBusiness.getSensor(sensorID);
-        final List<Sensor> sensorChildren         = sensorBusiness.getChildren(sensor.getParent());
-        final List<String> alreadyLinked          = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
-        final Set<Phenomenon> existingPhenomenons = new HashSet<>(omServiceProvider.getPhenomenon(new SimpleQuery(), Collections.singletonMap("version", "1.0.0")));
-        final Set<SamplingFeature> existingFois   = new HashSet<>(getFeatureOfInterestForProcedure(sensor.getIdentifier(), omServiceProvider));
-        final Set<Integer> providerIDs            = new HashSet<>();
-        final List<String> sensorIds              = new ArrayList<>();
+    private int importSensor(final List<ServiceProcessReference> sosRefs, final Integer sensorID, final int dataId) throws ConfigurationException, ConstellationStoreException {
+        int nbObservationInserted                   = 0;
+        final Sensor sensor                         = sensorBusiness.getSensor(sensorID);
+        final List<Sensor> sensorChildren           = sensorBusiness.getChildren(sensor.getParent());
+        final List<ObservationProvider> treated     = new ArrayList<>();
 
+        for (ServiceProcessReference sosRef : sosRefs) {
+            final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
+            final List<String> alreadyLinked            = sensorBusiness.getLinkedSensorIdentifiers(sosRef.getId(), null);
+            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new SimpleQuery(), Collections.singletonMap("version", "1.0.0")));
+            final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterestForProcedure(sensor.getIdentifier(), omServiceProvider));
+            final Set<Integer> providerIDs              = new HashSet<>();
+            final List<String> sensorIds                = new ArrayList<>();
 
-        providerIDs.add(dataBusiness.getDataProvider(dataId));
+            providerIDs.add(dataBusiness.getDataProvider(dataId));
 
-        // import main sensor
-        if (!alreadyLinked.contains(sensor.getIdentifier())) {
-            sensorBusiness.addSensorToService(sosRef.getId(), sensorID);
-        }
-        sensorIds.add(sensor.getIdentifier());
-
-        //import sensor children
-        for (Sensor child : sensorChildren) {
-            providerIDs.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
+            // import main sensor
             if (!alreadyLinked.contains(sensor.getIdentifier())) {
-                sensorBusiness.addSensorToService(sosRef.getId(), child.getId());
+                sensorBusiness.addSensorToService(sosRef.getId(), sensorID);
             }
-            sensorIds.add(child.getIdentifier());
-        }
+             sensorIds.add(sensor.getIdentifier());
 
-        // import observations
-        for (Integer providerId : providerIDs) {
-            final DataProvider provider;
-            try {
-                provider = DataProviders.getProvider(providerId);
-                if (provider instanceof ObservationProvider) {
-                    ObservationProvider omProvider = (ObservationProvider) provider;
-                    final ExtractionResult result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
-
-                    existingPhenomenons.addAll(result.getPhenomenons());
-                    existingFois.addAll(result.getFeatureOfInterest());
-
-                    // update sensor location
-                    for (ProcedureTree process : result.getProcedures()) {
-                        sensorServBusiness.writeProcedure(sosRef.getId(), process);
-                    }
-                    result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
-
-                    // import in O&M database
-                    sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
-                    nbObservationInserted = nbObservationInserted + result.getObservations().size();
-                } else {
-                    LOGGER.info("Failure : Available only on Observation provider for now");
+            //import sensor children
+            for (Sensor child : sensorChildren) {
+                providerIDs.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
+                if (!alreadyLinked.contains(sensor.getIdentifier())) {
+                    sensorBusiness.addSensorToService(sosRef.getId(), child.getId());
                 }
-            } catch (ConstellationStoreException ex) {
-                LOGGER.warning(ex.getMessage());
+                sensorIds.add(child.getIdentifier());
             }
+
+            boolean alreadyInserted = false;
+            for (ObservationProvider o : treated) {
+                if (sameObservationProvider(o, omServiceProvider)) {
+                    alreadyInserted = true;
+                }
+            }
+
+            // import observations
+            if (!alreadyInserted) {
+                for (Integer providerId : providerIDs) {
+                    final DataProvider provider;
+                    try {
+                        provider = DataProviders.getProvider(providerId);
+                        if (provider instanceof ObservationProvider) {
+                            ObservationProvider omProvider = (ObservationProvider) provider;
+                            final ExtractionResult result = omProvider.extractResults(sensor.getIdentifier(), sensorIds, existingPhenomenons, existingFois);
+
+                            existingPhenomenons.addAll(result.getPhenomenons());
+                            existingFois.addAll(result.getFeatureOfInterest());
+
+                            // update sensor location
+                            for (ProcedureTree process : result.getProcedures()) {
+                                sensorServBusiness.writeProcedure(sosRef.getId(), process);
+                            }
+                            result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
+
+                            // import in O&M database
+                            sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
+                            nbObservationInserted = nbObservationInserted + result.getObservations().size();
+                        } else {
+                            LOGGER.info("Failure : Available only on Observation provider for now");
+                        }
+                    } catch (ConstellationStoreException ex) {
+                        LOGGER.warning(ex.getMessage());
+                    }
+                }
+                treated.add(omServiceProvider);
+            }
+            LOGGER.info(String.format("ajout du capteur %s au service %s", sensorID, sosRef.getName()));
+            serviceBusiness.restart(sosRef.getId());
         }
         return nbObservationInserted;
     }
@@ -455,5 +475,28 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
+    }
+
+    /**
+     * hack method to compare two observation provider on the same datasource (should not be allowed in the future.)
+     */
+    private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
+        final ParameterValueGroup source1 = op1.getSource();
+        final ParameterValueGroup source2 = op2.getSource();
+        ParameterValueGroup fconfig1 = source1.groups("choice").get(0).groups("SOSDBParameters").get(0);
+        ParameterValueGroup fconfig2 = source2.groups("choice").get(0).groups("SOSDBParameters").get(0);
+
+        final Object host1     = fconfig1.parameter("host").getValue();
+        final Object database1 = fconfig1.parameter("database").getValue();
+        final Object schema1   = fconfig1.parameter("database").getValue();
+
+        final Object host2     = fconfig2.parameter("host").getValue();
+        final Object database2 = fconfig2.parameter("database").getValue();
+        final Object schema2   = fconfig2.parameter("database").getValue();
+
+        return Objects.equal(host1,     host2)     &&
+               Objects.equal(database1, database2) &&
+               Objects.equal(schema1,   schema2);
+
     }
 }

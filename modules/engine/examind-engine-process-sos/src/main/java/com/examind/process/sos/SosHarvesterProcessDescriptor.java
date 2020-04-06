@@ -80,8 +80,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final String SERVICE_ID_NAME = "SOS service";
     public static final String SERVICE_ID_DESC = "SOS service";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
-        new ExtendedParameterDescriptor<>(
-                SERVICE_ID_NAME, SERVICE_ID_DESC, ServiceProcessReference.class, null, true, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
+    new ExtendedParameterDescriptor<>(
+                SERVICE_ID_NAME, SERVICE_ID_DESC, 1, 92, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
 
     public static final String DATASET_IDENTIFIER_NAME = "dataset identifier";
     public static final String DATASET_IDENTIFIER_DESC = "dataset identifier";
