@@ -352,7 +352,7 @@ public class CSWUtils {
             Date end   = new Date(record.getTemporalExtentRange()[1]);
             String content = ISO8601_FORMAT.format(start) + "/" + ISO8601_FORMAT.format(end);
             entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(content)));
-        } else if (record.getTemporalExtentRange().length == 2) {
+        } else if (record.getTemporalExtentRange().length == 1) {
             Date time = new Date(record.getTemporalExtentRange()[0]);
             entry.getAuthorOrCategoryOrContent().add(dcFactory.createDate(new SimpleLiteral(ISO8601_FORMAT.format(time))));
         }
