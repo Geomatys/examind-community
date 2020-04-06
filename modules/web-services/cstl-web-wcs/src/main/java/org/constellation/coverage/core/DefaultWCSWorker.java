@@ -373,7 +373,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final RangeSetType rangeSet = new RangeSetType(null, coverageName, coverageName, null, null, null, null);
             //supported CRS
             final SupportedCRSsType supCRS = new SupportedCRSsType("urn:ogc:def:crs:EPSG::4326");
-            supCRS.addNativeCRSs(nativeEnvelope.getSrsName());
+            if (nativeEnvelope != null) {
+                 supCRS.addNativeCRSs(nativeEnvelope.getSrsName());
+            }
 
             // supported formats
             String nativeFormat = data.getImageFormat();

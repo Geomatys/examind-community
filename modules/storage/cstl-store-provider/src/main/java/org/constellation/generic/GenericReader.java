@@ -398,8 +398,11 @@ public abstract class GenericReader  {
         } else {
             values = loading(parameters, subStmts);
         }
-        //we add the static value to the result
-        values.mergedValues(staticValues);
+        if (values != null) {
+            //we add the static value to the result
+            values.mergedValues(staticValues);
+        }
+
         return values;
     }
 
@@ -443,8 +446,10 @@ public abstract class GenericReader  {
         } else {
             values = loading(parameters, subStmts);
         }
-        //we add the static value to the result
-        values.mergedValues(staticValues);
+        if (values != null) {
+            //we add the static value to the result
+            values.mergedValues(staticValues);
+        }
         return values;
     }
 

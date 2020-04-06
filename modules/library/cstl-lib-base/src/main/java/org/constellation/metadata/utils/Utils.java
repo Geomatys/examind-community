@@ -85,6 +85,7 @@ public final class Utils {
       *
       * @return the founded title or UNKNOW_TITLE
       */
+
     public static String findTitle(final Object obj) {
 
         //here we try to get the title
@@ -114,8 +115,8 @@ public final class Utils {
                 title = (String) value;
                 // we stop when we have found a response
                 break;
-            } else if (value instanceof InternationalString && !((InternationalString)value).toString().isEmpty()) {
-                title =  value.toString();
+            } else if (value instanceof InternationalString && !((InternationalString) value).toString().isEmpty()) {
+                title = value.toString();
                 // we stop when we have found a response
                 break;
             } else if (value instanceof Collection) {
@@ -125,10 +126,10 @@ public final class Utils {
                     Object cValue = it.next();
                     if (cValue instanceof String) {
                         title = (String) cValue;
-                         break;
+                        break;
                     } else if (cValue != null) {
                         title = cValue.toString();
-                         break;
+                        break;
                     }
                 }
             } else if (value != null) {
@@ -146,6 +147,7 @@ public final class Utils {
       *
       * @return the founded standard name or {@code null}
       */
+
     public static String findStandardName(final Object obj) {
 
         //here we try to get the title
@@ -162,13 +164,12 @@ public final class Utils {
                 standardName = (String) value;
                 // we stop when we have found a response
                 break;
-            } else if (value != null){
+            } else if (value != null) {
                 LOGGER.finer("FIND Standard name => unexpected String type: " + value.getClass().getName() + "\ncurrentPath:" + path);
             }
         }
         return standardName;
     }
-
 
     /**
      * This method try to find an identifier for this object.
@@ -219,10 +220,12 @@ public final class Utils {
             if (value instanceof String && !((String)value).isEmpty()) {
                 identifier = (String) value;
                 break;
-            } if (value instanceof InternationalString) {
+            }
+            if (value instanceof InternationalString) {
                 identifier = value.toString();
                 break;
-            } if (value instanceof UUID) {
+            }
+            if (value instanceof UUID) {
                 identifier = value.toString();
                 break;
             } else if (value instanceof Collection) {
@@ -232,10 +235,10 @@ public final class Utils {
                     Object cValue = it.next();
                     if (cValue instanceof String) {
                         identifier = (String) cValue;
-                         break;
+                        break;
                     } else if (cValue != null) {
                         identifier = cValue.toString();
-                         break;
+                        break;
                     }
                 }
             } else if (value != null) {
@@ -295,9 +298,14 @@ public final class Utils {
                     }
 
                     if (!pathID.isEmpty()) {
-                        // we get the temporary object when navigating through the object.
-                        Object temp = currentObject;
-                        Method getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        Method getter = null;
+                        Object temp = null;
+                        if (currentObject != null) {
+                            // we get the temporary object when navigating through the object.
+                            temp = currentObject;
+                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        }
+
                         if (getter != null) {
                             currentObject = ReflectionUtilities.invokeMethod(currentObject, getter);
                             // if the object is not yet instantiate, we build it
@@ -342,10 +350,14 @@ public final class Utils {
                         }
 
                     } else {
-                        /*
-                         * we use the getter to determinate the parameter class.
-                         */
-                        Method getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        Method getter = null;
+                        if (currentObject != null) {
+                            /*
+                             * we use the getter to determinate the parameter class.
+                             */
+                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        }
+
                         Class parameterClass;
                         if (getter != null) {
                             parameterClass = getter.getReturnType();
@@ -358,14 +370,14 @@ public final class Utils {
                             // if the parameter is a string collection
                             if (parameterClass.equals(List.class)) {
                                 ReflectionUtilities.invokeMethod(setter, currentObject, Arrays.asList(identifier));
-                            } else if (parameterClass.equals(InternationalString.class)){
+                            } else if (parameterClass.equals(InternationalString.class)) {
                                 ReflectionUtilities.invokeMethod(setter, currentObject, new SimpleInternationalString(identifier));
                             } else {
                                 ReflectionUtilities.invokeMethod(setter, currentObject, identifier);
                             }
                             return;
                         } else if (object instanceof ISOMetadata && "uuid".equals(attributeName)) {
-                           ((ISOMetadata)object).getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString(identifier));
+                            ((ISOMetadata)object).getIdentifierMap().putSpecialized(IdentifierSpace.UUID, UUID.fromString(identifier));
                         }
                     }
                 }
@@ -424,9 +436,14 @@ public final class Utils {
                     }
 
                     if (!pathID.isEmpty()) {
-                        // we get the temporary object when navigating through the object.
-                        Object temp = currentObject;
-                        Method getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        Object temp = null;
+                        Method getter = null;
+                        if (currentObject != null) {
+                            // we get the temporary object when navigating through the object.
+                            temp = currentObject;
+                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        }
+
                         if (getter != null) {
                             currentObject = ReflectionUtilities.invokeMethod(currentObject, getter);
                             // if the object is not yet instantiate, we build it
@@ -480,10 +497,14 @@ public final class Utils {
                         }
 
                     } else {
-                         /*
-                         * we use the getter to determinate the parameter class.
-                         */
-                        Method getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        Method getter = null;
+                        if (currentObject != null) {
+                            /*
+                             * we use the getter to determinate the parameter class.
+                             */
+                            getter = ReflectionUtilities.getGetterFromName(attributeName, currentObject.getClass());
+                        }
+
                         Class parameterClass;
                         if (getter != null) {
                             parameterClass = getter.getReturnType();
@@ -563,7 +584,7 @@ public final class Utils {
         final List<Object> response  = new ArrayList<>();
 
         if (paths != null) {
-            for (String fullPathID: paths) {
+            for (String fullPathID : paths) {
                if (!ReflectionUtilities.pathMatchObjectType(metadata, fullPathID)) {
                    continue;
                }
@@ -587,6 +608,7 @@ public final class Utils {
                     LOGGER.finer("pathID              : " + pathID               + '\n' +
                                  "conditionalAttribute: " + conditionalAttribute + '\n' +
                                  "conditionalValue    : " + conditionalValue);
+
                 } else {
                     pathID = fullPathID;
                 }
@@ -653,16 +675,16 @@ public final class Utils {
             final Method getDate = ReflectionUtilities.getMethod("getDate", obj.getClass());
             final Date d = (Date) ReflectionUtilities.invokeMethod(obj, getDate);
             if (d != null) {
-                synchronized(Util.LUCENE_DATE_FORMAT) {
+                synchronized (Util.LUCENE_DATE_FORMAT) {
                     result.add(Util.LUCENE_DATE_FORMAT.format(d));
                 }
             } else {
-               result.add(NULL_VALUE);
+                result.add(NULL_VALUE);
             }
 
         } else if (obj instanceof Instant) {
             final Instant inst = (Instant)obj;
-            if (inst != null && inst.getDate() != null) {
+            if (inst.getDate() != null) {
                 synchronized(Util.LUCENE_DATE_FORMAT) {
                     result.add(Util.LUCENE_DATE_FORMAT.format(inst.getDate()));
                 }

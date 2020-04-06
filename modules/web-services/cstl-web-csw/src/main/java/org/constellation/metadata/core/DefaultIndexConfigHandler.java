@@ -60,8 +60,10 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     @Override
     public CatalogueHarvester getCatalogueHarvester(final Automatic configuration, final MetadataStore store) throws MetadataIoException {
         int type = -1;
+        String idDir = null;
         if (configuration != null) {
             type = configuration.getHarvestType();
+            idDir = configuration.getIdentifierDirectory();
         }
         switch (type) {
             case DEFAULT:
@@ -69,10 +71,16 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
             case FILESYSTEM:
                 return new FileSystemHarvester(store);
             case BYID:
-                return new ByIDHarvester(store, configuration.getIdentifierDirectory());
+                return new ByIDHarvester(store, idDir);
             default:
-                throw new IllegalArgumentException("Unknow harvester type: " + configuration.getHarvestType() + ".");
-        }
+                String message;
+                if (configuration != null){
+                    message = "Unknow harvester type: " + type + ".";
+                }else{
+                    message = "configuration is null";
+                }
+                throw new IllegalArgumentException(message);
+            }
     }
 
     @Override
@@ -98,7 +106,7 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
             throw new ConfigurationException("unexpected Datasource type: can't find proper index searcher \""+ indexType +"\"");
         }
     }
-    
+
     @Override
     public void refreshIndex(final Automatic configuration, String serviceID, Indexer indexer, boolean asynchrone) throws IndexingException, ConfigurationException {
 
@@ -139,17 +147,17 @@ public class DefaultIndexConfigHandler implements IndexConfigHandler{
     public MetadataSecurityFilter getSecurityFilter() {
         return new NoMetadataSecurityFilter();
     }
-    
+
     @Override
     public Map<String, List<String>> getBriefFieldMap(final Automatic configuration) {
         return CSWConstants.ISO_BRIEF_FIELDS;
     }
-    
+
     @Override
     public MarshallerPool getMarshallerPool() {
         return EBRIMMarshallerPool.getInstance();
     }
-    
+
     @Override
     public String getTemplateName(String metaID, String type) {
         final String templateName;

@@ -187,7 +187,9 @@ public class RunCWL extends AbstractCstlProcess {
                         }
                         Map complex = new LinkedHashMap<>();
                         complex.put("class", "File");
-                        complex.put("path", arg.toString());
+                        if(arg != null){
+                             complex.put("path", arg.toString());
+                        }
                         json.put(desc.getName().getCode(), complex);
                     }
 
