@@ -202,7 +202,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
             //create the store
             org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
             org.apache.sis.storage.DataStore tmpStore = provider.open(factoryconfig);
-            if (tmpStore == null) {
+            if (tmpStore == null) {//NOSONAR
                 throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig);
             } else if (!(tmpStore instanceof MetadataStore)) {
                 throw new DataStoreException("Could not create metadata store for parameters : "+factoryconfig + " (not a metadata store)");

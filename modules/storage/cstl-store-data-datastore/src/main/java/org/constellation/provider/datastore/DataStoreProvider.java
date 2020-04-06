@@ -362,7 +362,7 @@ public class DataStoreProvider extends AbstractDataProvider {
             //create the store
             org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
             store = provider.open(factoryconfig);
-            if(store == null){
+            if(store == null){//NOSONAR
                 throw new DataStoreException("Could not create feature store for parameters : "+factoryconfig);
             }
         } catch (Exception ex) {

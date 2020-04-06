@@ -1103,20 +1103,11 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                     request.setVersion(bestVersion.toString());
                     return;
                 } else {
-                    final CodeList code;
-                    final String locator;
-                    if (getCapabilities) {
-                        code = VERSION_NEGOTIATION_FAILED;
-                        locator = "acceptVersion";
-                    } else {
-                        code = INVALID_PARAMETER_VALUE;
-                        locator = "version";
-                    }
                     final StringBuilder sb = new StringBuilder();
                     for (ServiceDef v : supportedVersions) {
                         sb.append("\"").append(v.version.toString()).append("\"");
                     }
-                    throw new CstlServiceException("version must be " + sb.toString() + "!", code, locator);
+                    throw new CstlServiceException("version must be " + sb.toString() + "!", VERSION_NEGOTIATION_FAILED, "acceptVersion");
                 }
 
             } else if (request.getVersion()!= null && !request.getVersion().toString().isEmpty()) {
@@ -1124,20 +1115,11 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
                 if (isSupportedVersion(request.getVersion().toString())) {
                     request.setVersion(request.getVersion().toString());
                 } else {
-                    final CodeList code;
-                    final String locator;
-                    if (getCapabilities) {
-                        code = VERSION_NEGOTIATION_FAILED;
-                        locator = "acceptVersion";
-                    } else {
-                        code = INVALID_PARAMETER_VALUE;
-                        locator = "version";
-                    }
                     final StringBuilder sb = new StringBuilder();
                     for (ServiceDef v : supportedVersions) {
                         sb.append("\"").append(v.version.toString()).append("\"");
                     }
-                    throw new CstlServiceException("version must be " + sb.toString() + "!", code, locator);
+                    throw new CstlServiceException("version must be " + sb.toString() + "!", INVALID_PARAMETER_VALUE, "version");
                 }
             } else {
                 if (versionMandatory) {

@@ -1256,12 +1256,7 @@ public class DataBusiness implements IDataBusiness {
         final String xml = MetadataUtilities.fillMetadataFromProperties(dataType, metadataID, title, dataP.getResourceCRSName(), optUser, keywords);
         final DefaultMetadata templateMetadata = (DefaultMetadata) metadataBusiness.unmarshallMetadata(xml);
 
-        DefaultMetadata mergedMetadata;
-        if (extractedMetadata != null) {
-            mergedMetadata = Utils.mergeMetadata(templateMetadata, extractedMetadata);
-        } else {
-            mergedMetadata = templateMetadata;
-        }
+        DefaultMetadata mergedMetadata = Utils.mergeMetadata(templateMetadata, extractedMetadata);
 
         //merge with uploaded metadata
         DefaultMetadata uploadedMetadata;
@@ -1305,7 +1300,6 @@ public class DataBusiness implements IDataBusiness {
             // Display details only in debug mode.
             LOGGER.log(Level.FINE, "Cannot extract resource metadata. Fallback to an empty one", e);
         }
-
         return new DefaultMetadata();
     }
 

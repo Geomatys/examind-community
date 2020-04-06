@@ -174,7 +174,7 @@ public class SensorStoreProvider extends AbstractDataProvider implements SensorP
             //create the store
             org.apache.sis.storage.DataStoreProvider provider = DataStores.getProviderById(factoryconfig.getDescriptor().getName().getCode());
             org.apache.sis.storage.DataStore tmpStore = provider.open(factoryconfig);
-            if (tmpStore == null) {
+            if (tmpStore == null) {//NOSONAR
                 throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig);
             } else if (!(tmpStore instanceof AbstractSensorStore)) {
                 throw new DataStoreException("Could not create sensor store for parameters : "+factoryconfig + " (not a sensor store)");

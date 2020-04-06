@@ -86,7 +86,7 @@ public class THWworker extends AbstractWorker {
 
             cswCounter = new ThesaurusCSWCounter(handler);
 
-            if (handler == null) {
+            if (handler == null) {//NOSONAR
                 isStarted   = false;
                 LOGGER.warning("The thesaurus is not working! \n cause: unable to acquire a thesaurus handler");
             } else {

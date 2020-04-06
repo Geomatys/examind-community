@@ -16,10 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.constellation.dto.portrayal;
 
 import org.apache.sis.util.ObjectConverters;
@@ -63,13 +59,12 @@ public final class DecorationUtils {
             return fallback;
         }
 
-        if(strOpacity != null){
-            float opa = strOpacity != null ? strOpacity : 1.0f;
-            if(opa<0 || opa>1){
-                opa = 1;
-            }
-            color = new Color(color.getRed()/256f, color.getGreen()/256f, color.getBlue()/256f, opa);
+        float opa = strOpacity != null ? strOpacity : 1.0f;
+        if (opa < 0 || opa > 1) {
+            opa = 1;
         }
+        color = new Color(color.getRed() / 256f, color.getGreen() / 256f, color.getBlue() / 256f, opa);
+
 
         return color;
     }

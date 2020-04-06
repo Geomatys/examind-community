@@ -566,6 +566,7 @@ public class CSWConfigurer extends OGCConfigurer implements ICSWConfigurer {
         } else {
             LOGGER.log(Level.INFO, "there is no index to delete");
         }
+
     }
 
     /**

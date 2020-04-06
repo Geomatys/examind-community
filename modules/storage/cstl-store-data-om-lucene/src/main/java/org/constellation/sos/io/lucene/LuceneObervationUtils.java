@@ -33,7 +33,7 @@ import org.geotoolkit.temporal.object.ISODateParser;
  * @author Guilhem Legal (Geomatys)
  */
 public class LuceneObervationUtils {
-    
+
     /**
      * return a SQL formatted timestamp
      *
@@ -43,9 +43,8 @@ public class LuceneObervationUtils {
     public static String getLuceneTimeValue(final Date time) throws DataStoreException {
         if (time != null) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS");
-                 String value = df.format(time);
-//            String value = time.toString();
-            
+            String value = df.format(time);
+
             // we delete the data after the second TODO remove
             if (value.indexOf('.') != -1) {
                 value = value.substring(0, value.indexOf('.'));
@@ -53,29 +52,24 @@ public class LuceneObervationUtils {
             try {
                 // verify the syntax of the timestamp
                 //here t is not used but it allow to verify the syntax of the timestamp
-                 final ISODateParser parser = new ISODateParser();
-                 final Date d = parser.parseToDate(value);
+                final ISODateParser parser = new ISODateParser();
+                final Date d = parser.parseToDate(value);
 
-            } catch(IllegalArgumentException e) {
-               throw new ObservationStoreException("Unable to parse the value: " + value + '\n' +
+            } catch (IllegalArgumentException e) {
+                throw new ObservationStoreException("Unable to parse the value: " + value + '\n' +
                                               "Bad format of timestamp:\n" + e.getMessage(),
                                               INVALID_PARAMETER_VALUE, "eventTime");
+
             }
             value = value.replace(" ", "");
             value = value.replace("-", "");
             value = value.replace(":", "");
             value = value.replace("T", "");
             return value;
-          } else {
-            String locator;
-            if (time == null) {
-                locator = "Timeposition";
-            } else {
-                locator = "TimePosition value";
-            }
-            throw new  ObservationStoreException("bad format of time, " + locator + " mustn't be null",
-                                              MISSING_PARAMETER_VALUE, "eventTime");
-          }
+        } else {
+            throw new ObservationStoreException("bad format of time, Timeposition mustn't be null",
+                    MISSING_PARAMETER_VALUE, "eventTime");
+        }
     }
 
     /**
