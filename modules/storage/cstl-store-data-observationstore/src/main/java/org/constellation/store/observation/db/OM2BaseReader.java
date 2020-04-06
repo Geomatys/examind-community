@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -82,10 +83,30 @@ public class OM2BaseReader {
 
     protected final String schemaPrefix;
 
+    /**
+     * Some sub-classes of the base reader are used in a single session (Observation filters).
+     * So they can activate the cache to avoid reading the same object in the same session.
+     */
+    protected boolean cacheEnabled;
+
+    /**
+     * A map of already read sampling feature.
+     * The is forged by version + feature ID.
+     * This map is only populated if {@link OM2BaseReader#cacheEnabled} is set to true.
+     */
+    private final Map<String, SamplingFeature> cachedFoi = new HashMap<>();
+
+    /**
+     * A map of already read Phenomenon.
+     * The is forged by version + pehnomenon ID.
+     * This map is only populated if {@link OM2BaseReader#cacheEnabled} is set to true.
+     */
+    private final Map<String, Phenomenon> cachedPhenomenon = new HashMap<>();
+
     protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected static final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix) {
+    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled) {
         final String phenID = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
         if (phenID == null) {
             this.phenomenonIdBase      = "";
@@ -110,6 +131,7 @@ public class OM2BaseReader {
         } else {
             this.schemaPrefix = schemaPrefix;
         }
+        this.cacheEnabled = cacheEnabled;
     }
 
     public OM2BaseReader(final OM2BaseReader that) {
@@ -119,6 +141,7 @@ public class OM2BaseReader {
         this.isPostgres                = that.isPostgres;
         this.observationIdBase         = that.observationIdBase;
         this.schemaPrefix              = that.schemaPrefix;
+        this.cacheEnabled              = that.cacheEnabled;
     }
 
     /**
@@ -138,6 +161,10 @@ public class OM2BaseReader {
     }
 
     protected SamplingFeature getFeatureOfInterest(final String id, final String version, final Connection c) throws SQLException, DataStoreException {
+        final String key = version + id;
+        if (cacheEnabled && cachedFoi.containsKey(key)) {
+            return cachedFoi.get(key);
+        }
         try {
             final String name;
             final String description;
@@ -172,7 +199,11 @@ public class OM2BaseReader {
                 } else {
                     geom = null;
                 }
-                return buildFoi(version, id, name, description, sampledFeature, geom, crs);
+                final SamplingFeature sf = buildFoi(version, id, name, description, sampledFeature, geom, crs);
+                if (cacheEnabled) {
+                    cachedFoi.put(key, sf);
+                }
+                return sf;
             }
 
         } catch (ParseException | FactoryException ex) {
@@ -216,6 +247,10 @@ public class OM2BaseReader {
         } else {
             id = observedProperty.replace(':', '-');
         }
+        final String key = version + id;
+        if (cacheEnabled && cachedPhenomenon.containsKey(key)) {
+            return cachedPhenomenon.get(key);
+        }
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?")) {
@@ -227,11 +262,16 @@ public class OM2BaseReader {
                         phenomenons.add(getSinglePhenomenon(version, phenID, c));
                     }
                     org.geotoolkit.swe.xml.Phenomenon base = getSinglePhenomenon(version, observedProperty, c);
+                    Phenomenon result;
                     if (phenomenons.isEmpty()) {
-                        return base;
+                        result = base;
                     } else {
-                        return buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
+                        result = buildCompositePhenomenon(version, id, base.getName().getCode(), base.getDescription(), phenomenons);
                     }
+                    if (cacheEnabled) {
+                        cachedPhenomenon.put(key, result);
+                    }
+                    return result;
                 }
             }
         } catch (SQLException ex) {
@@ -239,7 +279,7 @@ public class OM2BaseReader {
         }
     }
 
-    protected org.geotoolkit.swe.xml.Phenomenon getSinglePhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
+    private org.geotoolkit.swe.xml.Phenomenon getSinglePhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
         final String id;
         // cleanup phenomenon id because of its XML ype (NCName)
         if (observedProperty.startsWith(phenomenonIdBase)) {

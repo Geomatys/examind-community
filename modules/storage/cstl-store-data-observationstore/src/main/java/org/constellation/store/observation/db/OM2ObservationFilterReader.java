@@ -350,7 +350,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     if ((currentFields.isEmpty() || currentFields.contains(compPhen.getName().getCode())) &&
                                         (fieldFilters.isEmpty() || fieldFilters.contains(i))) {
                                         //final String cphenID = compPhen.getId();
-                                        final Object result = buildMeasureResult(version, 0, fields.get(i).fieldUom, "1");
+                                        final Object result = buildMeasure(version, "measure-001", fields.get(i).fieldUom, 0d);
                                         observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + i, name + '-' + i, null, foi, compPhen, procedure, result, tempTime));
                                     }
                                 }
@@ -366,7 +366,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         if (phen instanceof CompositePhenomenon) {
                             throw new DataStoreException("incoherence between single fields and composite phenomenon");
                         }
-                        final Object result = buildMeasureResult(version, 0, fields.get(0).fieldUom, "1");
+                        final Object result = buildMeasure(version, "measure-001", fields.get(0).fieldUom, 0d);
                         observations.add(OMXmlFactory.buildMeasurement(version, obsID + "-0", name + "-0", null, foi, phen, procedure, result, tempTime));
                     }
                 }
@@ -512,7 +512,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         }
 
                                         Field field = fields.get(i);
-                                        String value;
                                         switch (field.fieldType) {
                                             case "Time":
                                                 Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
@@ -523,7 +522,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                 }   lastTime = t;
                                                 break;
                                             case "Quantity":
-                                                value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
                                                 Double d = Double.NaN;
                                                 if (value != null && !value.isEmpty()) {
                                                     d = rs2.getDouble(field.fieldName);
@@ -558,7 +557,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         }
 
                                         Field field = fields.get(i);
-                                        String value;
                                         switch (field.fieldType) {
                                             case "Time":
                                                 Date t = dateFromTS(rs2.getTimestamp(field.fieldName));
@@ -566,7 +564,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                 lastTime = t;
                                                 break;
                                             case "Quantity":
-                                                value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                                String value = rs2.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
                                                 Double d = Double.NaN;
                                                 if (value != null && !value.isEmpty()) {
                                                     d = rs2.getDouble(field.fieldName);
@@ -707,12 +705,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     TemporalGeometricPrimitive measureTime;
                                     if (isTimeField) {
                                         final Date mt = dateFromTS(rs2.getTimestamp(mainField.fieldName));
-                                        /*String t = null;
-                                        if (mt != null) {
-                                            synchronized(format2) {
-                                                t = format2.format(mt);
-                                            }
-                                        }*/
                                         measureTime = buildTimeInstant(version, "time-" + oid + '-' + rid, mt);
                                     } else {
                                         measureTime = time;
@@ -729,7 +721,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                 throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
                                             }
                                             final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
-                                            final Object result = buildMeasureResult(version, dValue, field.field.fieldUom, Integer.toString(rid));
+                                            final Object result = buildMeasure(version, "measure-00" + rid, field.field.fieldUom, dValue);
                                             observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + field.i + '-' + rid, name + '-' + field.i + '-' + rid, null, foi, field.phenomenon, procedure, result, measureTime));
                                         }
                                     }
@@ -746,11 +738,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (DataStoreException ex) {
             throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
         }
-    }
-
-    private Object buildMeasureResult(final String version, final double value, final String uom, final String resultId) {
-        final String name   = "measure-00" + resultId;
-        return buildMeasure(version, name, uom, value);
     }
 
     @Override

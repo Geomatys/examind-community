@@ -103,7 +103,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     public OM2ObservationFilter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix);
+        super(properties, schemaPrefix, true);
         this.source     = source;
         this.isPostgres = isPostgres;
         resultModel     = null;

@@ -99,7 +99,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @throws org.apache.sis.storage.DataStoreException
      */
     public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix);
+        super(properties, schemaPrefix, false);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
