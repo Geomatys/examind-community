@@ -1,11 +1,5 @@
 {
   "value" : [ {
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:10-1241178420000",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:10-1241178420000)",
-    "time" : "2009-05-01T11:47:00Z",
-    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:10-1241178420000)/Locations",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:10-1241178420000)/Things"
-  }, {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:2-975625200000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)",
     "time" : "2000-11-30T23:00:00Z",
@@ -36,34 +30,16 @@
     "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:4-1178017140000)/Locations",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:4-1178017140000)/Things"
   }, {
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:7-1178031540000",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)",
-    "time" : "2007-05-01T14:59:00Z",
-    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)/Locations",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)/Things"
-  }, {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:8-1178017140000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:8-1178017140000)",
     "time" : "2007-05-01T10:59:00Z",
     "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:8-1178017140000)/Locations",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:8-1178017140000)/Things"
   }, {
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:9-1241178420000",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:9-1241178420000)",
-    "time" : "2009-05-01T11:47:00Z",
-    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:9-1241178420000)/Locations",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:9-1241178420000)/Things"
-  }, {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:test-1-1178017140000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)",
     "time" : "2007-05-01T10:59:00Z",
     "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)/Locations",
     "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-1-1178017140000)/Things"
-  }, {
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:test-id-1241178420000",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-id-1241178420000)",
-    "time" : "2009-05-01T11:47:00Z",
-    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-id-1241178420000)/Locations",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:test-id-1241178420000)/Things"
   } ]
 }

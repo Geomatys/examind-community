@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
@@ -44,7 +45,6 @@ import org.constellation.api.ServiceDef;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.contact.Details;
-import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -117,6 +117,7 @@ import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Id;
 import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.filter.temporal.TEquals;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -292,8 +293,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination) throws CstlServiceException {
+        return buildExtraFilterQuery(req, applyPagination, new ArrayList<>());
+    }
+    private SimpleQuery buildExtraFilterQuery(AbstractSTSRequest req, boolean applyPagination, List<Filter> filters) throws CstlServiceException {
         final SimpleQuery subquery = new SimpleQuery();
-        List<Filter> filters = new ArrayList<>();
         if (!req.getExtraFilter().isEmpty()) {
             for (Entry<String, String> entry : req.getExtraFilter().entrySet()) {
                 filters.add(ff.equals(ff.property(entry.getKey()), ff.literal(entry.getValue())));
@@ -1225,13 +1228,16 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return omProvider.getObservations(subquery, OBSERVATION_QNAME, "resultTemplate", null, hints);
     }
 
-    private List<ProcedureTree> getHistoricalLocationsForSensor(String sensorId) throws ConstellationStoreException {
+    private  Map<Date, org.opengis.geometry.Geometry> getHistoricalLocationsForSensor(String sensorId) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
         Id filter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
         subquery.setFilter(filter);
-        return omProvider.getProcedureTrees(subquery, new HashMap<>());
+        Map<String,Map<Date, org.opengis.geometry.Geometry>> results = omProvider.getHistoricalLocation(subquery, new HashMap<>());
+        if (results.containsKey(sensorId)) {
+            return results.get(sensorId);
+        }
+        return new HashMap<>();
     }
-
 
     @Override
     public void addObservedProperty(ObservedProperty observedProperty) throws CstlServiceException {
@@ -1259,16 +1265,16 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             // for a historical location
             if (d != null) {
-                List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
+                Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
                 List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
-                for (ProcedureTree proc : procs) {
-                    String sensorId = ((ProcedureTree)proc).getId();
+                for (Entry<String,Map<Date, org.opengis.geometry.Geometry>> entry : sensorHLocations.entrySet()) {
+                    String sensorId = entry.getKey();
                     org.constellation.dto.Sensor s = null;
                     if (sensorIds.contains(sensorId)) {
                         s = sensorBusiness.getSensor(sensorId);
                     }
-                    if (proc.getHistoricalLocations().containsKey(d)) {
-                        Location location = buildLocation(exp, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
+                    if (entry.getValue().containsKey(d)) {
+                        Location location = buildLocation(exp, sensorId, s, d, (AbstractGeometry) entry.getValue().get(d));
                         locations.add(location);
                     }
                 }
@@ -1432,12 +1438,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             thing = thing.multiDatastreamsIotNavigationLink(selfLink + "/MultiDatastreams");
         }
         if (exp.historicalLocations) {
-            List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorID);
-            for (ProcedureTree proc : procs) {
-                for (Entry<Date, org.opengis.geometry.Geometry> entry : proc.getHistoricalLocations().entrySet()) {
-                    HistoricalLocation location = buildHistoricalLocation(exp, sensorID, s, entry.getKey(), (AbstractGeometry) entry.getValue());
-                    thing = thing.addHistoricalLocationsItem(location);
-                }
+            for (Entry<Date, org.opengis.geometry.Geometry> entry : getHistoricalLocationsForSensor(sensorID).entrySet()) {
+                HistoricalLocation location = buildHistoricalLocation(exp, sensorID, s, entry.getKey(), (AbstractGeometry) entry.getValue());
+                thing = thing.addHistoricalLocationsItem(location);
             }
         } else {
             thing = thing.historicalLocationsIotNavigationLink(selfLink + "/HistoricalLocations");
@@ -1470,12 +1473,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                             d = new Date(Long.parseLong(timeStr));
 
                             if (sensorBusiness.isLinkedSensor(getServiceId(), sensorId)) {
-                                List<ProcedureTree> procs = getHistoricalLocationsForSensor(sensorId);
-                                for (ProcedureTree proc : procs) {
-                                    if (proc.getHistoricalLocations().containsKey(d)) {
-                                        org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
-                                        return buildLocation(exp, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
-                                    }
+                                Map<Date, org.opengis.geometry.Geometry> hLocations = getHistoricalLocationsForSensor(sensorId);
+                                if (hLocations.containsKey(d)) {
+                                    org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
+                                    return buildLocation(exp, sensorId, s, d, (AbstractGeometry) hLocations.get(d));
                                 }
                             }
                             return null;
@@ -1493,7 +1494,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     @Override
     public HistoricalLocationsResponse getHistoricalLocations(GetHistoricalLocations req) throws CstlServiceException {
-        final List<HistoricalLocation> locations = new ArrayList<>();
+        List<HistoricalLocation> locations = new ArrayList<>();
         BigDecimal count = null;
         String iotNextLink = null;
         try {
@@ -1512,31 +1513,32 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
             }
             final ExpandOptions exp = new ExpandOptions(req);
-            final SimpleQuery subquery = buildExtraFilterQuery(req, true);
-            if (req.getCount()) {
-                count = new BigDecimal(omProvider.getProcedureNames(subquery, new HashMap<>()).size());
+            final List<Filter> filters = new ArrayList<>();
+            if (d != null) {
+                filters.add(ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.buildTemporalObj(d))));
             }
-            List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
+            if (req.getCount()) {
+                // could be optimized
+                final SimpleQuery subquery = buildExtraFilterQuery(req, false, filters);
+                Map<String, List<Date>> times = omProvider.getHistoricalTimes(subquery, new HashMap<>());
+                final AtomicInteger c = new AtomicInteger();
+                times.forEach((procedure, dates) -> c.addAndGet(dates.size()));
+                count = new BigDecimal(c.get());
+            }
+            final SimpleQuery subquery = buildExtraFilterQuery(req, true, filters);
+            Map<String, Map<Date, org.opengis.geometry.Geometry>> hLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
             List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(getServiceId(), null);
-            for (ProcedureTree proc : procs) {
-                String sensorId = ((ProcedureTree)proc).getId();
+            for (Entry<String, Map<Date, org.opengis.geometry.Geometry>> entry : hLocations.entrySet()) {
+                String sensorId = entry.getKey();
                 org.constellation.dto.Sensor s = null;
                 if (sensorIds.contains(sensorId)) {
                     s = sensorBusiness.getSensor(sensorId);
                 }
-                if (d != null) {
-                    if (proc.getHistoricalLocations().containsKey(d)) {
-                        HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, d, (AbstractGeometry) proc.getHistoricalLocations().get(d));
-                        locations.add(location);
-                    }
-                } else {
-                    for (Entry<Date, org.opengis.geometry.Geometry> entry : proc.getHistoricalLocations().entrySet()) {
-                        HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, entry.getKey(), (AbstractGeometry) entry.getValue());
-                        locations.add(location);
-                    }
+                for (Entry<Date, org.opengis.geometry.Geometry> hLocation : entry.getValue().entrySet()) {
+                    HistoricalLocation location = buildHistoricalLocation(exp, sensorId, s, hLocation.getKey(), (AbstractGeometry) hLocation.getValue());
+                    locations.add(location);
                 }
             }
-
             iotNextLink = computePaginationNextLink(req, count != null ? count.intValue() : null, "/HistoricalLocations");
 
         } catch (ConfigurationException | ConstellationStoreException ex) {
@@ -1557,14 +1559,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                     final ExpandOptions exp = new ExpandOptions(req);
                     final SimpleQuery subquery = new SimpleQuery();
-                    Id filter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
-                    subquery.setFilter(filter);
-                    List<ProcedureTree> procs = omProvider.getProcedureTrees(subquery, new HashMap<>());
-                    if (!procs.isEmpty()) {
-                        ProcedureTree proc = procs.get(0);
+                    final Id procFilter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
+                    final TEquals tFilter = ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.parseTemporalLong(timeStr)));
+                    subquery.setFilter(ff.and(procFilter, tFilter));
+                    Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());
+                    if (!sensorHLocations.isEmpty()) {
+                        Map<Date, org.opengis.geometry.Geometry> hLocations = sensorHLocations.get(sensorId);
                         try {
                             Date d = new Date(Long.parseLong(timeStr));
-                            org.opengis.geometry.Geometry geom = proc.getHistoricalLocations().get(d);
+                            org.opengis.geometry.Geometry geom = hLocations.get(d);
                             if (geom != null) {
                                 org.constellation.dto.Sensor s = sensorBusiness.getSensor(sensorId);
                                 if (s == null) {
@@ -1698,7 +1701,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         selfLink = selfLink.substring(0, selfLink.length() - 1) + "/HistoricalLocations(" + hlid + ")";
         HistoricalLocation result = new HistoricalLocation();
         result.setIotId(hlid);
-        result.setTime(formatDate(d));
+        result.setTime(d);
 
          if (exp.things) {
             result = result.thing(buildThing(exp, sensorID, s));

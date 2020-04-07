@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.opengis.filter.Filter;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -478,6 +480,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
+    public void initFilterGetLocations() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void initFilterGetProcedureTimes() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public Set<String> filterOffering() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -609,6 +621,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             }
         }
         return version;
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Map<String, List<Date>> getSensorTimes(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

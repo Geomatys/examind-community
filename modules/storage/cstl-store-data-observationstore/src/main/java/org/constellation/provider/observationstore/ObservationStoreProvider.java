@@ -129,6 +129,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     private static final int GET_PROC = 3;
     private static final int GET_OFF  = 4;
     private static final int GET_RES  = 5;
+    private static final int GET_LOC  = 6;
 
     public ObservationStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
@@ -284,6 +285,30 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             throw new ConstellationStoreException(ex);
         }
         return results;
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException {
+        try {
+            final ObservationFilterReader localOmFilter = store.getFilter();
+            localOmFilter.initFilterGetLocations();
+            handleQuery(q, localOmFilter, GET_LOC, hints);
+            return localOmFilter.getSensorLocations(hints);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String,String> hints) throws ConstellationStoreException {
+        try {
+            final ObservationFilterReader localOmFilter = store.getFilter();
+            localOmFilter.initFilterGetLocations();
+            handleQuery(q, localOmFilter, GET_LOC, hints);
+            return localOmFilter.getSensorTimes(hints);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
     }
 
     @Override
@@ -858,6 +883,21 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         return new ExtractionResult(ext.observations, ext.phenomenons, ext.featureOfInterest, procedures);
     }
 
+    private Map<Date, Geometry> castHL(Map<Date, AbstractGeometry> hl) {
+        final Map<Date, Geometry> results = new HashMap<>();
+        for (Entry<Date, AbstractGeometry> entry : hl.entrySet()) {
+            final AbstractGeometry hGmlGeom = entry.getValue();
+            Geometry hgeom = null;
+            if (hGmlGeom instanceof Geometry) {
+                hgeom = (Geometry) hGmlGeom;
+            } else if (hGmlGeom != null) {
+                LOGGER.log(Level.WARNING, "GML Geometry can not be casted as Opengis one:{0}", hGmlGeom);
+            }
+            results.put(entry.getKey(), hgeom);
+        }
+        return results;
+    }
+
     private ProcedureTree toDto(org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree pt) {
         GeoSpatialBound bound = pt.spatialBound;
         final AbstractGeometry gmlGeom = bound.getLastGeometry("2.0.0");
@@ -879,17 +919,7 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                                                   pt.fields,
                                                   geom);
 
-        final Map<Date, Geometry> historicalLocations = new HashMap<>();
-        for (Entry<Date, AbstractGeometry> entry : pt.spatialBound.getHistoricalLocations().entrySet()) {
-            final AbstractGeometry hGmlGeom = entry.getValue();
-            Geometry hgeom = null;
-            if (hGmlGeom instanceof Geometry) {
-                hgeom = (Geometry) hGmlGeom;
-            } else if (hGmlGeom != null) {
-                LOGGER.log(Level.WARNING, "GML Geometry can not be casted as Opengis one:{0}", hGmlGeom);
-            }
-            historicalLocations.put(entry.getKey(), hgeom);
-        }
+        final Map<Date, Geometry> historicalLocations = castHL(pt.spatialBound.getHistoricalLocations());
         result.setHistoricalLocations(historicalLocations);
         for (org.geotoolkit.sos.netcdf.ExtractionResult.ProcedureTree child: pt.children) {
             result.getChildren().add(toDto(child));

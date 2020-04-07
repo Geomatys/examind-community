@@ -21,9 +21,17 @@ INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10',      x'00
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-id', x'000000000140efef0000000000413a6b2800000000', 27582, 11, NULL, 'system',    'timeseries');
 
 
-INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
-INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-11 00:00:00.0', x'0000000001414721e3e3c47123c1341d38f21784f0', 27582);
-INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2','2000-12-22 00:00:00.0', x'00000000014144f902f95b5e67c13b3ac452c1ca80', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',       '2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',       '2000-12-11 00:00:00.0', x'0000000001414721e3e3c47123c1341d38f21784f0', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',       '2000-12-22 00:00:00.0', x'00000000014144f902f95b5e67c13b3ac452c1ca80', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:3',       '2007-05-01 02:59:00.0', x'00000000014044000000000000c008000000000000', 4326);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:4',       '2007-05-01 12:59:00.0', x'000000000140240000000000004024000000000000', 4326);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:test-1',  '2007-05-01 12:59:00.0', x'000000000140140000000000004024000000000000', 4326);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:7',       '2007-05-01 16:59:00.0', x'00000000014145b7ca31487fc1c138da59f139abf8', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:8',       '2007-05-01 12:59:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:9',       '2009-05-01 13:47:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:10',      '2009-05-01 13:47:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:test-id', '2009-05-01 13:47:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
 
 
 INSERT INTO "om"."sampling_features" VALUES ('station-001', '10972X0137-PONT' , 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140efef0000000000413a6b2800000000', 27582);

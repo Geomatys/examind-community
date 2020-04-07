@@ -176,6 +176,7 @@ public class OdataFilterParser {
         switch(property.toLowerCase()) {
             case "resulttime"             : return "time";
             case "phenomenontime"         : return "time";
+            case "time"                   : return "time";
         }
         throw new CstlServiceException("Unexpected temporal property name:" + property, INVALID_PARAMETER_VALUE, "FILTER");
     }
@@ -194,7 +195,7 @@ public class OdataFilterParser {
         throw new CstlServiceException("Unexpected property name:" + property, INVALID_PARAMETER_VALUE, "FILTER");
     }
 
-    private TemporalObject parseTemporalObj(String to) throws CstlServiceException {
+    public static TemporalObject parseTemporalObj(String to) throws CstlServiceException {
         int index = to.indexOf('/');
         if (index != -1) {
             Date begin = parseDate(to.substring(0, index));
@@ -204,5 +205,21 @@ public class OdataFilterParser {
             Date d = parseDate(to);
             return GMLXmlFactory.createTimeInstant("3.2.1", d);
         }
+    }
+
+    public static TemporalObject parseTemporalLong(String to) throws CstlServiceException {
+        int index = to.indexOf('/');
+        if (index != -1) {
+            Date begin = new Date(Long.parseLong(to.substring(0, index)));
+            Date end   = new Date(Long.parseLong(to.substring(index + 1)));
+            return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
+        } else {
+            Date d = new Date(Long.parseLong(to));
+            return GMLXmlFactory.createTimeInstant("3.2.1", d);
+        }
+    }
+
+    public static TemporalObject buildTemporalObj(Date to) throws CstlServiceException {
+        return GMLXmlFactory.createTimeInstant("3.2.1", to);
     }
 }

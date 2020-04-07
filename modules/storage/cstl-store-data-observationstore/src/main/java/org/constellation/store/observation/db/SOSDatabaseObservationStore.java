@@ -315,7 +315,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                     procedure.fields.add(field);
                 }
             }
-            procedure.spatialBound.appendLocation(obs.getSamplingTime(), obs.getFeatureOfInterest());
+            procedure.spatialBound.addTime(obs.getSamplingTime());
             procedure.spatialBound.getHistoricalLocations().putAll(reader.getSensorLocations(o.getProcedure().getHref(), "2.0.0"));
         }
         return result;

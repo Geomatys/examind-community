@@ -19,7 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import java.sql.Connection;
@@ -42,7 +41,10 @@ import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
+import org.geotoolkit.gml.JTStoGeometry;
+import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationStoreException;
@@ -60,6 +62,7 @@ import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.opengis.filter.expression.Literal;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -116,8 +119,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final Instant ti      = (Instant) time;
             final String position = getTimeValue(ti.getDate());
             //sqlRequest.append("AND (\"time_begin\"='").append(position).append("' AND \"time_end\"='").append(position).append("') ");
-            sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
-            obsJoin = true;
+            if (getLoc) {
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                sqlRequest.append(" \"time\"='").append(position).append("') ");
+            } else {
+                sqlMeasureRequest.append(" AND ( \"$time\"='").append(position).append("') ");
+                obsJoin = true;
+            }
+            firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                     INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -141,9 +154,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 sqlRequest.append("AND ( ");
             }
-            sqlRequest.append(" \"time_begin\"<='").append(position).append("')");
-            sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
-            obsJoin = true;
+            if (getLoc) {
+                sqlRequest.append(" \"time\"<='").append(position).append("')");
+            } else {
+                sqlRequest.append(" \"time_begin\"<='").append(position).append("')");
+                sqlMeasureRequest.append(" AND ( \"$time\"<='").append(position).append("')");
+                obsJoin = true;
+            }
             firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
@@ -168,9 +185,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 sqlRequest.append("AND ( ");
             }
-            sqlRequest.append(" \"time_end\">='").append(position).append("')");
-            sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
-            obsJoin = true;
+            if (getLoc) {
+                sqlRequest.append(" \"time\">='").append(position).append("')");
+            } else {
+                sqlRequest.append(" \"time_end\">='").append(position).append("')");
+                sqlMeasureRequest.append(" AND (\"$time\">='").append(position).append("')");
+                obsJoin = true;
+            }
             firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_After operation require timeInstant!",
@@ -196,24 +217,28 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 sqlRequest.append("AND ( ");
             }
 
-            // the multiple observations included in the period
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<='").append(end).append("')");
-            sqlRequest.append("OR");
-            // the single observations included in the period
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
-            sqlRequest.append("OR");
-            // the multiple observations which overlaps the first bound
-            sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<='").append(end).append("' AND \"time_end\">='").append(begin).append("')");
-            sqlRequest.append("OR");
-            // the multiple observations which overlaps the second bound
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\">='").append(end).append("' AND \"time_begin\"<='").append(end).append("')");
-            sqlRequest.append("OR");
-            // the multiple observations which overlaps the whole period
-            sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
+            if (getLoc) {
+                sqlRequest.append(" \"time\">='").append(begin).append("' AND \"time\"<='").append(end).append("')");
+            } else {
+                // the multiple observations included in the period
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<='").append(end).append("')");
+                sqlRequest.append("OR");
+                // the single observations included in the period
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
+                sqlRequest.append("OR");
+                // the multiple observations which overlaps the first bound
+                sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<='").append(end).append("' AND \"time_end\">='").append(begin).append("')");
+                sqlRequest.append("OR");
+                // the multiple observations which overlaps the second bound
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\">='").append(end).append("' AND \"time_begin\"<='").append(end).append("')");
+                sqlRequest.append("OR");
+                // the multiple observations which overlaps the whole period
+                sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">='").append(end).append("'))");
 
-            sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
+                sqlMeasureRequest.append(" AND ( \"$time\">='").append(begin).append("' AND \"$time\"<= '").append(end).append("')");
 
-            obsJoin = true;
+                obsJoin = true;
+            }
             firstFilter = false;
         } else {
             throw new ObservationStoreException("TM_During operation require TimePeriod!",
@@ -1064,7 +1089,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     } else {
                         crs = defaultCRS;
                     }
-                    final Geometry geom;
+                    final org.locationtech.jts.geom.Geometry geom;
                     if (b != null) {
                         WKBReader reader = new WKBReader();
                         geom = reader.read(b);
@@ -1174,6 +1199,102 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
             }
             return processes;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorLocations(final Map<String,String> hints) throws DataStoreException {
+        final String version = getVersionFromHints(hints);
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+
+        request = request + " ORDER BY \"procedure\", \"time\"";
+        request = appendPaginationToRequest(request, hints);
+        try(final Connection c = source.getConnection()) {
+            Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();
+            try(final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
+                while (rs.next()) {
+                    try {
+                        final String procedure = rs.getString("procedure");
+                        final Date time = new Date(rs.getTimestamp("time").getTime());
+                        final byte[] b = rs.getBytes(3);
+                        final int srid = rs.getInt(4);
+                        final CoordinateReferenceSystem crs;
+                        if (srid != 0) {
+                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
+                        } else {
+                            crs = defaultCRS;
+                        }
+                        final org.locationtech.jts.geom.Geometry geom;
+                        if (b != null) {
+                            WKBReader reader = new WKBReader();
+                            geom             = reader.read(b);
+                        } else {
+                            continue;
+                        }
+
+                        final String gmlVersion = getGMLVersion(version);
+                        final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
+
+                        final Map<Date, Geometry> procedureLocations;
+                        if (locations.containsKey(procedure)) {
+                            procedureLocations = locations.get(procedure);
+                        } else {
+                            procedureLocations = new LinkedHashMap<>();
+                            locations.put(procedure, procedureLocations);
+
+                        }
+                        if (gmlGeom instanceof Geometry) {
+                            procedureLocations.put(time, (Geometry) gmlGeom);
+                        } else {
+                            throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
+                        }
+                    } catch (FactoryException | ParseException ex) {
+                        throw new DataStoreException(ex);
+                    }
+                }
+            }
+            return locations;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public Map<String, List<Date>> getSensorTimes(final Map<String,String> hints) throws DataStoreException {
+        String request = sqlRequest.toString();
+        if (firstFilter) {
+            request = request.replaceFirst("WHERE", "");
+        }
+
+        request = request + " ORDER BY \"procedure\", \"time\"";
+        request = appendPaginationToRequest(request, hints);
+        try(final Connection c = source.getConnection()) {
+            Map<String, List<Date>> times = new LinkedHashMap<>();
+            try(final Statement currentStatement = c.createStatement();
+                final ResultSet rs = currentStatement.executeQuery(request)) {
+                while (rs.next()) {
+                    final String procedure = rs.getString("procedure");
+                    final Date time = new Date(rs.getTimestamp("time").getTime());
+
+                    final List<Date> procedureTimes;
+                    if (times.containsKey(procedure)) {
+                        procedureTimes = times.get(procedure);
+                    } else {
+                        procedureTimes = new ArrayList<>();
+                        times.put(procedure, procedureTimes);
+                    }
+                    procedureTimes.add(time);
+                }
+            }
+            return times;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);

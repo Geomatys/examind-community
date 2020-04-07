@@ -21,6 +21,7 @@ package org.constellation.sos.io.lucene;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,9 +32,9 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationResult;
-import org.geotoolkit.observation.xml.OMXmlFactory;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.opengis.geometry.Geometry;
 import org.opengis.observation.Measure;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -219,5 +220,20 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
             }
         }
         return version;
+    }
+
+    @Override
+    public Map<String, Map<Date, Geometry>> getSensorLocations(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void initFilterGetProcedureTimes() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Map<String, List<Date>> getSensorTimes(Map<String, String> hints) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

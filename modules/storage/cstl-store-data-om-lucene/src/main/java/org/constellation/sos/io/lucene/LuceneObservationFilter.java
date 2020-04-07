@@ -155,6 +155,10 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         eventTimes.clear();
     }
 
+    @Override
+    public void initFilterGetLocations() throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     /**
      * {@inheritDoc}

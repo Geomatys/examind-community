@@ -644,6 +644,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/th-mds.json");
         assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-hloc.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations?$expand=Locations");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-hloc-exp.json");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -711,7 +723,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2-978303600000)/HistoricalLocations");
+        getFoiUrl = new URL(getDefaultURL() + "/Locations(urn:ogc:object:sensor:GEOM:2-977439600000)/HistoricalLocations");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hlocs.json");
@@ -853,7 +865,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getHistoricalLocationByIdTest() throws Exception {
         initPool();
 
-        URL getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-978303600000)");
+        URL getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)");
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/hloc.json");
@@ -866,7 +878,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/hloc2.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-978303600000)?$expand=Things,Locations");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)?$expand=Things,Locations");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-exp.json");
@@ -878,13 +890,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/hloc2-exp.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-978303600000)/Things");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)/Things");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-th.json");
         assertEquals(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-978303600000)/Locations");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)/Locations");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc-loc.json");
@@ -895,6 +907,64 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/hloc2-loc.json");
         assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=21)
+    public void getHistoricalLocationsTimeTest() throws Exception {
+        initPool();
+
+        String filter = "time ge 2007-05-01T11:00:00Z".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/hloc-time1.json");
+        assertEquals(expResult, result);
+
+        filter = "time le 2007-05-01T11:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-time2.json");
+        assertEquals(expResult, result);
+
+        filter = "time ge 2007-05-01T11:00:00Z and time le 2008-05-01T11:00:00Z".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-time3.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=22)
+    public void getHistoricalLocationPaginationTest() throws Exception {
+        initPool();
+        // Creates a valid GetFoi url.
+        URL getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$top=2");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/hloc-top.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$top=2&$skip=2");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-top2.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$top=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-top-ct.json");
+        assertEquals(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/HistoricalLocations?$top=2&$skip=2&$count=true");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/hloc-top2-ct.json");
+        assertEquals(expResult, result);
+
     }
 
 

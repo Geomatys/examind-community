@@ -78,6 +78,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean getFOI  = false;
     protected boolean getPhen = false;
     protected boolean getProc = false;
+    protected boolean getLoc  = false;
     protected boolean getOff  = false;
 
     protected String currentProcedure = null;
@@ -204,6 +205,28 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest = new StringBuilder("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
         firstFilter = true;
         getProc = true;
+    }
+
+    @Override
+    public void initFilterGetLocations() throws DataStoreException {
+        String geomColum;
+        if (isPostgres) {
+            geomColum = "st_asBinary(\"location\") as \"location\"";
+        } else {
+            geomColum = "\"location\"";
+        }
+        sqlRequest = new StringBuilder("SELECT hl.\"procedure\", hl.\"time\", ")
+                .append(geomColum).append(", hl.\"crs\" FROM \"")
+                .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
+        firstFilter = true;
+        getLoc = true;
+    }
+
+    @Override
+    public void initFilterGetProcedureTimes() throws DataStoreException {
+        sqlRequest = new StringBuilder("SELECT hl.\"procedure\", hl.\"time\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" hl WHERE ");
+        firstFilter = true;
+        getLoc = true;
     }
 
     /**
@@ -1019,7 +1042,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         return fieldPhen;
     }
-    
+
     @SuppressWarnings("squid:S2695")
     protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
         String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=? AND \"observed_property\"=?";

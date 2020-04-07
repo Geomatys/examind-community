@@ -1,0 +1,9 @@
+{
+  "value" : [ {
+    "@iot.id" : "urn:ogc:object:sensor:GEOM:7-1178031540000",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)",
+    "time" : "2007-05-01T14:59:00Z",
+    "Locations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)/Locations",
+    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/HistoricalLocations(urn:ogc:object:sensor:GEOM:7-1178031540000)/Things"
+  } ]
+}

@@ -114,6 +114,10 @@ public interface ObservationProvider extends DataProvider {
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
 
+    Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+
+    Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String,String> hints) throws ConstellationStoreException;
+
     ExtractionResult extractResults() throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException;
