@@ -466,7 +466,7 @@ public class CSWUtils {
         final List<String> endValues   = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/csw:TemporalExtent/csw:end");
 
         org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory dcFactory = new org.geotoolkit.dublincore.xml.v2.elements.ObjectFactory();
-        
+
         // add dc:identifier
         if (!identifierValues.isEmpty()) {
             entry.getAuthorOrCategoryOrContent().add(dcFactory.createIdentifier(new SimpleLiteral(identifierValues.get(0))));

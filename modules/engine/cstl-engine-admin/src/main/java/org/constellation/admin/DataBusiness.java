@@ -105,8 +105,8 @@ public class DataBusiness implements IDataBusiness {
      * Temporal formatting for layer with TemporalCRS.
      * @TODO Duplicate from {@link org.constellation.map.ws.DefaultWMSWorker}
      */
-    private static final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    static {
+    private final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    {
         ISO8601_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 

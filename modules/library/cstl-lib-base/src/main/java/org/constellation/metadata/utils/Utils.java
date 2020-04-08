@@ -685,7 +685,7 @@ public final class Utils {
         } else if (obj instanceof Instant) {
             final Instant inst = (Instant)obj;
             if (inst.getDate() != null) {
-                synchronized(Util.LUCENE_DATE_FORMAT) {
+                synchronized (Util.LUCENE_DATE_FORMAT) {
                     result.add(Util.LUCENE_DATE_FORMAT.format(inst.getDate()));
                 }
             } else {
@@ -695,7 +695,6 @@ public final class Utils {
             synchronized (Util.LUCENE_DATE_FORMAT){
                 result.add(Util.LUCENE_DATE_FORMAT.format((Date)obj));
             }
-
         } else if (obj instanceof Enum) {
             result.add(((Enum)obj).name());
 

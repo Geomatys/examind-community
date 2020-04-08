@@ -18,19 +18,19 @@
  */
 package org.constellation.dto.metadata;
 
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
-
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 public class JsonMetadataConstants {
-    
+
     public static final String DATE_READ_ONLY = "DATE.readonly";
-    
+
     /**
      * The object to use for parsing dates of the form "2014-09-11".
      * Usage of this format shall be synchronized on {@code DATE_FORMAT}.
@@ -39,17 +39,17 @@ public class JsonMetadataConstants {
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-    
+
     public static final DateFormat DATE_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
     static {
         DATE_HOUR_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-    
+
     public static String cleanNumeratedPath(final String numeratedPath) {
         String s = numeratedPath.replaceAll("\\[[0-9]*\\]", "");
         return s.replace("+", "");
     }
-    
+
     public static String removeLastNumeratedPathPart(final String numeratedPath) {
         int index = numeratedPath.lastIndexOf('[');
         if (index != -1) {
@@ -57,7 +57,7 @@ public class JsonMetadataConstants {
         }
         return numeratedPath;
     }
-    
+
     public static int getLastOrdinal(final String numeratedPath) {
         int i = numeratedPath.lastIndexOf('[');
         int j = numeratedPath.lastIndexOf(']');
@@ -75,11 +75,11 @@ public class JsonMetadataConstants {
         }
         return -1;
     }
-    
+
     public static boolean isNumeratedPath(String s) {
         return s.indexOf('[') != -1;
     }
-    
+
     public static String buildNumeratedPath(final String numeratedPath, int ordinal) {
         int index = numeratedPath.lastIndexOf('[');
         if (index == -1) {

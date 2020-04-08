@@ -149,8 +149,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
     /** Default temporal CRS, used for comparison purposes. */
     public static final TemporalCRS JAVA_TIME = CommonCRS.Temporal.JAVA.crs();
 
-    public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    static {
+    public final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+     {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 

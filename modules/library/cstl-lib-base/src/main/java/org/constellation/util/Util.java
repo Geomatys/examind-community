@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
@@ -75,7 +76,7 @@ public final class Util {
 
     public static final DateFormat FULL_LUCENE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     static {
-        LUCENE_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        FULL_LUCENE_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private Util() {}

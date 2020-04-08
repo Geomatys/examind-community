@@ -46,6 +46,7 @@ import org.geotoolkit.sts.json.STSResponse;
 public class STSResponseWriter implements HttpMessageConverter<STSResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("com.examind.sts.ws.rs");
+
     private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS'Z'");
     static {
         DATE_FORM.setTimeZone(TimeZone.getTimeZone("UTC"));

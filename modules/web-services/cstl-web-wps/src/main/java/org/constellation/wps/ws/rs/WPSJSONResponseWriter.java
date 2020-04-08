@@ -43,7 +43,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    private static final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
+    private final SimpleDateFormat DATE_FORM = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:SS'Z'");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {

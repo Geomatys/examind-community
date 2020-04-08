@@ -78,7 +78,7 @@ public class RunProactive extends AbstractCstlProcess {
                         "    }\n" +
                         "}";
 
-    private static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
+    private  final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
 
     @Autowired
     public IProcessBusiness processBusiness;
