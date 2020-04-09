@@ -38,22 +38,22 @@ import org.geotoolkit.index.IndexingException;
  * @author Guilhem Legal (Gematys)
  */
 public class ElasticSearchIndexSearcher implements IndexSearcher {
-    
+
     private final String indexName;
-    
+
     protected final ElasticSearchClient client;
-    
+
     private Level logLevel = Level.INFO;
-    
+
     private final boolean remoteES;
-    
+
     private final String hostName;
-    
+
     private final String clusterName;
-    
+
     public ElasticSearchIndexSearcher(final String host, final String clusterName, final String indexName, final boolean remoteES) throws IndexingException {
         this.indexName   = indexName.toLowerCase();
-        this.remoteES    = remoteES; 
+        this.remoteES    = remoteES;
         this.clusterName = clusterName;
         this.hostName    = host;
         if (remoteES) {
@@ -65,14 +65,14 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
         } else {
             this.client = ElasticSearchClient.getServerInstance(clusterName);
         }
-        
+
     }
-    
+
     @Override
     public Set<String> doSearch(SpatialQuery spatialQuery) throws SearchingException {
         final Set<String> results = new LinkedHashSet<>();
         try {
-            SearchHit[] resultHits = client.search(indexName, spatialQuery.getQuery(), (XContentBuilder) spatialQuery.getSpatialFilter(), (Sort)spatialQuery.getSort(), Integer.MAX_VALUE);
+            SearchHit[] resultHits = client.search(indexName, spatialQuery.getTextQuery(), (XContentBuilder) spatialQuery.getQuery(), (Sort)spatialQuery.getSort(), Integer.MAX_VALUE);
             for (int i = 0; i < resultHits.length; i++) {
                 results.add(resultHits[i].getId());
             }
@@ -119,5 +119,5 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
             ElasticSearchClient.releaseServerInstance(clusterName);
         }
     }
-    
+
 }

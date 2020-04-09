@@ -19,7 +19,7 @@
 
 package org.constellation.filter;
 
-import org.apache.lucene.search.Filter;
+import org.apache.lucene.search.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,43 +31,43 @@ import org.geotoolkit.index.SpatialQuery;
  */
 @Deprecated
 public class SQLQuery implements SpatialQuery {
-    
+
     private String query;
-    
+
     public int nbField;
-    
-    private final Filter spatialFilter;
-    
+
+    private final Query spatialQuery;
+
     private List<SQLQuery> subQueries;
-    
+
     public SQLQuery(String query) {
         this.query         = query;
-        this.spatialFilter = null;
+        this.spatialQuery = null;
         nbField            = 1;
     }
-    
-    public SQLQuery(Filter spatialFilter) {
+
+    public SQLQuery(Query spatialFilter) {
         this.query         = "";
-        this.spatialFilter = spatialFilter;
+        this.spatialQuery = spatialFilter;
         nbField            = 0;
     }
-    
-    public SQLQuery(String query, Filter spatialFilter) {
+
+    public SQLQuery(String query, Query spatialFilter) {
         this.query         = query;
-        this.spatialFilter = spatialFilter;
+        this.spatialQuery = spatialFilter;
         nbField            = 0;
     }
 
     @Override
-    public String getQuery() {
+    public String getTextQuery() {
         return query;
     }
-    
+
     @Override
     public Object getSort() {
         return null;
     }
-    
+
     public void createSelect() {
         final StringBuilder select = new StringBuilder("SELECT distinct \"identifier\" FROM \"Storage\".\"Records\" ");
         for (int i = 1; i <= nbField; i++) {
@@ -78,8 +78,8 @@ public class SQLQuery implements SpatialQuery {
     }
 
     @Override
-    public Filter getSpatialFilter() {
-        return spatialFilter;
+    public Query getQuery() {
+        return spatialQuery;
     }
 
     public List<SQLQuery> getSubQueries() {
@@ -91,20 +91,20 @@ public class SQLQuery implements SpatialQuery {
     public void setSubQueries(List<SQLQuery> subQueries) {
         this.subQueries = subQueries;
     }
-    
+
     @Override
     public String toString() {
         final StringBuilder s =new StringBuilder("[SQLquery]").append('\n');
         if (query != null && !query.isEmpty())
             s.append("query= ").append(query).append('\n');
-        if (spatialFilter != null) {
-            s.append("spatialFilter").append(spatialFilter).append('\n');
+        if (spatialQuery != null) {
+            s.append("spatialFilter").append(spatialQuery).append('\n');
         }
         if (subQueries != null && !subQueries.isEmpty()) {
             s.append("SubQueries:").append('\n');
             int i = 0;
             for (SQLQuery sq: subQueries) {
-                s.append(i).append(": ").append(sq).append('\n'); 
+                s.append(i).append(": ").append(sq).append('\n');
                 i++;
             }
         }

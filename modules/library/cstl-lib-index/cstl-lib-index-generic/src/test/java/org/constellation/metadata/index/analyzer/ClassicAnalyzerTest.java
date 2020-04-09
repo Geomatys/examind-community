@@ -20,7 +20,6 @@
 package org.constellation.metadata.index.analyzer;
 
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
-import org.apache.lucene.search.Filter;
 import org.constellation.metadata.index.generic.GenericIndexer;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
@@ -53,8 +52,8 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
     private static Path configDirectory = Paths.get("ClassicAnalyzerTest" + UUID.randomUUID().toString());
 
     private static boolean configured = false;
-    
-    
+
+
     @PostConstruct
     public void setUpClass() throws Exception {
         if (!configured) {
@@ -99,13 +98,12 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
      */
     @Test
     public void wildCharSearchTest() throws Exception {
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 simple search: title = title1
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:90008411*", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:90008411*", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -123,7 +121,7 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 2 wildChar search: abstract LIKE *NEDIPROD*
          */
-        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -142,7 +140,7 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
          * Test 3 wildChar search: title like *.ctd
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("Title:*.ctd", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title:*.ctd", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -162,7 +160,7 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 4 wildCharSearch: abstract LIKE *onnees CTD NEDIPROD VI 120
          */
-        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -181,7 +179,7 @@ public class ClassicAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 5 wildCharSearch: Format LIKE *MEDATLAS ASCII*
          */
-        spatialQuery = new SpatialQuery("Format:(*MEDATLAS ASCII*)", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Format:(*MEDATLAS ASCII*)", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";

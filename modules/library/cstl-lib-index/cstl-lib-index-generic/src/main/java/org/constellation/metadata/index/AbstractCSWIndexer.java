@@ -21,12 +21,8 @@ package org.constellation.metadata.index;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.DoubleField;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.FloatField;
-import org.apache.lucene.document.IntField;
-import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
@@ -49,6 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 
@@ -308,27 +308,27 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
         final Field numSortField;
         final Character fieldType;
 
-        final FieldType numericType = new FieldType(SORT_TYPE);
-        numericType.setDocValuesType(DocValuesType.SORTED_NUMERIC);
+        /*final FieldType numericType = new FieldType(SORT_TYPE);
+        numericType.setDocValuesType(DocValuesType.SORTED_NUMERIC);*/
         if (numValue instanceof Integer) {
-            numericType.setNumericType(FieldType.NumericType.INT);
-            numField     = new IntField(fieldName,           (Integer) numValue, Field.Store.NO);
-            numSortField = new IntField(fieldName + "_sort", (Integer) numValue, numericType);
+            //numericType.setNumericType(FieldType.NumericType.INT);
+            numField     = new IntPoint(fieldName,           (Integer) numValue);
+            numSortField = new IntPoint(fieldName + "_sort", (Integer) numValue);
             fieldType = 'i';
         } else if (numValue instanceof Double) {
-            numericType.setNumericType(FieldType.NumericType.DOUBLE);
-            numField     = new DoubleField(fieldName,           (Double) numValue, Field.Store.NO);
-            numSortField = new DoubleField(fieldName + "_sort", (Double) numValue, numericType);
+            //numericType.setNumericType(FieldType.NumericType.DOUBLE);
+            numField     = new DoublePoint(fieldName,           (Double) numValue);
+            numSortField = new DoublePoint(fieldName + "_sort", (Double) numValue);
             fieldType = 'd';
         } else if (numValue instanceof Float) {
-            numericType.setNumericType(FieldType.NumericType.FLOAT);
-            numField     = new FloatField(fieldName,           (Float) numValue, Field.Store.NO);
-            numSortField = new FloatField(fieldName + "_sort", (Float) numValue, numericType);
+            //numericType.setNumericType(FieldType.NumericType.FLOAT);
+            numField     = new FloatPoint(fieldName,           (Float) numValue);
+            numSortField = new FloatPoint(fieldName + "_sort", (Float) numValue);
             fieldType = 'f';
         } else if (numValue instanceof Long) {
-            numericType.setNumericType(FieldType.NumericType.LONG);
-            numField     = new LongField(fieldName,           (Long) numValue, Field.Store.NO);
-            numSortField = new LongField(fieldName + "_sort", (Long) numValue, numericType);
+            //numericType.setNumericType(FieldType.NumericType.LONG);
+            numField     = new LongPoint(fieldName,           (Long) numValue);
+            numSortField = new LongPoint(fieldName + "_sort", (Long) numValue);
             fieldType = 'l';
         } else {
             numField     = new StringField(fieldName,           String.valueOf(numValue), Field.Store.NO);
