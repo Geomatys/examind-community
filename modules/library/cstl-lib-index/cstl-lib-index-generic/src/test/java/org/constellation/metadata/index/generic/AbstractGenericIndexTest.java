@@ -1,6 +1,5 @@
 package org.constellation.metadata.index.generic;
 
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
@@ -9,8 +8,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.metadata.index.AbstractCSWIndexer;
 import org.geotoolkit.index.LogicalFilterType;
-import org.geotoolkit.lucene.filter.LuceneOGCFilter;
-import org.geotoolkit.lucene.filter.SerialChainFilter;
+import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
 import org.opengis.filter.FilterFactory2;
@@ -19,6 +17,10 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.TermQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.test.utils.SpringTestRunner;
 
@@ -47,13 +49,12 @@ public abstract class AbstractGenericIndexTest {
 
 
     public void simpleSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 simple search: title = 90008411.ctd
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411.ctd\"", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411.ctd\"", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -70,7 +71,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 2 simple search: identifier != 40510_145_19930221211500
          */
-        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -97,7 +98,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 3 simple search: originator = UNIVERSITE DE LA MEDITERRANNEE (U2) / COM - LAB. OCEANOG. BIOGEOCHIMIE - LUMINY
          */
-        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -115,7 +116,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 4 simple search: Title = 92005711.ctd
          */
-        spatialQuery = new SpatialQuery("Title:\"92005711.ctd\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title:\"92005711.ctd\"", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -133,7 +134,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 5 simple search: creator = IFREMER / IDM/SISMER
          */
-        spatialQuery = new SpatialQuery("creator:\"IFREMER / IDM/SISMER\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("creator:\"IFREMER / IDM/SISMER\"", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -151,7 +152,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 6 simple search: identifier = 40510_145_19930221211500
          */
-        spatialQuery = new SpatialQuery("identifier:\"40510_145_19930221211500\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("identifier:\"40510_145_19930221211500\"", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -169,7 +170,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 7 simple search: TopicCategory = oceans
          */
-        spatialQuery = new SpatialQuery("TopicCategory:\"oceans\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("TopicCategory:\"oceans\"", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -194,7 +195,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 8 simple search: TopicCategory = environment
          */
-        spatialQuery = new SpatialQuery("TopicCategory:\"environment\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("TopicCategory:\"environment\"", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -211,13 +212,12 @@ public abstract class AbstractGenericIndexTest {
     }
 
     public void wildCharSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 simple search: title = title1
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:90008411*", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:90008411*", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -235,7 +235,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 2 wildChar search: originator LIKE *UNIVER....
          */
-        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -254,7 +254,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 3 wildChar search: Title like *.ctd
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("Title:*.ctd", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title:*.ctd", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -274,7 +274,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 4 wildChar search: title like *.ctd
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("title:*.ctd", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("title:*.ctd", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -293,7 +293,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 5 wildCharSearch: abstract LIKE *onnees CTD NEDIPROD VI 120
          */
-        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -312,7 +312,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 6 wildCharSearch: identifier LIKE 40510_145_*
          */
-        spatialQuery = new SpatialQuery("identifier:40510_145_*", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("identifier:40510_145_*", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -330,7 +330,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 7 wildCharSearch: identifier LIKE *40510_145_*
          */
-        spatialQuery = new SpatialQuery("identifier:*40510_145_*", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("identifier:*40510_145_*", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -353,13 +353,12 @@ public abstract class AbstractGenericIndexTest {
      * @throws java.lang.Exception
      */
     public void numericComparisonSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 numeric search: CloudCover <= 60
          */
-        SpatialQuery spatialQuery = new SpatialQuery("CloudCover:{-2147483648 TO 60}", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("CloudCover:{-2147483648 TO 60}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -377,7 +376,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 2 numeric search: CloudCover <= 25
          */
-        spatialQuery = new SpatialQuery("CloudCover:[-2147483648 TO 25]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CloudCover:[-2147483648 TO 25]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -398,7 +397,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 3 numeric search: CloudCover => 25
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("CloudCover:[25 TO 2147483648]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CloudCover:[25 TO 2147483648]", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -416,7 +415,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 4 numeric search: CloudCover => 60
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("CloudCover:[210 TO 2147483648]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CloudCover:[210 TO 2147483648]", null, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -430,7 +429,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 5 numeric search: CloudCover => 50
          */
-        spatialQuery = new SpatialQuery("CloudCover:[50.0 TO 2147483648]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CloudCover:[50.0 TO 2147483648]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         resultReport = "";
@@ -456,13 +455,12 @@ public abstract class AbstractGenericIndexTest {
      * @throws java.lang.Exception
      */
     public void dateSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{\"20090125000000\" 30000101000000}", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{\"20090125000000\" 30000101000000}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -482,7 +480,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 4 date search: date = 26/01/2009
          */
-        spatialQuery = new SpatialQuery("date:\"20090126112224\"", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("date:\"20090126112224\"", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -501,7 +499,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 5 date search: date LIKE 26/01/200*
          */
-        spatialQuery = new SpatialQuery("date:(200*0126*)", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("date:(200*0126*)", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -521,7 +519,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 6 date search: CreationDate between 01/01/1800 and 01/01/2000
          */
-        spatialQuery = new SpatialQuery("CreationDate:[18000101000000  30000101000000]CreationDate:[00000101000000 20000101000000]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CreationDate:[18000101000000  30000101000000]CreationDate:[00000101000000 20000101000000]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -539,7 +537,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 7 date time search: CreationDate after 1970-02-04T06:00:00
          */
-        spatialQuery = new SpatialQuery("CreationDate:[19700204060000  30000101000000]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CreationDate:[19700204060000  30000101000000]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -556,12 +554,10 @@ public abstract class AbstractGenericIndexTest {
     }
 
     public void problematicDateSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
-        Filter nullFilter   = null;
-
         /**
          * Test 3 date search: TempExtent_end after 01/01/1991
          */
-        SpatialQuery spatialQuery = new SpatialQuery("TempExtent_end:{\"19910101\" 30000101}", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("TempExtent_end:{\"19910101\" 30000101}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         String resultReport ="";
@@ -581,7 +577,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 2 date search: TempExtent_begin before 01/01/1985
          */
-        spatialQuery = new SpatialQuery("TempExtent_begin:{00000101 \"19850101\"}", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("TempExtent_begin:{00000101 \"19850101\"}", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -604,13 +600,12 @@ public abstract class AbstractGenericIndexTest {
      */
     public void sortedSearchTest(LuceneIndexSearcher indexSearcher) throws Exception {
 
-        Filter nullFilter   = null;
         String resultReport = "";
 
         /**
          * Test 1 sorted search: all orderBy identifier ASC
          */
-        SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
         SortField sf = new SortField("identifier_sort", SortField.Type.STRING, false);
         spatialQuery.setSort(new Sort(sf));
 
@@ -639,7 +634,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 2 sorted search: all orderBy identifier DSC
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
         sf = new SortField("identifier_sort", SortField.Type.STRING, true);
         spatialQuery.setSort(new Sort(sf));
 
@@ -669,7 +664,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 3 sorted search: all orderBy Abstract ASC
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
         sf = new SortField("Abstract_sort", SortField.Type.STRING, false);
         spatialQuery.setSort(new Sort(sf));
 
@@ -699,7 +694,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 4 sorted search: all orderBy Abstract DSC
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
         sf = new SortField("Abstract_sort", SortField.Type.STRING, true);
         spatialQuery.setSort(new Sort(sf));
 
@@ -729,7 +724,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 5 sorted search: orderBy CloudCover ASC with SortField.STRING => bad order
 
          resultReport = "";
-         spatialQuery = new SpatialQuery("CloudCover:[0 TO 2147483648]", nullFilter, LogicalFilterType.AND);
+         spatialQuery = new SpatialQuery("CloudCover:[0 TO 2147483648]", null, LogicalFilterType.AND);
          sf = new SortedNumericSortField("CloudCover_sort", SortField.Type.STRING, true);
          spatialQuery.setSort(new Sort(sf));
 
@@ -753,7 +748,7 @@ public abstract class AbstractGenericIndexTest {
          * Test 5 sorted search: orderBy CloudCover ASC with SortField.DOUBLE => good order
          */
         resultReport = "";
-        spatialQuery = new SpatialQuery("CloudCover:[0 TO 2147483648]", nullFilter, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CloudCover:[0 TO 2147483648]", null, LogicalFilterType.AND);
         sf = new SortedNumericSortField("CloudCover_sort", SortField.Type.DOUBLE, true);
         spatialQuery.setSort(new Sort(sf));
 
@@ -792,7 +787,7 @@ public abstract class AbstractGenericIndexTest {
         GeneralEnvelope bbox = new GeneralEnvelope(min1, max1);
         CoordinateReferenceSystem crs = CommonCRS.defaultGeographic();
         bbox.setCoordinateReferenceSystem(crs);
-        LuceneOGCFilter sf = LuceneOGCFilter.wrap(getFF().bbox(LuceneOGCFilter.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        LuceneOGCSpatialQuery sf = LuceneOGCSpatialQuery.wrap(getFF().bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
         SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", sf, LogicalFilterType.AND);
 
         Set<String> result = indexSearcher.doSearch(spatialQuery);
@@ -814,13 +809,13 @@ public abstract class AbstractGenericIndexTest {
          * Test 1 spatial search: NOT BBOX filter
          */
         resultReport = "";
-        List<Filter> lf = new ArrayList<>();
         //sf           = new BBOXFilter(bbox, "urn:x-ogc:def:crs:EPSG:6.11:4326");
-        sf           = LuceneOGCFilter.wrap(getFF().bbox(LuceneOGCFilter.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        sf           = LuceneOGCSpatialQuery.wrap(getFF().bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
 
-        lf.add(sf);
-        LogicalFilterType[] op = {LogicalFilterType.NOT};
-        SerialChainFilter f = new SerialChainFilter(lf, op);
+        BooleanQuery f = new BooleanQuery.Builder()
+                                .add(sf, BooleanClause.Occur.MUST_NOT)
+                                .add(new TermQuery(new Term("metafile", "doc")), BooleanClause.Occur.MUST)
+                                .build();
         spatialQuery = new SpatialQuery("metafile:doc", f, LogicalFilterType.AND);
 
         result = indexSearcher.doSearch(spatialQuery);

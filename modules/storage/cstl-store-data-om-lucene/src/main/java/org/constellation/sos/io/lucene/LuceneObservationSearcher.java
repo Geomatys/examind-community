@@ -26,7 +26,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -44,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import org.apache.lucene.search.BooleanClause;
 
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.unLuceneTimeValue;
 import org.geotoolkit.index.LogicalFilterType;
@@ -54,6 +54,11 @@ import org.geotoolkit.index.LogicalFilterType;
  * @author Guilhem Legal (Geomatys)
  */
 public class LuceneObservationSearcher extends LuceneIndexSearcher {
+
+    /**
+     * A default Query requesting all the document
+     */
+    private final static Query SIMPLE_QUERY = new TermQuery(new Term("metafile", "doc"));
 
     /**
      * Build a new index searcher with the index located in the specified directory.
@@ -92,14 +97,14 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
             parser.setDefaultOperator(Operator.AND);
 
             // we enable the leading wildcard mode if the first character of the query is a '*'
-            if (spatialQuery.getQuery().indexOf(":*") != -1 || spatialQuery.getQuery().indexOf(":?") != -1 || spatialQuery.getQuery().indexOf(":(*") != -1
-             || spatialQuery.getQuery().indexOf(":(+*") != -1 || spatialQuery.getQuery().indexOf(":+*") != -1) {
+            if (spatialQuery.getTextQuery().indexOf(":*") != -1 || spatialQuery.getTextQuery().indexOf(":?") != -1 || spatialQuery.getTextQuery().indexOf(":(*") != -1
+             || spatialQuery.getTextQuery().indexOf(":(+*") != -1 || spatialQuery.getTextQuery().indexOf(":+*") != -1) {
                 parser.setAllowLeadingWildcard(true);
                 BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
             }
-            LOGGER.log(Level.FINER, "before parse:{0}", spatialQuery.getQuery());
-            final Query query   = parser.parse(spatialQuery.getQuery());
-            final Filter filter = spatialQuery.getSpatialFilter();
+            LOGGER.log(Level.FINER, "before parse:{0}", spatialQuery.getTextQuery());
+            final Query query   = parser.parse(spatialQuery.getTextQuery());
+            final Query filter = spatialQuery.getQuery();
             final LogicalFilterType operator  = spatialQuery.getLogicalOperator();
             final Sort sort     = spatialQuery.getSort();
             String sorted       = "no Sorted";
@@ -114,11 +119,20 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
 
             // simple query with an AND
             if (operator == LogicalFilterType.AND || (operator == LogicalFilterType.OR && filter == null)) {
+                Query singleQuery;
+                if (filter != null) {
+                    singleQuery = new BooleanQuery.Builder()
+                                    .add(filter, BooleanClause.Occur.MUST)
+                                    .add(query,  BooleanClause.Occur.MUST)
+                                    .build();
+                } else {
+                    singleQuery = query;
+                }
                 final TopDocs docs;
                 if (sort != null) {
-                    docs = searcher.search(query, filter, maxRecords, sort);
+                    docs = searcher.search(singleQuery, maxRecords, sort);
                 } else {
-                    docs = searcher.search(query, filter, maxRecords);
+                    docs = searcher.search(singleQuery, maxRecords);
                 }
                 for (ScoreDoc doc : docs.scoreDocs) {
                     final ObservationResult or = getObservationResult(searcher.doc(doc.doc));
@@ -129,12 +143,16 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
             } else if (operator == LogicalFilterType.OR) {
                 final TopDocs hits1;
                 final TopDocs hits2;
+                BooleanQuery boolQuery = new BooleanQuery.Builder()
+                                .add(spatialQuery.getQuery(), BooleanClause.Occur.MUST)
+                                .add(SIMPLE_QUERY,            BooleanClause.Occur.MUST)
+                                .build();
                 if (sort != null) {
-                    hits1 = searcher.search(query, null, maxRecords, sort);
-                    hits2 = searcher.search(simpleQuery, spatialQuery.getSpatialFilter(), maxRecords, sort);
+                    hits1 = searcher.search(query,     maxRecords, sort);
+                    hits2 = searcher.search(boolQuery, maxRecords, sort);
                 } else {
-                    hits1 = searcher.search(query, maxRecords);
-                    hits2 = searcher.search(simpleQuery, spatialQuery.getSpatialFilter(), maxRecords);
+                    hits1 = searcher.search(query,     maxRecords);
+                    hits2 = searcher.search(boolQuery, maxRecords);
                 }
                 for (ScoreDoc doc : hits1.scoreDocs) {
                     final ObservationResult or = getObservationResult(searcher.doc(doc.doc));
@@ -149,11 +167,15 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
 
             // for a NOT we need to perform many request
             } else if (operator == LogicalFilterType.NOT) {
+                BooleanQuery boolQuery = new BooleanQuery.Builder()
+                                .add(filter, BooleanClause.Occur.MUST)
+                                .add(query,  BooleanClause.Occur.MUST)
+                                .build();
                 final TopDocs hits1;
                 if (sort != null) {
-                    hits1 = searcher.search(query, filter, maxRecords, sort);
+                    hits1 = searcher.search(boolQuery, maxRecords, sort);
                 } else {
-                    hits1 = searcher.search(query, filter, maxRecords);
+                    hits1 = searcher.search(boolQuery, maxRecords);
                 }
                 final List<ObservationResult> unWanteds = new ArrayList<>();
                 for (ScoreDoc doc : hits1.scoreDocs) {
@@ -163,9 +185,9 @@ public class LuceneObservationSearcher extends LuceneIndexSearcher {
 
                 final TopDocs hits2;
                 if (sort != null) {
-                    hits2 = searcher.search(simpleQuery, null, maxRecords, sort);
+                    hits2 = searcher.search(SIMPLE_QUERY, maxRecords, sort);
                 } else {
-                    hits2 = searcher.search(simpleQuery, maxRecords);
+                    hits2 = searcher.search(SIMPLE_QUERY, maxRecords);
                 }
                 for (ScoreDoc doc : hits2.scoreDocs) {
                     final ObservationResult or = getObservationResult(searcher.doc(doc.doc));
