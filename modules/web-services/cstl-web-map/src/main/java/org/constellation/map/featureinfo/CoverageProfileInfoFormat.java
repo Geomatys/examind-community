@@ -120,6 +120,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 }
 
                 Object cdt2 = ((Map) parameters).get(PARAM_NBPOINT);
+                if (cdt2 instanceof String[]) {
+                    cdt2 = ((String[]) cdt2)[0];
+                }
                 if (cdt2 instanceof String) {
                     try {
                         samplingCount = Double.valueOf((String) cdt2).intValue();
