@@ -43,29 +43,19 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
 
     protected final ElasticSearchClient client;
 
-    private Level logLevel = Level.INFO;
-
-    private final boolean remoteES;
-
     private final String hostName;
 
     private final String clusterName;
 
-    public ElasticSearchIndexSearcher(final String host, final String clusterName, final String indexName, final boolean remoteES) throws IndexingException {
+    public ElasticSearchIndexSearcher(final String host, final String clusterName, final String indexName) throws IndexingException {
         this.indexName   = indexName.toLowerCase();
-        this.remoteES    = remoteES;
         this.clusterName = clusterName;
         this.hostName    = host;
-        if (remoteES) {
-            try {
-                this.client = ElasticSearchClient.getClientInstance(host, clusterName);
-            } catch (UnknownHostException | ElasticsearchException ex) {
-                throw new IndexingException("error while connecting ELasticSearch cluster", ex);
-            }
-        } else {
-            this.client = ElasticSearchClient.getServerInstance(clusterName);
+        try {
+            this.client = ElasticSearchClient.getClientInstance(host, clusterName);
+        } catch (UnknownHostException | ElasticsearchException ex) {
+            throw new IndexingException("error while connecting ELasticSearch cluster", ex);
         }
-
     }
 
     @Override
@@ -108,16 +98,11 @@ public class ElasticSearchIndexSearcher implements IndexSearcher {
 
     @Override
     public void setLogLevel(Level logLevel) {
-        this.logLevel = logLevel;
+         // to remove
     }
 
     @Override
     public void destroy() {
-        if (remoteES) {
-            ElasticSearchClient.releaseClientInstance(hostName, clusterName);
-        } else {
-            ElasticSearchClient.releaseServerInstance(clusterName);
-        }
+        ElasticSearchClient.releaseClientInstance(hostName, clusterName);
     }
-
 }

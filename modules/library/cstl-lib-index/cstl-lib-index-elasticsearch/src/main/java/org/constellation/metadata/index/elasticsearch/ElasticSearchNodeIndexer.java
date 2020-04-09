@@ -44,8 +44,8 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
     private final DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public ElasticSearchNodeIndexer(final MetadataStore store, final String host, final String clusterName, final String indexName,
-                                    final Map<String, PathType> additionalQueryable, final boolean create, final boolean remoteES) throws IndexingException {
-        super(store, host, clusterName, indexName, additionalQueryable, remoteES);
+                                    final Map<String, PathType> additionalQueryable, final boolean create) throws IndexingException {
+        super(store, host, clusterName, indexName, additionalQueryable);
         try {
             if (create && needCreation()) {
                 createIndex();
@@ -57,8 +57,8 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
     }
 
     public ElasticSearchNodeIndexer(final List<Node> toIndex, final String host, final String clusterName, final String indexName,
-                                    final Map<String, PathType> additionalQueryable, final boolean create, final boolean remoteES) throws IndexingException {
-        super(null, host, clusterName, indexName, additionalQueryable, remoteES);
+                                    final Map<String, PathType> additionalQueryable, final boolean create) throws IndexingException {
+        super(null, host, clusterName, indexName, additionalQueryable);
         try {
             if (create && needCreation()) {
                 createIndex(toIndex);

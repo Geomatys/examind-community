@@ -47,7 +47,7 @@ public class ElasticSearchIndexProvider implements IndexProvider {
             Map<String, Object> infos = ElasticSearchClient.getServerInfo("http://" + host + ":9200");
             clusterName = (String) infos.get("cluster_name");
         }
-        return new ElasticSearchNodeIndexer(mdStore, host, clusterName, serviceID, ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), true, true);
+        return new ElasticSearchNodeIndexer(mdStore, host, clusterName, serviceID, ((CSWMetadataReader)mdStore.getReader()).getAdditionalQueryablePathMap(), true);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class ElasticSearchIndexProvider implements IndexProvider {
             Map<String, Object> infos = ElasticSearchClient.getServerInfo("http://" + host + ":9200");
             clusterName = (String) infos.get("cluster_name");
         }
-        return new ElasticSearchIndexSearcher(host, clusterName, serviceID, true);
+        return new ElasticSearchIndexSearcher(host, clusterName, serviceID);
     }
 
     @Override

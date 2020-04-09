@@ -56,8 +56,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     protected final ElasticSearchClient client;
 
-    private final boolean remoteES;
-
     private final String hostName;
 
     private final String clusterName;
@@ -81,22 +79,17 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
     protected static final List<String> indexationToStop = new ArrayList<>();
 
     public ElasticSearchIndexer(final MetadataStore store, final String host, final String clusterName, final String indexName,
-            final Map<String, PathType> additionalQueryable, boolean remoteES) throws IndexingException {
+            final Map<String, PathType> additionalQueryable) throws IndexingException {
 
-        this.remoteES            = remoteES;
         this.clusterName         = clusterName;
         this.hostName            = host;
         this.indexName           = indexName.toLowerCase();
         this.additionalQueryable = additionalQueryable;
         this.store              = store;
-        if (remoteES) {
-            try {
-                this.client      = ElasticSearchClient.getClientInstance(host, clusterName);
-            } catch (UnknownHostException | ElasticsearchException  ex) {
-                throw new IndexingException("error while connecting ELasticSearch cluster", ex);
-            }
-        } else {
-            this.client          = ElasticSearchClient.getServerInstance(clusterName);
+        try {
+            this.client      = ElasticSearchClient.getClientInstance(host, clusterName);
+        } catch (UnknownHostException | ElasticsearchException  ex) {
+            throw new IndexingException("error while connecting ELasticSearch cluster", ex);
         }
     }
 
@@ -522,11 +515,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     @Override
     public void destroy() {
-        if (remoteES) {
-            ElasticSearchClient.releaseClientInstance(hostName, clusterName);
-        } else {
-            ElasticSearchClient.releaseServerInstance(clusterName);
-        }
+        ElasticSearchClient.releaseClientInstance(hostName, clusterName);
     }
-
 }

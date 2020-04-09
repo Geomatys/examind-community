@@ -2,11 +2,8 @@ package org.constellation.metadata.index.elasticsearch;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.FileInputStream;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -20,12 +17,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,20 +30,24 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.HttpHost;
 import org.constellation.exception.ConfigurationException;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import org.elasticsearch.search.SearchHit;
 import static org.constellation.metadata.index.elasticsearch.SpatialFilterBuilder.*;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.opengis.geometry.Envelope;
@@ -61,7 +60,7 @@ public class ElasticSearchClient {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
 
-    private final Properties _configuration;
+    private final Settings _configuration;
 
     private Node _server;
     private Client client;
@@ -71,7 +70,11 @@ public class ElasticSearchClient {
     // Constructors ----------------------------------------------------------------
     private ElasticSearchClient(final String id, final Properties configuration) {
         this.id = id;
-        this._configuration = configuration;
+        Builder builder = Settings.builder();
+        for (Entry entry : configuration.entrySet()) {
+            builder.put((String)entry.getKey(), (String)entry.getValue());
+        }
+        this._configuration = builder.build();
     }
 
     protected ClusterHealthStatus getHealthStatus() {
@@ -102,34 +105,10 @@ public class ElasticSearchClient {
         }
     }
 
-    // Publics ---------------------------------------------------------------------
-    public void start() {
-        LOGGER.info("Starting the Elastic Search server node");
-
-        final Settings.Builder builder
-                = Settings.settingsBuilder().put(_configuration);
-        _server = nodeBuilder().settings(builder).build();
-
-        LOGGER.info("Starting the Elastic Search server node with these settings:");
-        final Map<String, String> map = _server.settings().getAsMap();
-        final List<String> keys = new ArrayList<>(map.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            LOGGER.log(Level.INFO, " {0} : {1}", new Object[]{key, map.get(key)});
-        }
-
-        _server.start();
-
-        checkServerStatus();
-
-        LOGGER.info("Elastic Search server is started.");
-    }
-
     public void startClient(String host) throws ElasticsearchException, UnknownHostException {
         // on startup
-        Settings settings = Settings.settingsBuilder().put(_configuration)
-                                                      .build();
-        client = TransportClient.builder().settings(settings).build().addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), 9300));
+        RestHighLevelClient client = new RestHighLevelClient(
+                RestClient.builder(new HttpHost(host, 9200, "http")));
     }
 
     public Client getClient() {
@@ -166,7 +145,7 @@ public class ElasticSearchClient {
     public boolean deleteIndex(final String indexName) {
         final IndicesExistsResponse response = getClient().admin().indices().exists(new IndicesExistsRequest(indexName)).actionGet();
         if (response.isExists()) {
-            final DeleteIndexResponse delResponse = getClient().admin().indices().prepareDelete(indexName).execute().actionGet();
+            final AcknowledgedResponse delResponse = getClient().admin().indices().prepareDelete(indexName).execute().actionGet();
             return delResponse.isAcknowledged();
         }
         return true;
@@ -174,7 +153,7 @@ public class ElasticSearchClient {
 
     public boolean indexDoc(final String indexName, final String id, final Map values) {
         // index a metadata
-        IndexResponse response = getClient().prepareIndex(indexName, "metadata", id).setSource(values).setRefresh(true).execute().actionGet();
+        IndexResponse response = getClient().prepareIndex(indexName, "metadata", id).setSource(values).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
         return response.getVersion() > 1;
     }
 
@@ -186,7 +165,7 @@ public class ElasticSearchClient {
     }
 
     public boolean removeDoc(final String indexName, final String id) {
-        final DeleteResponse response = getClient().prepareDelete(indexName, "metadata", id).setRefresh(true).execute().actionGet();
+        final DeleteResponse response = getClient().prepareDelete(indexName, "metadata", id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
         return response.getVersion() > 1;
     }
 
@@ -265,7 +244,7 @@ public class ElasticSearchClient {
                                   final double maxx, final double maxy,
                                   final int limit, final String filterType, final Double distance, final String unit) throws IOException {
 
-        final XContentBuilder filter = addSpatialFilter(filterType, spatialType, crsName, minx, maxx, miny, maxy, distance, unit);
+        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, crsName, minx, maxx, miny, maxy, distance, unit).toString());
         return search(index, null, null, filter, -1, limit, null, null);
     }
 
@@ -277,7 +256,7 @@ public class ElasticSearchClient {
     public SearchHit[] spatialSearch(final String index, final String spatialType, final String filterType, final String crsName,
                                   final int limit, final Double distance, final String unit, final Double ...coord) throws IOException {
 
-        final XContentBuilder filter = addSpatialFilter(filterType, spatialType, crsName, distance, unit, coord);
+        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, crsName, distance, unit, coord).toString());
         return search(index, null, null, filter, -1, limit, null, null);
     }
 
@@ -291,16 +270,16 @@ public class ElasticSearchClient {
                                   final double x, final double y,
                                   final int limit, final String filterType, final Double distance, final String unit) throws IOException {
 
-        final XContentBuilder filter = addSpatialFilter(filterType, spatialType, x, y, crsName, distance, unit);
+        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, x, y, crsName, distance, unit).toString());
         return search(index, null, null, filter, -1, limit, null, null);
     }
 
-    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final XContentBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
+    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
         SearchRequestBuilder builder = client.prepareSearch(index)
                                              .setSearchType(SearchType.DEFAULT);
 
         if (queryJson != null) {
-            builder = builder.setQuery(queryJson);
+            builder = builder.setQuery(QueryBuilders.wrapperQuery(queryJson));
         } else if (query != null) {
             builder = builder.setQuery(query);
         }
@@ -352,7 +331,11 @@ public class ElasticSearchClient {
         if (query != null) {
             queryBuilder = QueryBuilders.queryStringQuery(query);
         }
-        return search(index, null, queryBuilder, filter, -1, limit, null, sort);
+        QueryBuilder filterBuilder = null;
+        if (query != null) {
+            queryBuilder = QueryBuilders.wrapperQuery(filter.toString());
+        }
+        return search(index, null, queryBuilder, filterBuilder, -1, limit, null, sort);
     }
 
     public SearchHit[] searchAll(final String index, final int limit) throws IOException {
@@ -360,7 +343,7 @@ public class ElasticSearchClient {
     }
 
     private static Settings.Builder getAnalyzer() throws IOException {
-        return Settings.settingsBuilder().loadFromSource(XContentFactory.jsonBuilder()
+        return Settings.builder().loadFromSource(XContentFactory.jsonBuilder()
                 .startObject()
                     .startObject("analysis")
                         .startObject("analyzer")
@@ -371,7 +354,7 @@ public class ElasticSearchClient {
                             .endObject()
                         .endObject()
                     .endObject()
-                .endObject().string());
+                .endObject().toString(), XContentType.JSON);
     }
 
     /**
@@ -435,7 +418,7 @@ public class ElasticSearchClient {
                .endObject()
                .endObject();
 
-        LOGGER.log(Level.FINER, "MAPPING:{0}", builder.string());
+        LOGGER.log(Level.FINER, "MAPPING:{0}", builder.toString());
         return builder;
     }
 
@@ -447,54 +430,16 @@ public class ElasticSearchClient {
     private void close() {
         LOGGER.info("--- CLOSING ES CLIENT " + id + " ---");
         if (_server != null && !_server.isClosed()) {
-            _server.close();
+            try {
+                _server.close();
+            } catch (IOException ex) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
             _server = null;
         }
         if (client != null) {
             client.close();
             client = null;
-        }
-    }
-
-    public static synchronized ElasticSearchClient getServerInstance(String clusterName) {
-        ElasticSearchClient instance = SERVER_INSTANCE.get(clusterName);
-        if (instance == null) {
-            Properties properties = new Properties();
-            final File propFile = new File("es.properties");
-            if (propFile.exists()) {
-                LOGGER.info("\n\n LOADING FROM PROPERTIE FILE \n\n");
-                try {
-                    properties.load(new FileInputStream(propFile));
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, null, ex);
-                }
-            } else {
-                properties.put("path.home", "home");
-                properties.put("path.data", "data");
-                properties.put("path.work", "work");
-                properties.put("path.logs", "logs");
-                properties.put("cluster.name", clusterName);
-                //properties.put("path.plugins","target/releases");
-                //properties.put("network.host", "_non_loopback_");
-                //properties.put("discovery.zen.ping.unicast.hosts", "[2001:41d0:fe72:4400:4538:af3b:df61:51df]:9300");
-
-            }
-            instance = new ElasticSearchClient(clusterName, properties);
-            instance.start();
-            SERVER_INSTANCE.put(clusterName, instance);
-            SERVER_COUNTER.put(clusterName, new AtomicInteger());
-        }
-        SERVER_COUNTER.get(clusterName).incrementAndGet();
-        return instance;
-    }
-
-    public static synchronized void releaseServerInstance(String clusterName) {
-        if (SERVER_INSTANCE.containsKey(clusterName)) {
-            ElasticSearchClient client = SERVER_INSTANCE.get(clusterName);
-            SERVER_INSTANCE.remove(clusterName);
-            if (SERVER_COUNTER.get(clusterName).decrementAndGet() <= 0) {
-                client.close();
-            }
         }
     }
 

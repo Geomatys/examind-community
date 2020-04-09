@@ -47,6 +47,7 @@ import org.constellation.filter.ElasticSearchFilterParser;
 import org.constellation.filter.FilterParser;
 import org.constellation.filter.FilterParserException;
 import org.constellation.filter.FilterParserUtils;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 
@@ -86,7 +87,6 @@ public class ElasticSearchFilterParserTest {
 
     @Test
     public void dummyTestFilterTest() throws Exception {
-        System.out.println(QueryBuilders.andQuery(QueryBuilders.termQuery("test", "ss"), QueryBuilders.termQuery("test", "ss")).toString());
         System.out.println(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("test", "ss")).must(QueryBuilders.termQuery("test", "ss")).toString());
     }
     /**
@@ -122,7 +122,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"wildcard\":{\"Title_sort\":\"*VM*\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"Title_sort\":\"*VM*\"}}");
 
 
         /**
@@ -149,7 +149,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"term\":{\"Title\":\"VM\"}}");
+        assertEquals(Strings.toString(result), "{\"term\":{\"Title\":\"VM\"}}");
 
         /**
          * Test 3: a simple Filter PropertyIsNotEqualTo
@@ -175,7 +175,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"not\":{\"term\":{\"Title\":\"VM\"}}}");
+        assertEquals(Strings.toString(result), "{\"not\":{\"term\":{\"Title\":\"VM\"}}}");
 
 
         /**
@@ -201,7 +201,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"missing\":{\"field\":\"Title\"}}");
+        assertEquals(Strings.toString(result), "{\"missing\":{\"field\":\"Title\"}}");
 
         /**
          * Test 5: a simple Filter PropertyIsGreaterThanOrEqualTo
@@ -227,7 +227,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}");
 
         /**
          * Test 6: a simple Filter PropertyIsGreaterThan
@@ -253,7 +253,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CreationDate\":{\"gt\":\"2007-06-02\"}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gt\":\"2007-06-02\"}}}");
 
         /**
          * Test 7: a simple Filter PropertyIsLessThan
@@ -279,7 +279,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CreationDate\":{\"lt\":\"2007-06-02\"}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"lt\":\"2007-06-02\"}}}");
 
 
          /**
@@ -306,7 +306,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CreationDate\":{\"lte\":\"2007-06-02\"}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"lte\":\"2007-06-02\"}}}");
 
 
         /**
@@ -338,7 +338,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\",\"lte\":\"2007-06-04\"}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\",\"lte\":\"2007-06-04\"}}}");
 
          /**
          * Test 10: a simple empty Filter
@@ -364,7 +364,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CloudCover\":{\"lte\":12}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CloudCover\":{\"lte\":12}}}");
 
         /**
          * Test 11: a simple Filter PropertyIsGreaterThan with numeric field
@@ -380,7 +380,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"range\":{\"CloudCover\":{\"gt\":12}}}");
+        assertEquals(Strings.toString(result), "{\"range\":{\"CloudCover\":{\"gt\":12}}}");
 
         /**
          * Test 12: a simple Filter PropertyIsGreaterThan with numeric field + typeName
@@ -396,7 +396,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"range\":{\"CloudCover\":{\"gt\":12}}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"range\":{\"CloudCover\":{\"gt\":12}}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -430,7 +430,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"term\":{\"CreationDate\":\"2007-06-02\"}}");
+        assertEquals(Strings.toString(result), "{\"term\":{\"CreationDate\":\"2007-06-02\"}}");
 
         /**
          * Test 2: a simple Filter PropertyIsLike on a Date field
@@ -457,7 +457,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"wildcard\":{\"CreationDate_sort\":\"200*0602\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"CreationDate_sort\":\"200*0602\"}}");
 
         /**
          * Test 3: a simple Filter PropertyIsLike on a identifier field
@@ -484,7 +484,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}}");
 
         /**
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
@@ -493,7 +493,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -566,7 +566,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
 
         /**
          * Test 2: a simple Filter OR between two propertyIsEqualTo
@@ -597,7 +597,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
 
 
         /**
@@ -634,7 +634,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}},{\"term\":{\"Id\":\"268\"}}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}},{\"term\":{\"Id\":\"268\"}}]}");
 
 
         /**
@@ -662,7 +662,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}");
+        assertEquals(Strings.toString(result), "{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}");
 
         /**
          * Test 5: a simple Filter Not propertyIsNotEqualTo
@@ -689,7 +689,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"not\":{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}}");
+        assertEquals(Strings.toString(result), "{\"not\":{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}}");
 
         /**
          * Test 6: a simple Filter Not PropertyIsGreaterThanOrEqualTo
@@ -716,7 +716,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}");
+        assertEquals(Strings.toString(result), "{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}");
 
         /**
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
@@ -725,7 +725,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery()  instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"term\":{\"objectType_sort\":\"MD_Metadata\"}},{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"objectType_sort\":\"MD_Metadata\"}},{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}]}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -769,7 +769,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}");
+        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}");
 
         /**
          * Test 2: a simple Distance Filter DWithin
@@ -800,7 +800,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}");
+        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}");
 
         /**
          * Test 3: a simple spatial Filter Intersects
@@ -829,7 +829,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"ogc_filter\":{\"geoextent\":{\"linestring\":\"[1.0,2.0,10.0,15.0]\",\"filter\":\"INTERSECTS\"}}}");
+        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"linestring\":\"[1.0,2.0,10.0,15.0]\",\"filter\":\"INTERSECTS\"}}}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -1076,7 +1076,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
 
         /**
@@ -1123,7 +1123,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
 
 
          /**
@@ -1172,7 +1172,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
          /**
          * Test 4: three spatial Filter (NOT F1) AND F2 AND F3
@@ -1220,7 +1220,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
 
         /**
          * Test 5: three spatial Filter NOT (F1 OR F2) AND F3
@@ -1270,7 +1270,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"not\":{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}}]}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}}]}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -1320,7 +1320,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
@@ -1366,7 +1366,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
         /**
          * Test 3:  INTERSECT AND propertyIsEquals AND BBOX
@@ -1410,7 +1410,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
 
         /**
          * Test 4: PropertyIsLike OR INTERSECT OR propertyIsEquals
@@ -1451,7 +1451,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
 
          /**
@@ -1496,7 +1496,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
 
         /**
          * Test 6:  INTERSECT AND (propertyIsEquals OR BBOX)
@@ -1542,7 +1542,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
 
         /**
@@ -1586,7 +1586,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}");
+        assertEquals(Strings.toString(result), "{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}");
 
 
         /**
@@ -1656,7 +1656,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
 
 
         /**
@@ -1732,7 +1732,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(result.string(), "{\"and\":[{\"not\":{\"wildcard\":{\"Title_sort\":\"*VM*\"}}},{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"not\":{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}]}");
+        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"wildcard\":{\"Title_sort\":\"*VM*\"}}},{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"not\":{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}]}");
 
         pool.recycle(filterUnmarshaller);
     }

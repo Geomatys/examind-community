@@ -108,10 +108,9 @@ public class ElasticSearchIndexTest {
 
         IOUtilities.deleteRecursively(configDirectory.toPath());
         List<Node> object         = fillTestData();
-        boolean remoteES          = true;
         String indexName          = "GenericNodeIndexTest" + UUID.randomUUID().toString();
-        indexer                   = new ElasticSearchNodeIndexer(object, "localhost", clusterName, indexName, new HashMap<String, PathType>(), true, remoteES);
-        indexSearcher             = new ElasticSearchIndexSearcher("localhost", clusterName, indexName, remoteES);
+        indexer                   = new ElasticSearchNodeIndexer(object, "localhost", clusterName, indexName, new HashMap<>(), true);
+        indexSearcher             = new ElasticSearchIndexSearcher("localhost", clusterName, indexName);
     }
 
     @AfterClass
@@ -325,7 +324,7 @@ public class ElasticSearchIndexTest {
                         .endArray()
 
                 .endObject();
-         System.out.println(filter.string());
+        System.out.println(filter.toString());
         spatialQuery = new SpatialQuery(filter);
         result       = indexSearcher.doSearch(spatialQuery);
 
