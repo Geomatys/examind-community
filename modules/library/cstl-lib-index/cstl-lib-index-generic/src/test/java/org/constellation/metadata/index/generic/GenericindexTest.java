@@ -37,7 +37,6 @@ import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.AfterClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opengis.metadata.citation.DateType;
 
 import javax.xml.bind.JAXBElement;
@@ -53,18 +52,9 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.metadata.utils.Utils;
 import javax.annotation.PostConstruct;
-import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
 import static org.junit.Assert.assertEquals;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
-// Constellation dependencies
-// lucene dependencies
-// geotoolkit dependencies
-// GeoAPI dependencies
-//Junit dependencies
 
 /**
  * Test class for constellation lucene index
@@ -76,21 +66,19 @@ public class GenericindexTest extends AbstractGenericIndexTest {
     private static LuceneIndexSearcher indexSearcher;
 
     private static GenericIndexer indexer;
-    
+
     private static final Path configDirectory  = Paths.get("GenericIndexTest"+ UUID.randomUUID().toString());
-    
+
     private static boolean configured = false;
-    
+
     @PostConstruct
     public void setUpClass() throws Exception {
-        
+
         if (!configured) {
             IOUtilities.deleteRecursively(configDirectory);
             List<Object> object       = fillTestData();
             indexer                   = new GenericIndexer(object, null, configDirectory, "", true);
             indexSearcher             = new LuceneIndexSearcher(configDirectory, "", null, true);
-            //indexer.setLogLevel(Level.FINER);
-            //indexSearcher.setLogLevel(Level.FINER);
             configured = true;
         }
 
@@ -122,7 +110,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
     public void simpleSearchTest() throws Exception {
         super.simpleSearchTest(indexSearcher);
     }
-    
+
 
      /**
      * Test simple lucene search.
@@ -265,7 +253,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
         //TimePeriodType tp1 = new TimePeriodType("id", "2008-11-01", "2008-12-01");
         Date d1 = TemporalUtilities.getDateFromString("2008-11-01");
         Date d2 = TemporalUtilities.getDateFromString("2008-12-01");;
-                
+
         TimePeriodType tp1 = new TimePeriodType("id", new TimePositionType(d1), new TimePositionType(d2));
         tp1.setId("007-all");
         DefaultTemporalExtent tempExtent = new DefaultTemporalExtent();
@@ -279,20 +267,20 @@ public class GenericindexTest extends AbstractGenericIndexTest {
         List<Object> result = Utils.extractValues(meta4, Arrays.asList("ISO 19115:MD_Metadata:identificationInfo:extent:temporalElement:extent#id=[0-9]+-all:beginPosition"));
         assertEquals(Arrays.asList("20081101000000"), result);
     }
-    
+
     @Test
     @Order(order = 11)
     public void extractValuesTest3() throws Exception {
         Unmarshaller unmarshaller  = CSWMarshallerPool.getInstance().acquireUnmarshaller();
         DefaultMetadata meta4      = (DefaultMetadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta7.xml"));
-        
+
         List<String> paths  = XpathUtils.xpathToMDPath(Arrays.asList("/gmd:MD_Metadata/gmd:identificationInfo/*/gmd:topicCategory/gmd:MD_TopicCategoryCode"));
         List<Object> result = Utils.extractValues(meta4, paths);
         assertEquals(Arrays.asList("ENVIRONMENT"), result);
-        
+
         CSWMarshallerPool.getInstance().recycle(unmarshaller);
     }
-    
+
 
     public static List<Object> fillTestData() throws JAXBException {
         List<Object> result = new ArrayList<>();
@@ -327,7 +315,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
 
         obj = unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/imageMetadata.xml"));
         result.add(obj);
-        
+
         obj = unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/metaNan.xml"));
         result.add(obj);
 

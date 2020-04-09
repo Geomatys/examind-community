@@ -460,7 +460,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{\"20090125000000\" 30000101000000}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{\"20090125000000\" TO 30000101000000}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -519,7 +519,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 6 date search: CreationDate between 01/01/1800 and 01/01/2000
          */
-        spatialQuery = new SpatialQuery("CreationDate:[18000101000000  30000101000000]CreationDate:[00000101000000 20000101000000]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CreationDate:[18000101000000 TO 30000101000000]CreationDate:[00000101000000 TO 20000101000000]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -537,7 +537,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 7 date time search: CreationDate after 1970-02-04T06:00:00
          */
-        spatialQuery = new SpatialQuery("CreationDate:[19700204060000  30000101000000]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("CreationDate:[19700204060000 TO 30000101000000]", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {
@@ -557,7 +557,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 3 date search: TempExtent_end after 01/01/1991
          */
-        SpatialQuery spatialQuery = new SpatialQuery("TempExtent_end:{\"19910101\" 30000101}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("TempExtent_end:{\"19910101\" TO 30000101}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
 
         String resultReport ="";
@@ -577,7 +577,7 @@ public abstract class AbstractGenericIndexTest {
         /**
          * Test 2 date search: TempExtent_begin before 01/01/1985
          */
-        spatialQuery = new SpatialQuery("TempExtent_begin:{00000101 \"19850101\"}", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("TempExtent_begin:{00000101 TO \"19850101\"}", null, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
 
         for (String s: result) {

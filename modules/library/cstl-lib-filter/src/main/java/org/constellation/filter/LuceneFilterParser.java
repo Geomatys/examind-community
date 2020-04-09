@@ -325,11 +325,11 @@ public class LuceneFilterParser extends AbstractFilterParser {
         } else if ("<=".equals(operator) || "<".equals(operator)) {
             final String lowerBound;
             if (isDate) {
-                lowerBound = "00000101000000 \"";
+                lowerBound = "00000101000000 TO \"";
             } else if (isNumber){
                 lowerBound = "-2147483648 TO ";
             } else {
-                lowerBound = "0 \"";
+                lowerBound = "0 TO \"";
             }
             if (isNumber) {
                 response.append(open).append(lowerBound).append(literal).append(close);
@@ -339,11 +339,11 @@ public class LuceneFilterParser extends AbstractFilterParser {
         } else if (">=".equals(operator) || ">".equals(operator)) {
             final String upperBound;
             if (isDate) {
-                upperBound = "\" 30000101000000";
+                upperBound = "\" TO 30000101000000";
             } else if (isNumber){
                 upperBound = " TO 2147483648";
             } else {
-                upperBound = "\" z";
+                upperBound = "\"TO z";
             }
 
             if (isNumber) {

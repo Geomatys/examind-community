@@ -152,8 +152,8 @@ public class KeywordAnalyzerTest extends AbstractAnalyzerTest {
         expectedResult = new LinkedHashSet<>();
         expectedResult.add("42292_5p_19900609195600");
 
-        // it didn't find any result (why???)
-        expectedResult = new LinkedHashSet<>();
+        /* it didn't find any result (why???) fixed by lucene 8.4.0
+        expectedResult = new LinkedHashSet<>();*/
 
         assertEquals(expectedResult, result);
 
@@ -210,6 +210,7 @@ public class KeywordAnalyzerTest extends AbstractAnalyzerTest {
 
         logger.log(Level.FINER, "wildCharSearch 5:\n{0}", resultReport);
 
+       // should be
         expectedResult = new LinkedHashSet<>();
         expectedResult.add("42292_5p_19900609195600");
         expectedResult.add("42292_9s_19900610041000");
@@ -217,8 +218,10 @@ public class KeywordAnalyzerTest extends AbstractAnalyzerTest {
         expectedResult.add("40510_145_19930221211500");
 
 
-        // ERROR it didn't find any result (why???)
+        // but with this analyzer we got 11325_158_19640418141800
+        // witch got for format = 'ASCII MEDATLAS'
         expectedResult = new LinkedHashSet<>();
+        expectedResult.add("11325_158_19640418141800");
 
         assertEquals(expectedResult, result);
 

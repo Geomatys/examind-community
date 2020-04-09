@@ -368,13 +368,12 @@ public abstract class AbstractFilterParser implements FilterParser {
 
         } else if (queries.size() > 1) {
             BooleanQuery.Builder builder = new BooleanQuery.Builder();
-            final LogicalFilterType[] filterType = new LogicalFilterType[queries.size() - 1];
             for (int i = 0; i < queries.size(); i++) {
                 switch (logicalOperand) {
-                    case AND : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST);
-                    case OR  : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD);
-                    case XOR : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD); // not working at the moment TODO
-                    case NOT : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST_NOT);
+                    case AND : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST);break;
+                    case OR  : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD);break;
+                    case XOR : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD);break; // not working at the moment TODO
+                    case NOT : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST_NOT);break;
                 }
 
             }

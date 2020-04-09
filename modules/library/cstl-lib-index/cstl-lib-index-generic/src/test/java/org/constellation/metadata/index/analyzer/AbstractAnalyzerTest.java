@@ -264,7 +264,7 @@ public abstract class AbstractAnalyzerTest {
         logResultReport("wildCharUnderscoreSearch 1:", result);
 
         Set<String> expectedResult = new LinkedHashSet<>();
-        //expectedResult.add("MDWeb_FR_SY_couche_vecteur_258"); error '_' is tokenized
+        expectedResult.add("MDWeb_FR_SY_couche_vecteur_258"); //error '_' is tokenized
 
         assertEquals(expectedResult, result);
 
@@ -276,7 +276,7 @@ public abstract class AbstractAnalyzerTest {
         logResultReport("wildCharUnderscoreSearch 2:", result);
 
         expectedResult = new LinkedHashSet<>();
-        //expectedResult.add("Spot5-Cyprus-THX-IMAGERY3_ortho1"); // error
+        expectedResult.add("Spot5-Cyprus-THX-IMAGERY3_ortho1");
 
         assertEquals(expectedResult, result);
     }
@@ -285,7 +285,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 TO 30000101}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("DateSearch 1:", result);
 

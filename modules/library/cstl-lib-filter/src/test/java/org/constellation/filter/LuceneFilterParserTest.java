@@ -225,7 +225,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" 30000101000000]");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]");
 
         /**
          * Test 6: a simple Filter PropertyIsGreaterThan
@@ -251,7 +251,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:{\"20070602000000\" 30000101000000}");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:{\"20070602000000\" TO 30000101000000}");
 
         /**
          * Test 7: a simple Filter PropertyIsLessThan
@@ -277,7 +277,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:{00000101000000 \"20070602000000\"}");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:{00000101000000 TO \"20070602000000\"}");
 
 
          /**
@@ -304,7 +304,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:[00000101000000 \"20070602000000\"]");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:[00000101000000 TO \"20070602000000\"]");
 
 
         /**
@@ -336,7 +336,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"]");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]CreationDate:[00000101000000 TO \"20070604000000\"]");
 
          /**
          * Test 10: a simple empty Filter
@@ -716,7 +716,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" 30000101000000]");
+        assertEquals(spaQuery.getTextQuery(), "CreationDate:[\"20070602000000\" TO 30000101000000]");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
 
         /**
@@ -728,7 +728,7 @@ public class LuceneFilterParserTest {
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getTextQuery(), "(objectType:\"MD_Metadata\")");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(),"CreationDate:[\"20070602000000\" 30000101000000]");
+        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(),"CreationDate:[\"20070602000000\" TO 30000101000000]");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
         pool.recycle(filterUnmarshaller);
     }
@@ -1372,7 +1372,7 @@ public class LuceneFilterParserTest {
 
         //we verify each filter
         cf1 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
-        assertEquals(cf1.clauses().size(), 1);
+        assertEquals(cf1.clauses().size(), 2);
         assertEquals(cf1.clauses().get(0).getOccur(), BooleanClause.Occur.MUST_NOT);
         assertEquals(cf1.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
         assertTrue(cf1.clauses().get(0).getQuery() instanceof BooleanQuery);

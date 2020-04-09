@@ -49,8 +49,10 @@ import org.apache.lucene.document.DoublePoint;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.util.NumericUtils;
 
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
@@ -313,30 +315,30 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
         if (numValue instanceof Integer) {
             //numericType.setNumericType(FieldType.NumericType.INT);
             numField     = new IntPoint(fieldName,           (Integer) numValue);
-            numSortField = new IntPoint(fieldName + "_sort", (Integer) numValue);
+            numSortField = new SortedNumericDocValuesField(fieldName + "_sort", (Integer) numValue);
             fieldType = 'i';
         } else if (numValue instanceof Double) {
             //numericType.setNumericType(FieldType.NumericType.DOUBLE);
             numField     = new DoublePoint(fieldName,           (Double) numValue);
-            numSortField = new DoublePoint(fieldName + "_sort", (Double) numValue);
+            numSortField = new SortedNumericDocValuesField(fieldName + "_sort", NumericUtils.doubleToSortableLong((Double) numValue));
             fieldType = 'd';
         } else if (numValue instanceof Float) {
             //numericType.setNumericType(FieldType.NumericType.FLOAT);
             numField     = new FloatPoint(fieldName,           (Float) numValue);
-            numSortField = new FloatPoint(fieldName + "_sort", (Float) numValue);
+            numSortField = new SortedNumericDocValuesField(fieldName + "_sort", NumericUtils.floatToSortableInt((Float) numValue));
             fieldType = 'f';
         } else if (numValue instanceof Long) {
             //numericType.setNumericType(FieldType.NumericType.LONG);
             numField     = new LongPoint(fieldName,           (Long) numValue);
-            numSortField = new LongPoint(fieldName + "_sort", (Long) numValue);
+            numSortField = new SortedNumericDocValuesField(fieldName + "_sort", (Long) numValue);
             fieldType = 'l';
         } else {
             numField     = new StringField(fieldName,           String.valueOf(numValue), Field.Store.NO);
             numSortField = new StringField(fieldName + "_sort", String.valueOf(numValue), Field.Store.NO);
-            fieldType = 'u';
             if (numValue != null) {
                 LOGGER.log(Level.WARNING, "Unexpected Number type:{0}", numValue.getClass().getName());
             }
+            fieldType = 'u';
         }
         addNumericField(fieldName, fieldType);
         addNumericField(fieldName + "_sort", fieldType);

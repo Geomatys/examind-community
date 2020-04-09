@@ -157,12 +157,12 @@ public class SQLFilterParser extends AbstractFilterParser {
                     if (operator.equalsIgnoreCase("OR")) {
                         query.nbField = nbField -1;
                         query.createSelect();
-                        queryBuilder.append('(').append(query.getQuery());
+                        queryBuilder.append('(').append(query.getTextQuery());
                         queryBuilder.append(") UNION ");
                          executeSelect = false;
                     } else {
 
-                        queryBuilder.append(query.getQuery());
+                        queryBuilder.append(query.getTextQuery());
                         queryBuilder.append(" ").append(operator.toUpperCase()).append(" ");
                     }
                 }
@@ -189,7 +189,7 @@ public class SQLFilterParser extends AbstractFilterParser {
                             if (operator.equalsIgnoreCase("OR")) {
                                 query.nbField = nbField -1;
                                 query.createSelect();
-                                queryBuilder.append('(').append(query.getQuery());
+                                queryBuilder.append('(').append(query.getTextQuery());
                                 queryBuilder.append(") UNION ");
                                 executeSelect = false;
                             } else {

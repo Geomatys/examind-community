@@ -306,7 +306,31 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
     @Test
     @Override
     public void wildCharUnderscoreSearchTest() throws Exception {
-        super.wildCharUnderscoreSearchTest();
+
+        /**
+         * Test 1 simple search: title = title1
+         */
+        SpatialQuery spatialQuery = new SpatialQuery("identifier:*MDWeb_FR_SY*", LogicalFilterType.AND);
+        Set<String> result = indexSearcher.doSearch(spatialQuery);
+        logResultReport("wildCharUnderscoreSearch 1:", result);
+
+        Set<String> expectedResult = new LinkedHashSet<>();
+        //expectedResult.add("MDWeb_FR_SY_couche_vecteur_258"); error '_' is tokenized with this analyzer
+
+        assertEquals(expectedResult, result);
+
+        /**
+         * Test 2 simple search: title =
+         * identifier:Spot5-Cyprus-THX-IMAGERY3_ortho*
+         */
+        spatialQuery = new SpatialQuery("identifier:Spot5-Cyprus-THX-IMAGERY3_ortho*", LogicalFilterType.AND);
+        result = indexSearcher.doSearch(spatialQuery);
+        logResultReport("wildCharUnderscoreSearch 2:", result);
+
+        expectedResult = new LinkedHashSet<>();
+        //expectedResult.add("Spot5-Cyprus-THX-IMAGERY3_ortho1"); // error '_' is tokenized  this analyzer
+
+        assertEquals(expectedResult, result);
     }
 
 
@@ -322,7 +346,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 TO 30000101}", null, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("DateSearch 1:", result);
 
@@ -345,6 +369,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void sortedSearchTest() throws Exception {
         super.sortedSearchTest();
     }
@@ -356,6 +381,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void spatialSearchTest() throws Exception {
         super.spatialSearchTest();
     }
@@ -367,6 +393,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void TermQueryTest() throws Exception {
         super.TermQueryTest();
     }

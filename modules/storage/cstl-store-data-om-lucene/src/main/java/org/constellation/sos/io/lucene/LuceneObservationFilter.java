@@ -272,7 +272,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             luceneRequest.append(OR_OPERATOR);
 
             //case 2 multiple observations containing a matching value
-            luceneRequest.append("(sampling_time_begin: [19700000 ").append(position).append("] ").append(" AND sampling_time_end: [").append(position).append(" 30000000]))");
+            luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] ").append(" AND sampling_time_end: [").append(position).append(" TO 30000000]))");
 
         } else {
             throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
@@ -293,7 +293,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             luceneRequest.append("AND (");
 
             // the single and multpile observations which begin after the bound
-            luceneRequest.append("(sampling_time_begin: [19700000000000 ").append(position).append("]))");
+            luceneRequest.append("(sampling_time_begin: [19700000000000 TO ").append(position).append("]))");
 
         } else {
             throw new ObservationStoreException("TM_Before operation require timeInstant!",
@@ -314,10 +314,10 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             luceneRequest.append("AND (");
 
             // the single and multpile observations which begin after the bound
-            luceneRequest.append("(sampling_time_begin:[").append(position).append(" 30000000])");
+            luceneRequest.append("(sampling_time_begin:[").append(position).append(" TO 30000000])");
             luceneRequest.append(OR_OPERATOR);
             // the multiple observations overlapping the bound
-            luceneRequest.append("(sampling_time_begin: [19700000 ").append(position).append("] AND sampling_time_end:[").append(position).append(" 30000000]))");
+            luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000]))");
 
 
         } else {
@@ -339,19 +339,19 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             luceneRequest.append("AND (");
 
             // the multiple observations included in the period
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" 30000000] AND sampling_time_end:[19700000 ").append(end).append("])");
+            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[19700000 TO ").append(end).append("])");
             luceneRequest.append(OR_OPERATOR);
             // the single observations included in the period
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" 30000000] AND sampling_time_begin:[19700000 ").append(end).append("] AND sampling_time_end IS NULL)");
+            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("] AND sampling_time_end IS NULL)");
             luceneRequest.append(OR_OPERATOR);
             // the multiple observations which overlaps the first bound
-            luceneRequest.append(" (sampling_time_begin:[19700000 ").append(begin).append("] AND sampling_time_end:[19700000 ").append(end).append("] AND sampling_time_end:[").append(begin).append(" 30000000])");
+            luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[19700000 TO ").append(end).append("] AND sampling_time_end:[").append(begin).append(" TO 30000000])");
             luceneRequest.append(OR_OPERATOR);
             // the multiple observations which overlaps the second bound
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" 30000000] AND sampling_time_end:[").append(end).append(" 30000000] AND sampling_time_begin:[19700000 ").append(end).append("])");
+            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[").append(end).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("])");
             luceneRequest.append(OR_OPERATOR);
             // the multiple observations which overlaps the whole period
-            luceneRequest.append(" (sampling_time_begin:[19700000 ").append(begin).append("] AND sampling_time_end:[").append(end).append(" 30000000]))");
+            luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[").append(end).append(" TO 30000000]))");
 
 
         } else {

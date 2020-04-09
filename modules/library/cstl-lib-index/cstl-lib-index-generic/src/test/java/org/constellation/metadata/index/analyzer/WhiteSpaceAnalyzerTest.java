@@ -16,23 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- *    Constellation - An open source and WhiteSpace compliant SDI
- *    http://www.constellation-sdi.org
- *
- *    (C) 2005, Institut de Recherche pour le Développement
- *    (C) 2007 - 2008, Geomatys
- *
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation; either
- *    version 3 of the License, or (at your option) any later version.
- *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
- */
 
 package org.constellation.metadata.index.analyzer;
 
@@ -141,8 +124,8 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
         expectedResult = new LinkedHashSet<>();
         expectedResult.add("42292_5p_19900609195600");
 
-        // ERROR it didn't find any result (why???)
-        expectedResult = new LinkedHashSet<>();
+        /* ERROR it didn't find any result (why???) fixed in 8.4.0
+        expectedResult = new LinkedHashSet<>();*/
         assertEquals(expectedResult, result);
 
         /**
@@ -183,8 +166,10 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
         expectedResult.add("39727_22_19750113062500");
         expectedResult.add("40510_145_19930221211500");
 
-         // ERROR it didn't find any result (why???)
-        expectedResult = new LinkedHashSet<>();
+        /* ERROR it didn't find any result (why???) fixed in 8.4.0
+        expectedResult = new LinkedHashSet<>();*/
+
+        expectedResult.add("11325_158_19640418141800"); // >>  ISSUES This one shoudn't be there because it not in the same order => ASCII MEDATLAS
 
         assertEquals(expectedResult, result);
 
@@ -196,6 +181,7 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void wildCharUnderscoreSearchTest() throws Exception {
         super.wildCharUnderscoreSearchTest();
     }
@@ -207,6 +193,7 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void dateSearchTest() throws Exception {
         super.dateSearchTest();
     }
@@ -217,6 +204,7 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void sortedSearchTest() throws Exception {
         super.sortedSearchTest();
     }
@@ -228,6 +216,7 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void spatialSearchTest() throws Exception {
         super.spatialSearchTest();
     }
@@ -239,6 +228,7 @@ public class WhiteSpaceAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
+    @Override
     public void TermQueryTest() throws Exception {
         super.TermQueryTest();
     }

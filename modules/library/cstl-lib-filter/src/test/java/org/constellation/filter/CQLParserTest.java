@@ -183,7 +183,7 @@ public class CQLParserTest {
 
         assertNull(spaQuery.getQuery());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:{\"20070602000000\" 30000101000000}", spaQuery.getTextQuery());
+        assertEquals("CreationDate:{\"20070602000000\" TO 30000101000000}", spaQuery.getTextQuery());
 
          /**
          * Test 6: PropertyIsLessThan
@@ -201,7 +201,7 @@ public class CQLParserTest {
 
         assertNull(spaQuery.getQuery());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:{00000101000000 \"20070602000000\"}", spaQuery.getTextQuery());
+        assertEquals("CreationDate:{00000101000000 TO \"20070602000000\"}", spaQuery.getTextQuery());
 
         /**
          * Test 6: PropertyIsBetween
@@ -218,7 +218,7 @@ public class CQLParserTest {
 
         assertNull(spaQuery.getQuery());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"]", spaQuery.getTextQuery());
+        assertEquals("CreationDate:[\"20070602000000\" TO 30000101000000]CreationDate:[00000101000000 TO \"20070604000000\"]", spaQuery.getTextQuery());
 
          /**
          * Test 7: PropertyIsBetween + typeName
@@ -235,7 +235,7 @@ public class CQLParserTest {
 
         assertNull(spaQuery.getQuery());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("(CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"] AND objectType:\"MD_Metadata\")", spaQuery.getTextQuery());
+        assertEquals("(CreationDate:[\"20070602000000\" TO 30000101000000]CreationDate:[00000101000000 TO \"20070604000000\"] AND objectType:\"MD_Metadata\")", spaQuery.getTextQuery());
 
 
     }
@@ -1069,8 +1069,8 @@ public class CQLParserTest {
         //we verify each filter
         cf1 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
         assertEquals(cf1.clauses().size(), 2);
-        assertEquals(cf1.clauses().get(0).getQuery(), BooleanClause.Occur.MUST_NOT);
-        assertEquals(cf1.clauses().get(1).getQuery(), BooleanClause.Occur.MUST);
+        assertEquals(cf1.clauses().get(0).getOccur(), BooleanClause.Occur.MUST_NOT);
+        assertEquals(cf1.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
         assertTrue(cf1.clauses().get(0).getQuery() instanceof BooleanQuery);
 
         BooleanQuery cf1_cf1 =  (BooleanQuery) cf1.clauses().get(0).getQuery();
