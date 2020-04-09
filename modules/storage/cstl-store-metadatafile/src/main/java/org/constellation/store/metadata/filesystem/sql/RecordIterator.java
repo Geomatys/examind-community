@@ -68,6 +68,8 @@ public class RecordIterator implements CloseableIterator<RecordInfo> {
         DocumentBuilder candidate = null;
         try {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             candidate = dbf.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
             LOGGER.log(Level.WARNING, "error while building XML DocumentBuilder", ex);

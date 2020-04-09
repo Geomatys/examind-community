@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
+import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -58,6 +59,8 @@ import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 /**
  * Abstract definition of a {@code Web Map Service} worker called by a facade
@@ -432,16 +435,22 @@ public abstract class AbstractWorker implements Worker {
             if (value != null) {
                 final List<String> schemaPaths = StringUtilities.toStringList(value);
                 LOGGER.info("Reading schemas. This may take some times ...");
-                final SchemaFactory sf = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                for (String schemaPath : schemaPaths) {
-                    LOGGER.log(Level.INFO, "Reading {0}", schemaPath);
-                    try {
-                        schemas.add(sf.newSchema(new URL(schemaPath)));
-                    } catch (SAXException ex) {
-                        LOGGER.warning("SAX exception while adding the Validator to the JAXB unmarshaller");
-                    } catch (MalformedURLException ex) {
-                        LOGGER.warning("MalformedURL exception while adding the Validator to the JAXB unmarshaller");
+                try {
+                    final SchemaFactory sf = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                    sf.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+                    sf.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                    for (String schemaPath : schemaPaths) {
+                        LOGGER.log(Level.INFO, "Reading {0}", schemaPath);
+                        try {
+                            schemas.add(sf.newSchema(new URL(schemaPath)));
+                        } catch (SAXException ex) {
+                            LOGGER.warning("SAX exception while adding the Validator to the JAXB unmarshaller");
+                        } catch (MalformedURLException ex) {
+                            LOGGER.warning("MalformedURL exception while adding the Validator to the JAXB unmarshaller");
+                        }
                     }
+                } catch (SAXException ex) {
+                    LOGGER.log(Level.WARNING, "SAX exception while setting security property", ex);
                 }
             }
         }

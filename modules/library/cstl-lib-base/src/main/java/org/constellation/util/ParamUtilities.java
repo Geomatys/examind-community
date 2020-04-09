@@ -102,6 +102,8 @@ public final class ParamUtilities extends Static {
         try (InputStream stream = toInputStream(input)) {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             //This is the fix to treat namespace backward compatibility
             factory.setNamespaceAware(true);
             final DocumentBuilder constructeur = factory.newDocumentBuilder();
