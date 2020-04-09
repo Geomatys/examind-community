@@ -18,6 +18,8 @@
  */
 package org.constellation.filter;
 
+import org.apache.lucene.search.Filter;
+import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.PropertyIsLike;
@@ -32,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import org.apache.lucene.search.Query;
 import org.geotoolkit.index.LogicalFilterType;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -72,11 +73,12 @@ public class LuceneFilterParser extends AbstractFilterParser {
      */
     @Override
     protected SpatialQuery getNullFilter(final List<QName> typeNames) {
+        final Filter nullFilter = null;
         if (typeNames == null || typeNames.isEmpty()) {
-            return new SpatialQuery(DEFAULT_FIELD, null, LogicalFilterType.AND);
+            return new SpatialQuery(DEFAULT_FIELD, nullFilter, LogicalFilterType.AND);
         } else {
             final String query = getTypeQuery(typeNames);
-            return new SpatialQuery(query, null, LogicalFilterType.AND);
+            return new SpatialQuery(query, nullFilter, LogicalFilterType.AND);
         }
     }
 
@@ -165,7 +167,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
         final List<SpatialQuery> subQueries = new ArrayList<>();
         final StringBuilder queryBuilder    = new StringBuilder();
         final String operator               = logicOps.getOperator();
-        final List<Query> queries           = new ArrayList<>();
+        final List<Filter> filters          = new ArrayList<>();
 
         if (logicOps instanceof BinaryLogicOperator) {
             final BinaryLogicOperator binary = (BinaryLogicOperator) logicOps;
@@ -194,24 +196,24 @@ public class LuceneFilterParser extends AbstractFilterParser {
                     boolean writeOperator = true;
 
                     final SpatialQuery sq  = treatLogicalOperator((LogicOperator)child);
-                    final String subTextQuery  = sq.getTextQuery();
-                    final Query subQUery = sq.getQuery();
+                    final String subQuery  = sq.getQuery();
+                    final Filter subFilter = sq.getSpatialFilter();
 
                     //if the sub spatial query contains both term search and spatial search we create a subQuery
-                    if ((subQUery != null && !subTextQuery.equals(DEFAULT_FIELD))
+                    if ((subFilter != null && !subQuery.equals(DEFAULT_FIELD))
                         || !sq.getSubQueries().isEmpty()
-                        || (sq.getLogicalOperator() == LogicalFilterType.NOT && sq.getQuery() == null)) {
+                        || (sq.getLogicalOperator() == LogicalFilterType.NOT && sq.getSpatialFilter() == null)) {
                         subQueries.add(sq);
                         writeOperator = false;
                     } else {
 
-                        if (subTextQuery.isEmpty()) {
+                        if (subQuery.isEmpty()) {
                             writeOperator = false;
                         } else  {
-                            queryBuilder.append(subTextQuery);
+                            queryBuilder.append(subQuery);
                         }
-                        if (subQUery != null) {
-                            queries.add(subQUery);
+                        if (subFilter != null) {
+                            filters.add(subFilter);
                         }
                     }
 
@@ -224,7 +226,7 @@ public class LuceneFilterParser extends AbstractFilterParser {
                 if (child instanceof SpatialOperator)
 
                     //for the spatial filter we don't need to write into the lucene query
-                    queries.add(treatSpatialOperator((SpatialOperator)child));
+                    filters.add(treatSpatialOperator((SpatialOperator)child));
                 }
 
             // we remove the last Operator and add a ') '
@@ -245,26 +247,26 @@ public class LuceneFilterParser extends AbstractFilterParser {
             // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
             } else if (unary.getChild() instanceof SpatialOperator) {
 
-                queries.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
+                filters.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
 
 
              // we treat logical Operators like AND, OR, ...
             } else if (unary.getChild() instanceof LogicOperator) {
-                final SpatialQuery sq     = treatLogicalOperator((LogicOperator) unary.getChild());
-                final String subTextQuery = sq.getTextQuery();
-                final Query subQuery     = sq.getQuery();
+                final SpatialQuery sq  = treatLogicalOperator((LogicOperator) unary.getChild());
+                final String subQuery  = sq.getQuery();
+                final Filter subFilter = sq.getSpatialFilter();
 
-                if ((sq.getLogicalOperator() == LogicalFilterType.OR && subQuery != null && !subTextQuery.equals(DEFAULT_FIELD)) ||
+                if ((sq.getLogicalOperator() == LogicalFilterType.OR && subFilter != null && !subQuery.equals(DEFAULT_FIELD)) ||
                     (sq.getLogicalOperator() == LogicalFilterType.NOT)) {
                     subQueries.add(sq);
 
                 } else {
 
-                    if (!subTextQuery.isEmpty()) {
-                        queryBuilder.append(subTextQuery);
+                    if (!subQuery.isEmpty()) {
+                        queryBuilder.append(subQuery);
                     }
-                    if (subQuery != null) {
-                        queries.add(sq.getQuery());
+                    if (subFilter != null) {
+                        filters.add(sq.getSpatialFilter());
                     }
                 }
             }
@@ -275,14 +277,14 @@ public class LuceneFilterParser extends AbstractFilterParser {
             query = "";
         }
 
-        LogicalFilterType logicalOperand = LogicalFilterType.valueOf(operator);
-        final Query spatialQuery         = getSpatialFilterFromList(logicalOperand, queries);
+        LogicalFilterType logicalOperand          = SerialChainFilter.valueOf(operator);
+        final Filter spatialFilter  = getSpatialFilterFromList(logicalOperand, filters);
 
         // here the logical operand NOT is contained in the spatial filter
         if (query.isEmpty() && logicalOperand == LogicalFilterType.NOT) {
             logicalOperand = LogicalFilterType.AND;
         }
-        final SpatialQuery response = new SpatialQuery(query, spatialQuery, logicalOperand);
+        final SpatialQuery response = new SpatialQuery(query, spatialFilter, logicalOperand);
         response.setSubQueries(subQueries);
         return response;
     }

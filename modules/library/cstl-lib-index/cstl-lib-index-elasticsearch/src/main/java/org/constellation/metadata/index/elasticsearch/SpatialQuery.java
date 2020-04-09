@@ -51,12 +51,12 @@ public class SpatialQuery implements org.geotoolkit.index.SpatialQuery {
     }
     
     @Override
-    public String getTextQuery() {
+    public String getQuery() {
         return query;
     }
     
     @Override
-    public Object getQuery() {
+    public Object getSpatialFilter() {
         return filter;
     }
     

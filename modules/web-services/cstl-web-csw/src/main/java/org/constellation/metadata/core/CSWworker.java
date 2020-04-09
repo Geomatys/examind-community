@@ -803,7 +803,7 @@ public class CSWworker extends AbstractWorker implements Refreshable {
            LOGGER.log(Level.INFO, "ebrim SQL query obtained:{0}", sqlQuery);
            try {
             // we try to execute the query
-            results = securityFilter.filterResults(userLogin, mdStore.executeEbrimSQLQuery(sqlQuery.getTextQuery()));
+            results = securityFilter.filterResults(userLogin, mdStore.executeEbrimSQLQuery(sqlQuery.getQuery()));
            } catch (MetadataIoException ex) {
                CodeList execptionCode = ex.getExceptionCode();
                if (execptionCode == null) {

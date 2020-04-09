@@ -19,6 +19,7 @@
 
 package org.constellation.metadata.index.analyzer;
 
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -28,7 +29,8 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.index.LogicalFilterType;
-import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
+import org.geotoolkit.lucene.filter.LuceneOGCFilter;
+import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
 import org.opengis.filter.FilterFactory2;
@@ -42,10 +44,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.TermQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.test.utils.SpringTestRunner;
 
@@ -146,10 +144,12 @@ public abstract class AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     public void simpleSearchTest() throws Exception {
+        Filter nullFilter   = null;
+
         /**
          * Test 1 simple search: title = 90008411.ctd
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411.ctd\"", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411.ctd\"", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 1:", result);
 
@@ -163,7 +163,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 2 simple search: indentifier != 40510_145_19930221211500
          */
-        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", nullFilter, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 2:", result);
 
@@ -181,7 +181,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 3 simple search: originator = Donnees CTD NEDIPROD VI 120
          */
-        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 3:", result);
 
@@ -193,7 +193,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 4 simple search: ID = World Geodetic System 84
          */
-        spatialQuery = new SpatialQuery("ID:\"World Geodetic System 84\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("ID:\"World Geodetic System 84\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 4:", result);
 
@@ -207,7 +207,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 5 simple search: ID = 0UINDITENE
          */
-        spatialQuery = new SpatialQuery("ID:\"0UINDITENE\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("ID:\"0UINDITENE\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 5:", result);
 
@@ -221,7 +221,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 6 range search: Title <= FRA
          */
-        spatialQuery = new SpatialQuery("Title_raw:[0 TO FRA]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title_raw:[0 TO FRA]", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 6:", result);
 
@@ -237,7 +237,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 7 range search: Title > FRA
          */
-        spatialQuery = new SpatialQuery("Title_raw:[FRA TO z]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title_raw:[FRA TO z]", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 7:", result);
 
@@ -256,10 +256,12 @@ public abstract class AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     public void wildCharUnderscoreSearchTest() throws Exception {
+        Filter nullFilter   = null;
+
         /**
          * Test 1 simple search: title = title1
          */
-        SpatialQuery spatialQuery = new SpatialQuery("identifier:*MDWeb_FR_SY*", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("identifier:*MDWeb_FR_SY*", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharUnderscoreSearch 1:", result);
 
@@ -271,7 +273,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 2 simple search: title = identifier:Spot5-Cyprus-THX-IMAGERY3_ortho*
          */
-        spatialQuery = new SpatialQuery("identifier:Spot5-Cyprus-THX-IMAGERY3_ortho*", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("identifier:Spot5-Cyprus-THX-IMAGERY3_ortho*", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharUnderscoreSearch 2:", result);
 
@@ -282,10 +284,12 @@ public abstract class AbstractAnalyzerTest {
     }
 
     public void dateSearchTest() throws Exception {
+        Filter nullFilter   = null;
+
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("DateSearch 1:", result);
 
@@ -305,10 +309,12 @@ public abstract class AbstractAnalyzerTest {
      */
     public void sortedSearchTest() throws Exception {
 
+        Filter nullFilter   = null;
+
         /**
          * Test 1 sorted search: all orderBy identifier ASC
          */
-        SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
         SortField sf = new SortField("identifier_sort", SortField.Type.STRING, false);
         spatialQuery.setSort(new Sort(sf));
 
@@ -330,7 +336,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 2 sorted search: all orderBy identifier DSC
          */
-        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
         sf = new SortField("identifier_sort", SortField.Type.STRING, true);
         spatialQuery.setSort(new Sort(sf));
 
@@ -352,7 +358,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 3 sorted search: all orderBy Abstract ASC
          */
-        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
         sf = new SortField("Abstract_sort", SortField.Type.STRING, false);
         spatialQuery.setSort(new Sort(sf));
 
@@ -374,7 +380,7 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 4 sorted search: all orderBy Abstract DSC
          */
-        spatialQuery = new SpatialQuery("metafile:doc", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc", nullFilter, LogicalFilterType.AND);
         sf = new SortField("Abstract_sort", SortField.Type.STRING, true);
         spatialQuery.setSort(new Sort(sf));
 
@@ -410,7 +416,7 @@ public abstract class AbstractAnalyzerTest {
         GeneralEnvelope bbox = new GeneralEnvelope(min1, max1);
         CoordinateReferenceSystem crs = CommonCRS.defaultGeographic();
         bbox.setCoordinateReferenceSystem(crs);
-        LuceneOGCSpatialQuery sf          = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        LuceneOGCFilter sf          = LuceneOGCFilter.wrap(FF.bbox(LuceneOGCFilter.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
         SpatialQuery spatialQuery = new SpatialQuery("metafile:doc", sf, LogicalFilterType.AND);
 
         Set<String> result = indexSearcher.doSearch(spatialQuery);
@@ -426,12 +432,12 @@ public abstract class AbstractAnalyzerTest {
         /**
          * Test 1 spatial search: NOT BBOX filter
          */
+        List<Filter> lf = new ArrayList<>();
         //sf           = new BBOXFilter(bbox, "urn:x-ogc:def:crs:EPSG:6.11:4326");
-        sf           = LuceneOGCSpatialQuery.wrap(FF.bbox(LuceneOGCSpatialQuery.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
-        BooleanQuery f = new BooleanQuery.Builder()
-                                .add(sf, BooleanClause.Occur.MUST_NOT)
-                                .add(new TermQuery(new Term("metafile", "doc")), BooleanClause.Occur.MUST)
-                                .build();
+        sf           = LuceneOGCFilter.wrap(FF.bbox(LuceneOGCFilter.GEOMETRY_PROPERTY, -20, -20, 20, 20, "EPSG:4326"));
+        lf.add(sf);
+        LogicalFilterType[] op = {LogicalFilterType.NOT};
+        SerialChainFilter f = new SerialChainFilter(lf, op);
         spatialQuery = new SpatialQuery("metafile:doc", f, LogicalFilterType.AND);
 
         result = indexSearcher.doSearch(spatialQuery);

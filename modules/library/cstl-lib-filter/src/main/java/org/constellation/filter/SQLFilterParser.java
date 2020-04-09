@@ -19,6 +19,7 @@
 
 package org.constellation.filter;
 
+import org.apache.lucene.search.Filter;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.PropertyIsLike;
 import org.opengis.filter.expression.PropertyName;
@@ -32,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import org.apache.lucene.search.Query;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.index.LogicalFilterType;
 import org.geotoolkit.ogc.xml.BinaryLogicOperator;
@@ -143,7 +143,7 @@ public class SQLFilterParser extends AbstractFilterParser {
         final List<SQLQuery> subQueries  = new ArrayList<>();
         final StringBuilder queryBuilder = new StringBuilder();
         final String operator            = logicOps.getOperator();
-        final List<Query> queries        = new ArrayList<>();
+        final List<Filter> filters       = new ArrayList<>();
         nbField                          = 1;
 
         if (logicOps instanceof BinaryLogicOperator) {
@@ -172,18 +172,18 @@ public class SQLFilterParser extends AbstractFilterParser {
 
                     boolean writeOperator = true;
 
-                    final SQLQuery query       =  treatLogicalOperator((LogicOperator)child);
-                    final String subTextQuery  = query.getTextQuery();
-                    final Query subQuery       = query.getQuery();
+                    final SQLQuery query   = treatLogicalOperator((LogicOperator)child);
+                    final String subQuery  = query.getQuery();
+                    final Filter subFilter = query.getSpatialFilter();
 
                     //if the sub spatial query contains both term search and spatial search we create a subQuery
-                    if ((subQuery != null && !subTextQuery.isEmpty()) || !query.getSubQueries().isEmpty()) {
+                    if ((subFilter != null && !subQuery.isEmpty()) || !query.getSubQueries().isEmpty()) {
 
                         subQueries.add(query);
                         writeOperator = false;
                     } else {
 
-                        if (subTextQuery.isEmpty()) {
+                        if (subQuery.isEmpty()) {
                             writeOperator = false;
                         } else  {
                             if (operator.equalsIgnoreCase("OR")) {
@@ -193,11 +193,11 @@ public class SQLFilterParser extends AbstractFilterParser {
                                 queryBuilder.append(") UNION ");
                                 executeSelect = false;
                             } else {
-                                queryBuilder.append(subTextQuery);
+                                queryBuilder.append(subQuery);
                             }
                         }
-                        if (subQuery != null)
-                            queries.add(subQuery);
+                        if (subFilter != null)
+                            filters.add(subFilter);
                     }
 
                     if (writeOperator) {
@@ -212,7 +212,7 @@ public class SQLFilterParser extends AbstractFilterParser {
 
                     boolean writeOperator = true;
                     //for the spatial filter we don't need to write into the lucene query
-                    queries.add(treatSpatialOperator((SpatialOperator) child));
+                    filters.add(treatSpatialOperator((SpatialOperator) child));
                     writeOperator = false;
 
                     if (writeOperator) {
@@ -244,13 +244,13 @@ public class SQLFilterParser extends AbstractFilterParser {
             // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
             } else if (unary.getChild() instanceof SpatialOperator) {
 
-                queries.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
+                filters.add(treatSpatialOperator((SpatialOperator) unary.getChild()));
 
              // we treat logical Operators like AND, OR, ...
             } else if (unary.getChild() instanceof LogicOperator) {
-                final SQLQuery sq          = treatLogicalOperator((LogicOperator) unary.getChild());
-                final String subTextQuery  = sq.getTextQuery();
-                final Query subQuery       = sq.getQuery();
+                final SQLQuery sq  = treatLogicalOperator((LogicOperator) unary.getChild());
+                final String subQuery  = sq.getQuery();
+                final Filter subFilter = sq.getSpatialFilter();
 
                /* if ((sq.getLogicalOperator() == LogicalFilterType.OR && subFilter != null && !subQuery.isEmpty()) ||
                     (sq.getLogicalOperator() == LogicalFilterType.NOT)) {
@@ -258,11 +258,11 @@ public class SQLFilterParser extends AbstractFilterParser {
 
                   } else {*/
 
-                if (!subTextQuery.isEmpty()) {
-                    queryBuilder.append(subTextQuery);
+                if (!subQuery.isEmpty()) {
+                    queryBuilder.append(subQuery);
                 }
-                if (subQuery != null) {
-                    queries.add(sq.getQuery());
+                if (subFilter != null) {
+                    filters.add(sq.getSpatialFilter());
                 }
             }
         }
@@ -273,8 +273,8 @@ public class SQLFilterParser extends AbstractFilterParser {
         }
 
         final LogicalFilterType logicalOperand   = LogicalFilterType.valueOf(operator.toUpperCase());
-        final Query spatialquery = getSpatialFilterFromList(logicalOperand, queries);
-        final SQLQuery response    = new SQLQuery(query, spatialquery);
+        final Filter spatialFilter = getSpatialFilterFromList(logicalOperand, filters);
+        final SQLQuery response    = new SQLQuery(query, spatialFilter);
         response.setSubQueries(subQueries);
         return response;
     }

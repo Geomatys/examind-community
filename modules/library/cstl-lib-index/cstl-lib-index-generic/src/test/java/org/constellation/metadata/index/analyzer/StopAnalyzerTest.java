@@ -37,6 +37,7 @@
 package org.constellation.metadata.index.analyzer;
 
 import org.apache.lucene.analysis.core.StopAnalyzer;
+import org.apache.lucene.search.Filter;
 import org.constellation.metadata.index.generic.GenericIndexer;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
@@ -53,7 +54,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.geotoolkit.index.LogicalFilterType;
 import javax.annotation.PostConstruct;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import static org.constellation.metadata.index.analyzer.AbstractAnalyzerTest.indexSearcher;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
@@ -70,15 +70,15 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
     private static Path configDirectory = Paths.get("StopAnalyzerTest"+ UUID.randomUUID().toString());
 
     private static boolean configured = false;
-
+    
     @PostConstruct
     public void setUpClass() throws Exception {
         if (!configured) {
             IOUtilities.deleteRecursively(configDirectory);
             List<Object> object = fillTestData();
-            GenericIndexer indexer = new GenericIndexer(object, null, configDirectory, "", new StopAnalyzer(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET), Level.FINER, true);
+            GenericIndexer indexer = new GenericIndexer(object, null, configDirectory, "", new StopAnalyzer(), Level.FINER, true);
             indexer.destroy();
-            indexSearcher          = new LuceneIndexSearcher(configDirectory, "", new StopAnalyzer(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET), true);
+            indexSearcher          = new LuceneIndexSearcher(configDirectory, "", new StopAnalyzer(), true);
             indexSearcher.setLogLevel(Level.FINER);
             configured = true;
         }
@@ -104,10 +104,12 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
     @Test
     @Override
     public void simpleSearchTest() throws Exception {
+        Filter nullFilter   = null;
+
         /**
          * Test 1 simple search: title = 90008411.ctd
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411\".ctd", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:\"90008411\".ctd", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 1:", result);
 
@@ -126,7 +128,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
          /**
          * Test 2 simple search: indentifier != 40510_145_19930221211500
          */
-        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("metafile:doc NOT identifier:\"40510_145_19930221211500\"", nullFilter, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 2:", result);
 
@@ -148,7 +150,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 3 simple search: originator = Donnees CTD NEDIPROD VI 120
          */
-        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:\"Donnees CTD NEDIPROD VI 120\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 3:", result);
 
@@ -160,7 +162,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 4 simple search: ID = World Geodetic System 84
          */
-        spatialQuery = new SpatialQuery("ID:\"World Geodetic System 84\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("ID:\"World Geodetic System 84\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 4:", result);
 
@@ -174,7 +176,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 5 simple search: ID = 0UINDITENE
          */
-        spatialQuery = new SpatialQuery("ID:\"0UINDITENE\"", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("ID:\"0UINDITENE\"", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 5:", result);
 
@@ -186,7 +188,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 6 range search: Title <= FRA
          */
-        spatialQuery = new SpatialQuery("Title_raw:[0 TO FRA]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title_raw:[0 TO FRA]", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 6:", result);
 
@@ -202,14 +204,14 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 7 range search: Title > FRA
          */
-        spatialQuery = new SpatialQuery("Title_raw:[FRA TO z]", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title_raw:[FRA TO z]", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("simpleSearch 7:", result);
 
         expectedResult = new LinkedHashSet<>();
         expectedResult.add("CTDF02");
         expectedResult.add("MDWeb_FR_SY_couche_vecteur_258");
-
+        
         assertEquals(expectedResult, result);
     }
 
@@ -220,11 +222,12 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      */
     @Test
     public void wildCharSearchTest() throws Exception {
+        Filter nullFilter   = null;
 
         /**
          * Test 1 simple search: title = title1
          */
-        SpatialQuery spatialQuery = new SpatialQuery("Title:*0008411.ctd", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("Title:*0008411.ctd", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharSearch 1:", result);
 
@@ -240,7 +243,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 2 wildChar search: abstract LIKE *NEDIPROD*
          */
-        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:*NEDIPROD*", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharSearch 2:", result);
 
@@ -252,7 +255,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 3 wildChar search: title like *.ctd
          */
-        spatialQuery = new SpatialQuery("Title:*.ctd", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Title:*.ctd", nullFilter, LogicalFilterType.AND);
         result       = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharSearch 3:", result);
 
@@ -270,7 +273,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 4 wildCharSearch: anstract LIKE *onnees CTD NEDIPROD VI 120
          */
-        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("abstract:(*onnees CTD NEDIPROD VI 120)", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharSearch 4:", result);
 
@@ -283,7 +286,7 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
         /**
          * Test 5 wildCharSearch: Format LIKE *MEDATLAS ASCII*
          */
-        spatialQuery = new SpatialQuery("Format:(*MEDATLAS ASCII*)", null, LogicalFilterType.AND);
+        spatialQuery = new SpatialQuery("Format:(*MEDATLAS ASCII*)", nullFilter, LogicalFilterType.AND);
         result = indexSearcher.doSearch(spatialQuery);
         logResultReport("wildCharSearch 5:", result);
 
@@ -304,7 +307,6 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
-    @Override
     public void wildCharUnderscoreSearchTest() throws Exception {
         super.wildCharUnderscoreSearchTest();
     }
@@ -316,13 +318,13 @@ public class StopAnalyzerTest extends AbstractAnalyzerTest {
      * @throws java.lang.Exception
      */
     @Test
-    @Override
     public void dateSearchTest() throws Exception {
+        Filter nullFilter   = null;
 
         /**
          * Test 1 date search: date after 25/01/2009
          */
-        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", null, LogicalFilterType.AND);
+        SpatialQuery spatialQuery = new SpatialQuery("date:{20090125 30000101}", nullFilter, LogicalFilterType.AND);
         Set<String> result = indexSearcher.doSearch(spatialQuery);
         logResultReport("DateSearch 1:", result);
 

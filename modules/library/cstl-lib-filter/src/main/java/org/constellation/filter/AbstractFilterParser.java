@@ -20,6 +20,7 @@
 package org.constellation.filter;
 
 import org.locationtech.jts.geom.Geometry;
+import org.apache.lucene.search.Filter;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.QueryConstraint;
 import org.geotoolkit.filter.SpatialFilterType;
@@ -38,7 +39,8 @@ import org.geotoolkit.ogc.xml.SpatialOperator;
 import org.geotoolkit.ogc.xml.TemporalOperator;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.geotoolkit.ogc.xml.ComparisonOperator;
-import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
+import org.geotoolkit.lucene.filter.LuceneOGCFilter;
+import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.ogc.xml.BinaryComparisonOperator;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -67,18 +69,12 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.index.LogicalFilterType;
-import static org.geotoolkit.index.LogicalFilterType.NOT;
 
-import static org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery.GEOMETRY_PROPERTY;
-import static org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery.wrap;
+import static org.geotoolkit.lucene.filter.LuceneOGCFilter.GEOMETRY_PROPERTY;
+import static org.geotoolkit.lucene.filter.LuceneOGCFilter.wrap;
 import org.geotoolkit.index.SpatialQuery;
 import static org.geotoolkit.ogc.xml.FilterXmlFactory.buildPropertyIsEquals;
 import static org.geotoolkit.ogc.xml.FilterXmlFactory.buildPropertyIsGreaterThan;
@@ -348,42 +344,31 @@ public abstract class AbstractFilterParser implements FilterParser {
      * Return A single Filter concatening the list of specified Filter.
      *
      * @param logicalOperand A logical operator.
-     * @param queries A List of lucene filter.
+     * @param filters A List of lucene filter.
      *
      * @return A single Filter.
      */
-    protected Query getSpatialFilterFromList(final LogicalFilterType logicalOperand, final List<Query> queries) {
+    protected Filter getSpatialFilterFromList(final LogicalFilterType logicalOperand, final List<Filter> filters) {
 
-        Query query = null;
-        if (queries.size() == 1) {
+        Filter spatialFilter = null;
+        if (filters.size() == 1) {
 
             if (logicalOperand == LogicalFilterType.NOT) {
-                query = new BooleanQuery.Builder()
-                                .add(queries.get(0), BooleanClause.Occur.MUST_NOT)
-                                .add(new TermQuery(new Term("metafile", "doc")), BooleanClause.Occur.MUST)
-                                .build();
+                final LogicalFilterType[] filterType = {LogicalFilterType.NOT};
+                spatialFilter = new SerialChainFilter(filters, filterType);
             } else {
-                query = queries.get(0);
+                spatialFilter = filters.get(0);
             }
 
-        } else if (queries.size() > 1) {
-            BooleanQuery.Builder builder = new BooleanQuery.Builder();
-            final LogicalFilterType[] filterType = new LogicalFilterType[queries.size() - 1];
-            for (int i = 0; i < queries.size(); i++) {
-                switch (logicalOperand) {
-                    case AND : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST);
-                    case OR  : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD);
-                    case XOR : builder = builder.add(queries.get(i), BooleanClause.Occur.SHOULD); // not working at the moment TODO
-                    case NOT : builder = builder.add(queries.get(i), BooleanClause.Occur.MUST_NOT);
-                }
+        } else if (filters.size() > 1) {
 
+            final LogicalFilterType[] filterType = new LogicalFilterType[filters.size() - 1];
+            for (int i = 0; i < filterType.length; i++) {
+                filterType[i] = logicalOperand;
             }
-            if (logicalOperand == NOT) {
-                builder = builder.add(new TermQuery(new Term("metafile", "doc")), BooleanClause.Occur.MUST);
-            }
-            query = builder.build();
+            spatialFilter = new SerialChainFilter(filters, filterType);
         }
-        return query;
+        return spatialFilter;
     }
 
     /**
@@ -393,8 +378,8 @@ public abstract class AbstractFilterParser implements FilterParser {
      * @return
      * @throws org.constellation.filter.FilterParserException
      */
-    protected Query treatSpatialOperator(final SpatialOperator spatialOps) throws FilterParserException {
-        LuceneOGCSpatialQuery spatialQuery   = null;
+    protected Filter treatSpatialOperator(final SpatialOperator spatialOps) throws FilterParserException {
+        LuceneOGCFilter spatialfilter   = null;
 
         if (spatialOps instanceof BBOX) {
             final BBOX bbox       = (BBOX) spatialOps;
@@ -419,7 +404,7 @@ public abstract class AbstractFilterParser implements FilterParser {
             }
 
             //we transform the EnvelopeType in GeneralEnvelope
-            spatialQuery = wrap(FF.bbox(GEOMETRY_PROPERTY, bbox.getMinX(), bbox.getMinY(),bbox.getMaxX(),bbox.getMaxY(),crsName));
+            spatialfilter = wrap(FF.bbox(GEOMETRY_PROPERTY, bbox.getMinX(), bbox.getMinY(),bbox.getMaxX(),bbox.getMaxY(),crsName));
 
         } else if (spatialOps instanceof DistanceBufferOperator) {
 
@@ -466,9 +451,9 @@ public abstract class AbstractFilterParser implements FilterParser {
                 }
 
                 if ("DWithin".equals(operator)) {
-                    spatialQuery = wrap(FF.dwithin(GEOMETRY_PROPERTY,FF.literal(geometry),distance, units));
+                    spatialfilter = wrap(FF.dwithin(GEOMETRY_PROPERTY,FF.literal(geometry),distance, units));
                 } else if ("Beyond".equals(operator)) {
-                    spatialQuery = wrap(FF.beyond(GEOMETRY_PROPERTY,FF.literal(geometry),distance, units));
+                    spatialfilter = wrap(FF.beyond(GEOMETRY_PROPERTY,FF.literal(geometry),distance, units));
                 } else {
                     throw new FilterParserException("Unknow DistanceBuffer operator.",
                             INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
@@ -558,16 +543,16 @@ public abstract class AbstractFilterParser implements FilterParser {
                 }
 
                 switch (filterType) {
-                    case CONTAINS   : spatialQuery = wrap(FF.contains(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case CROSSES    : spatialQuery = wrap(FF.crosses(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case DISJOINT   : spatialQuery = wrap(FF.disjoint(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case EQUALS     : spatialQuery = wrap(FF.equal(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case INTERSECTS : spatialQuery = wrap(FF.intersects(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case OVERLAPS   : spatialQuery = wrap(FF.overlaps(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case TOUCHES    : spatialQuery = wrap(FF.touches(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
-                    case WITHIN     : spatialQuery = wrap(FF.within(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case CONTAINS   : spatialfilter = wrap(FF.contains(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case CROSSES    : spatialfilter = wrap(FF.crosses(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case DISJOINT   : spatialfilter = wrap(FF.disjoint(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case EQUALS     : spatialfilter = wrap(FF.equal(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case INTERSECTS : spatialfilter = wrap(FF.intersects(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case OVERLAPS   : spatialfilter = wrap(FF.overlaps(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case TOUCHES    : spatialfilter = wrap(FF.touches(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                    case WITHIN     : spatialfilter = wrap(FF.within(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
                     default         : LOGGER.info("using default filter within");
-                                      spatialQuery = wrap(FF.within(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
+                                      spatialfilter = wrap(FF.within(GEOMETRY_PROPERTY, FF.literal(filterGeometry))); break;
                 }
 
             } catch (NoSuchAuthorityCodeException e) {
@@ -583,7 +568,7 @@ public abstract class AbstractFilterParser implements FilterParser {
 
         }
 
-        return spatialQuery;
+        return spatialfilter;
     }
 
     /**

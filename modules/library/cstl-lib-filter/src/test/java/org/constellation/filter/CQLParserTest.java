@@ -22,7 +22,8 @@ package org.constellation.filter;
 
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.csw.xml.v202.QueryConstraintType;
-import org.geotoolkit.lucene.filter.LuceneOGCSpatialQuery;
+import org.geotoolkit.lucene.filter.LuceneOGCFilter;
+import org.geotoolkit.lucene.filter.SerialChainFilter;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.ogc.xml.v110.FilterType;
 import org.junit.After;
@@ -49,8 +50,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.geotoolkit.index.LogicalFilterType;
 
 import static org.junit.Assert.assertEquals;
@@ -109,9 +108,9 @@ public class CQLParserTest {
 
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "Title:(VM*)");
+        assertEquals(spaQuery.getQuery(), "Title:(VM*)");
 
         /**
          *  Test 2: PropertyIsEquals
@@ -128,9 +127,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "Title:\"VM\"");
+        assertEquals(spaQuery.getQuery(), "Title:\"VM\"");
 
         /**
          *  Test 3: PropertyIsNotEquals
@@ -145,9 +144,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc NOT Title:\"VM\"");
+        assertEquals(spaQuery.getQuery(), "metafile:doc NOT Title:\"VM\"");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
         /**
@@ -163,9 +162,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "Title:null");
+        assertEquals(spaQuery.getQuery(), "Title:null");
 
         /**
          * Test 5: PropertyIsGreaterThan
@@ -181,9 +180,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertNull(spaQuery.getQuery());
+        assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:{\"20070602000000\" 30000101000000}", spaQuery.getTextQuery());
+        assertEquals("CreationDate:{\"20070602000000\" 30000101000000}", spaQuery.getQuery());
 
          /**
          * Test 6: PropertyIsLessThan
@@ -199,9 +198,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertNull(spaQuery.getQuery());
+        assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:{00000101000000 \"20070602000000\"}", spaQuery.getTextQuery());
+        assertEquals("CreationDate:{00000101000000 \"20070602000000\"}", spaQuery.getQuery());
 
         /**
          * Test 6: PropertyIsBetween
@@ -216,9 +215,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertNull(spaQuery.getQuery());
+        assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"]", spaQuery.getTextQuery());
+        assertEquals("CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"]", spaQuery.getQuery());
 
          /**
          * Test 7: PropertyIsBetween + typeName
@@ -233,9 +232,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
-        assertNull(spaQuery.getQuery());
+        assertNull(spaQuery.getSpatialFilter());
         assertEquals(0, spaQuery.getSubQueries().size());
-        assertEquals("(CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"] AND objectType:\"MD_Metadata\")", spaQuery.getTextQuery());
+        assertEquals("(CreationDate:[\"20070602000000\" 30000101000000]CreationDate:[00000101000000 \"20070604000000\"] AND objectType:\"MD_Metadata\")", spaQuery.getQuery());
 
 
     }
@@ -261,9 +260,9 @@ public class CQLParserTest {
 
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" AND Author:\"Timothee Gustave\")");
+        assertEquals(spaQuery.getQuery(), "(Title:\"starship trooper\" AND Author:\"Timothee Gustave\")");
 
 
         /**
@@ -279,9 +278,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\")");
+        assertEquals(spaQuery.getQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\")");
 
         /**
          * Test 3:  OR between three propertyIsEqualTo
@@ -296,9 +295,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\" OR Id:\"268\")");
+        assertEquals(spaQuery.getQuery(), "(Title:\"starship trooper\" OR Author:\"Timothee Gustave\" OR Id:\"268\")");
 
         /**
          * Test 4: Not propertyIsEqualTo
@@ -313,9 +312,9 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "Title:\"starship trooper\"");
+        assertEquals(spaQuery.getQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.NOT);
 
         /**
@@ -331,11 +330,11 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 1);
-        assertEquals(spaQuery.getTextQuery(), "((Title:\"starship trooper\" AND Author:\"Timothee Gustave\"))");
+        assertEquals(spaQuery.getQuery(), "((Title:\"starship trooper\" AND Author:\"Timothee Gustave\"))");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.OR);
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(), "Title:\"pedro\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "Title:\"pedro\"");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
 
         /**
@@ -351,11 +350,11 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 1);
-        assertEquals(spaQuery.getTextQuery(), "((Title:\"starship trooper\" OR Author:\"Timothee Gustave\"))");
+        assertEquals(spaQuery.getQuery(), "((Title:\"starship trooper\" OR Author:\"Timothee Gustave\"))");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(), "Title:\"pedro\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "Title:\"pedro\"");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
 
         /**
@@ -371,13 +370,13 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 2);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(), "Title:\"starship trooper\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
-        assertEquals(spaQuery.getSubQueries().get(1).getTextQuery(), "Author:\"Timothee Gustave\"");
+        assertEquals(spaQuery.getSubQueries().get(1).getQuery(), "Author:\"Timothee Gustave\"");
         assertEquals(spaQuery.getSubQueries().get(1).getLogicalOperator(), LogicalFilterType.NOT);
 
         /**
@@ -393,13 +392,13 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 2);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.OR);
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(), "Title:\"starship trooper\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
-        assertEquals(spaQuery.getSubQueries().get(1).getTextQuery(), "Author:\"Timothee Gustave\"");
+        assertEquals(spaQuery.getSubQueries().get(1).getQuery(), "Author:\"Timothee Gustave\"");
         assertEquals(spaQuery.getSubQueries().get(1).getLogicalOperator(), LogicalFilterType.NOT);
 
 
@@ -416,18 +415,18 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
-        assertTrue(spaQuery.getQuery() == null);
+        assertTrue(spaQuery.getSpatialFilter() == null);
         assertEquals(spaQuery.getSubQueries().size(), 1);
-        assertEquals(spaQuery.getTextQuery(), "(objectType:\"MD_Metadata\")");
+        assertEquals(spaQuery.getQuery(), "(objectType:\"MD_Metadata\")");
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertEquals(spaQuery.getSubQueries().get(0).getTextQuery(), "metafile:doc");
+        assertEquals(spaQuery.getSubQueries().get(0).getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.OR);
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().size(), 2);
 
-        assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(0).getTextQuery(), "Title:\"starship trooper\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(0).getQuery(), "Title:\"starship trooper\"");
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(0).getLogicalOperator(), LogicalFilterType.NOT);
-        assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(1).getTextQuery(), "Author:\"Timothee Gustave\"");
+        assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(1).getQuery(), "Author:\"Timothee Gustave\"");
         assertEquals(spaQuery.getSubQueries().get(0).getSubQueries().get(1).getLogicalOperator(), LogicalFilterType.NOT);
     }
 
@@ -452,12 +451,12 @@ public class CQLParserTest {
 
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Filter spatialFilter = (Filter) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Filter spatialFilter = (Filter) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spatialFilter instanceof Intersects);
 
@@ -474,12 +473,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        DWithin Dfilter = (DWithin) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        DWithin Dfilter = (DWithin) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
 
         assertTrue(Dfilter instanceof  DWithin);
@@ -499,12 +498,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Beyond Bfilter = (Beyond) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Beyond Bfilter = (Beyond) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(Bfilter instanceof Beyond);
         assertEquals(Bfilter.getDistanceUnits(), "meters");
@@ -523,12 +522,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        BBOX spabbox = (BBOX) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        BBOX spabbox = (BBOX) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spabbox instanceof BBOX);
 
@@ -545,12 +544,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Contains spaC = (Contains) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Contains spaC = (Contains) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaC instanceof Contains);
 
@@ -567,12 +566,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaC = (Contains) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaC = (Contains) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaC instanceof  Contains);
 
@@ -589,12 +588,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaC = (Contains) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaC = (Contains) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaC instanceof Contains);
 
@@ -611,12 +610,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Crosses spaCr = (Crosses) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Crosses spaCr = (Crosses) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaCr instanceof Crosses);
 
@@ -633,12 +632,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaCr = (Crosses) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaCr = (Crosses) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaCr instanceof Crosses);
 
@@ -655,12 +654,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Disjoint spaDis = (Disjoint) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Disjoint spaDis = (Disjoint) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaDis instanceof  Disjoint);
 
@@ -677,12 +676,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaDis = (Disjoint) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaDis = (Disjoint) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaDis instanceof Disjoint);
 
@@ -699,12 +698,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Equals spaEq = (Equals) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Equals spaEq = (Equals) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaEq instanceof  Equals);
 
@@ -721,12 +720,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaEq = (Equals) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaEq = (Equals) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaEq instanceof  Equals);
 
@@ -743,12 +742,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Overlaps spaOver = (Overlaps) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Overlaps spaOver = (Overlaps) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaOver instanceof Overlaps);
 
@@ -765,12 +764,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaOver = (Overlaps) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaOver = (Overlaps) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaOver instanceof Overlaps);
 
@@ -787,12 +786,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        Touches spaTou = (Touches) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        Touches spaTou = (Touches) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaTou instanceof Touches);
 
@@ -809,12 +808,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaTou = (Touches) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaTou = (Touches) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spaTou instanceof Touches);
 
@@ -831,12 +830,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spatialFilter = (Filter) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spatialFilter = (Filter) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spatialFilter instanceof Within);
 
@@ -853,12 +852,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spatialFilter = (Filter) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spatialFilter = (Filter) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spatialFilter instanceof Within);
 
@@ -875,12 +874,12 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, Arrays.asList(METADATA_QNAME));
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(objectType:\"MD_Metadata\")");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(objectType:\"MD_Metadata\")");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spatialFilter = (Filter) ((LuceneOGCSpatialQuery) spaQuery.getQuery()).getOGCFilter();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spatialFilter = (Filter) ((LuceneOGCFilter) spaQuery.getSpatialFilter()).getOGCFilter();
 
         assertTrue(spatialFilter instanceof Within);
     }
@@ -906,17 +905,16 @@ public class CQLParserTest {
 
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        BooleanQuery boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        SerialChainFilter chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       2);
-        assertEquals(boolQuery.clauses().get(0).getOccur(),  BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(1).getOccur(),  BooleanClause.Occur.MUST);
-
+        assertEquals(chainFilter.getActionType().length,  1);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getChain().size(),       2);
 
         /**
          * Test 2: three spatial Filter with OR
@@ -931,29 +929,29 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       3);
-        assertEquals(boolQuery.clauses().get(0).getOccur(),  BooleanClause.Occur.SHOULD);
-        assertEquals(boolQuery.clauses().get(1).getOccur(),  BooleanClause.Occur.SHOULD);
-        assertEquals(boolQuery.clauses().get(2).getOccur(),  BooleanClause.Occur.SHOULD);
+        assertEquals(chainFilter.getActionType().length,  2);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.OR);
+        assertEquals(chainFilter.getActionType()[1],      LogicalFilterType.OR);
+        assertEquals(chainFilter.getChain().size(),       3);
 
         //we verify each filter
-        LuceneOGCSpatialQuery cf1_1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
-        assertTrue(cf1_1 instanceof LuceneOGCSpatialQuery);
+        LuceneOGCFilter cf1_1 = (LuceneOGCFilter) chainFilter.getChain().get(0);
+        assertTrue(cf1_1 instanceof LuceneOGCFilter);
         assertTrue(cf1_1.getOGCFilter().getClass().getSimpleName(), cf1_1.getOGCFilter() instanceof Intersects);
 
-        LuceneOGCSpatialQuery cf1_2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
-        assertTrue(cf1_2 instanceof LuceneOGCSpatialQuery);
+        LuceneOGCFilter cf1_2 = (LuceneOGCFilter) chainFilter.getChain().get(1);
+        assertTrue(cf1_2 instanceof LuceneOGCFilter);
         assertTrue(cf1_2.getOGCFilter().getClass().getSimpleName(), cf1_2.getOGCFilter() instanceof Contains);
 
-        LuceneOGCSpatialQuery f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(2).getQuery();
-        assertTrue(f2 instanceof LuceneOGCSpatialQuery);
+        LuceneOGCFilter f2 = (LuceneOGCFilter) chainFilter.getChain().get(2);
+        assertTrue(f2 instanceof LuceneOGCFilter);
         assertTrue(f2.getOGCFilter().getClass().getSimpleName(), f2.getOGCFilter() instanceof BBOX);
 
         /**
@@ -970,31 +968,31 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(metafile:doc)");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       2);
-        assertEquals(boolQuery.clauses().get(0).getOccur(),  BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(1).getOccur(),  BooleanClause.Occur.MUST);
+        assertEquals(chainFilter.getActionType().length,  1);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getChain().size(),       2);
 
         //we verify each filter
-        LuceneOGCSpatialQuery f1 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
+        LuceneOGCFilter f1 = (LuceneOGCFilter) chainFilter.getChain().get(1);
         assertTrue(f1.getOGCFilter() instanceof Intersects);
 
-        BooleanQuery cf2 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
-        assertEquals(cf2.clauses().size(),       2);
-        assertEquals(cf2.clauses().get(0).getOccur(),  BooleanClause.Occur.SHOULD);
-        assertEquals(cf2.clauses().get(1).getOccur(),  BooleanClause.Occur.SHOULD);
+        SerialChainFilter cf2 = (SerialChainFilter) chainFilter.getChain().get(0);
+        assertEquals(cf2.getActionType().length,  1);
+        assertEquals(cf2.getActionType()[0],      LogicalFilterType.OR);
+        assertEquals(cf2.getChain().size(),       2);
 
 
-        LuceneOGCSpatialQuery cf2_1 = (LuceneOGCSpatialQuery) cf2.clauses().get(0).getQuery();
+        LuceneOGCFilter cf2_1 = (LuceneOGCFilter) cf2.getChain().get(0);
         assertTrue(cf2_1.getOGCFilter() instanceof Contains);
 
-        LuceneOGCSpatialQuery cf2_2 = (LuceneOGCSpatialQuery) cf2.clauses().get(1).getQuery();
+        LuceneOGCFilter cf2_2 = (LuceneOGCFilter) cf2.getChain().get(1);
         assertTrue(cf2_2.getOGCFilter() instanceof BBOX);
 
          /**
@@ -1010,35 +1008,35 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(metafile:doc)");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       3);
-        assertEquals(boolQuery.clauses().get(0).getOccur(), BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(2).getOccur(), BooleanClause.Occur.MUST);
+        assertEquals(chainFilter.getActionType().length,  2);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getActionType()[1],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getChain().size(),       3);
 
         //we verify each filter
-        assertTrue(boolQuery.clauses().get(0).getQuery() instanceof BooleanQuery);
-        BooleanQuery cf1 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
-        assertEquals(cf1.clauses().size(), 2);
-        assertEquals(cf1.clauses().get(0).getOccur(),  BooleanClause.Occur.MUST_NOT);
-        assertEquals(cf1.clauses().get(1).getOccur(),  BooleanClause.Occur.MUST);
+        assertTrue(chainFilter.getChain().get(0) instanceof SerialChainFilter);
+        SerialChainFilter cf1 = (SerialChainFilter) chainFilter.getChain().get(0);
+        assertEquals(cf1.getChain().size(), 1);
+        assertEquals(cf1.getActionType().length,  1);
+        assertEquals(cf1.getActionType()[0],    LogicalFilterType.NOT);
 
-        assertTrue(cf1.clauses().get(0).getQuery() instanceof LuceneOGCSpatialQuery);
-        LuceneOGCSpatialQuery cf1_cf1_1 = (LuceneOGCSpatialQuery) cf1.clauses().get(0).getQuery();
+        assertTrue(cf1.getChain().get(0) instanceof LuceneOGCFilter);
+        LuceneOGCFilter cf1_cf1_1 = (LuceneOGCFilter) cf1.getChain().get(0);
         assertTrue(cf1_cf1_1.getOGCFilter() instanceof Intersects);
 
-        assertTrue(boolQuery.clauses().get(1).getQuery() instanceof LuceneOGCSpatialQuery);
-        f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
+        assertTrue(chainFilter.getChain().get(1) instanceof LuceneOGCFilter);
+        f2 = (LuceneOGCFilter) chainFilter.getChain().get(1);
         assertTrue(f2.getOGCFilter().getClass().getName(),f2.getOGCFilter() instanceof Contains);
 
-        assertTrue(boolQuery.clauses().get(2).getQuery() instanceof LuceneOGCSpatialQuery);
-        LuceneOGCSpatialQuery f3 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(2).getQuery();
+        assertTrue( chainFilter.getChain().get(2) instanceof LuceneOGCFilter);
+        LuceneOGCFilter f3 = (LuceneOGCFilter) chainFilter.getChain().get(2);
         assertTrue(f3.getOGCFilter().getClass().getName(), f3.getOGCFilter() instanceof BBOX);
 
         /**
@@ -1055,38 +1053,38 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(metafile:doc)");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       2);
-        assertEquals(boolQuery.clauses().get(0).getOccur(), BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
+        assertEquals(chainFilter.getActionType().length,  1);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getChain().size(),       2);
 
         //we verify each filter
-        cf1 = (BooleanQuery) boolQuery.clauses().get(0).getQuery();
-        assertEquals(cf1.clauses().size(), 2);
-        assertEquals(cf1.clauses().get(0).getQuery(), BooleanClause.Occur.MUST_NOT);
-        assertEquals(cf1.clauses().get(1).getQuery(), BooleanClause.Occur.MUST);
-        assertTrue(cf1.clauses().get(0).getQuery() instanceof BooleanQuery);
+        cf1 = (SerialChainFilter) chainFilter.getChain().get(0);
+        assertEquals(cf1.getChain().size(), 1);
+        assertEquals(cf1.getActionType().length,  1);
+        assertEquals(cf1.getActionType()[0],      LogicalFilterType.NOT);
+        assertTrue(cf1.getChain().get(0) instanceof SerialChainFilter);
 
-        BooleanQuery cf1_cf1 =  (BooleanQuery) cf1.clauses().get(0).getQuery();
-        assertEquals(cf1_cf1.clauses().size(),   2);
-        assertEquals(cf1_cf1.clauses().get(0).getOccur(), BooleanClause.Occur.SHOULD);
-        assertEquals(cf1_cf1.clauses().get(1).getOccur(), BooleanClause.Occur.SHOULD);
+        SerialChainFilter cf1_cf1 =  (SerialChainFilter) cf1.getChain().get(0);
+        assertEquals(cf1_cf1.getChain().size(),   2);
+        assertEquals(cf1_cf1.getActionType().length,  1);
+        assertEquals(cf1_cf1.getActionType()[0],      LogicalFilterType.OR);
 
-        assertTrue(cf1_cf1.clauses().get(0).getQuery() instanceof LuceneOGCSpatialQuery);
-        cf1_cf1_1 = (LuceneOGCSpatialQuery) cf1_cf1.clauses().get(0).getQuery();
+        assertTrue(cf1_cf1.getChain().get(0) instanceof LuceneOGCFilter);
+        cf1_cf1_1 = (LuceneOGCFilter) cf1_cf1.getChain().get(0);
         assertTrue(cf1_cf1_1.getOGCFilter() instanceof Intersects);
 
-        assertTrue(cf1_cf1.clauses().get(1).getQuery() instanceof LuceneOGCSpatialQuery);
-        LuceneOGCSpatialQuery cf1_cf1_2 = (LuceneOGCSpatialQuery) cf1_cf1.clauses().get(1).getQuery();
+        assertTrue(cf1_cf1.getChain().get(1) instanceof LuceneOGCFilter);
+        LuceneOGCFilter cf1_cf1_2 = (LuceneOGCFilter) cf1_cf1.getChain().get(1);
         assertTrue(cf1_cf1_2.getOGCFilter() instanceof Contains);
 
-        f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
+        f2 = (LuceneOGCFilter) chainFilter.getChain().get(1);
         assertTrue(f2.getOGCFilter() instanceof BBOX);
 
     }
@@ -1112,12 +1110,12 @@ public class CQLParserTest {
 
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:(*VM*))");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(Title:(*VM*))");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        LuceneOGCSpatialQuery spaFilter = (LuceneOGCSpatialQuery) ((LuceneOGCSpatialQuery) spaQuery.getQuery());
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        LuceneOGCFilter spaFilter = (LuceneOGCFilter) ((LuceneOGCFilter) spaQuery.getSpatialFilter());
 
         assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
 
@@ -1134,13 +1132,13 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:(*VM*) AND Title:\"VM\")");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(Title:(*VM*) AND Title:\"VM\")");
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) spaQuery.getSpatialFilter();
 
         assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
 
@@ -1157,22 +1155,21 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"VM\")");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(Title:\"VM\")");
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
-        BooleanQuery boolQuery = (BooleanQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
+        SerialChainFilter chainFilter = (SerialChainFilter) spaQuery.getSpatialFilter();
 
-        assertEquals(boolQuery.clauses().size(),       2);
-        assertEquals(boolQuery.clauses().get(0).getOccur(), BooleanClause.Occur.MUST);
-        assertEquals(boolQuery.clauses().get(1).getOccur(), BooleanClause.Occur.MUST);
+        assertEquals(chainFilter.getActionType().length,  1);
+        assertEquals(chainFilter.getActionType()[0],      LogicalFilterType.AND);
+        assertEquals(chainFilter.getChain().size(),       2);
 
-
-        LuceneOGCSpatialQuery f1 =  (LuceneOGCSpatialQuery) boolQuery.clauses().get(0).getQuery();
+        LuceneOGCFilter f1 =  (LuceneOGCFilter) chainFilter.getChain().get(0);
         assertTrue (f1.getOGCFilter() instanceof Intersects);
 
-        LuceneOGCSpatialQuery f2 = (LuceneOGCSpatialQuery) boolQuery.clauses().get(1).getQuery();
+        LuceneOGCFilter f2 = (LuceneOGCFilter) chainFilter.getChain().get(1);
         assertTrue (f2.getOGCFilter() instanceof BBOX);
 
 
@@ -1190,11 +1187,11 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) spaQuery.getSpatialFilter();
         assertTrue(spaFilter.getOGCFilter() instanceof Intersects);
 
-        assertEquals(spaQuery.getTextQuery(), "(Title:(*VM*) OR Title:\"VM\")");
+        assertEquals(spaQuery.getQuery(), "(Title:(*VM*) OR Title:\"VM\")");
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.OR);
 
@@ -1213,20 +1210,21 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"VM\")");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(Title:\"VM\")");
         assertEquals(spaQuery.getSubQueries().size(), 0);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.OR);
 
-        assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
+        assertTrue(spaQuery.getSpatialFilter() instanceof SerialChainFilter);
 
-        BooleanQuery scf1 =((BooleanQuery) spaQuery.getQuery());
-        assertTrue (scf1.clauses().size() == 2);
+        SerialChainFilter scf1 = (SerialChainFilter) ((SerialChainFilter) spaQuery.getSpatialFilter());
+        assertTrue (scf1.getActionType().length == 1);
+        assertTrue (scf1.getChain().size() == 2);
 
-        f1 = (LuceneOGCSpatialQuery) scf1.clauses().get(0).getQuery();
+        f1 = (LuceneOGCFilter) scf1.getChain().get(0);
         assertTrue (f1.getOGCFilter() instanceof  Intersects);
 
-        f2 = (LuceneOGCSpatialQuery) scf1.clauses().get(1).getQuery();
+        f2 = (LuceneOGCFilter) scf1.getChain().get(1);
         assertTrue (f2.getOGCFilter() instanceof  BBOX);
 
         /**
@@ -1242,24 +1240,24 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "metafile:doc");
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) ((LuceneOGCSpatialQuery) spaQuery.getQuery());
+        assertTrue(spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) ((LuceneOGCFilter) spaQuery.getSpatialFilter());
 
         assertTrue (spaFilter.getOGCFilter() instanceof Intersects);
 
         SpatialQuery subQuery1 = spaQuery.getSubQueries().get(0);
-        assertTrue  (subQuery1.getQuery() != null);
-        assertEquals(subQuery1.getTextQuery(), "(Title:\"VM\")");
+        assertTrue  (subQuery1.getSpatialFilter() != null);
+        assertEquals(subQuery1.getQuery(), "(Title:\"VM\")");
         assertEquals(subQuery1.getSubQueries().size(), 0);
         assertEquals(subQuery1.getLogicalOperator(), LogicalFilterType.OR);
 
-        assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
+        assertTrue(subQuery1.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) subQuery1.getSpatialFilter();
 
         assertTrue (spaFilter.getOGCFilter() instanceof BBOX);
 
@@ -1277,19 +1275,19 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() == null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:\"VMAI\")");
+        assertTrue(spaQuery.getSpatialFilter() == null);
+        assertEquals(spaQuery.getQuery(), "(Title:\"VMAI\")");
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.OR);
 
         subQuery1 = spaQuery.getSubQueries().get(0);
-        assertTrue  (subQuery1.getQuery() != null);
-        assertEquals(subQuery1.getTextQuery(), "(Title:(LO?Li))");
+        assertTrue  (subQuery1.getSpatialFilter() != null);
+        assertEquals(subQuery1.getQuery(), "(Title:(LO?Li))");
         assertEquals(subQuery1.getSubQueries().size(), 0);
         assertEquals(subQuery1.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
+        assertTrue(subQuery1.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) subQuery1.getSpatialFilter();
 
         assertTrue (spaFilter.getOGCFilter() instanceof DWithin);
 
@@ -1360,40 +1358,40 @@ public class CQLParserTest {
 
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(cql, "1.1.0"), null, null, null);
 
-        assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(Title:(*VM*))");
+        assertTrue(spaQuery.getSpatialFilter() != null);
+        assertEquals(spaQuery.getQuery(), "(Title:(*VM*))");
         assertEquals(spaQuery.getSubQueries().size(), 2);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertTrue(spaQuery.getQuery().getClass().getName(), spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery)  spaQuery.getQuery();
+        assertTrue(spaQuery.getSpatialFilter().getClass().getName(), spaQuery.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter)  spaQuery.getSpatialFilter();
         assertTrue (spaFilter.getOGCFilter() instanceof Intersects);
 
         SpatialQuery subQuery2 = spaQuery.getSubQueries().get(1);
-        assertTrue  (subQuery2.getQuery() == null);
-        assertEquals(subQuery2.getTextQuery(), "(Title:\"VMAI\")");
+        assertTrue  (subQuery2.getSpatialFilter() == null);
+        assertEquals(subQuery2.getQuery(), "(Title:\"VMAI\")");
         assertEquals(subQuery2.getSubQueries().size(), 1);
         assertEquals(subQuery2.getLogicalOperator(), LogicalFilterType.OR);
 
         SpatialQuery subQuery2_1 = subQuery2.getSubQueries().get(0);
-        assertTrue  (subQuery2_1.getQuery() != null);
-        assertEquals(subQuery2_1.getTextQuery(), "(Title:(LO?Li))");
+        assertTrue  (subQuery2_1.getSpatialFilter() != null);
+        assertEquals(subQuery2_1.getQuery(), "(Title:(LO?Li))");
         assertEquals(subQuery2_1.getSubQueries().size(), 0);
         assertEquals(subQuery2_1.getLogicalOperator(), LogicalFilterType.AND);
 
-        assertTrue(subQuery2_1.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) subQuery2_1.getQuery();
+        assertTrue(subQuery2_1.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) subQuery2_1.getSpatialFilter();
 
         assertTrue (spaFilter.getOGCFilter() instanceof Beyond);
 
         subQuery1 = spaQuery.getSubQueries().get(0);
-        assertEquals(subQuery1.getTextQuery(), "(Title:\"PLOUF\")");
-        assertTrue  (subQuery1.getQuery() != null);
+        assertEquals(subQuery1.getQuery(), "(Title:\"PLOUF\")");
+        assertTrue  (subQuery1.getSpatialFilter() != null);
         assertEquals(subQuery1.getSubQueries().size(), 0);
         assertEquals(subQuery1.getLogicalOperator(), LogicalFilterType.OR);
 
-        assertTrue(subQuery1.getQuery() instanceof LuceneOGCSpatialQuery);
-        spaFilter = (LuceneOGCSpatialQuery) subQuery1.getQuery();
+        assertTrue(subQuery1.getSpatialFilter() instanceof LuceneOGCFilter);
+        spaFilter = (LuceneOGCFilter) subQuery1.getSpatialFilter();
 
         assertTrue (spaFilter.getOGCFilter() instanceof  BBOX);
 
