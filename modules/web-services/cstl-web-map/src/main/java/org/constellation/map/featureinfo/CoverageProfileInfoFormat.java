@@ -506,18 +506,13 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     /**
      * Reduce list to number of requested points.
      * At least first and last points will be preserved.
+     * Decimate points trying to preserve a regular distance
      *
      * @param lst list to decimate
      * @param samplingCount
      * @return
      */
     static List<XY> reduce(List<XY> lst, int samplingCount) {
-        //decimate points to preserve a regular distance
-
-        final TreeSet<BiSegment> distanceSort = new TreeSet<>();
-        //last bisegment must not be removed, it is not in the set but referenced by the previous last segment
-        BiSegment next = new BiSegment(lst.get(lst.size()-1));
-        next.next = new BiSegment(next.xy); //fake after end segment
 
         final List<BiSegment> prepared = new ArrayList<>();
 
@@ -535,10 +530,10 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         prepared.get(0).updatePrevious(first);
         prepared.get(prepared.size()-1).updateNext(last);
 
-        distanceSort.addAll(prepared);
+        final TreeSet<BiSegment> distanceSort = new TreeSet<>(prepared);
 
         //remove segments until we have the wanted count
-        samplingCount -= 2; //reduce by two we are working with segments and end segment is not in the map.
+        samplingCount -= 2; //reduce by two we are working with segments, first and last points are not in the Set.
         while (distanceSort.size() > samplingCount && !distanceSort.isEmpty()) {
             final BiSegment bis = distanceSort.pollFirst();
             final BiSegment nextb = bis.next;

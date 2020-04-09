@@ -35,14 +35,14 @@ public class CoverageProfileInfoTest {
     public void testDecimateSamplingCount() {
 
         final List<XY> points = new ArrayList<>();
-        points.add(new XY(0, Math.random()));
-        points.add(new XY(1, Math.random()));
-        points.add(new XY(3, Math.random()));
-        points.add(new XY(4, Math.random()));
-        points.add(new XY(7, Math.random()));
-        points.add(new XY(9, Math.random()));
-        points.add(new XY(9.5, Math.random()));
-        points.add(new XY(10, Math.random()));
+        points.add(new XY(0, 0));
+        points.add(new XY(1, 0));
+        points.add(new XY(3, 0));
+        points.add(new XY(4, 0));
+        points.add(new XY(7, 0));
+        points.add(new XY(9, 0));
+        points.add(new XY(9.5, 0));
+        points.add(new XY(10, 0));
 
         //the remove expected order is :
         // 0,1,3,4,7,9,9.5,10    costs : [3,3,4,5,2.5,1]  => 9.5
