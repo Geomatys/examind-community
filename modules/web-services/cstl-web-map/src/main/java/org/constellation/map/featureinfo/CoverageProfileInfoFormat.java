@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 import javax.measure.Unit;
@@ -78,6 +79,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
     private static final String MIME = "application/json; subtype=profile";
     private static final String PARAM_PROFILE = "profile";
+    private static final String PARAM_NBPOINT = "samplingCount";
     private static final String PARAM_ALTITUDE = "alt";
 
     private static final Map<Unit,List<Unit>> UNIT_GROUPS = new HashMap<>();
@@ -104,8 +106,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     @Override
     public Object getFeatureInfo(SceneDef sdef, CanvasDef cdef, Rectangle searchArea, GetFeatureInfo getFI) throws PortrayalException {
 
-        //extract profile geometry
+        //extract parameters : profile geometry and point count
         String geomStr = null;
+        Integer samplingCount = null;
         if (getFI instanceof org.geotoolkit.wms.xml.GetFeatureInfo) {
             Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
             if (parameters instanceof Map) {
@@ -114,6 +117,17 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                     geomStr = (String) cdt;
                 } else if (cdt instanceof String[]) {
                     geomStr = ((String[]) cdt)[0];
+                }
+
+                Object cdt2 = ((Map) parameters).get(PARAM_NBPOINT);
+                if (cdt2 instanceof String) {
+                    try {
+                        samplingCount = Double.valueOf((String) cdt2).intValue();
+                    } catch (NumberFormatException ex) {
+                        throw new PortrayalException(ex.getMessage(), ex);
+                    }
+                } else if (cdt2 instanceof Number) {
+                    samplingCount = ((Number) cdt2).intValue();
                 }
             }
         }
@@ -141,7 +155,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             if (resource instanceof GridCoverageResource) {
                 final GridCoverageResource ressource = (GridCoverageResource) resource;
                 try {
-                    final ProfilLayer l = extract(cdef, getFI, geom, ressource);
+                    final ProfilLayer l = extract(cdef, getFI, geom, ressource, samplingCount);
                     l.name = layer.getName();
                     if (l.name == null) {
                            l.name = ressource.getIdentifier()
@@ -161,7 +175,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return Collections.singletonList(MIME);
     }
 
-    private ProfilLayer extract(CanvasDef cdef, GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource) throws TransformException, FactoryException, DataStoreException {
+    private ProfilLayer extract(CanvasDef cdef, GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource, Integer samplingCount) throws TransformException, FactoryException, DataStoreException {
 
         final ProfilLayer layer = new ProfilLayer();
 
@@ -265,8 +279,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                 workEnv.setRange(3, alti, alti);
             }
 
-            final GridCoverage coverage = readCoverage(resource, workEnv, null);
-            baseData = extractData(coverage, geom);
+            final GridCoverage coverage = readCoverage(resource, workEnv);
+            baseData = extractData(coverage, geom, samplingCount);
 
         } catch (DataStoreException ex) {
             layer.message = ex.getMessage();
@@ -311,29 +325,30 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return layer;
     }
 
-    private ProfilData extractData(GridCoverage coverage, Geometry geom) throws TransformException, FactoryException {
+    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount) throws TransformException, FactoryException {
 
         final ProfilData pdata = new ProfilData();
 
         final CoordinateReferenceSystem crs = coverage.getCoordinateReferenceSystem();
-        final GridGeometry gridGeometry = coverage.getGridGeometry();
-        final GridEnvelope extent = gridGeometry.getExtent();
-        final MathTransform gridToCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
+        final GridGeometry gridGeometry     = coverage.getGridGeometry();
+        final GridEnvelope extent           = gridGeometry.getExtent();
+        final MathTransform gridToCrs       = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
+        final List<SampleDimension> samples = coverage.getSampleDimensions();
 
         //build axes informations
         final int dim = crs.getCoordinateSystem().getDimension();
-        long[] lowsI = extent.getLow().getCoordinateValues();
-        double[] lowsD = new double[dim];
-        for (int i=0;i<dim;i++) lowsD[i] = lowsI[i];
+        final long[] lowsI = extent.getLow().getCoordinateValues();
+        final double[] lowsD = new double[dim];
+        for (int i = 0;i < dim; i++) lowsD[i] = lowsI[i];
         final double[] gridPt = new double[extent.getDimension()];
         final double[] crsPt = new double[extent.getDimension()];
         final List<Axe> axes = new ArrayList<>();
         Integer altiIdx = null;
-        for (int i=2;i<dim;i++) {
+        for (int i = 2;i < dim; i++) {
             final CoordinateSystemAxis axis = crs.getCoordinateSystem().getAxis(i);
             System.arraycopy(lowsD, 0, gridPt, 0, dim);
-            final double[] range = new double[(int)extent.getSize(i)];
-            for (int k=0,kg=(int) extent.getLow(k);k<range.length;k++,kg++) {
+            final double[] range = new double[(int) extent.getSize(i)];
+            for (int k = 0, kg = (int) extent.getLow(k); k < range.length; k++, kg++) {
                 gridPt[i] = kg;
                 gridToCrs.transform(gridPt, 0, crsPt, 0, 1);
                 range[k] = crsPt[i];
@@ -354,10 +369,10 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final int ALTIIDX = altiIdx == null ? -1 : altiIdx;
 
         //build sample dimension informations
-        final int numSampleDimensions = coverage.getSampleDimensions().size();
+        final int numSampleDimensions = samples.size();
         final Band[] bands = new Band[numSampleDimensions];
-        for (int i=0;i<numSampleDimensions;i++) {
-            SampleDimension sampleDimension = coverage.getSampleDimensions().get(0);
+        for (int i = 0; i < numSampleDimensions; i++) {
+            final SampleDimension sampleDimension = samples.get(0);
             final Band band = new Band();
             band.name = String.valueOf(sampleDimension.getName());
             if (sampleDimension.getUnits().isPresent()) {
@@ -477,6 +492,10 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             });
         }
 
+        if (samplingCount != null && pdata.points.size() > samplingCount) {
+            pdata.points = reduce(pdata.points, samplingCount);
+        }
+
         pdata.realUnit = bands[0].realUnit;
         pdata.unit = bands[0].unit;
         pdata.min = stats.minimum();
@@ -484,18 +503,85 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return pdata;
     }
 
+    /**
+     * Reduce list to number of requested points.
+     * At least first and last points will be preserved.
+     *
+     * @param lst list to decimate
+     * @param samplingCount
+     * @return
+     */
+    static List<XY> reduce(List<XY> lst, int samplingCount) {
+        //decimate points to preserve a regular distance
+
+        final TreeSet<BiSegment> distanceSort = new TreeSet<>();
+        //last bisegment must not be removed, it is not in the set but referenced by the previous last segment
+        BiSegment next = new BiSegment(lst.get(lst.size()-1));
+        next.next = new BiSegment(next.xy); //fake after end segment
+
+        final List<BiSegment> prepared = new ArrayList<>();
+
+        final BiSegment first = new BiSegment(lst.get(0));
+        final BiSegment last = new BiSegment(lst.get(lst.size()-1));
+        BiSegment previous = null;
+        for (int i = 1, n = lst.size()-1; i < n ; i++) {
+            final BiSegment bis = new BiSegment(lst.get(i));
+            if (previous != null) {
+                bis.updatePrevious(previous);
+            }
+            previous = bis;
+            prepared.add(bis);
+        }
+        prepared.get(0).updatePrevious(first);
+        prepared.get(prepared.size()-1).updateNext(last);
+
+        distanceSort.addAll(prepared);
+
+        //remove segments until we have the wanted count
+        samplingCount -= 2; //reduce by two we are working with segments and end segment is not in the map.
+        while (distanceSort.size() > samplingCount && !distanceSort.isEmpty()) {
+            final BiSegment bis = distanceSort.pollFirst();
+            final BiSegment nextb = bis.next;
+            final BiSegment prevb = bis.prev;
+            distanceSort.remove(nextb);
+            distanceSort.remove(prevb);
+
+            //update next segment
+            nextb.updatePrevious(prevb);
+            if (!nextb.isEdge()) {
+                distanceSort.add(nextb);
+            }
+
+            //update previous segment
+            prevb.updateNext(nextb);
+            if (!prevb.isEdge()) {
+                distanceSort.add(prevb);
+            }
+        }
+
+        //rebuild list
+        BiSegment seg = first;
+        lst = new ArrayList<>();
+        while (seg != null) {
+            lst.add(seg.xy);
+            seg = seg.next;
+        }
+
+        return lst;
+    }
+
     private static void extractValues(Object value, List<Double> values) {
         if (value instanceof Number) {
-            values.add( ((Number)value).doubleValue() );
+            values.add( ((Number) value).doubleValue() );
         } else {
-            for (int i=0,n=Array.getLength(value);i<n;i++) {
+            for (int i = 0, n = Array.getLength(value); i < n; i++) {
                 Object sub = Array.get(value, i);
                 extractValues(sub, values);
             }
         }
     }
 
-    private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work, Boolean deferred)
+    private static GridCoverage readCoverage(GridCoverageResource resource, Envelope work)
             throws TransformException, DataStoreException {
 
         //ensure envelope is no flat
@@ -513,39 +599,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             }
         }
 
-        /*
-        Removed because there is no deferred mecanism anymore
-        if (deferred == null) {
-        //detec if expected image will be larger then 10Mb to load all the data.
-        deferred = true;
-        final GridGeometry gridGeometry = resource.getGridGeometry();
-        if (gridGeometry.isDefined(GeneralGridGeometry.GRID_TO_CRS) && gridGeometry.isDefined(GeneralGridGeometry.CRS)) {
-        final CoordinateReferenceSystem crs = CRS.getHorizontalComponent(gridGeometry.getCoordinateReferenceSystem());
-        MathTransform gridToCRS = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
-        TransformSeparator ts = new TransformSeparator(gridToCRS);
-        ts.addSourceDimensions(0,1);
-        ts.addTargetDimensions(0,1);
-        try {
-        gridToCRS = ts.separate();
-        } catch (FactoryException ex) {
-        //we have try
-        }
-        final MathTransform crsToGrid = gridToCRS.inverse();
-        final Envelope dataEnv = Envelopes.transform(workEnv, crs);
-        final GeneralEnvelope imgEnv = Envelopes.transform(crsToGrid, dataEnv);
-        final double nbPixel = imgEnv.getSpan(0) * imgEnv.getSpan(1);
-        deferred = nbPixel > 5000000;
-        }
-        }
-        final GridCoverageReadParam param = new GridCoverageReadParam();
-        param.setDeferred(deferred);
-        param.setEnvelope(workEnv);
-        GridCoverage coverage = reader.read(resource.getImageIndex(), param);
-        if (coverage instanceof GridCoverage2D) {
-        coverage = ((GridCoverage2D) coverage).view(ViewType.GEOPHYSICS);
-        }*/
         GridGeometry gg = resource.getGridGeometry().derive().rounding(GridRoundingMode.ENCLOSING).subgrid(workEnv).build();
-
         return resource.read(gg).forConvertedValues(true);
     }
 
@@ -726,6 +780,68 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         public void setY(double y) {
             this.y = y;
         }
+
+        @Override
+        public String toString() {
+            return "[" + x +" " + y + "]";
+        }
+
     }
 
+    /**
+     * Used for point decimation only.
+     */
+    private static class BiSegment implements Comparable<BiSegment> {
+        XY xy;
+        double distanceIfRemoved;
+        BiSegment prev;
+        BiSegment next;
+
+        public BiSegment(XY current) {
+            this.xy = current;
+        }
+
+        public boolean isEdge() {
+            return prev == null || next == null;
+        }
+
+        public void updatePrevious(BiSegment previousSegment) {
+            if (this.prev == previousSegment) return;
+            this.prev = previousSegment;
+            updateDistance();
+            previousSegment.updateNext(this);
+        }
+
+        public void updateNext(BiSegment nextSegment) {
+            if (this.next == nextSegment) return;
+            this.next = nextSegment;
+            updateDistance();
+            nextSegment.updatePrevious(this);
+        }
+
+        private void updateDistance() {
+            if (prev != null && next != null) {
+                this.distanceIfRemoved = next.xy.x - prev.xy.x;
+            } else {
+                this.distanceIfRemoved = Double.POSITIVE_INFINITY;
+            }
+        }
+
+        @Override
+        public int compareTo(BiSegment o) {
+            int cmp = Double.compare(distanceIfRemoved, o.distanceIfRemoved);
+            if (cmp == 0) {
+                //we need to have all segment different otherwise the TreeMap will remove entries
+                //use distance, it is always increasing
+                return Double.compare(xy.x, o.xy.x);
+            }
+            return cmp;
+        }
+
+        @Override
+        public String toString() {
+            return ((prev == null) ? "null" : prev.xy) + " -> " + xy + " -> " + ((next == null) ? "null" : next.xy) + " d:" + distanceIfRemoved;
+        }
+
+    }
 }

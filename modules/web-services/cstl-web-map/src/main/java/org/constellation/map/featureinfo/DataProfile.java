@@ -53,7 +53,6 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
     }
 
     private final List<Extractor> extractors = new ArrayList<>();
-//    private final PixelIterator pixels;
 
     /**
      * Cache des points de la polyligne d'entrée projetée dans la grille. On fait un tableau de valeurs contigües pour de
@@ -270,6 +269,9 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
         final DirectPosition2D geoLocation;
         final Point2D.Double gridLocation;
         final boolean isPixelBorder;
+        /**
+         * Distance in meters.
+         */
         final double distanceFromPrevious;
         Object value;
 
