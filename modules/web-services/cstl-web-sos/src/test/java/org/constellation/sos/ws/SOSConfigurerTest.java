@@ -248,7 +248,21 @@ public abstract class SOSConfigurerTest {
     public void getWKTSensorLocationTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         String result = sensorServBusiness.getWKTSensorLocation(sid, "urn:ogc:object:sensor:GEOM:1");
+
         String expResult = "POINT (-4.144984627896042 42.38798858151254)";
-        Assert.assertEquals(expResult, result);
+        double expX = -4.144984627896042;
+        double expY = 42.38798858151254;
+
+        Assert.assertTrue(result.startsWith("POINT ("));
+        Assert.assertTrue(result.endsWith(")"));
+
+        String s = result.substring(7, result.length() - 1);
+        String[] coords = s.split(" ");
+        Assert.assertEquals(2, coords.length);
+
+        Assert.assertEquals(expX, Double.parseDouble(coords[0]), 0.00000000000001);
+        Assert.assertEquals(expY, Double.parseDouble(coords[1]), 0.00000000000001);
+
+        //Assert.assertEquals(expResult, result);
     }
 }

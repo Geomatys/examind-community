@@ -90,7 +90,10 @@ public class CstlDOMComparator extends DocumentComparator {
     protected void compareNode(Node expected, Node actual) {
         if (expected.getLocalName() != null) {
             switch (expected.getLocalName()) {
+                case "posList":     //fall trough
                 case "LowerCorner": //fall trough
+                case "lowerCorner": //fall trough
+                case "upperCorner": //fall trough
                 case "UpperCorner":
                     double[] expectedDoubles = CharSequences.parseDoubles(expected.getTextContent(), ' ');
                     double[] actualDoubles = CharSequences.parseDoubles(actual.getTextContent(), ' ');

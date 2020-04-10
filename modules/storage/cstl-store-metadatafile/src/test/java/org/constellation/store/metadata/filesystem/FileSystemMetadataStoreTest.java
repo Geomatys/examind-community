@@ -31,6 +31,7 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.test.utils.Order;
 import org.constellation.test.utils.SpringTestRunner;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.util.NodeUtilities;
@@ -125,11 +126,13 @@ public class FileSystemMetadataStoreTest {
     }
 
     @Test
+    @Order(order=1)
     public void getEntryCountTest() throws Exception {
         Assert.assertEquals(14, fsStore1.getEntryCount());
     }
 
     @Test
+    @Order(order=2)
     public void getMetadataTest() throws Exception {
         RecordInfo result = fsStore1.getMetadata("42292_5p_19900609195600", MetadataType.NATIVE);
         Assert.assertNotNull(result);
@@ -160,6 +163,7 @@ public class FileSystemMetadataStoreTest {
     }
 
     @Test
+    @Order(order=3)
     public void getFieldDomainofValuesTest() throws Exception {
         List<DomainValues> result = fsStore1.getFieldDomainofValues("title");
         Assert.assertEquals(1, result.size());
@@ -184,6 +188,7 @@ public class FileSystemMetadataStoreTest {
     }
 
     @Test
+    @Order(order=4)
     public void getFieldDomainofValuesForMetadataTest() throws Exception {
         List<String> results = fsStore1.getFieldDomainofValuesForMetadata("title", "42292_5p_19900609195600");
         Assert.assertEquals(1, results.size());
@@ -192,6 +197,7 @@ public class FileSystemMetadataStoreTest {
     }
 
     @Test
+    @Order(order=5)
     public void storeMetadataTest() throws Exception {
         InputStream in = Util.getResourceAsStream("org/constellation/xml/metadata/meta6.xml");
         Node n = NodeUtilities.getNodeFromStream(in);
@@ -203,12 +209,14 @@ public class FileSystemMetadataStoreTest {
     }
 
     @Test
+    @Order(order=6)
     public void getMetadataErrorTest() throws Exception {
         RecordInfo result = fsStore1.getMetadata("unknow", MetadataType.NATIVE);
         Assert.assertNull(result);
     }
 
     @Test
+    @Order(order=7)
     public void storeMetadataErrorTest() throws Exception {
         Node n = NodeUtilities.getNodeFromReader(new StringReader(ERROR_XML));
         boolean result = fsStore1.storeMetadata(n);

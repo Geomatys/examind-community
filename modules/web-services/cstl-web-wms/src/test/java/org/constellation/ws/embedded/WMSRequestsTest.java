@@ -1730,7 +1730,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order = 28)
-    public void testWMSGetFeatureInfoJSONProfileShape() throws Exception {
+    public void testWMSGetFeatureInfoJSONProfileCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
         final URL gfi;
@@ -1754,7 +1754,57 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 
         String result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        //assertEquals(expResult, result);
+
+        // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization/ and precison change with JDK version.
+        final Map binding = new ObjectMapper().readValue(result, Map.class);
+        assertNotNull("result is empty", binding);
+        List records = (List) binding.get("layers");
+        assertEquals("A single layer result should be returned", 1, records.size());
+        Map record = (Map) records.get(0);
+
+        assertEquals("layer name property", "SSTMDE200305", record.get("name"));
+
+        List datas = (List) record.get("data");
+
+        assertEquals("A single data result should be returned", 1, datas.size());
+        Map data = (Map) datas.get(0);
+
+        assertEquals("min property", 0.0, data.get("min"));
+        assertEquals("max property", 0.0, data.get("max"));
+
+        List<Map> points = (List) data.get("points");
+
+        assertEquals("9 points should be returned", 9, points.size());
+
+        assertEquals("pt0 X property", 3.8516484760372463E-13, (double)points.get(0).get("x"), 0.000000000001);
+        assertEquals("pt0 Y property", 0.0,                    (double)points.get(0).get("y"), 0.000000000001);
+
+        assertEquals("pt1 X property", 22.915557595600948,     (double)points.get(1).get("x"), 0.000000000001);
+        assertEquals("pt1 Y property", 0.0,                    (double)points.get(1).get("y"), 0.000000000001);
+
+        assertEquals("pt2 X property", 22.915557595601836,     (double)points.get(2).get("x"), 0.000000000001);
+        assertEquals("pt2 Y property", 0.0,                    (double)points.get(2).get("y"), 0.000000000001);
+
+        assertEquals("pt3 X property", 27.611269657740863,     (double)points.get(3).get("x"), 0.000000000001);
+        assertEquals("pt3 Y property", 0.0,                    (double)points.get(3).get("y"), 0.000000000001);
+
+        assertEquals("pt4 X property", 27.611269657741225,     (double)points.get(4).get("x"), 0.000000000001);
+        assertEquals("pt4 Y property", 0.0,                    (double)points.get(4).get("y"), 0.000000000001);
+
+        assertEquals("pt5 X property", 38.734410245335305,     (double)points.get(5).get("x"), 0.000000000001);
+        assertEquals("pt5 Y property", 0.0,                    (double)points.get(5).get("y"), 0.000000000001);
+
+        assertEquals("pt6 X property", 38.73441024533549,      (double)points.get(6).get("x"), 0.000000000001);
+        assertEquals("pt6 Y property", 0.0,                    (double)points.get(6).get("y"), 0.000000000001);
+
+        assertEquals("pt7 X property", 51.33753842087088,      (double)points.get(7).get("x"), 0.000000000001);
+        assertEquals("pt7 Y property", 0.0,                    (double)points.get(7).get("y"), 0.000000000001);
+
+        assertEquals("pt8 X property", 53.45249659867336,      (double)points.get(8).get("x"), 0.000000000001);
+        assertEquals("pt8 Y property", 0.0,                    (double)points.get(8).get("y"), 0.000000000001);
+
+
     }
 
     @Test
