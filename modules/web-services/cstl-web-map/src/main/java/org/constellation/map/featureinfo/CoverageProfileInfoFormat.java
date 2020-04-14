@@ -379,7 +379,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final Band band = new Band();
             band.name = String.valueOf(sampleDimension.getName());
             if (sampleDimension.getUnits().isPresent()) {
-                Unit<?> unit = sampleDimension.getUnits().get();//NOSONAR
+                final Unit<?> unit = sampleDimension.getUnits().get();//NOSONAR
                 band.realUnit = unit;
                 band.unit = unit.getSymbol();
             }
