@@ -863,9 +863,10 @@ public class ProviderBusiness implements IProviderBusiness {
             final int outConfigProvider = createPyramidProvider(providerId, pyramidProviderId);
             outProvider = DataProviders.getProvider(outConfigProvider);
             createOrUpdateData(outConfigProvider, datasetID, false);
-
-            if (covRef.getIdentifier().isPresent()) {
-                name = covRef.getIdentifier().get();//NOSONAR
+                
+            Optional<GenericName> optIdentifier = covRef.getIdentifier();
+            if (optIdentifier.isPresent()) {
+                name = optIdentifier.get();
                 outStore = (XMLCoverageStore) outProvider.getMainStore();
                 outRef = (XMLCoverageResource) outStore.findResource(name.toString());
 
