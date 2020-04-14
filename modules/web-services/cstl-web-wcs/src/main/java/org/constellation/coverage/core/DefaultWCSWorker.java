@@ -50,6 +50,7 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.measure.NumberRange;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
@@ -578,10 +579,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                             if (cat.getName() != null) {
                                 av.setId(cat.getName().toString());
                             }
-                           
-                            if (cat.getMeasurementRange().orElse(null) != null) {
-                                av.setMin(cat.getMeasurementRange().get().getMinDouble());//NOSONAR
-                                av.setMax(cat.getMeasurementRange().get().getMaxDouble());//NOSONAR
+                          final NumberRange<?> range =  cat.getMeasurementRange().orElse(null);
+                            if ( range != null) {
+                                av.setMin(cat.getMeasurementRange().get().getMinDouble());
+                                av.setMax(cat.getMeasurementRange().get().getMaxDouble());
                             }
                             quantity.setConstraint(new AllowedValuesPropertyType(av));
                         }

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
@@ -378,8 +379,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final SampleDimension sampleDimension = samples.get(0);
             final Band band = new Band();
             band.name = String.valueOf(sampleDimension.getName());
-            if (sampleDimension.getUnits().isPresent()) {
-                final Unit<?> unit = sampleDimension.getUnits().get();//NOSONAR
+            final Optional<Unit<?>> optUnits = sampleDimension.getUnits();
+            if (optUnits.isPresent()) {
+                final Unit<?> unit = optUnits.get();
                 band.realUnit = unit;
                 band.unit = unit.getSymbol();
             }
