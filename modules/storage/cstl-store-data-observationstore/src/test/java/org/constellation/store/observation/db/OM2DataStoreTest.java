@@ -99,7 +99,7 @@ public class OM2DataStoreTest extends AbstractReadingTests{
                 featureTypeBuilder.addAttribute(String.class).setName(nsCstl, "id").addRole(AttributeRole.IDENTIFIER_COMPONENT);
                 featureTypeBuilder.addAttribute(Geometry.class).setName(nsCstl, "position").addRole(AttributeRole.DEFAULT_GEOMETRY);
 
-                int size = 11;
+                int size = 12;
                 GeneralEnvelope env = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
                 env.setRange(0, 5.0, 2846612.385024995);
                 env.setRange(1, -1628761.942286251, 1731368);

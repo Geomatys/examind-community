@@ -967,6 +967,60 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     }
 
+    @Test
+    @Order(order=23)
+    public void getDataArrayForMultiDatastreamsFiltered() throws Exception {
+        initPool();
+
+        String filter = "time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter1.json");
+        assertEquals(expResult, result);
+
+        filter = "ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2.json");
+        assertEquals(expResult, result);
+
+        filter = "(time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z) and ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    @Order(order=24)
+    public void getDataArrayForMultiDatastreamsFiltered2() throws Exception {
+        initPool();
+
+        String filter = "time ge 1990-05-01T11:59:00Z and time le 2016-05-01T13:59:00Z".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-1.json");
+        assertEquals(expResult, result);
+
+        filter = "ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-2.json");
+        assertEquals(expResult, result);
+
+        filter = "(time ge 2000-11-30T23:00:00Z and time le 2000-12-21T23:00:00Z) and (ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:temperature or ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:salinity or ObservedProperty/id eq urn:ogc:def:phenomenon:GEOM:depth)".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-3.json");
+        assertEquals(expResult, result);
+    }
+
 
     private void printGeom(double x, double y) throws Exception {
 

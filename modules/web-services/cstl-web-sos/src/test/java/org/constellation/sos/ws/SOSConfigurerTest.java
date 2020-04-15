@@ -184,6 +184,7 @@ public abstract class SOSConfigurerTest {
         Set<String> expResults = new LinkedHashSet<>();
         expResults.add("urn:ogc:object:sensor:GEOM:1");
         expResults.add("urn:ogc:object:sensor:GEOM:10");
+        expResults.add("urn:ogc:object:sensor:GEOM:12");
         expResults.add("urn:ogc:object:sensor:GEOM:2");
         expResults.add("urn:ogc:object:sensor:GEOM:3");
         expResults.add("urn:ogc:object:sensor:GEOM:4");
@@ -199,7 +200,8 @@ public abstract class SOSConfigurerTest {
     public void getSensorIdsForObservedPropertyTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "urn:ogc:def:phenomenon:GEOM:temperature");
-        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:2",
+        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:12",
+                                                "urn:ogc:object:sensor:GEOM:2",
                                                 "urn:ogc:object:sensor:GEOM:7",
                                                 "urn:ogc:object:sensor:GEOM:8",
                                                 "urn:ogc:object:sensor:GEOM:test-1");
@@ -236,8 +238,10 @@ public abstract class SOSConfigurerTest {
         Collection<String> results = sensorServBusiness.getObservedPropertiesIds(sid);
         Set<String> expResults = new HashSet<>();
         expResults.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
+        expResults.add("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2");
         expResults.add("urn:ogc:def:phenomenon:GEOM:depth");
         expResults.add("urn:ogc:def:phenomenon:GEOM:temperature");
+        expResults.add("urn:ogc:def:phenomenon:GEOM:salinity");
         Assert.assertEquals(expResults, results);
     }
 

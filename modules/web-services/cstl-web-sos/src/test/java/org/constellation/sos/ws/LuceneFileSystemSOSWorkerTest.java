@@ -87,6 +87,7 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-9.xml", "offering-9.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-10.xml", "offering-10.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-11.xml", "offering-11.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV100Directory, "org/constellation/sos/v100/offering-12.xml", "offering-12.xml", EPSG_VERSION);
 
         Path offeringV200Directory = offeringDirectory.resolve("2.0.0");
         Files.createDirectories(offeringV200Directory);
@@ -101,13 +102,16 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-9.xml", "offering-9.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-10.xml", "offering-10.xml", EPSG_VERSION);
         writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-11.xml", "offering-11.xml", EPSG_VERSION);
+        writeDataFileEPSG(offeringV200Directory, "org/constellation/sos/v200/offering-12.xml", "offering-12.xml", EPSG_VERSION);
 
 
         Path phenomenonDirectory = instDirectory.resolve("phenomenons");
         Files.createDirectories(phenomenonDirectory);
         writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth.xml", "depth.xml", EPSG_VERSION);
         writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-temp.xml",  "temperature.xml", EPSG_VERSION);
+        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-sal.xml",  "salinity.xml", EPSG_VERSION);
         writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth-temp.xml",  "aggregatePhenomenon.xml", EPSG_VERSION);
+        writeDataFileEPSG(phenomenonDirectory, "org/constellation/sos/phenomenon-depth-temp-sal.xml",  "aggregatePhenomenon-2.xml", EPSG_VERSION);
 
         Path featureDirectory = instDirectory.resolve("features");
         Files.createDirectories(featureDirectory);

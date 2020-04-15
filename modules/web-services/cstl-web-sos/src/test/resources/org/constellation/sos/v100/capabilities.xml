@@ -134,6 +134,7 @@
           <ows:Value>offering-1</ows:Value>
           <ows:Value>offering-10</ows:Value>
           <ows:Value>offering-11</ows:Value>
+          <ows:Value>offering-12</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -148,7 +149,7 @@
         <ows:AllowedValues>
           <ows:Range>
             <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>2007-05-01T14:59:00.000Z</ows:MaximumValue>
+            <ows:MaximumValue>2000-12-21T23:00:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -156,6 +157,7 @@
         <ows:AllowedValues>
           <ows:Value>urn:ogc:object:sensor:GEOM:1</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:10</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -170,7 +172,9 @@
       <ows:Parameter name="observedProperty">
         <ows:AllowedValues>
           <ows:Value>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ows:Value>
+          <ows:Value>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ows:Value>
           <ows:Value>urn:ogc:def:phenomenon:GEOM:depth</ows:Value>
+          <ows:Value>urn:ogc:def:phenomenon:GEOM:salinity</ows:Value>
           <ows:Value>urn:ogc:def:phenomenon:GEOM:temperature</ows:Value>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -437,6 +441,47 @@
         <ns9:responseMode>inline</ns9:responseMode>
         <ns9:responseMode>resultTemplate</ns9:responseMode>
       </ns9:ObservationOffering>
+      <ns9:ObservationOffering ns39:id="offering-12">
+        <ns39:name>offering-12</ns39:name>
+        <ns39:boundedBy>
+          <ns39:Null>not_bounded</ns39:Null>
+        </ns39:boundedBy>
+        <ns9:time>
+          <ns39:TimePeriod>
+            <ns39:beginPosition>2000-12-01</ns39:beginPosition>
+            <ns39:endPosition>2000-12-22</ns39:endPosition>
+          </ns39:TimePeriod>
+        </ns9:time>
+        <ns9:procedure xlink:href="urn:ogc:object:sensor:GEOM:12"/>
+        <ns9:observedProperty>
+          <ns31:CompositePhenomenon dimension="3" ns39:id="aggregatePhenomenon-2">
+            <ns39:description>the aggregation of temperature depth, and salinity phenomenons</ns39:description>
+            <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ns39:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component>
+              <ns31:Phenomenon ns39:id="salinity">
+<ns39:description>the salinity in water</ns39:description>
+<ns39:name>urn:ogc:def:phenomenon:GEOM:salinity</ns39:name>
+              </ns31:Phenomenon>
+            </ns31:component>
+            <ns31:component>
+              <ns31:Phenomenon ns39:id="temperature">
+<ns39:description>the temperature in celcius degree</ns39:description>
+<ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
+              </ns31:Phenomenon>
+            </ns31:component>
+          </ns31:CompositePhenomenon>
+        </ns9:observedProperty>
+        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
+        <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+        <ns9:featureOfInterest xlink:href="station-001"/>
+        <ns9:responseFormat>text/xml; subtype="om/1.0.0"</ns9:responseFormat>
+        <ns9:resultModel>om:Observation</ns9:resultModel>
+        <ns9:resultModel>om:Measurement</ns9:resultModel>
+        <ns9:responseMode>inline</ns9:responseMode>
+        <ns9:responseMode>resultTemplate</ns9:responseMode>
+      </ns9:ObservationOffering>
       <ns9:ObservationOffering ns39:id="offering-2">
         <ns39:name>offering-2</ns39:name>
         <ns39:boundedBy>
@@ -454,12 +499,7 @@
             <ns39:description>the aggregation of temperature and depth phenomenons</ns39:description>
             <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</ns39:name>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-            <ns31:component>
-              <ns31:Phenomenon ns39:id="temperature">
-<ns39:description>the temperature in celcius degree</ns39:description>
-<ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
-              </ns31:Phenomenon>
-            </ns31:component>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
           </ns31:CompositePhenomenon>
         </ns9:observedProperty>
         <ns9:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>

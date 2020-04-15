@@ -461,12 +461,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             if (mainField != null) {
                                 fields.add(mainField);
                             }
+
+                            List<Field> phenFields = new ArrayList<>();
                             for (String f : currentFields) {
                                 final Field field = getFieldForPhenomenon(procedure, f, c);
                                 if (field != null && !fields.contains(field)) {
-                                    fields.add(field);
+                                    phenFields.add(field);
                                 }
                             }
+
+                            // add proper order to fields
+                            List<Field> procedureFields = readFields(procedure, c);
+                            phenFields = reOrderFields(procedureFields, phenFields);
+                            fields.addAll(phenFields);
+
                             // special case for trajectory observation
                             // if lat/lon are available, include it anyway if they are not part of the phenomenon.
                             final List<Field> llFields = getPosFields(procedure, c);
@@ -793,12 +801,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     if (mainField != null) {
                         fields.add(mainField);
                     }
+                    List<Field> phenFields = new ArrayList<>();
                     for (String f : currentFields) {
                         final Field field = getFieldForPhenomenon(currentProcedure, f, c);
                         if (field != null && !fields.contains(field)) {
-                            fields.add(field);
+                            phenFields.add(field);
                         }
                     }
+                    // add proper order to fields
+                    List<Field> procedureFields = readFields(currentProcedure, c);
+                    phenFields = reOrderFields(procedureFields, phenFields);
+                    fields.addAll(phenFields);
+
                 } else {
                     fields = readFields(currentProcedure, c);
                 }
@@ -878,12 +892,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             if (mainField != null) {
                                 fields.add(mainField);
                             }
+                            List<Field> phenFields = new ArrayList<>();
                             for (String f : currentFields) {
                                 final Field field = getFieldForPhenomenon(currentProcedure, f, c);
                                 if (field != null && !fields.contains(field)) {
-                                    fields.add(field);
+                                    phenFields.add(field);
                                 }
                             }
+                             // add proper order to fields
+                            List<Field> procedureFields = readFields(currentProcedure, c);
+                            phenFields = reOrderFields(procedureFields, phenFields);
+                            fields.addAll(phenFields);
                         } else {
                             fields = readFields(currentProcedure, c);
                         }
@@ -1358,6 +1377,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
         return version;
+    }
+
+    private static List<Field> reOrderFields(List<Field> procedureFields, List<Field> subset) {
+        List<Field> result = new ArrayList();
+        for (Field pField : procedureFields) {
+            if (subset.contains(pField)) {
+                result.add(pField);
+            }
+        }
+        return result;
     }
 
     private static class ResultBuilder {

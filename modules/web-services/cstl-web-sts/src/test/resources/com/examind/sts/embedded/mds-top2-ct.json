@@ -1,6 +1,25 @@
 {
-  "@iot.count" : 9,
+  "@iot.count" : 10,
   "value" : [ {
+    "unitOfMeasure" : [ {
+      "name" : "m",
+      "symbol" : "m",
+      "definition" : "m"
+    }, {
+      "name" : "°C",
+      "symbol" : "°C",
+      "definition" : "°C"
+    } ],
+    "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "resultTime" : "2000-12-31T23:00:00Z/2000-12-31T23:00:00Z",
+    "@iot.id" : "urn:ogc:object:observation:template:GEOM:2",
+    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)",
+    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things",
+    "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors",
+    "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/ObservedProperties",
+    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations",
+    "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
+  }, {
     "unitOfMeasure" : [ {
       "name" : "m",
       "symbol" : "m",
@@ -14,21 +33,6 @@
     "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Sensors",
     "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/ObservedProperties",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations",
-    "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
-  }, {
-    "unitOfMeasure" : [ {
-      "name" : "m",
-      "symbol" : "m",
-      "definition" : "m"
-    } ],
-    "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
-    "resultTime" : "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
-    "@iot.id" : "urn:ogc:object:observation:template:GEOM:4",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)",
-    "Thing@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Things",
-    "Sensor@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Sensors",
-    "ObservedProperty@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/ObservedProperties",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams(urn:ogc:object:observation:template:GEOM:4)/Observations",
     "multiObservationDataTypes" : [ "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement" ]
   } ],
   "@iot.nextLink" : "http://localhost:9090/WS/sts/default/MultiDatastreams?$skip=4&$top=2"

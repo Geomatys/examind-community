@@ -61,9 +61,11 @@ public class OdataFilterParser {
                 String sub = filterStr.substring(1, close);
                 String next = filterStr.substring(close + 1, filterStr.length());
                 if (next.startsWith(" or ")) {
-                    throw new CstlServiceException("TODO");
+                    next = next.substring(4);
+                    return ff.or(parserFilter(sub), parserFilter(next));
                 } else if (next.startsWith(" and ")) {
-                    throw new CstlServiceException("TODO");
+                    next = next.substring(5);
+                    return ff.and(parserFilter(sub), parserFilter(next));
                 } else if (next.isEmpty()) {
                     return parserFilter(sub);
                 } else {
