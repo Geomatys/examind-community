@@ -20,6 +20,7 @@
     </description>
 
     <modules>
+        <module>cstl-json-common</module>
         <module>cstl-json-style</module>
         <module>cstl-json-metadata</module>
     </modules>

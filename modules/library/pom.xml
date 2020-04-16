@@ -18,6 +18,7 @@
     <description>Library for Examind.</description>
 
     <modules>
+        <module>cstl-lib-base</module>
         <module>cstl-lib-api</module>
         <module>cstl-lib-filter</module>
         <module>cstl-lib-index</module>
