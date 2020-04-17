@@ -17,11 +17,14 @@ import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.referencing.CommonCRS;
 
-import org.geotoolkit.coverage.grid.GridCoverageBuilder;
+import org.apache.sis.coverage.grid.GridCoverageBuilder;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.geometry.jts.JTS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.awt.Dimension;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.geotoolkit.image.BufferedImages;
 import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
@@ -123,13 +126,15 @@ public class JSONFeatureInfoTest {
     @Test
     public void simpleCoverage() throws Exception {
         GridCoverageBuilder builder = new GridCoverageBuilder();
-        builder.setCoordinateReferenceSystem(CommonCRS.defaultGeographic());
-        builder.setRenderedImage(new float[][]{
-                new float[] {1.1f, 1.1f},
-                new float[] {2.2f, 2.2f}
-        });
-        builder.setEnvelope(-180, -90, 180, 90);
-
+        GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+        builder.setDomain(env);
+        builder.setValues(BufferedImages.toDataBuffer1D(new float[][]{
+             new float[] {1.1f, 1.1f},
+             new float[] {2.2f, 2.2f}
+        }), new Dimension(2, 2));
+        builder.flipAxis(1);
         final GetFeatureInfoContext ctx = new GetFeatureInfoContext();
         ctx.selection = new Rectangle(1, 1);
         ctx.createLayer("myCoverage", builder.build());
@@ -154,11 +159,13 @@ public class JSONFeatureInfoTest {
         f.setPropertyValue("text", "a feature");
 
         GridCoverageBuilder builder = new GridCoverageBuilder();
-        builder.setCoordinateReferenceSystem(CommonCRS.defaultGeographic());
-        builder.setRenderedImage(new float[][]{
+        GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+        builder.setDomain(env);
+        builder.setValues(BufferedImages.toDataBuffer1D(new float[][]{
                 new float[] {3.4f}
-        });
-        builder.setEnvelope(-180, -90, 180, 90);
+        }), new Dimension(1, 1));
 
         final GetFeatureInfoContext ctx = new GetFeatureInfoContext();
         ctx.createLayer("fl", simpleType, Collections.singletonList(f));

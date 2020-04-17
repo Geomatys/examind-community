@@ -72,9 +72,7 @@ import org.opengis.util.InternationalString;
 import org.opengis.util.NameFactory;
 
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.feature.AbstractOperation;
 import org.apache.sis.feature.Features;
-import org.apache.sis.internal.feature.FeatureUtilities;
 import org.apache.sis.internal.storage.MetadataBuilder;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -1311,8 +1309,7 @@ public class MetadataFeeder {
     }
 
     private static boolean isALink(final PropertyType target) {
-        return target instanceof AbstractOperation &&
-                FeatureUtilities.LINK_PARAMS.equals(((AbstractOperation) target).getParameters());
+        return Features.getLinkTarget(target).isPresent();
     }
 
     /**
