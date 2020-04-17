@@ -478,6 +478,27 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 } else {
                     pid = rs.getInt(1);
+
+                    // write new locations
+                    for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                        try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {
+                            stmtInsert.setString(1, procedure.id);
+                            stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
+                            if (entry.getValue() != null) {
+                                Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
+                                int srid = pt.getSRID();
+                                if (srid == 0) {
+                                    srid = 4326;
+                                }
+                                stmtInsert.setBytes(3, getGeometryBytes(pt));
+                                stmtInsert.setInt(4, srid);
+                            } else {
+                                stmtInsert.setNull(3, java.sql.Types.BINARY);
+                                stmtInsert.setNull(4, java.sql.Types.INTEGER);
+                            }
+                            stmtInsert.executeUpdate();
+                        }
+                    }
                 }
             }
         }
@@ -656,8 +677,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         if (beginDate != null) {
                             final long obsBeginTime = beginDate.getTime();
                             if (obsBeginTime < offBegin) {
-                                try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=?")) {
+                                try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=? WHERE \"identifier\"=?")) {
                                     beginStmt.setTimestamp(1, new Timestamp(obsBeginTime));
+                                    beginStmt.setString(2, offeringID);
                                     beginStmt.executeUpdate();
                                 }
                             }
@@ -665,8 +687,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         if (endDate != null) {
                             final long obsEndTime = endDate.getTime();
                             if (obsEndTime > offEnd) {
-                                try(final PreparedStatement endStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_end\"=?")) {
+                                try(final PreparedStatement endStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_end\"=? WHERE \"identifier\"=?")) {
                                     endStmt.setTimestamp(1, new Timestamp(obsEndTime));
+                                    endStmt.setString(2, offeringID);
                                     endStmt.executeUpdate();
                                 }
                             }
@@ -677,14 +700,16 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         if (date != null) {
                             final long obsTime = date.getTime();
                             if (obsTime < offBegin) {
-                                try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=?")) {
+                                try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=?  WHERE \"identifier\"=?")) {
                                     beginStmt.setTimestamp(1, new Timestamp(obsTime));
+                                    beginStmt.setString(2, offeringID);
                                     beginStmt.executeUpdate();
                                 }
                             }
                             if (obsTime > offEnd) {
-                                try(final PreparedStatement endStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_end\"=?")) {
+                                try(final PreparedStatement endStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_end\"=?  WHERE \"identifier\"=?")) {
                                     endStmt.setTimestamp(1, new Timestamp(obsTime));
+                                    endStmt.setString(2, offeringID);
                                     endStmt.executeUpdate();
                                 }
                             }

@@ -104,6 +104,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
     private final String procedureId;
 
+    private final String procedureColumn;
+
     /**
      *
      * @param observationFile path to the dbf observation file
@@ -119,7 +121,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
      */
     public DbfObservationStore(final Path observationFile,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId) throws DataStoreException, MalformedURLException {
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn) throws DataStoreException, MalformedURLException {
         super(observationFile);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
@@ -131,6 +133,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureId = procedureId;
+        this.procedureColumn = procedureColumn;
     }
 
     @Override

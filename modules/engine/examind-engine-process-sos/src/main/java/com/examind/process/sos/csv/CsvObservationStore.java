@@ -47,6 +47,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -107,6 +108,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     private final String observationType;
 
     private final String procedureId;
+    private final String procedureColumn;
 
     private final boolean extractUom;
 
@@ -127,7 +129,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
      */
     public CsvObservationStore(final Path observationFile, final char separator, final FeatureType featureType,
             final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final boolean extractUom) throws DataStoreException, MalformedURLException {
+            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, final boolean extractUom) throws DataStoreException, MalformedURLException {
         super(observationFile, separator, featureType);
         dataFile = observationFile;
         this.mainColumn = mainColumn;
@@ -139,6 +141,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
         this.observationType = observationType;
         this.foiColumn = foiColumn;
         this.procedureId = procedureId;
+        this.procedureColumn = procedureColumn;
         this.extractUom = extractUom;
     }
 
@@ -154,8 +157,51 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public Set<GenericName> getProcedureNames() {
         final Set<GenericName> names = new HashSet<>();
-        names.add(NamesExt.create(getProcedureID()));
+        if (procedureColumn == null) {
+            names.add(NamesExt.create(getProcedureID()));
+        } else {
+            names.addAll(extractProcedures());
+        }
         return names;
+    }
+
+    private Set<GenericName> extractProcedures() {
+
+        final Set<GenericName> result = new HashSet();
+        // open csv file
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+
+            final Iterator<String[]> it = reader.iterator();
+
+            // at least one line is expected to contain headers information
+            if (it.hasNext()) {
+
+                // prepare time column indices
+                int procIndex = -1;
+
+                // read headers
+                final String[] headers = it.next();
+                for (int i = 0; i < headers.length; i++) {
+                    final String header = headers[i];
+                    if (procedureColumn.equals(header)) {
+                        procIndex = i;
+                    }
+                }
+
+                while (it.hasNext()) {
+                    final String[] line = it.next();
+                    // update temporal information
+                    if (procIndex != -1) {
+                        result.add(NamesExt.create(line[procIndex]));
+                    }
+                }
+                return result;
+            }
+            throw new BackingStoreException("csv headers not found");
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            throw new BackingStoreException(ex);
+        }
     }
 
     private String getProcedureID() {
@@ -183,9 +229,6 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
             final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
-        if (affectedSensorId != null) {
-            LOGGER.warning("CSVObservation store does not allow to override sensor ID");
-        }
 
         int obsCpt = 0;
 
@@ -205,6 +248,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
                 int foiIndex = -1;
+                int procIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -232,6 +276,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         ignoredFields.add(longitudeIndex);
                     } else if (measureColumns.contains(header)) {
                         measureFields.add(header);
+                    } else if (header.equals(procedureColumn)) {
+                        procIndex = i;
+                        ignoredFields.add(procIndex);
                     } else {
                         ignoredFields.add(i);
                     }
@@ -287,6 +334,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 // -- single observation related variables --
                 int currentCount                      = 0;
                 String currentFoi                     = null;
+                String currentProc                    = null;
                 Long currentTime                      = null;
                 GeoSpatialBound currentSpaBound = new GeoSpatialBound();
                 // builder of measure string
@@ -296,8 +344,9 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
 
                 // -- previous variables leading to new observations --
-                String previousFoi = null;
-                Long previousTime  = null;
+                String previousFoi  = null;
+                String previousProc = null;
+                Long previousTime   = null;
 
                 while (it.hasNext()) {
                     count++;
@@ -329,6 +378,12 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         currentFoi = line[foiIndex];
                     }
 
+                    // look for current procedure (for observation separation)
+                    if (procIndex != -1) {
+                        currentProc = line[procIndex];
+                    }
+
+
                     // look for current date (for non timeseries observation separation)
                     if (dateIndex != mainIndex) {
                         try {
@@ -340,40 +395,62 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                     }
 
                     // closing current observation and starting new one
-                    if (previousFoi != null  && !previousFoi.equals(currentFoi) ||
-                        previousTime != null && !previousTime.equals(currentTime)) {
+                    if (previousFoi  != null && !previousFoi.equals(currentFoi)   ||
+                        previousTime != null && !previousTime.equals(currentTime) ||
+                        previousProc != null && !previousProc.equals(currentProc)) {
 
                         final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                         obsCpt++;
-                        final String procedureID = getProcedureID();
+
+                        // procedure
+                        String procedureID = getProcedureID();
+                        if (previousProc != null) {
+                            procedureID = previousProc;
+                        }
 
                         // sampling feature of interest
                         String foiID = "foi-" + oid;
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
-                        final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                        result.addFeatureOfInterest(sp);
 
-                        result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                         sp,                            // foi
-                                                                         phenomenon,                    // phenomenon
-                                                                         procedureID,                   // procedure
-                                                                         currentCount,                  // count
-                                                                         datarecord,                    // result structure
-                                                                         msb,                           // measures
-                                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
-                        );
+
+                        if (procedureID.equals(affectedSensorId)) {
+                            final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                            result.addFeatureOfInterest(sp);
+
+                            result.observations.add(OMUtils.buildObservation(oid,                           // id
+                                                                             sp,                            // foi
+                                                                             phenomenon,                    // phenomenon
+                                                                             procedureID,                   // procedure
+                                                                             currentCount,                  // count
+                                                                             datarecord,                    // result structure
+                                                                             msb,                           // measures
+                                                                             currentSpaBound.getTimeObject("2.0.0"))   // time
+                            );
+
+                            // build new procedure tree
+                            final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                            for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+                                procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
+                            }
+
+                            procedure.spatialBound.merge(currentSpaBound);
+                        } else {
+                            LOGGER.info(oid + " observation excluded from extraction. procedure does not match " + affectedSensorId);
+                        }
 
                         // reset single observation related variables
                         currentCount    = 0;
                         currentSpaBound = new GeoSpatialBound();
                         positions.clear();
                         msb = new MeasureStringBuilder();
+                        historicalPositions.clear();
                     }
 
                     previousFoi = currentFoi;
                     previousTime = currentTime;
+                    previousProc = currentProc;
                     currentCount++;
 
 
@@ -467,34 +544,39 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
 
                 final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                 obsCpt++;
-                final String procedureID = getProcedureID();
+
+                String procedureID = getProcedureID();
+                if (previousProc != null) {
+                    procedureID = previousProc;
+                }
 
                 // sampling feature of interest
                 String foiID = "foi-" + oid;
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
-                final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
-                result.addFeatureOfInterest(sp);
 
-                result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                 sp,                            // foi
-                                                                 phenomenon,                    // phenomenon
-                                                                 procedureID,                   // procedure
-                                                                 count,                         // count
-                                                                 datarecord,                    // result structure
-                                                                 msb,                           // measures
-                                                                 currentSpaBound.getTimeObject("2.0.0"))   // time
-                );
+                if (procedureID.equals(affectedSensorId)) {
+                    final SamplingFeature sp = buildFOIByGeom(foiID, positions, samplingFeatures);
+                    result.addFeatureOfInterest(sp);
 
-                for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
-                    result.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
+                    result.observations.add(OMUtils.buildObservation(oid,                           // id
+                                                                     sp,                            // foi
+                                                                     phenomenon,                    // phenomenon
+                                                                     procedureID,                   // procedure
+                                                                     count,                         // count
+                                                                     datarecord,                    // result structure
+                                                                     msb,                           // measures
+                                                                     currentSpaBound.getTimeObject("2.0.0"))   // time
+                    );
+
+                    // build procedure tree
+                    final ProcedureTree procedure = getOrCreateProcedureTree(result, procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                    for (Entry<Long, List<DirectPosition>> entry : historicalPositions.entrySet()) {
+                        procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
+                    }
+                    procedure.spatialBound.merge(currentSpaBound);
                 }
-
-                // build procedure tree
-                final ProcedureTree procedure = new ProcedureTree(procedureID, PROCEDURE_TREE_TYPE, observationType.toLowerCase());
-                procedure.spatialBound.merge(result.spatialBound);
-                result.procedures.add(procedure);
 
                 return result;
             }
@@ -615,6 +697,7 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                 int dateIndex = -1;
                 int latitudeIndex = -1;
                 int longitudeIndex = -1;
+                int procedureIndex = -1;
 
                 // read headers
                 final String[] headers = it.next();
@@ -630,16 +713,33 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         longitudeIndex = i;
                     } else if (measureColumns.contains(header)) {
                         measureFields.add(header);
+                    } else if (header.equals(procedureColumn)) {
+                        procedureIndex = i;
                     }
                 }
 
-                // procedure tree instanciation
-                final ProcedureTree procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
 
+                List<ProcedureTree> result = new ArrayList<>();
+                String currentProc          = null;
+                String previousProc         = null;
+                ProcedureTree procedureTree = null;
                 while (it.hasNext()) {
                     final String[] line   = it.next();
                     AbstractGeometry geom = null;
                     Date dateParse        = null;
+
+                    if (procedureIndex != -1) {
+                        currentProc = line[procedureIndex];
+                        if (!currentProc.equals(previousProc)) {
+                            procedureTree = new ProcedureTree(currentProc, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
+                            result.add(procedureTree);
+                        }
+
+                    } else if (procedureTree == null) {
+                        procedureTree = new ProcedureTree(getProcedureID(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
+                        result.add(procedureTree);
+                    }
+
 
                     // update temporal interval
                     if (dateIndex != -1) {
@@ -661,9 +761,10 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
                         }
                     }
                     procedureTree.spatialBound.addLocation(dateParse, geom);
+                    previousProc = currentProc;
                 }
 
-                return Collections.singletonList(procedureTree);
+                return result;
             }
             throw new DataStoreException("csv headers not found");
         } catch (IOException ex) {
@@ -686,5 +787,16 @@ public class CsvObservationStore extends CSVStore implements ObservationStore {
     @Override
     public ObservationWriter getWriter() {
         return null;
+    }
+
+    private ProcedureTree getOrCreateProcedureTree(final ExtractionResult result, final String procedureId, final String type, final String omType) {
+        for (ProcedureTree tree : result.procedures) {
+            if (tree.id.equals(procedureId)) {
+                return tree;
+            }
+        }
+        ProcedureTree tree = new ProcedureTree(procedureId, type, omType);
+        result.procedures.add(tree);
+        return tree;
     }
 }

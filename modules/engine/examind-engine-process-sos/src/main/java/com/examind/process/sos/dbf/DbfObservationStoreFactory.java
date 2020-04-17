@@ -69,7 +69,7 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID);
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, MEASURE_COLUMNS, MEASURE_COLUMNS_SEPARATOR, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
 
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
@@ -101,13 +101,14 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
         final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
         final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
         final String procedureId = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
+        final String procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         final ParameterValue<String> measureCols = (ParameterValue<String>) params.parameter(MEASURE_COLUMNS.getName().toString());
         final Set<String> measureColumns = measureCols.getValue() == null ?
                 Collections.emptySet() : new HashSet<>(Arrays.asList(measureCols.getValue().split(measureColumnsSeparator)));
         try {
             return new DbfObservationStore(Paths.get(uri),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId);
+                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, measureColumns, observationType, foiColumn, procedureId, procedureColumn);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem opening dbf file", ex);
             throw new DataStoreException(ex);

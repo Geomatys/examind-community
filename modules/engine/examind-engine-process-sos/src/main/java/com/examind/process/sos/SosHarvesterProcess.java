@@ -53,11 +53,7 @@ import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.examind.sensor.component.SensorServiceBusiness;
 import com.google.common.base.Objects;
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.constellation.business.IProviderBusiness;
@@ -140,6 +136,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(PROCEDURE_ID);
+        final String procedureColumn = inputParameters.getValue(PROCEDURE_COLUMN);
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
 
         final String separator = inputParameters.getValue(SEPARATOR);
@@ -283,6 +280,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
 
             try {
                 datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);

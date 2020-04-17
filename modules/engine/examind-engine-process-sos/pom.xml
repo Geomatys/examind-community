@@ -18,10 +18,10 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- SOS business -->
+        <!-- Sensor business -->
         <dependency>
             <groupId>com.examind.community</groupId>
-            <artifactId>cstl-web-sos</artifactId>
+            <artifactId>cstl-web-sensor</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -41,6 +41,7 @@
              <artifactId>geotk-feature-dbf</artifactId>
         </dependency>
 
+        <!-- for test -->
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
@@ -74,6 +75,18 @@
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-store-data-sensor</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-web-sos</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-web-sts</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
