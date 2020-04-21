@@ -177,7 +177,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter PRparam = new Parameter(PROCEDURE_ID_NAME, String.class, PROCEDURE_ID_DESC, PROCEDURE_ID_DESC, 0, 1);
         inputs.add(PRparam);
 
-        final Parameter PCparam = new Parameter(PROCEDURE_COLUMN_NAME, String.class, PROCEDURE_COLUMN_DESC, PROCEDURE_COLUMN_DESC, 1, 1, null, headers);
+        final Parameter PCparam = new Parameter(PROCEDURE_COLUMN_NAME, String.class, PROCEDURE_COLUMN_DESC, PROCEDURE_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(PCparam);
 
         final Parameter SPparam = new Parameter(SEPARATOR_NAME, String.class, SEPARATOR_DESC, SEPARATOR_DESC, 1, 1, ",");
