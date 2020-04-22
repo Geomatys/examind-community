@@ -55,6 +55,7 @@ import org.geotoolkit.index.LogicalFilterType;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -346,7 +347,7 @@ public class LuceneFilterParserTest {
 
         assertTrue(spaQuery.getQuery() == null);
         assertEquals(spaQuery.getSubQueries().size(), 0);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
 
         /**
          * Test 11: a simple Filter PropertyIsLessThanOrEqualTo with numeric field
@@ -771,7 +772,7 @@ public class LuceneFilterParserTest {
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
@@ -807,7 +808,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
@@ -841,7 +842,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof LuceneOGCSpatialQuery);
@@ -1093,7 +1094,7 @@ public class LuceneFilterParserTest {
         SpatialQuery spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
@@ -1146,7 +1147,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
@@ -1213,7 +1214,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
@@ -1285,7 +1286,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
@@ -1360,7 +1361,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 0);
 
         assertTrue(spaQuery.getQuery() instanceof BooleanQuery);
@@ -1699,7 +1700,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "metafile:doc");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 1);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
@@ -1952,7 +1953,7 @@ public class LuceneFilterParserTest {
         spaQuery = (SpatialQuery) filterParser.getQuery(new QueryConstraintType(filter, "1.1.0"), null, null, null);
 
         assertTrue(spaQuery.getQuery() != null);
-        assertEquals(spaQuery.getTextQuery(), "(metafile:doc)");
+        assertNull(spaQuery.getTextQuery());
         assertEquals(spaQuery.getSubQueries().size(), 3);
         assertEquals(spaQuery.getLogicalOperator(), LogicalFilterType.AND);
 
@@ -1979,7 +1980,7 @@ public class LuceneFilterParserTest {
         // second sub-query
         subQuery2 = spaQuery.getSubQueries().get(1);
         assertTrue  (subQuery2.getQuery() == null);
-        assertEquals(subQuery2.getTextQuery(), "metafile:doc");
+        assertNull(subQuery2.getTextQuery());
         assertEquals(subQuery2.getSubQueries().size(), 1);
         assertEquals(subQuery2.getLogicalOperator(), LogicalFilterType.AND);
 
