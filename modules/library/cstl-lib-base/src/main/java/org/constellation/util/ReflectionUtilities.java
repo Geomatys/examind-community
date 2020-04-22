@@ -201,7 +201,7 @@ public final class ReflectionUtilities {
             return constructor.newInstance(parameter1, parameter2);
 
         } catch (InstantiationException ex) {
-            LOGGER.log(Level.WARNING, "The service can\'t instantiate the class: {0}(string, string)", classe.getName());
+            LOGGER.log(Level.WARNING, "The service cannot instantiate the class: {0}(string, string)", classe.getName());
         } catch (IllegalAccessException ex) {
             LOGGER.log(Level.WARNING, "The service can not access the constructor in class: {0}", classe.getName());
         } catch (IllegalArgumentException ex) {

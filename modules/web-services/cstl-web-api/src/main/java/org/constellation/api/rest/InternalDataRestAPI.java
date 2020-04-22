@@ -705,7 +705,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                 return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
-            LOGGER.log(Level.WARNING, "Can\'t create dataset with empty identifier");
+            LOGGER.log(Level.WARNING, "Cannot create dataset with empty identifier");
             return new ResponseEntity("failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

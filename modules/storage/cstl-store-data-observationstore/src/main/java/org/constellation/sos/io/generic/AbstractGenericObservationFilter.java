@@ -209,7 +209,7 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
                isReconnecting  = false;
 
             } catch(SQLException ex) {
-                LOGGER.log(Level.SEVERE, "SQLException while restarting the connection:{0}", ex);
+                LOGGER.log(Level.SEVERE, "SQLException while restarting the connection:{0}", ex.getMessage());
                 isReconnecting = false;
             }
         }
