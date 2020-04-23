@@ -3,15 +3,10 @@ package org.constellation.metadata.index.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.node.Node;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,16 +34,28 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import static org.constellation.metadata.index.elasticsearch.SpatialFilterBuilder.*;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
+import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchScrollRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.Scroll;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.opengis.geometry.Envelope;
 
@@ -62,8 +69,7 @@ public class ElasticSearchClient {
 
     private final Settings _configuration;
 
-    private Node _server;
-    private Client client;
+    private RestHighLevelClient client;
 
     private final String id;
 
@@ -77,11 +83,12 @@ public class ElasticSearchClient {
         this._configuration = builder.build();
     }
 
-    protected ClusterHealthStatus getHealthStatus() {
-        return getClient().admin().cluster().prepareHealth().execute().actionGet().getStatus();
+    protected ClusterHealthStatus getHealthStatus() throws IOException {
+        ClusterHealthRequest request = new ClusterHealthRequest();
+        return client.cluster().health(request, RequestOptions.DEFAULT).getStatus();
     }
 
-    protected void checkServerStatus() {
+    protected void checkServerStatus() throws IOException {
         ClusterHealthStatus status = getHealthStatus();
 
         // Check the current status of the ES cluster.
@@ -89,10 +96,10 @@ public class ElasticSearchClient {
             LOGGER.log(Level.INFO, "ES cluster status is {0}. Waiting for ES recovery.", status);
 
             // Waits at most 30 seconds to make sure the cluster health is at least yellow.
-            getClient().admin().cluster().prepareHealth()
-                    .setWaitForYellowStatus()
-                    .setTimeout("60s")
-                    .execute().actionGet();
+            ClusterHealthRequest request = new ClusterHealthRequest();
+            request.waitForYellowStatus();
+            request.timeout("60s");
+            client.cluster().health(request, RequestOptions.DEFAULT);
         }
 
         // Check the cluster health for a final time.
@@ -107,65 +114,69 @@ public class ElasticSearchClient {
 
     public void startClient(String host) throws ElasticsearchException, UnknownHostException {
         // on startup
-        RestHighLevelClient client = new RestHighLevelClient(
+        this.client = new RestHighLevelClient(
                 RestClient.builder(new HttpHost(host, 9200, "http")));
     }
 
-    public Client getClient() {
+    public RestHighLevelClient getClient() {
         if (client != null) {
             return client;
         }
-        return _server.client();
+        return null;
     }
 
-    public boolean setLogLevel() {
+    public boolean setLogLevel() throws IOException {
         Map map = new HashMap();
         map.put("logger._root", "TRACE");
-        ClusterUpdateSettingsResponse response = getClient().admin().cluster().prepareUpdateSettings().setTransientSettings(map).execute().actionGet();
+        ClusterUpdateSettingsRequest request = new ClusterUpdateSettingsRequest();
+        request.transientSettings(map);
+        ClusterUpdateSettingsResponse response = client.cluster().putSettings(request, RequestOptions.DEFAULT);
         return response.isAcknowledged();
     }
 
     public boolean prepareType(String indexName, Map<String, Class> fields) throws IOException {
-
-        final IndicesExistsResponse response = getClient().admin().indices().exists(new IndicesExistsRequest(indexName)).actionGet();
-        if (!response.isExists()) {
+        final boolean exist = indexExist(indexName);
+        if (!exist) {
             LOGGER.log(Level.INFO, "creating type for index: " + indexName);
             final XContentBuilder obj1 = getMappingsByJson(fields);
-            getClient().admin().indices().create(new CreateIndexRequest(indexName).settings(getAnalyzer()).mapping("metadata", obj1)).actionGet();
+            CreateIndexRequest request = new CreateIndexRequest(indexName).settings(getAnalyzer()).mapping(obj1);
+            client.indices().create(request, RequestOptions.DEFAULT);
             return true;
         }
         return false;
     }
 
-    public boolean indexExist(final String indexName) throws ElasticsearchException {
-        final IndicesExistsResponse response = getClient().admin().indices().exists(new IndicesExistsRequest(indexName)).actionGet();
-        return response.isExists();
+    public boolean indexExist(final String indexName) throws IOException {
+        final GetIndexRequest request = new GetIndexRequest(indexName);
+        return client.indices().exists(request, RequestOptions.DEFAULT);
     }
 
-    public boolean deleteIndex(final String indexName) {
-        final IndicesExistsResponse response = getClient().admin().indices().exists(new IndicesExistsRequest(indexName)).actionGet();
-        if (response.isExists()) {
-            final AcknowledgedResponse delResponse = getClient().admin().indices().prepareDelete(indexName).execute().actionGet();
+    public boolean deleteIndex(final String indexName) throws IOException {
+        final boolean exist = indexExist(indexName);
+        if (exist) {
+            final DeleteIndexRequest request = new DeleteIndexRequest(indexName);
+            final AcknowledgedResponse delResponse = client.indices().delete(request, RequestOptions.DEFAULT);
             return delResponse.isAcknowledged();
         }
         return true;
     }
 
-    public boolean indexDoc(final String indexName, final String id, final Map values) {
-        // index a metadata
-        IndexResponse response = getClient().prepareIndex(indexName, "metadata", id).setSource(values).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+    public boolean indexDoc(final String indexName, final String id, final Map values) throws IOException {
+        IndexRequest request = new IndexRequest(indexName).id(id).source(values).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        IndexResponse response = client.index(request, RequestOptions.DEFAULT);
         return response.getVersion() > 1;
     }
 
     public boolean indexDoc(final String indexName,   final String id,
                             final String SpatialType, final String CRSNameCode,
-                            final int spaceDim,       final double ...coordinates) {
+                            final int spaceDim,       final double ...coordinates) throws IOException {
         final Map values = generateMapEnvelopes(SpatialType, CRSNameCode, spaceDim, coordinates);
         return indexDoc(indexName, id, values);
     }
 
-    public boolean removeDoc(final String indexName, final String id) {
-        final DeleteResponse response = getClient().prepareDelete(indexName, "metadata", id).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+    public boolean removeDoc(final String indexName, final String id) throws IOException {
+        DeleteRequest request = new DeleteRequest(indexName, id).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
+        final DeleteResponse response = client.delete(request, RequestOptions.DEFAULT);
         return response.getVersion() > 1;
     }
 
@@ -275,44 +286,56 @@ public class ElasticSearchClient {
     }
 
     public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
-        SearchRequestBuilder builder = client.prepareSearch(index)
-                                             .setSearchType(SearchType.DEFAULT);
+       /* SearchRequestBuilder builder = client.prepareSearch(index)
+                                             .setSearchType(SearchType.DEFAULT);*/
+
+        SearchSourceBuilder builder = new SearchSourceBuilder();
 
         if (queryJson != null) {
-            builder = builder.setQuery(QueryBuilders.wrapperQuery(queryJson));
+            builder = builder.query(QueryBuilders.wrapperQuery(queryJson));
         } else if (query != null) {
-            builder = builder.setQuery(query);
+            builder = builder.query(query);
         }
         if (filter != null) {
-            builder = builder.setPostFilter(filter);
+            builder = builder.postFilter(filter);
         }
         if (start != -1) {
-            builder = builder.setFrom(start);
+            builder = builder.from(start);
         }
         if (type != null) {
-            builder = builder.setTypes(type);
+           // builder = builder.setTypes(type); type will be removed from ES
         }
         if (sort != null) {
-            builder = builder.addSort(sort.getField(), SortOrder.valueOf(sort.getOrder()));
+            builder = builder.sort(sort.getField(), SortOrder.valueOf(sort.getOrder()));
         }
 
         if (limit < 10000) {
-            final SearchResponse response = builder.setSize(limit).execute().actionGet();
+            builder = builder.size(limit);
+            SearchRequest sRequest = new SearchRequest(index);
+            sRequest.source(builder);
+            final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
             return response.getHits().getHits();
         } else {
             List<SearchHit> results = new ArrayList<>();
 
             //Scroll until no hits are returned
-            builder.setScroll(new TimeValue(60000));
-            SearchResponse response = builder.setSize(10000).execute().actionGet();
+            builder = builder.size(10000);
+
+            SearchRequest sRequest = new SearchRequest(index);
+            sRequest.scroll(new TimeValue(60000));
+            sRequest.source(builder);
+
+            SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
 
             boolean more;
             do {
                 for (SearchHit hit : response.getHits().getHits()) {
                     results.add(hit);
                 }
+                SearchScrollRequest request = new SearchScrollRequest(response.getScrollId());
+                request.scroll(new Scroll(new TimeValue(60000)));
 
-                response = client.prepareSearchScroll(response.getScrollId()).setScroll(new TimeValue(60000)).execute().actionGet();
+                response = client.scroll(request, RequestOptions.DEFAULT);
                 //Break condition: No hits are returned
                 more = response.getHits().getHits().length != 0;
 
@@ -332,8 +355,8 @@ public class ElasticSearchClient {
             queryBuilder = QueryBuilders.queryStringQuery(query);
         }
         QueryBuilder filterBuilder = null;
-        if (query != null) {
-            queryBuilder = QueryBuilders.wrapperQuery(filter.toString());
+        if (filter != null) {
+            queryBuilder = QueryBuilders.wrapperQuery(Strings.toString(filter));
         }
         return search(index, null, queryBuilder, filterBuilder, -1, limit, null, sort);
     }
@@ -342,8 +365,8 @@ public class ElasticSearchClient {
         return search(index, null, QueryBuilders.matchAllQuery(), null, -1, limit, null, null);
     }
 
-    private static Settings.Builder getAnalyzer() throws IOException {
-        return Settings.builder().loadFromSource(XContentFactory.jsonBuilder()
+    private static XContentBuilder getAnalyzer() throws IOException {
+        return XContentFactory.jsonBuilder()
                 .startObject()
                     .startObject("analysis")
                         .startObject("analyzer")
@@ -354,7 +377,7 @@ public class ElasticSearchClient {
                             .endObject()
                         .endObject()
                     .endObject()
-                .endObject().toString(), XContentType.JSON);
+                .endObject();
     }
 
     /**
@@ -363,47 +386,50 @@ public class ElasticSearchClient {
      * @throws IOException
      */
     private static XContentBuilder getMappingsByJson(Map<String, Class> fields) throws IOException {
-        XContentBuilder builder = XContentFactory.jsonBuilder().startObject().startObject("metadata").startObject("properties");
+        XContentBuilder builder = XContentFactory.jsonBuilder().startObject().startObject("properties");
         for (Entry<String, Class> entry : fields.entrySet()) {
             if (entry.getValue() == Date.class) {
                 builder.startObject(entry.getKey())
                        .field("type", "date")
-                       .field("format", "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-                       .field("store", "yes")
+                       .field("format", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                       .field("store", "true")
+                       .field("doc_values", "false")
                        .endObject();
 
                 builder.startObject(entry.getKey() + "_sort")
-                       .field("type", "string")
-                       .field("store", "yes")
-                       .field("index", "not_analyzed")
+                       .field("type", "keyword")
+                       .field("store", "true")
+                       .field("doc_values", "true")
                        .endObject();
             } else if (entry.getValue() == Double.class) {
                 builder.startObject(entry.getKey())
                        .field("type", "double")
-                       .field("store", "yes")
+                       .field("store", "true")
+                       .field("doc_values", "false")
                        .endObject();
 
                 builder.startObject(entry.getKey() + "_sort")
                        .field("type", "double")
-                       .field("store", "yes")
-                       .field("index", "not_analyzed")
+                       .field("store", "true")
+                       .field("doc_values", "true")
                        .endObject();
             } else if (entry.getValue() == Envelope.class) {
-                builder.startObject(entry.getKey())
+                LOGGER.warning("Envelope are no longer supported (no plugin)");
+                /*builder.startObject(entry.getKey())
                        .field("type", "bbox")
-                       .endObject();
+                       .endObject();*/
             } else {
                 builder.startObject(entry.getKey())
-                       .field("type", "string")
-                       .field("store", "yes")
+                       .field("type", "text")
+                       .field("store", "true")
                        .field("analyzer", "lowerCaseAnalyzer") //, "geotk-classic") need plugin
-                       .field("index", "analyzed")
+                       .field("doc_values", "false")
                        .endObject();
 
                 builder.startObject(entry.getKey() + "_sort")
-                       .field("type", "string")
-                       .field("store", "yes")
-                       .field("index", "not_analyzed")
+                       .field("type", "keyword")
+                       .field("store", "true")
+                       .field("doc_values", "true")
                        .endObject();
             }
         }
@@ -415,30 +441,23 @@ public class ElasticSearchClient {
 //               .endObject();
 
         builder.endObject()
-               .endObject()
                .endObject();
 
         LOGGER.log(Level.FINER, "MAPPING:{0}", builder.toString());
         return builder;
     }
 
-    private static final Map<String, ElasticSearchClient> SERVER_INSTANCE = new HashMap<>();
-    private static final Map<String, AtomicInteger> SERVER_COUNTER = new HashMap<>();
     private static final Map<String, ElasticSearchClient> CLIENT_INSTANCE = new HashMap<>();
     private static final Map<String, AtomicInteger> CLIENT_COUNTER = new HashMap<>();
 
     private void close() {
         LOGGER.info("--- CLOSING ES CLIENT " + id + " ---");
-        if (_server != null && !_server.isClosed()) {
-            try {
-                _server.close();
-            } catch (IOException ex) {
-                LOGGER.log(Level.WARNING, null, ex);
-            }
-            _server = null;
-        }
         if (client != null) {
-            client.close();
+            try {
+                client.close();
+            } catch (IOException ex) {
+                LOGGER.log(Level.WARNING, "Error while closing elasticsearch client", ex);
+            }
             client = null;
         }
     }

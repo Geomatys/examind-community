@@ -95,7 +95,12 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     @Override
     public boolean needCreation() {
-        return !client.indexExist(indexName);
+        try {
+            return !client.indexExist(indexName);
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        }
+        return false;
     }
 
 
@@ -214,7 +219,11 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     @Override
     public boolean destroyIndex() throws IndexingException {
-        return client.deleteIndex(indexName);
+        try {
+            return client.deleteIndex(indexName);
+        } catch (IOException ex) {
+            throw new IndexingException("Error while destroying index", ex);
+        }
     }
 
 
@@ -225,7 +234,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
             client.indexDoc(indexName, id, createDocument(metadata));
             LOGGER.log(Level.FINER, "Metadata: {0} indexed", id);
 
-        } catch (IndexingException ex) {
+        } catch (IndexingException | IOException ex) {
             LOGGER.log(Level.WARNING, "Error while indexing single document", ex);
         }
     }
@@ -242,7 +251,11 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     @Override
     public void removeDocument(String id) {
-        client.removeDoc(indexName, id);
+        try {
+            client.removeDoc(indexName, id);
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Error while removing single document", ex);
+        }
     }
 
     protected abstract String getIdentifier(E metadata);
@@ -406,7 +419,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         stopIndexing = true;
     }
 
-    private void stopIndexation(final ElasticSearchClient client, final String serviceID) {
+    private void stopIndexation(final ElasticSearchClient client, final String serviceID) throws IOException {
         client.deleteIndex(indexName);
         if (indexationToStop.contains(serviceID)) {
             indexationToStop.remove(serviceID);
@@ -509,7 +522,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public void removeIndex() {
+    public void removeIndex() throws IOException {
         client.deleteIndex(indexName);
     }
 

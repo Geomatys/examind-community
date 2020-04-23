@@ -52,8 +52,12 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.internal.system.DefaultFactories;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -306,7 +310,7 @@ public class ElasticSearchIndexTest {
 
          /**
          * Test 9 simple search: TopicCategory = environment OR identifier = 40510_145_19930221211500
-         */
+
          XContentBuilder filter = XContentFactory.jsonBuilder()
                 .startObject()
 
@@ -323,8 +327,13 @@ public class ElasticSearchIndexTest {
                             .endObject()
                         .endArray()
 
-                .endObject();
-        System.out.println(filter.toString());
+                .endObject(); */
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        XContentBuilder filter = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("TopicCategory", "environment"))
+                                 .should(QueryBuilders.termQuery("identifier", "40510_145_19930221211500"))
+                                 .toXContent(builder, ToXContent.EMPTY_PARAMS);
+
+        System.out.println(Strings.toString(filter));
         spatialQuery = new SpatialQuery(filter);
         result       = indexSearcher.doSearch(spatialQuery);
 

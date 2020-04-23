@@ -126,7 +126,8 @@ public class ElasticSearchNodeIndexer extends ElasticSearchIndexer<Node> {
                     cleanValues.add(value);
                 }
             } else if (Number.class.isAssignableFrom(type)) {
-                if (!"null".equals(value)) {
+                boolean isNan = Double.class.isAssignableFrom(type) && Double.isNaN((double) value);
+                if (!"null".equals(value) && !isNan) {
                     doc.put(fieldName, value);
                     doc.put(fieldName + "_sort", value);
                     cleanValues.add(value);
