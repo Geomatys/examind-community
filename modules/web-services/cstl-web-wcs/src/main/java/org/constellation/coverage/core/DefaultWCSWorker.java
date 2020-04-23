@@ -581,8 +581,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                             }
                           final NumberRange<?> range =  cat.getMeasurementRange().orElse(null);
                             if ( range != null) {
-                                av.setMin(cat.getMeasurementRange().get().getMinDouble());
-                                av.setMax(cat.getMeasurementRange().get().getMaxDouble());
+                                av.setMin(range.getMinDouble());
+                                av.setMax(range.getMaxDouble());
                             }
                             quantity.setConstraint(new AllowedValuesPropertyType(av));
                         }

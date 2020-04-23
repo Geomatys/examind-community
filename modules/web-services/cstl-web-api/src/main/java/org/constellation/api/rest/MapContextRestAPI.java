@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Inject;
@@ -642,8 +643,9 @@ public class MapContextRestAPI extends AbstractRestAPI {
              providerBusiness.createOrUpdateData(pyramidProvider, null, false);
 
             // Get the new data created
-            if (outRef.getIdentifier().isPresent()) {
-                GenericName outID = outRef.getIdentifier().get();
+            Optional<GenericName> optOutId = outRef.getIdentifier();
+            if (optOutId.isPresent()) {
+                GenericName outID = optOutId.get();
                 final QName outDataQName = new QName(NamesExt.getNamespace(outID), outID.toString());
                 final Integer dataId = dataBusiness.getDataId(outDataQName, pyramidProvider);
 

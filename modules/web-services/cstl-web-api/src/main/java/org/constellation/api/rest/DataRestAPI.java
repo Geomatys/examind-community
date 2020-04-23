@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.zip.CRC32;
@@ -819,15 +820,17 @@ public class DataRestAPI extends AbstractRestAPI{
                 outProvider.reload();
 
                 pyramidStore = outProvider.getMainStore();
-                if (outRef.getIdentifier().isPresent()) {
-                    outRef = (XMLCoverageResource) pyramidStore.findResource(outRef.getIdentifier().get().toString());
+                Optional<GenericName> optIdentifier = outRef.getIdentifier();
+                if (optIdentifier.isPresent()) {
+                    outRef = (XMLCoverageResource) pyramidStore.findResource(optIdentifier.get().toString());
                 }
                 //create database data object
                 providerBusiness.createOrUpdateData(pojoProviderID, null, false);
 
                 // Get the new data created
-                if (outRef.getIdentifier().isPresent()) {
-                    GenericName outID = outRef.getIdentifier().get();
+                Optional<GenericName> optOutId= outRef.getIdentifier();
+                if (optOutId.isPresent()) {
+                    GenericName outID = optOutId.get();
                     final QName outDataQName = new QName(NamesExt.getNamespace(outID), outID.tip().toString());
                     final Integer dataId = dataBusiness.getDataId(outDataQName, pojoProviderID);
 
