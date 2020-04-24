@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +67,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     protected final MetadataStore store;
 
-    private List<String> numericFields = new ArrayList<>();
+    private boolean withPlugin = false;
 
     /**
      * A flag to stop the indexation going on
@@ -126,7 +127,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         }
         // add spatial part
         fields.put("geoextent", Envelope.class);
-        client.prepareType(indexName, fields);
+        client.prepareType(indexName, fields, withPlugin);
     }
 
     /**
@@ -463,7 +464,8 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude"));
         try {
             if (minxs.size() == minys.size() && minys.size() == maxxs.size() && maxxs.size() == maxys.size()) {
-                doc.putAll(client.generateMapEnvelopes("geoextent", CRScode, minxs, maxxs, minys, maxys));
+                System.out.println(doc.get("id"));
+                doc.putAll(generateMapEnvelopes("geoextent", CRScode, minxs, maxxs, minys, maxys));
                 return true;
             } else {
                 LOGGER.log(Level.WARNING, "Unable to spatially index metadata: {0}\n cause: missing coordinates.", getIdentifier(form));
@@ -474,6 +476,54 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         return false;
     }
 
+    protected Map generateMapEnvelopes(final String spatialAttribute, final String CRSNameCode, final List<Double> minx, final List<Double> maxx, final List<Double> miny, final List<Double> maxy) {
+
+        final int nbEnv = minx.size();
+        final Map map   = new HashMap();
+        final List<Map> envelopeList = new ArrayList<>();
+
+        for (int e = 0; e < nbEnv; e++) {
+            if (!Double.isNaN(minx.get(e)) && !Double.isNaN(maxx.get(e)) && !Double.isNaN(miny.get(e)) && !Double.isNaN(maxy.get(e))) {
+                Map boxMap = new HashMap();
+                if (withPlugin) {
+                    boxMap.put("minx", ""+ minx.get(e));
+                    boxMap.put("maxx", ""+ maxx.get(e));
+                    boxMap.put("miny", ""+ miny.get(e));
+                    boxMap.put("maxy", ""+ maxy.get(e));
+                    boxMap.put("crs",  CRSNameCode);
+                } else {
+                    // TODO reproj for bas CRS
+
+                    // Elasticsearch supports an envelope type, which consists of coordinates
+                    // for upper left and lower right points of the shape to represent a bounding rectangle
+                    // in the format [[minLon, maxLat], [maxLon, minLat]]:
+
+                    // Elasticsearch do not like "line/point" bbox
+                    double delta = 0.01;
+                    double ix = minx.get(e);
+                    double ax = maxx.get(e);
+                    double iy = miny.get(e);
+                    double ay = maxy.get(e);
+
+                    if (ix == ax) {
+                        ax = ax + delta;
+                    }
+                    if (iy == ay) {
+                        ay = ay + delta;
+                    }
+
+                    boxMap.put("coordinates", Arrays.asList(Arrays.asList(ix, ay), Arrays.asList(ax, iy)));
+                    boxMap.put("type", "envelope");
+                    System.out.println("PUT: " + "[[" + ix + ',' + ay + "],[" + ax + ',' + iy + "]]");
+                }
+                envelopeList.add(boxMap);
+            } else {
+                LOGGER.warning("Nan coordinates in bbox");
+            }
+        }
+        map.put(spatialAttribute, envelopeList);
+        return map;
+    }
      /**
       * Extract the double coordinate from a metadata object using a list of paths to find the data.
       *
@@ -529,5 +579,13 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
     @Override
     public void destroy() {
         ElasticSearchClient.releaseClientInstance(hostName, clusterName);
+    }
+
+    public boolean isWithPlugin() {
+        return withPlugin;
+    }
+
+    public void setWithPlugin(boolean withPlugin) {
+        this.withPlugin = withPlugin;
     }
 }

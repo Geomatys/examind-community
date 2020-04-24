@@ -32,7 +32,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import static org.constellation.metadata.index.elasticsearch.SpatialFilterBuilder.*;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
@@ -52,7 +51,6 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -134,11 +132,11 @@ public class ElasticSearchClient {
         return response.isAcknowledged();
     }
 
-    public boolean prepareType(String indexName, Map<String, Class> fields) throws IOException {
+    public boolean prepareType(String indexName, Map<String, Class> fields, boolean withPlugin) throws IOException {
         final boolean exist = indexExist(indexName);
         if (!exist) {
             LOGGER.log(Level.INFO, "creating type for index: " + indexName);
-            final XContentBuilder obj1 = getMappingsByJson(fields);
+            final XContentBuilder obj1 = getMappingsByJson(fields, withPlugin);
             CreateIndexRequest request = new CreateIndexRequest(indexName).settings(getAnalyzer()).mapping(obj1);
             client.indices().create(request, RequestOptions.DEFAULT);
             return true;
@@ -217,75 +215,7 @@ public class ElasticSearchClient {
         return map;
     }
 
-    public Map generateMapEnvelopes(final String SpatialType, final String CRSNameCode, final List<Double> minx, final List<Double> maxx, final List<Double> miny, final List<Double> maxy) {
-
-        final int nbEnv = minx.size();
-        final Map map   = new HashMap();
-
-        final List<Map> envelopeList = new ArrayList<>();
-
-        for (int e = 0; e < nbEnv; e++) {
-            if (!Double.isNaN(minx.get(e)) && !Double.isNaN(maxx.get(e)) && !Double.isNaN(miny.get(e)) && !Double.isNaN(maxy.get(e))) {
-                Map boxMap = new HashMap();
-                boxMap.put("minx", ""+ minx.get(e));
-                boxMap.put("maxx", ""+ maxx.get(e));
-                boxMap.put("miny", ""+ miny.get(e));
-                boxMap.put("maxy", ""+ maxy.get(e));
-                boxMap.put("crs",  CRSNameCode);
-                envelopeList.add(boxMap);
-            } else {
-                LOGGER.warning("Nan coordinates in bbox");
-            }
-        }
-
-        map.put(SpatialType, envelopeList);
-
-        return map;
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double minx, final double miny,
-                                  final double maxx, final double maxy,
-                                  final int limit, final String filterType) throws IOException {
-        return spatialSearch(index, spatialType, crsName, minx, miny, maxx, maxy, limit, filterType, null, null);
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double minx, final double miny,
-                                  final double maxx, final double maxy,
-                                  final int limit, final String filterType, final Double distance, final String unit) throws IOException {
-
-        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, crsName, minx, maxx, miny, maxy, distance, unit).toString());
-        return search(index, null, null, filter, -1, limit, null, null);
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String filterType, final String crsName,
-                                  final int limit, final Double ...coord) throws IOException {
-        return spatialSearch(index, spatialType, filterType, crsName, limit, null, null, coord);
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String filterType, final String crsName,
-                                  final int limit, final Double distance, final String unit, final Double ...coord) throws IOException {
-
-        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, crsName, distance, unit, coord).toString());
-        return search(index, null, null, filter, -1, limit, null, null);
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double x, final double y,
-                                  final int limit, final String filterType) throws IOException {
-        return spatialSearch(index, spatialType, crsName, x, y, limit, filterType, null, null);
-    }
-
-    public SearchHit[] spatialSearch(final String index, final String spatialType, final String crsName,
-                                  final double x, final double y,
-                                  final int limit, final String filterType, final Double distance, final String unit) throws IOException {
-
-        final QueryBuilder filter = QueryBuilders.wrapperQuery(addSpatialFilter(filterType, spatialType, x, y, crsName, distance, unit).toString());
-        return search(index, null, null, filter, -1, limit, null, null);
-    }
-
-    public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
+   public SearchHit[] search(final String index, final String queryJson, final QueryBuilder query, final QueryBuilder filter, final int start, final int limit, final String type,final Sort sort) throws IOException {
        /* SearchRequestBuilder builder = client.prepareSearch(index)
                                              .setSearchType(SearchType.DEFAULT);*/
 
@@ -385,7 +315,7 @@ public class ElasticSearchClient {
      * @return
      * @throws IOException
      */
-    private static XContentBuilder getMappingsByJson(Map<String, Class> fields) throws IOException {
+    private static XContentBuilder getMappingsByJson(Map<String, Class> fields, boolean withPlugin) throws IOException {
         XContentBuilder builder = XContentFactory.jsonBuilder().startObject().startObject("properties");
         for (Entry<String, Class> entry : fields.entrySet()) {
             if (entry.getValue() == Date.class) {
@@ -414,10 +344,15 @@ public class ElasticSearchClient {
                        .field("doc_values", "true")
                        .endObject();
             } else if (entry.getValue() == Envelope.class) {
-                LOGGER.warning("Envelope are no longer supported (no plugin)");
-                /*builder.startObject(entry.getKey())
-                       .field("type", "bbox")
-                       .endObject();*/
+                if (withPlugin) {
+                    builder.startObject(entry.getKey())
+                           .field("type", "bbox")
+                           .endObject();
+                } else {
+                    builder.startObject(entry.getKey())
+                           .field("type", "geo_shape")
+                           .endObject();
+                }
             } else {
                 builder.startObject(entry.getKey())
                        .field("type", "text")

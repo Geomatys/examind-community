@@ -66,7 +66,7 @@ public class ElasticSearchIndexProvider implements IndexProvider {
 
     @Override
     public FilterParser getFilterParser(Automatic configuration) throws ConfigurationException {
-        return new ElasticSearchFilterParser();
+        return new ElasticSearchFilterParser(false);
     }
 
     @Override

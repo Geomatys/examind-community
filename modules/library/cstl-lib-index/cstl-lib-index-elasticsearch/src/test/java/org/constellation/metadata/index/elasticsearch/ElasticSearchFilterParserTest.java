@@ -77,7 +77,7 @@ public class ElasticSearchFilterParserTest {
 
     @Before
     public void setUp() throws Exception {
-        filterParser = new ElasticSearchFilterParser();
+        filterParser = new ElasticSearchFilterParser(false);
     }
 
     @After
@@ -175,7 +175,21 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"not\":{\"term\":{\"Title\":\"VM\"}}}");
+        String expectedResult = "{" +
+                                "    \"bool\": {" +
+                                "        \"must\": {" +
+                                "            \"term\": {" +
+                                "                \"metafile\": \"doc\"" +
+                                "            }" +
+                                "        }," +
+                                "        \"must_not\": {" +
+                                "            \"term\": {" +
+                                "                \"Title\": \"VM\"" +
+                                "            }" +
+                                "        }" +
+                                "    }" +
+                                "}";
+        assertEquals(Strings.toString(result), expectedResult.replace(" ",""));
 
 
         /**
@@ -396,7 +410,23 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"range\":{\"CloudCover\":{\"gt\":12}}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
+        String expResult = "{" +
+                            "    \"bool\": {" +
+                            "        \"must\": {" +
+                            "            \"range\": {" +
+                            "                \"CloudCover\": {" +
+                            "                    \"gt\": 12" +
+                            "                }" +
+                            "            }" +
+                            "        }," +
+                            "        \"must\": {" +
+                            "            \"term\": {" +
+                            "                \"objectType_sort\": \"MD_Metadata\"" +
+                            "            }" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expResult.replace(" ", ""));
 
         pool.recycle(filterUnmarshaller);
     }
@@ -493,7 +523,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}]}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"must\":{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},\"must\":{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}}}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -566,7 +596,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"must\":{\"term\":{\"Title\":\"starship trooper\"}},\"must\":{\"term\":{\"Author\":\"Timothee Gustave\"}}}}");
 
         /**
          * Test 2: a simple Filter OR between two propertyIsEqualTo
@@ -597,7 +627,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":{\"term\":{\"Title\":\"starship trooper\"}},\"should\":{\"term\":{\"Author\":\"Timothee Gustave\"}}}}");
 
 
         /**
@@ -634,7 +664,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}},{\"term\":{\"Id\":\"268\"}}]}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":{\"term\":{\"Title\":\"starship trooper\"}},\"should\":{\"term\":{\"Author\":\"Timothee Gustave\"}},\"should\":{\"term\":{\"Id\":\"268\"}}}}");
 
 
         /**
@@ -662,7 +692,21 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}");
+        String expresult = "{" +
+                            "    \"bool\": {" +
+                            "        \"must\": {" +
+                            "            \"term\": {" +
+                            "                \"metafile\": \"doc\"" +
+                            "            }" +
+                            "        }," +
+                            "        \"must_not\": {" +
+                            "            \"term\": {" +
+                            "                \"Title\": \"starship trooper\"" +
+                            "            }" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", "").replaceAll("starshiptrooper", "starship trooper"));
 
         /**
          * Test 5: a simple Filter Not propertyIsNotEqualTo
@@ -689,7 +733,30 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"not\":{\"not\":{\"term\":{\"Title\":\"starship trooper\"}}}}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"term\": {" +
+                    "                \"metafile\": \"doc\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must_not\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"term\": {" +
+                    "                        \"Title\": \"starship trooper\"" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", "").replaceAll("starshiptrooper", "starship trooper"));
 
         /**
          * Test 6: a simple Filter Not PropertyIsGreaterThanOrEqualTo
@@ -716,7 +783,23 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}");
+        expresult = "{" +
+                            "    \"bool\": {" +
+                            "        \"must\": {" +
+                            "            \"term\": {" +
+                            "                \"metafile\": \"doc\"" +
+                            "            }" +
+                            "        }," +
+                            "        \"must_not\": {" +
+                            "            \"range\": {" +
+                            "                \"CreationDate\": {" +
+                            "                    \"gte\": \"2007-06-02\"" +
+                            "                }" +
+                            "            }" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 7: a simple Filter Not PropertyIsGreaterThanOrEqualTo + typeName
@@ -725,7 +808,32 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery()  instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"objectType_sort\":\"MD_Metadata\"}},{\"not\":{\"range\":{\"CreationDate\":{\"gte\":\"2007-06-02\"}}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"term\": {" +
+                    "                \"objectType_sort\": \"MD_Metadata\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"range\": {" +
+                    "                        \"CreationDate\": {" +
+                    "                            \"gte\": \"2007-06-02\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         pool.recycle(filterUnmarshaller);
     }
@@ -769,7 +877,18 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}");
+        String expresult = "{" +
+                            "    \"geo_shape\": {" +
+                            "        \"geoextent\": {" +
+                            "            \"shape\": {" +
+                            "                \"type\": \"envelope\"," +
+                            "                \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                            "            }," +
+                            "            \"relation\": \"intersects\"" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 2: a simple Distance Filter DWithin
@@ -800,7 +919,13 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}");
+        expresult = "{" +
+                    "    \"geo_distance\": {" +
+                    "        \"geoextent\": [3.4, 2.5]," +
+                    "        \"distance\": \"1000.0m\"" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 3: a simple spatial Filter Intersects
@@ -829,7 +954,18 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"ogc_filter\":{\"geoextent\":{\"linestring\":\"[1.0,2.0,10.0,15.0]\",\"filter\":\"INTERSECTS\"}}}");
+        expresult = "{" +
+                    "    \"geo_shape\": {" +
+                    "        \"geoextent\": {" +
+                    "            \"shape\": {" +
+                    "                \"type\": \"linestring\"," +
+                    "                \"coordinates\": [[1.0, 2.0], [10.0, 15.0]]" +
+                    "            }," +
+                    "            \"relation\": \"intersects\"" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         pool.recycle(filterUnmarshaller);
     }
@@ -1076,7 +1212,33 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        String expresult = "{" +
+                            "    \"bool\": {" +
+                            "        \"must\": {" +
+                            "            \"geo_shape\": {" +
+                            "                \"geoextent\": {" +
+                            "                    \"shape\": {" +
+                            "                        \"type\": \"envelope\"," +
+                            "                        \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                            "                    }," +
+                            "                    \"relation\": \"intersects\"" +
+                            "                }" +
+                            "            }" +
+                            "        }," +
+                            "        \"must\": {" +
+                            "            \"geo_shape\": {" +
+                            "                \"geoextent\": {" +
+                            "                    \"shape\": {" +
+                            "                        \"type\": \"envelope\"," +
+                            "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                            "                    }," +
+                            "                    \"relation\": \"intersects\"" +
+                            "                }" +
+                            "            }" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
         /**
@@ -1123,7 +1285,44 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"point\"," +
+                    "                        \"coordinates\": [3.4, 2.5]" +
+                    "                    }," +
+                    "                    \"relation\": \"contains\"" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
          /**
@@ -1172,7 +1371,48 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"should\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"point\"," +
+                    "                                \"coordinates\": [3.4, 2.5]" +
+                    "                            }," +
+                    "                            \"relation\": \"contains\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }," +
+                    "                \"should\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"envelope\"," +
+                    "                                \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                            }," +
+                    "                            \"relation\": \"intersects\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
          /**
          * Test 4: three spatial Filter (NOT F1) AND F2 AND F3
@@ -1220,7 +1460,53 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"envelope\"," +
+                    "                                \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                    "                            }," +
+                    "                            \"relation\": \"intersects\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"point\"," +
+                    "                        \"coordinates\": [3.4, 2.5]" +
+                    "                    }," +
+                    "                    \"relation\": \"contains\"" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 5: three spatial Filter NOT (F1 OR F2) AND F3
@@ -1270,7 +1556,57 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"or\":[{\"ogc_filter\":{\"geoextent\":{\"minx\":7.0,\"maxx\":20.0,\"miny\":12.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"filter\":\"CONTAINS\"}}}]}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"should\": {" +
+                    "                            \"geo_shape\": {" +
+                    "                                \"geoextent\": {" +
+                    "                                    \"shape\": {" +
+                    "                                        \"type\": \"envelope\"," +
+                    "                                        \"coordinates\": [[7.0, 20.0], [20.0, 12.0]]" +
+                    "                                    }," +
+                    "                                    \"relation\": \"intersects\"" +
+                    "                                }" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"should\": {" +
+                    "                            \"geo_shape\": {" +
+                    "                                \"geoextent\": {" +
+                    "                                    \"shape\": {" +
+                    "                                        \"type\": \"point\"," +
+                    "                                        \"coordinates\": [3.4, 2.5]" +
+                    "                                    }," +
+                    "                                    \"relation\": \"contains\"" +
+                    "                                }" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         pool.recycle(filterUnmarshaller);
     }
@@ -1320,7 +1656,28 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+
+        String expresult = "{" +
+                            "    \"bool\": {" +
+                            "        \"must\": {" +
+                            "            \"wildcard\": {" +
+                            "                \"Title_sort\": \"*VM*\"" +
+                            "            }" +
+                            "        }," +
+                            "        \"must\": {" +
+                            "            \"geo_shape\": {" +
+                            "                \"geoextent\": {" +
+                            "                    \"shape\": {" +
+                            "                        \"type\": \"envelope\"," +
+                            "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                            "                    }," +
+                            "                    \"relation\": \"intersects\"" +
+                            "                }" +
+                            "            }" +
+                            "        }" +
+                            "    }" +
+                            "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
@@ -1366,7 +1723,32 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"wildcard\": {" +
+                    "                \"Title_sort\": \"*VM*\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"term\": {" +
+                    "                \"Title\": \"VM\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 3:  INTERSECT AND propertyIsEquals AND BBOX
@@ -1410,7 +1792,38 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"term\": {" +
+                    "                \"Title\": \"VM\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 4: PropertyIsLike OR INTERSECT OR propertyIsEquals
@@ -1451,7 +1864,32 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"should\": {" +
+                    "            \"wildcard\": {" +
+                    "                \"Title_sort\": \"*VM*\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"term\": {" +
+                    "                \"Title\": \"VM\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
          /**
@@ -1496,7 +1934,38 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"should\": {" +
+                    "            \"term\": {" +
+                    "                \"Title\": \"VM\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
         /**
          * Test 6:  INTERSECT AND (propertyIsEquals OR BBOX)
@@ -1542,7 +2011,42 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"or\":[{\"term\":{\"Title\":\"VM\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"should\": {" +
+                    "                    \"term\": {" +
+                    "                        \"Title\": \"VM\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"should\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"envelope\"," +
+                    "                                \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                            }," +
+                    "                            \"relation\": \"intersects\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
         /**
@@ -1586,7 +2090,40 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}");
+        expresult  = "{" +
+                    "    \"bool\": {" +
+                    "        \"should\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"term\": {" +
+                    "                        \"Title\": \"VMAI\"" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"should\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"wildcard\": {" +
+                    "                        \"Title_sort\": \"LO?Li\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must\": {" +
+                    "                    \"geo_distance\": {" +
+                    "                        \"geoextent\": [3.4, 2.5]," +
+                    "                        \"distance\": \"1000.0m\"" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
         /**
@@ -1656,7 +2193,80 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"wildcard\":{\"Title_sort\":\"*VM*\"}},{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]},{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"wildcard\": {" +
+                    "                \"Title_sort\": \"*VM*\"" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"should\": {" +
+                    "                    \"term\": {" +
+                    "                        \"Title\": \"PLOUF\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"should\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"envelope\"," +
+                    "                                \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                            }," +
+                    "                            \"relation\": \"intersects\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"should\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"must\": {" +
+                    "                            \"term\": {" +
+                    "                                \"metafile\": \"doc\"" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"must_not\": {" +
+                    "                            \"term\": {" +
+                    "                                \"Title\": \"VMAI\"" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }," +
+                    "                \"should\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"must\": {" +
+                    "                            \"wildcard\": {" +
+                    "                                \"Title_sort\": \"LO?Li\"" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"must\": {" +
+                    "                            \"geo_distance\": {" +
+                    "                                \"geoextent\": [3.4, 2.5]," +
+                    "                                \"distance\": \"1000.0m\"" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"geo_shape\": {" +
+                    "                \"geoextent\": {" +
+                    "                    \"shape\": {" +
+                    "                        \"type\": \"envelope\"," +
+                    "                        \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                    }," +
+                    "                    \"relation\": \"intersects\"" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replace(" ", ""));
 
 
         /**
@@ -1732,7 +2342,107 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"and\":[{\"not\":{\"wildcard\":{\"Title_sort\":\"*VM*\"}}},{\"not\":{\"ogc_filter\":{\"geoextent\":{\"minx\":-2.0,\"maxx\":12.0,\"miny\":-4.0,\"maxy\":12.0,\"CRS\":\"EPSG:4326\",\"filter\":\"INTERSECTS\"}}}},{\"not\":{\"or\":[{\"term\":{\"Title\":\"PLOUF\"}},{\"ogc_filter\":{\"geoextent\":{\"filter\":\"BBOX\",\"minx\":-20.0,\"maxx\":20.0,\"miny\":-20.0,\"maxy\":20.0,\"CRS\":\"EPSG:4326\"}}}]}},{\"or\":[{\"not\":{\"term\":{\"Title\":\"VMAI\"}}},{\"and\":[{\"wildcard\":{\"Title_sort\":\"LO?Li\"}},{\"ogc_filter\":{\"geoextent\":{\"x\":3.4,\"y\":2.5,\"distance\":1000.0,\"distance_unit\":\"m\",\"filter\":\"DWITHIN\"}}}]}]}]}");
+        expresult = "{" +
+                    "    \"bool\": {" +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"wildcard\": {" +
+                    "                        \"Title_sort\": \"*VM*\"" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"geo_shape\": {" +
+                    "                        \"geoextent\": {" +
+                    "                            \"shape\": {" +
+                    "                                \"type\": \"envelope\"," +
+                    "                                \"coordinates\": [[-2.0, 12.0], [12.0, -4.0]]" +
+                    "                            }," +
+                    "                            \"relation\": \"intersects\"" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"must\": {" +
+                    "                    \"term\": {" +
+                    "                        \"metafile\": \"doc\"" +
+                    "                    }" +
+                    "                }," +
+                    "                \"must_not\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"should\": {" +
+                    "                            \"term\": {" +
+                    "                                \"Title\": \"PLOUF\"" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"should\": {" +
+                    "                            \"geo_shape\": {" +
+                    "                                \"geoextent\": {" +
+                    "                                    \"shape\": {" +
+                    "                                        \"type\": \"envelope\"," +
+                    "                                        \"coordinates\": [[-20.0, 20.0], [20.0, -20.0]]" +
+                    "                                    }," +
+                    "                                    \"relation\": \"intersects\"" +
+                    "                                }" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }," +
+                    "        \"must\": {" +
+                    "            \"bool\": {" +
+                    "                \"should\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"must\": {" +
+                    "                            \"term\": {" +
+                    "                                \"metafile\": \"doc\"" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"must_not\": {" +
+                    "                            \"term\": {" +
+                    "                                \"Title\": \"VMAI\"" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }," +
+                    "                \"should\": {" +
+                    "                    \"bool\": {" +
+                    "                        \"must\": {" +
+                    "                            \"wildcard\": {" +
+                    "                                \"Title_sort\": \"LO?Li\"" +
+                    "                            }" +
+                    "                        }," +
+                    "                        \"must\": {" +
+                    "                            \"geo_distance\": {" +
+                    "                                \"geoextent\": [3.4, 2.5]," +
+                    "                                \"distance\": \"1000.0m\"" +
+                    "                            }" +
+                    "                        }" +
+                    "                    }" +
+                    "                }" +
+                    "            }" +
+                    "        }" +
+                    "    }" +
+                    "}";
+        assertEquals(Strings.toString(result), expresult.replaceAll(" ", ""));
 
         pool.recycle(filterUnmarshaller);
     }

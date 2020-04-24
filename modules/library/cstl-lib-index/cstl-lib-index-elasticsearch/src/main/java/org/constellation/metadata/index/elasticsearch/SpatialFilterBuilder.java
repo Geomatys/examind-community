@@ -3,25 +3,32 @@ package org.constellation.metadata.index.elasticsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.constellation.filter.FilterParserException;
 import org.constellation.filter.FilterParserUtils;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.geotoolkit.geometry.isoonjts.spatialschema.geometry.JTSGeometry;
+import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Coordinates;
 import org.geotoolkit.gml.xml.DirectPosition;
 import org.geotoolkit.gml.xml.DirectPositionList;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.LineString;
+import org.geotoolkit.gml.xml.LinearRing;
 import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.gml.xml.Polygon;
 import org.geotoolkit.ogc.xml.v110.LowerBoundaryType;
 import org.geotoolkit.ogc.xml.v110.UpperBoundaryType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.And;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
@@ -57,6 +64,7 @@ import org.opengis.filter.temporal.Before;
 import org.opengis.filter.temporal.BinaryTemporalOperator;
 import org.opengis.filter.temporal.During;
 import org.opengis.filter.temporal.TEquals;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -64,16 +72,16 @@ import org.opengis.filter.temporal.TEquals;
  */
 public class SpatialFilterBuilder {
 
-    public static XContentBuilder build(Filter filter) throws IOException, FilterParserException {
+    public static XContentBuilder build(Filter filter, boolean withPlugin) throws IOException, FilterParserException {
         XContentBuilder builder = XContentFactory.jsonBuilder();
         builder.startObject();
-        build(filter, builder);
+        build(filter, builder, withPlugin);
         builder.endObject();
         System.out.println("FILTER: " + Strings.toString(builder));
         return builder;
     }
 
-    private static XContentBuilder build(Filter filter, XContentBuilder builder) throws IOException, FilterParserException {
+    private static XContentBuilder build(Filter filter, XContentBuilder builder, boolean withPlugin) throws IOException, FilterParserException {
         if (filter instanceof BBOX) {
             BBOX bbox = (BBOX)filter;
             final String propertyName = bbox.getPropertyName();
@@ -89,13 +97,22 @@ public class SpatialFilterBuilder {
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
 
-            builder.startObject("ogc_filter")
-                   .startObject("geoextent")
-                   .field("filter", "BBOX");
-            builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY());
-            builder.field("CRS",       crsName)
-                   .endObject()
-                   .endObject();
+            if (withPlugin) {
+                builder.startObject("ogc_filter")
+                       .startObject("geoextent")
+                       .field("filter", "BBOX");
+                builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY(), withPlugin);
+                builder.field("CRS",       crsName)
+                       .endObject()
+                       .endObject();
+            } else {
+                builder.startObject("geo_shape")
+                       .startObject("geoextent");
+                builder = addEnvelope(builder, bbox.getMinX(), bbox.getMaxX(), bbox.getMinY(), bbox.getMaxY(), withPlugin);
+                builder.field("relation", "intersects")
+                       .endObject()
+                       .endObject();
+            }
 
         } else if (filter instanceof DistanceBufferOperator) {
 
@@ -118,22 +135,39 @@ public class SpatialFilterBuilder {
                                                   INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
 
-            builder.startObject("ogc_filter")
-                   .startObject("geoextent");
+            if (withPlugin) {
+                builder.startObject("ogc_filter");
+            } else {
+                builder.startObject("geo_distance");
+            }
 
-            addGeometry(builder, geom);
-            addDistance(builder, distance, units);
+            if (withPlugin) {
+                builder.startObject("geoextent");
+                addGeometry(builder, geom, withPlugin);
+            } else {
+                addPointField(builder, geom);
+            }
+            addDistance(builder, distance, units, withPlugin);
 
             if (filter instanceof  DWithin) {
-                builder.field("filter", "DWITHIN");
+                if (withPlugin) {
+                    builder.field("filter", "DWITHIN");
+                }
             } else if (filter instanceof  Beyond) {
-                builder.field("filter", "BEYOND");
+                if (withPlugin) {
+                    builder.field("filter", "BEYOND");
+                } else {
+                    throw new FilterParserException("Beyond operator not supported.",
+                        INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+                }
             } else {
                 throw new FilterParserException("Unknow DistanceBuffer operator.",
                         INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
-            builder.endObject()
-                   .endObject();
+            if (withPlugin) {
+                builder.endObject();
+            }
+            builder.endObject();
 
         } else if (filter instanceof BinarySpatialOperator) {
 
@@ -141,6 +175,11 @@ public class SpatialFilterBuilder {
 
             String propertyName = null;
             Object gmlGeometry  = null;
+            Object inGeom       = binSpatial.getExpression2();
+
+            if (inGeom instanceof Literal) {
+                inGeom = ((Literal)inGeom).getValue();
+            }
 
             // the propertyName
             if (binSpatial.getExpression1() != null) {
@@ -148,13 +187,19 @@ public class SpatialFilterBuilder {
             }
 
             // geometric object: envelope
-            if (binSpatial.getExpression2() instanceof Envelope) {
+            if (inGeom instanceof Envelope) {
                 gmlGeometry = binSpatial.getExpression2();
-            }
 
-
-            if (binSpatial.getExpression2() instanceof AbstractGeometry) {
-                final AbstractGeometry ab =  (AbstractGeometry)binSpatial.getExpression2();
+            // JTS geometry
+            } else  if (inGeom instanceof Geometry) {
+                try {
+                    gmlGeometry = JTStoGeometry.toGML("3.2.1", (Geometry)inGeom);
+                } catch (FactoryException ex) {
+                    throw new FilterParserException(ex);
+                }
+            // gml geometry
+            } else  if (inGeom instanceof AbstractGeometry) {
+                final AbstractGeometry ab =  (AbstractGeometry)inGeom;
 
                 // supported geometric object: point, line, polygon :
                 if (ab instanceof Point || ab instanceof LineString || ab instanceof Polygon || ab instanceof Envelope) {
@@ -173,64 +218,57 @@ public class SpatialFilterBuilder {
                                                  INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
             }
 
-            builder.startObject("ogc_filter")
-                   .startObject("geoextent");
-
-            addGeometry(builder, gmlGeometry);
-
-            if (filter instanceof  Contains) {
-                builder.field("filter", "CONTAINS");
-            } else if (filter instanceof  Crosses) {
-                builder.field("filter", "CROSSES");
-            } else if (filter instanceof  Disjoint) {
-                builder.field("filter", "DISJOINT");
-            } else if (filter instanceof  Equals) {
-                builder.field("filter", "EQUALS");
-            } else if (filter instanceof  Intersects) {
-                builder.field("filter", "INTERSECTS");
-            } else if (filter instanceof  Overlaps) {
-                builder.field("filter", "OVERLAPS");
-            } else if (filter instanceof  Touches) {
-                builder.field("filter", "TOUCHES");
-            } else if (filter instanceof  Within) {
-                builder.field("filter", "WITHIN");
+            if (withPlugin) {
+                builder.startObject("ogc_filter");
             } else {
-                throw new FilterParserException("Unknow bynary spatial operator.",
-                        INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+                builder.startObject("geo_shape");
             }
+            builder.startObject("geoextent");
+
+            addGeometry(builder, gmlGeometry, withPlugin);
+
+            addSpatialRelation(builder, filter, withPlugin);
 
             builder.endObject()
                    .endObject();
 
         } else if (filter instanceof Not) {
             Not not = (Not)filter;
-            builder.startObject("not");
+            builder.startObject("bool");
 
-            build(not.getFilter(), builder);
+            builder.startObject("must")
+                   .startObject("term")
+                   .field("metafile", "doc")
+                   .endObject()
+                   .endObject();
+
+            builder.startObject("must_not");
+            build(not.getFilter(), builder, withPlugin);
+            builder.endObject();
 
             builder.endObject();
         } else if (filter instanceof Or) {
             Or or = (Or)filter;
-            builder.startArray("or");
+            builder.startObject("bool");
 
             for (Filter f : or.getChildren()) {
-                builder.startObject();
-                build(f, builder);
+                builder.startObject("should");
+                build(f, builder, withPlugin);
                 builder.endObject();
             }
 
-            builder.endArray();
+            builder.endObject();
         } else if (filter instanceof And) {
             And and = (And)filter;
-            builder.startArray("and");
+            builder.startObject("bool");
 
             for (Filter f : and.getChildren()) {
-                builder.startObject();
-                build(f, builder);
+                builder.startObject("must");
+                build(f, builder, withPlugin);
                 builder.endObject();
             }
 
-            builder.endArray();
+            builder.endObject();
         } else if (filter instanceof PropertyIsLike ) {
 
             final PropertyIsLike pil = (PropertyIsLike) filter;
@@ -318,11 +356,21 @@ public class SpatialFilterBuilder {
 
                 } else if (bc instanceof PropertyIsNotEqualTo) {
 
-                    builder.startObject("not")
+                    builder.startObject("bool");
+
+                    builder.startObject("must")
+                                    .startObject("term")
+                                    .field("metafile", "doc")
+                                    .endObject()
+                            .endObject();
+
+                    builder.startObject("must_not")
                                 .startObject("term")
                                 .field(term, literalValue)
                                 .endObject()
                            .endObject();
+
+                    builder.endObject();
 
                 } else if (bc instanceof PropertyIsGreaterThanOrEqualTo) {
 
@@ -412,6 +460,38 @@ public class SpatialFilterBuilder {
         return builder;
     }
 
+    private static void addSpatialRelation(XContentBuilder builder, Filter filter, boolean withPlugin) throws IOException, FilterParserException {
+        String fieldName = withPlugin ? "filter" : "relation";
+        if (filter instanceof  Contains) {
+            builder.field(fieldName,  tolower("CONTAINS", withPlugin));
+        } else if (filter instanceof  Crosses) {
+            builder.field(fieldName,  tolower("CROSSES", withPlugin));
+        } else if (filter instanceof  Disjoint) {
+            builder.field(fieldName,  tolower("DISJOINT", withPlugin));
+        } else if (filter instanceof  Equals) {
+            builder.field(fieldName,  tolower("EQUALS", withPlugin));
+        } else if (filter instanceof  Intersects) {
+            builder.field(fieldName,  tolower("INTERSECTS", withPlugin));
+        } else if (filter instanceof  Overlaps) {
+            builder.field(fieldName,  tolower("OVERLAPS", withPlugin));
+        } else if (filter instanceof  Touches) {
+            builder.field(fieldName,  tolower("TOUCHES", withPlugin));
+        } else if (filter instanceof  Within) {
+            builder.field(fieldName,  tolower("WITHIN", withPlugin));
+        } else {
+            throw new FilterParserException("Unknow bynary spatial operator.",
+                    INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+        }
+    }
+
+    private static String tolower(String value, boolean withPlugin) {
+        if (withPlugin) {
+            return value;
+        } else {
+            return value.toLowerCase();
+        }
+    }
+
     /**
      * Remove the prefix on propertyName.
      */
@@ -425,11 +505,9 @@ public class SpatialFilterBuilder {
         return s;
     }
 
-    private static XContentBuilder addGeometry(XContentBuilder builder, Object geometry) throws FilterParserException, IOException {
-        String crsName;
+    private static XContentBuilder addPointField(XContentBuilder builder, Object geometry) throws FilterParserException, IOException {
         if (geometry instanceof AbstractGeometry) {
             final AbstractGeometry gmlGeom = (AbstractGeometry) geometry;
-            crsName  = gmlGeom.getSrsName();
             if (geometry instanceof Point) {
                 final Point pt = (Point) geometry;
                 final double[] coordinates = new double[2];
@@ -453,15 +531,54 @@ public class SpatialFilterBuilder {
                     throw new IllegalArgumentException("The GML point is malformed.");
                 }
 
-                return addPoint(builder, coordinates[0], coordinates[1]);
+                builder.field("geoextent", Arrays.asList(coordinates[0], coordinates[1]));
+            } else {
+                throw new FilterParserException("geo distance filter only support point geometry.", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+            }
 
-            } else if (geometry instanceof Envelope) {
-                final Envelope gmlEnvelope = (Envelope) geometry;
+        } else {
+           throw new FilterParserException("Unknow geometry class.", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
+        }
+        return builder;
+    }
+
+    private static XContentBuilder addGeometry(XContentBuilder builder, Object geometry, boolean withPlugin) throws FilterParserException, IOException {
+        String crsName;
+        if (geometry instanceof AbstractGeometry) {
+            final AbstractGeometry gmlGeom = (AbstractGeometry) geometry;
+            crsName  = gmlGeom.getSrsName();
+            if (gmlGeom instanceof Point) {
+                final Point pt = (Point) gmlGeom;
+                final double[] coordinates = new double[2];
+                if (pt.getCoordinates() != null) {
+                    final String coord = pt.getCoordinates().getValue();
+
+                    final StringTokenizer tokens = new StringTokenizer(coord, ",");
+                    int index = 0;
+                    while (tokens.hasMoreTokens()) {
+                        String s = tokens.nextToken().trim();
+                        final double value =  Double.parseDouble(s);
+                        if (index >= coordinates.length) {
+                            throw new IllegalArgumentException("This service support only 2D point.");
+                        }
+                        coordinates[index++] = value;
+                    }
+                } else if (pt.getPos().getValue() != null && pt.getPos().getValue().size() == 2){
+                    coordinates[0] = pt.getPos().getValue().get(0);
+                    coordinates[1] = pt.getPos().getValue().get(1);
+                } else {
+                    throw new IllegalArgumentException("The GML point is malformed.");
+                }
+
+                return addPoint(builder, coordinates[0], coordinates[1], withPlugin);
+
+            } else if (gmlGeom instanceof Envelope) {
+                final Envelope gmlEnvelope = (Envelope) gmlGeom;
                 crsName  = gmlEnvelope.getSrsName();
-                addEnvelope(builder, gmlEnvelope.getMinimum(0), gmlEnvelope.getMaximum(0), gmlEnvelope.getMinimum(1), gmlEnvelope.getMaximum(1));
+                addEnvelope(builder, gmlEnvelope.getMinimum(0), gmlEnvelope.getMaximum(0), gmlEnvelope.getMinimum(1), gmlEnvelope.getMaximum(1), withPlugin);
 
-            } else if (geometry instanceof LineString) {
-                final LineString ls = (LineString) geometry;
+            } else if (gmlGeom instanceof LineString) {
+                final LineString ls = (LineString) gmlGeom;
                 final Double[] coordinates;
                 if(ls.getCoordinates() != null){
                     final Coordinates coord = ls.getCoordinates();
@@ -482,107 +599,126 @@ public class SpatialFilterBuilder {
                     coordinates = values.toArray(new Double[values.size()]);
                 }
 
-                return addLineString(builder, coordinates);
+                return addLineString(builder, withPlugin, coordinates);
+
+            } else if (gmlGeom instanceof Polygon) {
+                return addPolygon(builder, (Polygon)gmlGeom, withPlugin);
             } else {
-                throw new IllegalArgumentException("Unhandled geometry GML:" + geometry.getClass().getName());
+                throw new IllegalArgumentException("Unhandled geometry GML:" + gmlGeom.getClass().getName());
             }
 
         } else {
            throw new FilterParserException("Unknow geometry class.", INVALID_PARAMETER_VALUE, QUERY_CONSTRAINT);
         }
-        builder.field("CRS", crsName);
+        if (withPlugin) {
+            builder.field("CRS", crsName);
+        }
         return builder;
     }
 
-    private static XContentBuilder addLineString(XContentBuilder builder, final Double... coordinates) throws IOException {
-        final StringBuilder lineString = new StringBuilder("[");
-        for (double coordinate : coordinates) {
-            lineString.append(coordinate).append(",");
+    private static XContentBuilder addLineString(XContentBuilder builder, boolean withPlugin, final Double... coordinates) throws IOException {
+        if (withPlugin) {
+            final StringBuilder lineString = new StringBuilder("[");
+            for (double coordinate : coordinates) {
+                lineString.append(coordinate).append(",");
+            }
+            lineString.deleteCharAt(lineString.length() - 1);
+            lineString.append("]");
+            builder.field("linestring",   lineString.toString());
+        } else {
+            builder.startObject("shape")
+                       .field("type", "linestring")
+                       .field("coordinates", toCoordinateList(Arrays.asList(coordinates), false))
+                       .endObject();
         }
-        lineString.deleteCharAt(lineString.length() - 1);
-        lineString.append("]");
-        builder.field("linestring",   lineString.toString());
         return builder;
     }
 
     private static XContentBuilder addEnvelope(XContentBuilder builder, final double minx, final double maxx,
-            final double miny, final double maxy) throws IOException {
-        builder.field("minx",         minx)
-               .field("maxx",         maxx)
-               .field("miny",         miny)
-               .field("maxy",         maxy);
+            final double miny, final double maxy, boolean withPlugin) throws IOException {
+        if (withPlugin) {
+            builder.field("minx",         minx)
+                   .field("maxx",         maxx)
+                   .field("miny",         miny)
+                   .field("maxy",         maxy);
+        } else {
+            // Elasticsearch supports an envelope type, which consists of coordinates
+            // for upper left and lower right points of the shape to represent a bounding rectangle
+            // in the format [[minLon, maxLat], [maxLon, minLat]]:
+
+            // Elasticsearch do not like "line/point" bbox
+            double delta = 0.01;
+            double ix = minx;
+            double ax = maxx;
+            double iy = miny;
+            double ay = maxy;
+
+            if (ix == ax) {
+                ax = ax + delta;
+            }
+            if (iy == ay) {
+                ay = ay + delta;
+            }
+            builder.startObject("shape")
+                   .field("type", "envelope")
+                   .field("coordinates", Arrays.asList(Arrays.asList(ix, ay), Arrays.asList(ax, iy)))
+                   .endObject();
+        }
         return builder;
     }
 
-    private static XContentBuilder addPoint(XContentBuilder builder, final double x, final double y) throws IOException {
-        builder.field("x",      x)
-               .field("y",      y);
+    private static XContentBuilder addPoint(XContentBuilder builder, final double x, final double y, final boolean withPlugin) throws IOException {
+        if (withPlugin) {
+            builder.field("x",      x)
+                   .field("y",      y);
+        } else {
+            builder.startObject("shape")
+                   .field("type", "point")
+                   .field("coordinates", Arrays.asList(x, y))
+                   .endObject();
+        }
         return builder;
     }
 
-    private static XContentBuilder addDistance(XContentBuilder builder, final Double distance, final String unit) throws IOException {
+    private static XContentBuilder addDistance(XContentBuilder builder, final Double distance, final String unit, boolean withPlugin) throws IOException {
         if (distance != null && unit != null) {
-            builder.field("distance",  distance)
-                   .field("distance_unit",  unit);
+            if (withPlugin) {
+                builder.field("distance",  distance)
+                       .field("distance_unit",  unit);
+            } else {
+                builder.field("distance",  distance + unit);
+            }
         }
         return builder;
     }
 
-    public static XContentBuilder addSpatialFilter(final String filterType, final String spatialType, final String crsName,
-            final double minx, final double maxx,
-            final double miny, final double maxy, final Double distance, final String unit) throws IOException {
-
-        XContentBuilder builder = XContentFactory.jsonBuilder();
-        builder.startObject()
-               .startObject("ogc_filter")
-               .startObject(spatialType)
-               .field("filter", filterType);
-        builder = addEnvelope(builder, minx, maxx, miny, maxy);
-        builder = addDistance(builder, distance, unit);
-        builder.field("CRS",       crsName)
-               .field("distance",  distance)
-               .field("distance_unit",  unit)
-               .endObject()
-               .endObject()
-               .endObject();
-        return builder;
-    }
-
-    public static XContentBuilder addSpatialFilter(final String filterType, final String spatialType, final String crsName,
-            final Double distance, final String unit, final Double... coordinates) throws IOException {
-        final StringBuilder lineString = new StringBuilder("[");
-        for (double coordinate : coordinates) {
-            lineString.append(coordinate).append(",");
+    private static XContentBuilder addPolygon(XContentBuilder builder, final Polygon polygon, final boolean withPlugin) throws IOException {
+        if (withPlugin) {
+           throw new IllegalArgumentException("Polygon is not yet supported in plugin mode");
+        } else {
+            if (polygon.getExterior() != null &&
+                polygon.getExterior().getAbstractRing() instanceof LinearRing) {
+                LinearRing exterior = (LinearRing) polygon.getExterior().getAbstractRing();
+                builder.startObject("shape")
+                       .field("type", "polygon")
+                       .field("coordinates", toCoordinateList(exterior.getPosList().getValue(), true))
+                       .endObject();
+            } else {
+                throw new IllegalArgumentException("null or non linear exterior ring");
+            }
         }
-        lineString.deleteCharAt(lineString.length() - 1);
-        lineString.append("]");
-        XContentBuilder builder = XContentFactory.jsonBuilder();
-        builder.startObject()
-               .startObject("ogc_filter")
-               .startObject(spatialType)
-               .field("filter",       filterType);
-        builder = addLineString(builder, coordinates);
-        builder = addDistance(builder, distance, unit);
-        builder.field("CRS",           crsName)
-               .endObject()
-               .endObject()
-               .endObject();
         return builder;
     }
 
-    public static XContentBuilder addSpatialFilter(final String filterType, final String spatialType, final double x, final double y,
-            final String crsName, final Double distance, final String unit) throws IOException {
-        XContentBuilder builder = XContentFactory.jsonBuilder();
-        builder.startObject()
-               .startObject("ogc_filter")
-               .startObject(spatialType)
-               .field("filter", filterType);
-        builder = addPoint(builder, x, y);
-        builder = addDistance(builder, distance, unit);
-        builder.field("CRS",    crsName)
-               .endObject()
-               .endObject()
-               .endObject();
-        return builder;
+    private static List toCoordinateList(List<Double> posList, boolean wrap) {
+        List result = new ArrayList<>();
+        for (int i = 0; i < posList.size();  i = i + 2) {
+            result.add(Arrays.asList(posList.get(i), posList.get(i + 1)));
+        }
+        if (wrap) {
+            return Arrays.asList(result);
+        } else {
+            return result;
+        }
     }
 }

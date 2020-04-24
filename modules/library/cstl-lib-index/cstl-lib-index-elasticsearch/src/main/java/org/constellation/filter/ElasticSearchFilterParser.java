@@ -48,6 +48,12 @@ public class ElasticSearchFilterParser implements FilterParser {
 
     private static final String DEFAULT_FIELD = "metafile:doc";
 
+    private final boolean withPlugin;
+
+    public ElasticSearchFilterParser(boolean withPlugin) {
+        this.withPlugin = withPlugin;
+    }
+
     @Override
     public org.geotoolkit.index.SpatialQuery getQuery(final QueryConstraint constraint, final Map<String, QName> variables, final Map<String, String> prefixs, final List<QName> typeNames) throws FilterParserException {
         //if the constraint is null we make a null filter
@@ -101,21 +107,22 @@ public class ElasticSearchFilterParser implements FilterParser {
             if (filter != null) {
                 Object main = filter.getFilterObject();
 
+                // todo factorize
                 // we treat logical Operators like AND, OR, ...
                 if (main instanceof LogicOperator) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter) main));
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main, withPlugin));
 
                 // we treat directly comparison operator: PropertyIsLike, IsNull, IsBetween, ...
                 } else if (main instanceof ComparisonOperator) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main, withPlugin));
 
                 // we treat spatial constraint : BBOX, Beyond, Overlaps, ...
                 } else if (main instanceof SpatialOperator) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main, withPlugin));
 
                 // we treat time operator: TimeAfter, TimeBefore, TimeDuring, ...
                 } else if (main instanceof TemporalOperator) {
-                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main));
+                    response = new SpatialQuery(SpatialFilterBuilder.build((Filter)main, withPlugin));
 
                 } else if (main instanceof ID) {
                     response = new SpatialQuery(treatIDOperator((ID) main), null);

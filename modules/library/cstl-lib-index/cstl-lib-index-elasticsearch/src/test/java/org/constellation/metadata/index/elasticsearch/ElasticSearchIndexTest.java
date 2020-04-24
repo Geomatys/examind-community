@@ -22,7 +22,6 @@ package org.constellation.metadata.index.elasticsearch;
 import org.apache.sis.util.logging.Logging;
 
 import org.constellation.metadata.CSWQueryable;
-import org.constellation.api.PathType;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.NodeUtilities;
@@ -56,8 +55,9 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.geotoolkit.gml.xml.v321.DirectPositionType;
+import org.geotoolkit.gml.xml.v321.EnvelopeType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -82,7 +82,7 @@ public class ElasticSearchIndexTest {
 
     private static ElasticSearchNodeIndexer indexer;
 
-    private static final File configDirectory  = new File("GenericNodeIndexTest");
+    private static final File configDirectory  = new File("ElasticSearchIndexTest");
 
     private static String GEOM_PROP= "geoextent";
 
@@ -112,7 +112,7 @@ public class ElasticSearchIndexTest {
 
         IOUtilities.deleteRecursively(configDirectory.toPath());
         List<Node> object         = fillTestData();
-        String indexName          = "GenericNodeIndexTest" + UUID.randomUUID().toString();
+        String indexName          = "ElasticSearchIndexTest" + UUID.randomUUID().toString();
         indexer                   = new ElasticSearchNodeIndexer(object, "localhost", clusterName, indexName, new HashMap<>(), true);
         indexSearcher             = new ElasticSearchIndexSearcher("localhost", clusterName, indexName);
     }
@@ -997,9 +997,114 @@ public class ElasticSearchIndexTest {
         String resultReport = "";
 
         /**
+         * Test 1 spatial search: intersects filter
+         */
+        DirectPositionType lower = new DirectPositionType(-20, -20);
+        DirectPositionType upper = new DirectPositionType(20,   20);
+        EnvelopeType geom = new EnvelopeType(lower, upper, "EPSG:4326");
+        XContentBuilder sf = SpatialFilterBuilder.build(FF.intersects(FF.property(GEOM_PROP) , FF.literal(geom)), false);
+        SpatialQuery spatialQuery = new SpatialQuery(sf);
+
+        Set<String> result = indexSearcher.doSearch(spatialQuery);
+
+        for (String s: result) {
+            resultReport = resultReport + s + '\n';
+        }
+
+        LOGGER.log(Level.FINER, "spatialSearch 1:\n{0}", resultReport);
+
+        Set<String> expectedResult = new LinkedHashSet<>();
+        expectedResult.add("39727_22_19750113062500");
+        expectedResult.add("11325_158_19640418141800");
+        expectedResult.add("CTDF02");
+
+        assertEquals(expectedResult, result);
+
+        /**
+         * Test 2 spatial search: within
+         */
+        resultReport = "";
+
+        sf = SpatialFilterBuilder.build(FF.within(FF.property(GEOM_PROP) , FF.literal(geom)), false);
+        spatialQuery = new SpatialQuery(null, sf);
+
+        result = indexSearcher.doSearch(spatialQuery);
+
+        for (String s: result) {
+            resultReport = resultReport + s + '\n';
+        }
+
+        LOGGER.log(Level.FINER, "spatialSearch 2:\n{0}", resultReport);
+
+        expectedResult = new LinkedHashSet<>();
+        expectedResult.add("39727_22_19750113062500");
+        expectedResult.add("11325_158_19640418141800");
+        assertEquals(expectedResult, result);
+
+        /**
+         * Test 3 spatial search: contains
+         */
+        resultReport = "";
+
+        sf = SpatialFilterBuilder.build(FF.contains(FF.property(GEOM_PROP) , FF.literal(geom)), false);
+        spatialQuery = new SpatialQuery(null, sf);
+
+        result = indexSearcher.doSearch(spatialQuery);
+
+        for (String s: result) {
+            resultReport = resultReport + s + '\n';
+        }
+
+        LOGGER.log(Level.FINER, "spatialSearch 3:\n{0}", resultReport);
+
+        expectedResult = new LinkedHashSet<>();
+        expectedResult.add("CTDF02");
+        assertEquals(expectedResult, result);
+
+        /**
+         * Test 4 spatial search: disjoint
+         */
+        resultReport = "";
+
+        sf = SpatialFilterBuilder.build(FF.disjoint(FF.property(GEOM_PROP) , FF.literal(geom)), false);
+        spatialQuery = new SpatialQuery(null, sf);
+
+        result = indexSearcher.doSearch(spatialQuery);
+
+        for (String s: result) {
+            resultReport = resultReport + s + '\n';
+        }
+
+        LOGGER.log(Level.FINER, "spatialSearch 4:\n{0}", resultReport);
+
+        expectedResult = new LinkedHashSet<>();
+        expectedResult.add("42292_5p_19900609195600");
+        expectedResult.add("42292_9s_19900610041000");
+        expectedResult.add("40510_145_19930221211500");
+        expectedResult.add("MDWeb_FR_SY_couche_vecteur_258");
+        expectedResult.add("urn:uuid:1ef30a8b-876d-4828-9246-c37ab4510bbd");
+        expectedResult.add("gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
+        assertEquals(expectedResult, result);
+    }
+
+
+    /**
+     *
+     * Test spatial lucene search.
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Order(order = 6)
+    public void spatialSearchTest2() throws Exception {
+        if (!ES_SERVER_PRESENT) return;
+
+        String resultReport = "";
+
+        /**
          * Test 1 spatial search: BBOX filter
          */
-        XContentBuilder sf = SpatialFilterBuilder.build(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "EPSG:4326"));
+        XContentBuilder sf = SpatialFilterBuilder.build(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "EPSG:4326"), false);
         SpatialQuery spatialQuery = new SpatialQuery(sf);
 
         Set<String> result = indexSearcher.doSearch(spatialQuery);
@@ -1023,7 +1128,7 @@ public class ElasticSearchIndexTest {
         resultReport = "";
 
         Not f = FF.not(FF.bbox(GEOM_PROP, -20, -20, 20, 20, "CRS:84"));
-        sf = SpatialFilterBuilder.build(f);
+        sf = SpatialFilterBuilder.build(f, false);
         spatialQuery = new SpatialQuery(null, sf);
 
         result = indexSearcher.doSearch(spatialQuery);
