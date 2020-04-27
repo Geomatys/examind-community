@@ -171,10 +171,8 @@ public class FileSystemUtilities {
                     // do not throw exception on close method
                     } catch (IOException | URISyntaxException ex) {
                         LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                    }   break;
+                    }
                 }
-            default: // do nothing
-                    break;
         }
     }
     public static void closeFileSystem(FileSystemReference fsr) {
