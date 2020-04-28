@@ -19,23 +19,12 @@
 package org.constellation.provider;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -766,6 +755,9 @@ public final class DataProviders extends Static{
     public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
         Map<String, String> results = new HashMap<>();
         StorageConnector input = new StorageConnector(p);
+        final ByteBuffer buffer = input.getStorageAs(ByteBuffer.class);
+        final byte[] ctrlValue = new byte[Math.min(64, buffer.remaining())];
+        buffer.get(ctrlValue).rewind();
         try {
             List<DataStoreProvider> providers = new ArrayList<>(org.apache.sis.storage.DataStores.providers());
             for (DataStoreProvider provider : providers) {
@@ -776,6 +768,7 @@ public final class DataProviders extends Static{
                     try {
                         long start = System.currentTimeMillis();
                         ProbeResult result = provider.probeContent(input);
+                        assert isProperlyReset(input, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+storeId;
                         // use to detect if a probe content on a provider is taking much time than needed
                         LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
                         if (result.isSupported() && result.getMimeType() != null) {
@@ -797,6 +790,13 @@ public final class DataProviders extends Static{
             input.closeAllExcept(null);
         }
         return results;
+    }
+
+    private static boolean isProperlyReset(StorageConnector input, byte[] ctrlValue) throws DataStoreException {
+        final ByteBuffer storage = input.getStorageAs(ByteBuffer.class);
+        final byte[] currentValue = new byte[ctrlValue.length];
+        storage.get(currentValue).rewind();
+        return Arrays.equals(ctrlValue, currentValue);
     }
 
     /**
