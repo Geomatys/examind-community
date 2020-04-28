@@ -18,28 +18,19 @@
  */
 package org.constellation.map.core;
 
-import org.constellation.ws.LayerCache;
 import com.codahale.metrics.annotation.Timed;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Named;
@@ -48,7 +39,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.referencing.GeodeticObjectBuilder;
 import org.apache.sis.internal.storage.query.SimpleQuery;
 import org.apache.sis.internal.util.UnmodifiableArrayList;
 import org.apache.sis.measure.MeasurementRange;
@@ -65,7 +55,6 @@ import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.MarshallerPool;
-import static org.constellation.api.CommonConstants.DEFAULT_CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.Reference;
 import org.constellation.dto.StyleReference;
@@ -80,16 +69,6 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
-import static org.constellation.map.core.WMSConstant.KEY_BBOX;
-import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
-import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
-import static org.constellation.map.core.WMSConstant.KEY_LAYER;
-import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
-import static org.constellation.map.core.WMSConstant.KEY_TIME;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
@@ -102,6 +81,7 @@ import org.constellation.util.DataReference;
 import org.constellation.util.DtoToOGCFilterTransformer;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
+import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.cql.CQL;
@@ -121,15 +101,6 @@ import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapItem;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.se.xml.v110.OnlineResourceType;
 import org.geotoolkit.sld.MutableLayer;
@@ -144,28 +115,7 @@ import org.geotoolkit.sld.xml.v110.LayerDescriptionType;
 import org.geotoolkit.sld.xml.v110.TypeNameType;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.PeriodUtilities;
-import org.geotoolkit.wms.xml.AbstractBoundingBox;
-import org.geotoolkit.wms.xml.AbstractDimension;
-import org.geotoolkit.wms.xml.AbstractGeographicBoundingBox;
-import org.geotoolkit.wms.xml.AbstractLayer;
-import org.geotoolkit.wms.xml.AbstractLegendURL;
-import org.geotoolkit.wms.xml.AbstractLogoURL;
-import org.geotoolkit.wms.xml.AbstractOnlineResource;
-import org.geotoolkit.wms.xml.AbstractRequest;
-import org.geotoolkit.wms.xml.AbstractWMSCapabilities;
-import org.geotoolkit.wms.xml.DescribeLayer;
-import org.geotoolkit.wms.xml.GetCapabilities;
-import org.geotoolkit.wms.xml.GetFeatureInfo;
-import org.geotoolkit.wms.xml.GetMap;
-import org.geotoolkit.wms.xml.WMSMarshallerPool;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createBoundingBox;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createDimension;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createGeographicBoundingBox;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLayer;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLegendURL;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
-import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
+import org.geotoolkit.wms.xml.*;
 import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.filter.Filter;
@@ -183,6 +133,36 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.CommonConstants.DEFAULT_CRS;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
+import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
+import static org.constellation.map.core.WMSConstant.KEY_BBOX;
+import static org.constellation.map.core.WMSConstant.KEY_ELEVATION;
+import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
+import static org.constellation.map.core.WMSConstant.KEY_LAYER;
+import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
+import static org.constellation.map.core.WMSConstant.KEY_TIME;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createBoundingBox;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createDimension;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createGeographicBoundingBox;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLayer;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLegendURL;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
+import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 
 /**
  * A WMS worker for a local WMS service which handles requests from REST
@@ -1391,34 +1371,40 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     }
 
     private Envelope combine(Envelope env, Date[] temporal, Double[] elevation, VerticalCRS vCrs) throws FactoryException {
-        List<CoordinateReferenceSystem> crss = new ArrayList<>();
-        crss.add(env.getCoordinateReferenceSystem());
-        final boolean hasTime = temporal != null && (temporal[0] != null || temporal[1] != null);
-        if(hasTime){
-            crss.add(CommonCRS.Temporal.JAVA.crs());
-        }
+        assert env.getDimension() == 2 : "Input envelope should be the 2D bbox parameter from WMS request";
+        assert elevation != null && elevation.length == 2 : "Elevation array should contains 2 nullable values";
+        assert temporal != null && temporal.length == 2 : "Time array should contains 2 nullable values";
 
-        final boolean hasElevation = elevation != null && (elevation[0] != null || elevation[1] != null) && vCrs != null;
+        CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+        assert crs != null : "Input envelope CRS should be set according to related GetMap parameter";
+        boolean hasElevation = elevation[0] != null || elevation[1] != null;
         if (hasElevation) {
-            crss.add(vCrs);
+            ensureNonNull("Vertical CRS", vCrs);
+            crs = CRS.compound(crs, vCrs);
         }
 
-        if (!hasTime && !hasElevation)
-            return env;
-
-        final CoordinateReferenceSystem outputCrs = new GeodeticObjectBuilder()
-                    .addName("Composite")
-                    .createCompoundCRS(crss.toArray(new CoordinateReferenceSystem[crss.size()]));
-        GeneralEnvelope result = new GeneralEnvelope(outputCrs);
-        int dim = env.getDimension();
-        result.subEnvelope(0, dim).setEnvelope(env);
+        boolean hasTime = temporal[0] != null || temporal[1] != null;
         if (hasTime) {
-            result.setRange(dim++, (double)temporal[0].getTime(), (double)temporal[1].getTime());
+            crs = CRS.compound(crs, CommonCRS.Temporal.JAVA.crs());
         }
-        if (hasElevation) {
-            result.setRange(dim++, elevation[0], elevation[1]);
+
+        if (hasTime || hasElevation) {
+            final GeneralEnvelope combination = new GeneralEnvelope(crs);
+            combination.subEnvelope(0, 2).setEnvelope(env);
+            int nextDim = 2;
+            if (hasElevation) combination.setRange(nextDim++,
+                    elevation[0] == null? elevation[1] : elevation[0],
+                    elevation[1] == null? elevation[0] : elevation[1]
+            );
+            if (hasTime) {
+                combination.setRange(nextDim,
+                        (temporal[0] == null? temporal[1] : temporal[0]).getTime(),
+                        (temporal[1] == null? temporal[0] : temporal[1]).getTime()
+                );
+            }
+            env = combination;
         }
-        return result;
+        return env;
     }
 
     private PortrayalResponse handleExceptions(GetMap getMap, boolean errorInImage, boolean errorBlank,
