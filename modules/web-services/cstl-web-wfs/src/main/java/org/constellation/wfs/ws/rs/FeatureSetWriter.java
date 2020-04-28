@@ -22,18 +22,18 @@ package org.constellation.wfs.ws.rs;
 import com.fasterxml.jackson.core.JsonEncoding;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
-import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.geotoolkit.storage.feature.FeatureWriter;
-import org.geotoolkit.data.geojson.GeoJSONStreamWriter;
+import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
+import org.geotoolkit.storage.geojson.GeoJSONStreamWriter;
 import org.opengis.feature.Feature;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -86,8 +86,15 @@ public class FeatureSetWriter implements HttpMessageConverter<FeatureSetWrapper>
             if (t.getFeatureSet().size() > 1) {
                 throw new UnsupportedOperationException("TODO MULTIPLE JSON");
             }
-            try (FeatureWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), JsonEncoding.UTF8, 4, true)) {
-                FeatureStoreUtilities.write(featureWriter, t.getFeatureSet().get(0).features(false).collect(Collectors.toList()));
+            try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(outputMessage.getBody(), t.getFeatureSet().get(0).getType(), JsonEncoding.UTF8, 4, true);
+                 Stream<Feature> stream = t.getFeatureSet().get(0).features(false)) {
+                Iterator<Feature> iterator = stream.iterator();
+                while (iterator.hasNext()) {
+                    Feature next = iterator.next();
+                    Feature neww = featureWriter.next();
+                    FeatureExt.copy(next, neww, false);
+                    featureWriter.write();
+                }
             } catch (DataStoreException ex) {
                 LOGGER.log(Level.SEVERE, "DataStore exception while writing the feature collection", ex);
             } catch (FeatureStoreRuntimeException ex) {

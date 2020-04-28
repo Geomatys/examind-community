@@ -1,7 +1,5 @@
 package org.constellation.test.utils;
 
-import org.geotoolkit.nio.IOUtilities;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -14,11 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import javax.xml.bind.Unmarshaller;
-
-import org.opengis.referencing.crs.CRSAuthorityFactory;
-import org.opengis.util.FactoryException;
-import org.opengis.util.InternationalString;
-
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
@@ -33,8 +26,12 @@ import static org.constellation.provider.ProviderParameters.getOrCreate;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
+import org.geotoolkit.nio.IOUtilities;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.referencing.crs.CRSAuthorityFactory;
+import org.opengis.util.FactoryException;
+import org.opengis.util.InternationalString;
 
 /**
  * Utility class used for setup test data environment of test classes.
@@ -225,7 +222,7 @@ public final class TestEnvironment {
             String providerIdentifier = "geojsonSrc" + UUID.randomUUID().toString();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("GeoJSONParameters");
+            final ParameterValueGroup config = choice.addGroup("geojson");
             config.parameter("path").setValue(p.toUri());
 
             return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "data-store", source);

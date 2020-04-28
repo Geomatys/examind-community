@@ -51,14 +51,13 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
-import org.geotoolkit.data.geojson.binding.GeoJSONFeature;
-import org.geotoolkit.data.geojson.binding.GeoJSONGeometry;
-import org.geotoolkit.data.geojson.utils.GeometryUtils;
 import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.v321.MeasureType;
+import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
+import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sts.AbstractSTSRequest;
@@ -120,8 +119,8 @@ import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.temporal.TEquals;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Measure;
-import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.observation.Process;
+import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Instant;
@@ -1684,7 +1683,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         throw new ConstellationStoreException(ex);
                     }
                 }
-                GeoJSONGeometry geom = GeometryUtils.toGeoJSONGeometry(jts);
+                GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(jts);
                 GeoJSONFeature feature = new GeoJSONFeature();
                 feature.setGeometry(geom);
                 result.setLocation(feature);
@@ -1741,7 +1740,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (sp.getGeometry() != null) {
             try {
                 Geometry jts = GeometrytoJTS.toJTS((AbstractGeometry)sp.getGeometry());
-                GeoJSONGeometry geom = GeometryUtils.toGeoJSONGeometry(jts);
+                GeoJSONGeometry geom = GeoJSONGeometry.toGeoJSONGeometry(jts);
                 GeoJSONFeature feature = new GeoJSONFeature();
                 feature.setGeometry(geom);
                 result.setFeature(feature);

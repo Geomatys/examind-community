@@ -20,20 +20,19 @@
 package org.constellation.wps.ws.rs;
 
 import com.fasterxml.jackson.core.JsonEncoding;
-import org.locationtech.jts.geom.Geometry;
-import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.wps.xml.WPSMarshallerPool;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.data.geojson.GeoJSONStreamWriter;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.storage.geojson.GeoJSONStreamWriter;
+import org.geotoolkit.wps.xml.WPSMarshallerPool;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.util.FactoryException;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -50,7 +49,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class GeometryWriter implements HttpMessageConverter<AbstractGeometry> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -65,7 +64,7 @@ public class GeometryWriter implements HttpMessageConverter<AbstractGeometry> {
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_JSON);
     }
-    
+
     @Override
     public AbstractGeometry read(Class<? extends AbstractGeometry> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("AbstractGeometry message converter do not support reading.");
@@ -82,12 +81,12 @@ public class GeometryWriter implements HttpMessageConverter<AbstractGeometry> {
         if (media == null) {
             media = contentType;
         }
-        
+
         if ((MediaType.APPLICATION_JSON.equals(media))) {
             try {
                 Geometry geom = GeometrytoJTS.toJTS(t);
                 GeoJSONStreamWriter.writeSingleGeometry(outputMessage.getBody(), geom, JsonEncoding.UTF8, 0, false);
-                
+
             } catch (FactoryException ex) {
                 LOGGER.log(Level.SEVERE, "Factory exception while writing the geometry", ex);
             }
