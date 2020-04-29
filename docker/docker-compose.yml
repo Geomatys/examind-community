@@ -2,7 +2,7 @@ version: "2"
 
 services :
     exa-db:
-       image: postgres:9.6.7-alpine
+       image: mdillon/postgis:10-alpine
        restart: "no"
        volumes:
          - "./mount/exa-db/pgdata/:/var/lib/postgresql/data/"
@@ -13,19 +13,6 @@ services :
         POSTGRES_USER: examind
         POSTGRES_PASSWORD: examind
         PGDATA: /var/lib/postgresql/data/pgdata/
-
-    exa-dbpostgis:
-         image: mdillon/postgis:10-alpine
-         restart: "no"
-         volumes:
-          - "./mount/exa-dbpostgis/pgdata:/var/lib/postgis/data"
-         ports:
-          - "5441:5432"
-         environment:
-           POSTGRES_DB: examind
-           POSTGRES_USER: examind
-           POSTGRES_PASSWORD: examind
-           PGDATA: /var/lib/postgis/data
 
     examind:
        image: examind-community:latest
@@ -39,7 +26,6 @@ services :
          #- "./mount/examind/tomcat/conf/server.xml:/usr/local/tomcat/conf/server.xml"
        depends_on:
          - exa-db
-         - exa-dbpostgis
        ports:
          - "8080:8080"
          - "8000:8000"
