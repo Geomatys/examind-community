@@ -11,6 +11,7 @@ import org.apache.sis.storage.StorageConnector;
 import org.geotoolkit.data.shapefile.ShapefileProvider;
 import org.geotoolkit.test.VerifiableStorageConnector;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -34,6 +35,7 @@ public class DataProvidersTest {
      * Note that this test is not exhaustive, as it cannot test all possible storage connector views.
      */
     @Test
+    @Ignore("Until SIS StorageConnector does not provide fail-fast behavior, it's hard to debug.")
     public void properlyProbeShapefile() throws DataStoreException {
         final Path targetShapefile = rootDir.resolve(Paths.get("org", "constellation", "data", "shapefiles", "city.shp"));
         final ShapefileProvider shpp = new ShapefileProvider();
