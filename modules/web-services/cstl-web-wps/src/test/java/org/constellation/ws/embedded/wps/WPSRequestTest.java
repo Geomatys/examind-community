@@ -40,25 +40,25 @@ import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.test.utils.Order;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
 import org.constellation.ws.embedded.AbstractGrizzlyServer;
-import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ows.xml.v200.AcceptVersionsType;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.GetCapabilities;
 import org.geotoolkit.wps.xml.v200.Result;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNoException;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeNoException;
 
 /**
  *
@@ -741,11 +741,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
     private static final String WPS_DESCRIBEPROCESS_ERROR ="request=describeProcess&service=WPS&version=1.0.0&identifier=urn:exa:wps:geotoolkit::bad";
     private static final String WPS_DESCRIBEPROCESS_ERROR_200 ="request=describeProcess&service=WPS&version=2.0.0&identifier=urn:exa:wps:geotoolkit::bad";
 
-    private static final String WPS_DESCRIBEPROCESS_FR ="request=describeProcess&service=WPS&version=1.0.0&identifier=urn:exa:wps:geotoolkit::coverage:isoline&language=fr-FR";
-    private static final String WPS_DESCRIBEPROCESS_FR_200 ="request=describeProcess&service=WPS&version=2.0.0&identifier=urn:exa:wps:geotoolkit::coverage:isoline&language=fr-FR";
-    private static final String WPS_DESCRIBEPROCESS_EN ="request=describeProcess&service=WPS&version=1.0.0&identifier=urn:exa:wps:geotoolkit::coverage:isoline&language=en-EN";
-    private static final String WPS_DESCRIBEPROCESS_EN_200 ="request=describeProcess&service=WPS&version=2.0.0&identifier=urn:exa:wps:geotoolkit::coverage:isoline&language=en-EN";
-
     @Test
     @Order(order=10)
     public void testWPSDescribeProcess() throws Exception {
@@ -798,39 +793,6 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?" + WPS_DESCRIBEPROCESS_ERROR_200);
         result = getStringResponse(descProUrl);
         expected = getStringFromFile("org/constellation/wps/xml/EX_DescribeProcessResponse1_200.xml");
-        domCompare(result, expected);
-
-        /*
-         * Describe one Process V100 FR
-         */
-        descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?" + WPS_DESCRIBEPROCESS_FR);
-        result = getStringResponse(descProUrl);
-        expected = getStringFromFile("org/constellation/wps/xml/DescribeProcessResponse3_FR.xml");
-        domCompare(result, expected);
-
-        /*
-         * Describe one Process V100 EN
-         */
-        descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?" + WPS_DESCRIBEPROCESS_EN);
-        result = getStringResponse(descProUrl);
-        expected = getStringFromFile("org/constellation/wps/xml/DescribeProcessResponse3_EN.xml");
-        domCompare(result, expected);
-
-
-        /*
-         * Describe one Process V200 FR
-         */
-        descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?" + WPS_DESCRIBEPROCESS_FR_200);
-        result = getStringResponse(descProUrl);
-        expected = getStringFromFile("org/constellation/wps/xml/DescribeProcessResponse3_FR_200.xml");
-        domCompare(result, expected);
-
-        /*
-         * Describe one Process V200 EN
-         */
-        descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default?" + WPS_DESCRIBEPROCESS_EN_200);
-        result = getStringResponse(descProUrl);
-        expected = getStringFromFile("org/constellation/wps/xml/DescribeProcessResponse3_EN_200.xml");
         domCompare(result, expected);
     }
 
