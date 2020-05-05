@@ -77,6 +77,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.catalina.Context;
 import org.apache.sis.test.xml.DocumentComparator;
+import org.constellation.util.NodeUtilities;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -651,9 +652,7 @@ public abstract class AbstractGrizzlyServer {
      */
     protected static String getStringFromNode(final Node n) throws Exception {
         TransformerFactory tf = TransformerFactory.newInstance();
-        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        NodeUtilities.secureFactory(tf);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StringWriter writer = new StringWriter();

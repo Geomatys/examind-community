@@ -37,7 +37,6 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +52,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -725,9 +723,7 @@ public class NodeUtilities {
     public static Node getNodeFromObject(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException  {
 
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         dbf.setNamespaceAware(true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.newDocument();
@@ -749,9 +745,7 @@ public class NodeUtilities {
     public static Node getNodeFromString(final String string) throws ParserConfigurationException, SAXException, IOException  {
         final InputSource source = new InputSource(new StringReader(string));
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         dbf.setNamespaceAware(true);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(source);
@@ -784,9 +778,7 @@ public class NodeUtilities {
     public static Node getNodeFromStream(final InputStream stream) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(stream);
         return document.getDocumentElement();
@@ -796,9 +788,7 @@ public class NodeUtilities {
         final InputSource source = new InputSource(reader);
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.parse(source);
         return document.getDocumentElement();
@@ -813,9 +803,7 @@ public class NodeUtilities {
     public static Document getDocumentFromStream(InputStream metadataStream) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         return docBuilder.parse(metadataStream);
     }
@@ -823,9 +811,7 @@ public class NodeUtilities {
     public static Document getDocumentFromString(String xml) throws ParserConfigurationException, SAXException, IOException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final InputSource source = new InputSource(new StringReader(xml));
         return docBuilder.parse(source);
@@ -842,9 +828,7 @@ public class NodeUtilities {
     public static Node getNodeFromGeotkMetadata(final Object metadata, final MarshallerPool pool) throws JAXBException, ParserConfigurationException {
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        secureFactory(dbf);
         final DocumentBuilder docBuilder = dbf.newDocumentBuilder();
         final Document document = docBuilder.newDocument();
         final Marshaller marshaller = pool.acquireMarshaller();
@@ -861,9 +845,7 @@ public class NodeUtilities {
 
     public static void writerNode(Node n, Writer writer) throws TransformerConfigurationException, TransformerException {
         TransformerFactory tf = TransformerFactory.newInstance();
-        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        secureFactory(tf);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -874,14 +856,32 @@ public class NodeUtilities {
 
     public static String getStringFromNode(final Node n) throws TransformerException  {
         TransformerFactory tf = TransformerFactory.newInstance();
-        tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+        secureFactory(tf);
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(n), new StreamResult(writer));
         String output = writer.getBuffer().toString().replaceAll("\n|\r", "");
         return output;
+    }
+
+    public static void secureFactory(final DocumentBuilderFactory dbf) {
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        } catch (Exception ex) {
+            LOGGER.warning(ex.getMessage());
+        }
+    }
+
+    public static void secureFactory(final TransformerFactory dbf) {
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        } catch (Exception ex) {
+            LOGGER.warning(ex.getMessage());
+        }
     }
 }

@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
+import org.constellation.util.NodeUtilities;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.metadata.RecordInfo;
 
@@ -67,9 +68,7 @@ public class RecordIterator implements CloseableIterator<RecordInfo> {
 
         DocumentBuilder candidate = null;
         try {
-            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            NodeUtilities.secureFactory(dbf);
             candidate = dbf.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
             LOGGER.log(Level.WARNING, "error while building XML DocumentBuilder", ex);
