@@ -19,10 +19,8 @@
 package org.constellation.admin.web.controller;
 
 import java.util.HashMap;
-import org.constellation.admin.security.CstlAdminLoginConfigurationService;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,10 +40,6 @@ public class ConfigController {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin.web.controller");
 
-    private static final long TOKEN_LIFE = Application.getLongProperty(AppProperty.CSTL_TOKEN_LIFE, 60L);
-
-    @Inject
-    private CstlAdminLoginConfigurationService cstlAdminLoginConfigurationService;
 
     public ConfigController() {
         LOGGER.finer("ConfigController construct");
@@ -55,8 +49,6 @@ public class ConfigController {
     @Named("build")
     private Properties buildProperties;
 
-    @Inject
-    private Environment env;
     /**
      * Resolve the Constellation service webapp context.
      * It will return:
@@ -91,27 +83,30 @@ public class ConfigController {
         if (!context.endsWith("/")) {
             context += "/";
         }
+        final long tokenLife          = Application.getLongProperty(AppProperty.CSTL_TOKEN_LIFE, 60L);
+        final Boolean importEmpty     = Application.getBooleanProperty(AppProperty.CSTL_IMPORT_EMPTY, false);
+        final Boolean importCustom    = Application.getBooleanProperty(AppProperty.CSTL_IMPORT_CUSTOM, false);
+        final String loginUrl         = Application.getProperty(AppProperty.CSTL_LOGIN_URL, "login.html");
+        final String logoutUrl        = Application.getProperty(AppProperty.CSTL_LOGOUT_URL);
+        final String refreshUrl       = Application.getProperty(AppProperty.CSTL_REFRESH_URL);
+        final String cstlProfileUrl   = Application.getProperty(AppProperty.CSTL_PROFILE_URL);
+        final String exaOldImportData = Application.getProperty(AppProperty.EXA_OLD_IMPORT_DATA);
+
         properties.put("cstl", context);
-        properties.put("token.life", TOKEN_LIFE);
-        properties.put("cstl.import.empty", "true".equals(servletCtxt.getInitParameter("cstl.import.empty")));
-        properties.put("cstl.import.custom", "true".equals(servletCtxt.getInitParameter("cstl.import.custom")));
-        properties.put("cstlLoginURL", env.getProperty("cstlLoginURL", cstlAdminLoginConfigurationService.getCstlLoginURL()));
+        properties.put("token.life", tokenLife);
+        properties.put("cstl.import.empty", importEmpty);
+        properties.put("cstl.import.custom", importCustom);
+        properties.put("cstlLoginURL", loginUrl);
 
-        final String logoutURL = cstlAdminLoginConfigurationService.getCstlLogoutURL();
-        if (logoutURL != null) {
-            properties.put("cstlLogoutURL", env.getProperty("cstlLogoutURL", logoutURL));
+        if (logoutUrl != null) {
+            properties.put("cstlLogoutURL", logoutUrl);
         }
-
-        final String refreshURL = cstlAdminLoginConfigurationService.getCstlRefreshURL();
-        if (refreshURL != null) {
-            properties.put("cstlRefreshURL", env.getProperty("cstlRefreshURL", refreshURL));
+        if (refreshUrl != null) {
+            properties.put("cstlRefreshURL", refreshUrl);
         }
-
-        final String cstlProfileUrl = Application.getProperty(AppProperty.CSTL_PROFILE_URL);
         if (cstlProfileUrl != null) {
             properties.put("cstlProfileURL", cstlProfileUrl);
         }
-        final String exaOldImportData = Application.getProperty(AppProperty.EXA_OLD_IMPORT_DATA);
         if (exaOldImportData != null) {
             properties.put("examind.data.import.old", exaOldImportData);
         }

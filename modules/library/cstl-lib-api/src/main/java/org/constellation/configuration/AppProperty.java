@@ -52,6 +52,21 @@ public enum AppProperty {
     CSTL_PROFILE_URL("cstl.profile.url"),
 
     /**
+     * Examind url to override login page
+     */
+    CSTL_LOGIN_URL("cstl.login.url"),
+
+    /**
+     * Examind url to override logout page
+     */
+    CSTL_LOGOUT_URL("cstl.logout.url"),
+
+    /**
+     * Examind url to override refresh token page
+     */
+    CSTL_REFRESH_URL("cstl.refresh.url"),
+
+    /**
      * Constellation tomcat embedded port
      */
     CSTL_PORT("cstl.port"),
@@ -75,6 +90,11 @@ public enum AppProperty {
      * Constellation authentication token lifespan in minutes
      */
     CSTL_TOKEN_LIFE("cstl.token.life"),
+
+
+    CSTL_IMPORT_EMPTY("cstl.import.empty"),
+
+    CSTL_IMPORT_CUSTOM("cstl.import.custom"),
 
     /**
      * Seed used to generate token
@@ -145,7 +165,7 @@ public enum AppProperty {
     EXA_PROACTIVE_URL("examind.proactive.url"),
 
     EXA_PROACTIVE_WORKFLOW_DIR("examind.proactive.workflow.dir"),
-    
+
     EXA_PBS_SCRIPT_DIR("examind.pbs.script.dir"),
 
     EXA_PROCESS_DEPLOY_DIR("examind.process.deploy.dir"),

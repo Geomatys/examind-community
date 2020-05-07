@@ -17,12 +17,6 @@
         <listener-class>org.constellation.admin.conf.WebConfigurer</listener-class>
     </listener>
 
-    <context-param>
-        <description>Constellation flag to enable import for custom dataset</description>
-        <param-name>cstl.import.custom</param-name>
-        <param-value>true</param-value>
-    </context-param>
-
     <filter>
         <filter-name>cors</filter-name>
         <filter-class>org.constellation.admin.CorsFilter</filter-class>
