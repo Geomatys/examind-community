@@ -99,7 +99,7 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(response, OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensor/{sensorID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/sensor/{sensorID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeSensor(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
          AcknowlegementType response;
         if (sensorServiceBusiness.removeSensor(serviceId, sensorID)) {
@@ -121,7 +121,7 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(response, OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensor/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/sensor/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensorMetadata(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
         if (sensorBusiness.isLinkedSensor(serviceId, sensorID)) {
             return new ResponseEntity(sensorBusiness.getSensorMetadata(sensorID), OK);
@@ -149,7 +149,7 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(new SimpleValue(sensorBusiness.getCountByServiceId(serviceId)), OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry gmlLocation) throws Exception {
         AcknowlegementType response;
         Geometry location = null;
@@ -168,17 +168,17 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(response, OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getWKTSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
         return new ResponseEntity(sensorServiceBusiness.getWKTSensorLocation(serviceId, sensorID), OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/observedProperty/identifiers/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/observedProperty/identifiers/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesForSensor(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
         return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesForSensorId(serviceId, sensorID, true), OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/time/{sensorID}", method = GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/time/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getTimeForSensor(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
         return new ResponseEntity(sensorServiceBusiness.getTimeForSensorId(serviceId, sensorID), OK);
     }
@@ -204,7 +204,7 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(response, OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/observation/{observationID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/observation/{observationID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservation(final @PathVariable("id") Integer serviceId, final @PathVariable("observationID") String observationID) throws Exception {
         AcknowlegementType response;
         if (sensorServiceBusiness.removeSingleObservation(serviceId, observationID)) {
@@ -286,7 +286,7 @@ public class SensorServiceRestAPI {
         }
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID}", method = PUT, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID:.+}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getIdentifier());

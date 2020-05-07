@@ -523,16 +523,24 @@ public class SOSworker extends SensorWorker {
                 go.updateParameter(OFFERING, offNames);
 
                 // the event time range
+                String begin = "undefined";
+                String end   = "now";
                 if (eventTime instanceof Instant) {
-                    final Range range = buildRange(currentVersion, ISO8601_FORMAT.format(((Instant)eventTime).getDate()), "now");
-                    go.updateParameter(EVENT_TIME, range);
+                    final Instant i = (Instant)eventTime;
+                    if (i.getDate() != null) {
+                        begin = ISO8601_FORMAT.format(i.getDate());
+                    }
                 } else if (eventTime instanceof Period) {
-                    final Range range = buildRange(currentVersion, ISO8601_FORMAT.format(((Period)eventTime).getBeginning().getDate()),
-                                                                   ISO8601_FORMAT.format(((Period)eventTime).getEnding().getDate()));
-                    go.updateParameter(EVENT_TIME, range);
-                } else {
-                    go.updateParameter(EVENT_TIME,  buildRange(currentVersion, "undefined", "now"));
+                    final Period p = (Period)eventTime;
+                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
+                        begin = ISO8601_FORMAT.format(p.getBeginning().getDate());
+                    }
+                    if (p.getBeginning() != null && p.getEnding().getDate() != null) {
+                        end = ISO8601_FORMAT.format(p.getEnding().getDate());
+                    }
                 }
+                final Range range = buildRange(currentVersion, begin, end);
+                go.updateParameter(EVENT_TIME, range);
 
                 //the process list
                 go.updateParameter(PROCEDURE, procNames);
