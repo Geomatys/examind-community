@@ -76,15 +76,23 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
         });
 
         $scope.logout = function(){
-            Examind.authentication.logout().then(
-                function(response){
-                    window.location.href="index.html";
-                }
-            );
+            if ($scope.cstlLogoutURL) {
+                window.location.href = $scope.cstlLogoutURL;
+            } else {
+                Examind.authentication.logout().then(
+                    function(response){
+                        window.location.href="index.html";
+                    }
+                );
+            }
         };
 
         AppConfigService.getConfig(function(config) {
             $scope.cstlProfileURL = config.cstlProfileURL || '#/profile';
+
+            if (config.cstlLogoutURL) {
+                $scope.cstlLogoutURL =  config.cstlLogoutURL;
+            }
 
             var cstlRefreshURL = config.cstlRefreshURL;
             if (cstlRefreshURL) {
@@ -110,7 +118,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
 
     .controller('MainController', function($scope, Growl, Examind) {
         $scope.countStats = function() {
-            
+
             Examind.services.getInstances().then(
                 function(response) {
                     var instances = response.data;
@@ -121,7 +129,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
                         }
                     }
                     $scope.nbservices = count;
-                }, 
+                },
                 function() {
                     $scope.nbservices = 0;
                     Growl('error', 'Error', 'Unable to count services');
@@ -131,7 +139,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
             Examind.datas.getCount().then(
                 function(response) {
                     $scope.nbdata = response.data.count;
-                }, 
+                },
                 function() {
                     $scope.nbdata = 0;
                     Growl('error', 'Error', 'Unable to count data');
@@ -141,7 +149,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
             Examind.tasks.getCount().then(
                 function(response) {
                     $scope.nbprocess = response.data.count;
-                }, 
+                },
                 function() {
                     $scope.nbprocess = 0;
                     Growl('error', 'Error', 'Unable to count process');
