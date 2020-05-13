@@ -661,8 +661,9 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                             }
                             final Filter interval = FF.and(above, under);
                             qb.setFilter(interval);
-                            final FeatureSet subCol = fs.subset(qb);
-                            mapping.put((long)start+" - "+(long)end,(long)subCol.features(false).count());
+                            try (final Stream<Feature> subCol = fs.subset(qb).features(false)) {
+                                mapping.put((long) start + " - " + (long) end, subCol.count());
+                            }
                         }
                     } else {
                         Iterator<Feature> it = featureSet.iterator();
