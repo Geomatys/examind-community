@@ -18,6 +18,8 @@
  */
 package org.constellation.provider;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,21 +33,6 @@ import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.logging.Level;
 import java.util.stream.DoubleStream;
-
-import org.opengis.filter.Filter;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.Identifier;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.SingleCRS;
-import org.opengis.referencing.crs.TemporalCRS;
-import org.opengis.referencing.crs.VerticalCRS;
-import org.opengis.referencing.cs.CoordinateSystemAxis;
-import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
-import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
-
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridDerivation;
@@ -64,7 +51,19 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.BackingStoreException;
-
+import org.constellation.api.DataType;
+import static org.constellation.api.StatisticState.STATE_COMPLETED;
+import static org.constellation.api.StatisticState.STATE_ERROR;
+import static org.constellation.api.StatisticState.STATE_PARTIAL;
+import static org.constellation.api.StatisticState.STATE_PENDING;
+import org.constellation.dto.BandDescription;
+import org.constellation.dto.CoverageDataDescription;
+import org.constellation.dto.ProviderPyramidChoiceList;
+import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationStoreException;
+import org.constellation.provider.util.DataStatisticsListener;
+import org.constellation.provider.util.ImageStatisticDeserializer;
+import org.constellation.repository.DataRepository;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.coverage.worldfile.FileCoverageResource;
@@ -85,23 +84,19 @@ import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.constellation.api.DataType;
-import org.constellation.dto.BandDescription;
-import org.constellation.dto.CoverageDataDescription;
-import org.constellation.dto.ProviderPyramidChoiceList;
-import org.constellation.dto.StatInfo;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.util.DataStatisticsListener;
-import org.constellation.provider.util.ImageStatisticDeserializer;
-import org.constellation.repository.DataRepository;
-
-import static org.constellation.api.StatisticState.STATE_COMPLETED;
-import static org.constellation.api.StatisticState.STATE_ERROR;
-import static org.constellation.api.StatisticState.STATE_PARTIAL;
-import static org.constellation.api.StatisticState.STATE_PENDING;
+import org.opengis.filter.Filter;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Identifier;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.SingleCRS;
+import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.crs.VerticalCRS;
+import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
+import org.opengis.util.GenericName;
 
 /**
  * Regroups information about a {@linkplain Data data}.
@@ -312,7 +307,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         GridGeometry ggg = getGeometry();
-        if (ggg != null) {
+        if (ggg != null && ggg.isDefined(GridGeometry.ENVELOPE)) {
             return ggg.getEnvelope();
         }
         LOGGER.log(Level.WARNING, "Unable to get a GridGeometry for coverage data:{0}", name);
