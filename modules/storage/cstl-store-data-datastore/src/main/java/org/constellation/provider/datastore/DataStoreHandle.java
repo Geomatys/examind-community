@@ -325,7 +325,12 @@ final class DataStoreHandle implements AutoCloseable {
                     return hashCode();
             }
 
-            return method.invoke(origin, args);
+            try {
+                return method.invoke(origin, args);
+            } catch (ReflectiveOperationException e) {
+                if (e.getCause() != null) throw e.getCause();
+                else throw new RuntimeException("Resource Proxy delegation failed", e);
+            }
         }
 
         private Metadata getMetadata() throws DataStoreException {

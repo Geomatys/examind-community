@@ -103,13 +103,45 @@ public class ProxyTest {
         assertTrue("Returned metadata does not come from metadata business", md == newMetadata);
     }
 
+    @Test
+    public void errors_from_proxified_resource_should_not_be_wrapped() {
+        final Resource proxy = createProxy(FIX_ID, new MockResource(), new MockMetadataBusiness());
+        try {
+            proxy.addListener(StoreEvent.class, null);
+            fail("Wrapped resource error should have been propagated");
+        } catch (UnsupportedOperationException e) {
+            // Expected behavior
+        } catch (Exception e) {
+            throw new AssertionError("Raised error is not the one expected", e);
+        }
+
+        final String errorMsg = "this is a unit test for propagation of errors";
+        try {
+            ((CheckedExceptionVerification)proxy).throwError(errorMsg);
+            fail("Wrapped resource error should have been propagated");
+        } catch (DataStoreException e) {
+            assertEquals(errorMsg, e.getMessage());
+        } catch (Exception e) {
+            throw new AssertionError("Raised error is not the one expected", e);
+        }
+    }
+
     private interface MustBePreserved {
         default String testMethod() {
             return "OK !";
         }
     }
 
-    private class MockResource implements Resource, MustBePreserved, Cloneable, Serializable {
+    /**
+     * Used for testing proper propagation or errors through proxy (see {@link #errors_from_proxified_resource_should_not_be_wrapped()}.
+     */
+    private interface CheckedExceptionVerification {
+        default void throwError(String errorMessage) throws DataStoreException {
+            throw new DataStoreException(errorMessage);
+        }
+    }
+
+    private class MockResource implements Resource, MustBePreserved, CheckedExceptionVerification, Cloneable, Serializable {
 
         @Override
         public Optional<GenericName> getIdentifier() throws DataStoreException {
