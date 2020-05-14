@@ -486,11 +486,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final Object host1     = fconfig1.parameter("host").getValue();
         final Object database1 = fconfig1.parameter("database").getValue();
-        final Object schema1   = fconfig1.parameter("database").getValue();
+        final Object schema1   = fconfig1.parameter("schema-prefix").getValue();
 
         final Object host2     = fconfig2.parameter("host").getValue();
         final Object database2 = fconfig2.parameter("database").getValue();
-        final Object schema2   = fconfig2.parameter("database").getValue();
+        final Object schema2   = fconfig2.parameter("schema-prefix").getValue();
 
         return Objects.equal(host1,     host2)     &&
                Objects.equal(database1, database2) &&
