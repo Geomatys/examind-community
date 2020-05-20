@@ -803,6 +803,40 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         domCompare(result, expected);
     }
 
+    @Test
+    @Order(order=10)
+    public void testWPSDescribeProcessJSON() throws Exception {
+
+        initWPSServer();
+
+        URL descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default/processes/urn:exa:wps:examind::test.echo");
+        String result = getStringResponse(descProUrl);
+        String expected = getStringFromFile("org/constellation/wps/json/DescribeEcho.json");
+        compareJSON(expected, result);
+    }
+
+    @Test
+    @Order(order=11)
+    public void testWPSExecuteJSON() throws Exception {
+
+        initWPSServer();
+
+        URL descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default/processes/urn:exa:wps:examind::test.echo/jobs");
+        URLConnection conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/ExecuteEcho-xml.json", "application/json");
+        String result = getStringResponse(conec);
+        String expected = getStringFromFile("org/constellation/wps/json/ExecuteEchoResponse-xml.json");
+        compareJSON(expected, result);
+
+        descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default/processes/urn:exa:wps:examind::test.echo/jobs");
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/ExecuteEcho.json", "application/json");
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/ExecuteEchoResponse.json");
+        System.out.println(result);
+        compareJSON(expected, result);
+    }
+
     private static final String WPS_GETSTATUS_ERROR ="request=GetStatus&service=WPS&version=1.0.0&jobId=error";
     private static final String WPS_GETSTATUS_ERROR_200 ="request=GetStatus&service=WPS&version=2.0.0&jobId=error";
 

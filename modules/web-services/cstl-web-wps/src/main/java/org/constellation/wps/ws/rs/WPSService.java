@@ -69,13 +69,18 @@ import org.geotoolkit.ows.xml.v200.BoundingBoxType;
 import org.geotoolkit.ows.xml.v200.CodeType;
 import org.geotoolkit.ows.xml.v200.GetCapabilitiesType;
 import org.geotoolkit.ows.xml.v200.SectionsType;
+import org.geotoolkit.wps.json.BoundingBoxInput;
+import org.geotoolkit.wps.json.ComplexInput;
 import org.geotoolkit.wps.json.ExceptionReportType;
+import org.geotoolkit.wps.json.InputBase;
 import org.geotoolkit.wps.json.JobCollection;
 import org.geotoolkit.wps.json.JsonLink;
 import org.geotoolkit.wps.json.LandingPage;
+import org.geotoolkit.wps.json.LiteralInput;
 import org.geotoolkit.wps.json.OutputInfo;
 import org.geotoolkit.wps.json.ProcessCollection;
 import org.geotoolkit.wps.json.ReqClasses;
+import org.geotoolkit.wps.json.ValueType;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.Bill;
 import org.geotoolkit.wps.xml.v200.BillList;
@@ -991,14 +996,12 @@ public class WPSService extends OGCWebService<WPSWorker> {
             if (worker != null) {
                 ProcessOfferings offering = worker.describeProcess(dp);
 
-                org.geotoolkit.wps.json.ProcessOffering jsOffering = new org.geotoolkit.wps.json.ProcessOffering(offering.getProcessOffering().get(0));
- 
-                 // update executEndpoint
-                if (jsOffering.getProcess() != null) {
-                    jsOffering.getProcess().setExecuteEndpoint(getServiceURL() + "/wps/" + serviceId + "/processes/" + jsOffering.getProcess().getId() + "/jobs");
-                }
- 
-                return new ResponseObject(jsOffering, MediaType.APPLICATION_JSON).getResponseEntity();
+                org.geotoolkit.wps.json.Process process = new org.geotoolkit.wps.json.Process(offering.getProcessOffering().get(0));
+
+                // update executEndpoint
+                process.setExecuteEndpoint(getServiceURL() + "/wps/" + serviceId + "/processes/" + process.getId() + "/jobs");
+
+                return new ResponseObject(process, MediaType.APPLICATION_JSON).getResponseEntity();
             } else {
                 LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
@@ -1087,6 +1090,8 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 if (execResp instanceof Result) {
                     String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + processId + "/jobs/" + ((Result) execResp).getJobID();
                     headers.put("Location", statusLocation);
+                    org.geotoolkit.wps.json.Result r = new org.geotoolkit.wps.json.Result((Result)execResp);
+                    return new ResponseObject(r, MediaType.APPLICATION_JSON, HttpStatus.OK, headers).getResponseEntity();
 
                 // async
                 } else if (execResp instanceof StatusInfo) {
@@ -1127,9 +1132,9 @@ public class WPSService extends OGCWebService<WPSWorker> {
 
                         // TODO complex
                         if (out.getData() != null && out.getData().getContent().size() > 0) {
-                            oi.setData(out.getData().getContent().get(0).toString());
+                            oi.setValue(new ValueType(out.getData().getContent().get(0).toString(), null));
                         } else if (out.getReference() != null && out.getReference().getHref() != null) {
-                            oi.setHref(out.getReference().getHref());
+                            oi.setValue(new ValueType(null, out.getReference().getHref()));
                         }
                         r.addOutputsItem(oi);
                     }
@@ -1466,25 +1471,39 @@ public class WPSService extends OGCWebService<WPSWorker> {
     private static Execute convertExecuteRequestToXML(String processId, org.geotoolkit.wps.json.Execute request) throws CstlServiceException {
         final List<DataInput> inputs = new ArrayList<>();
         final List<OutputDefinition> outputs = new ArrayList<>();
-        for (org.geotoolkit.wps.json.Input input : request.getInputs()) {
-             Format format = null;
-             Object value;
-            if (input.getFormat() != null) {
-                format = new Format(input.getFormat().getEncoding(), input.getFormat().getMimeType(), input.getFormat().getSchema(), null);
+        for (org.geotoolkit.wps.json.Input inputG : request.getInputs()) {
+            InputBase input = inputG.getInput();
+            Format format = null;
+            Object value;
+            if ((input instanceof ComplexInput) && ((ComplexInput)input).getFormat() != null) {
+                ComplexInput cInput = (ComplexInput) input;
+                if (cInput.getFormat() != null) {
+                    format = new Format(cInput.getFormat().getEncoding(), cInput.getFormat().getMimeType(), cInput.getFormat().getSchema(), null);
+                }
+                if (cInput.getValue()!= null && cInput.getValue().getInlineValue() != null) {
+                    value = cInput.getValue().getInlineValue();
+                } else if (cInput.getValue()!= null && cInput.getValue().getHref() != null) {
+                    value = cInput.getValue().getHref();
+                } else {
+                    throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + inputG.getId(), INVALID_PARAMETER_VALUE);
+                }
+            } else if (input instanceof LiteralInput) {
+                LiteralInput lInput = (LiteralInput) input;
+                value = lInput.getValue();
+            } else if (input instanceof BoundingBoxInput) {
+                BoundingBoxInput bbInput = (BoundingBoxInput) input;
+                if (bbInput.getBbox() != null && !bbInput.getBbox().isEmpty() && bbInput.getBbox().size() == 4) {
+                    value = new BoundingBoxType(bbInput.getCrs(), bbInput.getBbox().get(0), bbInput.getBbox().get(1), bbInput.getBbox().get(2), bbInput.getBbox().get(3));
+                } else {
+                    throw new CstlServiceException("Malformed input bbox coordinate." + inputG.getId(), INVALID_PARAMETER_VALUE);
+                }
+            } else {
+                throw new CstlServiceException("Nested input are not yet supported:" + inputG.getId(), INVALID_PARAMETER_VALUE);
             }
 
-            // we assume that is a literal or a reference
-            if (input.getData()!= null) {
-                value = input.getData();
-            } else if (input.getHref()!= null) {
-                value = input.getHref();
-             } else {
-                throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
-             }
- 
-             Data inputData = new Data(format, value);
-             inputs.add(new DataInput(input.getId(), inputData));
-         }
+            Data inputData = new Data(format, value);
+            inputs.add(new DataInput(inputG.getId(), inputData));
+        }
 
         for (org.geotoolkit.wps.json.Output output : request.getOutputs()) {
             boolean asReference = output.getTransmissionMode().equals(DataTransmissionMode.REFERENCE);
@@ -1512,20 +1531,32 @@ public class WPSService extends OGCWebService<WPSWorker> {
             }
 
             // we assume that is a literal or a reference
-            String data = null;
+            Object data = null;
             String href = null;
-             if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
-                data = (String) input.getData().getContent().get(0);
-             } else if (input.getReference() != null) {
-                 href = input.getReference().getHref();
-             } else {
-                 throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
-             }
- 
-            inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), format, data, href));
-         }
-        
-         for (OutputDefinition output : request.getOutput()) {
+            if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
+                data = input.getData().getContent().get(0);
+            } else if (input.getReference() != null) {
+                href = input.getReference().getHref();
+            } else {
+                throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
+            }
+
+            InputBase in;
+            if (format != null) {
+                in = new ComplexInput(format, new ValueType((String)data, href));
+            } else if (data instanceof BoundingBoxType) {
+                BoundingBoxType bb = (BoundingBoxType) data;
+                List<Double> coord = new ArrayList<>(bb.getLowerCorner());
+                coord.addAll(bb.getUpperCorner());
+                in = new BoundingBoxInput(bb.getCrs(), coord);
+            } else {
+                in = new LiteralInput((String)data, null, null);
+            }
+
+            inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), in));
+        }
+
+        for (OutputDefinition output : request.getOutput()) {
 
             org.geotoolkit.wps.json.Format format = null;
 

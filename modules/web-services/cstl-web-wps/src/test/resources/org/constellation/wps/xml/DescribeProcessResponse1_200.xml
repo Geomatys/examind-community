@@ -3661,4 +3661,97 @@
       </wps:Output>
     </wps:Process>
   </wps:ProcessOffering>
+  <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Examind : Test.echo</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Echo different input to output.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:examind::test.echo</ows:Identifier>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Literal.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Literal input.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:input:literal.input</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"></wps:Format>
+                    <LiteralDataDomain>
+                        <ows:AnyValue></ows:AnyValue>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Boundingbox.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundingbox input.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:input:boundingbox.input</ows:Identifier>
+                <wps:BoundingBoxData>
+                    <wps:Format mimeType="text/xml" default="true"></wps:Format>
+                    <wps:SupportedCRS default="true">EPSG:4326</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">CRS:84</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3395</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3857</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27571</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27572</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27573</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27574</wps:SupportedCRS>
+                </wps:BoundingBoxData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Complex.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Complex input.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:input:complex.input</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/ewkt" encoding="utf-8" maximumMegabytes="100" default="true"></wps:Format>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd" maximumMegabytes="100"></wps:Format>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd" maximumMegabytes="100"></wps:Format>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Literal.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Literal output.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:output:literal.output</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"></wps:Format>
+                    <LiteralDataDomain>
+                        <ows:AnyValue></ows:AnyValue>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Output>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Boundingbox.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundingbox output.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:output:boundingbox.output</ows:Identifier>
+                <wps:BoundingBoxData>
+                    <wps:Format mimeType="text/xml" default="true"></wps:Format>
+                    <wps:SupportedCRS default="true">EPSG:4326</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">CRS:84</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3395</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3857</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27571</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27572</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27573</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27574</wps:SupportedCRS>
+                </wps:BoundingBoxData>
+            </wps:Output>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Complex.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Complex output.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.echo:output:complex.output</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="application/ewkt" encoding="utf-8" default="true"></wps:Format>
+                    <wps:Format mimeType="application/geo+json" encoding="utf-8"></wps:Format>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"></wps:Format>
+                    <wps:Format mimeType="application/gml+xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd"></wps:Format>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"></wps:Format>
+                    <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd"></wps:Format>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"></wps:Format>
+                    <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/gml.xsd"></wps:Format>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
 </wps:ProcessOfferings>

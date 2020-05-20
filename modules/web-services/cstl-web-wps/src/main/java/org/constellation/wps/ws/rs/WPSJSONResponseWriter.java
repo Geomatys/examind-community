@@ -22,12 +22,17 @@ package org.constellation.wps.ws.rs;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.sis.util.logging.Logging;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.geotoolkit.wps.json.InputBase;
+import org.geotoolkit.wps.json.InputDeSerializer;
+import org.geotoolkit.wps.json.InputDescriptionBase;
+import org.geotoolkit.wps.json.InputDescriptionDeserializer;
 import org.geotoolkit.wps.json.WPSJSONResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -63,6 +68,10 @@ public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONRespon
     @Override
     public WPSJSONResponse read(Class<? extends WPSJSONResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         final ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(InputBase.class, new InputDeSerializer());
+        module.addDeserializer(InputDescriptionBase.class, new InputDescriptionDeserializer());
+        mapper.registerModule(module);
         WPSJSONResponse response = mapper.readValue(him.getBody(), type);
         return response;
     }

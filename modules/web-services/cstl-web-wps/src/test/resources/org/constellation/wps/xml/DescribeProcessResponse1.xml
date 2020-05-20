@@ -7551,4 +7551,176 @@
       </Output>
     </ProcessOutputs>
   </ProcessDescription>
+  <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:examind::test.echo</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Examind : Test.echo</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Echo different input to output.</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:input:literal.input</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Literal.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Literal input.</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AnyValue></ows:AnyValue>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:input:boundingbox.input</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Boundingbox.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundingbox input.</ows:Abstract>
+                <BoundingBoxData>
+                    <Default>
+                        <CRS>EPSG:4326</CRS>
+                    </Default>
+                    <Supported>
+                        <CRS>EPSG:4326</CRS>
+                        <CRS>CRS:84</CRS>
+                        <CRS>EPSG:3395</CRS>
+                        <CRS>EPSG:3857</CRS>
+                        <CRS>EPSG:27571</CRS>
+                        <CRS>EPSG:27572</CRS>
+                        <CRS>EPSG:27573</CRS>
+                        <CRS>EPSG:27574</CRS>
+                    </Supported>
+                </BoundingBoxData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:input:complex.input</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Complex.input</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Complex input.</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:output:literal.output</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Literal.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Literal output.</ows:Abstract>
+                <LiteralOutput>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                </LiteralOutput>
+            </Output>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:output:boundingbox.output</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Boundingbox.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundingbox output.</ows:Abstract>
+                <BoundingBoxOutput>
+                    <Default>
+                        <CRS>EPSG:4326</CRS>
+                    </Default>
+                    <Supported>
+                        <CRS>EPSG:4326</CRS>
+                        <CRS>CRS:84</CRS>
+                        <CRS>EPSG:3395</CRS>
+                        <CRS>EPSG:3857</CRS>
+                        <CRS>EPSG:27571</CRS>
+                        <CRS>EPSG:27572</CRS>
+                        <CRS>EPSG:27573</CRS>
+                        <CRS>EPSG:27574</CRS>
+                    </Supported>
+                </BoundingBoxOutput>
+            </Output>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:examind::test.echo:output:complex.output</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Complex.output</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Complex output.</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>application/ewkt</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/geo+json</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>application/gml+xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/gml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.1.1/base/gml.xsd</Schema>
+                        </Format>
+                        <Format>
+                            <MimeType>text/xml</MimeType>
+                            <Encoding>utf-8</Encoding>
+                            <Schema>http://schemas.opengis.net/gml/3.2.1/gml.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
 </wps:ProcessDescriptions>
