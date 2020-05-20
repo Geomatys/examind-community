@@ -19,6 +19,7 @@
 
 package org.constellation.ws.embedded;
 
+import org.constellation.test.utils.JSONComparator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

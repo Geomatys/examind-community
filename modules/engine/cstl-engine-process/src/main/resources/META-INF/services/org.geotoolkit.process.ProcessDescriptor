@@ -10,3 +10,4 @@ org.constellation.process.data.ImportDataDescriptor
 org.constellation.process.metadata.AddMetadataDescriptor
 org.constellation.process.metadata.RemoveMetadataDescriptor
 org.constellation.process.metadata.GetMetadataProcessDescriptor
+com.examind.process.test.EchoDescriptor

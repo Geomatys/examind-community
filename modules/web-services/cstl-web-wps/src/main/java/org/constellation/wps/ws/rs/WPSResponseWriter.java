@@ -39,8 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.mapped.Configuration;
 import org.codehaus.jettison.mapped.MappedNamespaceConvention;
 import org.codehaus.jettison.mapped.MappedXMLStreamWriter;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.wps.xml.WPSResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -57,7 +55,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.wps.ws.rs");
-    
+
     public static final Map<String, String> XML_TO_JSON_NAMESPACES = new HashMap<>();
     static {
         XML_TO_JSON_NAMESPACES.put("http://www.opengis.net/wps/1.0.0",           "wps");
@@ -82,7 +80,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
         XML_TO_JSON_NAMESPACES.put("http://docs.oasis-open.org/wsn/t-1",         "wsn");
 
     }
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
@@ -97,7 +95,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
     public List<MediaType> getSupportedMediaTypes() {
         return Arrays.asList(MediaType.TEXT_XML, MediaType.APPLICATION_JSON);
     }
-    
+
     @Override
     public WPSResponse read(Class<? extends WPSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("WPSResponse message converter do not support reading.");
@@ -115,7 +113,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
             media = contentType;
         }
         try {
-            final Marshaller m = WPSMarshallerPool.getInstance().acquireMarshaller();        
+            final Marshaller m = WPSMarshallerPool.getInstance().acquireMarshaller();
             if ((MediaType.APPLICATION_JSON.equals(media))) {
                 final Configuration config = new Configuration(XML_TO_JSON_NAMESPACES);
                 final MappedNamespaceConvention con = new MappedNamespaceConvention(config);
@@ -123,7 +121,7 @@ public class WPSResponseWriter implements HttpMessageConverter<WPSResponse> {
                 final XMLStreamWriter xmlStreamWriter = new MappedXMLStreamWriter(con, writer);
                 m.marshal(t, xmlStreamWriter);
             } else {
-                
+
                 // temporary patch to handle CDATA with JAXB
                 StringWriter sw = new StringWriter();
                 m.marshal(t, sw);

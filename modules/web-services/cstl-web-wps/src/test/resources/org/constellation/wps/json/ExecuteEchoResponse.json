@@ -1,0 +1,21 @@
+{
+    "outputs": [{
+            "id": "urn:exa:wps:examind::test.echo:output:literal.output",
+            "value": {
+                "inlineValue": "0.05"
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:output:boundingbox.output",
+            "value": {
+                "inlineValue": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.7:4326",
+                    "bbox": [51.9, 7.0, 52.0, 7.1]
+                }
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:output:complex.output",
+            "value": {
+                "inlineValue": "SRID=4326;LINESTRING (46.307557 -0.631235, 46.577225 -0.262215, 46.477874 0.106805, 46.293364 0.220349, 46.406909 0.475824, 46.350136 0.887424, 46.563032 1.029354, 46.648191 1.213864, 46.421102 1.526112, 46.066275 1.79578, 46.037889 2.108028, 46.250785 2.178993, 46.492067 2.193186, 46.492067 2.193186, 46.704963 2.051255, 46.704963 2.051255)"
+            }
+        }]
+}

@@ -1,0 +1,203 @@
+{
+    "id": "urn:exa:wps:examind::test.echo",
+    "title": "Examind : Test.echo",
+    "version": "1.0.0",
+    "jobControlOptions": ["sync-execute", "async-execute", "dismiss"],
+    "outputTransmission": ["reference", "value"],
+    "inputs": [{
+            "id": "urn:exa:wps:examind::test.echo:input:literal.input",
+            "title": "Literal.input",
+            "description": "Literal input.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "literalDataDomains": [{
+                        "anyValue": true,
+                        "dataType": {
+                            "name": "String",
+                            "reference": "http://www.w3.org/TR/xmlschema-2/#string"
+                        }
+                    }]
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:input:boundingbox.input",
+            "title": "Boundingbox.input",
+            "description": "Boundingbox input.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "supportedCRS": [{
+                        "crs": "EPSG:4326",
+                        "default": true
+                    }, {
+                        "crs": "CRS:84",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3395",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3857",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27571",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27572",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27573",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27574",
+                        "default": false
+                    }]
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:input:complex.input",
+            "title": "Complex.input",
+            "description": "Complex input.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "formats": [{
+                        "mimeType": "application/ewkt",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": true
+                    }, {
+                        "mimeType": "application/geo+json",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "application/gml+xml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "application/gml+xml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "text/gml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "text/gml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "text/xml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }, {
+                        "mimeType": "text/xml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "maximumMegabytes": 100,
+                        "default": false
+                    }]
+            }
+        }],
+    "outputs": [{
+            "id": "urn:exa:wps:examind::test.echo:output:literal.output",
+            "title": "Literal.output",
+            "output": {
+                "literalDataDomains": [{
+                        "anyValue": true,
+                        "dataType": {
+                            "name": "String",
+                            "reference": "http://www.w3.org/TR/xmlschema-2/#string"
+                        }
+                    }]
+            },
+            "abstract": "Literal output."
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:output:boundingbox.output",
+            "title": "Boundingbox.output",
+            "output": {
+                "supportedCRS": [{
+                        "crs": "EPSG:4326",
+                        "default": true
+                    }, {
+                        "crs": "CRS:84",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3395",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3857",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27571",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27572",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27573",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27574",
+                        "default": false
+                    }]
+            },
+            "abstract": "Boundingbox output."
+        }, {
+            "id": "urn:exa:wps:examind::test.echo:output:complex.output",
+            "title": "Complex.output",
+            "output": {
+                "formats": [{
+                        "mimeType": "application/ewkt",
+                        "encoding": "utf-8",
+                        "default": true
+                    }, {
+                        "mimeType": "application/geo+json",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "application/gml+xml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "application/gml+xml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "text/gml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "text/gml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "text/xml",
+                        "schema": "http://schemas.opengis.net/gml/3.1.1/base/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }, {
+                        "mimeType": "text/xml",
+                        "schema": "http://schemas.opengis.net/gml/3.2.1/gml.xsd",
+                        "encoding": "utf-8",
+                        "default": false
+                    }]
+            },
+            "abstract": "Complex output."
+        }],
+    "executeEndpoint": "http://localhost:9090/WS/wps/default/processes/urn:exa:wps:examind::test.echo/jobs",
+    "abstract": "Echo different input to output."
+}

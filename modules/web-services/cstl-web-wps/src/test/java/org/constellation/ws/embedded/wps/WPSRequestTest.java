@@ -18,6 +18,9 @@
  */
 package org.constellation.ws.embedded.wps;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +42,7 @@ import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.test.utils.JSONComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestRunner;
 import org.constellation.util.Util;
@@ -105,7 +109,10 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
                 writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
 
-                final List<ProcessFactory> process = Arrays.asList(new ProcessFactory("geotoolkit", true));
+                ProcessFactory geotkFacto = new ProcessFactory("geotoolkit", true);
+                ProcessFactory exaFacto = new ProcessFactory("examind", false);
+                exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.echo"));
+                final List<ProcessFactory> process = Arrays.asList(geotkFacto, exaFacto);
                 final Processes processes = new Processes(process);
                 final ProcessContext config = new ProcessContext(processes);
 
@@ -800,7 +807,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
     private static final String WPS_GETSTATUS_ERROR_200 ="request=GetStatus&service=WPS&version=2.0.0&jobId=error";
 
     @Test
-    @Order(order=11)
+    @Order(order=13)
     public void testWPSGetStatus() throws Exception {
 
         initWPSServer();
@@ -829,5 +836,19 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         Object o = um.unmarshal(is);
         WPSMarshallerPool.getInstance().recycle(um);
         return o;
+    }
+
+    public static void compareJSON(String expected, String result) throws JsonProcessingException {
+        JSONComparator comparator = new JSONComparator();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode expectedNode = mapper.readTree(expected);
+        JsonNode resultNode = mapper.readTree(result);
+
+        boolean eq = expectedNode.equals(comparator, resultNode);
+
+        StringBuilder sb = new StringBuilder("expected:\n");
+        sb.append(expected).append("\nbut was:\n");
+        sb.append(result);
+        assertTrue(sb.toString(), eq);
     }
 }

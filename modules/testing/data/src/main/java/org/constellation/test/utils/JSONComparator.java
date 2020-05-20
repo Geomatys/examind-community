@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.ws.embedded;
+package org.constellation.test.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import java.util.Comparator;
 import org.junit.Assert;
@@ -40,6 +41,11 @@ public class JSONComparator implements Comparator<JsonNode>
             Double d2 = ((NumericNode) o2).asDouble();
             Assert.assertEquals(d1, d2, 0.0001);
             return 0;
+        }
+        // TODO
+        if (o1.isContainerNode() && o2 != null && o2.isContainerNode()) {
+            ContainerNode c1 = (ContainerNode) o1;
+            ContainerNode c2 = (ContainerNode) o2;
         }
         throw new AssertionError("expected:" + o1 +" but was " + o2);
     }

@@ -47,7 +47,7 @@ public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONRespon
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
-        return false;
+        return WPSJSONResponse.class.isAssignableFrom(clazz);
     }
 
     @Override
@@ -62,7 +62,9 @@ public class WPSJSONResponseWriter implements HttpMessageConverter<WPSJSONRespon
 
     @Override
     public WPSJSONResponse read(Class<? extends WPSJSONResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
-        throw new HttpMessageNotReadableException("WPSJSONResponse message converter do not support reading.");
+        final ObjectMapper mapper = new ObjectMapper();
+        WPSJSONResponse response = mapper.readValue(him.getBody(), type);
+        return response;
     }
 
     @Override

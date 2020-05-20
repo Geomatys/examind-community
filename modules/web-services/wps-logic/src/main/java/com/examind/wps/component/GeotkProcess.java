@@ -978,7 +978,12 @@ public class GeotkProcess implements WPSProcess {
 
             if (WPSIO.isSupportedBBoxOutputClass(outClass)) {
 
-                outputData = new BoundingBoxType((org.opengis.geometry.Envelope) outputValue);
+                BoundingBoxType bbox = new BoundingBoxType((org.opengis.geometry.Envelope) outputValue);
+                Format f = null;
+                if (requestedOutput.getEncoding() != null || requestedOutput.getSchema() != null || requestedOutput.getMimeType() != null) {
+                    f = new Format(requestedOutput.getEncoding(), requestedOutput.getMimeType(), requestedOutput.getSchema(), null);
+                }
+                outputData = new Data(f, bbox);
 
             } else if (WPSIO.isSupportedComplexOutputClass(outClass)) {
 

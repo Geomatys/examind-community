@@ -23,6 +23,7 @@ import org.constellation.wps.ws.rs.BoundingBoxWriter;
 import org.constellation.wps.ws.rs.FeatureSetWriter;
 import org.constellation.wps.ws.rs.FileWriter;
 import org.constellation.wps.ws.rs.GeometryWriter;
+import org.constellation.wps.ws.rs.WPSJSONResponseWriter;
 import org.constellation.wps.ws.rs.WPSResponseWriter;
 import org.constellation.ws.rs.provider.ExceptionReportWriter;
 import org.springframework.context.annotation.Configuration;
@@ -36,9 +37,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  */
 @Configuration
 public class WPSControllerConfig  extends WebMvcConfigurationSupport {
-    
+
     public WPSControllerConfig() {
-        
+
     }
 
     @Override
@@ -47,6 +48,7 @@ public class WPSControllerConfig  extends WebMvcConfigurationSupport {
         converters.add(new FeatureSetWriter());
         converters.add(new FileWriter());
         converters.add(new GeometryWriter());
+        converters.add(new WPSJSONResponseWriter());
         converters.add(new WPSResponseWriter());
         converters.add(new ExceptionReportWriter());
         converters.add(new MappingJackson2HttpMessageConverter());

@@ -1,0 +1,49 @@
+{
+    "inputs": [{
+            "id": "urn:exa:wps:examind::test.echo:input:complex.input",
+            "input": {
+                "format": {
+                    "mimeType": "text/xml"
+                },
+                "value": {
+                    "inlineValue": "<LineString srsName=\"EPSG:4326\" xmlns=\"http://www.opengis.net/gml\"><coordinates>-0.631235,46.307557 -0.262215,46.577225 0.106805,46.477874 0.220349,46.293364 0.475824,46.406909 0.887424,46.350136 1.029354,46.563032 1.213864,46.648191 1.526112,46.421102 1.795780,46.066275 2.108028,46.037889 2.178993,46.250785 2.193186,46.492067 2.193186,46.492067 2.051255,46.704963 2.051255,46.704963 </coordinates></LineString>"
+                }
+            }
+        },
+        {
+            "id": "urn:exa:wps:examind::test.echo:input:literal.input",
+            "input": {
+                "dataType": {
+                    "name": "double"
+                },
+                "value": "0.05"
+            }
+        },
+        {
+            "id": "urn:exa:wps:examind::test.echo:input:boundingbox.input",
+            "input": {
+                "bbox": [51.9, 7, 52, 7.1],
+                "crs": "EPSG:4326"
+            }
+        }],
+    "outputs": [{
+            "id": "urn:exa:wps:examind::test.echo:output:literal.output",
+            "transmissionMode": "value"
+        },
+        {
+            "id": "urn:exa:wps:examind::test.echo:output:boundingbox.output",
+            "format": {
+                "mimeType": "text/xml"
+            },
+            "transmissionMode": "value"
+        },
+        {
+            "id": "urn:exa:wps:examind::test.echo:output:complex.output",
+            "format": {
+                "mimeType": "text/xml"
+            },
+            "transmissionMode": "value"
+        }],
+    "response": "document",
+    "mode": "sync"
+}

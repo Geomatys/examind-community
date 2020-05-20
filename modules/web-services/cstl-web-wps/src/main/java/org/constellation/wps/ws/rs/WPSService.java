@@ -992,12 +992,12 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 ProcessOfferings offering = worker.describeProcess(dp);
 
                 org.geotoolkit.wps.json.ProcessOffering jsOffering = new org.geotoolkit.wps.json.ProcessOffering(offering.getProcessOffering().get(0));
-
-                // update executEndpoint
+ 
+                 // update executEndpoint
                 if (jsOffering.getProcess() != null) {
                     jsOffering.getProcess().setExecuteEndpoint(getServiceURL() + "/wps/" + serviceId + "/processes/" + jsOffering.getProcess().getId() + "/jobs");
                 }
-
+ 
                 return new ResponseObject(jsOffering, MediaType.APPLICATION_JSON).getResponseEntity();
             } else {
                 LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
@@ -1083,15 +1083,19 @@ public class WPSService extends OGCWebService<WPSWorker> {
             if (worker != null) {
                 Object execResp = worker.execute(exec);
                 Map<String, String> headers = new HashMap<>();
+                //sync
                 if (execResp instanceof Result) {
                     String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + processId + "/jobs/" + ((Result) execResp).getJobID();
                     headers.put("Location", statusLocation);
+
+                // async
                 } else if (execResp instanceof StatusInfo) {
                     String statusLocation = getServiceURL() + "/wps/" + serviceId + "/processes/" + processId + "/jobs/" + ((StatusInfo) execResp).getJobID();
                     headers.put("Location", statusLocation);
                 }
 
                 return new ResponseObject(HttpStatus.CREATED, headers).getResponseEntity();
+
             } else {
                 LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);
                 return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
@@ -1463,8 +1467,8 @@ public class WPSService extends OGCWebService<WPSWorker> {
         final List<DataInput> inputs = new ArrayList<>();
         final List<OutputDefinition> outputs = new ArrayList<>();
         for (org.geotoolkit.wps.json.Input input : request.getInputs()) {
-            Format format = null;
-            Object value;
+             Format format = null;
+             Object value;
             if (input.getFormat() != null) {
                 format = new Format(input.getFormat().getEncoding(), input.getFormat().getMimeType(), input.getFormat().getSchema(), null);
             }
@@ -1474,13 +1478,13 @@ public class WPSService extends OGCWebService<WPSWorker> {
                 value = input.getData();
             } else if (input.getHref()!= null) {
                 value = input.getHref();
-            } else {
+             } else {
                 throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
-            }
-
-            Data inputData = new Data(format, value);
-            inputs.add(new DataInput(input.getId(), inputData));
-        }
+             }
+ 
+             Data inputData = new Data(format, value);
+             inputs.add(new DataInput(input.getId(), inputData));
+         }
 
         for (org.geotoolkit.wps.json.Output output : request.getOutputs()) {
             boolean asReference = output.getTransmissionMode().equals(DataTransmissionMode.REFERENCE);
@@ -1510,18 +1514,18 @@ public class WPSService extends OGCWebService<WPSWorker> {
             // we assume that is a literal or a reference
             String data = null;
             String href = null;
-            if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
+             if (input.getData() != null && input.getData().getContent() != null && !input.getData().getContent().isEmpty()) {
                 data = (String) input.getData().getContent().get(0);
-            } else if (input.getReference() != null) {
-                href = input.getReference().getHref();
-            } else {
-                throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
-            }
-
+             } else if (input.getReference() != null) {
+                 href = input.getReference().getHref();
+             } else {
+                 throw new CstlServiceException("Missing input Reference/Data for parameter:" + input.getId(), INVALID_PARAMETER_VALUE);
+             }
+ 
             inputs.add(new org.geotoolkit.wps.json.Input(input.getId(), format, data, href));
-        }
-
-        for (OutputDefinition output : request.getOutput()) {
+         }
+        
+         for (OutputDefinition output : request.getOutput()) {
 
             org.geotoolkit.wps.json.Format format = null;
 
