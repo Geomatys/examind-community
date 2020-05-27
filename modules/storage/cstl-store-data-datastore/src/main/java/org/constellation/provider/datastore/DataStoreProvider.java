@@ -94,7 +94,7 @@ public class DataStoreProvider extends AbstractDataProvider {
 
     public DataStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
-        storage = new SafeAccess(this);
+        storage = new SafeAccess(getId(), this::createBaseStore);
     }
 
     /**

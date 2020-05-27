@@ -3,7 +3,7 @@ package org.constellation.provider.datastore;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.StampedLock;
-
+import java.util.function.Supplier;
 import org.apache.sis.storage.ConcurrentReadException;
 import org.apache.sis.storage.ConcurrentWriteException;
 import org.apache.sis.storage.DataStore;
@@ -36,18 +36,45 @@ class SafeAccess {
      */
     private final StampedLock lock;
 
-    private final DataStoreProvider provider;
+    private final String providerName;
+    private final Supplier<DataStore> storeCreator;
+
+    private final long lockTimeout;
+    private final TimeUnit timeoutUnit;
 
     /**
-     * SIS data-store access. Should NEVER be acccessed directly. Instead, please create a {@link Session} and call
+     * SIS data-store access. Should NEVER be accessed directly. Instead, please create a {@link Session} and call
      * {@link Session#handle()}. The only moment when we use it directly is when closing it, because there's no need to
      * release it if it is not yet initialized.
      */
     private DataStoreHandle handle;
 
-    SafeAccess(final DataStoreProvider toSecure) {
-        this.provider = toSecure;
+    /**
+     * Same as {@link #SafeAccess(String, Supplier, long, TimeUnit)}, defaulting timeout to 60 seconds.
+     */
+    SafeAccess(String providerName, Supplier<DataStore> storeCreator) {
+        this(providerName, storeCreator, LOCK_TIMEOUT, TIMEOUT_UNIT);
+    }
+
+    /**
+     *
+     * @param providerName {@link DataStoreProvider#getId() DataStore provider Identifier/name}
+     * @param storeCreator Function that creates a <em>new</em> datastore instance when called.
+     * @param lockAcquisionTimeout When trying to acquire the lock, time after which we should abandon the operation
+     *                             (resulting in error).
+     * @param timeoutUnit Unit in which lockTimeout is expressed. Must NOT be null.
+     */
+    SafeAccess(String providerName, Supplier<DataStore> storeCreator, long lockAcquisionTimeout, final TimeUnit timeoutUnit) {
+        this.providerName = providerName;
+        this.storeCreator = storeCreator;
         this.lock = new StampedLock();
+        if (lockAcquisionTimeout < 1 || timeoutUnit == null) {
+            this.lockTimeout = LOCK_TIMEOUT;
+            this.timeoutUnit = TIMEOUT_UNIT;
+        } else {
+            this.lockTimeout = lockAcquisionTimeout;
+            this.timeoutUnit = timeoutUnit;
+        }
     }
 
     /**
@@ -95,10 +122,16 @@ class SafeAccess {
         });
     }
 
+    /**
+     *
+     * @param write True if we want an exclusive lock, false if many threads can work in parallel as long as only read
+     *              operations are performed.
+     * @return the stamp of the created lock.
+     */
     private long tryLock(final boolean write) {
         try {
             final long stamp = write ?
-                    lock.tryWriteLock(LOCK_TIMEOUT, TIMEOUT_UNIT) : lock.tryReadLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
+                    lock.tryWriteLock(lockTimeout, timeoutUnit) : lock.tryReadLock(lockTimeout, timeoutUnit);
             if (stamp == 0) throw write ? new ConcurrentReadException() : new ConcurrentWriteException();
             return stamp;
 
@@ -114,13 +147,14 @@ class SafeAccess {
      * create and use sessions.
      */
     abstract class Session implements AutoCloseable {
+
         DataStoreHandle handle() throws DataStoreException {
             if (handle == null) {
                 write(() -> {
                     /* Provider could have been updated while we were waiting for an exclusive lock. If it's the case,
                      * we do not need to reload it anymore, and we can downgrade the stamp directly.
                      */
-                    if (handle == null) handle = new DataStoreHandle(provider.getId(), provider.createBaseStore());
+                    if (handle == null) handle = new DataStoreHandle(providerName, storeCreator.get());
                     return handle;
                 });
             }
@@ -178,12 +212,21 @@ class SafeAccess {
             this.stamp = tryLock(false);
         }
 
+        @Override
+        DataStoreHandle handle() throws DataStoreException {
+            if (!lock.validate(stamp)) throw new IllegalStateException("This session is not valid anymore. Please recreate a new one.");
+            return super.handle();
+        }
+
+        @Override
         protected <T> T write(Callable<T> action) throws DataStoreException {
+            if (!lock.validate(stamp)) throw new IllegalStateException("This session is not valid anymore. Please recreate a new one.");
             try {
                 // If we're a read session, we'll try to upgrade our privilege temporarily.
                 long writeStamp = lock.tryConvertToWriteLock(stamp);
                 if (writeStamp == 0) {
-                    writeStamp = lock.tryWriteLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
+                    lock.unlockRead(stamp);
+                    writeStamp = lock.tryWriteLock(lockTimeout, timeoutUnit);
                 }
                 if (writeStamp == 0) throw new ConcurrentReadException();
                 try {
@@ -200,7 +243,10 @@ class SafeAccess {
 
         @Override
         public void close() {
-            lock.unlockRead(stamp);
+            if (stamp != 0) {
+                lock.unlockRead(stamp);
+                stamp = 0;
+            }
         }
     }
 }
