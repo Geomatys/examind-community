@@ -181,7 +181,7 @@ class SafeAccess {
         protected <T> T write(Callable<T> action) throws DataStoreException {
             try {
                 // If we're a read session, we'll try to upgrade our privilege temporarily.
-                long writeStamp = lock.tryConvertToReadLock(stamp);
+                long writeStamp = lock.tryConvertToWriteLock(stamp);
                 if (writeStamp == 0) {
                     writeStamp = lock.tryWriteLock(LOCK_TIMEOUT, TIMEOUT_UNIT);
                 }
