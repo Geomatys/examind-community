@@ -62,7 +62,7 @@ public class UserRestAPI extends AbstractRestAPI {
                                    ){
         final PagedSearch search = new PagedSearch();
         search.setSize(limit==null ? 50 : limit);
-        search.setPage(page==null ? 0 : page);
+        search.setPage(page==null ? 1 : page);
 
         if (sort!=null && !sort.isEmpty()) {
             final String[] parts = sort.split("\\+");
