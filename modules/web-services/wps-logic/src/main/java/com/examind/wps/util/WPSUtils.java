@@ -547,7 +547,7 @@ public class WPSUtils {
      * @param userData A map containing user's options for type support.
      * @return SupportedComplexDataInputType
      */
-    public static ComplexData describeComplex(final Class attributeClass, final WPSIO.IOType ioType, final WPSIO.FormChoice type, final Map<String, Object> userData) {
+    public static ComplexData describeComplex(final Class attributeClass, final WPSIO.IOType ioType, final Map<String, Object> userData) {
 
         //Set MaximumMegabyte only for the complex input description
         Integer maximumMegabytes = null;

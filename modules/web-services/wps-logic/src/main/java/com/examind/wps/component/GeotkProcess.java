@@ -249,9 +249,6 @@ public class GeotkProcess implements WPSProcess {
         final LanguageStringType title = WPSUtils.buildProcessTitle(descriptor, lang);
         final List<LanguageStringType> _abstract = WPSUtils.buildProcessDescription(descriptor, lang).collect(Collectors.toList());
 
-        //TODO WSDL
-        final boolean statusSupported = true;
-
         // Get process input and output descriptors
         final ParameterDescriptorGroup input = descriptor.getInputDescriptor();
         final ParameterDescriptorGroup output = descriptor.getOutputDescriptor();
@@ -296,9 +293,10 @@ public class GeotkProcess implements WPSProcess {
                     dataDescription = WPS_SUPPORTED_CRS;
 
                 //Complex type (XML, ...)
-                } else if (WPSIO.isSupportedComplexInputClass(clazz)) {
+                // we add a special case for URI that match literal but need to be considerated as a reference (so a complex)
+                } else if (WPSIO.isSupportedComplexInputClass(clazz) || URI.class.equals(clazz)) {
 
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, userData);
 
                 //Literal type
                 } else if (WPSIO.isSupportedLiteralInputClass(clazz)) {
@@ -330,12 +328,12 @@ public class GeotkProcess implements WPSProcess {
                     }
                     dataDescription = new LiteralData(formats, allowedValues, anyvalue, null, dataType, (DomainMetadataType) uom, defaultValue, null);
 
-                //Reference type (XML, ...)
+                    //Reference type (XML, ...)
                 } else if (WPSIO.isSupportedReferenceInputClass(clazz)) {
 
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.REFERENCE, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, userData);
 
-                    //Simple object (Integer, double, ...) and Object which need a conversion from String like affineTransform or WKT Geometry
+                 //Simple object (Integer, double, ...) and Object which need a conversion from String like affineTransform or WKT Geometry
                 } else {
                     throw new WPSException("Process input parameter" + inId + " not supported.");
                 }
@@ -358,7 +356,7 @@ public class GeotkProcess implements WPSProcess {
                     String publicAddress = schemaURL + "/" + xsdName;
                     HashMap<String, Object> userData = new HashMap<>(1);
                     userData.put(WPSIO.SCHEMA_KEY, publicAddress);
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, WPSIO.FormChoice.COMPLEX, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.INPUT, userData);
                 } catch (IOException | JAXBException ex) {
                     throw new WPSException("The schema for parameter " + param.getName().getCode() + "can't be build.");
                 }
@@ -402,7 +400,7 @@ public class GeotkProcess implements WPSProcess {
                     if (paramDesc instanceof ExtendedParameterDescriptor) {
                         userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
                     }
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, WPSIO.FormChoice.COMPLEX, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, userData);
 
                 // Litteral type
                 } else if (WPSIO.isSupportedLiteralOutputClass(clazz)) {
@@ -423,7 +421,7 @@ public class GeotkProcess implements WPSProcess {
                     if (paramDesc instanceof ExtendedParameterDescriptor) {
                         userData = ((ExtendedParameterDescriptor) paramDesc).getUserObject();
                     }
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, WPSIO.FormChoice.REFERENCE, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, userData);
 
                 } else {
                     throw new WPSException("Process output parameter " + outId + " not supported.");
@@ -447,7 +445,7 @@ public class GeotkProcess implements WPSProcess {
                     String publicAddress = schemaURL + "/" + xsdName;
                     HashMap<String, Object> userData = new HashMap<>(1);
                     userData.put(WPSIO.SCHEMA_KEY, publicAddress);
-                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, WPSIO.FormChoice.COMPLEX, userData);
+                    dataDescription = WPSUtils.describeComplex(clazz, WPSIO.IOType.OUTPUT, userData);
                 } catch (IOException | JAXBException ex) {
                     throw new WPSException("The schema for parameter " + param.getName().getCode() + "can't be build.");
                 }
