@@ -21,17 +21,15 @@ package org.constellation.business;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
-
-import org.constellation.dto.DataSummary;
-import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.importdata.FileBean;
+import org.constellation.dto.DataSummary;
 import org.constellation.dto.ParameterValues;
+import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.metadata.MetadataLightBrief;
 import org.constellation.dto.process.DataProcessReference;
+import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -129,6 +127,15 @@ public interface IDataBusiness {
      * @throws ConstellationException is thrown if result fails.
      */
     DataBrief getDataBrief(int dataId) throws ConstellationException;
+
+    /**
+     * Returns a map structure describing the resource of this data.
+     *
+     * @param dataId data id.
+     * @return Map.
+     * @throws ConstellationException is thrown if result fails.
+     */
+    Map<String,Object> getDataRawModel(int dataId) throws ConstellationException;
 
     /**
      * Returns {@link DataBrief} for given data name and provider id as integer.

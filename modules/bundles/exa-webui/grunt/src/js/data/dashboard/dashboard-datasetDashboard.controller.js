@@ -33,6 +33,12 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
             get: function() {
                 return DatasetDashboard;
             }
+        },
+        rawModelUrl : {
+          enumerable: true,
+          get: function () {
+              return Examind.baseUrl + 'datas/' +  self.selection.data.id +'/rawModel';
+          }
         }
     });
 
@@ -412,7 +418,7 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
             });
         }
     }
-    
+
     function updateMap(evt) {
         self.updatePreview();
     }
@@ -444,7 +450,7 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
             self.showOldImportDataBtn = true;
         }
     });
-    
+
     $scope.$on("examind:data:delete", updateMap);
     $scope.$on("examind:dataset:delete", updateMap);
     $scope.$on("examind:dashboard:data:refresh:map", updateMap);

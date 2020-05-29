@@ -1365,6 +1365,26 @@ public class DataRestAPI extends AbstractRestAPI{
         }
     }
 
+    /**
+     * Return a description tree of given resource.
+     *
+     * @param dataId Data Identifier
+     * @return
+     */
+    @RequestMapping(value="/datas/{dataId}/rawModel",method=GET,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity dataRawModel(@PathVariable("dataId") final int dataId) {
+        try {
+            Map<String, Object> db = dataBusiness.getDataRawModel(dataId);
+            if (db != null) {
+                return new ResponseEntity(db ,OK);
+            }
+            return new ResponseEntity(NOT_FOUND);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
     @RequestMapping(value="/datas/geographicExtent/merge",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity mergedDataGeographicExtent(@RequestBody final List<Integer> dataIds) {
 

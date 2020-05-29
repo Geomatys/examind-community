@@ -19,6 +19,7 @@
 package org.constellation.admin;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -27,17 +28,11 @@ import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
-
-import org.opengis.metadata.Metadata;
-import org.opengis.metadata.citation.Party;
-import org.opengis.metadata.citation.Role;
-
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
-
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -48,21 +43,23 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConstellationException;
-import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
+import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.constellation.test.utils.TestEnvironment.TestResources;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.citation.Party;
+import org.opengis.metadata.citation.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 
 /**
  *
@@ -230,6 +227,25 @@ public class DataBusinessTest {
         expected.getValues().put("sis:geometry","sis:geometry");
         expected.getValues().put("the_geom","the_geom");
         Assert.assertEquals(expected, results);
+
+    }
+
+    @Test
+    public void dataVectorRawModelTest() throws Exception {
+        DataBrief db = dataBusiness.getDataBrief(FEATURE_NAME, vectorPID);
+
+        Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.get("FeatureSet") instanceof Map);
+    }
+
+    @Test
+    public void dataCoverageRawModelTest() throws Exception {
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+
+        Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.get("GridCoverageResource") instanceof Map);
 
     }
 }

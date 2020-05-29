@@ -18,20 +18,30 @@
  */
 package org.constellation.provider;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
-
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.util.GenericName;
-
+import org.apache.sis.coverage.Category;
+import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.MeasurementRange;
+import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.DefaultMetadata;
+import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
-
-import org.geotoolkit.util.DateRange;
-
+import org.apache.sis.storage.WritableAggregate;
+import org.apache.sis.storage.WritableFeatureSet;
+import org.apache.sis.util.Classes;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.DataDescription;
@@ -39,6 +49,17 @@ import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
+import org.geotoolkit.storage.multires.Mosaic;
+import org.geotoolkit.storage.multires.MultiResolutionModel;
+import org.geotoolkit.storage.multires.MultiResolutionResource;
+import org.geotoolkit.storage.multires.ProgressiveResource;
+import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.TileFormat;
+import org.geotoolkit.util.DateRange;
+import org.opengis.feature.FeatureType;
+import org.opengis.geometry.Envelope;
+import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.util.GenericName;
 
 
 /**
@@ -166,4 +187,204 @@ public interface Data<T extends Resource> {
      * {@link ImageStatistics}.
      */
     Object computeStatistic(int dataId, DataRepository dataRepository);
+
+    /**
+     * Returns a map structure describing the resource of this data.
+     *
+     * @return Map.
+     */
+    default Map<String,Object> rawDescription() throws DataStoreException {
+
+        final Resource rs = getOrigin();
+        return toRawModel(rs);
+    }
+
+    static Map<String,Object> toRawModel(Resource rs) {
+
+        final Map<String,Object> mp = new LinkedHashMap<>();
+
+        try {
+            final GenericName identifier = rs.getIdentifier().orElse(null);
+            if (identifier != null) {
+                mp.put("identifier", identifier.toString());
+            }
+        } catch (DataStoreException ex) {
+            mp.put("identifier", "ERROR (" + ex.getMessage() + ")");
+        }
+
+        if (rs instanceof FeatureSet) {
+            final FeatureSet cdt = (FeatureSet) rs;
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("FeatureSet", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+            map.put("writable", (rs instanceof WritableFeatureSet));
+
+            try {
+                final FeatureType type = cdt.getType();
+                map.put("type name", type.getName().toString());
+            } catch (DataStoreException ex) {
+                map.put("type name", "ERROR (" + ex.getMessage() + ")");
+            }
+        }
+
+        if (rs instanceof GridCoverageResource) {
+            final GridCoverageResource cdt = (GridCoverageResource) rs;
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("GridCoverageResource", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+            try {
+                final GridGeometry gridGeometry = cdt.getGridGeometry();
+                if (gridGeometry.isDefined(GridGeometry.CRS)) {
+                    map.put("crs", gridGeometry.getCoordinateReferenceSystem().toWKT());
+                }
+                if (gridGeometry.isDefined(GridGeometry.ENVELOPE)) {
+                    map.put("envelope", new GeneralEnvelope(gridGeometry.getEnvelope()).toString());
+                }
+                if (gridGeometry.isDefined(GridGeometry.EXTENT)) {
+                    final GridExtent extent = gridGeometry.getExtent();
+                    map.put("extent", extent.toString());
+                }
+                if (gridGeometry.isDefined(GridGeometry.GRID_TO_CRS)) {
+    //                map.put("grid to crs", gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER).toWKT());
+                }
+            } catch (DataStoreException ex) {
+                map.put("grid geometry", "ERROR (" + ex.getMessage() + ")");
+            }
+
+            try {
+                final List<SampleDimension> sampleDimensions = cdt.getSampleDimensions();
+                final List<Map> sds = new ArrayList<>();
+                for (SampleDimension sd : sampleDimensions) {
+                    final Map<String,Object> tf = new LinkedHashMap<>();
+                    tf.put("name", String.valueOf(sd.getName()));
+                    tf.put("unit", String.valueOf(sd.getUnits().orElse(Units.UNITY).getSymbol()));
+                    tf.put("background", String.valueOf(sd.getBackground().orElse(null)));
+
+                    final List<Map> cats = new ArrayList<>();
+                    for (Category cat : sd.getCategories()) {
+                        final Map<String,Object> cf = new LinkedHashMap<>();
+                        cf.put("name", cat.getName().toString());
+                        cf.put("quantitative", cat.isQuantitative());
+                        cats.add(cf);
+                    }
+                    tf.put("categories", cats);
+                    sds.add(tf);
+                }
+                map.put("sample dimensions", sds);
+            } catch (DataStoreException ex) {
+                map.put("sample dimensions", "ERROR (" + ex.getMessage() + ")");
+            }
+
+        }
+
+        if (rs instanceof MultiResolutionResource) {
+            final MultiResolutionResource cdt = (MultiResolutionResource) rs;
+            final TileFormat tileFormat = cdt.getTileFormat();
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("MultiResolutionResource", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+
+            if (tileFormat != null) {
+                final Map<String,Object> tf = new LinkedHashMap<>();
+                map.put("tile format", tf);
+                tf.put("mime type", tileFormat.getMimeType());
+                tf.put("provider id", tileFormat.getProviderId());
+                tf.put("compression", tileFormat.getCompression().name());
+            }
+
+            try {
+                final Collection<? extends MultiResolutionModel> models = cdt.getModels();
+                final List<Map> mms = new ArrayList<>();
+                for (MultiResolutionModel mrm : models) {
+                    final Map<String,Object> tf = new LinkedHashMap<>();
+                    mms.add(tf);
+                    tf.put("identifier", mrm.getIdentifier());
+                    tf.put("format", mrm.getFormat());
+
+                    if (mrm instanceof Pyramid) {
+                        final Pyramid p = (Pyramid) mrm;
+
+                        final Map<String,Object> pf = new LinkedHashMap<>();
+                        tf.put("pyramid", pf);
+
+                        pf.put("crs", p.getCoordinateReferenceSystem().toWKT());
+                        pf.put("envelope", new GeneralEnvelope(p.getEnvelope()).toString());
+
+                        final List<Map> moss = new ArrayList<>();
+                        for (Mosaic m : p.getMosaics()) {
+                            final Map<String,Object> mf = new LinkedHashMap<>();
+                            moss.add(mf);
+                            mf.put("identifier", m.getIdentifier());
+                            mf.put("scale", m.getScale());
+                            mf.put("envelope", new GeneralEnvelope(m.getEnvelope()).toString());
+                            mf.put("grid size width", m.getGridSize().width);
+                            mf.put("grid size height", m.getGridSize().height);
+                            mf.put("tile size width", m.getTileSize().width);
+                            mf.put("tile size height", m.getTileSize().height);
+                        }
+                        pf.put("mosaics", moss);
+                    }
+                }
+                map.put("models", mms);
+            } catch (DataStoreException ex) {
+                map.put("models", "ERROR (" + ex.getMessage() + ")");
+            }
+        }
+
+        if (rs instanceof Aggregate) {
+            final Aggregate cdt = (Aggregate) rs;
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("Aggregate", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+            map.put("writable", (rs instanceof WritableAggregate));
+
+            try {
+                final Collection<? extends Resource> components = cdt.components();
+                map.put("nb components", components.size());
+                int i = 0;
+                for (Resource r : components) {
+                    map.put("component[" + i++ + "]", toRawModel(r));
+                }
+            } catch (DataStoreException ex) {
+                map.put("components", "ERROR (" + ex.getMessage() + ")");
+            }
+        }
+
+        if (rs instanceof ProgressiveResource) {
+            final ProgressiveResource pr = (ProgressiveResource) rs;
+
+            final Map<String,Object> map = new LinkedHashMap<>();
+            mp.put("ProgressiveResource", map);
+
+            map.put("class", Classes.getShortClassName(rs));
+// TODO : after geotk version update, uncomment code
+//            try {
+//                final TileGenerator generator = pr.getGenerator();
+//                if (generator instanceof CoverageTileGenerator) {
+//                    CoverageTileGenerator ctg = (CoverageTileGenerator) generator;
+//
+//                    GridCoverageResource origin = ctg.getOrigin();
+//                    if (origin != null) {
+//                        map.put("origin", toRawModel(origin));
+//                    }
+//
+//                } else if (generator != null) {
+//                    map.put("generator", generator.toString());
+//                }
+//            } catch (Exception ex) {
+//                map.put("generator", "ERROR (" + ex.getMessage() + ")");
+//            }
+        }
+
+        return mp;
+    }
+
 }

@@ -30,11 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
-
-import org.opengis.feature.PropertyType;
-import org.opengis.feature.catalog.FeatureCatalogue;
-import org.opengis.metadata.Metadata;
-
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -42,10 +37,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
-
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.temporal.util.PeriodUtilities;
-
 import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.admin.util.MetadataUtilities;
@@ -82,6 +73,11 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.token.TokenUtils;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.temporal.util.PeriodUtilities;
+import org.opengis.feature.PropertyType;
+import org.opengis.feature.catalog.FeatureCatalogue;
+import org.opengis.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -252,6 +248,26 @@ public class DataBusiness implements IDataBusiness {
             }
         }
         throw new ConstellationException(new Exception("Problem : DataBrief Construction is null or multiple"));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String,Object> getDataRawModel(int dataId) throws ConstellationException {
+        final Data data = dataRepository.findById(dataId);
+        final DataProvider provider = DataProviders.getProvider(data.getProviderId());
+        if (provider != null) {
+            final org.constellation.provider.Data provData = provider.get(data.getNamespace(), data.getName());
+            if (provData != null) {
+                try {
+                    return provData.rawDescription();
+                } catch (DataStoreException ex) {
+                    throw new ConstellationException(ex);
+                }
+            }
+        }
+        return new HashMap<>();
     }
 
     /**
