@@ -359,7 +359,7 @@ public class RunCWL extends AbstractCstlProcess {
             LOGGER.log(Level.INFO, "Downloading : {0} {1}", new Object[]{uri, authenticated ? "(authenticated)" : ""});
             HttpURLConnection conec = (HttpURLConnection) uri.toURL().openConnection();
             String contentType = conec.getContentType();
-            if (contentType.contains("application/metalink+xml")) {
+            if (contentType != null && contentType.contains("application/metalink+xml")) {
                 return extractMetaLinkURI(conec, execDir);
             } else {
                 String content = conec.getHeaderField("Content-Disposition");
