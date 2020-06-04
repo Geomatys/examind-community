@@ -871,7 +871,7 @@ public class NodeUtilities {
             dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         } catch (Exception ex) {
-            LOGGER.warning(ex.getMessage());
+            LOGGER.finer(ex.getMessage());
         }
     }
 
@@ -881,7 +881,7 @@ public class NodeUtilities {
             dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         } catch (Exception ex) {
-            LOGGER.warning(ex.getMessage());
+            LOGGER.finer(ex.getMessage());
         }
     }
 }
