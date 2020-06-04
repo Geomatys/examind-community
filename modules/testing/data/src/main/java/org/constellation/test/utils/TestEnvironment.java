@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +28,9 @@ import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
+import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.util.FactoryException;
@@ -196,6 +199,31 @@ public final class TestEnvironment {
 
         public Integer createProvider(IProviderBusiness providerBusiness) {
             return tr.createProvider.apply(providerBusiness, dataDir);
+        }
+    }
+
+    public static Integer createAggregateProvider(IProviderBusiness providerBusiness, String dataName, List<Integer> dataIds) {
+        try {
+            String providerIdentifier = "aggSrc" + UUID.randomUUID().toString();
+            final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
+            final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice =  ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
+            final ParameterValueGroup config = choice.addGroup("AggregatedCoverageProvider");
+
+            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor("data_ids");
+            for (Integer dataId : dataIds) {
+                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
+                p.setValue(dataId);
+                config.values().add(p);
+            }
+            config.parameter("DataName").setValue(dataName);
+            config.parameter("ResultCRS").setValue("EPSG:4326");
+            config.parameter("mode").setValue("ORDER");
+
+            return providerBusiness.storeProvider(providerIdentifier, null, ProviderType.LAYER, "computed-resource", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
         }
     }
 

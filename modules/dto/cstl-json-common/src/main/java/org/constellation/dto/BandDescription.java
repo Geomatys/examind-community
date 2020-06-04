@@ -20,6 +20,7 @@
 package org.constellation.dto;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -83,5 +84,16 @@ public class BandDescription implements Serializable {
 
     public void setIndice(String indice) {
         this.indice = indice;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("indice:").append(indice).append('\n');
+        sb.append("name:").append(name).append('\n');
+        sb.append("minValue:").append(minValue).append('\n');
+        sb.append("maxValue:").append(maxValue).append('\n');
+        sb.append("noDataValues:[").append(Arrays.toString(noDataValues)).append("]\n");
+        return sb.toString();
     }
 }

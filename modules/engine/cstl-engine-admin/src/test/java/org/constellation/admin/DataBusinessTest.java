@@ -18,8 +18,10 @@
  */
 package org.constellation.admin;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -33,6 +35,7 @@ import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.api.StatisticState;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -49,6 +52,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.constellation.test.utils.TestEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -87,10 +91,16 @@ public class DataBusinessTest {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
     private static final String confDirName = "DataBusinessTest" + UUID.randomUUID().toString();
 
-    private static int coveragePID;
+    private static int coverage1PID;
+    private static int coverage2PID;
     private static int vectorPID;
-    public static final QName COVERAGE_NAME = new QName("SSTMDE200305");
+
+    private static int aggregatedPID;
+
+    public static final QName COVERAGE1_NAME = new QName("SSTMDE200305");
+    public static final QName COVERAGE2_NAME = new QName("martinique");
     public static final QName FEATURE_NAME = new QName("BuildingCenters");
+    public static final QName AGG_DATA_NAME = new QName("aggData");
 
     @BeforeClass
     public static void initTestDir() {
@@ -135,11 +145,21 @@ public class DataBusinessTest {
                 int dsId = datasetBusiness.createDataset("DataBusinessTest", null, null);
 
                 // coverage-file datastore
-                coveragePID = testResource.createProvider(TestResource.PNG, providerBusiness);
-                providerBusiness.createOrUpdateData(coveragePID, dsId, false);
+                coverage1PID = testResource.createProvider(TestResource.PNG, providerBusiness);
+                providerBusiness.createOrUpdateData(coverage1PID, dsId, false);
 
                 vectorPID = testResource.createProvider(TestResource.WMS111_SHAPEFILES, providerBusiness);
                 providerBusiness.createOrUpdateData(vectorPID, dsId, false);
+
+                coverage2PID = testResource.createProvider(TestResource.TIF, providerBusiness);
+                providerBusiness.createOrUpdateData(coverage2PID, dsId, false);
+
+                List<Integer> dataIds = new ArrayList<>();
+                dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage1PID));
+                dataIds.addAll(providerBusiness.getDataIdsFromProviderId(coverage2PID));
+
+                aggregatedPID = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", dataIds);
+                providerBusiness.createOrUpdateData(aggregatedPID, dsId, false);
 
                 initialized = true;
             } catch (Exception ex) {
@@ -153,7 +173,7 @@ public class DataBusinessTest {
      */
     @Test
     public void coverageWrappedForMetadata() throws Exception {
-        DataBrief testData = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+        DataBrief testData = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID);
         testMetadataWrapping(testData);
     }
 
@@ -193,12 +213,12 @@ public class DataBusinessTest {
 
     @Test
     public void dataCoverageTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID);
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for SSTMDE200305 stats to complete.....");
-        while (db.getStatsState() == null || db.getStatsState().equals("PENDING"))  {
-            db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+        while (db.getStatsState() == null || db.getStatsState().equals(StatisticState.STATE_PENDING))  {
+            db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID);
             Thread.sleep(1000);
         }
         Assert.assertEquals("COMPLETED", db.getStatsState());
@@ -227,7 +247,24 @@ public class DataBusinessTest {
         expected.getValues().put("sis:geometry","sis:geometry");
         expected.getValues().put("the_geom","the_geom");
         Assert.assertEquals(expected, results);
+    }
 
+    @Test
+    public void dataAggregateTest() throws Exception {
+        DataBrief db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID);
+        Assert.assertNotNull(db);
+
+        LOGGER.info("wait for Aggregated data stats to complete.....");
+        while (db.getStatsState() == null || db.getStatsState().equals("PENDING"))  {
+            db = dataBusiness.getDataBrief(AGG_DATA_NAME, aggregatedPID);
+            Thread.sleep(1000);
+        }
+        Assert.assertEquals("COMPLETED", db.getStatsState());
+
+        Assert.assertNotNull(db.getDataDescription());
+        Assert.assertTrue(db.getDataDescription() instanceof CoverageDataDescription);
+        CoverageDataDescription desc = (CoverageDataDescription) db.getDataDescription();
+        Assert.assertEquals(2, desc.getBands().size());
     }
 
     @Test
@@ -241,7 +278,7 @@ public class DataBusinessTest {
 
     @Test
     public void dataCoverageRawModelTest() throws Exception {
-        DataBrief db = dataBusiness.getDataBrief(COVERAGE_NAME, coveragePID);
+        DataBrief db = dataBusiness.getDataBrief(COVERAGE1_NAME, coverage1PID);
 
         Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
         Assert.assertNotNull(results);

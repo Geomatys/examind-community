@@ -31,13 +31,10 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.admin.SpringHelper;
-import org.constellation.api.ProviderType;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.DataProviderFactory;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
@@ -59,7 +56,6 @@ import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opengis.parameter.ParameterValueGroup;
 
 import javax.imageio.ImageIO;
 import javax.imageio.spi.ImageReaderSpi;
@@ -93,9 +89,8 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.SimpleValue;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
-import org.constellation.provider.ProviderParameters;
-import org.constellation.provider.computed.ComputedResourceProviderService;
 import org.constellation.test.utils.CstlDOMComparator;
+import org.constellation.test.utils.TestEnvironment;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.test.utils.TestRunner;
@@ -107,9 +102,7 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNoException;
-import org.opengis.parameter.ParameterValue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.opengis.parameter.GeneralParameterDescriptor;
 
 /**
  * A set of methods that request a Grizzly server which embeds a WMS service.
@@ -401,25 +394,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 Integer did3 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, null, null);
 
                 // aggregated datastore
-                final DataProviderFactory aggfactory = DataProviders.getFactory("computed-resource");
-                final ParameterValueGroup sourceAgg = aggfactory.getProviderDescriptor().createValue();
-                sourceAgg.parameter("id").setValue("aggSrc");
-                final ParameterValueGroup choiceAgg = ProviderParameters.getOrCreate(ComputedResourceProviderService.SOURCE_CONFIG_DESCRIPTOR, sourceAgg);
-                final ParameterValueGroup configAgg = choiceAgg.addGroup("AggregatedCoverageProvider");
-
-                final GeneralParameterDescriptor dataIdsDesc = configAgg.getDescriptor().descriptor("data_ids");
-                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
-                p.setValue(did);
-                configAgg.values().add(p);
-                ParameterValue p2 = (ParameterValue) dataIdsDesc.createValue();
-                p2.setValue(did2);
-                configAgg.values().add(p2);
-
-                configAgg.parameter("DataName").setValue("aggData");
-                configAgg.parameter("ResultCRS").setValue("EPSG:4326");
-                configAgg.parameter("mode").setValue("ORDER");
-
-                pid = providerBusiness.storeProvider("AggTestSrc", null, ProviderType.LAYER, "computed-resource", sourceAgg);
+                pid = TestEnvironment.createAggregateProvider(providerBusiness, "aggData", Arrays.asList(did, did2));
                 providerBusiness.createOrUpdateData(pid, null, false);
                 List<DataBrief> dbs = dataBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, null, null);
                 Integer aggd = dbs.get(0).getId();
