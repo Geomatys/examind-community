@@ -46,12 +46,12 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
             userRepository.delete(previous.get().getId());
         }
 
-        CstlUser insert = userRepository.create(TestSamples.newAdminUser());
-        Assert.assertNotNull(insert);
+        Integer uid = userRepository.create(TestSamples.newAdminUser());
+        Assert.assertNotNull(uid);
 
-        Assert.assertEquals("Should have deleled 1 record",1, userRepository.delete(insert.getId()));
+        Assert.assertEquals("Should have deleled 1 record",1, userRepository.delete(uid));
 
-        Assert.assertFalse(userRepository.findById(insert.getId()).isPresent());
+        Assert.assertFalse(userRepository.findById(uid).isPresent());
 
     }
 

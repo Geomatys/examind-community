@@ -15,6 +15,7 @@ import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.Style;
+import org.constellation.dto.UserWithRole;
 import org.constellation.dto.metadata.Attachment;
 import org.constellation.dto.metadata.MetadataBbox;
 import org.constellation.dto.metadata.MetadataComplete;
@@ -25,17 +26,29 @@ import org.constellation.dto.thesaurus.Thesaurus;
 
 public class TestSamples {
 
-    public static CstlUser newAdminUser() {
-        CstlUser user = new CstlUser();
+    public static UserWithRole newAdminUser() {
+        UserWithRole user = new UserWithRole();
         user.setFirstname("olivier");
         user.setLastname("Nouguier");
         user.setLogin("olivier");
         user.setEmail("olvier.nouguier@gmail.com");
         user.setPassword("zozozozo");
-        user.setFirstname("olivier");
         user.setActive(Boolean.TRUE);
         user.setLocale("fr");
+        user.setRoles(Arrays.asList("admin"));
+        return user;
+    }
 
+    public static UserWithRole newDataUser() {
+        UserWithRole user = new UserWithRole();
+        user.setFirstname("Pedro");
+        user.setLastname("Ramirez");
+        user.setLogin("pedra");
+        user.setEmail("pedro.ramirez@gmail.com");
+        user.setPassword("ramiramou");
+        user.setActive(Boolean.TRUE);
+        user.setLocale("fr");
+        user.setRoles(Arrays.asList("data", "publisher"));
         return user;
     }
 

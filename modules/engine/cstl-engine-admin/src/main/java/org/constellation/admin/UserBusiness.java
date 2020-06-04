@@ -47,20 +47,14 @@ public class UserBusiness implements IUserBusiness {
 
     @Override
     @Transactional
-    public CstlUser create(CstlUser user) {
+    public Integer create(UserWithRole user) {
         return userRepository.create(user);
     }
 
     @Override
     @Transactional
-    public CstlUser update(CstlUser user) {
-        return userRepository.update(user);
-    }
-
-    @Override
-    @Transactional
-    public void addUserToRole(Integer userId, String roleName) {
-        userRepository.addUserToRole(userId, roleName);
+    public void update(UserWithRole user) {
+        userRepository.update(user);
     }
 
     @Override
@@ -102,7 +96,7 @@ public class UserBusiness implements IUserBusiness {
     }
 
     @Override
-    public Optional<CstlUser> findByForgotPasswordUuid(String uuid) {
+    public Optional<UserWithRole> findByForgotPasswordUuid(String uuid) {
         return userRepository.findByForgotPasswordUuid(uuid);
     }
 
@@ -146,4 +140,8 @@ public class UserBusiness implements IUserBusiness {
         return userRepository.searchCount(search);
     }
 
+    @Override
+    public Optional<UserWithRole> findOneWithRoleByMail(String mail) {
+        return userRepository.findOneWithRoleByMail(mail);
+    }
 }

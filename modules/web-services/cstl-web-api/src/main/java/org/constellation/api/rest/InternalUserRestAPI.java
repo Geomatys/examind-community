@@ -5,6 +5,7 @@
  */
 package org.constellation.api.rest;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,9 +77,9 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             final HttpServletRequest req) {
         try {
             final int currentUserId = assertAuthentificated(req);
-            Optional<CstlUser> optionalUser = userBusiness.findById(currentUserId);
+            Optional<UserWithRole> optionalUser = userBusiness.findOneWithRole(currentUserId);
             if (optionalUser.isPresent()) {
-                CstlUser user = optionalUser.get();
+                UserWithRole user = optionalUser.get();
                 user.setLogin(login);
                 user.setFirstname(firstname);
                 user.setLastname(lastname);
@@ -91,6 +91,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                 user.setCountry(country);
                 user.setPhone(phone);
                 user.setLocale(locale);
+                user.setRoles(Arrays.asList(role));
 
                 //check password update
                 String newPassword = StringUtilities.MD5encode(password);
@@ -132,9 +133,9 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             @RequestParam(name = "group", required = false) Integer group,
             @RequestParam(name = "role", required = false) String role,
             @RequestParam(name = "locale", required = false) String locale) {
-        Optional<CstlUser> optionalUser = userBusiness.findById(userId);
+        Optional<UserWithRole> optionalUser = userBusiness.findOneWithRole(userId);
         if (optionalUser.isPresent()) {
-            CstlUser user = optionalUser.get();
+            UserWithRole user = optionalUser.get();
             user.setLogin(login);
             user.setFirstname(firstname);
             user.setLastname(lastname);
@@ -146,6 +147,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             user.setCountry(country);
             user.setPhone(phone);
             user.setLocale(locale);
+            user.setRoles(Arrays.asList(role));
 
             //check password update
             String newPassword = StringUtilities.MD5encode(password);
@@ -154,11 +156,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
                     && !newPassword.equals(user.getPassword())) {
                 user.setPassword(newPassword);
             }
-
             userBusiness.update(user);
-
-            //add user to role
-            userBusiness.addUserToRole(user.getId(), role);
 
             return new ResponseEntity(OK);
         }
@@ -188,7 +186,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             @RequestParam(name = "locale", required = false) String locale) {
 
         //add user
-        CstlUser user = new CstlUser();
+        UserWithRole user = new UserWithRole();
         user.setId(null);
         user.setLogin(login);
         user.setFirstname(firstname);
@@ -203,11 +201,9 @@ public class InternalUserRestAPI extends AbstractRestAPI {
         user.setPhone(phone);
         user.setPassword(StringUtilities.MD5encode(password));
         user.setLocale(locale);
+        user.setRoles(Arrays.asList(role));
 
-        user = userBusiness.create(user);
-
-        //add user to role
-        userBusiness.addUserToRole(user.getId(), role);
+        userBusiness.create(user);
 
         return new ResponseEntity(OK);
     }

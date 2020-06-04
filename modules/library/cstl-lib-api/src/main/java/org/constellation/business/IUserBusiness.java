@@ -31,11 +31,9 @@ public interface IUserBusiness {
 
     List<CstlUser> findAll();
 
-    CstlUser create(CstlUser user);
+    Integer create(UserWithRole user);
 
-    CstlUser update(CstlUser user);
-
-    void addUserToRole(Integer userId, String roleName);
+    void update(UserWithRole user);
 
     int delete(int userId);
 
@@ -51,7 +49,7 @@ public interface IUserBusiness {
 
     Optional<CstlUser> findByEmail(String email);
 
-    Optional<CstlUser> findByForgotPasswordUuid(String uuid);
+    Optional<UserWithRole> findByForgotPasswordUuid(String uuid);
 
     List<String> getRoles(int userId);
 
@@ -62,6 +60,8 @@ public interface IUserBusiness {
     Optional<UserWithRole> findOneWithRole(Integer id);
 
     Optional<UserWithRole> findOneWithRole(String name);
+
+    Optional<UserWithRole> findOneWithRoleByMail(String mail);
 
     List<UserWithRole> findActivesWithRole();
 

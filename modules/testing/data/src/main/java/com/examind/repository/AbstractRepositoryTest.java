@@ -47,7 +47,7 @@ public abstract class AbstractRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     private static final String configDir;
     static {
         configDir = "RepositoryTest" + UUID.randomUUID().toString();
@@ -66,7 +66,7 @@ public abstract class AbstractRepositoryTest {
     protected CstlUser getOrCreateUser() {
 
         return userRepository.findByEmail(TestSamples.newAdminUser().getEmail())
-                                       .orElse(userRepository.create(TestSamples.newAdminUser()));
+                             .orElse(userRepository.findById(userRepository.create(TestSamples.newAdminUser())).get());
 
     }
 

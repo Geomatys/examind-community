@@ -32,7 +32,9 @@ import org.constellation.dto.UserWithRole;
 import org.constellation.dto.CstlUser;
 
 import org.constellation.database.api.jooq.Tables;
+import static org.constellation.database.api.jooq.Tables.ROLE;
 import org.constellation.database.api.jooq.tables.records.CstlUserRecord;
+import org.constellation.database.api.jooq.tables.records.RoleRecord;
 import org.constellation.database.api.jooq.tables.records.UserXRoleRecord;
 import org.constellation.repository.UserRepository;
 import org.jooq.*;
@@ -55,39 +57,50 @@ public class JooqUserRepository extends
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public CstlUser create(CstlUser user) {
+    public Integer create(UserWithRole user) {
         CstlUserRecord record = dsl.newRecord(CSTL_USER);
         record.from(user);
         record.store();
-        return record.into(CstlUser.class);
+        Integer uid =  record.getId();
+        setUserRoles(uid, user.getRoles());
+        return uid;
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public CstlUser update(CstlUser user) {
+    public void update(UserWithRole user) {
         CstlUserRecord record = dsl.newRecord(CSTL_USER);
         record.from(user);
         dsl.executeUpdate(record);
-        return record.into(CstlUser.class);
+        setUserRoles(user.getId(), user.getRoles());
     }
 
     /**
-     * This method remove current user role and add new role to user
+     * This method remove current user roles and add new roles to user
      *
      * @param userId
-     * @param roleName
+     * @param roles
      */
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void addUserToRole(Integer userId, String roleName) {
-        //remove old role
+    public void setUserRoles(Integer userId, List<String> roles) {
+        //remove old roles
         dsl.delete(USER_X_ROLE).where(USER_X_ROLE.USER_ID.eq(userId)).execute();
 
-        //set new role
-        UserXRoleRecord record = dsl.newRecord(USER_X_ROLE);
-        record.setUserId(userId);
-        record.setRole(roleName);
-        record.store();
+        //set new roles
+        for (String role : roles) {
+            addRoleIfMissing(role);
+            UserXRoleRecord record = dsl.newRecord(USER_X_ROLE);
+            record.setUserId(userId);
+            record.setRole(role);
+            record.store();
+        }
+    }
+
+    private void addRoleIfMissing(String role) {
+        if (dsl.selectCount().from(ROLE).where(ROLE.NAME.eq(role)).fetchOneInto(Long.class) == 0) {
+            RoleRecord r = dsl.newRecord(ROLE);
+            r.setName(role);
+            r.store();
+        }
     }
 
     @Override
@@ -174,14 +187,17 @@ public class JooqUserRepository extends
     }
 
     @Override
-    public Optional<CstlUser> findByForgotPasswordUuid(String uuid) {
-        if (uuid == null) {
+    public Optional<UserWithRole> findByForgotPasswordUuid(String uuid) {
+        Map<CstlUserRecord, Result<Record>> fetchGroups = dsl.select()
+                .from(CSTL_USER).leftOuterJoin(Tables.USER_X_ROLE).onKey()
+                .where(CSTL_USER.FORGOT_PASSWORD_UUID.eq(uuid)).fetchGroups(CSTL_USER);
+
+        if (fetchGroups.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.ofNullable(convertToDto(dsl.select()
-                                                   .from(CSTL_USER)
-                                                   .where(CSTL_USER.FORGOT_PASSWORD_UUID.eq(uuid))
-                                                   .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.CstlUser.class)));
+
+        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        return Optional.of(users.get(0));
     }
 
     @Override
@@ -299,6 +315,19 @@ public class JooqUserRepository extends
         }
 
         return ret;
+    }
+
+    @Override
+    public Optional<UserWithRole> findOneWithRoleByMail(String mail) {
+        Map<CstlUserRecord, Result<Record>> fetchGroups = dsl.select()
+                .from(CSTL_USER).leftOuterJoin(Tables.USER_X_ROLE).onKey()
+                .where(CSTL_USER.EMAIL.eq(mail)).fetchGroups(CSTL_USER);
+
+        if (fetchGroups.isEmpty()) {
+            return Optional.empty();
+        }
+        List<UserWithRole> users = mapUserWithRole(fetchGroups);
+        return Optional.of(users.get(0));
     }
 
     @Override

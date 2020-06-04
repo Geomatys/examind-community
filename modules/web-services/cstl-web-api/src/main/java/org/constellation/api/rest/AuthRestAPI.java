@@ -34,7 +34,6 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.constellation.business.IMailBusiness;
 import org.constellation.dto.TokenTransfer;
 import org.constellation.dto.UserWithRole;
-import org.constellation.dto.CstlUser;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.user.ForgotPassword;
 import org.constellation.dto.user.Login;
@@ -124,11 +123,11 @@ public class AuthRestAPI extends AbstractRestAPI{
         try {
             final String email = forgotPassword.getEmail();
             final String uuid = DigestUtils.sha256Hex(email + System.currentTimeMillis());
-            final Optional<CstlUser> userOptional = userBusiness.findByEmail(email);
+            final Optional<UserWithRole> userOp = userBusiness.findOneWithRoleByMail(email);
 
-            if (!userOptional.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
+            if (!userOp.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
 
-            final CstlUser user = userOptional.get();
+            final UserWithRole user = userOp.get();
             user.setForgotPasswordUuid(uuid);
             userBusiness.update(user);
 
@@ -157,11 +156,11 @@ public class AuthRestAPI extends AbstractRestAPI{
         final String uuid = resetPassword.getUuid();
 
         if(newPassword != null && uuid != null && !newPassword.isEmpty() && !uuid.isEmpty()){
-            final Optional<CstlUser> userOptional = userBusiness.findByForgotPasswordUuid(uuid);
+            final Optional<UserWithRole> userOptional = userBusiness.findByForgotPasswordUuid(uuid);
 
             if (!userOptional.isPresent()) return new ErrorMessage(NOT_FOUND).message("User not found").i18N(I18nCodes.User.NOT_FOUND).build();
 
-            final CstlUser cstlUser = userOptional.get();
+            final UserWithRole cstlUser = userOptional.get();
             cstlUser.setPassword(StringUtilities.MD5encode(newPassword));
             cstlUser.setForgotPasswordUuid(null);
             userBusiness.update(cstlUser);

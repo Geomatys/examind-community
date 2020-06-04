@@ -154,10 +154,10 @@ public class UserRestAPI extends AbstractRestAPI {
      * @return ResponseEntity with created user
      */
     @RequestMapping(value="/users", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity createUser(@RequestBody CstlUser user){
+    public ResponseEntity createUser(@RequestBody UserWithRole user){
         try {
-            user = userBusiness.create(user);
-            return new ResponseEntity(user,CREATED);
+            Integer userId = userBusiness.create(user);
+            return new ResponseEntity(userId, CREATED);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
@@ -172,12 +172,10 @@ public class UserRestAPI extends AbstractRestAPI {
      * @return ResponseEntity with updated user
      */
     @RequestMapping(value="/users/{id}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity updateUser(
-            @PathVariable(value="id") int id,
-            @RequestBody CstlUser user){
+    public ResponseEntity updateUser(@PathVariable(value="id") int id, @RequestBody UserWithRole user){
         try {
             user.setId(id);
-            user = userBusiness.update(user);
+            userBusiness.update(user);
             return new ResponseEntity(user,OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -216,8 +214,7 @@ public class UserRestAPI extends AbstractRestAPI {
      * @return ResponseEntity with updated user
      */
     @RequestMapping(value="/users/{id}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity deleteUser(
-            @PathVariable(value="id") int id){
+    public ResponseEntity deleteUser(@PathVariable(value="id") int id){
         try {
             if (userBusiness.isLastAdmin(id)) {
                 return new ErrorMessage(HttpStatus.BAD_REQUEST).i18N(I18nCodes.User.LAST_ADMIN).build();

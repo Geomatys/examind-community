@@ -101,7 +101,7 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
     }
 
     @Override
-    public Optional<CstlUser> findByForgotPasswordUuid(String uuid) {
+    public Optional<UserWithRole> findByForgotPasswordUuid(String uuid) {
         return Optional.ofNullable(byForgotPwd.get(uuid));
     }
 
@@ -118,6 +118,11 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
     @Override
     public Optional<UserWithRole> findOneWithRole(String login) {
         return Optional.ofNullable(bylogin.get(login));
+    }
+
+    @Override
+    public Optional<UserWithRole> findOneWithRoleByMail(String mail) {
+        return Optional.ofNullable(byEmail.get(mail));
     }
 
     @Override
@@ -161,8 +166,7 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
     ////--------------------------------------------------------------------///
 
     @Override
-    public CstlUser create(CstlUser user) {
-        UserWithRole userR = new UserWithRole(user, new ArrayList<>());
+    public Integer create(UserWithRole userR) {
         userR.setId(currentId);
 
         Path userDir = getDirectory(USER_DIR);
@@ -173,42 +177,28 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
         bylogin.put(userR.getLogin(), userR);
         byEmail.put(userR.getEmail(), userR);
         byForgotPwd.put(userR.getForgotPasswordUuid(), userR);
-        if (user.getActive()) {
+        if (userR.getActive()) {
             activeById.put(userR.getId(), userR);
         }
 
         currentId++;
-        return userR;
+        return userR.getId();
     }
 
     @Override
-    public CstlUser update(CstlUser user) {
-        if (byId.containsKey(user.getId())) {
-
-            UserWithRole userR = new UserWithRole(user, byId.get(user.getId()).getRoles());
+    public void update(UserWithRole userR) {
+        if (byId.containsKey(userR.getId())) {
 
             Path userDir = getDirectory(USER_DIR);
             Path userFile = userDir.resolve(userR.getId() + ".xml");
             writeObjectInPath(userR, userFile, pool);
 
-            byId.put(user.getId(), userR);
-            bylogin.put(user.getLogin(), userR);
-            byEmail.put(user.getEmail(), userR);
-            byForgotPwd.put(user.getForgotPasswordUuid(), userR);
-            if (user.getActive()) {
-                activeById.put(user.getId(), userR);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public void addUserToRole(Integer userId, String roleName) {
-        if (byId.containsKey(userId)) {
-            UserWithRole userR = byId.get(userId);
-            if (!userR.getRoles().contains(roleName)) {
-                userR.getRoles().add(roleName);
-                update(userR);
+            byId.put(userR.getId(), userR);
+            bylogin.put(userR.getLogin(), userR);
+            byEmail.put(userR.getEmail(), userR);
+            byForgotPwd.put(userR.getForgotPasswordUuid(), userR);
+            if (userR.getActive()) {
+                activeById.put(userR.getId(), userR);
             }
         }
     }
