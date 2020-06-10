@@ -94,7 +94,6 @@ public class Keys {
 	public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.ThesaurusRecord> THESAURUS_PK = UniqueKeys0.THESAURUS_PK;
 	public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.ThesaurusLanguageRecord> THESAURUS_LANGUAGE_PK = UniqueKeys0.THESAURUS_LANGUAGE_PK;
 	public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord> USER_X_ROLE_PK = UniqueKeys0.USER_X_ROLE_PK;
-	public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord> USER_X_ROLE_USER_ID_KEY = UniqueKeys0.USER_X_ROLE_USER_ID_KEY;
 
 	// -------------------------------------------------------------------------
 	// FOREIGN KEY definitions
@@ -236,7 +235,6 @@ public class Keys {
 		public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.ThesaurusRecord> THESAURUS_PK = createUniqueKey(org.constellation.database.api.jooq.tables.Thesaurus.THESAURUS, org.constellation.database.api.jooq.tables.Thesaurus.THESAURUS.ID);
 		public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.ThesaurusLanguageRecord> THESAURUS_LANGUAGE_PK = createUniqueKey(org.constellation.database.api.jooq.tables.ThesaurusLanguage.THESAURUS_LANGUAGE, org.constellation.database.api.jooq.tables.ThesaurusLanguage.THESAURUS_LANGUAGE.THESAURUS_ID, org.constellation.database.api.jooq.tables.ThesaurusLanguage.THESAURUS_LANGUAGE.LANGUAGE);
 		public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord> USER_X_ROLE_PK = createUniqueKey(org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE, org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE.USER_ID, org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE.ROLE);
-		public static final org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord> USER_X_ROLE_USER_ID_KEY = createUniqueKey(org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE, org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE.USER_ID);
 	}
 
 	private static class ForeignKeys0 extends org.jooq.impl.AbstractKeys {

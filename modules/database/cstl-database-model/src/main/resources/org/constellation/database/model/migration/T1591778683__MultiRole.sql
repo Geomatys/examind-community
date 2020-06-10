@@ -1,0 +1,1 @@
+ALTER TABLE "admin"."user_x_role" DROP CONSTRAINT user_x_role_user_id_key;

@@ -18,6 +18,8 @@
  */
 package org.constellation.ws.embedded;
 
+import com.examind.repository.TestSamples;
+import java.net.HttpURLConnection;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -36,6 +38,7 @@ import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -44,6 +47,9 @@ import org.constellation.dto.DataBrief;
 import org.constellation.test.utils.TestRunner;
 import org.geotoolkit.image.io.plugin.WorldFileImageReader;
 import static org.constellation.api.StatisticState.*;
+import org.constellation.business.IUserBusiness;
+import org.constellation.dto.CstlUser;
+import org.constellation.dto.Page;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
 import org.constellation.provider.DefaultCoverageData;
@@ -80,6 +86,8 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
     public void init() {
+
+        userBusiness = SpringHelper.getBean(IUserBusiness.class);
 
         if (!initialized) {
             try {
@@ -171,6 +179,14 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
             if (provider != null) {
                 provider.removeAll();
             }
+            final IUserBusiness user = SpringHelper.getBean(IUserBusiness.class);
+            if (user != null) {
+                for (CstlUser u : user.findAll()) {
+                    if (!u.getLogin().equals("admin")) {
+                        user.delete(u.getId());
+                    }
+                }
+            }
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
@@ -228,4 +244,44 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     }
 
 
+    @Test
+    @Order(order=3)
+    public void getUsersRequest() throws Exception {
+        init();
+
+        int nbUsers = userBusiness.countUser();
+
+        final URL request = new URL("http://localhost:" + getCurrentPort() + "/API/users");
+        Object o = unmarshallJsonResponse(request, Page.class);
+        Assert.assertTrue(o instanceof Page);
+        Page p = (Page) o;
+
+        Assert.assertEquals(nbUsers, p.getTotal());
+
+        // test create user 1
+        URLConnection con = request.openConnection();
+        postJsonRequestObject(con, TestSamples.newAdminUser());
+
+        Assert.assertEquals(201, ((HttpURLConnection)con).getResponseCode());
+        String strId = getStringResponse(con, 201);
+        int uid = Integer.parseInt(strId);
+        Assert.assertTrue(uid > 1);
+
+        // test create user 2
+        con = request.openConnection();
+        postJsonRequestObject(con, TestSamples.newDataUser());
+        Assert.assertEquals(201, ((HttpURLConnection)con).getResponseCode());
+        strId = getStringResponse(con, 201);
+        uid = Integer.parseInt(strId);
+        Assert.assertTrue(uid > 1);
+
+
+        // search again
+        o = unmarshallJsonResponse(request, Page.class);
+        Assert.assertTrue(o instanceof Page);
+        p = (Page) o;
+
+        Assert.assertEquals(nbUsers + 2, p.getTotal());
+
+    }
 }

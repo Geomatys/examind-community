@@ -46,13 +46,6 @@ public class UserXRoleDao extends org.jooq.impl.DAOImpl<org.constellation.databa
 	}
 
 	/**
-	 * Fetch a unique record that has <code>user_id = value</code>
-	 */
-	public org.constellation.database.api.jooq.tables.pojos.UserXRole fetchOneByUserId(java.lang.Integer value) {
-		return fetchOne(org.constellation.database.api.jooq.tables.UserXRole.USER_X_ROLE.USER_ID, value);
-	}
-
-	/**
 	 * Fetch records that have <code>role IN (values)</code>
 	 */
 	public java.util.List<org.constellation.database.api.jooq.tables.pojos.UserXRole> fetchByRole(java.lang.String... values) {

@@ -16,7 +16,7 @@ package org.constellation.database.api.jooq.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class UserXRole extends org.jooq.impl.TableImpl<org.constellation.database.api.jooq.tables.records.UserXRoleRecord> {
 
-	private static final long serialVersionUID = -529240365;
+	private static final long serialVersionUID = 1003691859;
 
 	/**
 	 * The reference instance of <code>admin.user_x_role</code>
@@ -76,7 +76,7 @@ public class UserXRole extends org.jooq.impl.TableImpl<org.constellation.databas
 	 */
 	@Override
 	public java.util.List<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord>> getKeys() {
-		return java.util.Arrays.<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord>>asList(org.constellation.database.api.jooq.Keys.USER_X_ROLE_PK, org.constellation.database.api.jooq.Keys.USER_X_ROLE_USER_ID_KEY);
+		return java.util.Arrays.<org.jooq.UniqueKey<org.constellation.database.api.jooq.tables.records.UserXRoleRecord>>asList(org.constellation.database.api.jooq.Keys.USER_X_ROLE_PK);
 	}
 
 	/**

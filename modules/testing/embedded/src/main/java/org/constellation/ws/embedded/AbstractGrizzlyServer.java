@@ -77,6 +77,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.catalina.Context;
 import org.apache.sis.test.xml.DocumentComparator;
+import org.constellation.business.IUserBusiness;
 import org.constellation.util.NodeUtilities;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -127,6 +128,7 @@ public abstract class AbstractGrizzlyServer {
     protected IDataBusiness dataBusiness;
     protected IMetadataBusiness metadataBusiness;
     protected ISensorBusiness sensorBusiness;
+    protected IUserBusiness userBusiness;
 
     protected static Class controllerConfiguration;
 
@@ -148,6 +150,7 @@ public abstract class AbstractGrizzlyServer {
         dataBusiness = SpringHelper.getBean(IDataBusiness.class);
         metadataBusiness = SpringHelper.getBean(IMetadataBusiness.class);
         sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
+        userBusiness = SpringHelper.getBean(IUserBusiness.class);
     }
 
     /**
@@ -267,8 +270,12 @@ public abstract class AbstractGrizzlyServer {
     }
 
     protected static String getStringResponse(final URLConnection conec) throws UnsupportedEncodingException, IOException {
+        return getStringResponse(conec, 200);
+    }
+    
+    protected static String getStringResponse(final URLConnection conec, int expectedHttpCode) throws UnsupportedEncodingException, IOException {
         InputStream is;
-        if (((HttpURLConnection)conec).getResponseCode() == 200) {
+        if (((HttpURLConnection)conec).getResponseCode() == expectedHttpCode) {
             is = conec.getInputStream();
         } else {
             is = ((HttpURLConnection)conec).getErrorStream();
