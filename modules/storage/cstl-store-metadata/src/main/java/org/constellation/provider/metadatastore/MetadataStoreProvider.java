@@ -22,6 +22,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -126,7 +127,7 @@ public class MetadataStoreProvider extends AbstractDataProvider implements Metad
      */
     @Override
     public synchronized Set<GenericName> getKeys() {
-        return Collections.unmodifiableSet(index);
+        return Collections.unmodifiableSet(new HashSet(index));
     }
 
     /**
