@@ -60,9 +60,6 @@ public final class DataBrief extends Data implements Serializable {
     @XmlElement(name="metadatas")
     private List<MetadataLightBrief> metadatas = new ArrayList<>(0);
 
-    @XmlElement(name="linkedDatas")
-    private List<DataBrief> linkedDatas = new ArrayList<>(0);
-
     @XmlElement(name="pyramidConformProviderId")
     private String pyramidConformProviderId;
 
@@ -157,51 +154,26 @@ public final class DataBrief extends Data implements Serializable {
         this.dataDescription = dataDescription;
     }
 
-    public List<DataBrief> getLinkedDatas() {
-        return linkedDatas;
-    }
-
-    public void setLinkedDatas(List<DataBrief> linkedDatas) {
-        this.linkedDatas = linkedDatas;
-    }
-
     @Override
     public String toString() {
-
-        StringBuilder sb = new StringBuilder("targetStyle:\n");
-        for (StyleBrief s : targetStyle) {
-            sb.append(s).append('\n');
-        }
-        sb.append("targetService:\n");
-        for (ServiceReference s : targetService) {
-            sb.append(s).append('\n');
-        }
-        sb.append("targetSensor:\n");
-        for (String s : targetSensor) {
-            sb.append(s).append('\n');
-        }
-        sb.append("linkedDatas:\n");
-        for (DataBrief s : linkedDatas) {
-            sb.append(s).append('\n');
-        }
-
-
         return "DataBrief{" +
-                "name='" + getName() + "'\n" +
-                "namespace='" + getNamespace() + "'\n" +
-                "provider='" + provider + "'\n" +
-                "parent='" + parent + "'\n" +
-                "title='" + title + "'\n" +
-                "date=" + getDate() +
-                "type='" + getType() + "'\n" +
-                "subtype='" + getSubtype() + "'\n" +
-                "sensorable='" + getSensorable() + "'\n" +
-                "rendered='" + getRendered() + "'\n" +
-                "statsState=" + getStatsState() + "'\n" +
-                "statsResult=" + getStatsResult() + "'\n" +
-                "dataDescription=" + dataDescription +
-                "owner='" + owner + "'\n" +
-                 sb.toString() +
+                "name='" + getName() + '\'' +
+                ", namespace='" + getNamespace() + '\'' +
+                ", provider='" + provider + '\'' +
+                ", parent='" + parent + '\'' +
+                ", title='" + title + '\'' +
+                ", date=" + getDate() +
+                ", type='" + getType() + '\'' +
+                ", subtype='" + getSubtype() + '\'' +
+                ", sensorable='" + getSensorable() + '\'' +
+                ", rendered='" + getRendered() + '\'' +
+                ", owner='" + owner + '\'' +
+                ", targetStyle=" + targetStyle +
+                ", targetService=" + targetService +
+                ", targetSensor=" + targetSensor +
+                ", statsState=" + getStatsState() +
+                ", statsResult=" + getStatsResult() +
+                ", dataDescription=" + dataDescription +
                 '}';
     }
 }
