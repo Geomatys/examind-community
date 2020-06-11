@@ -20,60 +20,66 @@
 package org.constellation.metadata.index.elasticsearch;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.geotoolkit.index.LogicalFilterType;
-import org.opengis.filter.Filter;
 
 /**
- *
+ *  A Spatial query use to perform search request on elasticsearch datasource.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 public class SpatialQuery implements org.geotoolkit.index.SpatialQuery {
-    
+
     private String query;
-    
+
     private XContentBuilder filter;
-    
+
     private Sort sort;
-    
-    @Deprecated
-    public SpatialQuery(String query, XContentBuilder filter, LogicalFilterType logical) {
-        this.query  = query;
-        this.filter = filter;
-    }
-    
+
     public SpatialQuery(String query, XContentBuilder filter) {
         this.query  = query;
         this.filter = filter;
     }
-    
+
     public SpatialQuery(XContentBuilder filter) {
         this.filter = filter;
     }
-    
+
+    /**
+     * Return the elasticsearch text query (Using elasticsearch syntax).
+     */
     @Override
     public String getTextQuery() {
         return query;
     }
-    
+
+    /**
+     * Return a elasticSearchQuery {@link Query} object.
+     * can be {@code null}.
+     */
     @Override
-    public Object getQuery() {
+    public XContentBuilder getQuery() {
         return filter;
     }
-    
+
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Sort getSort() {
         return sort;
     }
-    
+
     public void setSort(String fieldName, String order) {
         this.sort = new Sort(fieldName, order);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public void setSort(String fieldName, boolean desc, Character fieldType) {
         final String order = desc ? "DESC" : "ASC";
         this.sort = new Sort(fieldName, order);
     }
-    
-    
+
+
 }
