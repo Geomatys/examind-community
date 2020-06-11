@@ -25,9 +25,11 @@ import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.metadata.MetadataStandard;
@@ -206,13 +208,47 @@ public abstract class Template {
         reader.readTemplate(json, destination);
     }
 
+    /**
+     * Return both the MD completion (percentage of completion) and the completion level (ELEMENTARY, EXTENDED, COMPLETE or NONE)
+     * calculated on the specified metadata object.
+     *
+     * This method is an optimization by combinating getCompletion(...) and calculateMDCompletion (...) to avoid the multiple transformation
+     * of Object to RootObj
+     *
+     * @param metadata a metadata object
+     *
+     * @return An {@link Entry} with the MD completion as the key and the completion level as value.
+     * @throws IOException
+     */
+    public Entry<Integer, String> getFullCompletion(final Object metadata) throws IOException {
+        final TemplateWriter writer = new TemplateWriter(standard);
+        final RootObj rootFilled    = writer.writeTemplate(rootObj, metadata, false, false);
+        return new AbstractMap.SimpleEntry<>(calculateMDCompletion(rootFilled), getCompletion(rootFilled));
+    }
+
+    /**
+     * Return the completion level (ELEMENTARY, EXTENDED or COMPLETE) calculated on the specified metadata object.
+     *
+     * @param metadata a metadata object
+     *
+     * @return ELEMENTARY, EXTENDED, COMPLETE or NONE
+     * @throws IOException
+     */
     public String getCompletion(final Object metadata) throws IOException {
         final TemplateWriter writer = new TemplateWriter(standard);
         final RootObj rootFilled    = writer.writeTemplate(rootObj, metadata, false, false);
         return getCompletion(rootFilled);
     }
 
-    public String getCompletion(final RootObj metadataValues) {
+    /**
+     * Return the completion level (ELEMENTARY, EXTENDED or COMPLETE) calculated on the specified {@link RootObj} object.
+     *
+     * @param metadata a {@link RootObj} object.
+     *
+     * @return ELEMENTARY, EXTENDED, COMPLETE or NONE
+     * @throws IOException
+     */
+    private String getCompletion(final RootObj metadataValues) {
         Map<String, Boolean> completions = new HashMap<>();
         completions.put("ELEMENTARY", Boolean.TRUE);
         completions.put("EXTENDED",   Boolean.TRUE);
@@ -254,13 +290,29 @@ public abstract class Template {
         return "NONE";
     }
 
+    /**
+     * Return the MD completion (percentage of completion) calculated on the specified metadata object.
+     *
+     * @param metadata a metadata object
+     *
+     * @return The percentage of completion.
+     * @throws IOException
+     */
     public int calculateMDCompletion(final Object metadata) throws IOException {
         final TemplateWriter writer = new TemplateWriter(standard);
         final RootObj rootFilled    = writer.writeTemplate(rootObj, metadata, false, false);
         return calculateMDCompletion(rootFilled);
     }
 
-    public int calculateMDCompletion(final RootObj metadataValues) {
+    /**
+     * Return the MD completion (percentage of completion) calculated on the specified {@link RootObj} object.
+     *
+     * @param metadata a {@link RootObj} object.
+     *
+     * @return The percentage of completion.
+     * @throws IOException
+     */
+    private int calculateMDCompletion(final RootObj metadataValues) {
         int result = 0;
         int fieldsCount=0;
         int fieldValueCount=0;
@@ -279,7 +331,7 @@ public abstract class Template {
                 }
             }
         }
-        if(fieldsCount>0){
+        if (fieldsCount > 0) {
             result = Math.round(fieldValueCount*100/fieldsCount);
         }
         return result;

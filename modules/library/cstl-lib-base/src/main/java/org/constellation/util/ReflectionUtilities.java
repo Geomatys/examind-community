@@ -451,14 +451,18 @@ public final class ReflectionUtilities {
 
         final String rootClassName = rootClass.getName();
         //special case and corrections TODO remove
-        if ("beginPosition".equals(propertyName) && !"org.geotoolkit.gml.xml.v311.TimePeriodType".equals(rootClassName)) {
+        if (("beginPosition".equals(propertyName) || "endPosition".equals(propertyName)) && "org.geotoolkit.gml.xml.v311.TimeInstantType".equals(rootClassName)) {
+            propertyName = "timePosition";
+        } else if ("beginPosition".equals(propertyName) && !"org.geotoolkit.gml.xml.v311.TimePeriodType".equals(rootClassName)) {
             propertyName = "beginning";
         } else if ("endPosition".equals(propertyName)  && !"org.geotoolkit.gml.xml.v311.TimePeriodType".equals(rootClassName)) {
             propertyName = "ending";
-        } else if (propertyName.indexOf("geographicElement") != -1) {
+        } else if (propertyName.contains("geographicElement")) {
             propertyName = "geographicElements";
         } else if ("value".equals(propertyName) && ("org.geotoolkit.temporal.object.DefaultPosition".equals(rootClassName))) {
             propertyName = "date";
+        }  else if ("referenceSystemIdentifier".equals(propertyName)) {
+            propertyName = "name";
         }
 
         final String methodName  = "get" + StringUtilities.firstToUpper(propertyName);

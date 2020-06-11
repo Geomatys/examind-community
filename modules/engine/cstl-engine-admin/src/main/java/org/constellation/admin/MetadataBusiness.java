@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -378,8 +379,9 @@ public class MetadataBusiness implements IMetadataBusiness {
             final Template template = templateResolver.getByName(templateName);
             newMetaId               = template.getMetadataIdentifier(meta);
             try {
-                completion = template.calculateMDCompletion(meta);
-                level      = template.getCompletion(meta);
+                Entry<Integer, String> completionEntry = template.getFullCompletion(meta);
+                completion = completionEntry.getKey();
+                level      = completionEntry.getValue();
             } catch (IOException | ClassCastException ex) {
                 LOGGER.log(Level.WARNING, "Error while calculating metadata completion", ex);
             }
