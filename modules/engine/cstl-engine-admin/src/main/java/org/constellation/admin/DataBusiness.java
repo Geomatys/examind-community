@@ -444,7 +444,7 @@ public class DataBusiness implements IDataBusiness {
             }
 
             /*
-             * apply filter on published if specified
+             * Look for linked services.
              */
             final List<Data> linkedDataList = dataRepository.getDataLinkedData(data.getId());
             final List<Service> services = serviceRepository.findByDataId(data.getId());
@@ -460,6 +460,9 @@ public class DataBusiness implements IDataBusiness {
                 serviceRefs.add(sp);
             }
 
+            /*
+             * apply filter on published if specified
+             */
             if (published != null) {
                 if ((published  && serviceRefs.isEmpty()) ||
                     (!published && !serviceRefs.isEmpty())) {
@@ -518,14 +521,16 @@ public class DataBusiness implements IDataBusiness {
             db.setHidden(data.getHidden());
             db.setIncluded(data.getIncluded());
 
+            final List<DataBrief> linkedBriefs = new ArrayList<>();
             for (final Data d : linkedDataList) {
-                if("pyramid".equalsIgnoreCase(d.getSubtype()) &&
-                        !d.getRendered()){
+                if ("pyramid".equalsIgnoreCase(d.getSubtype()) && !d.getRendered()) {
                     final String pyramidProvId = getProviderIdentifier(d.getProviderId());
                     db.setPyramidConformProviderId(pyramidProvId);
-                    break;
                 }
+                linkedBriefs.add(new DataBrief(d));
             }
+            db.setLinkedDatas(linkedBriefs);
+            
             //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
             if("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
                 db.setPyramidConformProviderId(providerName);
