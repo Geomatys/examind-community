@@ -459,16 +459,16 @@
             <ns39:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</ns39:name>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
             <ns31:component>
-              <ns31:Phenomenon ns39:id="salinity">
-<ns39:description>the salinity in water</ns39:description>
-<ns39:name>urn:ogc:def:phenomenon:GEOM:salinity</ns39:name>
-              </ns31:Phenomenon>
+                <ns31:Phenomenon ns39:id="temperature">
+                    <ns39:description>the temperature in celcius degree</ns39:description>
+                    <ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
+                </ns31:Phenomenon>
             </ns31:component>
             <ns31:component>
-              <ns31:Phenomenon ns39:id="temperature">
-<ns39:description>the temperature in celcius degree</ns39:description>
-<ns39:name>urn:ogc:def:phenomenon:GEOM:temperature</ns39:name>
-              </ns31:Phenomenon>
+                <ns31:Phenomenon ns39:id="salinity">
+                    <ns39:description>the salinity in water</ns39:description>
+                    <ns39:name>urn:ogc:def:phenomenon:GEOM:salinity</ns39:name>
+                </ns31:Phenomenon>
             </ns31:component>
           </ns31:CompositePhenomenon>
         </ns9:observedProperty>

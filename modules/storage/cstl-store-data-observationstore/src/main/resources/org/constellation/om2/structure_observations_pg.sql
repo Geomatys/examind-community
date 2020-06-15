@@ -3,7 +3,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.7');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.0.8');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -96,7 +96,8 @@ CREATE TABLE "$SCHEMAom"."historical_locations" (
 
 CREATE TABLE "$SCHEMAom"."components" (
     "phenomenon" character varying(200) NOT NULL,
-    "component"  character varying(200) NOT NULL
+    "component"  character varying(200) NOT NULL,
+    "order"      integer
 );
 
 

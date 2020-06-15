@@ -346,12 +346,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
                 if (phen instanceof CompositePhenomenon) {
                     final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
-                    try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?)")) {
+                    try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?,?)")) {
+                        int cpt = 0;
                         for (PhenomenonProperty child : composite.getRealComponent()) {
                             final String childID = getPhenomenonId(child);
                             writePhenomenon(child, c, false);
                             stmtInsertCompo.setString(1, phenomenonId);
                             stmtInsertCompo.setString(2, childID);
+                            stmtInsertCompo.setInt(3, cpt++);
                             stmtInsertCompo.executeUpdate();
                         }
                     }
@@ -364,12 +366,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
                 if (phen instanceof CompositePhenomenon) {
                     final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
-                    try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?)")) {
+                    try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?,?)")) {
+                        int cpt = 0;
                         for (PhenomenonProperty child : composite.getRealComponent()) {
                             final String childID = getPhenomenonId(child);
                             writePhenomenon(child, c, false);
                             stmtInsertCompo.setString(1, phenomenonId);
                             stmtInsertCompo.setString(2, childID);
+                            stmtInsertCompo.setInt(3, cpt++);
                             stmtInsertCompo.executeUpdate();
                         }
                     }

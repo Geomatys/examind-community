@@ -253,7 +253,7 @@ public class OM2BaseReader {
         }
         try {
             // look for composite phenomenon
-            try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?")) {
+            try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     final List<Phenomenon> phenomenons = new ArrayList<>();

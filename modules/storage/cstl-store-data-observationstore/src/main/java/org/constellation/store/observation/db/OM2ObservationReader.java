@@ -437,8 +437,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             //look for composite phenomenons
             try(final PreparedStatement stmtC = c.prepareStatement("SELECT \"component\" "
-                                                             + "FROM \"" + schemaPrefix + "om\".\"components\""
-                                                             + "WHERE \"phenomenon\"=?")) {
+                                                                 + "FROM \"" + schemaPrefix + "om\".\"components\" "
+                                                                 + "WHERE \"phenomenon\"=? "
+                                                                 + "ORDER BY \"order\" ASC")) {
                 final Set<String> toAdd    = new HashSet<>();
                 final Set<String> toRemove = new HashSet<>();
                 for (Iterator<String> it = results.iterator(); it.hasNext();) {

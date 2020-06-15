@@ -535,7 +535,7 @@ public class OM2STSWorkerTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
         Assert.assertEquals(expectedIds, resultIds);
 
         Assert.assertEquals(5, result.getMultiDatastreams().size());
@@ -568,7 +568,7 @@ public class OM2STSWorkerTest {
        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-1");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-0");
-       expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+       expectedIds.add("urn:ogc:object:observation:template:GEOM:12-1");
        Assert.assertEquals(expectedIds, resultIds);
 
        /*

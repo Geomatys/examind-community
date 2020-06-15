@@ -5,12 +5,12 @@ INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:sali
 INSERT INTO "om"."observed_properties" VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 1, 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
 
 -- v100 --
-INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:temperature');
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:depth', 0);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon', 'urn:ogc:def:phenomenon:GEOM:temperature', 1);
 
-INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:depth');
-INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:temperature');
-INSERT INTO "om"."components" ("phenomenon", "component") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:salinity');
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:depth', 0);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:temperature', 1);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:salinity', 2);
 
 ---------
 
