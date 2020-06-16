@@ -162,7 +162,7 @@ final class DataStoreHandle implements AutoCloseable {
      * Create a Java dynamic proxy, to create a wrapper around a resource. Such a wrapper is needed to provide custom
      * metadata for the resource.
      * 
-     * @param dataId An operator providing identifier of the associated resource in Examind system. It should be a fix
+     * @param dataId An operator providing identifier of the associated resource in Examind system. It should be a fixed
      *               value. However, it can happen that Examind has not any entry in its administration database at the
      *               time of this call. So, we defer the id computing for the last moment, when metadata is queried.
      * @param target The resource we want to override metadata for.
@@ -298,9 +298,24 @@ final class DataStoreHandle implements AutoCloseable {
      * @param <T> Resource type wrapped by this proxy.
      */
     private static class MetadataDecoration<T extends Resource> implements InvocationHandler {
-
+        /**
+         * Operator serving to retrieve data identifier (see {@link #createProxy(IntSupplier, Resource, IMetadataBusiness)}
+         * for details about why it's not a fixed value).
+         */
         final IntSupplier dataId;
+        /**
+         * Decorated resource. Any call will be directly delegated to it, except for:
+         * <ul>
+         *     <li>Metadata retrieval</li>
+         *     <li>Hash code generation</li>
+         *     <li>Equality test</li>
+         *     <li>toString operation</li>
+         * </ul>
+         */
         final T origin;
+        /**
+         * Service to query to get back resource metadata override.
+         */
         final IMetadataBusiness metadataSource;
 
         public MetadataDecoration(IntSupplier dataId, T origin, IMetadataBusiness metadataSource) {
@@ -320,7 +335,13 @@ final class DataStoreHandle implements AutoCloseable {
                 case "toString":
                     return toString();
                 case "equals":
-                    return equals(args == null || args.length < 1 ? null : args[0]);
+                    if (args == null || args.length < 1) return false;
+                    try {
+                        final InvocationHandler other = Proxy.getInvocationHandler(args[0]);
+                        return equals(other);
+                    } catch (IllegalArgumentException e) {
+                        return false;
+                    }
                 case "hashCode":
                     return hashCode();
             }

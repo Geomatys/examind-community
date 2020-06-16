@@ -42,6 +42,7 @@ import static org.constellation.provider.datastore.DataStoreHandle.METADATA_GETT
 import static org.constellation.provider.datastore.DataStoreHandle.createProxy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -124,6 +125,24 @@ public class ProxyTest {
         } catch (Exception e) {
             throw new AssertionError("Raised error is not the one expected", e);
         }
+    }
+
+    @Test
+    public void test_equality() {
+        final MockResource r1 = new MockResource();
+        final MockMetadataBusiness mdB1 = new MockMetadataBusiness();
+        final Resource p1 = createProxy(FIX_ID, r1, mdB1);
+        assertEquals(p1, p1);
+        assertNotEquals(p1, r1);
+
+        final Resource p1Bis = createProxy(FIX_ID, r1, mdB1);
+        assertEquals(p1, p1Bis);
+
+        final Resource p2 = createProxy(FIX_ID, r1, new MockMetadataBusiness());
+        assertNotEquals(p1, p2);
+
+        final Resource p3 = createProxy(FIX_ID, new MockResource(), mdB1);
+        assertNotEquals(p1, p3);
     }
 
     private interface MustBePreserved {
