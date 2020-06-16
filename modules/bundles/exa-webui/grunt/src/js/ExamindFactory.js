@@ -1894,6 +1894,13 @@ function Examind($http, url) {
                     l:limit
                     }
                 });
+        },
+
+        getTypes: function () {
+            return self.request({
+                method: 'GET',
+                url: 'services/types'
+            });
         }
     };
 

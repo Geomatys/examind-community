@@ -14,27 +14,10 @@
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
-                <li><a href="#/webservice/wms" id="wmschoice"
-                       translate="webservicepage.button.dropdown.wms.label">Maps (WMS)</a></li>
-                <li><a href="#/webservice/wfs" id="wfschoice"
-                       translate="webservicepage.button.dropdown.wfs.label">Features (WFS)</a></li>
-                <li><a href="#/webservice/wcs" id="wcschoice"
-                       translate="webservicepage.button.dropdown.wcs.label">Coverages (WCS)</a></li>
-                <li><a href="#/webservice/wmts" id="wmtschoice"
-                       translate="webservicepage.button.dropdown.wmts.label">Web Map Tile Service (WMTS)</a></li>
-                <!-- TODO because TMS is broken and we are still waiting a long long time to have the fix we should temporarily hide the TMS link here until TMS works finished -->
-                <!--li><a href="#/webservice/tms" id="tmschoice"
-                       translate="webservicepage.button.dropdown.tms.label">Tile Map Service (TMS)</a></li-->
-                <li><a href="#/webservice/csw" id="cswchoice"
-                       translate="webservicepage.button.dropdown.csw.label">Catalogs (CSW)</a></li>
-                <li><a href="#/webservice/sos" id="soschoice"
-                       translate="webservicepage.button.dropdown.sos.label">Sensors (SOS)</a></li>
-                <li><a href="#/webservice/sts" id="stschoice"
-                       translate="webservicepage.button.dropdown.sts.label">Sensor Things (STS)</a></li>
-                <li><a href="#/webservice/wps" id="wpschoice"
-                       translate="webservicepage.button.dropdown.wps.label">Geoprocessing (WPS)</a></li>
-                <li><a href="#/webservice/thw" id="thwchoice"
-                       translate="webservicepage.button.dropdown.thw.label">Thesaurus Service</a></li>
+                <li ng-repeat="(key, value) in wsCtrl.availableServices" ng-if="wsCtrl.canShow(key)">
+                    <a href="#/webservice/{{key}}" id="{{key}}choice"
+                       translate="webservicepage.button.dropdown.{{key}}.label"></a>
+                </li>
             </ul>
         </div>
     </div>
@@ -54,32 +37,10 @@
                                 <span translate="label.all">All</span>
                             </a>
                         </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'WMS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'WMS'}">WMS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'WFS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'WFS'}">WFS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'WCS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'WCS'}">WCS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'WMTS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'WMTS'}">WMTS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'TMS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'TMS'}">TMS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'CSW'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'CSW'}">CSW</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'SOS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'SOS'}">SOS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'WPS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'WPS'}">WPS</a>
-                        </li>
-                        <li ng-class="{active:wsCtrl.typeFilter.type === 'STS'}">
-                            <a ng-click="wsCtrl.typeFilter = {type: 'STS'}">STS</a>
+                        <li ng-repeat="(key, value) in wsCtrl.availableServices | orderBy:key"
+                            ng-if="wsCtrl.canShow(key)"
+                            ng-class="{active:wsCtrl.typeFilter.type === key.toUpperCase()}">
+                            <a ng-click="wsCtrl.typeFilter = {type: key.toUpperCase()}">{{key.toUpperCase()}}</a>
                         </li>
                     </ul>
                 </div>

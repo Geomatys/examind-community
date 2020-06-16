@@ -20,7 +20,7 @@
 
 angular.module('cstl-webservice-dashboard', ['cstl-restapi', 'cstl-services', 'pascalprecht.translate', 'ui.bootstrap.modal', 'examind-instance'])
 
-    .controller('WebServiceController', function($modal, Growl, $translate, Examind) {
+    .controller('WebServiceController', function($modal, Growl, $translate, Examind, AppConfigService) {
         var self = this;
         self.typeFilter = {type: '!WEBDAV'};
 
@@ -34,6 +34,15 @@ angular.module('cstl-webservice-dashboard', ['cstl-restapi', 'cstl-services', 'p
             },
             function() {//error
                 Growl('error','Error','Unable to show services list!');
+            }
+        );
+
+        Examind.services.getTypes().then(
+            function (response) {//success
+                self.availableServices = response.data.availableServices;
+            },
+            function () {//error
+                Growl('error', 'Error', 'Unable to show available services list!');
             }
         );
 
@@ -136,4 +145,12 @@ angular.module('cstl-webservice-dashboard', ['cstl-restapi', 'cstl-services', 'p
                 function() { Growl('error','Error','Search index for the service '+ service.name +' failed to be updated'); }
             );
         };
+
+        self.canShow = function (service) {
+            return self.config && self.config.webServices && self.config.webServices.indexOf(service) > -1;
+        };
+
+        AppConfigService.getConfig(function (config) {
+            self.config = config;
+        });
     });

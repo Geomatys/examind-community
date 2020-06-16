@@ -61,55 +61,56 @@
             </li>
         </ul>
         <ul class="nav nav-pills" ng-controller="navCtrl">
-            <li ng-if="permissionService.hasPermission('publish')" class="hidden-sm hidden-md">
+            <li ng-if="permissionService.hasPermission('publish') && canShow('webservice')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('webservice')" href="#/webservice" id="webserviceLink">
                     <span class="glyphicon glyphicon-cloud"></span>
                     <span translate="global.menu.web-service">Services web</span>
                 </a>
             </li>
-            <li ng-if="permissionService.hasPermission('publish')" class="hidden-xs hidden-lg">
+            <li ng-if="permissionService.hasPermission('publish') && canShow('webservice')" class="hidden-xs hidden-lg">
                 <a ng-class="navClass('webservice')" href="#/webservice">
                     <span class="glyphicon glyphicon-cloud"></span>
                     <span translate="global.menu.web-service.min">Services web</span>
                 </a>
             </li>
-            <li>
+            <li ng-if="canShow('data')">
                 <a ng-class="navClass('data')" href="#/data" id="dataLink">
                     <span class="glyphicon glyphicon-file"></span>
                     <span translate="global.menu.data">Data</span>
                 </a>
             </li>
-            <li class="hidden-sm" ng-repeat="page in navigationArray">
+            <li ng-if="canShow(page.cssClass)" class="hidden-sm" ng-repeat="page in navigationArray">
                 <a ng-class="navClass(page.cssClass)" href="{{page.href}}" id="{{page.id}}">
                     <span class="{{page.iconClass}}"></span>
                     <span translate="{{page.labelKey}}">{{page.defaultLabel}}</span>
                 </a>
             </li>
-            <li ng-class="{'hidden-sm':navigationArray.length>1}">
+            <li ng-if="canShow('sensors')" ng-class="{'hidden-sm':navigationArray.length>1}">
                 <a ng-class="navClass('sensors')" href="#/sensors" id="sensorLink">
                     <span ng-class="navClass('sensors')" class="icon-menu-sensor"></span>
                     <span translate="global.menu.sensor">Sensor</span>
                 </a>
             </li>
-            <li ng-class="{'hidden-sm':navigationArray.length>0,'hidden-md':navigationArray.length>0}">
+            <li ng-if="canShow('styles')"
+                ng-class="{'hidden-sm':navigationArray.length>0,'hidden-md':navigationArray.length>0}">
                 <a ng-class="navClass('styles')" href="#/styles" id="stylesLink">
                     <span class="fa fa-paint-brush"></span>
                     <span translate="global.menu.style">Styles</span>
                 </a>
             </li>
-            <li class="hidden-sm hidden-md">
+            <li ng-if="canShow('mapcontext')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('mapcontext')" href="#/mapcontext" id="mapcontextLink">
                     <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"></span>
                     <span translate="global.menu.mapcontext">Map context</span>
                 </a>
             </li>
-            <li class="hidden-sm hidden-md">
+            <li ng-if="canShow('tasks')" class="hidden-sm hidden-md">
                 <a ng-class="navClass('tasks')" href="#/tasks" id="task">
                     <span class="glyphicon glyphicon-cog"></span>
                     <span translate="global.menu.tasks">Tasks</span>
                 </a>
             </li>
-            <li class="hidden-sm hidden-md" ng-if="permissionService.hasPermission('admin')">
+            <li class="hidden-sm hidden-md" ng-if="permissionService.hasPermission('admin') && canShow('admin')">
                 <a ng-class="navClass('admin')" href="#/admin" id="admin">
                     <span ng-class="navClass('admin')" class="glyphicon glyphicon-wrench"></span>
                     <span translate="global.menu.admin.main">Administration</span>
@@ -125,39 +126,41 @@
                     </span>
                 </a>
                 <ul class="dropdown-menu menu-other">
-                    <li ng-repeat="page in navigationArray">
+                    <li ng-if="canShow('page.cssClass')" ng-repeat="page in navigationArray">
                         <a ng-class="navClass(page.cssClass)" href="{{page.href}}">
                             <span class="{{page.iconClass}}"></span>
                             <span translate="{{page.labelKey}}">{{page.defaultLabel}}</span>
                         </a>
                     </li>
-                    <li ng-if="navigationArray.length>1">
+                    <li ng-if="navigationArray.length>1 && canShow('sensors')">
                         <a ng-class="navClass('sensors')" href="#/sensors">
-                            <span ng-class="navClass('sensors')" class="icon-menu-sensor" style="width:12px; height:12px; color:transparent;">aa</span>
+                            <span ng-class="navClass('sensors')" class="icon-menu-sensor"
+                                  style="width:12px; height:12px; color:transparent;">aa</span>
                             <span ng-class="navClass('sensors')" class="icon-menu-sensor"></span>
                             <span translate="global.menu.sensor">Sensor</span>
                         </a>
                     </li>
-                    <li ng-if="navigationArray.length>0">
+                    <li ng-if="navigationArray.length>0 && canShow('styles')">
                         <a ng-class="navClass('styles')" href="#/styles">
                             <span class="fa fa-paint-brush"></span>
                             <span translate="global.menu.style">Styles</span>
                         </a>
                     </li>
-                    <li>
+                    <li ng-if="canShow('mapcontext')">
                         <a ng-class="navClass('mapcontext')" href="#/mapcontext">
-                            <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext" style="width:12px; height:12px; color:transparent;">aa</span>
+                            <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"
+                                  style="width:12px; height:12px; color:transparent;">aa</span>
                             <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"></span>
                             <span translate="global.menu.mapcontext">Map context</span>
                         </a>
                     </li>
-                    <li>
+                    <li ng-if="canShow('tasks')">
                         <a ng-class="navClass('tasks')" href="#/tasks">
                             <span class="glyphicon glyphicon-cog"></span>
                             <span translate="global.menu.tasks">Tasks</span>
                         </a>
                     </li>
-                    <li ng-if="permissionService.hasPermission('admin')">
+                    <li ng-if="permissionService.hasPermission('admin') && canShow('admin')">
                         <a ng-class="navClass('admin')" href="#/admin">
                             <span ng-class="navClass('admin')" class="glyphicon glyphicon-wrench"></span>
                             <span translate="global.menu.admin.main">Administration</span>
@@ -175,26 +178,27 @@
                     </span>
                 </a>
                 <ul class="dropdown-menu menu-other">
-                    <li ng-if="navigationArray.length>0">
+                    <li ng-if="navigationArray.length>0 && canShow('styles')">
                         <a ng-class="navClass('styles')" href="#/styles">
                             <span class="fa fa-paint-brush"></span>
                             <span translate="global.menu.style">Styles</span>
                         </a>
                     </li>
-                    <li>
+                    <li ng-if="canShow('mapcontext')">
                         <a ng-class="navClass('mapcontext')" href="#/mapcontext">
-                            <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext" style="width:12px; height:12px; color:transparent;">aa</span>
+                            <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"
+                                  style="width:12px; height:12px; color:transparent;">aa</span>
                             <span ng-class="navClass('mapcontext')" class="icon-menu-mapcontext"></span>
                             <span translate="global.menu.mapcontext">Map context</span>
                         </a>
                     </li>
-                    <li>
+                    <li ng-if="canShow('tasks')">
                         <a ng-class="navClass('tasks')" href="#/tasks">
                             <span class="glyphicon glyphicon-cog"></span>
                             <span translate="global.menu.tasks">Tasks</span>
                         </a>
                     </li>
-                    <li ng-if="permissionService.hasPermission('admin')">
+                    <li ng-if="permissionService.hasPermission('admin') && canShow('admin')">
                         <a ng-class="navClass('admin')" href="#/admin">
                             <span ng-class="navClass('admin')" class="glyphicon glyphicon-wrench"></span>
                             <span translate="global.menu.admin.main">Administration</span>

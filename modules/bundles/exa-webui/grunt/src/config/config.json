@@ -1,0 +1,26 @@
+{
+  "navigationList": [
+    "webservice",
+    "data",
+    "metadata",
+    "thesaurus",
+    "sensors",
+    "styles",
+    "mapcontext",
+    "tasks",
+    "admin"
+  ],
+  "webServices": [
+    "wms",
+    "wfs",
+    "wcs",
+    "wmts",
+    "tms",
+    "csw",
+    "sos",
+    "wps",
+    "thw",
+    "sts"
+  ],
+  "showDatabaseImportData": true
+}

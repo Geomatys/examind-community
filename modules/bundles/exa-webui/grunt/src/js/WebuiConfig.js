@@ -139,8 +139,12 @@ angular.module('webui-config',[])
             if (self.config === null) {
                 //synchronous call
                 $http.get('app/conf').success(function(data) {
-                    self.config = data;
-                    callback(data);
+                    $http.get('config/config.json').then(function (config) {
+                        self.config = Object.assign({}, data, config.data);
+                        callback(self.config);
+                    }, function (err) {
+                        console.error(err);
+                    });
                 });
             } else {
                 callback(self.config);

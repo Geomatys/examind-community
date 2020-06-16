@@ -87,12 +87,17 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
             }
         };
 
+        $scope.canShow = function (nav) {
+            return $scope.config && $scope.config.navigationList && $scope.config.navigationList.indexOf(nav) > -1;
+        };
+
         AppConfigService.getConfig(function(config) {
             $scope.cstlProfileURL = config.cstlProfileURL || '#/profile';
 
             if (config.cstlLogoutURL) {
                 $scope.cstlLogoutURL =  config.cstlLogoutURL;
             }
+            $scope.config = config;
 
             var cstlRefreshURL = config.cstlRefreshURL;
             if (cstlRefreshURL) {

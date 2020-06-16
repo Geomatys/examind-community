@@ -94,6 +94,12 @@ module.exports = function(grunt) {
                         cwd: '<%= src_dir %>/',
                         dest: '<%= target_dir %>/',
                         expand: true
+                    },
+                    {
+                        src: ['config/**'],
+                        cwd: '<%= src_dir %>/',
+                        dest: '<%= target_dir %>/',
+                        expand: true
                     }
                 ]
             },
