@@ -40,4 +40,4 @@ services :
          CATALINA_OPTS: "-Xms512m -Xmx4G -Dfile.encoding=UTF-8"
          JPDA_ADDRESS: 8000
          JPDA_TRANSPORT: dt_socket
-       command: catalina.sh jpda run
+       entrypoint: catalina.sh jpda run
