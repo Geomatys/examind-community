@@ -620,8 +620,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (featureset instanceof XmlFeatureSet) {
                         final Map params = ((XmlFeatureSet) featureset).getSchema();
                         if (params.size()==1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
-                            declaredSchema.put(NameOverride.wrap(ftType, layer.getName()), (Schema) params.get(params.keySet().iterator().next()));
-                            types.add(ftType);
+                            FeatureType renamed = NameOverride.wrap(ftType, layer.getName());
+                            declaredSchema.put(renamed, (Schema) params.get(params.keySet().iterator().next()));
+                            types.add(renamed);
                         } else {
                             locations.putAll(params);
                         }
