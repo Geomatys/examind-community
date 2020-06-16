@@ -18,8 +18,10 @@
  */
 package org.constellation.engine.security;
 
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.constellation.dto.UserWithRole;
 
 /**
  *
@@ -32,5 +34,7 @@ public interface AuthenticationProxy {
     String extendToken(HttpServletRequest request, HttpServletResponse response) throws Exception;
 
     void performLogout(HttpServletRequest request, HttpServletResponse response);
+
+    Optional<UserWithRole> getUserInfo(HttpServletRequest request);
 
 }

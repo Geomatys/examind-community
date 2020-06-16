@@ -18,7 +18,6 @@
  */
 package org.constellation.api.rest;
 
-import java.security.Principal;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Optional;
@@ -41,7 +40,6 @@ import org.constellation.dto.user.ResetPassword;
 import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.security.UnknownAccountException;
-import org.constellation.token.TokenUtils;
 import org.geotoolkit.util.StringUtilities;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -182,26 +180,11 @@ public class AuthRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/auth/account", method=GET, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity account(HttpServletRequest req) {
-        Principal userPrincipal = req.getUserPrincipal();
-        String username = null;
-        if (userPrincipal != null) {
-            username = userPrincipal.getName();
-        } else {
-            final String token = TokenUtils.extractAccessToken(req);
-            if (token != null) {
-                username = TokenUtils.getUserNameFromToken(token);
-            } else {
-                LOGGER.log(Level.WARNING,"No token in request");
-            }
-        }
-        if (username == null || username.isEmpty()) {
-            return new ResponseEntity(UNAUTHORIZED);
-        }
 
-        final Optional<UserWithRole> role = userBusiness.findOneWithRole(username);
-        if (role.isPresent()) {
-            role.get().setPassword("*******");
-            return new ResponseEntity(role.get(),OK);
+        final Optional<UserWithRole> user = authProxy.getUserInfo(req);
+        if (user.isPresent()) {
+            user.get().setPassword("*******");
+            return new ResponseEntity(user.get(),OK);
         } else {
             return new ResponseEntity(NOT_FOUND);
         }

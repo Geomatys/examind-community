@@ -18,15 +18,20 @@
  */
 package org.constellation.services.security;
 
+import java.security.Principal;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.business.IUserBusiness;
+import org.constellation.dto.UserWithRole;
 import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.engine.security.Utils;
 import org.constellation.services.component.TokenService;
 import org.constellation.token.TokenExtender;
+import org.constellation.token.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,6 +57,9 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
 
     @Autowired
     private TokenExtender tokenExtender;
+
+    @Autowired
+    private IUserBusiness userBusiness;
 
     @Override
     public String performLogin(String userName, String password, HttpServletResponse response) throws Exception {
@@ -79,6 +87,26 @@ public class CstlAuthenticationProxy implements AuthenticationProxy {
     @Override
     public void performLogout(HttpServletRequest request, HttpServletResponse response) {
         // do nothing
+    }
+
+    @Override
+    public Optional<UserWithRole> getUserInfo(HttpServletRequest request) {
+        Principal userPrincipal = request.getUserPrincipal();
+        String username = null;
+        if (userPrincipal != null) {
+            username = userPrincipal.getName();
+        } else {
+            final String token = TokenUtils.extractAccessToken(request);
+            if (token != null) {
+                username = TokenUtils.getUserNameFromToken(token);
+            } else {
+                LOGGER.log(Level.WARNING,"No token in request");
+            }
+        }
+        if (username == null || username.isEmpty()) {
+            return Optional.empty();
+        }
+        return userBusiness.findOneWithRole(username);
     }
 
 }
