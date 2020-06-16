@@ -188,7 +188,14 @@ public enum AppProperty {
     /**
      * Time in second for attchment cache.
      */
-    EXA_CACHE_CONTROL_ATTACHMENT_TIME("examind.cache.control.attachment.time");
+    EXA_CACHE_CONTROL_ATTACHMENT_TIME("examind.cache.control.attachment.time"),
+
+    EXA_AUTH_URL("exa.auth.url"),
+    EXA_TOKEN_URL("exa.token.url"),
+    EXA_USERINFO_URL("exa.userinfo.url"),
+    EXA_LOGOUT_URL("exa.logout.url"),
+    EXA_CLIENT_ID("exa.client.id"),
+    EXA_CLIENT_SECRET("exa.client.secret");
 
     private final String key;
 
