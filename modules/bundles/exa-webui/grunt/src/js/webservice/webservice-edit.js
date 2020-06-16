@@ -869,24 +869,71 @@ angular.module('cstl-webservice-edit', [
             );
         };
 
-        $scope.listcrs = function() {
-            $scope.pyramidFlag =!$scope.pyramidFlag;
-            if($scope.pyramidFlag){
-                    var dataId = $scope.values.listSelect.map(function (value) {
-                        return value.id;
-                    })[0];
-                    Examind.datas.describePyramid(dataId).then(
-                            function (response) {//success
-                                $scope.crsList = response.data.crs;
-                            }, function () {//error
+        $scope.listcrs = function () {
+            $scope.pyramidFlag = !$scope.pyramidFlag;
+            if ($scope.pyramidFlag) {
+                var dataId = $scope.values.listSelect.map(function (value) {
+                    return value.id;
+                })[0];
+                Examind.datas.describePyramid(dataId).then(
+                    function (response) {//success
+                        if ($scope.crsList && $scope.crsList.length > 0) {
+                            $scope.crsList = $scope.crsList.concat(response.data.crs);
+                        } else {
+                            $scope.crsList = response.data.crs;
+                        }
+                    }, function () {//error
                         Growl('warning', 'Warning', 'An error occurred!');
                     }
-                    );
-                }
+                );
+            }
         };
 
-        $scope.submitWMTSLayer = function() {
-            if($scope.pyramidFlag){
+        var loadedCRS = null;
+
+        $scope.canShowUseExistingPyramid = function () {
+            if ($scope.mode.previous !== 'internal' || $scope.values.listSelect.length !== 1) {
+                return false;
+            } else if ($scope.values.listSelect[0].subtype === 'pyramid') {
+                return true;
+            } else {
+                if ($scope.values.listSelect[0].linkedDatas && $scope.values.listSelect[0].linkedDatas.length > 0) {
+                    var find = $scope.values.listSelect[0].linkedDatas.find(function (item) {
+                        return item.subtype === 'pyramid';
+                    });
+
+                    if (find) {
+                        if (!loadedCRS) {
+                            $scope.values.listSelect[0].linkedDatas.forEach(function (d) {
+                                loadedCRS = {};
+                                Examind.datas.describePyramid(d.id).then(
+                                    function (response) {//success
+                                        loadedCRS[response.data.crs[0]] = d;
+                                        if ($scope.crsList && $scope.crsList.length > 0) {
+                                            $scope.crsList = $scope.crsList.concat(response.data.crs);
+                                        } else {
+                                            $scope.crsList = response.data.crs;
+                                        }
+                                    }, function () {//error
+                                        Growl('warning', 'Warning', 'An error occurred!');
+                                    }
+                                );
+                            });
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+
+                } else {
+                    return false;
+                }
+            }
+        };
+
+
+        $scope.submitWMTSLayer = function () {
+            if ($scope.pyramidFlag) {
                 var dataId = $scope.values.listSelect.map(function (value) {
                     return value.id;
                 })[0];
@@ -895,27 +942,29 @@ angular.module('cstl-webservice-edit', [
                 })[0];
 
                 Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                    {layerAlias: $scope.values.userLayerName,
-                                     layerId: dataId,
-                                     serviceType: $scope.service.type,
-                                     serviceId: $scope.service.identifier,
-                                     providerId: providerId}).then(
-                                    function () {//success
-                                        Growl('success','Success','Layer successfully added to service '+$scope.service.name);
-                                        $scope.close();
-                                    },
-                                    function () {
-                                        Growl('error','Error','Layer failed to be added to service '+$scope.service.name);
-                                        $scope.dismiss();
-                                    }
-                                );
-            }else{
-                if($scope.values.selectedProjection && $scope.values.selectedProjection.code) {
+                    {
+                        layerAlias: $scope.values.userLayerName,
+                        layerId: loadedCRS ? loadedCRS[$scope.values.selectedProjection.code].id : dataId,
+                        serviceType: $scope.service.type,
+                        serviceId: $scope.service.identifier,
+                        providerId: loadedCRS ? loadedCRS[$scope.values.selectedProjection.code].providerId : providerId
+                    }).then(
+                    function () {//success
+                        Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
+                        $scope.close();
+                    },
+                    function () {
+                        Growl('error', 'Error', 'Layer failed to be added to service ' + $scope.service.name);
+                        $scope.dismiss();
+                    }
+                );
+            } else {
+                if ($scope.values.selectedProjection && $scope.values.selectedProjection.code) {
                     $scope.crs = $scope.values.selectedProjection.code;
-                }else {
+                } else {
                     $scope.values.selectedProjection = DEFAULT_PROJECTION;
                 }
-                if($scope.mode.previous==='internal') {
+                if ($scope.mode.previous === 'internal') {
                     if ($scope.values.listSelect.length === 0) {
                         Growl('warning', 'Warning', 'No data selected!');
                         return;
@@ -924,58 +973,62 @@ angular.module('cstl-webservice-edit', [
                         return value.id;
                     });
                     Examind.datas.pyramidData($scope.crs, $scope.values.userLayerName, dataIds).then(
-                        function(response){//success
+                        function (response) {//success
                             response = response.data;
-                            if(response.dataId && response.providerId) {
+                            if (response.dataId && response.providerId) {
                                 Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                    {layerAlias: response.dataId,
+                                    {
+                                        layerAlias: response.dataId,
                                         layerId: response.dataId,
                                         serviceType: $scope.service.type,
                                         serviceId: $scope.service.identifier,
-                                        providerId: response.providerId}).then(
+                                        providerId: response.providerId
+                                    }).then(
                                     function () {//success
-                                        Growl('success','Success','Layer successfully added to service '+$scope.service.name);
+                                        Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                                         $scope.close();
                                     },
                                     function () {
-                                        Growl('error','Error','Layer failed to be added to service '+$scope.service.name);
+                                        Growl('error', 'Error', 'Layer failed to be added to service ' + $scope.service.name);
                                         $scope.dismiss();
                                     }
                                 );
                             }
-                        },function(response){//error
+                        }, function (response) {//error
                             Growl('error', 'Error', 'Failed to generate pyramid data');
                         }
                     );
-                } else if($scope.mode.previous==='mapcontext') {
-                    if($scope.values.selectedContext === null) {
+                } else if ($scope.mode.previous === 'mapcontext') {
+                    if ($scope.values.selectedContext === null) {
                         Growl('warning', 'Warning', 'No map context selected!');
                         return;
                     }
                     Examind.mapcontexts.pyramidMapContext($scope.values.selectedContext.id,
-                                                   $scope.crs,
-                                                   $scope.values.userLayerName).then(
-                        function(response){//on success
+                        $scope.crs,
+                        $scope.values.userLayerName).then(
+                        function (response) {//on success
                             response = response.data;
-                            if(response.dataId && response.providerId) {
+                            if (response.dataId && response.providerId) {
                                 Examind.map.addLayer($scope.service.type, $scope.service.identifier,
-                                    {layerAlias: response.dataId,
+                                    {
+                                        layerAlias: response.dataId,
                                         layerId: response.dataId,
                                         serviceType: $scope.service.type,
                                         serviceId: $scope.service.identifier,
-                                        providerId: response.providerId}).then(
+                                        providerId: response.providerId
+                                    }).then(
                                     function () {//success
-                                        Growl('success','Success','Layer successfully added to service '+$scope.service.name);
+                                        Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
                                         $scope.close();
                                     },
                                     function () {
-                                        Growl('error','Error','Layer failed to be added to service '+$scope.service.name);
+                                        Growl('error', 'Error', 'Layer failed to be added to service ' + $scope.service.name);
                                         $scope.dismiss();
                                     }
                                 );
                             }
                         },
-                        function(response){//on error
+                        function (response) {//on error
                             Growl('error', 'Error', 'Failed to generate pyramid data');
                         }
                     );
