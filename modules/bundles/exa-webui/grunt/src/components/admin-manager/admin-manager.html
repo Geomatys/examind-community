@@ -13,6 +13,10 @@
                                    href="" ng-click="ctrl.changeView('system_state')">
                                     {{'global.menu.admin.system_state' | translate}}
                                 </a>
+                                <a class="list-group-item" ng-class="{active:ctrl.currentView === 'build_info'}"
+                                   href="" ng-click="ctrl.changeView('build_info')">
+                                    Build Info
+                                </a>
                                 <a class="list-group-item" ng-class="{active:ctrl.currentView === 'system_logs'}"
                                    href="" ng-click="ctrl.changeView('system_logs')">
                                     {{'global.menu.admin.logs' | translate}}
@@ -55,6 +59,7 @@
             <div class="col-sm-9">
                 <div class="rightPanel">
                     <div ng-switch="ctrl.currentView">
+                        <build-info ng-switch-when="build_info"></build-info>
                         <system-state ng-switch-when="system_state"></system-state>
                         <system-logs ng-switch-when="system_logs"></system-logs>
                         <system-contact ng-switch-when="system_contact"></system-contact>

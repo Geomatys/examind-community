@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Build Info</h3>
+    </div>
+    <div class="panel-body">
+        <div class="panel-body-content">
+            <ul class="nav navbar-left">
+                <li><p><b>Examind version : </b> {{ctrl.buildInfo['cstl.version']}} </p></li>
+                <li><p><b>Java version : </b> {{ctrl.buildInfo['java.version']}}</p></li>
+                <li><p><b>Commit Id : </b> {{ctrl.buildInfo['git.commit.id']}}</p></li>
+                <li><p><b>Tags : </b>{{ctrl.buildInfo['git.tags']}}</p></li>
+                <li><p><b>Build time : </b> {{ctrl.buildInfo['git.build.time']}}</p></li>
+                <li><p><b>Branch : </b> {{ctrl.buildInfo['git.branch']}}</p></li>
+            </ul>
+        </div>
+    </div>
+</div>
