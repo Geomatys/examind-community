@@ -25,7 +25,7 @@ angular.module('cstl-webservice-create', [
     'examind-instance']
 )
 
-    .controller('WebServiceCreateController', function($routeParams,Examind, $filter, $location, Growl, $translate, webserviceFactory) {
+    .controller('WebServiceCreateController', function($routeParams,Examind, $filter, $location, Growl, $translate, webserviceFactory, $modal) {
         var self = this;
         self.type = $routeParams.type;
         self.tonext = true;
@@ -201,6 +201,23 @@ angular.module('cstl-webservice-create', [
 
                 function() { Growl('error','Error','Service '+ self.metadata.name +' creation failed'); }
             );
+        };
+
+        self.close = function () {
+            var dlg = $modal.open({
+                templateUrl: 'views/modal-confirm.html',
+                controller: 'ModalConfirmController',
+                resolve: {
+                    'keyMsg': function () {
+                        return "dialog.message.confirm.cancel.operation";
+                    }
+                }
+            });
+            dlg.result.then(function (cfrm) {
+                if (cfrm) {
+                    $location.path('/webservice');
+                }
+            });
         };
 
         self.initCtrl = function() {

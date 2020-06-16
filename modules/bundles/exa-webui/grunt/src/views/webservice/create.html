@@ -394,21 +394,38 @@
         <div class="row bg-white">
             <div class="pull-right" style="margin: 20px 30px;">
                 <button ng-if="wsCreateCtrl.serviceInfo"
+                        class="btn btn-default"
+                        type="button"
+                        ng-disabled="!wsCreateCtrl.isValidForm(wsCreateCtrl.serviceform) || !wsCreateCtrl.isValidVersion() || !wsCreateCtrl.isValidIdentifier()"
+                        ng-click="wsCreateCtrl.goToServiceContact(wsCreateCtrl.serviceform)">
+                    {{'metadata.block.metadata' | translate}}
+                </button>
+                <button ng-if="wsCreateCtrl.serviceInfo"
                         class="btn btn-add"
                         type="button"
                         ng-disabled="!wsCreateCtrl.isValidForm(wsCreateCtrl.serviceform) || !wsCreateCtrl.isValidVersion() || !wsCreateCtrl.isValidIdentifier()"
-                        ng-click="wsCreateCtrl.goToServiceContact(wsCreateCtrl.serviceform)"
-                        translate="create.description.next.label">Next</button>
+                        ng-click="wsCreateCtrl.saveServiceMetadata()">
+                    {{'label.save' | translate}}
+                </button>
                 <button ng-if="wsCreateCtrl.serviceContact"
                         class="btn btn-default"
                         type="button"
                         ng-click="wsCreateCtrl.goToServiceInfo()"
-                        translate="create.description.previous.label">Previous</button>
+                        translate="create.description.previous.label">Previous
+                </button>
                 <button ng-if="wsCreateCtrl.serviceContact"
                         class="btn btn-add"
                         type="button"
                         ng-click="wsCreateCtrl.saveServiceMetadata()"
-                        translate="label.save">Next</button>
+                        translate="label.save">Save
+                </button>
+            </div>
+            <div class="pull-left" style="margin: 20px 30px;">
+                <button class="btn btn-danger"
+                        ng-click="wsCreateCtrl.close()"
+                        type="button">
+                    {{'data.modal.cancel' | translate}}
+                </button>
             </div>
         </div>
     </div>
