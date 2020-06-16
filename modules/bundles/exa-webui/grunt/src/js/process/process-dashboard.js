@@ -30,12 +30,16 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
         $scope.wrap.orderreverse=true;
         $scope.historySize = 100;
         $scope.hideScroll = true;
+        $scope.showInternalProcessFlag = false;
+        $scope.allProcessList = [];
+
 
         $scope.init = function() {
             Examind.tasks.listTaskParams()
                 .then(function(response){
+                    $scope.allProcessList = response.data;
 
-                    var filterList = response.data.filter(function (task) {
+                    var filterList = $scope.showInternalProcessFlag ? $scope.allProcessList : $scope.allProcessList.filter(function (task) {
                         return task.type !== 'INTERNAL';
                     });
 
@@ -64,12 +68,18 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
             });
         };
 
+        $scope.showInternalProcess = function () {
+            $scope.init();
+        };
+
         $scope.resetFilters = function(){
             Examind.tasks.listTaskParams().then(
                 function(response) {//success
-                    var filterList = response.data.filter(function (task) {
+                    $scope.allProcessList = response.data;
+                    var filterList = $scope.showInternalProcessFlag ? $scope.allProcessList : $scope.allProcessList.filter(function (task) {
                         return task.type !== 'INTERNAL';
                     });
+
                     Dashboard($scope, filterList, false);
                     $scope.wrap.ordertype='date';
                     $scope.wrap.orderreverse=true;

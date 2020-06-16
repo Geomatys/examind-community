@@ -1598,6 +1598,7 @@
   "tasks.information.planning": "Planifier une exécution",
   "tasks.information.delete": "Supprimer le traitement",
   "tasks.information.title": "Traitements disponibles",
+  "tasks.information.internat.tasks": "Traitements internes",
   "tasks.notask": "Pas de traitement en cours d'execution",
   "tasks.modal.authority": "Catégorie",
   "tasks.modal.process": "Nom du processus",

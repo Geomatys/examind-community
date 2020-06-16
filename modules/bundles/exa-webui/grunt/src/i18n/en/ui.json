@@ -1601,6 +1601,7 @@
   "tasks.information.planning": "Schedule execution",
   "tasks.information.delete": "Delete task",
   "tasks.information.title": "Available tasks",
+  "tasks.information.internat.tasks": "Internal tasks",
   "tasks.notask": "No current process",
   "tasks.modal.authority": "Category",
   "tasks.modal.process": "Process",

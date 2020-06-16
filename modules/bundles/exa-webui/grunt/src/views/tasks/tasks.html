@@ -21,6 +21,17 @@
                     <a class="navbar-brand"
                        translate="tasks.information.title">Available tasks</a>
                 </div>
+                <div class="pull-right" style="padding: 10px;">
+                    <span style="color: #888;font-size: 14px;">{{'tasks.information.internat.tasks' | translate}}</span>
+                    <div class="tgl-container"
+                         style="display: inline-block;vertical-align: middle;margin-top: 5px;margin-left: 5px;">
+                        <input class="tgl tgl-ios" id="showInternalProcess"
+                               ng-model="showInternalProcessFlag"
+                               ng-change="showInternalProcess()"
+                               type="checkbox"/>
+                        <label class="tgl-btn" for="showInternalProcess"></label>
+                    </div>
+                </div>
             </div>
             <div class="navbar sort-navbar">
                 <div class="navbar-inner">
@@ -115,7 +126,9 @@
                             </div>
                         </div>
                         <div class="item-list">
-                            <div ng-repeat="task in wrap.dataList" ng-class="{'col-xs-6':small}" style="padding-left:0;">
+                            <div ng-repeat="task in wrap.dataList"
+                                 ng-if="task.type !== 'INTERNAL' || showInternalProcessFlag"
+                                 ng-class="{'col-xs-6':small}" style="padding-left:0;">
                                 <div class="item registry" ng-class="{selected:task==selected, 'style-small':small}" ng-click="select(task);">
                                     <div class="top">
                                         <span class="item-title" title="{{task.name}}">{{truncate(small,task.name)}} </span>
