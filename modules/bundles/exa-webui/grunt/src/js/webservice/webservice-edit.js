@@ -872,20 +872,22 @@ angular.module('cstl-webservice-edit', [
         $scope.listcrs = function () {
             $scope.pyramidFlag = !$scope.pyramidFlag;
             if ($scope.pyramidFlag) {
-                var dataId = $scope.values.listSelect.map(function (value) {
-                    return value.id;
-                })[0];
-                Examind.datas.describePyramid(dataId).then(
-                    function (response) {//success
-                        if ($scope.crsList && $scope.crsList.length > 0) {
-                            $scope.crsList = $scope.crsList.concat(response.data.crs);
-                        } else {
-                            $scope.crsList = response.data.crs;
+                if($scope.values.listSelect[0].subtype === 'pyramid'){
+                    var dataId = $scope.values.listSelect.map(function (value) {
+                        return value.id;
+                    })[0];
+                    Examind.datas.describePyramid(dataId).then(
+                        function (response) {//success
+                            if ($scope.crsList && $scope.crsList.length > 0) {
+                                $scope.crsList = $scope.crsList.concat(response.data.crs);
+                            } else {
+                                $scope.crsList = response.data.crs;
+                            }
+                        }, function () {//error
+                            Growl('warning', 'Warning', 'An error occurred!');
                         }
-                    }, function () {//error
-                        Growl('warning', 'Warning', 'An error occurred!');
-                    }
-                );
+                    );
+                }
             }
         };
 
