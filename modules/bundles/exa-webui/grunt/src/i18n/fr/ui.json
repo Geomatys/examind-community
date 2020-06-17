@@ -1293,6 +1293,8 @@
   "service.edit.dashboard.wmts.validation.name": "Le nom est obligatoire et ne doit pas contenir de caractères spéciaux ou des espaces.",
   "service.edit.dashboard.wmts.validation.nameExists": "Le nom de couche existe déjà.",
   "service.edit.dashboard.wmts.warning.projectionChange": "Si vous changez la projection alors la pyramide sera générée mais la couche ne sera pas visible sur la mini carte.",
+  "service.edit.dashboard.wmts.use.existing.pyramid": "Utiliser une pyramide existante",
+  "service.edit.dashboard.wmts.available.projection": "Projection disponible",
   "service.edit.dashboard.wps.authority": "Sélectionner une catégorie",
   "service.edit.dashboard.wps.action.add.button": "Ajouter un processus",
   "service.edit.dashboard.wps.modal.add.title": "Ajout de processus",

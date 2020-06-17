@@ -56,7 +56,7 @@
                     <div class="form-group" ng-if="canShowUseExistingPyramid()">
                         <label class="col-sm-4 col-md-4 control-label"
                                style="color: #ddd">
-                            Utiliser une pyramide existante
+                            {{'service.edit.dashboard.wmts.use.existing.pyramid' | translate}}
                         </label>
                         <div class="col-sm-7">
                             <input type="checkbox" ng-click="listcrs()">
@@ -83,10 +83,11 @@
 
                     <div class="form-group" ng-if="mode.previous ==='internal' && values.listSelect.length === 1 && pyramidFlag">
                         <label class="col-sm-4 col-md-4 control-label"
-                               style="color: #ddd">Projection disponible</label>
+                               style="color: #ddd">{{'service.edit.dashboard.wmts.available.projection' | translate}}</label>
                         <div class="col-sm-7">
-                            <select ng-model="values.selectedProjection.code" class="form-control">
-                                <option ng-repeat="option in crsList" value="{{option}}">
+                            <select ng-model="existingPyramidCRS.code" class="form-control">
+                                <option ng-repeat="option in crsList" ng-value="option"
+                                        ng-selected="existingPyramidCRS.code === option">
                                     {{option}}
                                 </option>
                             </select>
@@ -122,7 +123,7 @@
                     ng-click="goToLastStep()"
                     translate="label.next">Next</button>
             <button id="submitWMTSLayer"
-                    ng-if="mode.display=='lastStep' && isValidWMTSLayerName() && values.userLayerName.length>0 && !isLayerNameExists()"
+                    ng-if="mode.display=='lastStep' && isValidWMTSLayerName() && values.userLayerName.length>0 && !isLayerNameExists() && (!pyramidFlag || existingPyramidCRS.code)"
                     type="button"
                     class="btn btn-add"
                     ng-click="submitWMTSLayer()"

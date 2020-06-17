@@ -1180,6 +1180,8 @@
   "service.edit.dashboard.wmts.validation.name": "The name is required and should not contain any special characters or space characters.",
   "service.edit.dashboard.wmts.validation.nameExists": "The layer name already exists",
   "service.edit.dashboard.wmts.warning.projectionChange": "If you change the projection then the pyramid will be generated but the layer will not be visible on the preview map.",
+  "service.edit.dashboard.wmts.use.existing.pyramid": "Use an existing pyramid",
+  "service.edit.dashboard.wmts.available.projection": "Available projection",
   "service.edit.dashboard.wps.authority": "Select a cateogry of processes",
   "service.edit.dashboard.wps.action.add.button": "Add process",
   "service.edit.dashboard.wps.modal.add.title": "Add process",

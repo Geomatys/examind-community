@@ -933,6 +933,9 @@ angular.module('cstl-webservice-edit', [
             }
         };
 
+        $scope.existingPyramidCRS = {
+            code: null
+        };
 
         $scope.submitWMTSLayer = function () {
             if ($scope.pyramidFlag) {
@@ -946,10 +949,10 @@ angular.module('cstl-webservice-edit', [
                 Examind.map.addLayer($scope.service.type, $scope.service.identifier,
                     {
                         layerAlias: $scope.values.userLayerName,
-                        layerId: loadedCRS ? loadedCRS[$scope.values.selectedProjection.code].id : dataId,
+                        layerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].id : dataId,
                         serviceType: $scope.service.type,
                         serviceId: $scope.service.identifier,
-                        providerId: loadedCRS ? loadedCRS[$scope.values.selectedProjection.code].providerId : providerId
+                        providerId: loadedCRS ? loadedCRS[$scope.existingPyramidCRS.code].providerId : providerId
                     }).then(
                     function () {//success
                         Growl('success', 'Success', 'Layer successfully added to service ' + $scope.service.name);
