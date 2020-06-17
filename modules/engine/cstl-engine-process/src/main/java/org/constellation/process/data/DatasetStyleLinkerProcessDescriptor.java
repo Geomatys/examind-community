@@ -64,7 +64,7 @@ public class DatasetStyleLinkerProcessDescriptor extends AbstractCstlProcessDesc
     /**Output parameters */
     public static final ParameterDescriptorGroup OUTPUT_DESC = BUILDER.addName("OutputParameters").setRequired(true).createGroup();
 
-    public static final ProcessDescriptor INSTANCE = new ImportDataDescriptor();
+    public static final ProcessDescriptor INSTANCE = new DatasetStyleLinkerProcessDescriptor();
 
     public DatasetStyleLinkerProcessDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION, ABSTRACT, INPUT_DESC, OUTPUT_DESC);

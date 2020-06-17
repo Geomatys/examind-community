@@ -44,6 +44,7 @@ import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.util.GenericName;
 
@@ -242,5 +243,16 @@ public final class Util {
             }
         }
         return briefs;
+    }
+
+    public static String getProcessAuthorityCode(ProcessDescriptor desc) {
+        String processAuthority = null;
+        if (!desc.getIdentifier().getAuthority().getIdentifiers().isEmpty()) {
+            processAuthority = desc.getIdentifier().getAuthority().getIdentifiers().iterator().next().getCode();
+        } else if (desc.getIdentifier().getAuthority().getTitle() != null){
+            // fallback on Title
+            processAuthority =  desc.getIdentifier().getAuthority().getTitle().toString();
+        }
+        return processAuthority;
     }
 }

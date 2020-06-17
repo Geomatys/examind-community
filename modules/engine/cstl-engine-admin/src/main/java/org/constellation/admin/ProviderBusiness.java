@@ -82,6 +82,7 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
+import org.constellation.util.Util;
 import org.geotoolkit.coverage.grid.ViewType;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
@@ -869,7 +870,7 @@ public class ProviderBusiness implements IProviderBusiness {
             final int outConfigProvider = createPyramidProvider(providerId, pyramidProviderId);
             outProvider = DataProviders.getProvider(outConfigProvider);
             createOrUpdateData(outConfigProvider, datasetID, false);
-                
+
             Optional<GenericName> optIdentifier = covRef.getIdentifier();
             if (optIdentifier.isPresent()) {
                 name = optIdentifier.get();
@@ -925,7 +926,7 @@ public class ProviderBusiness implements IProviderBusiness {
 
             String taskName = "conform_pyramid_" + providerId + ":" + dataName + "_" + System.currentTimeMillis();
             TaskParameter taskParameter = new TaskParameter();
-            taskParameter.setProcessAuthority(desc.getIdentifier().getAuthority().toString());
+            taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
             taskParameter.setProcessCode(desc.getIdentifier().getCode());
             taskParameter.setDate(System.currentTimeMillis());
             taskParameter.setInputs(ParamUtilities.writeParameterJSON(input));

@@ -56,6 +56,7 @@ import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.dto.importdata.StoreFormat;
 import org.constellation.process.data.ImportDataDescriptor;
 import org.constellation.util.ParamUtilities;
+import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -364,7 +365,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
 
             String taskName = "import_data_" + ds.getStoreId() + ":" + ds.getId() + "_" + System.currentTimeMillis();
             TaskParameter taskParameter = new TaskParameter();
-            taskParameter.setProcessAuthority(desc.getIdentifier().getAuthority().toString());
+            taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
             taskParameter.setProcessCode(desc.getIdentifier().getCode());
             taskParameter.setDate(System.currentTimeMillis());
             taskParameter.setInputs(ParamUtilities.writeParameterJSON(inputs));

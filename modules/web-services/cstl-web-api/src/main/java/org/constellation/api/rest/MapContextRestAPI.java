@@ -685,10 +685,10 @@ public class MapContextRestAPI extends AbstractRestAPI {
 
                 //add task in scheduler
                 TaskParameter taskParameter = new TaskParameter();
-                taskParameter.setProcessAuthority(desc.getIdentifier().getAuthority().toString());
+                taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
                 taskParameter.setProcessCode(desc.getIdentifier().getCode());
                 taskParameter.setDate(System.currentTimeMillis());
-                taskParameter.setInputs(ParamUtilities.writeParameter(input));
+                taskParameter.setInputs(ParamUtilities.writeParameterJSON(input));
                 taskParameter.setOwner(userId);
                 taskParameter.setName(context.getName() + " | " + System.currentTimeMillis());
                 taskParameter.setType("INTERNAL");
