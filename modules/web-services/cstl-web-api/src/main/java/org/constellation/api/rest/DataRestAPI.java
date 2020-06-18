@@ -778,7 +778,7 @@ public class DataRestAPI extends AbstractRestAPI{
                     }
                 }
                 if(globalEnv == null) {
-                    globalEnv = (GeneralEnvelope) dataEnv;
+                    globalEnv = new GeneralEnvelope(dataEnv);
                 }else {
                     globalEnv.add(dataEnv);
                 }
