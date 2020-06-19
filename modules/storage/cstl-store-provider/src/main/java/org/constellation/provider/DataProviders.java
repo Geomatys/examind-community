@@ -391,11 +391,11 @@ public final class DataProviders extends Static{
         return scales;
     }
 
-    public static List<Double> getBestScales(List<DataBrief> briefs, String crs) {
+    public static double[] getBestScales(List<DataBrief> briefs, String crs) {
         return getBestScales(briefs, () -> CRS.forCode(crs));
     }
 
-    public static List<Double> getBestScales(List<DataBrief> briefs, Callable<CoordinateReferenceSystem> crs) {
+    public static double[] getBestScales(List<DataBrief> briefs, Callable<CoordinateReferenceSystem> crs) {
         final List<Double> mergedScales = new LinkedList<>();
         for(final DataBrief db : briefs){
             final Double[] scales;
@@ -426,7 +426,11 @@ public final class DataProviders extends Static{
                 mergedScales.addAll(scalesList);
             }
         }
-        return mergedScales;
+        double[] results = new double[mergedScales.size()];
+        for (int i = 0; i < results.length; i++) {
+            results[i] = mergedScales.get(i);
+        }
+        return results;
     }
 
     public static List<String> getAllEpsgCodes() {

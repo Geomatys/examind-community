@@ -109,6 +109,13 @@ public final class DataBrief extends Data implements Serializable {
         this.owner = owner;
     }
 
+    public StyleBrief getFirstStyle() {
+        if (targetStyle != null && !targetStyle.isEmpty()) {
+            return targetStyle.get(0);
+        }
+        return null;
+    }
+
     public List<StyleBrief> getTargetStyle() {
         return targetStyle;
     }

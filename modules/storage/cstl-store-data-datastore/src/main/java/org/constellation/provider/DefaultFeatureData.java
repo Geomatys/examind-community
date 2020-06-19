@@ -79,6 +79,7 @@ import org.constellation.util.StoreUtilities;
 import org.locationtech.jts.geom.Geometry;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.opengis.style.Style;
 
 /**
  * Default layer details for a datastore type.
@@ -140,11 +141,16 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
     }
 
-    protected MapLayer createMapLayer(MutableStyle style, final Map<String, Object> params) throws DataStoreException, ConstellationStoreException {
+    protected MapLayer createMapLayer(Style styleI, final Map<String, Object> params) throws DataStoreException, ConstellationStoreException {
         final FeatureType featureType = getType();
-        if(style == null){
+        MutableStyle style;
+        if (styleI == null) {
             //no favorites defined, create a default one
             style = RandomStyleBuilder.createDefaultVectorStyle(featureType);
+        } else if (styleI instanceof MutableStyle) {
+            style = (MutableStyle) styleI;
+        } else {
+            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
         }
 
         final FeatureMapLayer layer = MapBuilder.createFeatureLayer((FeatureSet)getOrigin(), style);
@@ -170,7 +176,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      * {@inheritDoc}
      */
     @Override
-    public final MapLayer getMapLayer(MutableStyle style, final Map<String, Object> params) throws ConstellationStoreException {
+    public final MapLayer getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException {
 
         final MapLayer layer;
         try {

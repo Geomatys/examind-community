@@ -71,7 +71,7 @@ public final class PortrayalUtil {
                 assert (null != layerRef);
                 //style can be null
 
-                final MapItem mapLayer = layerRef.getMapLayer(style, renderingParameters);
+                final MapItem mapLayer = (MapItem) layerRef.getMapLayer(style, renderingParameters);
                 if (mapLayer == null) {
                     throw new ConstellationStoreException("Could not create a mapLayer for layer: " + layerRef.getName());
                 }

@@ -95,6 +95,7 @@ import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
@@ -181,9 +182,14 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    public MapLayer getMapLayer(MutableStyle style, final Map<String, Object> params) throws ConstellationStoreException {
-        if(style == null){
+    public MapLayer getMapLayer(Style styleI, final Map<String, Object> params) throws ConstellationStoreException {
+        MutableStyle style;
+        if (styleI == null) {
             style = getDefaultStyle();
+        } else if (styleI instanceof MutableStyle) {
+            style = (MutableStyle) styleI;
+        } else {
+            throw new IllegalArgumentException("Only MutableStyle implementation is acepted");
         }
 
         final CoverageMapLayer layer = MapBuilder.createCoverageLayer(origin, style);

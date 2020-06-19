@@ -490,7 +490,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                if (data instanceof GeoData) {
                    final GeoData geoLayer = (GeoData) data;
                    try {
-                       final MapItem mi = geoLayer.getMapLayer(null, null);
+                       final MapItem mi = (MapItem) geoLayer.getMapLayer(null, null);
                        applyLayerFiltersAndDims(mi, userLogin);
 
                        if (mi instanceof MapContext) {
@@ -913,7 +913,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
         final Dimension dimension;
         try {
-            dimension = DefaultLegendService.legendPreferredSize(lt, ((GeoData)data).getMapLayer(ms, null));
+            dimension = DefaultLegendService.legendPreferredSize(lt, (MapItem) ((GeoData)data).getMapLayer(ms, null));
         } catch (ConstellationStoreException ex) {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return null;
@@ -1155,7 +1155,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = getStyle(styleRef);
                 }
             }
-            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+            image = WMSUtilities.getLegendGraphic((MapItem) data.getMapLayer(ms, null), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
         } catch (PortrayalException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }

@@ -232,9 +232,9 @@ public class MapBusiness {
                 params.put("CQL_FILTER", filter);
                 final Map<String,Object> extraParams = new HashMap<>();
                 extraParams.put(Data.KEY_EXTRA_PARAMETERS, params);
-                mapItem = layer.getMapLayer(style, extraParams);
+                mapItem = (MapItem) layer.getMapLayer(style, extraParams);
             } else {
-                mapItem = layer.getMapLayer(style, null);
+                mapItem = (MapItem) layer.getMapLayer(style, null);
             }
 
             final MapContext mapContext = MapBuilder.createContext();

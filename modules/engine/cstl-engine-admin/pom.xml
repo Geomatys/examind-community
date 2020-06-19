@@ -75,6 +75,12 @@
             <artifactId>geotk-render2d</artifactId>
         </dependency>
 
+        <!-- for map context tiling -->
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-client-wms</artifactId>
+        </dependency>
+
         <!-- Common dependencies -->
         <dependency>
             <groupId>org.glassfish.hk2.external</groupId>

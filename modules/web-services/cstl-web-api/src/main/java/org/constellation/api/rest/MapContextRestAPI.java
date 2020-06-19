@@ -19,8 +19,6 @@
 package org.constellation.api.rest;
 
 
-import java.awt.Dimension;
-import java.net.URL;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,28 +26,16 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.namespace.QName;
-import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.crs.AbstractCRS;
-import org.apache.sis.referencing.cs.AxesConvention;
-import org.apache.sis.storage.DataStore;
-import org.apache.sis.storage.WritableAggregate;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;
-import org.constellation.business.IProcessBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IStyleBusiness;
+import org.constellation.business.IPyramidBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Filter;
 import org.constellation.dto.MapContextLayersDTO;
@@ -59,42 +45,14 @@ import org.constellation.dto.PagedSearch;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderData;
 import org.constellation.dto.Sort;
-import org.constellation.dto.StyleBrief;
-import org.constellation.dto.process.TaskParameter;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.Data;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.GeoData;
-import org.constellation.util.ParamUtilities;
-import org.constellation.util.Util;
-import org.geotoolkit.coverage.grid.ViewType;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
-import org.geotoolkit.storage.multires.DefiningPyramid;
-import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.georss.xml.v100.WhereType;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
 import org.geotoolkit.gml.xml.v311.EnvelopeType;
-import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
 import org.geotoolkit.owc.xml.v10.MethodCodeType;
 import org.geotoolkit.owc.xml.v10.OfferingType;
 import org.geotoolkit.owc.xml.v10.OperationType;
-import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessFinder;
-import org.geotoolkit.storage.coverage.DefiningCoverageResource;
-import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.util.NamesExt;
-import org.geotoolkit.wms.WMSResource;
-import org.geotoolkit.wms.WebMapClient;
-import org.geotoolkit.wms.xml.WMSVersion;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
@@ -132,13 +90,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
     private IDataBusiness dataBusiness;
 
     @Inject
-    private IProviderBusiness providerBusiness;
-
-    @Inject
-    private IProcessBusiness processBusiness;
-
-    @Inject
-    private IStyleBusiness styleBusiness;
+    private IPyramidBusiness pyramidBusiness;
 
     /**
      * Get all map contexts.
@@ -505,207 +457,13 @@ public class MapContextRestAPI extends AbstractRestAPI {
             return new ErrorMessage(OK).message("The given mapcontext to pyramid is empty.").build();
         }
 
-        final CoordinateReferenceSystem crsOutput;
         try {
-            crsOutput = AbstractCRS.castOrCopy(CRS.forCode(crs)).forConvention(AxesConvention.RIGHT_HANDED);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Invalid CRS code : "+crs, ex);
-            return new ErrorMessage().message("Invalid CRS code : " + crs).build();
-        }
-
-        final CoordinateReferenceSystem crsObj;
-        final String mapCtxtCrs = mc.getCrs();
-        if(mapCtxtCrs != null) {
-            try {
-                crsObj = AbstractCRS.castOrCopy(CRS.forCode(mapCtxtCrs)).forConvention(AxesConvention.RIGHT_HANDED);
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Invalid mapcontext CRS code : "+mapCtxtCrs, ex);
-                return new ErrorMessage().message("Invalid mapcontext CRS code : " + mapCtxtCrs).build();
-            }
-        } else {
-            return new ErrorMessage().message("mapcontext CRS code is null.").build();
-        }
-        final GeneralEnvelope env = new GeneralEnvelope(crsObj);
-        env.setRange(0,mc.getWest(),mc.getEast());
-        env.setRange(1,mc.getSouth(),mc.getNorth());
-        GeneralEnvelope globalEnv;
-        try {
-            globalEnv = new GeneralEnvelope(Envelopes.transform(env,crsOutput));
-        }catch (TransformException ex){
-            globalEnv=null;
-        }
-
-        if(globalEnv == null || globalEnv.isEmpty()){
-            globalEnv = new GeneralEnvelope(CRS.getDomainOfValidity(crsOutput));
-        }
-
-        if(Util.containsInfinity(globalEnv)){
-            globalEnv.intersect(CRS.getDomainOfValidity(crsOutput));
-        }
-
-        final double geospanX = globalEnv.getSpan(0);
-        final int tileSize = 256;
-        final double[] scales = new double[8];
-        scales[0] = geospanX / tileSize;
-        for(int i=1;i<scales.length;i++){
-            scales[i] = scales[i-1] / 2.0;
-        }
-
-        final String tileFormat = "PNG";
-        final MapContext context = MapBuilder.createContext();
-
-        for(final MapContextStyledLayerDTO layer : mc.getLayers()){
-            final String providerIdentifier = layer.getProvider();
-            final String dataName = layer.getName();
-            if(providerIdentifier == null){
-                URL serviceUrl;
-                try{
-                    serviceUrl = new URL(layer.getExternalServiceUrl());
-                }catch(Exception ex){
-                    LOGGER.log(Level.WARNING,"An external wms layer in mapcontext have invalid service url! "+layer.getName());
-                    continue;
-                }
-                //it is a wms layer
-                final String serviceVersion = layer.getExternalServiceVersion() != null ? layer.getExternalServiceVersion() : "1.3.0";
-                final WebMapClient wmsServer = new WebMapClient(serviceUrl, WMSVersion.getVersion(serviceVersion));
-                final WMSResource wmsLayer = new WMSResource(wmsServer, dataName);
-                context.items().add(MapBuilder.createCoverageLayer(wmsLayer));
-                continue;
-            }
-            //get data
-            final DataProvider inProvider;
-            try {
-                inProvider = DataProviders.getProvider(providerIdentifier);
-            } catch (ConfigurationException ex) {
-                LOGGER.log(Level.WARNING,"Provider "+providerIdentifier+" does not exist");
-                    continue;
-            }
-
-            final Data inD = inProvider.get(NamesExt.create(dataName));
-            if (!(inD instanceof GeoData)) {
-                LOGGER.log(Level.WARNING,"Data "+dataName+" does not exist in provider " + providerIdentifier + " (or is not a GeoData)");
-                continue;
-            }
-            final GeoData inData = (GeoData) inD;
-
-            MutableStyle style = null;
-            try {
-                final List<StyleBrief> styles = layer.getTargetStyle();
-                if(styles != null && ! styles.isEmpty()){
-                    final String styleName = styles.get(0).getName();
-                    style = (MutableStyle) styleBusiness.getStyle("sld",styleName);
-                }
-            }catch(Exception ex){
-                LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-            }
-
-            try {
-                //if style is null, a default style will be used in maplayer.
-                context.items().add(inData.getMapLayer(style, null));
-            } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Failed to create map context item for data " + ex.getMessage(), ex);
-            }
-        }
-
-        final String uuid = UUID.randomUUID().toString();
-        final String providerId = uuid;
-        final String dataName = layerName;
-         context.setName("Styled pyramid " + crs + " for " + providerId + ":" + dataName);
-
-        //create the output folder for pyramid
-        XMLCoverageResource outRef;
-        String pyramidProviderId = RENDERED_PREFIX + uuid;
-
-
-        //create the output provider
-        final DataProvider outProvider;
-        final Integer pyramidProvider;
-        try {
-            pyramidProvider = providerBusiness.createPyramidProvider(providerId, pyramidProviderId);
-            outProvider = DataProviders.getProvider(pyramidProvider);
-        } catch (Exception ex) {
-            DataProviders.LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage().message("Failed to create pyramid provider " + ex.getMessage()).build();
-        }
-
-        try {
-            //create the output pyramid coverage reference
-            DataStore pyramidStore = outProvider.getMainStore();
-            outRef = (XMLCoverageResource) ((WritableAggregate)pyramidStore).add(new DefiningCoverageResource(NamesExt.create(dataName)));
-            outRef.setPackMode(ViewType.RENDERED);
-            ((XMLCoverageResource) outRef).setPreferredFormat(tileFormat);
-            //this produces an update event which will create the DataRecord
-            outProvider.reload();
-
-            pyramidStore = outProvider.getMainStore();
-            outRef = (XMLCoverageResource) pyramidStore.findResource(String.valueOf(outRef.getIdentifier().orElse(null)));
-            //create database data object
-             providerBusiness.createOrUpdateData(pyramidProvider, null, false);
-
-            // Get the new data created
-            Optional<GenericName> optOutId = outRef.getIdentifier();
-            if (optOutId.isPresent()) {
-                GenericName outID = optOutId.get();
-                final QName outDataQName = new QName(NamesExt.getNamespace(outID), outID.toString());
-                final Integer dataId = dataBusiness.getDataId(outDataQName, pyramidProvider);
-
-                //set data as RENDERED
-                dataBusiness.updateDataRendered(outDataQName, outProvider.getId(), true);
-
-                //set hidden value to true for the pyramid styled map
-                dataBusiness.updateDataHidden(dataId,true);
-            } else {
-                throw new ConstellationException("Empty identifier in pyramid resource.");
-            }
+            final ProviderData ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc);
+            return new ResponseEntity(ref, OK);
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage().message("Failed to create pyramid layer " + ex.getMessage()).build();
+            return new ErrorMessage().message("Map context cannot be tiled. " + ex.getMessage()).build();
         }
-
-        //prepare the pyramid and mosaics
-        try {
-            final Dimension tileDim = new Dimension(tileSize, tileSize);
-            try {
-                final DefiningPyramid template = Pyramids.createTemplate(globalEnv, tileDim, scales);
-                outRef.createModel(template);
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                throw new ConstellationException("Failed to initialize output pyramid. Cause : " + ex.getMessage());
-            }
-
-            try {
-                final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("administration", "gen-pyramid");
-
-                final ParameterValueGroup input = desc.getInputDescriptor().createValue();
-                input.parameter("mapcontext").setValue(context);
-                input.parameter("resource").setValue(outRef);
-                input.parameter("mode").setValue("rgb");
-                final org.geotoolkit.process.Process p = desc.createProcess(input);
-
-                //add task in scheduler
-                TaskParameter taskParameter = new TaskParameter();
-                taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
-                taskParameter.setProcessCode(desc.getIdentifier().getCode());
-                taskParameter.setDate(System.currentTimeMillis());
-                taskParameter.setInputs(ParamUtilities.writeParameterJSON(input));
-                taskParameter.setOwner(userId);
-                taskParameter.setName(context.getName() + " | " + System.currentTimeMillis());
-                taskParameter.setType("INTERNAL");
-                Integer newID = processBusiness.addTaskParameter(taskParameter);
-                //add task in scheduler
-                processBusiness.runProcess("Create " + context.getName(), p, newID, userId);
-
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                throw new ConstellationException("Data cannot be tiled. " + ex.getMessage());
-            }
-
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            return new ErrorMessage().message("Data cannot be tiled. " + ex.getMessage()).build();
-        }
-        final ProviderData ref = new ProviderData(pyramidProviderId, dataName);
-        return new ResponseEntity(ref, OK);
     }
 }

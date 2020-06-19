@@ -23,10 +23,8 @@ import java.util.Map;
 
 import org.apache.sis.storage.Resource;
 
-import org.geotoolkit.map.MapItem;
-import org.geotoolkit.style.MutableStyle;
-
 import org.constellation.exception.ConstellationStoreException;
+import org.opengis.style.Style;
 
 /**
  *
@@ -38,9 +36,11 @@ public interface GeoData<T extends Resource> extends Data<T> {
      * Create a MapItem with the given style and parameters.
      * if style is null, the favorite style of this layer will be used.
      *
+     * Return type is temporarly set to Object until MapItem/MapLayer will be moved into SIS.
+     *
      * @param style : can be null. reconized types are String/GraphicBuilder/MutableStyle.
      * @param params : can be null.
      */
-    MapItem getMapLayer(MutableStyle style, final Map<String, Object> params) throws ConstellationStoreException;
+    Object getMapLayer(Style style, final Map<String, Object> params) throws ConstellationStoreException;
 
 }

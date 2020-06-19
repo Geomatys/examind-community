@@ -33,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-client-wms</artifactId>
+            <artifactId>geotk-render2d</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotoolkit</groupId>
