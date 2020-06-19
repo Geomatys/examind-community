@@ -19,35 +19,22 @@
 package org.constellation.admin;
 
 
-import java.awt.Dimension;
-import java.awt.image.DataBuffer;
-import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.xml.namespace.QName;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
-import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
@@ -58,21 +45,17 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ProviderConfiguration;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.Style;
 import org.constellation.dto.metadata.MetadataBrief;
-import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.MetadataData;
 import org.constellation.provider.MetadataProvider;
-import org.constellation.provider.ProviderParameters;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
 import org.constellation.repository.DataRepository;
@@ -80,34 +63,14 @@ import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
-import org.constellation.util.Util;
-import org.geotoolkit.coverage.grid.ViewType;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
-import org.geotoolkit.image.interpolation.InterpolationCase;
-import org.geotoolkit.map.MapBuilder;
-import org.geotoolkit.map.MapContext;
-import org.geotoolkit.process.Process;
-import org.geotoolkit.process.ProcessDescriptor;
-import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.storage.multires.DefiningPyramid;
-import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.geometry.Envelope;
-import org.opengis.metadata.Identifier;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.util.GenericName;
-import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Node;
 
@@ -115,8 +78,6 @@ import org.w3c.dom.Node;
 @Primary
 public class ProviderBusiness implements IProviderBusiness {
     private static final Logger LOGGER = Logging.getLogger("org.constellation.admin");
-
-    private static final String CONFORM_PREFIX = "conform_";
 
     @Inject
     private IUserBusiness userBusiness;
@@ -138,9 +99,6 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private IDataBusiness dataBusiness;
-
-    @Inject
-    private IProcessBusiness processBusiness;
 
     @Inject
     private ISensorBusiness sensorBusiness;
@@ -575,389 +533,6 @@ public class ProviderBusiness implements IProviderBusiness {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException {
-        final ProviderPyramidChoiceList choices = new ProviderPyramidChoiceList();
-
-        final List<ProviderBrief> childrenRecs = providerRepository.findChildren(id);
-
-        for (ProviderBrief childRec : childrenRecs) {
-            final DataProvider provider = DataProviders.getProvider(childRec.getId());
-            final GenericName gname = NamesExt.create(ProviderParameters.getNamespace(provider), dataName);
-            final Data cacheData = provider.get(gname);
-            if (cacheData != null) {
-                final MultiResolutionResource cacheRef = (MultiResolutionResource) cacheData.getOrigin();
-                final Collection<Pyramid> pyramids;
-                try {
-                    pyramids = Pyramids.getPyramids(cacheRef);
-                } catch (DataStoreException ex) {
-                    throw new ConfigurationException(ex.getMessage(), ex);
-                }
-                if (pyramids.isEmpty()) continue;
-                //TODO what do we do if there are more then one pyramid ?
-                //it the current state of constellation there is only one pyramid
-                final Pyramid pyramid = pyramids.iterator().next();
-                final Identifier crsid = pyramid.getCoordinateReferenceSystem().getIdentifiers().iterator().next();
-
-                final ProviderPyramidChoiceList.CachePyramid cache = new ProviderPyramidChoiceList.CachePyramid();
-                cache.setCrs(crsid.getCode());
-                cache.setScales(pyramid.getScales());
-                cache.setProviderId(provider.getId());
-                cache.setDataId(dataName);
-                cache.setConform(childRec.getIdentifier().startsWith("conform_"));
-
-                choices.getPyramids().add(cache);
-            }
-        }
-        return choices;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void createAllPyramidConformForProvider(final int providerId) throws ConstellationException {
-        final List<org.constellation.dto.Data> dataList = dataRepository.findByProviderId(providerId);
-        for(final org.constellation.dto.Data d : dataList) {
-            try {
-                final DataBrief db = createPyramidConform(d.getId(), d.getOwnerId());
-                // link original data with the tiled data.
-                dataBusiness.linkDataToData(d.getId(),db.getId());
-            }catch(ConstellationException ex) {
-                LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-            }
-        }
-    }
-
-    @Override
-    @Transactional
-    public int createZXYPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException {
-        try {
-            //create the output folder for pyramid
-            final Path providerDirectory = ConfigDirectory.getDataIntegratedDirectory(providerId);
-            final Path pyramidDirectory = providerDirectory.resolve(pyramidProviderId);
-            if (!Files.exists(pyramidDirectory)) {
-                Files.createDirectories(pyramidDirectory);
-            }
-
-            final DataProviderFactory factory = DataProviders.getFactory("data-store");
-            final Parameters pparams = Parameters.castOrWrap(factory.getProviderDescriptor().createValue());
-            pparams.getOrCreate(ProviderParameters.SOURCE_ID_DESCRIPTOR).setValue(pyramidProviderId);
-            pparams.getOrCreate(ProviderParameters.SOURCE_TYPE_DESCRIPTOR).setValue("data-store");
-            final String storeChoiceName = factory.getStoreDescriptor().getName().getCode();
-            final ParameterValueGroup choiceParams = pparams.groups(storeChoiceName).stream()
-                    .findFirst()
-                    .orElseGet(() -> pparams.addGroup(storeChoiceName));
-
-            final Parameters xmlParams = choiceParams.groups("zxy").stream()
-                    .findFirst()
-                    .map(Parameters::castOrWrap)
-                    .orElseGet(() -> Parameters.castOrWrap(choiceParams.addGroup("zxy")));
-
-            xmlParams.parameter(DataStoreProvider.LOCATION).setValue(pyramidDirectory.toUri());
-
-            return create(pyramidProviderId, factory.getName(), pparams);
-        } catch (IOException ex) {
-            throw new ConstellationException(ex);
-        }
-    }
-
-    @Override
-    @Transactional
-    public int createGPKGPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException {
-        throw new ConstellationException("Unsupported format, format available only in Examind-Server");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataBrief createPyramidConform(final String providerId, final String dataName, final String namespace,
-                                          final int userOwnerId) throws ConstellationException {
-        final QName qName = new QName(namespace, dataName);
-        final DataBrief inData = dataBusiness.getDataBrief(qName, providerId);
-        return createPyramidConform(inData.getId(), userOwnerId);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataBrief createPyramidConform(final int dataId, final int userOwnerId) throws ConstellationException {
-        final DataBrief inData = dataBusiness.getDataBrief(dataId);
-        if (inData != null){
-            // Execute in transaction to ensure that taskParameter is in Database before run
-            // process in Quartz scheduler.
-            final Map<String, Object> result;
-            try {
-                result = SpringHelper.executeInTransaction((TransactionStatus transactionStatus) -> {
-                    try {
-                        return preparePyramidConform(inData, userOwnerId);
-                    } catch (ConstellationException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                });
-            } catch (Exception e) {
-                // Before sending back initial error, we try to find a constellation exception in it.
-                // It's likely to be the real error.
-                Throwable cause = e.getCause();
-                while (cause != null) {
-                    if (cause instanceof ConstellationException)
-                        throw (ConstellationException)cause;
-                    cause = cause.getCause();
-                }
-                throw new ConstellationException("Cannot initialize confirm pyramid for data " + dataId, e);
-            }
-
-            final DataBrief outData = (DataBrief) result.get("outData");
-            final Process process = (Process) result.get("process");
-            final Integer taskParameterId = (Integer) result.get("taskParameterId");
-            final String taskName = (String) result.get("taskName");
-
-            //run pyramid process in Quartz
-            processBusiness.runProcess(taskName, process, taskParameterId, userOwnerId);
-
-            /* 
-            
-            WILL BE MOVED IN ANOTHER MERGE REQUEST
-            
-            
-            run statistics on integrated data if data.auto.analyse is false
-            // TODO try to run statistics AFTER pyramid process ending
-            String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
-            boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
-            if (!doAnalysis) {
-                dataCoverageJob.asyncUpdateDataStatistics(inData.getId());
-            }*/
-            return outData;
-        }
-        throw new ConstellationException("Data "+ dataId +" not found.");
-    }
-
-    /**
-     * Prepare pyramid conform for a data.
-     * This method should not be called alone, but before
-     * {@link org.constellation.business.IProcessBusiness#runProcess(String, org.geotoolkit.process.Process, Integer, Integer)}.
-     *
-     * This method need to be called in a Transaction
-     *
-     * @param inData Data to pyramid
-     * @param userOwnerId owner of the pyramid
-     * @return a Map with :
-     *      <ul>
-     *          <li>"ouData" : new pyramid DataBrief</li>
-     *          <li>"process" : pyramid process to execute</li>
-     *          <li>"taskParameterId" : task parameter id linked to process</li>
-     *          <li>"taskName" : name of the task</li>
-     *      </ul>
-     * @throws ConstellationException
-     */
-    private Map<String, Object> preparePyramidConform(final DataBrief inData, final int userOwnerId) throws ConstellationException {
-        final String dataName = inData.getName();
-        final String namespace = inData.getNamespace();
-        final String providerId = inData.getProvider();
-        final Integer datasetID = inData.getDatasetId();
-        GenericName name = NamesExt.create(namespace,dataName);
-
-        //get data
-        final DataProvider inProvider;
-        try {
-            inProvider = DataProviders.getProvider(inData.getProviderId());
-        } catch (ConfigurationException ex) {
-            throw new ConstellationException(ex.getMessage(),ex);
-        }
-        if (inProvider == null) {
-            throw new ConstellationException("Provider " + providerId + " does not exist");
-        }
-        final org.constellation.provider.Data providerData = inProvider.get(name);
-        if (providerData == null) {
-            throw new ConstellationException("Data " + dataName + " does not exist in provider " + providerId);
-        }
-        Envelope dataEnv;
-        try {
-            //use data crs
-            dataEnv = providerData.getEnvelope();
-        } catch (ConstellationStoreException ex) {
-            throw new ConstellationException("Failed to extract envelope for data " + dataName + ". " + ex.getMessage(),ex);
-        }
-
-        final Object origin = providerData.getOrigin();
-
-        if(!(origin instanceof GridCoverageResource)) {
-            throw new ConstellationException("Cannot create pyramid conform for no raster data, it is not supported yet!");
-        }
-
-        //init coverage reference and grid geometry
-        GridCoverageResource inRef = (GridCoverageResource) origin;
-        final GridGeometry gg;
-        try {
-            gg = inRef.getGridGeometry();
-        } catch (DataStoreException ex) {
-            throw new ConstellationException("Failed to extract grid geometry for data " + dataName + ". " + ex.getMessage(),ex);
-        }
-
-        //find the type of data we are dealing with, geophysic or photographic
-        try {
-            final List<SampleDimension> sampleDimensions = inRef.getSampleDimensions();
-            if (sampleDimensions != null) {
-                final int nbBand = sampleDimensions.size();
-                boolean hasCategories = false;
-                for (int i = 0; i < nbBand; i++) {
-                    hasCategories = hasCategories || sampleDimensions.get(i).getCategories() != null;
-                }
-
-                if (!hasCategories) {
-                    //no sample dimension categories, we force some categories
-                    //this is a bypass solution to avoid black border images in pyramids
-                    //note : we need a pyramid storage model that doesn't produce any pixels
-                    //outside the original coverage area
-
-                    RenderedImage img = readSmallImage(inRef, gg);
-
-                    final List<SampleDimension> newDims = new ArrayList<>();
-                    for (int i = 0; i < nbBand; i++) {
-                        final SampleDimension sd = sampleDimensions.get(i);
-                        final int dataType = img.getSampleModel().getDataType();
-                        NumberRange range;
-                        switch (dataType) {
-                            case DataBuffer.TYPE_BYTE : range = NumberRange.create(0, true, 255, true); break;
-                            case DataBuffer.TYPE_SHORT : range = NumberRange.create(Short.MIN_VALUE, true, Short.MAX_VALUE, true); break;
-                            case DataBuffer.TYPE_USHORT : range = NumberRange.create(0, true, 0xFFFF, true); break;
-                            case DataBuffer.TYPE_INT : range = NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, true); break;
-                            default : range = NumberRange.create(-Double.MAX_VALUE, true, +Double.MAX_VALUE, true); break;
-                        }
-
-                        final SampleDimension nsd = new SampleDimension.Builder()
-                                .setName(sd.getName())
-                                .addQuantitative("data", range, (MathTransform1D) MathTransforms.linear(1, 0), sd.getUnits().orElse(null))
-                                .build();
-                        newDims.add(nsd);
-                    }
-                    inRef = new ForcedSampleDimensionsCoverageResource(inRef, newDims);
-                }
-            }
-        } catch (DataStoreException ex) {
-            throw new ConstellationException("Failed to extract no-data values for resampling " + ex.getMessage(),ex);
-        }
-
-
-        //create the output folder for pyramid
-        XMLCoverageResource outRef;
-        final String pyramidProviderId = CONFORM_PREFIX + UUID.randomUUID().toString();
-        //create the output provider
-        final DataProvider outProvider;
-        final DataBrief pyramidDataBrief;
-        try {
-            //create the output folder for pyramid
-            final Path pyramidDirectory = ConfigDirectory.getPyramidDirectory(providerId, pyramidProviderId);
-
-            //create output store
-            final Parameters storeParams = Parameters.castOrWrap(XMLCoverageStoreFactory.PARAMETERS_DESCRIPTOR.createValue());
-            storeParams.getOrCreate(XMLCoverageStoreFactory.PATH).setValue(pyramidDirectory.toUri());
-            storeParams.getOrCreate(XMLCoverageStoreFactory.CACHE_TILE_STATE).setValue(true);
-
-            XMLCoverageStore outStore = (XMLCoverageStore) DataStores.open(storeParams);
-            if (outStore == null) {
-                throw new ConstellationException("Failed to create pyramid layer ");
-            }
-            XMLCoverageResource covRef = (XMLCoverageResource)outStore.create(name, ViewType.GEOPHYSICS, "TIFF");
-
-            // create provider
-            final int outConfigProvider = createPyramidProvider(providerId, pyramidProviderId);
-            outProvider = DataProviders.getProvider(outConfigProvider);
-            createOrUpdateData(outConfigProvider, datasetID, false);
-
-            Optional<GenericName> optIdentifier = covRef.getIdentifier();
-            if (optIdentifier.isPresent()) {
-                name = optIdentifier.get();
-                outStore = (XMLCoverageStore) outProvider.getMainStore();
-                outRef = (XMLCoverageResource) outStore.findResource(name.toString());
-
-                // Update the parent attribute of the created provider
-                updateParent(outProvider.getId(), providerId);
-
-                final QName qName = new QName(namespace, name.tip().toString());
-                //set rendered attribute to false to indicates that this pyramid can have stats.
-                dataBusiness.updateDataRendered(qName, outProvider.getId(), false);
-
-                //set hidden value to true for the pyramid conform data
-                pyramidDataBrief = dataBusiness.getDataBrief(qName, pyramidProviderId);
-                dataBusiness.updateDataHidden(pyramidDataBrief.getId(),true);
-            } else {
-                throw new ConstellationException("Empty identifier in coverage resource.");
-            }
-
-        } catch (Exception ex) {
-            throw new ConstellationException("Failed to create pyramid provider " + ex.getMessage(),ex);
-        }
-
-
-        //calculate scales
-
-        try {
-            final DefiningPyramid template = Pyramids.createTemplate(gg, gg.getCoordinateReferenceSystem(), new Dimension(256, 256));
-            outRef.createModel(template);
-        } catch (Exception ex) {
-            throw new ConstellationException("Failed to create pyramid and mosaics in store " + ex.getMessage(),ex);
-        }
-
-        //prepare process
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("outData", pyramidDataBrief);
-
-        //add task in scheduler
-        try {
-            final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor("administration", "gen-pyramid");
-
-            final MapContext context = MapBuilder.createContext();
-            context.layers().add(MapBuilder.createCoverageLayer(inRef));
-            final ParameterValueGroup input = desc.getInputDescriptor().createValue();
-            input.parameter("mapcontext").setValue(context);
-            input.parameter("resource").setValue(outRef);
-            input.parameter("mode").setValue("data");
-            input.parameter("interpolation").setValue(InterpolationCase.NEIGHBOR);
-            final org.geotoolkit.process.Process p = desc.createProcess(input);
-            result.put("process", p);
-
-            String taskName = "conform_pyramid_" + providerId + ":" + dataName + "_" + System.currentTimeMillis();
-            TaskParameter taskParameter = new TaskParameter();
-            taskParameter.setProcessAuthority(Util.getProcessAuthorityCode(desc));
-            taskParameter.setProcessCode(desc.getIdentifier().getCode());
-            taskParameter.setDate(System.currentTimeMillis());
-            taskParameter.setInputs(ParamUtilities.writeParameterJSON(input));
-            taskParameter.setOwner(userOwnerId);
-            taskParameter.setName(taskName);
-            taskParameter.setType("INTERNAL");
-            Integer taskId = processBusiness.addTaskParameter(taskParameter);
-            result.put("taskParameterId", taskId);
-            result.put("taskName", taskName);
-
-        } catch (IOException | NoSuchIdentifierException ex) {
-            throw new ConstellationException("Unable to run pyramid process on scheduler",ex);
-        }
-        return result;
-    }
-
-    private RenderedImage readSmallImage(GridCoverageResource ref, GridGeometry gg) throws DataStoreException{
-        //read a single pixel value
-        try {
-            double[] resolution = gg.getResolution(false);
-            final GeneralEnvelope envelope = new GeneralEnvelope(gg.getEnvelope());
-            for(int i=0;i<resolution.length;i++){
-                resolution[i] = envelope.getSpan(i)/ 5.0;
-            }
-
-            GridGeometry query = gg.derive().subgrid(envelope, resolution).sliceByRatio(0.5, 0,1).build();
-            return ref.read(query).render(null);
-        } catch (IncompleteGridGeometryException ex){}
-        return null;
-    }
-
     @Override
     public List<Integer> getProviderIdsAsInt() {
         return providerRepository.getAllIds();
@@ -970,46 +545,6 @@ public class ProviderBusiness implements IProviderBusiness {
         }
         return getProviderIdsAsInt();
 
-    }
-
-    @Transactional
-    @Override
-    public int createPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException {
-        return createPyramidProvider(providerId, pyramidProviderId, true);
-    }
-
-    @Override
-    public int createPyramidProvider(String providerId, String pyramidProviderId, boolean cacheTileState) throws ConstellationException {
-        try {
-            //create the output folder for pyramid
-            final Path providerDirectory = ConfigDirectory.getDataIntegratedDirectory(providerId);
-            final Path pyramidDirectory = providerDirectory.resolve(pyramidProviderId);
-            if (!Files.exists(pyramidDirectory)) {
-                Files.createDirectories(pyramidDirectory);
-            }
-
-            final DataProviderFactory factory = DataProviders.getFactory("data-store");
-            final Parameters pparams = Parameters.castOrWrap(factory.getProviderDescriptor().createValue());
-            pparams.getOrCreate(ProviderParameters.SOURCE_ID_DESCRIPTOR).setValue(pyramidProviderId);
-            pparams.getOrCreate(ProviderParameters.SOURCE_TYPE_DESCRIPTOR).setValue("data-store");
-            final String storeChoiceName = factory.getStoreDescriptor().getName().getCode();
-            final ParameterValueGroup choiceParams = pparams.groups(storeChoiceName).stream()
-                    .findFirst()
-                    .orElseGet(() -> pparams.addGroup(storeChoiceName));
-
-            final String xmlParamName = XMLCoverageStoreFactory.PARAMETERS_DESCRIPTOR.getName().getCode();
-            final Parameters xmlParams = choiceParams.groups(xmlParamName).stream()
-                    .findFirst()
-                    .map(Parameters::castOrWrap)
-                    .orElseGet(() -> Parameters.castOrWrap(choiceParams.addGroup(xmlParamName)));
-
-            xmlParams.getOrCreate(XMLCoverageStoreFactory.PATH).setValue(pyramidDirectory.toUri());
-            xmlParams.getOrCreate(XMLCoverageStoreFactory.CACHE_TILE_STATE).setValue(cacheTileState);
-
-            return create(pyramidProviderId, factory.getName(), pparams);
-        } catch (IOException ex) {
-            throw new ConstellationException(ex);
-        }
     }
 
     /**
@@ -1026,7 +561,7 @@ public class ProviderBusiness implements IProviderBusiness {
      */
     @Override
     public Integer createOrUpdateData(final int providerId, Integer datasetId,final boolean createDatasetIfNull, final boolean hideNewData, Integer owner)
-            throws IOException, ConstellationException{
+            throws ConstellationException{
         final ProviderBrief pr = providerRepository.findOne(providerId);
         if (pr == null) {
             throw new ConstellationException("Provider " + providerId + " does not exist.");

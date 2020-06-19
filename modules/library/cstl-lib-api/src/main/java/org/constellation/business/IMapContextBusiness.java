@@ -20,12 +20,14 @@ package org.constellation.business;
 
 import java.util.List;
 import java.util.Map;
+import org.constellation.dto.DataBrief;
 
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.exception.ConstellationException;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextStyledLayerDTO;
+import org.opengis.geometry.Envelope;
 import org.opengis.util.FactoryException;
 
 /**
@@ -34,6 +36,8 @@ import org.opengis.util.FactoryException;
 public interface IMapContextBusiness {
 
     List<MapContextLayersDTO> findAllMapContextLayers() throws ConstellationException;
+
+    Integer createFromData(Integer userId, String contextName, String crs, Envelope env, List<DataBrief> briefs) throws ConstellationException;
 
     Integer create(final MapContextLayersDTO mapContext) throws ConstellationException;
 

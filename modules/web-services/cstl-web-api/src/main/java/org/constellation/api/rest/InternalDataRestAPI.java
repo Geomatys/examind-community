@@ -69,6 +69,7 @@ import org.apache.sis.storage.DataStore;
 import static org.apache.sis.util.ArraysExt.contains;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
+import org.constellation.business.IPyramidBusiness;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.storage.ResourceType;
 import static org.geotoolkit.storage.ResourceType.*;
@@ -110,6 +111,9 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
     @Inject
     private IDatasetBusiness datasetBusiness;
+
+    @Inject
+    private IPyramidBusiness pyramidBusiness;
 
     /**
      * Give subfolder list of data from a server file path
@@ -454,7 +458,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                 /**
                  * For each data created in provider, we need to pyramid conform each raster.
                  */
-                providerBusiness.createAllPyramidConformForProvider(prId);
+                pyramidBusiness.createAllPyramidConformForProvider(prId);
 
             } else if ("observation".equalsIgnoreCase(uploadType)) {
                 String subType = "observationFile";

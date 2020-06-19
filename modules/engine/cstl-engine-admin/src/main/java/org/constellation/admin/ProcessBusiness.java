@@ -20,7 +20,6 @@ package org.constellation.admin;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.sis.parameter.ParameterBuilder;
 import org.constellation.exception.ConstellationException;
 import org.constellation.api.TaskState;
 import org.constellation.business.IProcessBusiness;
@@ -39,10 +38,6 @@ import org.geotoolkit.nio.PathChangedEvent;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.ProcessingRegistry;
-import org.geotoolkit.wps.client.WebProcessingClient;
-import org.geotoolkit.xml.parameter.ParameterValueReader;
-import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -53,11 +48,8 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DateFormat;
@@ -66,7 +58,6 @@ import java.util.*;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import org.geotoolkit.wps.client.process.WPSProcessingRegistry;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,9 +69,6 @@ import org.constellation.dto.process.TaskParameterWithOwnerName;
 import org.constellation.dto.CstlUser;
 import org.constellation.exception.ConstellationSchedulerException;
 import org.constellation.scheduler.Util;
-import org.geotoolkit.client.CapabilitiesException;
-import org.opengis.parameter.InvalidParameterValueException;
-import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -289,47 +277,6 @@ public class ProcessBusiness implements IProcessBusiness {
     @Override
     public void registerQuartzListener(CstlJobListener jobListener) throws ConstellationException {
         quartzScheduler.addJobListener(jobListener);
-    }
-
-    private ProcessDescriptor getDescriptor(final String authority, final String code) throws ConstellationException {
-        final ProcessDescriptor desc;
-        try {
-            if (authority.startsWith("http")) {
-                final WebProcessingClient client = new WebProcessingClient(new URL(authority));
-                desc = new WPSProcessingRegistry(client).getDescriptor(code);
-            } else {
-                desc = ProcessFinder.getProcessDescriptor(authority, code);
-            }
-        } catch (NoSuchIdentifierException ex) {
-            throw new ConstellationException("No Process for id: {" + authority + "}" + code + " has been found");
-        } catch (InvalidParameterValueException | MalformedURLException | CapabilitiesException ex) {
-            throw new ConstellationException(ex);
-        }
-        if (desc == null) {
-            throw new ConstellationException("No Process for id: {" + authority + "}" + code + " has been found");
-        }
-        return desc;
-    }
-
-    private ParameterValueGroup readTaskParametersFromXML(final TaskParameter taskParameter,
-            final ProcessDescriptor processDesc) throws ConstellationException{
-
-        //change the description, always encapsulate in the same namespace and name
-        //jaxb object factory can not reconize changing names without a namespace
-        final ParameterDescriptorGroup idesc = processDesc.getInputDescriptor();
-        final GeneralParameterDescriptor retypedDesc = new ParameterBuilder().addName("input").setRequired(true)
-                .createGroup(idesc.descriptors().toArray(new GeneralParameterDescriptor[0]));
-
-        final ParameterValueGroup params;
-        final ParameterValueReader reader = new ParameterValueReader(retypedDesc);
-        try {
-            reader.setInput(taskParameter.getInputs());
-            params = (ParameterValueGroup) reader.read();
-            reader.dispose();
-        } catch (XMLStreamException | IOException ex) {
-            throw new ConstellationException(ex);
-        }
-        return params;
     }
 
     /**

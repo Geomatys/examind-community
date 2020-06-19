@@ -54,8 +54,12 @@ public class MapContextBusinessTest {
     private IMapContextBusiness mpBusiness;
 
     @BeforeClass
-    public static void initTestDir() throws IOException {
+    public static void initTestDir() throws Exception {
         ConfigDirectory.setupTestEnvironement("MapContextBusinessTest");
+        final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
+        if (dbus != null) {
+            dbus.deleteAll();
+        }
     }
 
     @AfterClass

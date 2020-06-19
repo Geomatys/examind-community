@@ -43,7 +43,7 @@ import org.constellation.dto.MapContextStyledLayerDTO;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.ParameterValues;
-import org.constellation.dto.ProviderData;
+import org.constellation.dto.TilingResult;
 import org.constellation.dto.Sort;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.georss.xml.v100.WhereType;
@@ -458,7 +458,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
         }
 
         try {
-            final ProviderData ref = pyramidBusiness.pyramidMapContext(userId, layerName, crs, mc);
+            final TilingResult ref = pyramidBusiness.pyramidMapContextRendered(userId, layerName, crs, mc);
             return new ResponseEntity(ref, OK);
 
         } catch (Exception ex) {

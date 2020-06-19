@@ -25,7 +25,6 @@ import org.constellation.api.ProviderType;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ProviderConfiguration;
-import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.Style;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -54,7 +53,6 @@ public interface IProviderBusiness {
             name = providerSPIName;
         }
     }
-
 
     ProviderBrief getProvider(Integer id);
 
@@ -160,44 +158,6 @@ public interface IProviderBusiness {
 
     void updateParent(String id, String providerId);
 
-    ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException;
-
-
-    /**
-     * Generates a pyramid conform for each data of the provider.
-     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
-     *
-     * @param providerId Provider identifier of the data to tile.
-     *
-     */
-    void createAllPyramidConformForProvider(final int providerId) throws ConstellationException;
-
-    int createZXYPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException;
-
-    int createGPKGPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException;
-
-    /**
-     * Generates a pyramid conform for data.
-     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
-     *
-     * @param providerId Provider identifier of the data to tile.
-     * @param dataName the given data name.
-     * @param namespace the given data namespace.
-     * @param userId The pyramids owner.
-     * @return {@link DataBrief}
-     */
-    DataBrief createPyramidConform(final String providerId,final String dataName, final String namespace,final int userId) throws ConstellationException;
-
-    /**
-     * Generates a pyramid conform for data.
-     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
-     *
-     * @param dataId The given data identifier.
-     * @param userId The pyramids owner.
-     * @return {@link DataBrief}
-     */
-    DataBrief createPyramidConform(final int dataId, final int userId) throws ConstellationException;
-
     List<Integer> getProviderIdsAsInt();
 
     List<Integer> getProviderIdsAsInt(boolean noParent);
@@ -215,13 +175,10 @@ public interface IProviderBusiness {
      */
     Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull) throws IOException, ConstellationException;
 
-    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData, Integer owner) throws IOException, ConstellationException;
+    Integer createOrUpdateData(final int providerId, Integer datasetId, final boolean createDatasetIfNull, final boolean hideNewData, Integer owner) throws ConstellationException;
 
     void reload(int providerId) throws ConstellationException;
 
     void reload(String providerId) throws ConstellationException;
 
-    int createPyramidProvider(String providerId, String pyramidProviderId) throws ConstellationException;
-
-    int createPyramidProvider(String providerId, String pyramidProviderId, boolean cacheTileState) throws ConstellationException;
 }

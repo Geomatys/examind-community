@@ -32,6 +32,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.DataStores;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IPyramidBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.ProviderConfiguration;
@@ -76,6 +77,9 @@ public class ProviderRestAPI extends AbstractRestAPI {
 
     @Inject
     private IDatasetBusiness datasetBusiness;
+
+    @Inject
+    private IPyramidBusiness pyramidBusiness;
 
     /**
      * List all providers.
@@ -311,7 +315,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
             @PathVariable("dataName") final String dataName) {
 
         try {
-            return new ResponseEntity(providerBusiness.listPyramids(id, dataName),OK);
+            return new ResponseEntity(pyramidBusiness.listPyramids(id, dataName),OK);
         } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Cannot retrieve information for data "+dataName, ex);
             return new ErrorMessage(ex).build();

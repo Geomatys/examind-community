@@ -221,23 +221,6 @@ public final class ConfigDirectory {
         return f;
     }
 
-    /**
-     * Give a integrated data directory {@link java.nio.file.Path} defined on
-     * constellation.properties or by default on .constellation-data/integrated/
-     * from user home directory for given provider.
-     *
-     * @return providers directory as {@link java.nio.file.Path}
-     * @throws IOException if provider directory creation failed
-     */
-    public static Path getPyramidDirectory(String providerId, String pyramidProviderId) throws IOException {
-        final Path providerDirectory = getDataIntegratedDirectory(providerId);
-        final Path pyramidDirectory = providerDirectory.resolve(pyramidProviderId);
-        if (!Files.isDirectory(pyramidDirectory)) {
-            Files.createDirectories(pyramidDirectory);
-        }
-        return pyramidDirectory;
-    }
-
     private static void deleteDir(Path folder) {
         if (Files.exists(folder)) {
 

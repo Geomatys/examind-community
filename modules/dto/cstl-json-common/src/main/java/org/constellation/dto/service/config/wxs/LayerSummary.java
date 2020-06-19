@@ -117,6 +117,13 @@ public class LayerSummary extends org.constellation.dto.Layer {
         return targetStyle;
     }
 
+    public StyleBrief getFirstStyle() {
+        if (targetStyle != null && !targetStyle.isEmpty()) {
+            return targetStyle.get(0);
+        }
+        return null;
+    }
+
     public void setTargetStyle(List<StyleBrief> targetStyle) {
         this.targetStyle = targetStyle;
     }

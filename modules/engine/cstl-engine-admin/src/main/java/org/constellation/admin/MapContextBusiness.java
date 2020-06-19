@@ -70,6 +70,7 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
 import org.constellation.util.Util;
+import org.opengis.geometry.Envelope;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,6 +121,40 @@ public class MapContextBusiness implements IMapContextBusiness {
     @Transactional
     public Integer create(final MapContextLayersDTO mapContext) throws ConstellationException {
         return mapContextRepository.create(mapContext);
+    }
+
+    @Override
+    @Transactional
+    public Integer createFromData(Integer userId, String contextName, String crs, Envelope env, List<DataBrief> briefs) throws ConstellationException {
+        final MapContextLayersDTO mapContext = new MapContextLayersDTO();
+        mapContext.setOwner(userId);
+        mapContext.setCrs(crs);
+        mapContext.setKeywords("");
+        mapContext.setWest(env.getMinimum(0));
+        mapContext.setSouth(env.getMinimum(1));
+        mapContext.setEast(env.getMaximum(0));
+        mapContext.setNorth(env.getMaximum(1));
+        mapContext.setName(contextName);
+        final Integer id = create(mapContext);
+        final List<MapContextStyledLayerDTO> mapcontextlayers = new ArrayList<>();
+        for (final DataBrief db : briefs) {
+            final MapContextStyledLayerDTO mcStyledLayer = new MapContextStyledLayerDTO();
+            mcStyledLayer.setDataId(db.getId());
+            final StyleBrief style = db.getFirstStyle();
+            if (style != null) {
+                mcStyledLayer.setExternalStyle(style.getName());
+                mcStyledLayer.setStyleId(style.getId());
+            }
+            mcStyledLayer.setIswms(false);
+            mcStyledLayer.setLayerId(null);
+            mcStyledLayer.setOpacity(100);
+            mcStyledLayer.setOrder(briefs.indexOf(db));
+            mcStyledLayer.setVisible(true);
+            mcStyledLayer.setMapcontextId(id);
+            mapcontextlayers.add(mcStyledLayer);
+        }
+        setMapItems(id, mapcontextlayers);
+        return id;
     }
 
     @Override
@@ -471,7 +506,6 @@ public class MapContextBusiness implements IMapContextBusiness {
         Collections.sort(styledLayersDto);
         return styledLayersDto;
     }
-
 
     private static MapContextStyledLayerDTO buildMapContextStyledLayer(MapContextStyledLayerDTO mcSl, final org.constellation.dto.service.config.wxs.Layer layer,
                 final DataBrief db) {

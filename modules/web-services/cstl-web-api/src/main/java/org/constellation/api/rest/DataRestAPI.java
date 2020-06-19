@@ -52,7 +52,6 @@ import org.apache.sis.storage.Resource;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
-import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
@@ -66,7 +65,7 @@ import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.ProviderConfiguration;
-import org.constellation.dto.ProviderData;
+import org.constellation.dto.TilingResult;
 import org.constellation.dto.Sort;
 import org.constellation.dto.metadata.MetadataBrief;
 import org.constellation.dto.metadata.MetadataLightBrief;
@@ -611,12 +610,7 @@ public class DataRestAPI extends AbstractRestAPI{
             HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            final DataBrief db = providerBusiness.createPyramidConform(dataId, userId);
-            // link original data with the tiled data.
-            if (db != null) {
-                dataBusiness.linkDataToData(dataId, db.getId());
-            }
-            final ProviderData ref = new ProviderData(db.getProvider(), db.getName());
+            final TilingResult ref =  pyramidBusiness.pyramidDataConform(dataId, userId);
             return new ResponseEntity(ref, OK);
         }catch(ConstellationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -639,9 +633,9 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity pyramidDatas(@RequestParam("crs") final String crs, @RequestParam("layerName") final String layerName,
             @RequestBody final List<Integer> dataIds, HttpServletRequest req) {
         try {
-            
+
             int userId = assertAuthentificated(req);
-            final ProviderData ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs);
+            final TilingResult ref = pyramidBusiness.pyramidDatasRendered(userId, layerName, dataIds, crs);
             return new ResponseEntity(ref, OK);
         } catch (ConstellationException ex) {
             return new ErrorMessage().message(ex.getMessage()).build();

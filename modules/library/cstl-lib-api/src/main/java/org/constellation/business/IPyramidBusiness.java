@@ -19,8 +19,11 @@
 package org.constellation.business;
 
 import java.util.List;
+import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
-import org.constellation.dto.ProviderData;
+import org.constellation.dto.TilingResult;
+import org.constellation.dto.ProviderPyramidChoiceList;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 
 /**
@@ -29,7 +32,28 @@ import org.constellation.exception.ConstellationException;
  */
 public interface IPyramidBusiness {
 
-    ProviderData pyramidMapContext(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc) throws ConstellationException;
+    TilingResult pyramidMapContextRendered(Integer userId, String pyramidDataName, final String crs, final MapContextLayersDTO mc) throws ConstellationException;
 
-    ProviderData pyramidDatas(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs) throws ConstellationException;
+    TilingResult pyramidDatasRendered(Integer userId, String pyramidDataName, List<Integer> dataIds, final String crs) throws ConstellationException;
+
+    /**
+     * Generates a pyramid conform for data.
+     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
+     *
+     * @param dataId The given data identifier.
+     * @param userId The pyramids owner.
+     * @return {@link DataBrief}
+     */
+    TilingResult pyramidDataConform(final int dataId, final int userId) throws ConstellationException;
+
+    /**
+     * Generates a pyramid conform for each data of the provider.
+     * N.B : Generated pyramid contains coverage real values, it's not styled for rendering.
+     *
+     * @param providerId Provider identifier of the data to tile.
+     *
+     */
+    void createAllPyramidConformForProvider(final int providerId) throws ConstellationException;
+
+    ProviderPyramidChoiceList listPyramids(final String id, final String dataName) throws ConfigurationException;
 }

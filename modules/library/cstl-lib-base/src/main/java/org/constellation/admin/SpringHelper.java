@@ -32,6 +32,7 @@ import static org.constellation.admin.SpringHelper.get;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionDefinition;
 
 /**
  * Pseudo singleton spring helper class.
@@ -126,6 +127,17 @@ public final class SpringHelper {
         if (get() != null) {
             PlatformTransactionManager txManager = get().context.getBean("transactionManager", PlatformTransactionManager.class);
             TransactionTemplate transactionTemplate = new TransactionTemplate(txManager);
+            return transactionTemplate.execute(callback);
+        }  else {
+            LOGGER.warning("No spring application context available");
+        }
+        return null;
+    }
+
+    public static <T> T executeInTransaction(TransactionDefinition def, TransactionCallback<T> callback) {
+        if (get() != null) {
+            PlatformTransactionManager txManager = get().context.getBean("transactionManager", PlatformTransactionManager.class);
+            TransactionTemplate transactionTemplate = new TransactionTemplate(txManager, def);
             return transactionTemplate.execute(callback);
         }  else {
             LOGGER.warning("No spring application context available");

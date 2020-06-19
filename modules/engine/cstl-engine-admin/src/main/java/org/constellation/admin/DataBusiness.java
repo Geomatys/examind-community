@@ -45,6 +45,7 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
@@ -522,7 +523,7 @@ public class DataBusiness implements IDataBusiness {
                 linkedBriefs.add(new DataBrief(d));
             }
             db.setLinkedDatas(linkedBriefs);
-            
+
             //if the data is a pyramid itself. we need to fill the property to enable the picto of pyramided data.
             if("pyramid".equalsIgnoreCase(data.getSubtype()) && !data.getRendered()){
                 db.setPyramidConformProviderId(providerName);
@@ -1295,15 +1296,17 @@ public class DataBusiness implements IDataBusiness {
         // 2. change the ownership of the data
         updateDataOwner(id, owner);
 
-        // 3. For coverage data, we create a pyramid conform.
+        /* deactivated
+
+           3. For coverage data, we create a pyramid conform.
         if ("raster".equalsIgnoreCase(dataType)) {
-            final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-            DataBrief pyramidData = providerBusiness.createPyramidConform(id, owner);// link original data with the tiled data.
+            final IPyramidBusiness pyramidBusiness = SpringHelper.getBean(IPyramidBusiness.class);
+            DataBrief pyramidData = pyramidBusiness.createPyramidConform(id, owner);
             if (pyramidData != null) {
                 // link original data with the tiled data.
                 linkDataToData(id,pyramidData.getId());
             }
-        }
+        }*/
 
         // 4. Initialize the default metadata.
         initDataMetadata(data.getId(), hidden);

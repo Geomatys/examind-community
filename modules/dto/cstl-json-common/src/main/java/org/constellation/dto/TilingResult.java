@@ -25,17 +25,24 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Johann Sorel (Geomatys)
  */
 @XmlRootElement
-public class ProviderData {
- 
+public class TilingResult {
+
+    // those two are the historical attribute use by the front, the should be renamed or removed
     private String providerId;
     private String dataId;
 
-    public ProviderData() {
+    // new attributes
+    private Integer taskId;
+    private Integer pyramidDataId;
+
+    public TilingResult() {
     }
 
-    public ProviderData(String providerId, String dataId) {
+    public TilingResult(String providerId, String dataId, Integer taskId, Integer pyramidDataId) {
         this.providerId = providerId;
         this.dataId = dataId;
+        this.taskId = taskId;
+        this.pyramidDataId = pyramidDataId;
     }
 
     public String getProviderId() {
@@ -53,5 +60,21 @@ public class ProviderData {
     public void setDataId(String dataId) {
         this.dataId = dataId;
     }
-    
+
+    public Integer getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Integer taskId) {
+        this.taskId = taskId;
+    }
+
+    public Integer getPyramidDataId() {
+        return pyramidDataId;
+    }
+
+    public void setPyramidDataId(Integer pyramidDataId) {
+        this.pyramidDataId = pyramidDataId;
+    }
+
 }
