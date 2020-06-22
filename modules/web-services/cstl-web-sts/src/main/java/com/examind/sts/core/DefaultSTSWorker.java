@@ -51,7 +51,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.UnauthorizedException;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
@@ -376,7 +375,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Observation getObservationById(GetObservationById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
+            Id filter = ff.id(Collections.singleton(ff.featureId(req.getId())));
             subquery.setFilter(filter);
             final ExpandOptions exp = new ExpandOptions(req);
             List<org.opengis.observation.Observation> obs = omProvider.getObservations(subquery, MEASUREMENT_QNAME, "inline", null, defaultHints);
@@ -778,7 +777,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public Datastream getDatastreamById(GetDatastreamById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
+            Id filter = ff.id(Collections.singleton(ff.featureId(req.getId())));
             subquery.setFilter(filter);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
@@ -907,7 +906,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public MultiDatastream getMultiDatastreamById(GetMultiDatastreamById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
+            Id filter = ff.id(Collections.singleton(ff.featureId(req.getId())));
             subquery.setFilter(filter);
             Map<String,String> hints = new HashMap<>(defaultHints);
             hints.put("includeFoiInTemplate", "false");
@@ -1132,7 +1131,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public ObservedProperty getObservedPropertyById(GetObservedPropertyById req) throws CstlServiceException {
         try {
             final SimpleQuery subquery = new SimpleQuery();
-            Id filter = ff.id(Collections.singleton(new DefaultFeatureId(req.getId())));
+            Id filter = ff.id(Collections.singleton(ff.featureId(req.getId())));
             subquery.setFilter(filter);
             Collection<org.opengis.observation.Phenomenon> phens = omProvider.getPhenomenon(subquery, new HashMap<>());
             if (phens.isEmpty()) {
@@ -1229,7 +1228,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private  Map<Date, org.opengis.geometry.Geometry> getHistoricalLocationsForSensor(String sensorId) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
-        Id filter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
+        Id filter = ff.id(Collections.singleton(ff.featureId(sensorId)));
         subquery.setFilter(filter);
         Map<String,Map<Date, org.opengis.geometry.Geometry>> results = omProvider.getHistoricalLocation(subquery, new HashMap<>());
         if (results.containsKey(sensorId)) {
@@ -1558,7 +1557,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
                     final ExpandOptions exp = new ExpandOptions(req);
                     final SimpleQuery subquery = new SimpleQuery();
-                    final Id procFilter = ff.id(Collections.singleton(new DefaultFeatureId(sensorId)));
+                    final Id procFilter = ff.id(Collections.singleton(ff.featureId(sensorId)));
                     final TEquals tFilter = ff.tequals(ff.property("time"), ff.literal(OdataFilterParser.parseTemporalLong(timeStr)));
                     subquery.setFilter(ff.and(procFilter, tFilter));
                     Map<String,Map<Date, org.opengis.geometry.Geometry>> sensorHLocations = omProvider.getHistoricalLocation(subquery, new HashMap<>());

@@ -40,7 +40,6 @@ import static com.examind.sensor.ws.SensorUtils.getIDFromObject;
 import static com.examind.sensor.ws.SensorUtils.samplingPointMatchEnvelope;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.ws.AbstractWorker;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
 import org.opengis.filter.FilterFactory;
@@ -135,7 +134,7 @@ public abstract class SensorWorker extends AbstractWorker {
 
     protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
-        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(phenName)));
+        final Id filter = ff.id(Collections.singleton(ff.featureId(phenName)));
         subquery.setFilter(filter);
         Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {
@@ -147,7 +146,7 @@ public abstract class SensorWorker extends AbstractWorker {
 
     protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
         final SimpleQuery subquery = new SimpleQuery();
-        final Id filter = ff.id(Collections.singleton(new DefaultFeatureId(featureName)));
+        final Id filter = ff.id(Collections.singleton(ff.featureId(featureName)));
         subquery.setFilter(filter);
         List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
         if (sps.isEmpty()) {

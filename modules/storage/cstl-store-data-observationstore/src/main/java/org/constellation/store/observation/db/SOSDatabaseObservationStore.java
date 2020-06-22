@@ -61,7 +61,6 @@ import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
 import org.geotoolkit.data.om.xml.XmlObservationUtils;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.DBCPDataSource;
 import org.geotoolkit.jdbc.ManageableDataSource;
@@ -207,7 +206,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
              final ResultSet result = stmtLastId.executeQuery()){
             if (result.next()) {
                 final int nb = result.getInt(1) + 1;
-                return new DefaultFeatureId("sampling-point-"+nb);
+                return DefaultFactories.forBuildin(FilterFactory.class).featureId("sampling-point-" + nb);
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, null, ex);

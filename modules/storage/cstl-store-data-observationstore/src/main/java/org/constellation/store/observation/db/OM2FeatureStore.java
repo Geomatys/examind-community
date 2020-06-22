@@ -43,6 +43,7 @@ import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.AbstractFeatureSet;
 import org.apache.sis.internal.storage.StoreResource;
+import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -60,7 +61,6 @@ import org.geotoolkit.storage.feature.FeatureReader;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.storage.feature.FeatureWriter;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.jdbc.ManageableDataSource;
 import org.geotoolkit.storage.DataStores;
@@ -70,6 +70,7 @@ import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.FeatureId;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -188,12 +189,12 @@ public class OM2FeatureStore extends DataStore implements Aggregate {
                 if (id != null) {
                     try {
                         final int i = Integer.parseInt(id.substring(sensorIdBase.length()));
-                        return new DefaultFeatureId(sensorIdBase + i);
+                        return DefaultFactories.forBuildin(FilterFactory.class).featureId(sensorIdBase + i);
                     } catch (NumberFormatException ex) {
                         LOGGER.warning("a snesor ID is malformed in procedures tables");
                     }
                 } else {
-                    return new DefaultFeatureId(sensorIdBase + 1);
+                    return DefaultFactories.forBuildin(FilterFactory.class).featureId(sensorIdBase + 1);
                 }
             }
 
