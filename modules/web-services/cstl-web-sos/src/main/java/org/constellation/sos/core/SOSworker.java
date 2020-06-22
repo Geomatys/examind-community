@@ -166,7 +166,6 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
-import org.geotoolkit.filter.identity.DefaultFeatureId;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -776,7 +775,7 @@ public class SOSworker extends SensorWorker {
                     }
                     throw new CstlServiceException("Empty observation id", MISSING_PARAMETER_VALUE, locator);
                 }
-                oids.add(new DefaultFeatureId(oid));
+                oids.add(ff.featureId(oid));
             }
             final SimpleQuery subquery = new SimpleQuery();
             Id filter = ff.id(oids);

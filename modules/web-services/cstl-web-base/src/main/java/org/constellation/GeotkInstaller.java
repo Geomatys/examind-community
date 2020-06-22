@@ -19,8 +19,6 @@
 package org.constellation;
 
 import org.apache.sis.util.logging.Logging;
-import org.geotoolkit.factory.Hints;
-import org.geotoolkit.internal.io.Installation;
 import org.geotoolkit.lang.Setup;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -58,7 +56,6 @@ public final class GeotkInstaller implements ServletContextListener{
         LOGGER.log(Level.INFO, "=== Starting GeotoolKit ===");
 
         try{
-            Hints.putSystemDefault(Hints.LENIENT_DATUM_SHIFT, Boolean.TRUE);
 
             //Initialize geotoolkit
             ImageIO.scanForPlugins();
