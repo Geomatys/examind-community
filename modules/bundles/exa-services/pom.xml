@@ -221,7 +221,6 @@
         <dependency>
             <groupId>org.apache.sis.non-free</groupId>
             <artifactId>sis-epsg</artifactId>
-            <version>${sis.epsg.version}</version>
         </dependency>
 
         <!-- Optionnal Geotk dependencies all included by default -->
