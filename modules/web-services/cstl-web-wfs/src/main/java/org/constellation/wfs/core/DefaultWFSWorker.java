@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -1401,8 +1402,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         int totalDeleted                            = 0;
         int totalReplaced                           = 0;
         final List<Object> transactions             = request.getTransactionAction();
-        final Map<String, String> inserted          = new LinkedHashMap<>();
-        final Map<String, String> replaced          = new LinkedHashMap<>();
+        final Map<String, String> inserted          = new TreeMap<>(); //have a consistant order, necessary for tests, TODO it should not be required
+        final Map<String, String> replaced          = new TreeMap<>(); //have a consistant order, necessary for tests, TODO it should not be required
         final Map<String, String> namespaceMapping  = request.getPrefixMapping();
         final JAXPStreamFeatureReader featureReader = new JAXPStreamFeatureReader(getFeatureTypes(userLogin));
         featureReader.getProperties().put(JAXPStreamFeatureReader.BINDING_PACKAGE, "GML");
