@@ -1594,7 +1594,11 @@ public class SOSworker extends SensorWorker {
 
             // we clone the filter for this request
             final SimpleQuery query = new SimpleQuery();
-            query.setFilter(ff.and(filters));
+            if (filters.size() == 1) {
+                query.setFilter(filters.get(0));
+            } else if (filters.size() > 1) {
+                query.setFilter(ff.and(filters));
+            }
             final List<Observation> matchingResult = omProvider.getObservations(query, OBSERVATION_QNAME, RESULT_TEMPLATE.value(), request.getResponseFormat(), Collections.singletonMap("version", currentVersion));
             if (matchingResult.isEmpty()) {
                 throw new CstlServiceException("there is no result template matching the arguments");
@@ -1949,7 +1953,13 @@ public class SOSworker extends SensorWorker {
         if (resultFilter != null) {
             filters.add(resultFilter);
         }
-        return ff.and(filters);
+        if (filters.size() == 1) {
+            return filters.get(0);
+        } else if (filters.size() > 1) {
+            return ff.and(filters);
+        } else {
+            return Filter.INCLUDE;
+        }
     }
 
     private TemporalGeometricPrimitive getTemplateTime(final String version, final List<Filter> times) throws CstlServiceException {
