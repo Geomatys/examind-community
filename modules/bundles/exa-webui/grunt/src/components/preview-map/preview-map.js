@@ -97,10 +97,22 @@ function previewMapDirective($timeout, previewMapOptions) {
          */
         function layerChanged(newValue, oldValue) {
             if (oldValue) {
-                map.removeLayer(oldValue);
+                if (Array.isArray(oldValue)) {
+                    oldValue.forEach(function (l) {
+                        map.removeLayer(l);
+                    });
+                } else {
+                    map.removeLayer(oldValue);
+                }
             }
             if (newValue) {
-                map.addLayer(newValue);
+                if (Array.isArray(newValue)) {
+                    newValue.forEach(function (l) {
+                        map.addLayer(l);
+                    });
+                } else {
+                    map.addLayer(newValue);
+                }
             }
         }
 

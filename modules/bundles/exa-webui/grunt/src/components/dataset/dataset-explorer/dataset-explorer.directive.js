@@ -30,7 +30,7 @@ function datasetExplorer() {
  * @param {DatasetExplorerStyle} DatasetExplorerStyle
  * @constructor
  */
-function DatasetExplorerController($scope, $element, $timeout, $filter, Examind, DatasetExplorerStyle) {
+function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filter, Examind, DatasetExplorerStyle) {
     var self = this;
 
     var _updater = null, _loader = null, _error = null;
@@ -53,10 +53,10 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
         source: new ol.source.Vector({
             source: _featuresCollection
         }),
-        style: function(feature, resolution) {
+        style: function (feature, resolution) {
             var data = feature.get("data");
             if (angular.isObject(data) && angular.isNumber(data.id)) {
-                var isVisible = self.filtered.reduce(function(accumulator, element) {
+                var isVisible = self.filtered.reduce(function (accumulator, element) {
                     return (accumulator || data.id === element.id);
                 }, false);
 
@@ -64,11 +64,18 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                     return null;
                 }
 
-                if (angular.isObject(self.selected) && self.selected.id === data.id) {
-                    return DatasetExplorerStyle.styleFunction.selected(feature, resolution);
-                } else if (angular.isObject(self.hover) && self.hover.id === data.id) {
-                    return DatasetExplorerStyle.styleFunction.hover(feature, resolution);
+                if (self.selected) {
+                    var find = self.selected.find(function (item) {
+                        return item.id === data.id;
+                    });
+
+                    if (find && find.id === data.id) {
+                        return DatasetExplorerStyle.styleFunction.selected(feature, resolution);
+                    } else if (angular.isObject(self.hover) && self.hover.id === data.id) {
+                        return DatasetExplorerStyle.styleFunction.hover(feature, resolution);
+                    }
                 }
+
                 return DatasetExplorerStyle.styleFunction.default(feature, resolution);
             }
 
@@ -96,25 +103,29 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
 
     _olMap.addInteraction(_interactionSelect);
 
+    $scope.selected = [];
+
+    self.selected = $scope.selected;
+
     Object.defineProperties(self, {
-        dataset : {
+        dataset: {
             enumerable: true,
-            get: function() {
+            get: function () {
                 return _dataset;
             }
         },
-        data : {
+        data: {
             enumerable: true,
-            get: function() {
+            get: function () {
                 return (angular.isObject(_dataset) && angular.isArray(_dataset.data)) ? _dataset.data : [];
             }
         },
-        hover : {
+        hover: {
             enumerable: true,
-            get: function() {
+            get: function () {
                 return _hover;
             },
-            set: function(hover) {
+            set: function (hover) {
                 if (hover !== _hover) {
                     _hover = hover;
                     _vectorLayer.changed();
@@ -122,53 +133,31 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                 return _hover;
             }
         },
-        filtered : {
+        filtered: {
             enumerable: true,
-            get: function() {
+            get: function () {
                 return _filtered;
             },
-            set: function(filtered) {
-                _filtered.splice.bind(_filtered, 0,_filtered.length).apply(_filtered, [].concat(filtered));
+            set: function (filtered) {
+                _filtered.splice.bind(_filtered, 0, _filtered.length).apply(_filtered, [].concat(filtered));
                 return _filtered;
             }
         },
-        selected : {
+        isLoading: {
             enumerable: true,
-            get: function() {
-                return $scope.selected;
-            },
-            set: function(data) {
-                if (self.selected !== data) {
-                    if (angular.isDefined($scope.onSelect)) {
-                        var selectFunc = $scope.onSelect($scope);
-                        if (angular.isFunction(selectFunc)) {
-                            selectFunc(data);
-                        } else {
-                            $scope.selected = data;
-                        }
-                    } else {
-                        $scope.selected = data;
-                    }
-                    _vectorLayer.changed();
-                }
-                return self.selected;
-            }
-        },
-        isLoading : {
-            enumerable: true,
-            get: function() {
+            get: function () {
                 return _loader !== null;
             }
         },
-        error : {
+        error: {
             enumerable: true,
-            get: function() {
+            get: function () {
                 return _error;
             }
         },
-        stats : {
+        stats: {
             enumerable: true,
-            get : function() {
+            get: function () {
                 return _stats;
             }
         }
@@ -177,7 +166,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
     function computeFiltersFor(name) {
         var stats = getStatsFor(name);
         return (stats.filters = {
-            min : stats.min,
+            min: stats.min,
             max: stats.max
         });
     }
@@ -187,8 +176,8 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
             return self.stats[name];
         }
         self.stats[name] = {
-            min : initial_values.min || Number.POSITIVE_INFINITY,
-            max : initial_values.max || Number.NEGATIVE_INFINITY
+            min: initial_values.min || Number.POSITIVE_INFINITY,
+            max: initial_values.max || Number.NEGATIVE_INFINITY
         };
 
         return self.stats[name];
@@ -240,11 +229,30 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
         }
 
         if (angular.isObject(_data) && angular.isNumber(_data.id)) {
-            Examind.datas.getData(_data.id).then(function(response) {
-                self.selected = angular.extend(_data, response.data);
+            var findIndex = self.selected.findIndex(function (item) {
+                return item.id === _data.id;
             });
-        } else {
-            self.selected = null;
+
+            if (findIndex === -1) {
+                Examind.datas.getData(_data.id).then(function (response) {
+                    if (angular.isDefined($scope.onSelect)) {
+                        var selectFunc = $scope.onSelect($scope);
+                        self.selected.push(angular.extend(_data, response.data));
+
+                        if (angular.isFunction(selectFunc)) {
+                            selectFunc(_data);
+                        }
+                    } else {
+                        self.selected.push(angular.extend(_data, response.data));
+                    }
+
+                    _vectorLayer.changed();
+                });
+            } else {
+                self.selected.splice(findIndex, 1);
+                //refresh the map
+                $rootScope.$broadcast("examind:dashboard:data:refresh:map");
+            }
         }
     }
 
@@ -254,7 +262,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
             case "date" :
                 dimension.values = dimension.values.sort();
                 stats.min = dimension.values[0];
-                stats.max = dimension.values[dimension.values.length-1];
+                stats.max = dimension.values[dimension.values.length - 1];
 
                 if (isGlobal === true) {
                     global = getStatsFor(dimension.name, stats);
@@ -269,7 +277,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
             case "number" :
                 dimension.values = dimension.values.sort();
                 stats.min = dimension.values[0];
-                stats.max = dimension.values[result.values.length-1];
+                stats.max = dimension.values[result.values.length - 1];
 
                 // Heavy and not very usefull
                 //stats.avg = dimension.values.reduce(function(accumulator, element) {
@@ -295,12 +303,12 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
     function extractValuesOf(dimension) {
         var result = {
             name: dimension.name.toLowerCase(),
-            values : [],
-            type : null,
-            stats : {
-                min : Number.POSITIVE_INFINITY,
-                max : Number.NEGATIVE_INFINITY,
-                avg : Number.NaN
+            values: [],
+            type: null,
+            stats: {
+                min: Number.POSITIVE_INFINITY,
+                max: Number.NEGATIVE_INFINITY,
+                avg: Number.NaN
             }
         };
 
@@ -308,7 +316,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
             case "time" :
                 result.type = "date";
                 result.values = dimension.value.split(",")
-                    .reduce(function(accumulator, value) {
+                    .reduce(function (accumulator, value) {
                         var periods = value.split("/");
                         if (periods.length === 3) {
                             var start = moment.utc(periods[0]);
@@ -323,7 +331,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
 
                         return accumulator;
                     }, [])
-                    .filter(function(candidate) {
+                    .filter(function (candidate) {
                         return angular.isNumber(candidate) && !Number.isNaN(candidate);
                     });
                 break;
@@ -338,29 +346,40 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
 
     self.select = _select;
 
+    self.isSelectedData = function (data) {
+        if (self.selected && self.selected.length > 0) {
+            var find = self.selected.find(function (item) {
+                return item.id === data.id;
+            });
+            return find;
+        } else {
+            return false;
+        }
+    };
+
     self.translate = {
-        date : function(value) {
+        date: function (value) {
             return moment.utc(value).toISOString();
         },
-        number : function(value) {
+        number: function (value) {
             return $filter('number')(value);
         }
     };
 
-    self.filterChange = function() {
+    self.filterChange = function () {
         _updateFiltered();
     };
 
     _olMap.on("moveend", _updateFiltered);
-    _olMap.on("singleclick", function(evt) {
+    _olMap.on("singleclick", function (evt) {
         if (_interactionSelect.getFeatures().getLength() > 0) {
             _select(_interactionSelect.getFeatures().item(0));
         } else {
-            self.selected = null;
+            self.selected = [];
         }
     });
 
-    _interactionSelect.on("select", function(evt) {
+    _interactionSelect.on("select", function (evt) {
         if (evt.selected.length > 0) {
             var selected = evt.selected[0].get("data");
             if (angular.isObject(selected) && angular.isNumber(selected.id)) {
@@ -380,36 +399,36 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
         }
     });
 
-    $scope.$watch(function() {
+    $scope.$watch(function () {
         return $scope.dataset;
-    }, function(newValue, oldValue) {
+    }, function (newValue, oldValue) {
         _dataset = newValue;
         _error = null;
 
         if (angular.isObject(_dataset) && angular.isNumber(_dataset.id)) {
-            _loader = Examind.datas.getDatasetDataSummary(_dataset.id).then(function(response) {
+            _loader = Examind.datas.getDatasetDataSummary(_dataset.id).then(function (response) {
                 _dataset.data = response.data;
 
                 _featuresCollection.clear();
                 var features = _dataset.data
-                    .filter(function(datum) {
+                    .filter(function (datum) {
                         return angular.isObject(datum.dataDescription) && angular.isArray(datum.dataDescription.boundingBox);
                     })
-                    .map(function(datum) {
+                    .map(function (datum) {
                         // parse dimensions and extract stats.
                         if (angular.isArray(datum.dimensions)) {
                             datum.dimensions = datum.dimensions
-                                .map(function(dimension) {
+                                .map(function (dimension) {
                                     return angular.extend(dimension, extractValuesOf(dimension))
                                 })
-                                .filter(function(candidate) {
+                                .filter(function (candidate) {
                                     return angular.isDefined(candidate) && angular.isArray(candidate.values) && candidate.values.length > 0;
                                 })
-                                .map(function(dimension) {
+                                .map(function (dimension) {
                                     dimension.stats = computeStatsOf(dimension, true);
                                     return dimension;
                                 })
-                                .reduce(function(accumulator, dimension, index, array) {
+                                .reduce(function (accumulator, dimension, index, array) {
                                     accumulator[dimension.name] = dimension;
 
                                     return accumulator;
@@ -418,7 +437,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
 
                         return datum;
                     })
-                    .map(function(datum) {
+                    .map(function (datum) {
                         var bbox = ol.extent.getIntersection(datum.dataDescription.boundingBox, ol.proj.get("CRS:84").getExtent());
                         var proj = _olView.getProjection();
                         var _bbox = ol.extent.getIntersection(ol.proj.transformExtent(bbox, "CRS:84", proj), proj.getExtent());
@@ -441,7 +460,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                         });
                     });
 
-                Object.keys(self.stats).forEach(function(element) {
+                Object.keys(self.stats).forEach(function (element) {
                     computeFiltersFor(element);
                 });
 
@@ -450,7 +469,7 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
 
                     var bbox = _vectorLayer.getSource().getExtent();
                     var width = ol.extent.getWidth(bbox);
-                    _olView.fit(ol.extent.buffer(bbox, width*0.05), _olMap.getSize());
+                    _olView.fit(ol.extent.buffer(bbox, width * 0.05), _olMap.getSize());
 
                     _updateFiltered();
 
@@ -463,12 +482,12 @@ function DatasetExplorerController($scope, $element, $timeout, $filter, Examind,
                         msg: "dataset.explorer.error.nodata"
                     };
                 }
-            }).catch(function(err) {
+            }).catch(function (err) {
                 console.error("An error occur when try to get dataset data : ", _dataset, err);
                 _error = {
                     msg: "dataset.explorer.error.getdata"
                 };
-            }).finally(function() {
+            }).finally(function () {
                 _loader = null;
             });
         } else {
