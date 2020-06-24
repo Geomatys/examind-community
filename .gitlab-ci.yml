@@ -7,7 +7,6 @@ variables:
   MAVEN_USER: 'deployment'
   MAVEN_CLI_OPTS: "--batch-mode"
   MAVEN_OPTS: '-Dmaven.repo.local=$CI_PROJECT_DIR/.m2'
-  SONAR_TOKEN: '898841f3511b763fcdb4c6d1e5911baf6d999939'
   SONAR_HOST_URL: 'https://sonardev.geomatys.com'
   GIT_DEPTH: 0
 
@@ -34,8 +33,12 @@ sonarqube-check:
     - mvn  sonar:sonar -Dsonar.qualitygate.wait=true -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=$SONAR_HOST_URL
   allow_failure: true
   only:
-    - merge_requests
-    - master
+    refs:
+      #- merge_requests //Uncomment when using paid Sonarqube licence
+      - master
+    variables:
+      - $SONAR_TOKEN
+
 
 docker:push:
   image: docker:latest
