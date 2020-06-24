@@ -129,6 +129,7 @@ function Examind($http, url) {
          * @returns {undefined}
          */
         setTokenLifespan : function(lifespan) {
+            $.cookie('token_life',60 * lifespan,{path:'/'});
             $.cookie(self.baseUrl+'_authTokenLifespan',500 * 60 * lifespan,{path:'/'});
             console.log("Token lifespan set to " + lifespan + " minutes.");
         },
