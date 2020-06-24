@@ -61,7 +61,9 @@ function WizardDataImportController($scope, $location, $interval, $modal, StepOb
 
         var goToNextStep = self.stepsConfig.stepsList[self.currentStep - 1].goToNextStep;
         if (goToNextStep && angular.isFunction(goToNextStep)) {
-            goToNextStep(self.goToStep, self.currentStep + 1);
+            window.setTimeout(function () {
+                goToNextStep(self.goToStep, self.currentStep + 1);
+            }, 400);
         }
     };
 
@@ -115,7 +117,6 @@ function WizardDataImportController($scope, $location, $interval, $modal, StepOb
             return true;
         } else if (btnName === 'finish') {
             return self.currentStep === self.stepsConfig.stepsList.length;
-
         } else if (btnName === 'next') {
             return self.currentStep !== self.stepsConfig.stepsList.length && self.stepsConfig.stepsList[self.currentStep - 1].showNextBtn;
 

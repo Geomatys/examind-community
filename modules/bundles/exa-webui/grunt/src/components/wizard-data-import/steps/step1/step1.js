@@ -196,6 +196,10 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                             self.stores.detectedStores.push(item);
                         }
                     });
+                    if (self.stores.detectedStores.length === 1) {
+                        self.stores.selectedStore = self.stores.detectedStores[0];
+                        self.selectStore();
+                    }
                     cfpLoadingBar.complete();
                 }, function (reason) {
                     $interval.cancel(self.stores.asyncComputeStoresInterval);

@@ -1,11 +1,11 @@
 <div class="format-handler-block">
     <div class="row format-block" ng-class="{'failure':ctrl.stores.computeStoresFailed}">
         <div class="col-xs-6 format-msg">
-            <div class="center" ng-show="ctrl.stores.computeStoresCompleted">
+            <div ng-show="ctrl.stores.computeStoresCompleted">
                 <i class="fa fa-info-circle"></i>
                 <p>{{'wiz.data.import.step1.msg.stores' | translate}}</p>
             </div>
-            <div class="center" ng-show="!ctrl.stores.computeStoresCompleted && !ctrl.stores.computeStoresFailed">
+            <div ng-show="!ctrl.stores.computeStoresCompleted && !ctrl.stores.computeStoresFailed">
                 <i class="fa fa-cog fa-spin fa-fw"></i>
                 <p class="analysis">
                     <span class="sr-only">Loading...</span>
@@ -19,7 +19,7 @@
                     <span class="fa fa-question-circle"></span>
                 </i>
             </div>
-            <div class="center" ng-show="ctrl.stores.computeStoresFailed">
+            <div ng-show="ctrl.stores.computeStoresFailed">
                 <div>
                     <i class="fa fa-2x fa-exclamation-triangle" aria-hidden="true"></i>
                     <p>{{'wiz.data.import.step1.msg.analysis.error' | translate}}</p>
@@ -40,7 +40,35 @@
                 </div>
             </div>
         </form>
+        <div class="col-xs-6 format-msg">
+            <div>
+                <i class="fa fa-info-circle"></i>
+                <p>{{'wiz.data.import.step1.msg.select.files2' | translate}}</p>
+            </div>
+        </div>
+        <form class="form-horizontal col-xs-6">
+            <div style="text-align: end">
+                <div style="display: inline-block;vertical-align: middle;">
+                    <label>{{'wiz.data.import.step1.label.select.all' | translate}}&nbsp;</label>
+                    <i popover-placement="top"
+                       popover-trigger="mouseenter"
+                       popover-title="{{'wiz.data.import.step1.label.select.all' | translate}}"
+                       popover="{{'wiz.data.import.step1.msg.select.all' | translate}}">
+                        <span class="fa fa-question-circle"></span>
+                    </i>
+                    <span>&nbsp;:&nbsp;</span>
+                </div>
+                <div class="tgl-container" style="display: inline-block;vertical-align: middle;">
+                    <input class="tgl tgl-ios" id="selectAll"
+                           ng-model="ctrl.advConfig.selectAllFlag"
+                           ng-change="ctrl.selectAll()"
+                           type="checkbox"/>
+                    <label class="tgl-btn" for="selectAll"></label>
+                </div>
+            </div>
+        </form>
     </div>
+
     <div class="file-explorer-block">
         <file-explorer file-list-ref="ctrl.fileListRef"
                        get-file-list="ctrl.getFileList"
@@ -53,8 +81,8 @@
         </file-explorer>
     </div>
     <div class="row config-block" ng-hide="ctrl.stores.selectedStore.store === 'S63'">
-        <div class="col-xs-12 col-md-4">
-            <div class="adv-conf-block">
+        <div class="col-xs-12 col-md-6">
+            <div class="adv-conf-block" style="border-bottom-left-radius: 8px;">
                 <div class="adv-conf">
                     <div>
                         <i class="fa fa-cogs" aria-hidden="true"></i>&nbsp;&nbsp;
@@ -78,32 +106,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="adv-conf-block">
-                <div class="adv-conf">
-                    <div>
-                        <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;&nbsp;
-                        <label>{{'wiz.data.import.step1.label.select.all' | translate}}&nbsp;</label>
-                        <i popover-placement="top"
-                           popover-trigger="mouseenter"
-                           popover-title="{{'wiz.data.import.step1.label.select.all' | translate}}"
-                           popover="{{'wiz.data.import.step1.msg.select.all' | translate}}">
-                            <span class="fa fa-question-circle"></span>
-                        </i>
-                        <span>&nbsp;:&nbsp;</span>
-                    </div>
-                    <div class="tgl-container pull-right">
-                        <input class="tgl tgl-ios" id="selectAll"
-                               ng-model="ctrl.advConfig.selectAllFlag"
-                               ng-change="ctrl.selectAll()"
-                               type="checkbox"/>
-                        <label class="tgl-btn" for="selectAll"></label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="adv-conf-block">
+        <div class="col-xs-12 col-md-6">
+            <div class="adv-conf-block" style="border-bottom-right-radius: 8px;">
                 <div class="adv-conf">
                     <div>
                         <i class="fa fa-tasks" aria-hidden="true"></i>&nbsp;&nbsp;
