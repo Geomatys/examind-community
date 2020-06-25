@@ -119,14 +119,14 @@
                                         class="pull-right btn btn-xs btn-info btn-style"
                                         ng-class="{'btn-small-selected':stlCtrl.smallMode}"
                                         style="border-radius:0 3px 3px 0; margin-top: 5px; width:32px; height:34px;">
-                                    <img src="img/btn-display-reduced.svg" alt="" />
+                                    <img src="img/btn-display-reduced.svg" alt=""/>
                                 </button>
                                 <button type="button"
                                         ng-click="stlCtrl.smallMode=false"
                                         class="pull-right btn btn-xs btn-info btn-style"
                                         ng-class="{'btn-small-selected':!stlCtrl.smallMode}"
                                         style="margin-left: 10px; border-radius:3px 0 0 3px; margin-top: 5px; width:32px; height:34px;">
-                                    <img src="img/btn-display-normal.svg" alt="" />
+                                    <img src="img/btn-display-normal.svg" alt=""/>
                                 </button>
                                 <p class="pull-right" style="margin-top:12px;" translate="label.display">Display :</p>
                             </div>
@@ -157,15 +157,15 @@
                                     <img ng-if="item.type=='VECTOR' && item.subtype=='point'"
                                          src="img/vector-point.svg"
                                          class="pull-right"
-                                         style="margin-top:6px; margin-right:10px;" />
+                                         style="margin-top:6px; margin-right:10px;"/>
                                     <img ng-if="item.type=='VECTOR' && item.subtype=='polygon'"
                                          src="img/vector-poly.svg"
                                          class="pull-right"
-                                         style="margin-top:6px; margin-right:10px;" />
+                                         style="margin-top:6px; margin-right:10px;"/>
                                     <img ng-if="item.type=='VECTOR' && item.subtype=='line'"
                                          src="img/vector-line.svg"
                                          class="pull-right"
-                                         style="margin-top:6px; margin-right:10px;" />
+                                         style="margin-top:6px; margin-right:10px;"/>
                                 </div>
                                 <div class="bottom">
                                     <div ng-class="{'hidden':!stlCtrl.smallMode}">
@@ -205,7 +205,8 @@
                                 <div class="alert alert-info alert-style"
                                      ng-if="!stlCtrl.selected">
                                     <h4 translate="label.no.selected.style">No selected style</h4>
-                                    <p translate="msg.no.selected.style">Click on a style to display more information</p>
+                                    <p translate="msg.no.selected.style">Click on a style to display more
+                                        information</p>
                                 </div>
                                 <div id="selected-item"
                                      class="selected-item"
@@ -221,7 +222,7 @@
                                          ng-class="{'block-vector':stlCtrl.selected.type=='VECTOR','block-raster':stlCtrl.selected.type=='COVERAGE'}">
                                         <div class="row description-block">
                                             <div class="col-sm-3 col-md-2">
-                                                <img src="img/block-content-owner.svg" alt="" />
+                                                <img src="img/block-content-owner.svg" alt=""/>
                                             </div>
                                             <div class="col-sm-9 col-md-10 description-text">
                                                 <span>{{stlCtrl.selected.owner}}</span>
@@ -229,7 +230,7 @@
                                         </div>
                                         <div class="row description-block">
                                             <div class="col-sm-3 col-md-2">
-                                                <img src="img/block-content-date.svg" alt="" />
+                                                <img src="img/block-content-date.svg" alt=""/>
                                             </div>
                                             <div class="col-sm-9 col-md-10 description-text">
                                                 <span>{{stlCtrl.selected.date | date:'yyyy-MM-dd'}}</span>
@@ -245,7 +246,8 @@
                                                             class="btn btn-style"
                                                             ng-click="stlCtrl.editStyle()"
                                                             data-placement="bottom"
-                                                            title="{{'style.listing.selected.edit.button' | translate }}" tooltip>
+                                                            title="{{'style.listing.selected.edit.button' | translate }}"
+                                                            tooltip>
                                                         <i class="glyphicon glyphicon-pencil"></i>
                                                     </button>
                                                 </span>
@@ -255,7 +257,8 @@
                                                     <a class="btn btn-style"
                                                        ng-href="{{stlCtrl.styleOpts.cstlUrl}}API/styles/export/{{stlCtrl.selected.id}}"
                                                        data-placement="bottom"
-                                                       title="{{'style.listing.selected.export.button' | translate }}" tooltip>
+                                                       title="{{'style.listing.selected.export.button' | translate }}"
+                                                       tooltip>
                                                         <i class="fa fa-download"></i>
                                                     </a>
                                                 </span>
@@ -267,7 +270,8 @@
                                                             class="btn btn-style"
                                                             ng-click="stlCtrl.deleteStyle()"
                                                             data-placement="bottom"
-                                                            title="{{'layer.listing.selected.delete.button' | translate }}" tooltip>
+                                                            title="{{'layer.listing.selected.delete.button' | translate }}"
+                                                            tooltip>
                                                         <i class="fa fa-trash-o"></i>
                                                     </button>
                                                 </span>
@@ -284,7 +288,8 @@
                                              ng-click="assocData=!assocData;assocLayer=false;">
                                             <div class="block-associated-nb">{{stlCtrl.selected.dataList.length}}</div>
                                             <div class="block-associated-title"
-                                                 translate="label.related.data">Associated Data</div>
+                                                 translate="label.related.data">Associated Data
+                                            </div>
                                             <span class="fa icon-assoc-data"
                                                   ng-class="{'selected':assocData,'fa-chevron-circle-up':assocData,'fa-chevron-circle-down':!assocData}"
                                                   tooltip-placement="bottom"
@@ -295,7 +300,7 @@
                                 <div ng-if="assocData"
                                      class="col-sm-12 block-assoc"
                                      style="float: left;">
-                                    <div id="linkedDataList" class="block-content" >
+                                    <div id="linkedDataList" class="block-content">
                                         <span ng-show="stlCtrl.selected.dataList.length == 0"
                                               translate="label.no.association">No association</span>
                                         <div ng-show="stlCtrl.selected.dataList.length > 0"
@@ -322,9 +327,11 @@
                                     <div class="col-sm-12" style="float: left;">
                                         <div class="block-associated block-associated-layers"
                                              ng-click="assocData=false;assocLayer=!assocLayer;">
-                                            <div class="block-associated-nb">{{stlCtrl.selected.layersList.length}}</div>
+                                            <div class="block-associated-nb">{{stlCtrl.selected.layersList.length}}
+                                            </div>
                                             <div class="block-associated-title"
-                                                 translate="label.related.layer">Associated Layers</div>
+                                                 translate="label.related.layer">Associated Layers
+                                            </div>
                                             <span class="fa icon-assoc-layer"
                                                   ng-class="{'selected':assocLayer,'fa-chevron-circle-up':assocLayer,'fa-chevron-circle-down':!assocLayer}"
                                                   tooltip-placement="bottom"
@@ -335,7 +342,7 @@
                                 <div ng-if="assocLayer"
                                      class="col-sm-12 block-assoc"
                                      style="float: left;">
-                                    <div id="linkedLayersList" class="block-content" >
+                                    <div id="linkedLayersList" class="block-content">
                                         <span ng-show="stlCtrl.selected.layersList.length == 0"
                                               translate="label.no.association">No association</span>
                                         <div ng-show="stlCtrl.selected.layersList.length > 0"

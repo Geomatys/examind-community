@@ -113,7 +113,7 @@
                                 </div>
                                 <div class="item-list">
                                     <div ng-if="service.type.toLowerCase() !== 'sos' && service.type.toLowerCase() !== 'sts'">
-                                        <div ng-repeat="data in wrap.dataList">
+                                        <div ng-repeat="data in wrap.dataList" ng-if="data.type === 'VECTOR' || data.type === 'COVERAGE'">
                                             <div class="item {{data.type | lowercase}}"
                                                  ng-class="{'selected':isInSelected(data)}"
                                                  ng-click="toggleDataInArray(data)"
