@@ -2243,12 +2243,11 @@ function Examind($http, url) {
          *
          * @returns {Promise}
          */
-        deleteLayer : function(type, id, layerID, namespace) {
+        deleteLayer : function(layerId) {
             return self.request({
-                method: 'POST',
-                url: 'MAP/' + type + '/' + id + '/delete/' + layerID,
-                headers: {'Accept': 'application/json'},
-                data: namespace
+                method: 'DELETE',
+                url: 'MAP/layer/delete/' + layerId,
+                headers: {'Accept': 'application/json'}
             });
         },
 

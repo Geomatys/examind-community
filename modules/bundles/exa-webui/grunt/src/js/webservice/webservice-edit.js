@@ -383,11 +383,8 @@ angular.module('cstl-webservice-edit', [
                                 Growl('error', 'Error', 'Unable to remove sensor ' + idToDel + ' from service ' + $scope.service.name);
                             });
                         } else {
-                            Examind.map.deleteLayer($scope.service.type,
-                                                    $scope.service.identifier,
-                                                    $scope.selected.name,
-                                                   {value: $scope.selected.namespace}).then(
-                                function () {//on success
+                            Examind.map.deleteLayer($scope.selected.id)
+                                .then(function () {//on success
                                     if ($scope.service.type.toLowerCase() === 'wmts') {
                                         $scope.deleteTiledData($scope.selected.name, $scope.selected.providerId);
                                     }
