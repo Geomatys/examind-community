@@ -27,35 +27,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.constellation.dto.service.ServiceProtocol;
 
 /**
  * Create a report about the available services.
- * 
+ *
  * @author Guilhem Legal (Geomatys)
  * @since 0.7
  */
 @XmlRootElement(name ="ServiceReport")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceReport {
-    
+
     private List<ServiceProtocol> availableServices = new ArrayList<>();
-    
+
     public ServiceReport() {
-        
+
     }
-    
-    public ServiceReport(final Map<String, List<String>> availableServices) {
+
+    public ServiceReport(final Map<String, ServiceProtocol> availableServices) {
         setAvailableServices(availableServices);
     }
 
     /**
      * @return the availableServices
      */
-    public Map<String, List<String>> getAvailableServices() {
-        final Map<String, List<String>> response = new HashMap<>();
+    public Map<String, ServiceProtocol> getAvailableServices() {
+        final Map<String, ServiceProtocol> response = new HashMap<>();
         for (ServiceProtocol sp : availableServices) {
-            response.put(sp.getName(), sp.getProtocol());
+            response.put(sp.getName().toLowerCase(), sp);
         }
         return response;
     }
@@ -63,10 +62,10 @@ public class ServiceReport {
     /**
      * @param availableServices the availableServices to set
      */
-    public final void setAvailableServices(final Map<String, List<String>> availableServices) {
+    public final void setAvailableServices(final Map<String, ServiceProtocol> availableServices) {
         if (availableServices != null) {
-            for (Entry<String, List<String>> entry : availableServices.entrySet()) {
-                this.availableServices.add(new ServiceProtocol(entry.getKey(), entry.getValue()));
+            for (Entry<String, ServiceProtocol> entry : availableServices.entrySet()) {
+                this.availableServices.add(entry.getValue());
             }
         }
     }

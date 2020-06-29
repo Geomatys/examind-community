@@ -19,9 +19,11 @@
 
 package org.constellation.dto.service;
 
+import java.util.LinkedHashSet;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -31,18 +33,21 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceProtocol {
     private String name;
-    
-    private List<String> protocol;
+
+    private Set<String> availableVersions;
+
+    private Set<String> protocol;
 
     public ServiceProtocol() {
-        
+
     }
-    
-    public ServiceProtocol(final String name, final List<String> protocol) {
+
+    public ServiceProtocol(final String name, final Set<String> protocol, final Set<String> availableVersions) {
         this.name = name;
         this.protocol = protocol;
+        this.availableVersions = availableVersions;
     }
-    
+
     /**
      * @return the name
      */
@@ -60,15 +65,43 @@ public class ServiceProtocol {
     /**
      * @return the protocol
      */
-    public List<String> getProtocol() {
+    public Set<String> getProtocol() {
+        if (protocol == null) {
+            this.protocol = new LinkedHashSet<>();
+        }
         return protocol;
     }
 
     /**
      * @param protocol the protocol to set
      */
-    public void setProtocol(List<String> protocol) {
+    public void setProtocol(Set<String> protocol) {
         this.protocol = protocol;
+    }
+
+    /**
+     * @return the availableVersions
+     */
+    public Set<String> getAvailableVersions() {
+        if (availableVersions == null) {
+            this.availableVersions = new LinkedHashSet<>();
+        }
+        return availableVersions;
+    }
+
+    /**
+     * @param availableVersions the availableVersions to set
+     */
+    public void setAvailableVersions(Set<String> availableVersions) {
+        this.availableVersions = availableVersions;
+    }
+
+    public ServiceProtocol merge(ServiceProtocol protocol) {
+        if (protocol != null) {
+            this.getAvailableVersions().addAll(protocol.getAvailableVersions());
+            this.getAvailableVersions().addAll(protocol.getProtocol());
+        }
+        return this;
     }
 
     @Override
@@ -80,6 +113,7 @@ public class ServiceProtocol {
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (protocol != null ? !protocol.equals(that.protocol) : that.protocol != null) return false;
+        if (availableVersions != null ? !availableVersions.equals(that.availableVersions) : that.availableVersions != null) return false;
 
         return true;
     }
@@ -88,6 +122,7 @@ public class ServiceProtocol {
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (protocol != null ? protocol.hashCode() : 0);
+        result = 31 * result + (availableVersions != null ? availableVersions.hashCode() : 0);
         return result;
     }
 }

@@ -49,6 +49,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import org.constellation.dto.importdata.BatchAnalysis;
 import org.constellation.dto.DataCustomConfiguration;
+import org.constellation.dto.service.ServiceProtocol;
 
 import static org.junit.Assert.assertEquals;
 
@@ -96,12 +98,10 @@ public class ConfigurationXmlBindingTest {
      */
     @Test
     public void serviceReportMarshalingTest() throws Exception {
-        Map<String, List<String>> instances = new HashMap<>();
-        ArrayList<String> prot1 = new ArrayList<>();
-        prot1.add("REST");
+        Map<String, ServiceProtocol> instances = new HashMap<>();
+        ServiceProtocol prot1 = new ServiceProtocol("WMS", Collections.singleton("REST"), Collections.EMPTY_SET);
         instances.put("WMS", prot1);
-        ArrayList<String> prot2 = new ArrayList<>();
-        prot2.add("REST");
+        ServiceProtocol prot2 = new ServiceProtocol("WPS", Collections.singleton("REST"), Collections.EMPTY_SET);
         instances.put("WPS", prot2);
         ServiceReport report = new ServiceReport(instances);
 

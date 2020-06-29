@@ -1,5 +1,6 @@
 package org.constellation.ws.component;
 
+import java.util.Collections;
 import org.constellation.ws.ConstellationOGCModule;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,6 +18,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.ws.Worker;
 
 @Named
@@ -42,7 +44,8 @@ public class ConstellationOGCRegistry {
             final ConstellationOGCModule ogcMod = moduleEntry.getValue();
             final String modName = ogcMod.getName().toUpperCase();
             LOGGER.info(String.format("\t* %-5s (%s)", modName , moduleEntry.getKey()));
-            if(ogcMod.isRestService()) wsengine.registerService(modName, "REST");
+            ServiceProtocol prot = new ServiceProtocol(modName, Collections.singleton("REST"), ogcMod.getVersions());
+            if(ogcMod.isRestService()) wsengine.registerService(modName, prot);
 
             // Start service instances
             startInstances(modName);

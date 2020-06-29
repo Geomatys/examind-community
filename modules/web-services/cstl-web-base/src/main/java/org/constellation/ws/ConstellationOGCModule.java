@@ -18,9 +18,13 @@
  */
 package org.constellation.ws;
 
+import java.util.Set;
+
 public interface ConstellationOGCModule {
 
     String getName();
+
+    Set<String> getVersions();
 
     boolean isRestService();
 

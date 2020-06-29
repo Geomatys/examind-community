@@ -18,6 +18,8 @@
  */
 package org.constellation.wmts.core;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 
 import javax.inject.Named;
@@ -33,5 +35,10 @@ public class WMTSConstellationOGCModule implements ConstellationOGCModule {
     @Override
     public boolean isRestService() {
         return true;
+    }
+
+    @Override
+    public Set<String> getVersions() {
+        return ImmutableSet.of("1.0.0");
     }
 }

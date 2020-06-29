@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.constellation.api.ServiceDef;
+import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.NotRunningServiceException;
 
@@ -36,7 +37,7 @@ public interface IWSEngine {
      *
      * @return
      */
-    Map<String, List<String>> getRegisteredServices();
+    Map<String, ServiceProtocol> getRegisteredServices();
 
     /**
      * Add a service type to the list of registered service if it is not already registered.
@@ -44,7 +45,7 @@ public interface IWSEngine {
      * @param specification A service type (CSW, SOS, WMS, ...).
      * @param protocol A service protocol (REST,...)
      */
-    void registerService(final String specification, final String protocol);
+    void registerService(final String specification, final ServiceProtocol protocol);
 
     /**
      * Return true if the correspounding service is already registered.

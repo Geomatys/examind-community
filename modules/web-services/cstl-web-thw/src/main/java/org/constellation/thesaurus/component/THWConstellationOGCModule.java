@@ -18,6 +18,8 @@
  */
 package org.constellation.thesaurus.component;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 
 import javax.inject.Named;
@@ -35,4 +37,8 @@ public class THWConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
+    @Override
+    public Set<String> getVersions() {
+        return ImmutableSet.of("1.0.0");
+    }
 }

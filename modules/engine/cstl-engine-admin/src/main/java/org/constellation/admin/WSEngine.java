@@ -21,18 +21,18 @@ package org.constellation.admin;
 import org.apache.sis.util.logging.Logging;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
+import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.ws.IWSEngine;
@@ -62,7 +62,7 @@ public class WSEngine implements IWSEngine {
     /**
      * A map of the registred OGC services and their endpoint protocols (REST).
      */
-    private final Map<String, List<String>> REGISTERED_SERVICE = new HashMap<>();
+    private final Map<String, ServiceProtocol> REGISTERED_SERVICE = new ConcurrentHashMap<>();
 
 
     /**
@@ -199,25 +199,15 @@ public class WSEngine implements IWSEngine {
      * {@inheritDoc}
      */
     @Override
-    public void registerService(final String specification, final String protocol) {
-        if (REGISTERED_SERVICE.containsKey(specification.toLowerCase())) {
-            final List<String> protocols = REGISTERED_SERVICE.get(specification.toLowerCase());
-            if (!protocols.contains(protocol)) {
-                protocols.add(protocol);
-            }
-            REGISTERED_SERVICE.put(specification.toLowerCase(), protocols);
-        } else {
-            final List<String> protocols = new ArrayList<>();
-            protocols.add(protocol);
-            REGISTERED_SERVICE.put(specification.toLowerCase(), protocols);
-        }
+    public void registerService(final String specification, final ServiceProtocol protocol) {
+        REGISTERED_SERVICE.merge(specification.toLowerCase(), protocol, ServiceProtocol::merge);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Map<String, List<String>> getRegisteredServices() {
+    public Map<String, ServiceProtocol> getRegisteredServices() {
         return new HashMap<>(REGISTERED_SERVICE);
     }
 

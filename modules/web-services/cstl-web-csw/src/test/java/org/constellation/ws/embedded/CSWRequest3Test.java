@@ -78,6 +78,7 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
@@ -117,11 +118,11 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
 
     private static FileSystemMetadataStore fsStore1;
     private static FileSystemMetadataStore fsStore2;
-    private static final String confDirName = "CSWRequestTest" + UUID.randomUUID().toString();
+    private static final String CONF_DIR_NAME = "CSWRequestTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement(confDirName);
+        configDirectory = ConfigDirectory.setupTestEnvironement(CONF_DIR_NAME);
         controllerConfiguration = CSWControllerConfig.class;
     }
 
@@ -250,7 +251,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         if (f.exists()) {
             f.delete();
         }
-        ConfigDirectory.shutdownTestEnvironement(confDirName);
+        ConfigDirectory.shutdownTestEnvironement(CONF_DIR_NAME);
         stopServer();
     }
 
@@ -880,7 +881,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         strResult = getStringResponse(conec);
         expResult = org.geotoolkit.nio.IOUtilities.toString(Util.getResourceAsStream("org/constellation/embedded/test/atom5.xml"));
         domCompare(strResult, expResult, new ArrayList<>(), Arrays.asList("http://www.w3.org/2005/Atom:updated"));
-        
+
         /**
          * KVP search atom output 6: full search with empty parameters
          */
@@ -1363,6 +1364,14 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
         assertTrue(obj instanceof ServiceReport);
         final ServiceReport result = (ServiceReport) obj;
         assertTrue(result.getAvailableServices().containsKey("csw"));
+        ServiceProtocol cswProtocol = null;
+        for (ServiceProtocol sp : result.getAvailableServices().values()) {
+            if (sp.getName().equalsIgnoreCase("csw")) {
+                cswProtocol = sp;
+            }
+        }
+        assertNotNull(cswProtocol);
+
 
         assertEquals(result.getAvailableServices().toString(), 1, result.getAvailableServices().size());
 

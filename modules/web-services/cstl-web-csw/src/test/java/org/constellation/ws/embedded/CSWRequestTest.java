@@ -75,6 +75,7 @@ import org.apache.sis.xml.XML;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
@@ -91,6 +92,7 @@ import org.junit.BeforeClass;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -107,11 +109,11 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
     private static FileSystemMetadataStore fsStore1;
     private static FileSystemMetadataStore fsStore2;
 
-    private static final String confDirName = "CSWRequestTest" + UUID.randomUUID().toString();
+    private static final String CONF_DIR_NAME = "CSWRequestTest" + UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement(confDirName);
+        configDirectory = ConfigDirectory.setupTestEnvironement(CONF_DIR_NAME);
         controllerConfiguration = CSWControllerConfig.class;
     }
 
@@ -221,7 +223,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
         try {
-            ConfigDirectory.shutdownTestEnvironement(confDirName);
+            ConfigDirectory.shutdownTestEnvironement(CONF_DIR_NAME);
 
             File f = new File("derby.log");
             if (f.exists()) {
@@ -1065,6 +1067,13 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         assertTrue(obj instanceof ServiceReport);
         final ServiceReport result = (ServiceReport) obj;
         assertTrue(result.getAvailableServices().containsKey("csw"));
+        ServiceProtocol cswProtocol = null;
+        for (ServiceProtocol sp : result.getAvailableServices().values()) {
+            if (sp.getName().equalsIgnoreCase("csw")) {
+                cswProtocol = sp;
+            }
+        }
+        assertNotNull(cswProtocol);
 
         assertEquals(result.getAvailableServices().toString(), 1, result.getAvailableServices().size());
 

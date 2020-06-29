@@ -18,6 +18,8 @@
  */
 package org.constellation.wfs.component;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 
 import javax.inject.Named;
@@ -35,4 +37,8 @@ public class WFSConstellationOGCModule implements ConstellationOGCModule {
         return true;
     }
 
+    @Override
+    public Set<String> getVersions() {
+        return ImmutableSet.of("1.1.0", "2.0.0");
+    }
 }
