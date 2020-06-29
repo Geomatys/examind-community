@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.Service;
@@ -192,9 +191,10 @@ public interface IServiceBusiness {
      * Try to retrieve a service bu its id.
      *
      * @param id The identifier of the service to return.
+     * @param lang The langage for translatable fields or {@code null} for default language.
      * @return A service of the queried id, or null if we cannot find any.
      */
-    ServiceComplete getServiceById(int id);
+    ServiceComplete getServiceById(int id, String lang);
 
     /**
      * Try to retrieve a service of the given type, using its name.
@@ -286,8 +286,6 @@ public interface IServiceBusiness {
      * @return a {@link Map} of {@link ServiceStatus} status
      */
     Map<Integer,ServiceStatus> getStatus(String spec);
-
-    Instance getI18nInstance(String serviceType, String identifier, String lang) throws ConstellationException;
 
     List<org.constellation.dto.service.ServiceComplete> getAllServices(String lang) throws ConstellationException;
 

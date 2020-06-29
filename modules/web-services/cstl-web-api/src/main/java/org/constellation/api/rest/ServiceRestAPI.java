@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import org.constellation.api.ServiceDef;
+import org.constellation.api.ServiceDef.Specification;
 import org.constellation.ws.IWSEngine;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
@@ -56,8 +56,7 @@ import org.springframework.http.MediaType;
 import org.constellation.security.SecurityManager;
 import org.constellation.util.Util;
 import org.constellation.ws.ICSWConfigurer;
-import org.constellation.ws.ITHWConfigurer;
-import org.constellation.ws.IWPSConfigurer;
+import org.constellation.ws.IOGCConfigurer;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,8 +86,6 @@ public class ServiceRestAPI extends AbstractRestAPI {
     private ILayerBusiness layerBusiness;
     @Inject
     private IDataBusiness dataBusiness;
-    @Inject
-    private ISensorBusiness sensorBusiness;
     @Inject
     private SecurityManager securityManager;
 
@@ -123,7 +120,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
             final List<Instance> instances = new ArrayList<>();
             final List<ServiceComplete> services = (type==null) ? serviceBusiness.getAllServices(lang) : serviceBusiness.getAllServicesByType(lang,type);
             for (ServiceComplete service : services) {
-                final Instance instance = convertToInstance(service);
+                final Instance instance = convertToInstance(service, lang);
                 instances.add(instance);
             }
             return new ResponseEntity(instances, OK);
@@ -223,59 +220,16 @@ public class ServiceRestAPI extends AbstractRestAPI {
 
     }
 
-    private Instance convertToInstance(final ServiceComplete service) throws ConfigurationException {
-        final Instance instance = new Instance(service);
-        int count;
-        if("csw".equalsIgnoreCase(service.getType())){
-            try {
-                count = getCSWConfigurer().getMetadataCount(service.getIdentifier());
-            }catch(Exception ex){
-                count = 0;
-            }
-        } else if("sos".equalsIgnoreCase(service.getType()) ||
-                  "sts".equalsIgnoreCase(service.getType())){
-            try {
-                count = sensorBusiness.getCountByServiceId(service.getId());
-            }catch(Exception ex){
-                count = 0;
-            }
-        } else if("wps".equalsIgnoreCase(service.getType())){
-            try {
-                count = getWPSConfigurer().getProcessCount(service.getId());
-            }catch(Exception ex){
-                count = 0;
-            }
-        } else if("thw".equalsIgnoreCase(service.getType())){
-            try {
-                count = getTHWConfigurer().getThesaurusCount(service.getId());
-            }catch(Exception ex){
-                count = 0;
-            }
-        } else if("webdav".equalsIgnoreCase(service.getType())){
-
-            count = 0;
-
-        } else {
-            try {
-                count = layerBusiness.getLayers(service.getId(), securityManager.getCurrentUserLogin()).size();
-            }catch(Exception ex){
-                count = 0;
-            }
+    private Instance convertToInstance(final ServiceComplete service, String lang) throws ConfigurationException {
+        Specification spec = Specification.fromShortName(service.getType());
+        IOGCConfigurer configurer = getOGCConfigurer(spec);
+        if (configurer != null) {
+            return configurer.getInstance(service.getId(), lang);
         }
-        instance.setLayersNumber(count);
-        return instance;
+        return new Instance(service);
     }
 
-    private ICSWConfigurer getCSWConfigurer() throws NotRunningServiceException {
-        return (ICSWConfigurer) wsengine.newInstance(ServiceDef.Specification.CSW);
+    private IOGCConfigurer getOGCConfigurer(Specification spec) throws NotRunningServiceException {
+        return (IOGCConfigurer) wsengine.newInstance(spec);
     }
-
-    private IWPSConfigurer getWPSConfigurer() throws NotRunningServiceException {
-        return (IWPSConfigurer) wsengine.newInstance(ServiceDef.Specification.WPS);
-    }
-
-    private ITHWConfigurer getTHWConfigurer() throws NotRunningServiceException {
-        return (ITHWConfigurer) wsengine.newInstance(ServiceDef.Specification.THW);
-    }
-
 }

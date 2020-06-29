@@ -24,7 +24,7 @@ import org.constellation.exception.ConfigurationException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface IWPSConfigurer {
+public interface IWPSConfigurer extends IOGCConfigurer {
 
     int getProcessCount(Integer id) throws ConfigurationException;
 }

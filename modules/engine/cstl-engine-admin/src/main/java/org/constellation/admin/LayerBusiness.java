@@ -49,7 +49,6 @@ import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.service.Service;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.wxs.AddLayer;
 import org.constellation.dto.service.config.wxs.FilterAndDimension;
 import org.constellation.dto.service.config.wxs.LayerSummary;
@@ -163,7 +162,7 @@ public class LayerBusiness implements ILayerBusiness {
     public Integer add(int dataId, String alias,
              int serviceId, org.constellation.dto.service.config.wxs.Layer config) throws ConfigurationException {
 
-        final org.constellation.dto.service.ServiceComplete service = serviceBusiness.getServiceById(serviceId);
+        final Service service = serviceBusiness.getServiceById(serviceId, null);
 
         if (service !=null) {
 
@@ -238,7 +237,7 @@ public class LayerBusiness implements ILayerBusiness {
     public void remove(final Integer layerId) throws ConstellationException {
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
-            Service serv = serviceBusiness.getServiceById(layer.getService());
+            Service serv = serviceBusiness.getServiceById(layer.getService(), null);
             removeLayer(layer.getId(), serv.getType().toLowerCase(), serv.getIdentifier());
         } else {
             throw new TargetNotFoundException("Unable to find a layer: {" + layerId + "}");
@@ -248,7 +247,7 @@ public class LayerBusiness implements ILayerBusiness {
     @Override
     @Transactional
     public void removeForService(final Integer serviceId) throws ConstellationException {
-        final Service service = serviceBusiness.getServiceById(serviceId);
+        final Service service = serviceBusiness.getServiceById(serviceId, null);
         if (service != null) {
             final List<Layer> layers = layerRepository.findByServiceId(serviceId);
             for (Layer layer : layers) {
@@ -265,7 +264,7 @@ public class LayerBusiness implements ILayerBusiness {
         final List<Layer> layers = layerRepository.findAll();
         for (Layer layer : layers) {
             // NOT OPTIMIZED => multiple event sent
-            final ServiceComplete service = serviceBusiness.getServiceById(layer.getService());
+            final Service service = serviceBusiness.getServiceById(layer.getService(), null);
             if (service != null) {
                 removeLayer(layer.getId(), service.getType(), service.getIdentifier());
             }

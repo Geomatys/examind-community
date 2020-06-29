@@ -50,8 +50,8 @@ public class WPSConfigurer extends OGCConfigurer implements IWPSConfigurer {
     }
 
     @Override
-    public Instance getInstance(final Integer id) throws ConfigurationException {
-        final Instance instance = super.getInstance(id);
+    public Instance getInstance(final Integer id, final String lang) throws ConfigurationException {
+        final Instance instance = super.getInstance(id, lang);
         try {
             instance.setLayersNumber(getProcessCount(id));
         } catch (ConfigurationException ex) {

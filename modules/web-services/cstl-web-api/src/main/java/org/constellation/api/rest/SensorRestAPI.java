@@ -66,7 +66,6 @@ import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.ws.ISOSConfigurer;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -93,6 +92,7 @@ import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.constellation.ws.ISensorConfigurer;
 
 /**
  *
@@ -636,7 +636,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         return new ArrayList<>();
     }
 
-    private ISOSConfigurer getConfigurer() throws NotRunningServiceException {
-        return (ISOSConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
+    private ISensorConfigurer getConfigurer() throws NotRunningServiceException {
+        return (ISensorConfigurer) wsengine.newInstance(ServiceDef.Specification.SOS);
     }
 }

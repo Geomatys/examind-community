@@ -39,6 +39,7 @@ import org.junit.BeforeClass;
 
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.Instance;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,21 +76,21 @@ public class ServiceBusinessTest {
         final Details jpnDetails = new Details("nameJPN", "identifierJPN", Arrays.asList("keyword1JPN", "keyword2JPN"), "descriptionJPN", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "jpn");
         serviceBusiness.setInstanceDetails("wms", "test", jpnDetails, "jpn", false);
 
-        Instance i = serviceBusiness.getI18nInstance("wms", "test", "FR");
+        ServiceComplete i = serviceBusiness.getServiceById(id, "FR");
         Assert.assertNotNull(i);
         Assert.assertEquals("test", i.getIdentifier());
-        Assert.assertEquals("name", i.getName());
+        Assert.assertEquals("name", i.getTitle());
 
         // en is not defined so we get the default language
-        i = serviceBusiness.getI18nInstance("wms", "test", "en");
+        i = serviceBusiness.getServiceById(id, "en");
         Assert.assertNotNull(i);
         Assert.assertEquals("test", i.getIdentifier());
-        Assert.assertEquals("name", i.getName());
+        Assert.assertEquals("name", i.getTitle());
 
-        i = serviceBusiness.getI18nInstance("wms", "test", "jpn");
+        i = serviceBusiness.getServiceById(id, "jpn");
         Assert.assertNotNull(i);
         Assert.assertEquals("test", i.getIdentifier());
-        Assert.assertEquals("nameJPN", i.getName());
+        Assert.assertEquals("nameJPN", i.getTitle());
 
     }
 

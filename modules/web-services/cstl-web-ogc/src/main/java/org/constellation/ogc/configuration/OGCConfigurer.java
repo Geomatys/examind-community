@@ -24,10 +24,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.constellation.business.IServiceBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.ServiceComplete;
+import org.constellation.ws.IOGCConfigurer;
 import org.constellation.ws.ServiceConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,14 +43,31 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @version 0.9
  * @since 0.9
  */
-public abstract class OGCConfigurer extends ServiceConfigurer {
+public abstract class OGCConfigurer extends ServiceConfigurer implements IOGCConfigurer {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
 
-    public Instance getInstance(final Integer serviceId) throws ConfigurationException {
-        ServiceComplete service = serviceBusiness.getServiceById(serviceId);
-        return new Instance(service);
+    @Override
+    public Instance getInstance(final Integer serviceId, String lang) throws ConfigurationException {
+        ServiceComplete service = serviceBusiness.getServiceById(serviceId, lang);
+        Instance i = new Instance(service);
+        i.setBaseUrl(getServiceUrl(service));
+        return i;
+    }
+
+    private String getServiceUrl(ServiceComplete service) {
+        String result = Application.getProperty(AppProperty.CSTL_SERVICE_URL);
+        if (result == null) {
+            String cstlURL = Application.getProperty(AppProperty.CSTL_URL);
+            if (cstlURL != null) {
+                cstlURL = cstlURL.endsWith("/") ? cstlURL : cstlURL + "/";
+                result = cstlURL + "WS";
+            }
+        } else if (result.endsWith("/")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        return result + "/" + service.getType() + "/" + service.getIdentifier();
     }
 
     /**
@@ -57,12 +77,12 @@ public abstract class OGCConfigurer extends ServiceConfigurer {
      * @param spec
      * @return the {@link Instance} list
      */
-    public List<Instance> getInstances(final String spec) {
+    public List<Instance> getInstances(final String spec, String lang) {
         final List<Instance> instances = new ArrayList<>();
         final Map<Integer, ServiceStatus> statusMap = serviceBusiness.getStatus(spec);
         for (final Integer key : statusMap.keySet()) {
             try {
-                instances.add(getInstance(key));
+                instances.add(getInstance(key, lang));
             } catch (ConfigurationException ignore) {
                 // Do nothing.
             }

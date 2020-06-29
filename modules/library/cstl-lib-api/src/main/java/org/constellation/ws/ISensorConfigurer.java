@@ -24,7 +24,7 @@ import org.constellation.exception.ConfigurationException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ISOSConfigurer {
+public interface ISensorConfigurer extends IOGCConfigurer {
 
     void removeSensor(final Integer id, final String sensorID) throws ConfigurationException;
 }

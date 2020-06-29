@@ -151,7 +151,7 @@ public abstract class AbstractWorker implements Worker {
      * @throws org.constellation.ws.CstlServiceException if a version in the property "supported_versions" is not supported.
      */
     private void applySupportedVersion() throws ConfigurationException {
-        final ServiceComplete service = serviceBusiness.getServiceById(serviceId);
+        final ServiceComplete service = serviceBusiness.getServiceById(serviceId, null);
         if (service != null) {
             final List<ServiceDef> definitions = new ArrayList<>();
             final StringTokenizer tokenizer = new StringTokenizer(service.getVersions(), "µ");

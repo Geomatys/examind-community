@@ -19,7 +19,6 @@
 package org.constellation.api.rest;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
 import org.constellation.api.ServiceDef.Specification;
@@ -33,11 +32,10 @@ import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.ServiceReport;
-import org.constellation.dto.service.ServiceStatus;
-import org.constellation.exception.ConstellationException;
 import org.constellation.exception.NotRunningServiceException;
 import org.constellation.ogc.configuration.OGCConfigurer;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -81,8 +79,12 @@ public class OGCRestAPI {
     public ResponseEntity getInstance(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id,
             final @PathVariable("lang") String lang) {
         try {
-            return new ResponseEntity(serviceBusiness.getI18nInstance(serviceType, id, lang), OK);
-        } catch (ConstellationException ex) {
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id);
+            if (sid == null) {
+                return new ResponseEntity(AcknowlegementType.failure("Instance not found"), NOT_FOUND);
+            }
+            return new ResponseEntity(getConfigurer(serviceType).getInstance(sid, lang), OK);
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -98,9 +100,12 @@ public class OGCRestAPI {
     @RequestMapping(value="/OGC/{spec}/{id}", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getInstance(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
         try {
-            Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id);
-            return new ResponseEntity(getConfigurer(serviceType).getInstance(serviceId), OK);
-        } catch (Throwable ex) {
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id);
+            if (sid == null) {
+                return new ResponseEntity(AcknowlegementType.failure("Instance not found"), NOT_FOUND);
+            }
+            return new ResponseEntity(getConfigurer(serviceType).getInstance(sid, null), OK);
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -117,13 +122,9 @@ public class OGCRestAPI {
     public ResponseEntity getInstances(final @PathVariable("spec") String serviceType) {
         try {
             final OGCConfigurer configurer = getConfigurer(serviceType);
-            final Set<Instance> instances = new HashSet<>();
-            final Map<Integer, ServiceStatus> statusMap = serviceBusiness.getStatus(serviceType);
-            for (final Integer key : statusMap.keySet()) {
-                instances.add(configurer.getInstance(key));
-            }
+            final Set<Instance> instances = new HashSet(configurer.getInstances(serviceType, null));
             return new ResponseEntity(new InstanceReport(instances), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -134,7 +135,7 @@ public class OGCRestAPI {
         try {
             final ServiceReport response = new ServiceReport(wsengine.getRegisteredServices());
             return new ResponseEntity(response, OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -155,8 +156,8 @@ public class OGCRestAPI {
             }
             Integer sid = serviceBusiness.create(spec, metadata.getIdentifier(), null, metadata, null);
 
-            return new ResponseEntity(serviceBusiness.getServiceById(sid), CREATED);
-        } catch (Throwable ex) {
+            return new ResponseEntity(serviceBusiness.getServiceById(sid, null), CREATED);
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -175,7 +176,7 @@ public class OGCRestAPI {
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.start(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully started."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -194,7 +195,7 @@ public class OGCRestAPI {
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.stop(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully stopped."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -213,7 +214,7 @@ public class OGCRestAPI {
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.restart(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully restarted."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -233,7 +234,7 @@ public class OGCRestAPI {
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.rename(s.getId(), newId);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully renamed."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -254,7 +255,7 @@ public class OGCRestAPI {
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
             serviceBusiness.delete(s.getId());
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" successfully deleted."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -272,7 +273,7 @@ public class OGCRestAPI {
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             return new ResponseEntity(serviceBusiness.getConfiguration(serviceType, id), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -292,7 +293,7 @@ public class OGCRestAPI {
             final Details details = serviceBusiness.getInstanceDetails(serviceType, id, null);
             serviceBusiness.configure(serviceType, id, details, configuration);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" configuration successfully updated."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -312,7 +313,7 @@ public class OGCRestAPI {
                                final @PathVariable("lang") String lang) {
         try {
             return new ResponseEntity(serviceBusiness.getInstanceDetails(serviceType, id, lang), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }
@@ -332,7 +333,7 @@ public class OGCRestAPI {
             final Object config = serviceBusiness.getConfiguration(serviceType, id);
             serviceBusiness.configure(serviceType, id, metadata, config);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" details successfully updated."), OK);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             return new ErrorMessage(ex).build();
         }
     }

@@ -5,6 +5,6 @@
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
   <context:component-scan base-package="org.constellation.wmts.core"  />
-  <bean name="WTMSConfigurer" class="org.constellation.map.configuration.MapConfigurer" scope="prototype" />
+  <bean name="WMTSConfigurer" class="org.constellation.map.configuration.MapConfigurer" scope="prototype" />
 
 </beans>

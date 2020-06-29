@@ -42,8 +42,8 @@ public class ThwServiceConfigurer extends OGCConfigurer implements ITHWConfigure
      * {@inheritDoc}
      */
     @Override
-    public Instance getInstance(final Integer serviceId) throws ConfigurationException {
-        final Instance instance = super.getInstance(serviceId);
+    public Instance getInstance(final Integer serviceId, final String lang) throws ConfigurationException {
+        final Instance instance = super.getInstance(serviceId, lang);
         try {
             instance.setLayersNumber(getThesaurusCount(serviceId));
         } catch (ConfigurationException ex) {

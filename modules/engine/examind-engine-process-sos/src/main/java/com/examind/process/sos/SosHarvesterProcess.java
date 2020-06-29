@@ -211,8 +211,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                     // unlink from SOS
                     for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
-                        ServiceComplete sc = serviceBusiness.getServiceById(service);
-                        sensorServBusiness.removeSensor(sc.getId(), sid.getIdentifier());
+                        sensorServBusiness.removeSensor(service, sid.getIdentifier());
                     }
 
                     // remove sensor

@@ -19,7 +19,6 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -2402,10 +2401,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
-        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
-        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
-        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
+        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
+        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
         InstanceReport expResult2 = new InstanceReport(instances);
         expResult2.equals(obj);
         assertEquals(expResult2, obj);
@@ -2458,10 +2457,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
-        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
-        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
-        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
+        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
+        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STARTED, "null/wms/wms3"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 
@@ -2549,10 +2548,10 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
-        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
-        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
-        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
+        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
+        instances.add(new Instance(4, "wms3", "OGC:WMS", "Constellation Map Server", "wms", versions, 0, ServiceStatus.STOPPED, "null/wms/wms3"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
     }
@@ -2592,9 +2591,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.3.0", "1.1.1");
         final List<String> versions2 = Arrays.asList("1.3.0");
-        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED));
-        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED));
-        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED));
+        instances.add(new Instance(1, "default", "OGC:WMS", "Constellation Map Server", "wms", versions, 19, ServiceStatus.STARTED, "null/wms/default"));
+        instances.add(new Instance(2, "wms1", "this is the default english capabilities", "Serveur Cartographique.  Contact: someone@geomatys.fr.  Carte haute qualité.", "wms", versions, 1, ServiceStatus.STARTED, "null/wms/wms1"));
+        instances.add(new Instance(3, "wms2", "wms2", null, "wms", versions2, 13, ServiceStatus.STARTED, "null/wms/wms2"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
     }

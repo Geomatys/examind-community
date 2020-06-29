@@ -22,12 +22,11 @@ package com.examind.sensor.configuration;
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.util.logging.Level;
 
-import org.constellation.dto.AcknowlegementType;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
 import org.constellation.ogc.configuration.OGCConfigurer;
-import org.constellation.ws.ISOSConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.constellation.ws.ISensorConfigurer;
 
 /**
  * {@link OGCConfigurer} implementation for various Sensor service.
@@ -38,14 +37,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @version 0.9
  * @since 0.9
  */
-public class SensorServiceConfigurer extends OGCConfigurer implements ISOSConfigurer {
+public class SensorServiceConfigurer extends OGCConfigurer implements ISensorConfigurer {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;
 
     @Override
-    public Instance getInstance(final Integer id) throws ConfigurationException {
-        final Instance instance = super.getInstance(id);
+    public Instance getInstance(final Integer id, final String lang) throws ConfigurationException {
+        final Instance instance = super.getInstance(id, lang);
         try {
             instance.setLayersNumber(sensorServBusiness.getSensorIds(id).size());
         } catch (ConfigurationException ex) {

@@ -59,6 +59,9 @@ public class Instance {
     @XmlAttribute
     private List<String> versions;
 
+    @XmlAttribute
+    private String baseUrl;
+
     public Instance() {
 
     }
@@ -85,12 +88,13 @@ public class Instance {
     }
 
     public Instance(final int id, final String identifier, final String name, final String _abstract, final String type,
-            final List<String> versions, final Integer layerNumber, final ServiceStatus status) {
+            final List<String> versions, final Integer layerNumber, final ServiceStatus status, String baseUrl) {
         this(id, identifier, type, status);
         this.name         = name;
         this._abstract    = _abstract;
         this.versions     = versions;
         this.layersNumber = layerNumber;
+        this.baseUrl      = baseUrl;
     }
 
     /**
@@ -177,6 +181,14 @@ public class Instance {
         this.identifier = identifier;
     }
 
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -190,6 +202,7 @@ public class Instance {
                    Objects.equals(this._abstract,    that._abstract) &&
                    Objects.equals(this.versions,     that.versions) &&
                    Objects.equals(this.type,         that.type) &&
+                   Objects.equals(this.baseUrl,      that.baseUrl) &&
                    Objects.equals(this.status,       that.status);
         }
         return false;
@@ -204,6 +217,7 @@ public class Instance {
         hash = 73 * hash + (this.layersNumber != null ? this.layersNumber.hashCode() : 0);
         hash = 73 * hash + (this._abstract != null ? this._abstract.hashCode() : 0);
         hash = 73 * hash + (this.identifier != null ? this.identifier.hashCode() : 0);
+        hash = 73 * hash + (this.baseUrl != null ? this.baseUrl.hashCode() : 0);
         hash = 73 * hash + (this.versions != null ? this.versions.hashCode() : 0);
         return hash;
     }
@@ -236,6 +250,9 @@ public class Instance {
         }
         if (status != null) {
             sb.append("status:").append(status).append('\n');
+        }
+        if (baseUrl != null) {
+            sb.append("baseUrl:").append(baseUrl).append('\n');
         }
         return sb.toString();
     }

@@ -30,7 +30,7 @@ import org.w3c.dom.Node;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ICSWConfigurer {
+public interface ICSWConfigurer extends IOGCConfigurer {
 
     AcknowlegementType refreshIndex(final String id, final boolean asynchrone, final boolean forced) throws ConfigurationException;
 
@@ -55,7 +55,7 @@ public interface ICSWConfigurer {
      * @throws ConfigurationException
      */
     AcknowlegementType removeFromIndex(final String id, final List<String> identifierList) throws ConfigurationException;
-    
+
     AcknowlegementType removeIndex(final String id) throws ConfigurationException;
 
     /**

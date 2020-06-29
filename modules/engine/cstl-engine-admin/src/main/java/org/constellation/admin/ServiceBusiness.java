@@ -22,7 +22,6 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.ServiceStatus;
-import org.constellation.dto.service.Instance;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -517,12 +516,12 @@ public class ServiceBusiness implements IServiceBusiness {
      * {@inheritDoc}
      */
     @Override
-    public ServiceComplete getServiceById(int id) {
+    public ServiceComplete getServiceById(int id, String lang) {
         final Service service = serviceRepository.findById(id);
         if (service != null) {
             Details details = null;
             try {
-                details = getInstanceDetails(id, null);
+                details = getInstanceDetails(id, lang);
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.INFO, "Error while reading service details", ex);
             }
@@ -681,20 +680,6 @@ public class ServiceBusiness implements IServiceBusiness {
             serviceDTOs.add(serviceDTO);
         }
         return serviceDTOs;
-    }
-
-    @Override
-    public Instance getI18nInstance(String serviceType, String identifier, String lang) throws ConstellationException{
-        final Service service = serviceRepository.findByIdentifierAndType(identifier, serviceType);
-        if (service != null) {
-            final Details details = getInstanceDetails(service.getId(), lang);
-            final ServiceComplete serviceDTO = new ServiceComplete(service, details);
-            Instance instance = new Instance(serviceDTO);
-            int layersNumber = layerRepository.findByServiceId(service.getId()).size();
-            instance.setLayersNumber(layersNumber);
-            return instance;
-        }
-        return null;
     }
 
     /**

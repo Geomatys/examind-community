@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2015 Geomatys.
+ * Copyright 2020 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,17 @@
  */
 package org.constellation.ws;
 
+import java.util.List;
+import org.constellation.dto.service.Instance;
 import org.constellation.exception.ConfigurationException;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ITHWConfigurer extends IOGCConfigurer {
+public interface IOGCConfigurer {
 
-    int getThesaurusCount(Integer id) throws ConfigurationException;
+    Instance getInstance(final Integer serviceId, String lang) throws ConfigurationException;
+
+    List<Instance> getInstances(final String spec, String lang) throws ConfigurationException;
 }
