@@ -29,6 +29,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
@@ -82,6 +86,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     private static final String PARAM_PROFILE = "profile";
     private static final String PARAM_NBPOINT = "samplingCount";
     private static final String PARAM_ALTITUDE = "alt";
+    private static final String PARAM_REDUCER = "reducer";
 
     private static final Map<Unit,List<Unit>> UNIT_GROUPS = new HashMap<>();
     static {
@@ -284,7 +289,21 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             }
 
             final GridCoverage coverage = readCoverage(resource, workEnv);
-            baseData = extractData(coverage, geom, samplingCount);
+            Object parameters = ((org.geotoolkit.wms.xml.GetFeatureInfo) getFI).getParameters();
+            ReductionMethod reducer = null;
+            if (parameters instanceof Map) {
+                String reduceParam = null;
+                Object cdt = ((Map) parameters).get(PARAM_REDUCER);
+                if (cdt instanceof String){
+                    reduceParam = (String) cdt;
+                } else if (cdt instanceof String[]) {
+                    reduceParam = ((String[]) cdt)[0];
+                }
+                if (reduceParam != null) {
+                    reducer = ReductionMethod.valueOf(reduceParam);
+                }
+            }
+            baseData = extractData(coverage, geom, samplingCount, reducer);
 
         } catch (DataStoreException ex) {
             layer.message = ex.getMessage();
@@ -329,7 +348,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         return layer;
     }
 
-    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount) throws TransformException, FactoryException {
+    private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount, ReductionMethod reducer) throws TransformException, FactoryException {
 
         final ProfilData pdata = new ProfilData();
 
@@ -497,9 +516,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             });
         }
 
-        if (samplingCount != null && pdata.points.size() > samplingCount) {
-            pdata.points = reduce(pdata.points, samplingCount);
-        }
+        pdata.points = reduce(pdata.points, samplingCount, reducer);
 
         pdata.realUnit = bands[0].realUnit;
         pdata.unit = bands[0].unit;
@@ -518,13 +535,95 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
      * @return
      */
     static List<XY> reduce(List<XY> lst, int samplingCount) {
+        return reduce(lst, samplingCount, ReductionMethod.NEAREST);
+    }
 
+    static List<XY> reduce(List<XY> lst, int samplingCount, ReductionMethod reductionStrategy) {
+        if (reductionStrategy == null) reductionStrategy = ReductionMethod.AVG;
+        switch (reductionStrategy) {
+            case NEAREST: return reduceNearest(lst, samplingCount);
+            case MIN    : return reduce(lst, samplingCount, CoverageProfileInfoFormat::minReduction);
+            case MAX    : return reduce(lst, samplingCount, CoverageProfileInfoFormat::maxReduction);
+            default     : return reduce(lst, samplingCount, CoverageProfileInfoFormat::avgReduction);
+        }
+    }
+
+    private static XY minReduction(List<XY> values) {
+        final DoubleBinaryOperator min = nanOp(Math::min);
+        final double[] reduced = values.stream()
+                .reduce(
+                        new double[]{ 0, 0, Double.NaN }, // 0: nb points ; 1: sum of X ; 2: minimal y
+                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = min.applyAsDouble(dd[2], xy.y)  ; return dd; },
+                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = min.applyAsDouble(d1[2], d2[2]) ; return d1; }
+                );
+        return new XY(reduced[1] / reduced[0], reduced[2]);
+    }
+
+    private static XY maxReduction(List<XY> values) {
+        final DoubleBinaryOperator max = nanOp(Math::max);
+        final double[] reduced = values.stream()
+                .reduce(
+                        new double[]{ 0, 0, Double.NEGATIVE_INFINITY }, // 0: nb points ; 1: sum of X ; 2: maximal y
+                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = max.applyAsDouble(dd[2], xy.y)  ; return dd; },
+                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = max.applyAsDouble(d1[2], d2[2]) ; return d1; }
+                );
+        return new XY(reduced[1] / reduced[0], reduced[2]);
+    }
+
+    private static XY avgReduction(List<XY> values) {
+        final DoubleBinaryOperator sum = nanOp((d1, d2) -> d1 + d2);
+        final double[] reduced = values.stream()
+                .reduce(
+                        new double[3], // 0: nb points ; 1: sum of X ; 2: sum of y
+                        (dd, xy) -> { dd[0]++        ; dd[1] += xy.x  ; dd[2] = sum.applyAsDouble(dd[2], xy.y)  ; return dd; },
+                        (d1, d2) -> { d1[0] += d2[0] ; d1[1] += d2[1] ; d1[2] = sum.applyAsDouble(d1[2], d2[2]) ; return d1; }
+                );
+        return new XY(reduced[1] / reduced[0], reduced[2] / reduced[0]);
+    }
+
+    /**
+     * Decorate given double operation, but also ignore any NaN value present
+     * @param base
+     * @return
+     */
+    private static DoubleBinaryOperator nanOp(DoubleBinaryOperator base) {
+        return (d1, d2) -> Double.isNaN(d1) ? d2 : Double.isNaN(d2) ? d1 : base.applyAsDouble(d1, d2);
+    }
+
+    /**
+     * HACK : quick fix to mimic advanced reduction algorithms. Little things to know:
+     * <ul>
+     *     <li>First and last points are preserved</li>
+     *     <li>Overlap behavior : to simplify algorithm, window management is approximative</li>
+     * </ul>
+     * @param datasource
+     * @param samplingCount
+     * @param reducer
+     * @return
+     */
+    static List<XY> reduce(List<XY> datasource, int samplingCount, Function<List<XY>, XY> reducer) {
+        final int sourceSize = datasource.size();
+        // HACK: for reduction to make sense, we want at least a central point with 2 edges
+        final int ptsPerWindow = Math.max(3, Math.round(sourceSize / (float) samplingCount));
+        final int outSamplingCount = sourceSize / ptsPerWindow;
+        final List<XY> reduced = IntStream.rangeClosed(1, outSamplingCount)
+                .mapToObj(ptIdx -> datasource.subList(ptsPerWindow * ptIdx - ptsPerWindow, ptsPerWindow * ptIdx))
+                .map(reducer)
+                .collect(Collectors.toList());
+        reduced.add(0, datasource.get(0));
+        reduced.add(datasource.get(sourceSize - 1));
+        return reduced;
+    }
+
+    static List<XY> reduceNearest(List<XY> lst, int samplingCount) {
+        final int sourceSize = lst.size();
+        if (sourceSize <= samplingCount) return lst;
         final List<BiSegment> prepared = new ArrayList<>();
 
         final BiSegment first = new BiSegment(lst.get(0));
-        final BiSegment last = new BiSegment(lst.get(lst.size()-1));
+        final BiSegment last = new BiSegment(lst.get(sourceSize -1));
         BiSegment previous = null;
-        for (int i = 1, n = lst.size()-1; i < n ; i++) {
+        for (int i = 1, n = sourceSize -1; i < n ; i++) {
             final BiSegment bis = new BiSegment(lst.get(i));
             if (previous != null) {
                 bis.updatePrevious(previous);
@@ -843,5 +942,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             return ((prev == null) ? "null" : prev.xy) + " -> " + xy + " -> " + ((next == null) ? "null" : next.xy) + " d:" + distanceIfRemoved;
         }
 
+    }
+
+    public enum ReductionMethod {
+        NEAREST, MIN, MAX, AVG
     }
 }
