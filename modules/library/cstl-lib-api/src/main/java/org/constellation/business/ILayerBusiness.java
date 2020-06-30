@@ -19,6 +19,7 @@
 package org.constellation.business;
 
 import java.util.List;
+import java.util.Map;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.DataBrief;
@@ -103,5 +104,7 @@ public interface ILayerBusiness {
     List<LayerSummary> getLayerRefFromStyleId(final Integer styleId);
 
     List<StyleReference> getLayerStyles(Integer layerId) throws ConstellationException;
+
+    Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConstellationException;
 
 }

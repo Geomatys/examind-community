@@ -34,6 +34,7 @@ public class FSLayerRepositoryTest extends LayerRepositoryTest {
     @Transactional()
     @Override
     public void crud() {
+        supportSearch  = false;
         super.crud();
     }
 }

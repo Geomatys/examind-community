@@ -19,6 +19,7 @@
 package org.constellation.repository;
 
 import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.constellation.dto.Layer;
@@ -53,15 +54,15 @@ public interface LayerRepository extends AbstractRepository {
     void update(Layer storeLayer);
 
     Integer findIdByServiceIdAndLayerName(int serviceId, String layerName);
-    
+
     Layer findByServiceIdAndLayerName(int serviceId, String layerName);
 
     Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace);
-    
+
     Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace);
 
     Integer findIdByServiceIdAndAlias(int serviceId, String alias);
-    
+
     Layer findByServiceIdAndAlias(int serviceId, String alias);
 
     Layer findByServiceIdAndDataId(int serviceId, int dataId);
@@ -87,5 +88,7 @@ public interface LayerRepository extends AbstractRepository {
      * @return list of lighten {@link Layer}
      */
     List<Layer> getLayersRefsByLinkedStyle(final int styleId);
+
+    Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 
 }

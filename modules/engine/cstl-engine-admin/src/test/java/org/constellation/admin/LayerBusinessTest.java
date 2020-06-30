@@ -20,6 +20,9 @@ package org.constellation.admin;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -37,6 +40,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
+import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.Order;
@@ -86,6 +90,7 @@ public class LayerBusinessTest {
     public void init() {
         if (!initialized) {
             try {
+                layerBusiness.removeAll();
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
                 datasetBusiness.removeAllDatasets();
@@ -146,6 +151,38 @@ public class LayerBusinessTest {
         Integer lid = layerBusiness.add(db.getId(), "SSTM", sid, null);
 
         Assert.assertNotNull(lid);
+
+        List<DataBrief> briefs = dataBusiness.getDataBriefsFromProviderId(vectorPID, null, true, false, null, null, false);
+        Assert.assertEquals(12, briefs.size());
+
+        for (DataBrief vdb : briefs) {
+           layerBusiness.add(vdb.getId(), null, sid, null);
+        }
+    }
+
+    @Test
+    @Order(order=2)
+    public void searchTest() throws Exception {
+
+        // search all
+        Map<String, Object> filters = new HashMap<>();
+        Map.Entry<String, String> sort = null;
+        Map.Entry<Integer, List<Layer>> results = layerBusiness.filterAndGet(filters, sort, 1, 20);
+
+        Assert.assertEquals(new Integer(13), results.getKey());
+        Assert.assertEquals(13, results.getValue().size());
+
+        // paged search
+        results = layerBusiness.filterAndGet(filters, sort, 1, 10);
+
+        Assert.assertEquals(new Integer(13), results.getKey());
+        Assert.assertEquals(10, results.getValue().size());
+
+        results = layerBusiness.filterAndGet(filters, sort, 2, 10);
+
+        Assert.assertEquals(new Integer(13), results.getKey());
+        Assert.assertEquals(3, results.getValue().size());
+
     }
 
 }

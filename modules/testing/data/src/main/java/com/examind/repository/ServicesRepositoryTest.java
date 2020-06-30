@@ -95,7 +95,7 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
         serviceRepository.updateExtraFile(sid1, "file2.sh", file2);
         
 
-        Integer sid2 = serviceRepository.create(TestSamples.newService2(owner.getId()));
+        Integer sid2 = serviceRepository.create(TestSamples.newService(owner.getId(), "test", "wms"));
         Assert.assertNotNull(sid2);
 
         Service s2 = serviceRepository.findById(sid2);

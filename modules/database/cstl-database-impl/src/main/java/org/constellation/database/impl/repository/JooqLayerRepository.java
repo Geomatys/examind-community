@@ -18,8 +18,10 @@
  */
 package org.constellation.database.impl.repository;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import static org.constellation.database.api.jooq.Tables.LAYER;
 import static org.constellation.database.api.jooq.Tables.STYLED_LAYER;
 
@@ -29,8 +31,14 @@ import javax.xml.namespace.QName;
 
 import org.constellation.dto.Layer;
 import org.constellation.database.api.jooq.tables.records.LayerRecord;
+import org.constellation.exception.ConstellationPersistenceException;
 import org.constellation.repository.LayerRepository;
+import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Select;
+import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -70,6 +78,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
         newRecord.setName(layer.getName());
         newRecord.setNamespace(layer.getNamespace());
         newRecord.setService(layer.getService());
+        newRecord.setTitle(layer.getTitle());
         newRecord.setDate(layer.getDate() != null ? layer.getDate().getTime() : null);
         if (newRecord.store() > 0)
             return newRecord.into(Layer.class).getId();
@@ -206,6 +215,116 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     @Override
     public List<Layer> findAll() {
         return convertListToDto(dsl.select().from(LAYER).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+    }
+
+    @Override
+    public Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
+
+        //add default filter
+        if (filterMap == null) {
+           filterMap = new HashMap<>();
+        }
+        // build SQL query
+        Select query = null;
+        for (final Map.Entry<String, Object> entry : filterMap.entrySet()) {
+            final Condition cond = buildCondition(entry.getKey(), entry.getValue());
+            if (cond != null) {
+                if (query == null) {
+                    query = dsl.select(LAYER.fields()).from(LAYER).where(cond);
+                } else {
+                    query = ((SelectConditionStep) query).and(cond);
+                }
+            }
+        }
+
+        // add sort
+        if(sortEntry != null) {
+            final SortField f;
+            if("title".equals(sortEntry.getKey())){
+                f = "ASC".equals(sortEntry.getValue()) ? LAYER.TITLE.lower().asc() : LAYER.TITLE.lower().desc();
+            } else {
+                f = "ASC".equals(sortEntry.getValue()) ? LAYER.DATE.asc() : LAYER.DATE.desc();
+            }
+            if (query == null) {
+                query = dsl.select(LAYER.fields()).from(LAYER).orderBy(f);
+            } else {
+                query = ((SelectConditionStep)query).orderBy(f);
+            }
+        }
+
+        final Map.Entry<Integer,List<Layer>> result;
+        if (query == null) {
+            final int count = dsl.selectCount().from(LAYER).fetchOne(0,int.class);
+            result = new AbstractMap.SimpleImmutableEntry<>(count,
+                    convertListToDto(dsl.select(LAYER.fields()).from(LAYER).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class)));
+        } else {
+            final int count = dsl.fetchCount(query);
+            result = new AbstractMap.SimpleImmutableEntry<>(count,
+                    convertListToDto(((SelectLimitStep) query).limit(rowsPerPage).offset((pageNumber - 1) * rowsPerPage).fetchInto(org.constellation.database.api.jooq.tables.pojos.Layer.class)));
+        }
+        return result;
+    }
+
+    private Condition buildCondition(String key, Object value) {
+        if ("owner".equals(key)) {
+            if (value instanceof Integer) {
+                return LAYER.OWNER.equal((Integer) value);
+            }
+            throw new ConstellationPersistenceException("Owner parameter must be an Integer");
+        } else if ("alias".equals(key)) {
+            if (value instanceof String) {
+                return LAYER.ALIAS.equal((String) value);
+            }
+            throw new ConstellationPersistenceException("Alias parameter must be an String");
+        } else if ("data".equals(key)) {
+            if (value instanceof Integer) {
+                return LAYER.DATA.equal((Integer) value);
+            }
+            throw new ConstellationPersistenceException("Data parameter must be an Integer");
+        } else if ("title".equals(key)) {
+            return LAYER.TITLE.likeIgnoreCase("%" + value + "%");
+        } else if ("service".equals(key)) {
+            if (value instanceof Integer) {
+                return LAYER.SERVICE.equal((Integer) value);
+            }
+            throw new ConstellationPersistenceException("Service parameter must be an Integer");
+        } else if ("id".equals(key)) {
+            if (value instanceof Integer) {
+                return LAYER.ID.equal((Integer) value);
+            }
+            throw new ConstellationPersistenceException("Id parameter must be an Integer");
+        } else if ("term".equals(key)) {
+            return LAYER.NAME.likeIgnoreCase("%" + value + "%");
+        } else if ("period".equals(key)) {
+            if (value instanceof Long) {
+                return LAYER.DATE.greaterOrEqual((Long) value);
+            }
+            throw new ConstellationPersistenceException("period parameter must be a Long");
+        } else if ("OR".equals(key)) {
+            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
+            Condition c = null;
+            for (Map.Entry<String, Object> e: values) {
+                Condition c2 = buildCondition(e.getKey(), e.getValue());
+                if (c == null) {
+                    c = c2;
+                } else {
+                    c = c.or(c2);
+                }
+            }
+            return c;
+        } else if ("AND".equals(key)) {
+            List<Map.Entry<String, Object>> values =  (List<Map.Entry<String, Object>>) value;
+            Condition c = null;
+            for (Map.Entry<String, Object> e: values) {
+                Condition c2 = buildCondition(e.getKey(), e.getValue());
+                if (c == null) {
+                    c = c2;
+                } else {
+                    c = c.and(c2);
+                }
+            }
+        }
+        return null;
     }
 
     private static List<Layer> convertListToDto(List<org.constellation.database.api.jooq.tables.pojos.Layer> daos) {

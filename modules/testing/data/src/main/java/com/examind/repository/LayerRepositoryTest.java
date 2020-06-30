@@ -18,7 +18,12 @@
  */
 package com.examind.repository;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.constellation.repository.LayerRepository;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Layer;
@@ -46,6 +51,8 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private DatasetRepository datasetRepository;
+
+    protected boolean supportSearch;
 
     @Test
     public void all() {
@@ -78,17 +85,17 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid, dsid));
         Assert.assertNotNull(did2);
 
-        Integer sid1 = serviceRepository.create(TestSamples.newService(owner.getId()));
+        Integer sid1 = serviceRepository.create(TestSamples.newService(owner.getId(), "default", "wms"));
         Assert.assertNotNull(sid1);
 
-        Integer sid2 = serviceRepository.create(TestSamples.newService2(owner.getId()));
+        Integer sid2 = serviceRepository.create(TestSamples.newService(owner.getId(), "default2", "wmts"));
         Assert.assertNotNull(sid2);
 
         /**
          * Layer insertion
          */
 
-        Integer lid1 = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid1));
+        Integer lid1 = layerRepository.create(TestSamples.newLayer(owner.getId(), did1, sid1, "alias1", "name1", "", "title 1"));
         Assert.assertNotNull(lid1);
 
         Layer l1 = layerRepository.findById(lid1);
@@ -112,11 +119,18 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Layer l4 = layerRepository.findById(lid4);
         Assert.assertNotNull(l4);
 
+        Integer lid5 = layerRepository.create(TestSamples.newLayer(owner.getId(), did2, sid2, "alias2", "name2", "", "title 2"));
+        Assert.assertNotNull(lid5);
+
+        Layer l5 = layerRepository.findById(lid5);
+        Assert.assertNotNull(l5);
+
         /**
          * layer search
          */
         List<Layer> layers = layerRepository.findAll();
         Assert.assertTrue(layers.contains(l1));
+        Assert.assertTrue(layers.contains(l2));
 
         List<Integer> lids = layerRepository.findByDataId(did1);
         Assert.assertEquals(2, lids.size());
@@ -124,9 +138,10 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(lids.contains(lid3));
 
         lids = layerRepository.findByDataId(did2);
-        Assert.assertEquals(2, lids.size());
+        Assert.assertEquals(3, lids.size());
         Assert.assertTrue(lids.contains(lid2));
         Assert.assertTrue(lids.contains(lid4));
+        Assert.assertTrue(lids.contains(lid5));
 
         layers = layerRepository.findByServiceId(sid1);
         Assert.assertEquals(2, layers.size());
@@ -134,9 +149,10 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue(layers.contains(l4));
 
         layers = layerRepository.findByServiceId(sid2);
-        Assert.assertEquals(2, layers.size());
+        Assert.assertEquals(3, layers.size());
         Assert.assertTrue(layers.contains(l2));
         Assert.assertTrue(layers.contains(l3));
+        Assert.assertTrue(layers.contains(l5));
 
         Layer l = layerRepository.findByServiceIdAndAlias(sid2, "layer'; delete from admin.layer;'Alias");
         Assert.assertNotNull(l);
@@ -163,6 +179,79 @@ public class LayerRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(l);
 
         Assert.assertEquals("bloup'; '", l.getAlias());
+
+        l4 = layerRepository.findById(lid4);
+        Assert.assertNotNull(l4);
+
+        if (supportSearch) {
+            // search all
+            Map<String, Object> filters = new HashMap<>();
+            Entry<String, String> sort = null;
+            Entry<Integer, List<Layer>> results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(5), results.getKey());
+            Assert.assertEquals(5, results.getValue().size());
+
+            // search by service
+            filters.put("service", sid1);
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(2), results.getKey());
+            Assert.assertEquals(2, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l1));
+
+            // search by data
+            filters.clear();
+            filters.put("data", did2);
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(3), results.getKey());
+            Assert.assertEquals(3, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l2));
+            Assert.assertTrue(results.getValue().contains(l4));
+            Assert.assertTrue(results.getValue().contains(l5));
+
+            // search by alias
+            filters.clear();
+            filters.put("alias", "alias2");
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(1), results.getKey());
+            Assert.assertEquals(1, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l5));
+
+             // search by title
+            filters.clear();
+            filters.put("title", "title");
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(2), results.getKey());
+            Assert.assertEquals(2, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l1));
+            Assert.assertTrue(results.getValue().contains(l5));
+
+            filters.put("title", "title 2");
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(1), results.getKey());
+            Assert.assertEquals(1, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l5));
+
+            // search by data OR service
+            Entry<String, Object> subFilter1 = new SimpleEntry("service", sid1);
+            Entry<String, Object> subFilter2 = new SimpleEntry("data", did2);
+            filters.clear();
+            filters.put("OR", Arrays.asList(subFilter1, subFilter2));
+
+            results = layerRepository.filterAndGet(filters, sort, 1, 10);
+
+            Assert.assertEquals(new Integer(4), results.getKey());
+            Assert.assertEquals(4, results.getValue().size());
+            Assert.assertTrue(results.getValue().contains(l1));
+            Assert.assertTrue(results.getValue().contains(l2));
+            Assert.assertTrue(results.getValue().contains(l4));
+            Assert.assertTrue(results.getValue().contains(l5));
+        }
 
         /**
          * layer deletion

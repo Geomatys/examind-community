@@ -18,6 +18,7 @@
  */
 package org.constellation.api.rest;
 
+import java.util.AbstractMap;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
@@ -55,11 +56,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.constellation.business.IUserBusiness;
 
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -75,6 +81,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class MapRestAPI {
 
     private static final Logger LOGGER = Logging.getLogger("org.constellation.api.rest");
+
+    @Inject
+    private IUserBusiness userBusiness;
 
     @Inject
     private IStyleBusiness styleBusiness;
@@ -377,6 +386,130 @@ public class MapRestAPI {
         } catch(Throwable ex){
             return new ErrorMessage(ex).build();
         }
+    }
+
+    /**
+     * Proceed to get list of records {@link DataBrief} in Page object for dashboard.
+     * the list can be filtered, sorted and use the pagination.
+     *
+     * @param pagedSearch given params of filters, sorting and pagination served by a pojo {link PagedSearch}
+     * @param req the http request needed to get the current user.
+     * @return {link Page} of {@link DataBrief}
+     */
+    @RequestMapping(value="/layers/search",method=POST,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity search(@RequestBody final PagedSearch pagedSearch, final HttpServletRequest req) {
+        try {
+            //filters
+            final Map<String,Object> filterMap = prepareFilters(pagedSearch,req);
+
+            //sorting
+            final Sort sort = pagedSearch.getSort();
+            Map.Entry<String,String> sortEntry = null;
+            if (sort != null) {
+                sortEntry = new AbstractMap.SimpleEntry<>(sort.getField(),sort.getOrder().toString());
+            }
+
+            //pagination
+            final int pageNumber = pagedSearch.getPage();
+            final int rowsPerPage = pagedSearch.getSize();
+
+            final Map.Entry<Integer,List<Layer>> entry = layerBusiness.filterAndGet(filterMap,sortEntry,pageNumber,rowsPerPage);
+            final int total = entry.getKey();
+            final List<Layer> results = entry.getValue();
+
+            // Build and return the content list of page.
+            return new ResponseEntity(new Page<Layer>()
+                    .setNumber(pageNumber)
+                    .setSize(rowsPerPage)
+                    .setContent(results)
+                    .setTotal(total), OK);
+
+        } catch(Exception ex){
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Proceed to fill a map of filters used to search records.
+     * the filters are passed from a pojo {@link PagedSearch}
+     *
+     * @param pagedSearch {link PagedSearch} given filter params
+     * @param req given http request object to extract the user
+     * @return {@code Map} map of filters to send
+     */
+    private Map<String,Object> prepareFilters(final PagedSearch pagedSearch, final HttpServletRequest req) {
+        List<Filter> filters = pagedSearch.getFilters();
+        final String searchTerm = pagedSearch.getText();
+        if(!StringUtils.isBlank(searchTerm)){
+            final Filter f = new Filter("term",searchTerm);
+            if(filters != null){
+                filters.add(f);
+            }else {
+                filters = Arrays.asList(f);
+            }
+        }
+        final Map<String,Object> filterMap = new HashMap<>();
+        if (filters != null) {
+            for (final Filter f : filters) {
+                Map.Entry<String, Object> entry = transformFilter(f, req);
+                if (entry != null) {
+                    filterMap.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return filterMap;
+    }
+
+    /**
+     * Transform a Filter sent by the UI into a map of entry.
+     *
+     * @param f UI sent filter.
+     * @param req servlet request.
+     *
+     * @return A map of field / value to perform filtering.
+     */
+    private Map.Entry<String, Object> transformFilter(Filter f, final HttpServletRequest req) {
+        String value = f.getValue();
+
+        if ("OR".equals(f.getOperator())) {
+            final List<Map.Entry<String, Object>> children = new ArrayList<>();
+            for (final Filter child : f.getFilters()) {
+                final Map.Entry<String, Object> entry = transformFilter(child, req);
+                if (entry != null) {
+                    children.add(entry);
+                }
+            }
+            return new AbstractMap.SimpleEntry<>("OR", children);
+        } else if (value == null || "_all".equals(value)) {
+            return null;
+        }
+        if ("owner".equals(f.getField())) {
+            try {
+                final int userId = Integer.valueOf(value);
+                return new AbstractMap.SimpleEntry<>("owner", userId);
+            } catch (Exception ex) {
+                //try as login
+                if ("_me".equals(value)) {
+                    //get user login
+                    value = req.getUserPrincipal() != null ? req.getUserPrincipal().getName() : null;
+                }
+                final Optional<CstlUser> optUser = userBusiness.findOne(value);
+                if (optUser.isPresent()) {
+                    final CstlUser user = optUser.get();
+                    if (user != null) {
+                        return new AbstractMap.SimpleEntry<>(f.getField(), user.getId());
+                    }
+                }
+            }
+        } else if ("period".equals(f.getField())) {
+            Long delta = Util.getDeltaTime(value);
+            if (delta == null) {
+                return null;
+            }
+            return new AbstractMap.SimpleEntry<>("period", delta);
+
+        }
+        return null;
     }
 
     /**

@@ -34,6 +34,7 @@ public class JooqLayerRepositoryTestCase extends LayerRepositoryTest {
     @Transactional()
     @Override
     public void crud() {
+        supportSearch = true;
         super.crud();
     }
 }

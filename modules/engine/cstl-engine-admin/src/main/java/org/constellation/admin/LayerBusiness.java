@@ -21,6 +21,7 @@ package org.constellation.admin;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -527,10 +528,23 @@ public class LayerBusiness implements ILayerBusiness {
         return new ArrayList<>();
     }
 
+    @Override
+    public Map.Entry<Integer, List<org.constellation.dto.service.config.wxs.Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) throws ConfigurationException {
+        final Map.Entry<Integer, List<Layer>> entry = layerRepository.filterAndGet(filterMap, sortEntry, pageNumber, rowsPerPage);
+        return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), toLayerConfig(entry.getValue()));
+    }
+
+
+    private List<org.constellation.dto.service.config.wxs.Layer> toLayerConfig(List<Layer> layers) throws ConfigurationException {
+        List<org.constellation.dto.service.config.wxs.Layer> results = new ArrayList<>();
+        for (Layer layer : layers) {
+            results.add(toLayerConfig(layer));
+        }
+        return results;
+    }
+
     /**
      *
-     * @param login
-     * @param securityFilter
      * @param layer
      * @return
      * @throws ConfigurationException

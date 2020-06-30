@@ -198,7 +198,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
         return byServiceIdDataId.get(serviceId + "-" + dataId);
     }
-    
+
     @Override
     public Integer findIdByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
         if (byService.containsKey(serviceId)) {
@@ -420,6 +420,18 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             }
         }
         return i;
+    }
+
+    @Override
+    public void deleteAll() {
+        for (Integer lid : new HashSet<Integer>(byId.keySet())) {
+                delete(lid);
+        }
+    }
+
+    @Override
+    public Map.Entry<Integer, List<Layer>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

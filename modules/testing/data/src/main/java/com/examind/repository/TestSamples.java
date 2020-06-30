@@ -109,25 +109,16 @@ public class TestSamples {
     }
 
     public static Service newService(Integer ownerId) {
-        Service service = new Service();
-        service.setDate(new Date());
-        service.setConfig(null);
-        service.setIdentifier("default");
-        service.setOwner(ownerId);
-        service.setType("wms");
-        service.setStatus("running");
-        service.setVersions("1.0.0");
-        service.setImpl("impl1");
-        return service;
+        return newService(ownerId, "default", "wms");
     }
 
-    public static Service newService2(Integer ownerId) {
+    public static Service newService(Integer ownerId, String identifier, String type) {
         Service service = new Service();
         service.setDate(new Date());
         service.setConfig(null);
-        service.setIdentifier("test");
+        service.setIdentifier(identifier);
         service.setOwner(ownerId);
-        service.setType("wms");
+        service.setType(type);
         service.setStatus("running");
         service.setVersions("1.0.0");
         service.setImpl("impl1");
@@ -178,16 +169,20 @@ public class TestSamples {
     }
 
     public static Layer newLayer(Integer ownerId, Integer dataId, Integer serviceId) {
+        return newLayer(ownerId, dataId, serviceId, "layerAlias", "testlayer", "", "layer title");
+    }
+
+    public static Layer newLayer(Integer ownerId, Integer dataId, Integer serviceId, String alias, String name, String namespace, String title) {
         Layer layer = new Layer();
-        layer.setAlias("layerAlias");
+        layer.setAlias(alias);
         layer.setDataId(dataId);
         layer.setDate(new Date());
         layer.setConfig(null);
-        layer.setName("testlayer");
-        layer.setNamespace("");
+        layer.setName(name);
+        layer.setNamespace(namespace);
         layer.setOwnerId(ownerId);
         layer.setService(serviceId);
-        layer.setTitle("layer tiltle");
+        layer.setTitle(title);
         return layer;
     }
 
