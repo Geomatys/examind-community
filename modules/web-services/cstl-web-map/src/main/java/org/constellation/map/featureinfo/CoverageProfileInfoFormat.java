@@ -18,7 +18,6 @@
  */
 package org.constellation.map.featureinfo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.util.StdConverter;
@@ -29,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
@@ -395,21 +393,11 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         final int ALTIIDX = altiIdx == null ? -1 : altiIdx;
 
         //build sample dimension informations
-        final int numSampleDimensions = samples.size();
-        final Band[] bands = new Band[numSampleDimensions];
-        for (int i = 0; i < numSampleDimensions; i++) {
-            final SampleDimension sampleDimension = samples.get(0);
-            final Band band = new Band();
-            band.name = String.valueOf(sampleDimension.getName());
-            final Optional<Unit<?>> optUnits = sampleDimension.getUnits();
-            if (optUnits.isPresent()) {
-                band.unit = optUnits.get();
-            }
-            bands[i] = band;
-
+        final Band[] bands = samples.stream()
+                .map(Band::new)
             //limit to first band, request by david/mehdi
-            break;
-        }
+                .limit(1)
+                .toArray(size -> new Band[size]);
 
         final boolean isPoint = geom instanceof Point;
         if (isPoint) {
@@ -706,6 +694,13 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         public String name;
         public Unit unit;
+
+        Band() {}
+
+        Band(SampleDimension source) {
+            name = source.getName().toString();
+            unit= source.getUnits().orElse(null);
+        }
 
         public String getName() {
             return name;
