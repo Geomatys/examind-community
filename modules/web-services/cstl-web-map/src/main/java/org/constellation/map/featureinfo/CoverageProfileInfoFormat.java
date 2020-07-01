@@ -19,6 +19,9 @@
 package org.constellation.map.featureinfo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.util.StdConverter;
 import java.awt.Rectangle;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -311,17 +314,17 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
 
         //convert data in different units
-        final List<Unit> group = UNIT_GROUPS.get(baseData.realUnit);
+        final List<Unit> group = UNIT_GROUPS.get(baseData.getUnit());
         if (group != null) {
             for (Unit u : group) {
-                if (u.equals(baseData.realUnit)) {
+                if (u.equals(baseData.getUnit())) {
                     layer.data.add(baseData);
                     continue;
                 }
                 //create converted datas
                 final ProfilData data = new ProfilData();
                 final Statistics stats = new Statistics("");
-                final UnitConverter converter = baseData.realUnit.getConverterTo(u);
+                final UnitConverter converter = baseData.getUnit().getConverterTo(u);
 
                 for (XY xy : baseData.points) {
                     final XY c = new XY(xy.x, xy.y);
@@ -335,7 +338,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                     data.points.add(c);
                 }
 
-                data.unit = u.getSymbol();
+                data.unit = u;
                 data.min = stats.minimum();
                 data.max = stats.maximum();
                 layer.data.add(data);
@@ -381,7 +384,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             final Axe axe = new Axe();
             axe.name = axis.getName().toString();
             axe.direction = axis.getDirection().name();
-            if (unit != null) axe.unit = unit.getSymbol();
+            if (unit != null) axe.unit = unit;
             axe.range = range;
             axes.add(axe);
 
@@ -400,9 +403,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             band.name = String.valueOf(sampleDimension.getName());
             final Optional<Unit<?>> optUnits = sampleDimension.getUnits();
             if (optUnits.isPresent()) {
-                final Unit<?> unit = optUnits.get();
-                band.realUnit = unit;
-                band.unit = unit.getSymbol();
+                band.unit = optUnits.get();
             }
             bands[i] = band;
 
@@ -518,8 +519,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         pdata.points = reduce(pdata.points, samplingCount, reducer);
 
-        pdata.realUnit = bands[0].realUnit;
-        pdata.unit = bands[0].unit;
+        pdata.setUnit(bands[0].getUnit());
         pdata.min = stats.minimum();
         pdata.max = stats.maximum();
         return pdata;
@@ -703,10 +703,9 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     public static class Band {
-        @JsonIgnore
-        private Unit realUnit;
+
         public String name;
-        public String unit;
+        public Unit unit;
 
         public String getName() {
             return name;
@@ -716,11 +715,13 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             this.name = name;
         }
 
-        public String getUnit() {
+        @JsonSerialize(converter = UnitSerializer.class)
+        public Unit getUnit() {
             return unit;
         }
 
-        public void setUnit(String unit) {
+        @JsonDeserialize(converter = UnitDeSerializer.class)
+        public void setUnit(Unit unit) {
             this.unit = unit;
         }
     }
@@ -728,8 +729,18 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     public static class Axe {
         public String name;
         public String direction;
-        public String unit;
+        public Unit unit;
         public double[] range;
+
+        @JsonSerialize(converter = UnitSerializer.class)
+        public Unit getUnit() {
+            return unit;
+        }
+
+        @JsonDeserialize(converter = UnitDeSerializer.class)
+        public void setUnit(Unit unit) {
+            this.unit = unit;
+        }
 
         public String getName() {
             return name;
@@ -745,14 +756,6 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         public void setDirection(String direction) {
             this.direction = direction;
-        }
-
-        public String getUnit() {
-            return unit;
-        }
-
-        public void setUnit(String unit) {
-            this.unit = unit;
         }
 
         public double[] getRange() {
@@ -821,18 +824,19 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     public static class ProfilData {
-        @JsonIgnore
-        private Unit realUnit;
-        public String unit;
-        public double min;
-        public double max;
+
+        private Unit unit;
+        private double min;
+        private double max;
         public List<XY> points = new ArrayList<>();
 
-        public String getUnit() {
+        @JsonSerialize(converter = UnitSerializer.class)
+        public Unit getUnit() {
             return unit;
         }
 
-        public void setUnit(String unit) {
+        @JsonDeserialize(converter = UnitDeSerializer.class)
+        public void setUnit(Unit unit) {
             this.unit = unit;
         }
 
@@ -884,7 +888,6 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         public String toString() {
             return "[" + x +" " + y + "]";
         }
-
     }
 
     /**
@@ -946,5 +949,21 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
     public enum ReductionMethod {
         NEAREST, MIN, MAX, AVG
+    }
+
+    private static class UnitSerializer extends StdConverter<Unit, String> {
+
+        @Override
+        public String convert(Unit unit) {
+            return unit == null? null : unit.getSymbol();
+        }
+    }
+
+    private static class UnitDeSerializer extends StdConverter<String, Unit> {
+
+        @Override
+        public Unit convert(String symbol) {
+            return symbol == null ? null : Units.valueOf(symbol);
+        }
     }
 }
