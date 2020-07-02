@@ -51,7 +51,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.XMLConstants;
 import org.apache.commons.io.IOUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -61,6 +60,7 @@ import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.business.IDataCoverageJob;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.geotoolkit.nio.IOUtilities;
@@ -129,6 +129,7 @@ public abstract class AbstractGrizzlyServer {
     protected IMetadataBusiness metadataBusiness;
     protected ISensorBusiness sensorBusiness;
     protected IUserBusiness userBusiness;
+    protected IDataCoverageJob dataCoverageJob;
 
     protected static Class controllerConfiguration;
 
@@ -151,6 +152,7 @@ public abstract class AbstractGrizzlyServer {
         metadataBusiness = SpringHelper.getBean(IMetadataBusiness.class);
         sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
         userBusiness = SpringHelper.getBean(IUserBusiness.class);
+        dataCoverageJob = SpringHelper.getBean(IDataCoverageJob.class);
     }
 
     /**

@@ -138,7 +138,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
                     Registry.setNativeCodecAllowed(jn, ImageWriterSpi.class, false);
                 }
 
-                dataBusiness.computeEmptyDataStatistics(false);
+                dataCoverageJob.computeEmptyDataStatistics(false);
                 LOGGER.info("waiting for data statistics computation");
 
                 boolean computed = false;

@@ -40,6 +40,7 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IDataCoverageJob;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.AppProperty;
@@ -103,6 +104,9 @@ public class SetupBusiness {
 
     @Inject
     private IConfigurationBusiness configurationBusiness;
+    
+    @Inject
+    private IDataCoverageJob dataCoverageJob;
 
     @PostConstruct
     public void contextInitialized() {
@@ -150,7 +154,7 @@ public class SetupBusiness {
 
             if (doAnalysis && dataBusiness != null) {
                 LOGGER.log(Level.FINE, "Start data analysis");
-                dataBusiness.computeEmptyDataStatistics(true);
+                dataCoverageJob.computeEmptyDataStatistics(true);
             }
         }
     }

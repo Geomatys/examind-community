@@ -25,11 +25,24 @@ package org.constellation.business;
  * @author Quentin Boileau (Geomatys)
  */
 public interface IDataCoverageJob {
-
+    
+    /*
+     * Run {@link org.constellation.business.IDataCoverageJob#asyncUpdateDataStatistics(int)}
+     * on each coverage type data without computed statistics.
+     * @param isInit flag that define if it's a startup call.
+     *               If true, statistic of all data in ERROR and PENDING will be also computed
+     */
+    void computeEmptyDataStatistics(boolean isInit);
+    
     /**
      * Asynchronous method that compute ImageStatistics for a given data and store result into database.
      * This method doesn't affect non coverage data.
      * @param dataId
      */
     void asyncUpdateDataStatistics(final int dataId);
+    
+    /**
+     * Search for data without statistics and launch analysis on them.
+     */
+    void updateDataStatistics();
 }

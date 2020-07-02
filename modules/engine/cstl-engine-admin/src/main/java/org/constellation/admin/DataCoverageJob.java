@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +56,9 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import static org.constellation.api.StatisticState.STATE_ERROR;
 import static org.constellation.api.StatisticState.STATE_PARTIAL;
 import static org.constellation.api.StatisticState.STATE_PENDING;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  *
@@ -84,6 +88,58 @@ public class DataCoverageJob implements IDataCoverageJob {
     @Inject
     private IMetadataBusiness metadataService;
 
+    /**
+     * {@inheritDoc}
+     */
+    @Scheduled(cron = "1 * * * * *")
+    @Override
+    public void updateDataStatistics() {
+        String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
+        boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
+        if (doAnalysis) {
+            computeEmptyDataStatistics(false);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void computeEmptyDataStatistics(boolean isInit) {
+        final List<Data> dataList = dataRepository.findStatisticLess();
+
+        List<Integer> dataWithoutStats = new ArrayList<>();
+        for (final Data data : dataList) {
+
+            //compute statistics only on coverage data not rendered and without previous statistic computed.
+            if (DataType.COVERAGE.name().equals(data.getType()) && !"pyramid".equalsIgnoreCase(data.getSubtype()) &&
+                    (data.getRendered() == null || !data.getRendered())) {
+
+                String state = data.getStatsState();
+                if (isInit) {
+                    //rerun statistic for error and pending states
+                    if ("PENDING".equalsIgnoreCase(state) || "ERROR".equalsIgnoreCase(state)) {
+                        SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
+                            @Override
+                            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                                dataRepository.updateStatistics(data.getId(), null, null);
+                            }
+                        });
+                        dataWithoutStats.add(data.getId());
+                    }
+                }
+
+                if (state == null || state.isEmpty()) {
+                    dataWithoutStats.add(data.getId());
+                }
+            }
+        }
+
+        for (Integer dataId : dataWithoutStats) {
+            asyncUpdateDataStatistics(dataId);
+        }
+    }
+    
     /**
      * {@inheritDoc}
      */

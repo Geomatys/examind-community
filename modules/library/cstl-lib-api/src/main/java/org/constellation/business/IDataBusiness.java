@@ -316,19 +316,6 @@ public interface IDataBusiness {
     List<DataProcessReference> findAllDataProcessReference();
 
     /**
-     * Run {@link org.constellation.business.IDataCoverageJob#asyncUpdateDataStatistics(int)}
-     * on each coverage type data without computed statistics.
-     * @param isInit flag that define if it's a startup call.
-     *               If true, statistic of all data in ERROR and PENDING will be also computed
-     */
-    void computeEmptyDataStatistics(boolean isInit);
-
-    /**
-     * Search for data without statistics and launch analysis on them.
-     */
-    void updateDataStatistics();
-
-    /**
      * Remove old hidden data every hour.
      */
     void removeOldHiddenData() throws ConstellationException;

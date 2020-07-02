@@ -83,9 +83,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 /**
  * Business facade for data.
@@ -165,12 +163,6 @@ public class DataBusiness implements IDataBusiness {
      */
     @Inject
     protected IMetadataBusiness metadataBusiness;
-
-    /**
-     * Injected data coverage job
-     */
-    @Inject
-    private IDataCoverageJob dataCoverageJob;
 
     @Autowired(required = false)
     protected IDataBusinessListener dataBusinessListener = new DefaultDataBusinessListener();
@@ -993,19 +985,6 @@ public class DataBusiness implements IDataBusiness {
      * {@inheritDoc}
      */
     @Override
-    @Scheduled(cron = "1 * * * * *")
-    public void updateDataStatistics() {
-        String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
-        boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
-        if (doAnalysis) {
-            computeEmptyDataStatistics(false);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Scheduled(fixedDelay = 3600000L)
     @Transactional
     public void removeOldHiddenData() throws ConstellationException {
@@ -1017,45 +996,6 @@ public class DataBusiness implements IDataBusiness {
             if (!data.getIncluded() && currentTime - data.getDate().getTime() > 10800000) {
                 removeData(data.getId(), false);
             }
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void computeEmptyDataStatistics(boolean isInit) {
-        final List<Data> dataList = dataRepository.findStatisticLess();
-
-        List<Integer> dataWithoutStats = new ArrayList<>();
-        for (final Data data : dataList) {
-
-            //compute statistics only on coverage data not rendered and without previous statistic computed.
-            if (DataType.COVERAGE.name().equals(data.getType()) && !"pyramid".equalsIgnoreCase(data.getSubtype()) &&
-                    (data.getRendered() == null || !data.getRendered())) {
-
-                String state = data.getStatsState();
-                if (isInit) {
-                    //rerun statistic for error and pending states
-                    if ("PENDING".equalsIgnoreCase(state) || "ERROR".equalsIgnoreCase(state)) {
-                        SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
-                            @Override
-                            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                                dataRepository.updateStatistics(data.getId(), null, null);
-                            }
-                        });
-                        dataWithoutStats.add(data.getId());
-                    }
-                }
-
-                if (state == null || state.isEmpty()) {
-                    dataWithoutStats.add(data.getId());
-                }
-            }
-        }
-
-        for (Integer dataId : dataWithoutStats) {
-            dataCoverageJob.asyncUpdateDataStatistics(dataId);
         }
     }
 

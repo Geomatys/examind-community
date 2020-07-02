@@ -53,8 +53,6 @@ import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
 import static org.constellation.business.ClusterMessageConstant.*;
-import org.constellation.configuration.AppProperty;
-import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
@@ -152,9 +150,6 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private IClusterBusiness clusterBusiness;
-
-    @Inject
-    private IDataCoverageJob dataCoverageJob;
 
     @Override
     public List<ProviderBrief> getProviders() {
@@ -726,13 +721,18 @@ public class ProviderBusiness implements IProviderBusiness {
             //run pyramid process in Quartz
             processBusiness.runProcess(taskName, process, taskParameterId, userOwnerId);
 
-            // run statistics on integrated data if data.auto.analyse is false
+            /* 
+            
+            WILL BE MOVED IN ANOTHER MERGE REQUEST
+            
+            
+            run statistics on integrated data if data.auto.analyse is false
             // TODO try to run statistics AFTER pyramid process ending
             String propertyValue = Application.getProperty(AppProperty.DATA_AUTO_ANALYSE);
             boolean doAnalysis = propertyValue == null ? false : Boolean.valueOf(propertyValue);
             if (!doAnalysis) {
                 dataCoverageJob.asyncUpdateDataStatistics(inData.getId());
-            }
+            }*/
             return outData;
         }
         throw new ConstellationException("Data "+ dataId +" not found.");
