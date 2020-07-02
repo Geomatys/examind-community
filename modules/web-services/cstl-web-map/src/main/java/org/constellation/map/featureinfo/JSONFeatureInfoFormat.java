@@ -34,13 +34,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.util.logging.Logging;
 
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
@@ -88,8 +86,6 @@ import org.geotoolkit.map.FeatureMapLayer;
  * @author Alexis Manin (Geomatys)
  */
 public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
-
-    static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
 
     private static final ObjectWriter WRITER;
     static {

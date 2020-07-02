@@ -3,6 +3,7 @@ package org.constellation.map.featureinfo;
 
 import java.awt.geom.Point2D;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.internal.referencing.GeodeticObjectBuilder;
 import org.apache.sis.measure.Units;
@@ -25,7 +26,7 @@ import org.opengis.util.FactoryException;
 
 /**
  * Utilitaire de calcul de distance sur une grille régulière.<br>
- * Cette classe s'appuie sur une projection {@literal Lambert Azimuthal Equal Area}
+ * Cette classe s'appuie sur une projection {@literal Azimuthal Equidistant }
  * centrée sur la position de l'observateur afin de préserver les distances
  * tout en ayant des temps de calcul moindre.
  *
@@ -53,9 +54,9 @@ final class GridCalculator {
     private GridCalculator(){
     }
 
-    public GridCalculator(GridCoverage coverage) throws NoninvertibleTransformException, FactoryException {
-        this.coverageCrs = coverage.getCoordinateReferenceSystem();
-        this.gridToCrs = coverage.getGridGeometry().getGridToCRS(PixelInCell.CELL_CENTER);
+    public GridCalculator(GridGeometry datasourceGeometry) throws NoninvertibleTransformException, FactoryException {
+        this.coverageCrs = datasourceGeometry.getCoordinateReferenceSystem();
+        this.gridToCrs = datasourceGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
 
         //extract 2d part
         this.coverageCrs = CRS.getHorizontalComponent(coverageCrs);
@@ -104,7 +105,7 @@ final class GridCalculator {
         final CartesianCS derivedCS = PredefinedCS.CARTESIAN_2D;
         final GeodeticObjectBuilder builder = new GeodeticObjectBuilder();
         centeredCrs = builder
-                .setConversionMethod("Lambert Azimuthal Equal Area")
+                .setConversionMethod("Modified Azimuthal Equidistant")
                 .setConversionName("Local")
                 .setParameter("Latitude of natural origin",  covStart.y, Units.DEGREE)
                 .setParameter("Longitude of natural origin", covStart.x, Units.DEGREE)

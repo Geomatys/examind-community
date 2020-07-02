@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
@@ -51,6 +53,8 @@ import org.opengis.util.GenericName;
  * @author Quentin Boileau (Geomatys)
  */
 public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
+
+    protected static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
 
     /**
      * Contains the values for all coverage layers requested.

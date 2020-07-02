@@ -30,9 +30,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.util.logging.Logging;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -67,8 +65,6 @@ import org.opengis.util.GenericName;
  * @author Quentin Boileau (Geomatys)
  */
 public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
 
     private GetFeatureInfo gfi;
 

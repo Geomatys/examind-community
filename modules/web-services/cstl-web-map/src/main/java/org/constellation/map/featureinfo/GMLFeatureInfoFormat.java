@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.measure.Unit;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -41,7 +40,6 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.measure.MeasurementRange;
-import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
@@ -87,8 +85,6 @@ import org.opengis.util.GenericName;
  * @author Quentin Boileau (Geomatys)
  */
 public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
-
-    private static final Logger LOGGER = Logging.getLogger("org.constellation.map.featureinfo");
 
     /**
      * GML version flag : 0 for mapserver output

@@ -9,27 +9,25 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
-import static java.util.Spliterator.*;
+
 import java.util.function.Consumer;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.DirectPosition2D;
+import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.operation.transform.MathTransforms;
-import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.coverage.grid.GridCoverageStack;
 import org.geotoolkit.coverage.grid.GridIterator;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.internal.coverage.CoverageUtilities;
+import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.util.grid.GridTraversal;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.LineString;
 import org.opengis.coverage.grid.GridEnvelope;
-import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
@@ -65,9 +63,9 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     private double distanceToSegmentStart;
 
-    private final CoordinateReferenceSystem dataCrs;
+    private final CoordinateReferenceSystem lineCrs;
 
-    private final MathTransform gridToDataCrs;
+    private final MathTransform gridToLineCrs;
 
     private int ptIdx;
 
@@ -77,27 +75,25 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
     public DataProfile(final GridCoverage datasource, final LineString profile) throws FactoryException, TransformException {
 
-        CoordinateReferenceSystem lineCrs = JTS.findCoordinateReferenceSystem(profile);
+        this.lineCrs = JTS.findCoordinateReferenceSystem(profile);
         if (lineCrs == null) {
             throw new IllegalArgumentException("La géométrie envoyée ne stipule pas de système de référencement");
         } else if (lineCrs.getCoordinateSystem().getDimension() != 2) {
             throw new IllegalArgumentException("Only 2D geometries accepted.");
         }
 
-        //Transformation de la coordonnée dans l'image
-        final CoordinateReferenceSystem dataCrs = datasource.getCoordinateReferenceSystem();
-        this.dataCrs = CRS.getHorizontalComponent(dataCrs);
+        /* Forcing resample of data source into profile CRS fix some distance computing on some datasets (NetCDF grd
+         * for example). Also, bilinear interpolation could trigger better sampling.
+         */
+        final JTSEnvelope2D profileEnv = JTS.toEnvelope(profile);
+        final GridGeometry workGrid = new GridGeometry(null, profileEnv);
+        final GridCoverageProcessor gcp = new GridCoverageProcessor();
+        gcp.setInterpolation(Interpolation.BILINEAR);
+        final GridCoverage resampled = gcp.resample(datasource, workGrid);
 
-        GridGeometry gridGeometry = datasource.getGridGeometry();
-        gridGeometry = CoverageUtilities.forceLowerToZero(gridGeometry);
-        final MathTransform gridToDataCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
-        final TransformSeparator ts = new TransformSeparator(gridToDataCrs);
-        ts.addSourceDimensions(0,1);
-        ts.addTargetDimensions(0,1);
-        this.gridToDataCrs = ts.separate();
-        final MathTransform crsToGrid = this.gridToDataCrs.inverse();
-        final MathTransform lineToCov = CRS.findOperation(lineCrs, this.dataCrs, null).getMathTransform();
-        final MathTransform lineToGrid = MathTransforms.concatenate(lineToCov, crsToGrid);
+        //Transformation de la coordonnée dans l'image
+        final GridGeometry gridGeometry =resampled.getGridGeometry();
+        this.gridToLineCrs = gridGeometry.getGridToCRS(PixelInCell.CELL_CENTER);
 
         final CoordinateSequence lineSeq = profile.getCoordinateSequence();
         final int nbPts = lineSeq.size();
@@ -108,14 +104,14 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
             gridPoints[j + 1] = c.y;
         }
 
-        lineToGrid.transform(gridPoints, 0, gridPoints, 0, nbPts);
+        gridToLineCrs.inverse().transform(gridPoints, 0, gridPoints, 0, nbPts);
 
         final GridEnvelope globalExtent = gridGeometry.getExtent();
         buildExtractors(datasource);
 
         distanceToSegmentStart = 0;
 
-        distanceCalculator = new GridCalculator(datasource);
+        distanceCalculator = new GridCalculator(gridGeometry);
         distanceCalculator.setStart(gridPoints[ptIdx], gridPoints[ptIdx + 1]);
 
         pixelBorderTest = GridTraversal.stream(Arrays.copyOfRange(gridPoints, ptIdx, ptIdx + 4), 2, true, false)
@@ -204,8 +200,8 @@ public class DataProfile implements Spliterator<DataProfile.DataPoint> {
         }
 
 
-        final DirectPosition2D geoLoc = new DirectPosition2D(dataCrs, next[0], next[1]);
-        gridToDataCrs.transform((DirectPosition)geoLoc, geoLoc);
+        final DirectPosition2D geoLoc = new DirectPosition2D(lineCrs, next[0], next[1]);
+        gridToLineCrs.transform(geoLoc, geoLoc);
 
         distanceCalculator.setDest(next[0], next[1]);
         final double distance = distanceCalculator.getDistance();
