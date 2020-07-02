@@ -13,7 +13,7 @@
                class="btn btn-default"
                tooltip-html-unsafe="{{'layer.listing.selected.gotometadata.button' | translate }}"
                tooltip-placement="bottom"
-               ng-href="{{'admin.html#/metadata?id=' + dc.selection.data.providerIdentifier}}">
+               ng-href="{{'admin.html#/metadata?id=' + dc.selection.data[0].providerIdentifier}}">
                 <i class="fa fa-mail-forward"></i>
             </a>
         </span>
@@ -21,7 +21,7 @@
     <div class="col-sm-2">
         <span class="tooltipicon">
             <a id="exportData" class="btn btn-info" tooltip-placement="bottom" tooltip-html-unsafe="{{'layer.listing.selected.export.button' | translate }}"
-               ng-href="{{'API/datas/' + dc.selection.data.id + '/export' | cstlContext:true}}">
+               ng-href="{{'API/datas/' + dc.selection.data[0].id + '/export' | cstlContext:true}}">
                 <i class="fa fa-download"></i>
             </a>
         </span>
