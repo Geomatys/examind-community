@@ -1742,7 +1742,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         String expResult = "{\"layers\":[" +
-                "{\"name\":\"SSTMDE200305\",\"data\":[" +
+                "{\"name\":\"SSTMDE200305\",\"titles\":[\"SSTMDE200305\"],\"data\":[" +
                   "{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[" +
                     "{\"x\":3.851648476037248E-13,\"y\":0.0}," +
                     "{\"x\":15.277036647064136,\"y\":0.0}," +

@@ -28,10 +28,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -67,6 +69,8 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.citation.Citation;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.crs.VerticalCRS;
@@ -188,6 +192,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     private ProfilLayer extract(CanvasDef cdef, GetFeatureInfo getFI, Geometry geom, GridCoverageResource resource, Integer samplingCount) throws TransformException, FactoryException, DataStoreException {
 
         final ProfilLayer layer = new ProfilLayer();
+        tryAddMetadata(layer, resource);
 
         final ProfilData baseData;
         try {
@@ -347,6 +352,22 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
 
         return layer;
+    }
+
+    private void tryAddMetadata(ProfilLayer layer, GridCoverageResource resource) {
+        try {
+            final Metadata md = resource.getMetadata();
+            final List<String> titles = md.getIdentificationInfo().stream()
+                    .map(id -> id.getCitation())
+                    .filter(Objects::nonNull)
+                    .map(Citation::getTitle)
+                    .filter(Objects::nonNull)
+                    .map(Objects::toString)
+                    .collect(Collectors.toList());
+            if (!titles.isEmpty()) layer.setTitles(titles);
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Cannot extract title from layer metadata", e);
+        }
     }
 
     private ProfilData extractData(GridCoverage coverage, Geometry geom, Integer samplingCount, ReductionMethod reducer) throws TransformException, FactoryException {
@@ -762,27 +783,6 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    public static class SamplePoint {
-        public double distanceToPrevious;
-        public Object samples;
-
-        public double getDistanceToPrevious() {
-            return distanceToPrevious;
-        }
-
-        public void setDistanceToPrevious(double distanceToPrevious) {
-            this.distanceToPrevious = distanceToPrevious;
-        }
-
-        public Object getSamples() {
-            return samples;
-        }
-
-        public void setSamples(Object samples) {
-            this.samples = samples;
-        }
-    }
-
     public static class Profile {
         public List<ProfilLayer> layers = new ArrayList<>();
     }
@@ -790,6 +790,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
     public static class ProfilLayer {
 
         public String name;
+        private List<String> titles;
         public List<ProfilData> data = new ArrayList<>();
         public String message;
 
@@ -799,6 +800,14 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public List<String> getTitles() {
+            return titles;
+        }
+
+        public void setTitles(List<String> titles) {
+            this.titles = titles;
         }
 
         public String getMessage() {
