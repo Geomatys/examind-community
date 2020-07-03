@@ -110,6 +110,12 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
         this.gfi = getFI;
         getCandidates(sdef, cdef, searchArea, -1);
 
+        if (infoQueue.stream().allMatch(LayerError.class::isInstance)) {
+            final PortrayalException err = new PortrayalException("None of requested layers can be evaluated for input GetFeatureInfo query");
+            for(LayerInfo info : infoQueue) err.addSuppressed(((LayerError)info).getError());
+            throw err;
+        }
+        
         try (final ByteArrayOutputStream buffer = new ByteArrayOutputStream(8192)) {
             try (final OutputStreamWriter writer = new OutputStreamWriter(buffer, StandardCharsets.UTF_8);
                  final SequenceWriter sw = WRITER.writeValuesAsArray(writer);
