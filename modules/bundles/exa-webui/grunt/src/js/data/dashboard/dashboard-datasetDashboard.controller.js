@@ -77,19 +77,6 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
             self.selection.dataset = null;
         } else {
             self.selection.dataset = dataset;
-
-            // Check if dataset is correctly selected
-            if (self.isSelected(dataset)) {
-                // TODO Don't update dataset info by this way, make watcher instead
-                setupDatasetLazyInfo(dataset);
-
-                // Check if data is correctly selected
-                if (self.isSelected(data)) {
-                    // TODO Don't update data info by this way, make watcher instead
-                    setupDataLazyInfo(data);
-                }
-
-            }
         }
 
         // Update data preview.
@@ -140,103 +127,55 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
     // Display the data in the preview map.
     self.updatePreview = function () {
         if (self.selection.data && self.selection.data.length > 0) {
-            if (self.selection.data.length === 1) {
+            var extent = ol.extent.createEmpty();
+            var layers = [];
+
+            self.selection.data.forEach(function (data) {
                 // Generate layer name.
-                var index = self.selection.data.length - 1;
-                var layerName = self.selection.data[index].name;
-                if (self.selection.data[index].namespace) {
-                    layerName = '{' + self.selection.data[index].namespace + '}' + layerName;
+                var layerName = data.name;
+                if (data.namespace) {
+                    layerName = '{' + data.namespace + '}' + layerName;
                 }
 
                 // Use the pyramid provider identifier for better performances (if expected).
-                var providerId = self.selection.data[index].provider;
-                if (CstlConfig['data.overview.use_pyramid'] === true && self.selection.data[index].pyramidConformProviderId) {
-                    providerId = self.selection.data[index].pyramidConformProviderId;
+                var providerId = data.provider;
+                if (CstlConfig['data.overview.use_pyramid'] === true && data.pyramidConformProviderId) {
+                    providerId = data.pyramidConformProviderId;
                 }
 
-                // Wait for lazy loading completion.
-                var targetData = self.selection.data[index];
-                targetData.$infoPromise.then(function () {
-                    if (targetData !== self.selection.data[index]) {
-                        return; // the selection has changed before the promise is resolved
-                    }
+                var layer;
 
-                    // Create layer instance.
-                    var layer;
-                    if (targetData.targetStyle.length) {
-                        self.selection.style = self.selection.style || targetData.targetStyle[0]; // get or set the style selection
-                        layer = DataDashboardViewer.createLayerWithStyle(
-                            $cookieStore.get('cstlUrl'),
-                            targetData.id,
-                            layerName,
-                            self.selection.style.name,
-                            null,
-                            null,
-                            targetData.type !== 'VECTOR');
-                    } else {
-                        layer = DataDashboardViewer.createLayer(
-                            $cookieStore.get('cstlUrl'),
-                            targetData.id,
-                            layerName,
-                            null,
-                            targetData.type !== 'VECTOR');
-                    }
-                    layer.get('params').ts = new Date().getTime();
+                if (data.targetStyle.length) {
+                    var style = data.targetStyle[0]; // get or set the style selection
+                    layer = DataDashboardViewer.createLayerWithStyle(
+                        $cookieStore.get('cstlUrl'),
+                        data.id,
+                        layerName,
+                        style.name,
+                        null,
+                        null,
+                        data.type !== 'VECTOR');
+                } else {
+                    layer = DataDashboardViewer.createLayer(
+                        $cookieStore.get('cstlUrl'),
+                        data.id,
+                        layerName,
+                        null,
+                        data.type !== 'VECTOR');
+                }
 
-                    // Display the layer and zoom on its extent.
-                    self.preview.extent = targetData.extent;
-                    self.preview.layer = layer;
-                });
-            } else {
-                var extent = ol.extent.createEmpty();
-                var layers = [];
+                layer.get('params').ts = new Date().getTime();
 
-                self.selection.data.forEach(function (data) {
-                    // Generate layer name.
-                    var layerName = data.name;
-                    if (data.namespace) {
-                        layerName = '{' + data.namespace + '}' + layerName;
-                    }
+                if (data.dataDescription.boundingBox) {
+                    ol.extent.extend(extent, data.dataDescription.boundingBox);
+                }
 
-                    // Use the pyramid provider identifier for better performances (if expected).
-                    var providerId = data.provider;
-                    if (CstlConfig['data.overview.use_pyramid'] === true && data.pyramidConformProviderId) {
-                        providerId = data.pyramidConformProviderId;
-                    }
+                layers.push(layer);
+            });
 
-                    var layer;
-
-                    if (data.targetStyle.length) {
-                        var style = data.targetStyle[0]; // get or set the style selection
-                        layer = DataDashboardViewer.createLayerWithStyle(
-                            $cookieStore.get('cstlUrl'),
-                            data.id,
-                            layerName,
-                            style.name,
-                            null,
-                            null,
-                            data.type !== 'VECTOR');
-                    } else {
-                        layer = DataDashboardViewer.createLayer(
-                            $cookieStore.get('cstlUrl'),
-                            data.id,
-                            layerName,
-                            null,
-                            data.type !== 'VECTOR');
-                    }
-
-                    layer.get('params').ts = new Date().getTime();
-
-                    if (data.extent) {
-                        ol.extent.extend(extent, data.extent);
-                    }
-
-                    layers.push(layer);
-                });
-                // Display the layer and zoom on its extent.
-                self.preview.extent = extent;
-                self.preview.layer = layers;
-            }
+            // Display the layer and zoom on its extent.
+            self.preview.extent = extent;
+            self.preview.layer = layers.length === 1 ? layers[0] : layers;
         } else {
             self.preview.extent = self.preview.layer = undefined;
         }
