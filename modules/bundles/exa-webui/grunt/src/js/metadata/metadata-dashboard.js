@@ -18,7 +18,7 @@ angular.module('cstl-metadata-dashboard', [
 
         self.currentTab = $routeParams.tab || 'dashboard';
         self.ownerFilter = $routeParams.owner || null;
-        self.idFilter = $routeParams.id || null;
+        self.idFilter = Number($routeParams.id) || null;
         self.selectionApi = SelectionApi;
         self.cstlUrl = $cookieStore.get('cstlUrl');
         self.hideScroll = true;
