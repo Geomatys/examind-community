@@ -72,7 +72,7 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
     // TODO change me by two function setDataset and setData
     self.toggleSelect = function (dataset, data) {
         // The given dataset is good and is selected
-        if (!angular.isObject(data) && self.isSelected(dataset)) {
+        if (!data && self.isSelected(dataset)) {
             self.selection.data = [];
             self.selection.dataset = null;
         } else {
@@ -105,8 +105,8 @@ function DatasetDashboardController($scope, $q, $cookieStore, $modal, $location,
 
     // Determines if a dataset/data is selected.
     self.isSelected = function (object) {
-        if (angular.isObject(object) && angular.isNumber(object.id)) {
-            if (angular.isNumber(object.datasetId)) {
+        if (object && object.id) {
+            if (object.datasetId) {
                 var find = self.selection.data.find(function (item) {
                     return item.id === object.id;
                 });

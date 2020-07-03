@@ -222,7 +222,7 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
         return _updater;
     }
 
-    function _select(data) {
+    function _select(data, evt) {
         var _data = data;
         if (_data instanceof ol.Feature) {
             _data = _data.get("data");
@@ -235,15 +235,17 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
 
             if (findIndex === -1) {
                 Examind.datas.getData(_data.id).then(function (response) {
+                    if(!evt.ctrlKey){
+                        self.selected.splice(0);
+                    }
+                    self.selected.push(angular.extend(_data, response.data));
+
                     if (angular.isDefined($scope.onSelect)) {
                         var selectFunc = $scope.onSelect($scope);
-                        self.selected.push(angular.extend(_data, response.data));
 
                         if (angular.isFunction(selectFunc)) {
                             selectFunc(_data);
                         }
-                    } else {
-                        self.selected.push(angular.extend(_data, response.data));
                     }
 
                     _vectorLayer.changed();

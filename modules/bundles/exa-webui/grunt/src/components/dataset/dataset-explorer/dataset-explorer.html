@@ -20,7 +20,7 @@
         </div>
     </div>
     <div class="item {{data.type | lowercase}}" ng-repeat="data in $ctrl.filtered"
-         ng-click="$ctrl.select(data)"
+         data-ng-click="$ctrl.select(data, $event)"
          ng-mouseenter="$ctrl.hover = data"
          ng-mouseleave="$ctrl.hover = null"
          ng-class="{'selected': $ctrl.isSelectedData(data), 'hover' : $ctrl.hover === data}">
