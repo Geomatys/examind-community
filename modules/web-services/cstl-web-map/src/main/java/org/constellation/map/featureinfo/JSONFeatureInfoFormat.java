@@ -35,7 +35,9 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
 
+import org.constellation.map.featureinfo.dto.LayerError;
 import org.opengis.feature.Feature;
+import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.coverage.SampleDimension;
@@ -127,23 +129,37 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
     @Override
     protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final Feature candidate = graphic.getCandidate();
         FeatureMapLayer ml = graphic.getLayer();
-        final GenericName layerName = getNameForFeatureLayer(ml);
-        infoQueue.add(new FeatureInfo(layerName.tip().toString(), candidate));
+        final String layerName = getNameForFeatureLayer(ml).tip().toString();
+        try {
+            final Feature candidate = graphic.getCandidate();
+            infoQueue.add(new FeatureInfo(layerName, candidate));
+        } catch (Exception e) {
+            final LayerError err = new LayerError();
+            err.setError(e);
+            err.setLayer(layerName);
+            infoQueue.add(err);
+        }
     }
 
     @Override
     protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
-
-        if (results == null || results.isEmpty()) return;
-
         final GenericName fullLayerName = getNameForCoverageLayer(graphic.getLayer());
-        final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayers());
-        fill(info, results);
-        infoQueue.add(info);
+        try {
+            final List<Map.Entry<SampleDimension, Object>> results =
+                    FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+
+            if (results == null || results.isEmpty()) return;
+
+            final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayers());
+            fill(info, results);
+            infoQueue.add(info);
+        } catch (Exception e) {
+            final LayerError err = new LayerError();
+            err.setError(e);
+            err.setLayer(fullLayerName.tip().toString());
+            infoQueue.add(err);
+        }
     }
 
     static Optional<LayerCache> select(final GenericName target, DataType type, final List<LayerCache> source) {

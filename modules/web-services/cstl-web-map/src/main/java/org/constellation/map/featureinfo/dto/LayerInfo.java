@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = CoverageInfo.class, name = "coverage"),
-        @JsonSubTypes.Type(value = FeatureInfo.class, name = "feature")
+        @JsonSubTypes.Type(value = FeatureInfo.class, name = "feature"),
+        @JsonSubTypes.Type(value = LayerError.class, name = "error")
 })
 public interface LayerInfo {}
