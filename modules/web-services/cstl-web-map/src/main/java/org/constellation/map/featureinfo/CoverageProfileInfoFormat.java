@@ -505,7 +505,7 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
             });
         }
 
-        pdata.points = reduce(pdata.points, samplingCount, reducer);
+        pdata.points = reduce(pdata.points, samplingCount == null ? pdata.points.size() : samplingCount, reducer);
 
         pdata.setUnit(bands[0].getUnit());
         pdata.min = stats.minimum();

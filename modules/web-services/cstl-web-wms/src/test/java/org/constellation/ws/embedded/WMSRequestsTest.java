@@ -19,6 +19,8 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Files;
+import java.util.Collections;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -1739,9 +1741,17 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        String expResult
-                = "{\"layers\":[{\"name\":\"SSTMDE200305\",\"data\":[{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[{\"x\":3.8516484760372463E-13,\"y\":0.0},{\"x\":22.915557595600948,\"y\":0.0},{\"x\":22.915557595601836,\"y\":0.0},{\"x\":27.611269657740863,\"y\":0.0},{\"x\":27.611269657741225,\"y\":0.0},{\"x\":38.734410245335305,\"y\":0.0},{\"x\":38.73441024533549,\"y\":0.0},{\"x\":51.33753842087088,\"y\":0.0},{\"x\":53.45249659867336,\"y\":0.0}]}],\"message\":null}]}";
-
+        String expResult = "{\"layers\":[" +
+                "{\"name\":\"SSTMDE200305\",\"data\":[" +
+                  "{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[" +
+                    "{\"x\":3.851648476037248E-13,\"y\":0.0}," +
+                    "{\"x\":15.277036647064136,\"y\":0.0}," +
+                    "{\"x\":31.318980178414588,\"y\":0.0}," +
+                    "{\"x\":47.84147288711511,\"y\":0.0}," +
+                    "{\"x\":53.45248543862846,\"y\":0.0}" +
+                  "]}" +
+                "],\"message\":null}]}";
+                
         String result = getStringResponse(gfi);
         assertNotNull(result);
         assertEquals(expResult, result);
