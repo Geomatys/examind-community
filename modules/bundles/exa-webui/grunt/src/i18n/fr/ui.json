@@ -932,6 +932,7 @@
   "dialog.message.confirm.delete.processCategory": "Êtes vous sûr de vouloir supprimer cette catégorie de processus ainsi que tous les processus qu'elle contient ?",
   "dialog.message.confirm.delete.process": "Êtes vous sûr de vouloir retirer ce processus du service ?",
   "dialog.message.confirm.delete.provider": "Êtes vous sûre de vouloir supprimer le provider ?",
+  "dialog.message.confirm.cancel.operation": "Êtes vous sûre de vouloir annuler l'operation ?",
   "layer.listing.data.add.button.label": "Ajouter une donnée",
   "layer.listing.data.create.button.label": "Créer une donnée",
   "layer.listing.data.upload.button": "Envoyer le fichier",

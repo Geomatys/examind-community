@@ -807,6 +807,16 @@ p.error-select-one{
   bottom: 20px;
   right: 15px;
 }
+
+.serviceTypeSTS{
+  width: 151px;
+  height: 113px;
+  background: url('../img/sts.svg') 3px 13px;
+  position: absolute;
+  bottom: 20px;
+  right: 15px;
+}
+
 .serviceTypeWMTS{
   width: 194px;
   height: 85px;
@@ -867,6 +877,16 @@ p.error-select-one{
 }
 .serviceTypeSOSHeader{
   background: url('../img/serviceTypes.svg') -167px -30px;
+  height: 84px;
+  width: 151px;
+  position: absolute;
+  right: 2px;
+  top: -33px;
+  opacity: 0.5;
+}
+
+.serviceTypeSTSHeader{
+  background: url('../img/sts.svg') 3px -13px;
   height: 84px;
   width: 151px;
   position: absolute;
@@ -1481,6 +1501,20 @@ p.error-select-one{
   background: transparent url('../img/raster-pyramid.svg') -175px 0;
   &.style-small{
     background: transparent url('../img/raster-pyramid.svg') -475px 0;
+  }
+}
+
+// Observation dashboard icon
+.dashboard .item-list .item.observation {
+  background: transparent url('../img/sensor.svg') right center no-repeat;
+}
+.dashboard .item-list .item.observation.selected{
+  background: transparent url('../img/sensor2.svg') -209px 210px;
+  &.style-small{
+    background: transparent url('../img/sensor2.svg') -500px 210px;
+  }
+  &.sensorChoose{
+    background: transparent url('../img/sensor2.svg') -300px 210px;
   }
 }
 
