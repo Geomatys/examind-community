@@ -609,6 +609,8 @@ public class JooqMetadataRepository extends AbstractJooqRespository<MetadataReco
         } else if ("hidden".equals(key)) {
             return METADATA.IS_HIDDEN.equal((Boolean) value);
         } else if ("id".equals(key)) {
+            return METADATA.ID.equal((Integer) value);
+        } else if ("identifier".equals(key)) {
             return METADATA.METADATA_ID.equal((String) value);
         } else if ("parent".equals(key)) {
             return METADATA.PARENT_IDENTIFIER.equal((Integer) value).or(METADATA.ID.equal((Integer) value));

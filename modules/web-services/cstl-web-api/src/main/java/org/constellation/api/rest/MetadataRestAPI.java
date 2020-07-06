@@ -259,16 +259,16 @@ public class MetadataRestAPI extends AbstractRestAPI{
 
             return new AbstractMap.SimpleEntry<>(f.getField(), Boolean.parseBoolean(value));
 
-        } else if ("parent".equals(f.getField())) {
+        } else if ("parent".equals(f.getField()) || "id".equals(f.getField())) {
             try {
-                final int parentId = Integer.valueOf(value);
-                return new AbstractMap.SimpleEntry<>("parent", parentId);
+                final int intVal = Integer.valueOf(value);
+                return new AbstractMap.SimpleEntry<>(f.getField(), intVal);
             } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, "Filter by parent id value should be an integer: " + ex.getLocalizedMessage(), ex);
+                LOGGER.log(Level.WARNING, "Filter by parent id / id value should be an integer: " + ex.getLocalizedMessage(), ex);
             }
             return null;
         // just here to list the existing filter
-        } else if ("profile".equals(f.getField()) || "level".equals(f.getField()) || "validation_required".equals(f.getField()) || "id".equals(f.getField())) {
+        } else if ("profile".equals(f.getField()) || "level".equals(f.getField()) || "validation_required".equals(f.getField()) || "identifier".equals(f.getField())) {
 
             return new AbstractMap.SimpleEntry<>(f.getField(), value);
 
