@@ -14,6 +14,7 @@ import org.geotoolkit.storage.multires.Pyramid;
 import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.storage.multires.TileGenerator;
 import org.geotoolkit.display2d.MapContextTileGenerator;
+import org.geotoolkit.factory.Hints;
 import org.geotoolkit.image.interpolation.InterpolationCase;
 import org.geotoolkit.map.MapContext;
 import org.geotoolkit.map.MapLayer;
@@ -97,7 +98,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
             final TileGenerator generator;
             switch (mode) {
-                case "rgb" : generator = new MapContextTileGenerator(context, null); break;
+                case "rgb" : generator = new MapContextTileGenerator(context, new Hints(Hints.KEY_ANTIALIASING, Hints.VALUE_ANTIALIAS_ON)); break;
                 case "data" : {
                     final List<GridCoverageResource> resources = new ArrayList<>();
                     for (MapLayer layer : context.layers()) {
