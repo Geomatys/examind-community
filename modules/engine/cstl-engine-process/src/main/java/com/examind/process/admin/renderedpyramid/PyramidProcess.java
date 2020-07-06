@@ -10,8 +10,6 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.iso.ResourceInternationalString;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
 import org.geotoolkit.storage.multires.TileGenerator;
 import org.geotoolkit.display2d.MapContextTileGenerator;
 import org.geotoolkit.factory.Hints;
@@ -23,6 +21,8 @@ import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.processing.ForwardProcessListener;
 import org.geotoolkit.storage.coverage.CoverageTileGenerator;
+import org.geotoolkit.storage.multires.TileMatrices;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -126,7 +126,7 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
             }
 
             try {
-                for (Pyramid pyramid : Pyramids.getPyramids(resource)) {
+                for (TileMatrixSet pyramid : TileMatrices.getTileMatrixSets(resource)) {
                     final ForwardProcessListener fp = new ForwardProcessListener(this, 1, 99);
                     generator.generate(pyramid, null, null, fp);
                 }

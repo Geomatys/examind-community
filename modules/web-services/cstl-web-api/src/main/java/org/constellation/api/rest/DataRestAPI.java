@@ -82,7 +82,7 @@ import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.storage.multires.MultiResolutionModel;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -679,8 +679,8 @@ public class DataRestAPI extends AbstractRestAPI{
             if (resource instanceof GridCoverageResource && resource instanceof MultiResolutionResource) {
                 final MultiResolutionResource mr = (MultiResolutionResource) resource;
                 for (MultiResolutionModel mrm : mr.getModels()) {
-                    if (mrm instanceof Pyramid) {
-                        final CoordinateReferenceSystem crs = ((Pyramid) mrm).getCoordinateReferenceSystem();
+                    if (mrm instanceof TileMatrixSet) {
+                        final CoordinateReferenceSystem crs = ((TileMatrixSet) mrm).getCoordinateReferenceSystem();
                         final Identifier epsgid = IdentifiedObjects.getIdentifier(crs, Citations.EPSG);
                         final Identifier otherid = IdentifiedObjects.getIdentifier(crs, null);
                         if (epsgid != null) {

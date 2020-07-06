@@ -87,10 +87,10 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.Process;
 import org.geotoolkit.storage.coverage.DefiningCoverageResource;
-import org.geotoolkit.storage.multires.DefiningPyramid;
+import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
+import org.geotoolkit.storage.multires.TileMatrices;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wms.WMSResource;
@@ -757,7 +757,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         try {
             //prepare the pyramid and mosaics
             final Dimension tileDim = new Dimension(tileSize, tileSize);
-            final DefiningPyramid template = Pyramids.createTemplate(globalEnv, tileDim, scales);
+            final DefiningTileMatrixSet template = TileMatrices.createTemplate(globalEnv, tileDim, scales);
             outRef.createModel(template);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);
@@ -766,7 +766,7 @@ public class PyramidBusiness implements IPyramidBusiness {
 
     protected void createTemplate(MultiResolutionResource outRef, GridGeometry gg, int tileSize) throws ConstellationException {
         try {
-            final DefiningPyramid template = Pyramids.createTemplate(gg, gg.getCoordinateReferenceSystem(), new Dimension(tileSize, tileSize));
+            final DefiningTileMatrixSet template = TileMatrices.createTemplate(gg, gg.getCoordinateReferenceSystem(), new Dimension(tileSize, tileSize));
             outRef.createModel(template);
         } catch (DataStoreException ex) {
             throw new ConstellationException("Error while creating pyramid template.", ex);
@@ -788,16 +788,16 @@ public class PyramidBusiness implements IPyramidBusiness {
             final Data cacheData = provider.get(gname);
             if (cacheData != null) {
                 final MultiResolutionResource cacheRef = (MultiResolutionResource) cacheData.getOrigin();
-                final Collection<Pyramid> pyramids;
+                final Collection<TileMatrixSet> pyramids;
                 try {
-                    pyramids = Pyramids.getPyramids(cacheRef);
+                    pyramids = TileMatrices.getTileMatrixSets(cacheRef);
                 } catch (DataStoreException ex) {
                     throw new ConfigurationException(ex.getMessage(), ex);
                 }
                 if (pyramids.isEmpty()) continue;
                 //TODO what do we do if there are more then one pyramid ?
                 //it the current state of constellation there is only one pyramid
-                final Pyramid pyramid = pyramids.iterator().next();
+                final TileMatrixSet pyramid = pyramids.iterator().next();
                 final Identifier crsid = pyramid.getCoordinateReferenceSystem().getIdentifiers().iterator().next();
 
                 final ProviderPyramidChoiceList.CachePyramid cache = new ProviderPyramidChoiceList.CachePyramid();

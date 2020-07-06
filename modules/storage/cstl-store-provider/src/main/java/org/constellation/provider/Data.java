@@ -49,12 +49,12 @@ import org.constellation.dto.ProviderPyramidChoiceList;
 import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
-import org.geotoolkit.storage.multires.Mosaic;
 import org.geotoolkit.storage.multires.MultiResolutionModel;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
 import org.geotoolkit.storage.multires.ProgressiveResource;
-import org.geotoolkit.storage.multires.Pyramid;
 import org.geotoolkit.storage.multires.TileFormat;
+import org.geotoolkit.storage.multires.TileMatrix;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.util.DateRange;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
@@ -307,8 +307,8 @@ public interface Data<T extends Resource> {
                     tf.put("identifier", mrm.getIdentifier());
                     tf.put("format", mrm.getFormat());
 
-                    if (mrm instanceof Pyramid) {
-                        final Pyramid p = (Pyramid) mrm;
+                    if (mrm instanceof TileMatrixSet) {
+                        final TileMatrixSet p = (TileMatrixSet) mrm;
 
                         final Map<String,Object> pf = new LinkedHashMap<>();
                         tf.put("pyramid", pf);
@@ -317,7 +317,7 @@ public interface Data<T extends Resource> {
                         pf.put("envelope", new GeneralEnvelope(p.getEnvelope()).toString());
 
                         final List<Map> moss = new ArrayList<>();
-                        for (Mosaic m : p.getMosaics()) {
+                        for (TileMatrix m : p.getTileMatrices()) {
                             final Map<String,Object> mf = new LinkedHashMap<>();
                             moss.add(mf);
                             mf.put("identifier", m.getIdentifier());

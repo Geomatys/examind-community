@@ -79,8 +79,8 @@ import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.storage.feature.query.QueryBuilder;
 import org.geotoolkit.storage.multires.MultiResolutionResource;
-import org.geotoolkit.storage.multires.Pyramid;
-import org.geotoolkit.storage.multires.Pyramids;
+import org.geotoolkit.storage.multires.TileMatrices;
+import org.geotoolkit.storage.multires.TileMatrixSet;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
@@ -495,12 +495,12 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             final Object origin = getOrigin();
             if (origin instanceof MultiResolutionResource) {
                 final MultiResolutionResource cacheRef = (MultiResolutionResource) getOrigin();
-                final Collection<Pyramid> pyramids = Pyramids.getPyramids(cacheRef);
+                final Collection<TileMatrixSet> pyramids = TileMatrices.getTileMatrixSets(cacheRef);
                 if(pyramids.isEmpty()) return null;
 
                 //TODO what do we do if there are more then one pyramid ?
                 //it the current state of constellation there is only one pyramid
-                final Pyramid pyramid = pyramids.iterator().next();
+                final TileMatrixSet pyramid = pyramids.iterator().next();
                 final Identifier crsid = pyramid.getCoordinateReferenceSystem().getIdentifiers().iterator().next();
 
                 final ProviderPyramidChoiceList.CachePyramid cache = new ProviderPyramidChoiceList.CachePyramid();
