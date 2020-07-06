@@ -235,7 +235,7 @@ function DatasetExplorerController($scope, $rootScope, $element, $timeout, $filt
 
             if (findIndex === -1) {
                 Examind.datas.getData(_data.id).then(function (response) {
-                    if(!evt.ctrlKey){
+                    if (!evt || !evt.ctrlKey) {
                         self.selected.splice(0);
                     }
                     self.selected.push(angular.extend(_data, response.data));

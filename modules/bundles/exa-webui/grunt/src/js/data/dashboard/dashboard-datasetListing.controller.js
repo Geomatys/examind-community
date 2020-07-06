@@ -137,6 +137,8 @@ function DatasetListingController($rootScope, $scope, DashboardHelper, Examind, 
         return Dataset.deleteMultiData(self.data,
             function () {
                 self.data = [];
+                //refresh the map
+                $rootScope.$broadcast("examind:dashboard:data:refresh:map");
                 return self.setPage(1);
             })
             .catch(function (err) {
