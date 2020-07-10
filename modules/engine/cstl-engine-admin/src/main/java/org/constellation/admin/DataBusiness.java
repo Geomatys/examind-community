@@ -255,7 +255,7 @@ public class DataBusiness implements IDataBusiness {
             if (provData != null) {
                 try {
                     return provData.rawDescription();
-                } catch (DataStoreException ex) {
+                } catch (Exception ex) {
                     throw new ConstellationException(ex);
                 }
             }
@@ -484,7 +484,7 @@ public class DataBusiness implements IDataBusiness {
                     } else {
                         LOGGER.warning("Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName());
                     }
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     LOGGER.log(Level.WARNING, e.getMessage(), e);
                 }
             }
@@ -645,7 +645,7 @@ public class DataBusiness implements IDataBusiness {
             try {
                 final DataProvider provider = DataProviders.getProvider(data.getProviderId());
                 provData = provider.get(data.getNamespace(), data.getName());
-            } catch (ConstellationException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Unable to find a provider data: {" + data.getNamespace() + "} " + data.getName(), ex);
             }
 
@@ -658,7 +658,7 @@ public class DataBusiness implements IDataBusiness {
                     final DataDescription dataDescription = provData.getDataDescription(stats);
                     db.setDataDescription(dataDescription);
                 }
-            } catch (ConstellationStoreException e) {
+            } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Error retrieving statistics for the data  {" + data.getNamespace() + "} " + data.getName() + ":" + e.getMessage(), e);
             }
 
@@ -674,7 +674,7 @@ public class DataBusiness implements IDataBusiness {
                 if (provData!= null) {
                     dates = provData.getAvailableTimes();
                 }
-            } catch (ConstellationStoreException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Error retrieving dates values for the data: {" + data.getNamespace() + "} " + data.getName(), ex);
             }
             if (dates != null && !(dates.isEmpty())) {
@@ -940,7 +940,7 @@ public class DataBusiness implements IDataBusiness {
                     } else {
                         throw new ConfigurationException("Not a vector data requested");
                     }
-                } catch (DataStoreException ex) {
+                } catch (Exception ex) {
                     throw new ConfigurationException(ex.getMessage(), ex);
                 }
             } else {
@@ -1154,7 +1154,7 @@ public class DataBusiness implements IDataBusiness {
         try {
             provider = DataProviders.getProvider(data.getProviderId());
             return provider.getFiles();
-        } catch (ConfigurationException ex) {
+        } catch (Exception ex) {
             throw new ConstellationException("Error while accessing provider for data:" + dataId, ex);
         }
     }
@@ -1333,7 +1333,7 @@ public class DataBusiness implements IDataBusiness {
         for (Integer id : ids) {
             try {
                 results.get("accepted").add(acceptData(id, owner, hidden));
-            } catch (ConstellationException ex) {
+            } catch (Exception ex) {
                 results.get("refused").add(id);
                 LOGGER.log(Level.INFO, ex.getMessage(), ex);
             }
