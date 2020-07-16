@@ -18,7 +18,6 @@
  */
 package org.constellation.admin;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -93,6 +92,9 @@ public class MapContextBusinessTest {
 
         List<MapContextStyledLayerDTO> layers = new ArrayList<>();
         mapContext.setLayers(layers);
+
+        mpBusiness.deleteAll();
+        Assert.assertEquals(0, mpBusiness.findAllMapContextLayers().size());
 
         Integer mid = mpBusiness.create(mapContext);
         Assert.assertNotNull(mid);
