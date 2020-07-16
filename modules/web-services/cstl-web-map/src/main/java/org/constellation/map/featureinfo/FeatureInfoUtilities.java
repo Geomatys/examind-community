@@ -25,8 +25,6 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.referencing.AxisDirections;
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -42,24 +40,15 @@ import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.math.XMath;
 import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.SingleCRS;
-import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.CoordinateOperation;
-import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.Raster;
-import java.awt.image.RenderedImage;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -396,48 +385,16 @@ public final class FeatureInfoUtilities extends Static {
                 .rounding(GridRoundingMode.NEAREST)
                 .slice(location)
                 .build();
+        
+        final GridCoverage cvg = datasource.read(pointGeom).forConvertedValues(true);
+        final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
 
-        final GridCoverage cvg = datasource.read(pointGeom);
-        // TODO: we should check further read coordinates, but it would require more processing, so for now stay simple:
-        //  ensure we've got our 1 pixel large image.
-        final GridGeometry effectiveGeom = cvg.getGridGeometry();
-        final GridExtent effectiveExtent = effectiveGeom.getExtent();
-        final boolean isTooLarge = IntStream.range(0, effectiveExtent.getDimension())
-                .mapToLong(effectiveExtent::getSize)
-                .anyMatch(size -> size > 1);
-        final Point pixelCoord = new Point();
-        if (isTooLarge) {
-            // Ok, what we can do here is project our point in output image to get the precise pixel. It will be costly,
-            // but for now I can't think of a better solution.
-            final CoordinateReferenceSystem baseCrs = effectiveGeom.getCoordinateReferenceSystem();
-            final SingleCRS hCrs = CRS.getHorizontalComponent(baseCrs);
-            final int xAxis = AxisDirections.indexOfColinear(baseCrs.getCoordinateSystem(), hCrs.getCoordinateSystem());
-            final GridGeometry geom2d = effectiveGeom.reduce(xAxis, xAxis + 1);
-            final CoordinateOperation op = CRS.findOperation(location.getCoordinateReferenceSystem(), geom2d.getCoordinateReferenceSystem(), null);
-            final MathTransform objective2Grid = MathTransforms.concatenate(op.getMathTransform(), geom2d.getGridToCRS(PixelInCell.CELL_CENTER).inverse());
-            final DirectPosition gridPt = objective2Grid.transform(location, null);
-            final GridExtent extent2d = geom2d.getExtent();
-            pixelCoord.setLocation(clamp(gridPt, extent2d, 0), clamp(gridPt, extent2d, 1));
+        final double[] values = cvg.evaluator().apply(location);
+        final Map<SampleDimension, Object> samples = new HashMap<>();
+        for (int i = 0; i < values.length; i++) {
+            samples.put(sampleDimensions.get(i), values[i]);
         }
-        final RenderedImage image = cvg.render(effectiveExtent);
-        // We checked that we've got a single point image, so we can short-circuit a lot of things here
-        final Raster tile = image.getTile(0, 0);
-        final int numBands = tile.getNumBands();
-        final List<SampleDimension> sampleDims = cvg.getSampleDimensions();
-        if (sampleDims == null || sampleDims.size() < numBands) {
-            throw new IllegalStateException("Sample dimensions don't match image band number !");
-        }
-
-        final double[] pixel = tile.getPixel(pixelCoord.x, pixelCoord.y, new double[numBands]);
-        return IntStream.range(0, numBands)
-                .mapToObj(i -> {
-                   final SampleDimension sd = sampleDims.get(i);
-                   final Double geophysicVal = sd.getTransferFunction()
-                           .filter(t -> !t.isIdentity())
-                           .map(transfer -> uncheck(transfer, pixel[i]))
-                           .orElse(pixel[i]);
-                    return new AbstractMap.SimpleImmutableEntry<>(sd, geophysicVal);
-                });
+        return samples.entrySet().stream();
     }
 
     /**
