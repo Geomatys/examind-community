@@ -45,6 +45,7 @@ public class OSPrefixMapper extends NamespacePrefixMapper {
         namespaceMap.put("http://a9.com/-/spec/opensearch/extensions/parameters/1.0/", "param");
         namespaceMap.put("http://a9.com/-/opensearch/extensions/time/1.0/", "time");
         namespaceMap.put("http://a9.com/-/opensearch/extensions/geo/1.0/", "geo");
+        namespaceMap.put("http://purl.org/dc/elements/1.1/", "dc");
     }
 
     /* (non-Javadoc)

@@ -883,14 +883,6 @@ public class CSWService extends OGCWebService<CSWworker> {
             OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
             String cswUrl = getServiceURL() + "/csw/" + serviceId;
             CSWUtils.updateCswURL(description, cswUrl);
-           /* boolean isCollection = false;
-            final Object conf = worker.getConfiguration();
-            if (conf instanceof Automatic) {
-                isCollection = ((Automatic)conf).getBooleanParameter("collection", true);
-            }
-            if (isCollection) {
-                // TODO
-            }*/
             return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
         } else {
             LOGGER.log(Level.WARNING, "Received request on undefined instance identifier:{0}", serviceId);

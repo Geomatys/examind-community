@@ -418,7 +418,7 @@ public class CSWUtils {
         // if an iso transformation is available add alternate link
         if (isISOconvertible(record.originalFormat)) {
             String cswISOUrl = GET_RECORD_BY_ID.replace("{SURL}", serviceUrl).replace("{MID}", record.identifier).replace("{OUT_SCHEME}", MetadataType.ISO_19115.namespace);
-            entry.addLink(new LinkType(cswISOUrl, "ISO format", "alternate", "application/vnd.iso.19139-2+xml"));
+            entry.addLink(new LinkType(cswISOUrl, "ISO format", "via", "application/vnd.iso.19139-2+xml"));
         }
 
         final List<String> relationValues = NodeUtilities.getValuesFromPath(record.node, "/csw:Record/dc:references");
