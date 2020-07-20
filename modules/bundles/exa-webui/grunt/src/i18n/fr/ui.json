@@ -1599,6 +1599,7 @@
   "tasks.information.duplicate": "Dupliquer le traitement",
   "tasks.information.planning": "Planifier une exécution",
   "tasks.information.delete": "Supprimer le traitement",
+  "tasks.information.cancel": "Annuler le traitement",
   "tasks.information.title": "Traitements disponibles",
   "tasks.information.internat.tasks": "Traitements internes",
   "tasks.notask": "Pas de traitement en cours d'execution",
