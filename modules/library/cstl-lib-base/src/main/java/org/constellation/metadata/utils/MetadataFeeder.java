@@ -84,8 +84,10 @@ import org.apache.sis.metadata.iso.citation.DefaultOnlineResource;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibleParty;
 import org.apache.sis.metadata.iso.citation.DefaultTelephone;
 import org.apache.sis.metadata.iso.constraint.DefaultLegalConstraints;
+import org.apache.sis.metadata.iso.content.DefaultCoverageDescription;
 import org.apache.sis.metadata.iso.distribution.DefaultDigitalTransferOptions;
 import org.apache.sis.metadata.iso.distribution.DefaultDistribution;
+import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.metadata.iso.identification.AbstractIdentification;
 import org.apache.sis.metadata.iso.identification.DefaultBrowseGraphic;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
@@ -125,6 +127,8 @@ import static org.constellation.api.ServiceConstants.INSERT_OBSERVATION;
 import static org.constellation.api.ServiceConstants.INSERT_RESULT;
 import static org.constellation.api.ServiceConstants.INSERT_RESULT_TEMPLATE;
 import static org.constellation.api.ServiceConstants.INSERT_SENSOR;
+import org.opengis.metadata.extent.TemporalExtent;
+import org.opengis.temporal.TemporalPrimitive;
 
 
 /**
@@ -279,6 +283,20 @@ public class MetadataFeeder {
         }
 
         return metadata.getIdentificationInfo().iterator().next();
+    }
+    
+    protected CoverageDescription getCoverageDescription(DefaultMetadata metadata, boolean create) {
+        for (ContentInformation ci : metadata.getContentInfo()) {
+            if (ci instanceof CoverageDescription) {
+                return (CoverageDescription) ci;
+            }
+        }
+        DefaultCoverageDescription cd = null;
+        if (create) {
+            cd = new DefaultCoverageDescription();
+            metadata.setContentInfo(Arrays.asList(cd));
+        }
+        return cd;
     }
 
      protected Identification getServiceIdentification(DefaultMetadata metadata) {
@@ -1068,6 +1086,15 @@ public class MetadataFeeder {
 
     /**
      *
+     * @return All found Temporal Extent, extent from current metadata.
+     */
+    public Stream<TemporalPrimitive> getTemporalExtent() {
+        return getExtents(eater)
+                .flatMap(extent -> extent.getTemporalElements().stream())
+                .map(TemporalExtent::getExtent);
+    }
+    /**
+     *
      * @return Any Geographic bbox found, or null.
      * @deprecated return only one of possibly many boxes defined. Please consider using {@link #getGeographicBBoxes()}
      * instead. For exact same behavior, you can use {@code getGeographicBBoxes().findAny().orElse(null); }
@@ -1219,6 +1246,128 @@ public class MetadataFeeder {
 
         return Collections.EMPTY_LIST;
     }
+    
+    public Collection<? extends Extent> setExtent(final Extent newExtent, WriteOption copyBehavior) {
+        return setFullExtent(() -> Optional.ofNullable(newExtent), copyBehavior);
+    }
+    
+    public Collection<? extends Extent> setFullExtent(final Supplier<Optional<Extent>> datasource, WriteOption copyBehavior) {
+        final Consumer<DefaultMetadata> mdInit;
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = md -> {
+                    for (Identification ident : md.getIdentificationInfo()) {
+                        ident.getExtents().clear();
+                    }
+                };
+                break;
+            case CREATE_NEW:
+                if (hasExtent(eater)) return Collections.EMPTY_LIST;
+                // Clean metadata: initial action is identity
+                mdInit = md -> {};
+                break;
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = md -> {};
+        }
+
+        final Optional<Extent> optExt = datasource.get();
+        if (optExt.isPresent()) {
+                mdInit.accept(eater);
+                Identification aid = getIdentification(eater);
+                List<Extent> newExtents = new ArrayList<>(aid.getExtents());
+                newExtents.add(optExt.get());
+                if (aid instanceof AbstractIdentification) {
+                    ((AbstractIdentification)aid).setExtents(newExtents);
+                } else {
+                    throw new IllegalArgumentException("identification info is not modifiable");
+                }
+                return newExtents;
+        }
+
+        return Collections.EMPTY_LIST;
+    }
+    
+    public void setGeographicBoundingBox(final Optional<GeographicBoundingBox> optBox, WriteOption copyBehavior) {
+        final Consumer<DefaultMetadata> mdInit;
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = md -> {
+                    for (Identification ident : md.getIdentificationInfo()) {
+                        for (Extent ex : ident.getExtents()) {
+                            List<GeographicExtent> toRemove = new ArrayList<>();
+                            for (GeographicExtent geoEx : ex.getGeographicElements()) {
+                                if (geoEx instanceof GeographicBoundingBox) {
+                                    toRemove.add(geoEx);
+                                }
+                            }
+                            ex.getGeographicElements().removeAll(toRemove);
+                        }
+                    }
+                };
+                break;
+            case CREATE_NEW:
+                if (hasGeographicBoundingBox(eater)) return;
+                // Clean metadata: initial action is identity
+                mdInit = md -> {};
+                break;
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = md -> {};
+        }
+
+        if (optBox.isPresent()) {
+            mdInit.accept(eater);
+            AbstractIdentification ident = (AbstractIdentification) getIdentification(eater);
+            if (hasExtent(eater)) {
+                List<Extent> newExtents = new ArrayList<>(ident.getExtents());
+                DefaultExtent ex = (DefaultExtent) newExtents.iterator().next();
+                List<GeographicExtent> newGeoElems = new ArrayList<>(ex.getGeographicElements());
+                newGeoElems.add(optBox.get());
+                ex.setGeographicElements(newGeoElems);
+                ident.setExtents(newExtents);
+            } else {
+                 DefaultExtent ex = new DefaultExtent();
+                 ex.setGeographicElements(Arrays.asList(optBox.get()));
+                 ident.setExtents(Arrays.asList(ex));
+            }
+        }
+    }
+    
+    public void setCoverageDescriptionAttributeGroups(final Collection<? extends AttributeGroup> newValues, WriteOption copyBehavior) {
+        final Consumer<DefaultMetadata> mdInit;
+        switch (copyBehavior) {
+            case REPLACE_EXISTING:
+                mdInit = md -> {
+                    for (ContentInformation content : md.getContentInfo()) {
+                        if (content instanceof CoverageDescription) {
+                            CoverageDescription covDesc = (CoverageDescription) content;
+                            covDesc.getAttributeGroups().clear();
+                        }
+                    }
+                };
+                break;
+            case CREATE_NEW:
+                if (hasCoverageDescriptionAttributeGroups(eater)) return;
+                // Clean metadata: initial action is identity
+            case APPEND:
+            default:
+                // NOTHING TO DO, we'll add them after existing ones
+                mdInit = md -> {};
+        }
+
+        if (!newValues.isEmpty()) {
+            mdInit.accept(eater);
+            CoverageDescription cd = getCoverageDescription(eater, true);
+            if (cd instanceof DefaultCoverageDescription) {
+                ((DefaultCoverageDescription)cd).setAttributeGroups(newValues);
+            } else {
+                throw new IllegalArgumentException("coverage description is not modifiable");
+            }
+        }
+    }
 
     /**
      *
@@ -1236,8 +1385,6 @@ public class MetadataFeeder {
             case CREATE_NEW:
                 if (hasExtent(eater)) return Optional.empty();
                 // Clean metadata: initial action is identity
-                mdInit = md -> {};
-                break;
             case APPEND:
             default:
                 // NOTHING TO DO, we'll add them after existing ones
@@ -1284,6 +1431,10 @@ public class MetadataFeeder {
         return builder.build(false).getSpatialRepresentationInfo().stream()
                 .findAny();
     }
+    
+    public Stream<? extends Extent> getExtents() {
+        return getExtents(eater);
+    }
 
     private Stream<? extends Extent> getExtents(Metadata md) {
         return md.getIdentificationInfo().stream()
@@ -1292,6 +1443,29 @@ public class MetadataFeeder {
 
     private boolean hasExtent(Metadata md) {
         return getExtents(md)
+                .findAny()
+                .isPresent();
+    }
+    
+    public Collection<? extends AttributeGroup> getCoverageDescriptionAttributeGroups() {
+        return getCoverageDescriptionAttributeGroups(eater);
+    }
+    
+    private Collection<? extends AttributeGroup> getCoverageDescriptionAttributeGroups(DefaultMetadata md) {
+        CoverageDescription cd = getCoverageDescription(md, false);
+        if (cd != null) {
+            return cd.getAttributeGroups();
+        }
+        return new ArrayList<>();
+    }
+    
+    private boolean hasCoverageDescriptionAttributeGroups(Metadata md) {
+        CoverageDescription cd = getCoverageDescription(eater, false);
+        return cd !=null && cd.getAttributeGroups().isEmpty();
+    }
+    
+    private boolean hasGeographicBoundingBox(Metadata md) {
+        return getGeographicBBoxes()
                 .findAny()
                 .isPresent();
     }

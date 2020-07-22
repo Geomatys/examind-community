@@ -633,7 +633,11 @@ public class MetadataBusiness implements IMetadataBusiness {
         if (metadata != null) {
             final DataProvider provider = DataProviders.getProvider(metadata.getProviderId());
             final MetadataData md = (MetadataData) provider.get(null, metadataId);
-            return md.getMetadata();
+            if (md != null) {
+                return md.getMetadata();
+            } else {
+                LOGGER.warning("Unable to retrieve metadata " + metadataId + " from provider:" + provider.getId());
+            }
         }
         return null;
     }
