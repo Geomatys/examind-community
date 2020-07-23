@@ -14,6 +14,7 @@ node/
 docker/data/home/.constellation
 docker/data/home/data
 docker/mount/examind/data
+docker/mount/examind/tomcat/webapps
 docker/mount/exa-db/pgdata
 docker/mount/exa-dbpostgis/pgdata
 *.war

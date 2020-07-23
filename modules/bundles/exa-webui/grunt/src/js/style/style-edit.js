@@ -2645,5 +2645,19 @@ angular.module('cstl-style-edit', [
                 return (text.length > 30) ? text.substr(0, 30) + "..." : text;
             }
         };
+        /**
+         * Hack to fix color picker problem with transparent value
+         * empty is transparent but examind not support empty color
+         * so we need to replace empty string by #00000000
+         * after we need to change the reference object to trigger angular watcher
+         * @param point
+         * @param index
+         */
+        $scope.checkColor = function (point, index) {
+            $timeout(function(){
+                point.color = !point.color ? '#00000000' : point.color ;
+                $scope.optionsSLD.rasterPalette.repartition[index] = Object.assign({}, point);
+            },200);
+        };
 
     });

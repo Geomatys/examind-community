@@ -188,7 +188,7 @@
                                 <tbody>
                                     <tr ng-repeat="point in rasterSldCtrl.rasterPalette.repartition">
                                         <td>
-                                            <input type='text' name="picker" class="picker" spectrum ng-model="point.color"/>
+                                            <input type='text' name="picker" class="picker" spectrum oncolorchanged="rasterSldCtrl.checkColor(point, $index);" ng-model="point.color"/>
                                         </td>
                                         <td>
                                             <input type="number"

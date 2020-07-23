@@ -19,7 +19,7 @@ function rasterSldDirective() {
     };
 }
 
-function RasterSldController($scope, $modal) {
+function RasterSldController($scope, $timeout, $modal) {
     var self = this;
 
     self.rasterPalette = $scope.rasterPalette;
@@ -131,6 +131,21 @@ function RasterSldController($scope, $modal) {
         //clean colorMap for selected rule
         self.rasterPalette.repartition = undefined;
         self.helper.selectedRule.symbolizers[0].colorMap = undefined;
+    };
+
+    /**
+     * Hack to fix color picker problem with transparent value
+     * empty is transparent but examind not support empty color
+     * so we need to replace empty string by #00000000
+     * after we need to change the reference object to trigger angular watcher
+     * @param point
+     * @param index
+     */
+    self.checkColor = function (point, index) {
+        $timeout(function () {
+            point.color = !point.color ? '#00000000' : point.color;
+            $scope.optionsSLD.rasterPalette.repartition[index] = Object.assign({}, point);
+        }, 200);
     };
 
 }
