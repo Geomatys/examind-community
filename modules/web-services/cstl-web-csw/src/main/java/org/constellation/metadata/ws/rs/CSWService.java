@@ -258,17 +258,17 @@ public class CSWService extends OGCWebService<CSWworker> {
         if (GET_CAPABILITIES.equalsIgnoreCase(request)) {
             return createNewGetCapabilitiesRequest(w);
         } else if ("GetRecords".equalsIgnoreCase(request)) {
-            return createNewGetRecordsRequest();
+            return createNewGetRecordsRequest(w);
         } else if ("GetRecordById".equalsIgnoreCase(request)) {
-            return createNewGetRecordByIdRequest();
+            return createNewGetRecordByIdRequest(w);
         } else if ("DescribeRecord".equalsIgnoreCase(request)) {
-            return createNewDescribeRecordRequest();
+            return createNewDescribeRecordRequest(w);
         } else if ("GetDomain".equalsIgnoreCase(request)) {
-            return createNewGetDomainRequest();
+            return createNewGetDomainRequest(w);
         } else if ("Transaction".equalsIgnoreCase(request)) {
             throw new CstlServiceException("The Operation transaction is not available in KVP", OPERATION_NOT_SUPPORTED, "transaction");
         } else if ("Harvest".equalsIgnoreCase(request)) {
-            return createNewHarvestRequest();
+            return createNewHarvestRequest(w);
         }
         throw new CstlServiceException("The operation " + request + " is not supported by the service",
                         INVALID_PARAMETER_VALUE, "request");
@@ -333,10 +333,12 @@ public class CSWService extends OGCWebService<CSWworker> {
     /**
      * Build a new GetRecords request object with the url parameters
      */
-    private GetRecordsRequest createNewGetRecordsRequest() throws CstlServiceException {
+    private GetRecordsRequest createNewGetRecordsRequest(final Worker w) throws CstlServiceException {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
+        
+        w.checkVersionSupported(version, false);
 
         //we get the value of result type, if not set we put default value "HITS"
         final String resultTypeName = getParameter(RESULT_TYPE, false);
@@ -527,10 +529,12 @@ public class CSWService extends OGCWebService<CSWworker> {
         return null;
     }
 
-    private GetRecordsRequest createNewOpenSearchGetRecordsRequest() throws CstlServiceException {
+    private GetRecordsRequest createNewOpenSearchGetRecordsRequest(final Worker w) throws CstlServiceException {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
+        
+        w.checkVersionSupported(version, false);
 
         String outputFormat = getParameter(OUTPUT_FORMAT, false);
         if (outputFormat == null) {
@@ -538,7 +542,7 @@ public class CSWService extends OGCWebService<CSWworker> {
         }
 
         String outputSchema = getParameter(OUTPUT_SCHEMA, false);
-        if (outputSchema == null) {
+        if (outputSchema == null || outputFormat.equals(MimeType.APP_ATOM)) {
             outputSchema = LegacyNamespaces.CSW;
         }
 
@@ -739,11 +743,14 @@ public class CSWService extends OGCWebService<CSWworker> {
     /**
      * Build a new GetRecordById request object with the url parameters
      */
-    private GetRecordById createNewGetRecordByIdRequest() throws CstlServiceException {
+    private GetRecordById createNewGetRecordByIdRequest(final Worker w) throws CstlServiceException {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
 
+        w.checkVersionSupported(version, false);
+
+                
         String eSetName         = getParameter("ELEMENTSETNAME", false);
         ElementSetType elementSet = ElementSetType.SUMMARY;
         if (eSetName != null) {
@@ -782,10 +789,12 @@ public class CSWService extends OGCWebService<CSWworker> {
     /**
      * Build a new DescribeRecord request object with the url parameters
      */
-    private DescribeRecord createNewDescribeRecordRequest() throws CstlServiceException {
+    private DescribeRecord createNewDescribeRecordRequest(final Worker w) throws CstlServiceException {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
+        
+        w.checkVersionSupported(version, false);
 
         String outputFormat = getParameter("OUTPUTFORMAT", false);
         if (outputFormat == null) {
@@ -832,10 +841,13 @@ public class CSWService extends OGCWebService<CSWworker> {
     /**
      * Build a new GetDomain request object with the url parameters
      */
-    private GetDomain createNewGetDomainRequest() throws CstlServiceException {
+    private GetDomain createNewGetDomainRequest(final Worker w) throws CstlServiceException {
 
         final String version    = getParameter(VERSION_PARAMETER, true);
         final String service    = getParameter(SERVICE_PARAMETER, true);
+        
+        w.checkVersionSupported(version, false);
+
 
         //not supported by the ISO profile
         final String parameterName = getParameter("PARAMETERNAME", false);
@@ -851,10 +863,12 @@ public class CSWService extends OGCWebService<CSWworker> {
     /**
      * Build a new GetDomain request object with the url parameters
      */
-    private Harvest createNewHarvestRequest() throws CstlServiceException {
+    private Harvest createNewHarvestRequest(final Worker w) throws CstlServiceException {
 
         final String version      = getParameter(VERSION_PARAMETER, true);
         final String service      = getParameter(SERVICE_PARAMETER, true);
+        w.checkVersionSupported(version, false);
+
         final String source       = getParameter("SOURCE", true);
         final String resourceType = getParameter("RESOURCETYPE", true);
         String resourceFormat     = getParameter("RESOURCEFORMAT", false);
@@ -880,7 +894,7 @@ public class CSWService extends OGCWebService<CSWworker> {
     public ResponseEntity getOpenSearchDescriptionDocument(@PathVariable("serviceId") String serviceId) {
         CSWworker worker = getWorker(serviceId);
         if (worker != null) {
-            OpenSearchDescription description = CSWConstants.OS_DESCRIPTION;
+            OpenSearchDescription description = CSWConstants.OS_DESCRIPTION.clone();
             String cswUrl = getServiceURL() + "/csw/" + serviceId;
             CSWUtils.updateCswURL(description, cswUrl);
             return new ResponseObject(description, "application/opensearchdescription+xml").getResponseEntity();
@@ -899,7 +913,7 @@ public class CSWService extends OGCWebService<CSWworker> {
             }
             ServiceDef serviceDef = null;
             try {
-                GetRecordsRequest request = createNewOpenSearchGetRecordsRequest();
+                GetRecordsRequest request = createNewOpenSearchGetRecordsRequest(worker);
                 serviceDef = worker.getVersionFromNumber(request.getVersion());
 
                 Object response = worker.getRecords(request);
