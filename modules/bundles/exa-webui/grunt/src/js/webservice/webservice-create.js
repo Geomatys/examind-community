@@ -262,6 +262,7 @@ angular.module('cstl-webservice-create', [
                         'profile': 'discovery',
                         'customparameters' : {
                                "partial" : "false",
+                               "collection" : "false",
                                "onlyPublished" : "false",
                                "es-url" : ''
                         }
@@ -282,6 +283,7 @@ angular.module('cstl-webservice-create', [
             if(self.type === 'csw') {
                 self.source.format = self.guiConfig.cswMode;
                 self.source.customparameters.partial = self.guiConfig.cswPartial;
+                self.source.customparameters.collection = self.guiConfig.cswCollection;
                 self.source.customparameters.onlyPublished = self.guiConfig.cswOnlyPublished;
                 self.source.customparameters["es-url"] = self.guiConfig.cswEsURL;
                 if(self.guiConfig.cswMode === 'filesystem') {

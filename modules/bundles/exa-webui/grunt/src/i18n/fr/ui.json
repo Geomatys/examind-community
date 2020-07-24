@@ -1220,6 +1220,7 @@
   "service.config.source.transactionalLabel": "Rendre le service transactionnel",
   "service.config.source.partial": "Laisser l'utilisateur ajouter manuellement les fiches dans le service",
   "service.config.source.onlyPublished": "Exposer uniquement les fiches qui ont un état publié dans la base",
+  "service.config.source.collection": "Le service ajoute des liens de recherche de granule pour chaque métadonnée (OpenSearch)",
   "service.config.source.defaultBehaviourInternal": "Dans le cas où aucune case n'a été cochée, toutes les métadonnées présentes dans la base seront automatiquement exposées dans ce CSW.",
   "service.config.source.postgisInfo": "Pour une base données PostgresSQL il vous faudra l'extension Postgis déjà installé sur votre serveur.",
   "service.create.end.addlayers.label": "Ajouter des couches au service",
