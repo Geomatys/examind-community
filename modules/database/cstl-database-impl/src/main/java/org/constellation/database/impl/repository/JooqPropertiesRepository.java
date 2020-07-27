@@ -36,7 +36,6 @@ import org.jooq.SelectQuery;
 import org.jooq.UpdateConditionStep;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
@@ -69,7 +68,7 @@ public class JooqPropertiesRepository extends AbstractJooqRespository<PropertyRe
     }
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional
     public void update(String key, String value) {
         final Entry old = findOne(key);
         if (old == null) {
@@ -92,7 +91,7 @@ public class JooqPropertiesRepository extends AbstractJooqRespository<PropertyRe
     }
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional
     public void delete(String key) {
         DeleteConditionStep<PropertyRecord> deleteConditionStep = dsl.delete(PROPERTY).where(
                 PROPERTY.NAME.eq(key));
