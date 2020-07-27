@@ -793,7 +793,7 @@ public class DefaultWPSWorker extends AbstractWorker implements WPSWorker {
         //////////////////////////////
         // END OF REQUEST VALIDATION
         //////////////////////////////
-        LOGGER.log(Level.INFO, "Process Execute : {0}", request.getIdentifier().getValue());
+        LOGGER.log(Level.FINE, "Process Execute : {0}", request.getIdentifier().getValue());
 
         /*
          * ResponseDocument attributes

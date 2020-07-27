@@ -404,7 +404,7 @@ public abstract class AbstractWorker implements Worker {
         if (value != null) {
             return Boolean.parseBoolean(value);
         }
-        return true;
+        return false;
     }
 
     /**
