@@ -216,7 +216,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             layer.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
             layerBusiness.add(dataId,
-                              null,
+                              "Europe-costlines",
                               serviceId,
                               layer);
 
@@ -283,7 +283,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             Layer layer1 = new Layer(new QName(NamesExt.getNamespace(Util.getLayerId(COUNTRIES_DATA_REF)), Util.getLayerId(COUNTRIES_DATA_REF).tip().toString()));
             layer1.setGetFeatureInfoCfgs(gfi);
             layerBusiness.add(countriesDataId,
-                              null,
+                              "Europe-costlines",
                               serviceId,
                               layer1);
 

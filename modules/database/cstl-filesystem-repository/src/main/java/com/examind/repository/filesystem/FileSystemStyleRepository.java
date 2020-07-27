@@ -581,4 +581,9 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void unlinkAllStylesFromLayer(int layerId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

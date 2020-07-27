@@ -68,7 +68,7 @@ public interface LayerRepository {
     Layer findByServiceIdAndAlias(int serviceId, String alias);
 
     Layer findByServiceIdAndDataId(int serviceId, int dataId);
-
+    
     void updateLayerTitle(int layerID, String newTitle);
 
     /**

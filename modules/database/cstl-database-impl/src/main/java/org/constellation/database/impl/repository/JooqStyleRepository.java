@@ -131,6 +131,12 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, or
         dsl.delete(STYLED_LAYER).where(STYLED_LAYER.LAYER.eq(layerid).and(STYLED_LAYER.STYLE.eq(styleId))).execute();
 
     }
+    
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void unlinkAllStylesFromLayer(int layerId) {
+        dsl.delete(STYLED_LAYER).where(STYLED_LAYER.LAYER.eq(layerId)).execute();
+    }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)

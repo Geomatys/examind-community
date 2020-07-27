@@ -178,8 +178,13 @@ public class LayerBusiness implements ILayerBusiness {
                 namespace = null;
             }
 
+            Layer layer;
+            if (alias != null) {
+                layer = layerRepository.findByServiceIdAndAlias(serviceId, alias);
+            } else {
+                layer = layerRepository.findByServiceIdAndDataId(service.getId(), data.getId());
+            }
             boolean update = true;
-            Layer layer = layerRepository.findByServiceIdAndDataId(service.getId(), data.getId());
             if (layer == null) {
                 update = false;
                 layer = new Layer();

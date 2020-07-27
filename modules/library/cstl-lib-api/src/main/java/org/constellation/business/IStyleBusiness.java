@@ -163,5 +163,7 @@ public interface IStyleBusiness {
     void updateSharedProperty(final List<Integer> ids, final boolean shared) throws ConfigurationException;
 
     void updateSharedProperty(final int id, final boolean shared) throws ConfigurationException;
+    
+    void unlinkAllFromLayer(int layerId);
 
 }

@@ -450,6 +450,12 @@ public class StyleBusiness implements IStyleBusiness {
         request.put(KEY_IDENTIFIER, serviceIdentifier);
         clusterBusiness.publish(request);
     }
+    
+    @Override
+    @Transactional
+    public void unlinkAllFromLayer(int layerId)  {
+        styleRepository.unlinkAllStylesFromLayer(layerId);
+    }
 
 
     protected org.opengis.style.Style parseStyle(final String name, final String xml) {

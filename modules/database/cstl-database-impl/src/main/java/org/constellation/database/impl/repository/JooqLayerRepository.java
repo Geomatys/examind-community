@@ -176,7 +176,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, or
     @Override
     public Layer findByServiceIdAndDataId(int serviceId, int dataId) {
         return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.DATA.eq(dataId))
-                .fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
+                .and(LAYER.ALIAS.isNull()).fetchOneInto(org.constellation.database.api.jooq.tables.pojos.Layer.class));
 
     }
 

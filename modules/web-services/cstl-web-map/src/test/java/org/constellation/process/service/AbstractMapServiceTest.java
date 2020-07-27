@@ -68,14 +68,18 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
 
     /**
      * Create a custom instance.
+     * Reove the prvious if already present
      *
      * @param identifier
      * @param context
      */
     protected Integer createCustomInstance(final String identifier, LayerContext context) {
         try {
-            serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
-            return serviceBusiness.getServiceIdByIdentifierAndType(serviceName.toLowerCase(), identifier);
+            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceName.toLowerCase(), identifier);
+            if (sid != null) {
+                serviceBusiness.delete(sid);
+            }
+            return serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
         }  catch (ConfigurationException ex) {
             LOGGER.log(Level.SEVERE, "Error while creating custom instance", ex);
         }
@@ -99,8 +103,12 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
 
     protected static void deleteInstance(final ILayerBusiness layerBusiness, Integer serviceId) {
         try {
-            layerBusiness.removeForService(serviceId);
-        } catch (ConstellationException ex) {
+            if (serviceId != null) {
+                layerBusiness.removeForService(serviceId);
+            } else {
+                LOGGER.warning("No service to remove");
+            }
+        } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, "Unable to delete layers for service: "+ serviceName);
         }
     }
