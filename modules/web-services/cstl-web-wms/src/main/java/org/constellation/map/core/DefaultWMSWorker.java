@@ -286,13 +286,19 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             currentLanguage = null;
         }
 
+        //set the current updateSequence parameter
+        final boolean returnUS = returnUpdateSequenceDocument(getCapab.getUpdateSequence());
+        if (returnUS) {
+            throw new CstlServiceException("the update sequence parameter is equal to the current", CURRENT_UPDATE_SEQUENCE, "updateSequence");
+        }
+        
         final Object cachedCapabilities = getCapabilitiesFromCache(queryVersion, currentLanguage);
         if (cachedCapabilities != null) {
             return (AbstractWMSCapabilities) cachedCapabilities;
         }
 
         final Details skeleton = getStaticCapabilitiesObject("wms", currentLanguage);
-        final AbstractWMSCapabilities inCapabilities = WMSConstant.createCapabilities(queryVersion, skeleton);
+        final AbstractWMSCapabilities inCapabilities = WMSConstant.createCapabilities(queryVersion, skeleton, getCurrentUpdateSequence());
 
         // temporary sort in order to fix cite test
         final AbstractRequest request;
@@ -307,12 +313,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         request.updateURL(getServiceUrl());
         inCapabilities.getCapability().setRequest(request);
         inCapabilities.getCapability().setExceptionFormats(exceptionFormats);
-
-        //set the current updateSequence parameter
-        final boolean returnUS = returnUpdateSequenceDocument(getCapab.getUpdateSequence());
-        if (returnUS) {
-            throw new CstlServiceException("the update sequence parameter is equal to the current", CURRENT_UPDATE_SEQUENCE, "updateSequence");
-        }
 
         //Build the list of layers
         final List<AbstractLayer> outputLayers = new ArrayList<>();

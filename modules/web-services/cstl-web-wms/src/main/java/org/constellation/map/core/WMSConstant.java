@@ -230,10 +230,12 @@ public final class WMSConstant {
     /**
      * Generates the base capabilities for a WMS from the service metadata.
      *
+     * @param version the version of the returned object.
      * @param metadata the service metadata
+     * @param updateSequence current update sequence.
      * @return the service base capabilities
      */
-    public static AbstractWMSCapabilities createCapabilities(final String version, final Details metadata) {
+    public static AbstractWMSCapabilities createCapabilities(final String version, final Details metadata, String updateSequence) {
         ensureNonNull("metadata", metadata);
         ensureNonNull("version",  version);
 
@@ -293,6 +295,6 @@ public final class WMSConstant {
         final JAXBElement<?> extension = factory.createExtendedCapabilities(ext);
         // Create capabilities base.
         final AbstractCapability capability =  WmsXmlFactory.createCapability(version, extension);
-        return WmsXmlFactory.createCapabilities(version, newService, capability, null);
+        return WmsXmlFactory.createCapabilities(version, newService, capability, updateSequence);
     }
 }

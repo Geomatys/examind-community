@@ -93,10 +93,13 @@ public final class WMTSConstant {
     /**
      * Generates the base capabilities for a WMS from the service metadata.
      *
+     * @param version the version of the returned object.
      * @param metadata the service metadata
+     * @param updateSequence current update sequence.
+     * 
      * @return the service base capabilities
      */
-    public static WMTSResponse createCapabilities(final String version, final Details metadata) {
+    public static WMTSResponse createCapabilities(final String version, final Details metadata, String updateSequence) {
         ensureNonNull("metadata", metadata);
         ensureNonNull("version",  version);
 
@@ -110,7 +113,7 @@ public final class WMTSConstant {
                         Arrays.asList(constraint.getAccessConstraint()));
         } else {
             servIdent = OWSXmlFactory.buildServiceIdentification("1.1.0", metadata.getName(), metadata.getDescription(),
-                    metadata.getKeywords(), "WMTS", metadata.getVersions(), null, new ArrayList<String>());
+                    metadata.getKeywords(), "WMTS", metadata.getVersions(), null, new ArrayList<>());
         }
 
         // Create provider part.
@@ -132,10 +135,10 @@ public final class WMTSConstant {
         }
 
         // Create capabilities base.
-        return WMTSXmlFactory.buildCapabilities(version, servIdent, servProv, null, null, null, null);
+        return WMTSXmlFactory.buildCapabilities(version, servIdent, servProv, null, updateSequence, null, null);
     }
 
-    public static List<Style> DEFAULT_STYLES = new ArrayList<>();
+    public static final List<Style> DEFAULT_STYLES = new ArrayList<>();
 
     static {
         final Style defaultStyle = new Style();

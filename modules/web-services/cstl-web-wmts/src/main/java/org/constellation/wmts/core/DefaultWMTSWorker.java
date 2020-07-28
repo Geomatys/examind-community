@@ -257,7 +257,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 
             // we load the skeleton capabilities
             final Details skeleton = getStaticCapabilitiesObject("wmts", null);
-            final Capabilities skeletonCapabilities = (Capabilities) WMTSConstant.createCapabilities("1.0.0", skeleton);
+            final Capabilities skeletonCapabilities = (Capabilities) WMTSConstant.createCapabilities("1.0.0", skeleton, getCurrentUpdateSequence());
 
             //we prepare the response document
             final ServiceIdentification si = skeletonCapabilities.getServiceIdentification();
@@ -526,7 +526,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
             final ContentsType cont = new ContentsType(outputLayers, new ArrayList<>(tileSets.values()));
 
             // put full capabilities in cache
-            final Capabilities c = new Capabilities(si, sp, om, "1.0.0", null, cont, themes);
+            final Capabilities c = new Capabilities(si, sp, om, "1.0.0", getCurrentUpdateSequence(), cont, themes);
             putCapabilitiesInCache("1.0.0", null, c);
             LOGGER.log(Level.INFO, "getCapabilities processed in {0}ms.\n", (System.currentTimeMillis() - start));
             return (Capabilities) c.applySections(sections);
