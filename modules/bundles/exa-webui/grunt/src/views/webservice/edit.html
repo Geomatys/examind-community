@@ -77,7 +77,7 @@
             </ul>
             <div class="tab-content">
                 <div class="tab-pane" ng-class="{active:tabdata}" ng-show="tabdata">
-                    <div ng-if="type == 'wps'"
+                    <div ng-if="type == 'wps'" ng-init="initScope()"
                          ng-include="'views/webservice/wps/dashboard.html'">
                     </div>
                     <div ng-if="type !== 'wps'">

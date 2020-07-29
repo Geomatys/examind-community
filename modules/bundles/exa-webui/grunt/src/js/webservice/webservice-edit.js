@@ -149,7 +149,7 @@ angular.module('cstl-webservice-edit', [
                         $scope.layers = sensors.data.children;
 
                     }, function() { Growl('error','Error','Unable to list sensors'); });
-                } else {
+                } else if ($scope.type !== 'wps') {    
                     Examind.ogcServices.getConfig($scope.type, $routeParams.id).then(function(response) {
                         $scope.config = response.data;
                     });
