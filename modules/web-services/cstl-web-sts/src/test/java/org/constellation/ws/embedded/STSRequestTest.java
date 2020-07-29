@@ -84,7 +84,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void initPool() {
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 try {
                     serviceBusiness.deleteAll();

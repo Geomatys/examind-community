@@ -37,7 +37,7 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
-        <!-- Testing dependencies -->
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.opengis</groupId>
             <artifactId>geoapi-conformance</artifactId>
@@ -96,6 +96,12 @@
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature-shapefile</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-test-embedded</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

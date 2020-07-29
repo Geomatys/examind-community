@@ -93,7 +93,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
     public void initWPSServer() {
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 try {
                     serviceBusiness.deleteAll();

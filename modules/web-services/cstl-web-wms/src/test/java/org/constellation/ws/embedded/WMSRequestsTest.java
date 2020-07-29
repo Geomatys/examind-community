@@ -19,8 +19,6 @@
 package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.file.Files;
-import java.util.Collections;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -357,7 +355,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         pool = WMSMarshallerPool.getInstance();
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 try {
                     layerBusiness.removeAll();

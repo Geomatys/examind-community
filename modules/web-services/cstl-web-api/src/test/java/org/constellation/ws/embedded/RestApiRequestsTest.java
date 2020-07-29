@@ -91,7 +91,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
 
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 try {
                     layerBusiness.removeAll();

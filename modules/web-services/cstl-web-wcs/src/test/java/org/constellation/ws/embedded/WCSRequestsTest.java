@@ -22,6 +22,7 @@ package org.constellation.ws.embedded;
 import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,9 +51,7 @@ import org.geotoolkit.image.jai.Registry;
 import org.geotoolkit.ogc.xml.exception.ServiceExceptionReport;
 import org.geotoolkit.ows.xml.v110.ExceptionReport;
 import org.geotoolkit.wcs.xml.WCSMarshallerPool;
-import org.geotoolkit.wcs.xml.v100.CoverageDescription;
 import org.geotoolkit.wcs.xml.v100.CoverageOfferingBriefType;
-import org.geotoolkit.wcs.xml.v100.CoverageOfferingType;
 import org.geotoolkit.wcs.xml.v100.DCPTypeType.HTTP.Get;
 import org.geotoolkit.wcs.xml.v100.LonLatEnvelopeType;
 import org.geotoolkit.wcs.xml.v100.WCSCapabilitiesType;
@@ -68,6 +67,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opengis.util.GenericName;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import static org.constellation.ws.embedded.AbstractGrizzlyServer.domCompare;
+import org.geotoolkit.referencing.CRS;
 
 // JUnit dependencies
 
@@ -82,12 +83,14 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 @RunWith(TestRunner.class)
 public class WCSRequestsTest extends AbstractGrizzlyServer {
 
+    private static String EPSG_VERSION;
 
     /**
      * The layer to test.
      */
     private static final GenericName LAYER_TEST = NamesExt.create("SSTMDE200305");
     private static final GenericName LAYER_ALIAS = NamesExt.create("aliased");
+    private static final GenericName LAYER_TEST2 = NamesExt.create("martinique");
 
     /**
      * URLs which will be tested on the server.
@@ -108,7 +111,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                                       "format=image/png&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "coverage="+ LAYER_TEST;
-
+    
     private static final String WCS_GETCOVERAGE_ALIAS ="request=GetCoverage&service=WCS&version=1.0.0&" +
                                       "format=image/png&width=1024&height=512&" +
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
@@ -119,12 +122,23 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                                       "crs=EPSG:4326&bbox=-180,-90,180,90&" +
                                       "coverage="+ LAYER_TEST;
 
+    private static final String WCS_GETCOVERAGE_PNG_TIFF_201 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&coverageid="+ LAYER_TEST;
+    
+    private static final String WCS_GETCOVERAGE_TIFF_TIFF_201 ="request=GetCoverage&service=WCS&version=2.0.1&" +
+                                      "format=image/tiff&coverageid="+ LAYER_TEST2;
+    
     private static final String WCS_GETCAPABILITIES ="request=GetCapabilities&service=WCS&version=1.0.0";
 
     private static final String WCS_GETCAPABILITIES2 ="request=GetCapabilities&service=WCS&version=1.0.0";
 
     private static final String WCS_DESCRIBECOVERAGE ="request=DescribeCoverage&coverage=SSTMDE200305&service=wcs&version=1.0.0";
     private static final String WCS_DESCRIBECOVERAGE_ALIAS ="request=DescribeCoverage&coverage=" + LAYER_ALIAS + "&service=wcs&version=1.0.0";
+    private static final String WCS_DESCRIBECOVERAGE_TIFF ="request=DescribeCoverage&coverage=martinique&service=wcs&version=1.0.0";
+    
+    private static final String WCS_DESCRIBECOVERAGE_201_PNG ="request=DescribeCoverage&coverageid=SSTMDE200305&service=wcs&version=2.0.1";
+    
+    private static final String WCS_DESCRIBECOVERAGE_201_TIFF ="request=DescribeCoverage&coverageid=martinique&service=wcs&version=2.0.1";
 
     private static boolean initialized = false;
 
@@ -141,12 +155,14 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
 
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 layerBusiness.removeAll();
                 serviceBusiness.deleteAll();
                 dataBusiness.deleteAll();
                 providerBusiness.removeAll();
+                
+                EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
                 final TestResources testResource = initDataDirectory();
 
@@ -156,12 +172,16 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 // second data for alias
                 pid = testResource.createProvider(TestResource.PNG, providerBusiness);
                 Integer did2 = dataBusiness.create(new QName("SSTMDE200305"), pid, "COVERAGE", false, true, true, null, null);
+                
+                pid = testResource.createProvider(TestResource.TIF, providerBusiness);
+                Integer did3 = dataBusiness.create(new QName("martinique"), pid, "COVERAGE", false, true, null, null);
 
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wcs", "default", config, null, null);
                 layerBusiness.add(did, null, defId, null);
                 layerBusiness.add(did2, "aliased", defId, null);
+                layerBusiness.add(did3, null, defId, null);
 
                 Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
                 layerBusiness.add(did, null, testId, null);
@@ -296,6 +316,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=2)
     public void testWCSGetCoverageAlias() throws Exception {
+        initLayerList();
         // Creates a valid GetCoverage url.
         final URL getCoverageUrl;
         try {
@@ -315,6 +336,43 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         assertTrue  (ImageTesting.getNumColors(image) > 8);
     }
 
+    @Test
+    @Order(order=2)
+    public void testWCSGetCoverage201() throws Exception {
+        initLayerList();
+        // Creates a valid GetCoverage url.
+        URL getCoverageUrl;
+        try {
+            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_PNG_TIFF_201);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get the coverage from the url.
+        BufferedImage image = getImageFromURLByFormat(getCoverageUrl, "geotiff");
+        // TODO verification on result
+        
+      /*  
+        
+        Issue here to read the tiff
+        
+        
+        try {
+            getCoverageUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_GETCOVERAGE_TIFF_TIFF_201);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        // Try to get the coverage from the url.
+        image = getImageFromURLByFormat(getCoverageUrl, "geotiff");
+        // TODO verification on result
+        
+        */
+    }
+
+    
     /**
      * Ensures a GetCoverage request with the output format matrix works fine.
      *
@@ -327,6 +385,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Ignore
     @Order(order=3)
     public void testWCSGetCoverageMatrixFormat() throws Exception {
+        initLayerList();
         // Creates a valid GetCoverage url.
         final URL getCovMatrixUrl;
         try {
@@ -347,6 +406,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=4)
     public void testWCSGetCapabilities() throws Exception {
+        initLayerList();
         // Creates a valid GetCapabilities url.
         URL getCapsUrl;
         try {
@@ -440,6 +500,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     @Test
     @Order(order=5)
     public void testWCSDescribeCoverage() throws Exception {
+        initLayerList();
         // Creates a valid DescribeCoverage url.
         URL getCapsUrl;
         try {
@@ -449,17 +510,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        // Try to marshall something from the response returned by the server.
-        // The response should be a WCSCapabilitiesType.
-        Object obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof CoverageDescription);
-
-        CoverageDescription responseDesc = (CoverageDescription)obj;
-        assertNotNull(responseDesc);
-        List<CoverageOfferingType> coverageOffs = responseDesc.getCoverageOffering();
-        assertFalse (coverageOffs.isEmpty());
-        assertEquals(LAYER_TEST.tip().toString(), coverageOffs.get(0).getRest().get(1).getValue());
-        // TODO: add more tests on returned XML doc
+        String result = getStringResponse(getCapsUrl);
+        String expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoveragePNG.xml");
+        
+        domCompare(result, expResult);
 
         try {
             getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_ALIAS);
@@ -468,17 +522,51 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
-        // Try to marshall something from the response returned by the server.
-        // The response should be a WCSCapabilitiesType.
-        obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof CoverageDescription);
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoveragePNG_ALIAS.xml");
+        
+        domCompare(result, expResult);
+        
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_TIFF);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
 
-        responseDesc = (CoverageDescription)obj;
-        assertNotNull(responseDesc);
-        coverageOffs = responseDesc.getCoverageOffering();
-        assertFalse (coverageOffs.isEmpty());
-        assertEquals(LAYER_ALIAS.tip().toString(), coverageOffs.get(0).getRest().get(1).getValue());
-        // TODO: add more tests on returned XML doc
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v100/describeCoverageTIFF.xml");
+        
+        domCompare(result, expResult);
+        
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_PNG);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoveragePNG.xml");
+       
+        domCompare(result, expResult);
+        
+        try {
+            getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wcs/default?SERVICE=WCS&" + WCS_DESCRIBECOVERAGE_201_TIFF);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        result = getStringResponse(getCapsUrl);
+        expResult = getStringFromFile("org/constellation/ws/embedded/v201/describeCoverageTIFF.xml");
+        
+        domCompare(result, expResult);
+
     }
 
+    protected static void domCompare(final Object actual, String expected) throws Exception {
+        expected = expected.replace("EPSG_VERSION", EPSG_VERSION);
+        domCompare(actual, expected, Arrays.asList("http://www.opengis.net/gml/3.2:id"));
+    }
 }

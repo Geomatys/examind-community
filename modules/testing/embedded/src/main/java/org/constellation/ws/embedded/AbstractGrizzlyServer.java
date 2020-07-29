@@ -58,6 +58,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import org.apache.commons.io.IOUtils;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -84,6 +86,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.catalina.Context;
 import org.apache.sis.test.xml.DocumentComparator;
+import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.util.NodeUtilities;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -136,17 +139,15 @@ public abstract class AbstractGrizzlyServer {
     protected IMetadataBusiness metadataBusiness;
     protected ISensorBusiness sensorBusiness;
     protected IUserBusiness userBusiness;
+    protected IPyramidBusiness pyramidBusiness;
     protected IDataCoverageJob dataCoverageJob;
 
     protected static Class controllerConfiguration;
 
-    public void startServer(final String[] resourcePackages) throws Exception {
-        startServer(resourcePackages, null);
-    }
     /**
      * Initialize and start the server.
      */
-    public void startServer(final String[] resourcePackages, final String uriSuffix) throws Exception {
+    public void startServer() throws Exception {
         // Hack: force french locale to comply with hard-coded test identifiers (see WMSRequestsTest#testWMSGetFeatureInfoPlainCoveragePng
         Locale.setDefault(Locale.FRANCE);
         ctx = SpringApplication.run(AbstractGrizzlyServer.class, new String[0]);
@@ -159,6 +160,7 @@ public abstract class AbstractGrizzlyServer {
         metadataBusiness = SpringHelper.getBean(IMetadataBusiness.class);
         sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
         userBusiness = SpringHelper.getBean(IUserBusiness.class);
+        pyramidBusiness = SpringHelper.getBean(IPyramidBusiness.class);
         dataCoverageJob = SpringHelper.getBean(IDataCoverageJob.class);
     }
 
@@ -447,6 +449,39 @@ public abstract class AbstractGrizzlyServer {
     private static ImageInputStream fromImageIO(final byte[] content) {
         final InputStream stream = new ByteArrayInputStream(content);
         return new MemoryCacheImageInputStream(stream);
+    }
+    
+    /**
+     * Returned the {@link BufferedImage} from an URL requesting an image.
+     *
+     * @param url  The url of a request of an image.
+     * @param format The format of the image to return.
+     *
+     * @return The {@link BufferedImage} or {@code null} if an error occurs.
+     * @throws IOException
+     */
+    protected static BufferedImage getImageFromURLByFormat(final URL url, final String format) throws IOException {
+        // Try to get the image from the url.
+        final InputStream in = url.openStream();
+        final ImageInputStream win = ImageIO.createImageInputStream(in);
+        final ImageReader reader = XImageIO.getReaderByFormatName(format, win, true, true);
+        final BufferedImage image = reader.read(0);
+        XImageIO.close(reader);
+        reader.dispose();
+        // For debugging, uncomment the JFrame creation and the Thread.sleep further,
+        // in order to see the image in a popup.
+//        javax.swing.JFrame frame = new javax.swing.JFrame();
+//        frame.setContentPane(new javax.swing.JLabel(new javax.swing.ImageIcon(image)));
+//        frame.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
+//        frame.pack();
+//        frame.setVisible(true);
+//        try {
+//            Thread.sleep(5 * 1000);
+//            frame.dispose();
+//        } catch (InterruptedException ex) {
+//            assumeNoException(ex);
+//        }
+        return image;
     }
 
     protected static BufferedImage getImageFromPostKvp(final URL url, final Map<String, String> parameters, final String mime) throws IOException {

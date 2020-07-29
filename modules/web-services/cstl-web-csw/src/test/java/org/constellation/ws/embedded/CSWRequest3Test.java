@@ -131,7 +131,7 @@ public class CSWRequest3Test extends AbstractGrizzlyServer {
     public void initServer() {
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 //clean services
                 try {

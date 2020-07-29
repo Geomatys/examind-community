@@ -181,7 +181,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
         if (!initialized) {
             try {
-                startServer(null);
+                startServer();
 
                 layerBusiness.removeAll();
                 serviceBusiness.deleteAll();
