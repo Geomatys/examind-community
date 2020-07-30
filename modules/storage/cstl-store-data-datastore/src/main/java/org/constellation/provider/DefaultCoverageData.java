@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.stream.DoubleStream;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverageProcessor;
 import org.apache.sis.coverage.grid.GridDerivation;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
@@ -162,13 +163,12 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             }
 
             final GridCoverage cov = origin.read(grid);
-            return new ResampleProcess(cov, crs2D, null, null, null).executeNow();
+            final GridCoverageProcessor processor = new GridCoverageProcessor();
+            return processor.resample(cov, new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs2D));
 
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-
-        } catch (CancellationException | ProcessException ex) {
+        } catch (Exception ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
+
         }
     }
 
