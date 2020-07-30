@@ -1335,12 +1335,12 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } catch (NumberFormatException ex) {
             try {
                 //check if it's a date
-                final CoordinateReferenceSystem subcrs = CRS.getComponentAt(crs, index, index);
+                final CoordinateReferenceSystem subcrs = CRS.getComponentAt(crs, index, index+1);
                 if (subcrs instanceof TemporalCRS) {
                     final Calendar cal = TemporalUtilities.parseDateCal(value);
                     return DefaultTemporalCRS.castOrCopy((TemporalCRS) subcrs).toValue(cal.getTime());
                 }
-            } catch (Throwable ex1) {
+            } catch (Exception ex1) {
                 LOGGER.log(Level.FINE, ex1.getMessage(), ex1);
             }
             throw new CstlServiceException("Unsupported subset value " + value, INVALID_SUBSETTING);
