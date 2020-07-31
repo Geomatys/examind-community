@@ -26,14 +26,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.ChainProcess;
@@ -68,6 +64,22 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
     @Autowired
     private IProcessBusiness processBusiness;
 
+    private final static Map<String, String> codesMeasure;
+
+    static {
+        codesMeasure = new HashMap<>();
+        codesMeasure.put("30", "measure1");
+        codesMeasure.put("35", "measure2");
+        codesMeasure.put("66", "measure3");
+        codesMeasure.put("70", "measure4");
+        codesMeasure.put("64", "measure5");
+        codesMeasure.put("65", "measure6");
+        codesMeasure.put("169", "measure7");
+        codesMeasure.put("193", "measure8");
+        codesMeasure.put("577", "measure9");
+        codesMeasure.put("584", "measure10");
+    }
+
     public HarvesterPreProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
     }
@@ -84,6 +96,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
         final String measureValue    = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_VALUE);
         final String measureCode     = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_CODE);
+        final Set<String> codes = new HashSet<>();
 
         if (format == null) {
             format = "csv";
@@ -146,6 +159,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                         throw new ProcessException("Inconsistent dataset, the different files does not have the same headers", this);
                     }
                     headers = currentHeaders;
+
+                    // extract codes
+                    if ("csv-coriolis".equals(format)) {
+                        Set<String> currentCodes = extractCodes(child, measureCode);
+                        codes.addAll(currentCodes);
+                    }
                 }
             } else {
                 throw new ProcessException("The source folder does not point to a directory", this);
@@ -218,8 +237,13 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(FCparam);
 
-        final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null);
-        inputs.add(MCSparam);
+        if (format.equals("csv-coriolis")) {
+            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, codes.toArray());
+            inputs.add(MCSparam);
+        } else {
+            final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, headers);
+            inputs.add(MCSparam);
+        }
 
         final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
         inputs.add(RPparam);
@@ -314,7 +338,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
                     return headers;
                 }
                 throw new ProcessException("csv headers not found", this);
-            } catch (IOException  ex) {
+            } catch (IOException ex) {
                 throw new ProcessException("problem reading csv file", this, ex);
             }
         } else {
@@ -332,6 +356,59 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             } catch (IOException ex) {
                 throw new ProcessException("problem reading dbf file", this, ex);
             }
+        }
+    }
+
+    private Set<String> extractCodes(Path dataFile, String measureCode) throws ProcessException {
+        try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
+
+            final Iterator<String[]> it = reader.iterator();
+
+            // at least one line is expected to contain headers information
+            if (it.hasNext()) {
+
+                // read headers
+                final String[] headers = it.next();
+                int measureCodeIndex = -1;
+                final Set<String> storeCode = new HashSet<>();
+                final Set<String> noLabelCodes = new HashSet<>();
+
+                // find measureCodeIndex
+                for (int i = 0; i < headers.length; i++) {
+                    final String header = headers[i];
+
+                    if (header.equals(measureCode)) {
+                        measureCodeIndex = i;
+                    }
+                }
+
+                if (measureCodeIndex == -1) {
+                    throw new ProcessException("csv headers does not contains Measure Code parameter.", this);
+                }
+
+                // extract all codes
+                while (it.hasNext()) {
+                    final String[] line = it.next();
+                    final String nextCode = line[measureCodeIndex];
+
+                    if (nextCode == null || nextCode.isEmpty()) continue;
+
+                    final String mcl = codesMeasure.get(nextCode);
+
+                    if (mcl == null) noLabelCodes.add(nextCode);
+
+                    storeCode.add(mcl);
+                }
+
+                for (String nlc: noLabelCodes) {
+                    LOGGER.log(Level.WARNING, String.format("No label mapping for the code: %s", nlc));
+                }
+
+                return storeCode;
+            }
+            throw new ProcessException("csv headers not found", this);
+        } catch (IOException ex) {
+            throw new ProcessException("problem reading csv file", this, ex);
         }
     }
 

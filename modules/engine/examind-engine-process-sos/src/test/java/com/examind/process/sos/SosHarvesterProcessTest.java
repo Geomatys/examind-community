@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
@@ -101,6 +102,7 @@ public class SosHarvesterProcessTest {
     private static Path fmlwDirectory;
     private static Path mooDirectory;
     private static Path multiPlatDirectory;
+    private static Path bigdataDirectory;
 
     // DBF dir
     private static Path ltDirectory;
@@ -139,6 +141,8 @@ public class SosHarvesterProcessTest {
         Files.createDirectories(rtDirectory);
         multiPlatDirectory = dataDirectory.resolve("multi-plat");
         Files.createDirectories(multiPlatDirectory);
+        bigdataDirectory = dataDirectory.resolve("bigdata-profile");
+        Files.createDirectories(bigdataDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
 
@@ -156,6 +160,8 @@ public class SosHarvesterProcessTest {
 
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
+
+        writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
     }
 
     @PostConstruct
@@ -195,6 +201,18 @@ public class SosHarvesterProcessTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
         try {
+            IServiceBusiness sb = SpringHelper.getBean(IServiceBusiness.class);
+            if (sb != null) {
+                sb.deleteAll();
+            }
+            IProviderBusiness pb = SpringHelper.getBean(IProviderBusiness.class);
+            if (pb != null) {
+                pb.removeAll();
+            }
+            IDatasourceBusiness dsb = SpringHelper.getBean(IDatasourceBusiness.class);
+            if (dsb != null) {
+                dsb.deleteAll();
+            }
             File derbyLog = new File("derby.log");
             if (derbyLog.exists()) {
                 derbyLog.delete();
@@ -1017,6 +1035,112 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(-5.3, pt1.getCoordinates()[0], 0);
 
 
+    }
+
+    @Test
+    @Order(order = 6)
+    public void harvesterCSVCoriolisProfileTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        // ???
+        String sensorId = "urn:sensor:bgdata";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(bigdataDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvCoriolisFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("station_date");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("z_value");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val1.setValue("measure1");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val2.setValue("measure2");
+        in.values().add(val2);
+        ParameterValue val3 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val3.setValue("measure3");
+        in.values().add(val3);
+
+        in.parameter(SosHarvesterProcessDescriptor.MEASURE_VALUE_NAME).setValue("parameter_value");
+        in.parameter(SosHarvesterProcessDescriptor.MEASURE_CODE_NAME).setValue("parameter_code");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        // ???
+        Assert.assertEquals("2020-03-24T00:25:47.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:48:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(11, offp.getFeatureOfInterestIds().size());
+
+        String observedProperty = offp.getObservedProperties().get(0);
+        System.out.println(offp.getFeatureOfInterestIds());
+        System.out.println(offp.getFeatureOfInterestIds().get(0));
+        String foi = "foi-bigdata-1.csv-0";
+
+
+        /*
+         * Verify an inserted profile
+         */
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values.txt");
+        System.out.println(gr.getResultValues().toString());
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        Assert.assertEquals(11, response.getValue().size());
+        
+        HistoricalLocation loc1 = response.getValue().get(0);
+        Assert.assertEquals(loc1.getTime().getTime(), sdf.parse("2020-03-24T00:25:47Z").getTime());
+        Assert.assertEquals(1, loc1.getLocations().size());
+        Assert.assertTrue(loc1.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
+        GeoJSONFeature feat1 = (GeoJSONFeature) loc1.getLocations().get(0).getLocation();
+        Assert.assertTrue(feat1.getGeometry() instanceof GeoJSONPoint);
+        GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
+        Assert.assertEquals(-3.61021, pt1.getCoordinates()[1], 0);
+        Assert.assertEquals(-35.27835, pt1.getCoordinates()[0], 0);
     }
 
     private static ObservationOffering getOffering(SOSworker worker, String sensorId) throws CstlServiceException {

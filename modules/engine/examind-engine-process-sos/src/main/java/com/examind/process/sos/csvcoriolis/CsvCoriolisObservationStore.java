@@ -61,6 +61,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.examind.process.sos.csvcoriolis.CsvCoriolisObservationStoreUtils.*;
 
@@ -103,6 +104,22 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
     private final String measureValue;
     private final String measureCode;
+
+    private final static Map<String, String> codesMeasure;
+
+    static {
+        codesMeasure = new HashMap<>();
+        codesMeasure.put("30", "measure1");
+        codesMeasure.put("35", "measure2");
+        codesMeasure.put("66", "measure3");
+        codesMeasure.put("70", "measure4");
+        codesMeasure.put("64", "measure5");
+        codesMeasure.put("65", "measure6");
+        codesMeasure.put("169", "measure7");
+        codesMeasure.put("193", "measure8");
+        codesMeasure.put("577", "measure9");
+        codesMeasure.put("584", "measure10");
+    }
 
     /**
      *
@@ -287,7 +304,8 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                 }
 
                 // add measure column
-                measureFields.addAll(measureColumns);
+                List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
+                measureFields.addAll(sortedMeasureColumns);
 
                 // memorize indices to skip
                 final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
@@ -500,7 +518,7 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
 
 
                     /*
-                    b- build measure string
+                    b- build measure map
                     =====================*/
 
                     // add main field
@@ -542,14 +560,16 @@ public class CsvCoriolisObservationStore extends CSVStore implements Observation
                         }
                     }
 
+                    // add measure code
                     if (mainIndex != -1 && measureCodeIndex != -1 && measureValueIndex != -1) {
                         try {
                             String currentMeasureCode = line[measureCodeIndex];
-                            if (!currentMeasureCode.isEmpty() && measureFields.contains(currentMeasureCode)) {
+                            String currentMeasureCodeLabel = codesMeasure.get(currentMeasureCode);
+                            if (currentMeasureCodeLabel != null && !currentMeasureCodeLabel.isEmpty() && measureFields.contains(currentMeasureCodeLabel)) {
                                 Double mainValue = Double.parseDouble(line[mainIndex]);
                                 LinkedHashMap<String, Double> row = mmb.get(mainValue);
 
-                                row.put(currentMeasureCode, Double.parseDouble(line[measureValueIndex]));
+                                row.put(currentMeasureCodeLabel, Double.parseDouble(line[measureValueIndex]));
                                 mmb.put(mainValue, row);
                             }
                         } catch (NumberFormatException ex) {
