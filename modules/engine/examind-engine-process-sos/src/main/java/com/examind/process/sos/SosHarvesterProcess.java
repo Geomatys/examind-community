@@ -115,6 +115,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String storeId = inputParameters.getValue(STORE_ID);
         final String format = inputParameters.getValue(FORMAT);
         final int userId = 1; // admin //assertAuthentificated(req);
+        final String measureValue = inputParameters.getValue(MEASURE_VALUE);
+        final String measureCode = inputParameters.getValue(MEASURE_CODE);
 
         /*
         1- Récupération des paramètres du process
@@ -233,7 +235,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
 
-        final String ext = storeId.equals("observationCsvFile") ? ".csv" : ".dbf";
+        final String ext = storeId.equals("observationCsvFile") || storeId.equals("observationCsvCoriolisFile") ? ".csv" : ".dbf";
 
         try {
             for (FileBean child : datasourceBusiness.exploreDatasource(dsId, "/")) {
@@ -280,6 +282,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.EXTRACT_UOM.getName().toString(), Boolean.toString(extractUom));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_VALUE.getName().toString(), measureValue);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.MEASURE_CODE.getName().toString(), measureCode);
 
             try {
                 datasourceBusiness.computeDatasourceStores(ds.getId(), false, storeId, true);

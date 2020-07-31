@@ -86,10 +86,26 @@ public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
             .addName(FORMAT_NAME)
             .setRemarks(FORMAT_DESC)
             .setRequired(false)
-            .createEnumerated(String.class, new String[]{"csv", "dbf"}, "csv");
+            .createEnumerated(String.class, new String[]{"csv", "csv-coriolis", "dbf"}, "csv");
+
+    public static final String MEASURE_VALUE_NAME = "measure value";
+    public static final String MEASURE_VALUE_DESC = "measure value";
+    public static final ParameterDescriptor<String> MEASURE_VALUE = PARAM_BUILDER
+            .addName(MEASURE_VALUE_NAME)
+            .setRemarks(MEASURE_VALUE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String MEASURE_CODE_NAME = "measure code";
+    public static final String MEASURE_CODE_DESC = "measure code";
+    public static final ParameterDescriptor<String> MEASURE_CODE = PARAM_BUILDER
+            .addName(MEASURE_CODE_NAME)
+            .setRemarks(MEASURE_CODE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT);
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, OBS_TYPE, TASK_NAME, FORMAT, MEASURE_VALUE, MEASURE_CODE);
 
     public static final String PROCESS_ID_NAME = "process.id";
     private static final String PROCESS_ID_REMARKS = "The assigned identifier of the deployed process.";

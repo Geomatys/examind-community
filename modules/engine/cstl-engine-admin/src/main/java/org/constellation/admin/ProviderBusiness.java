@@ -487,7 +487,7 @@ public class ProviderBusiness implements IProviderBusiness {
             sensParams.parameter("data_directory").setValue(Paths.get(URI.create(inParams.get("data_directory"))));
         }
 
-        if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType)){
+        if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType) || "observationCsvCoriolisFile".equals(subType)){
             if (subType!=null && !subType.isEmpty()) {
                 final DataStoreProvider featureFactory = DataStores.getProviderById(subType);
                 final ParameterValueGroup cvgConfig = org.geotoolkit.parameter.Parameters.toParameter(inParams, featureFactory.getOpenParameters(), true);

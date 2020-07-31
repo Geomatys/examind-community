@@ -203,7 +203,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .addName(STORE_ID_NAME)
             .setRemarks(STORE_ID_DESC)
             .setRequired(true)
-            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationDbfFile"}, "observationCsvFile");
+            .createEnumerated(String.class, new String[]{"observationCsvFile", "observationCsvCoriolisFile", "observationDbfFile"}, "observationCsvFile");
 
     public static final String FORMAT_NAME = "Format";
     public static final String FORMAT_DESC = "Format";
@@ -213,10 +213,26 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(true)
             .createEnumerated(String.class, new String[]{"text/csv; subtype=\"om\"", "application/dbase; subtype=\"om\""}, "text/csv; subtype=\"om\"");
 
+    public static final String MEASURE_VALUE_NAME = "measure value";
+    public static final String MEASURE_VALUE_DESC = "measure value";
+    public static final ParameterDescriptor<String> MEASURE_VALUE = PARAM_BUILDER
+            .addName(MEASURE_VALUE_NAME)
+            .setRemarks(MEASURE_VALUE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String MEASURE_CODE_NAME = "measure code";
+    public static final String MEASURE_CODE_DESC = "measure code";
+    public static final ParameterDescriptor<String> MEASURE_CODE = PARAM_BUILDER
+            .addName(MEASURE_CODE_NAME)
+            .setRemarks(MEASURE_CODE_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, PROCEDURE_ID, PROCEDURE_COLUMN, OBS_TYPE,
                     SEPARATOR, MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, MEASURE_COLUMNS, REMOVE_PREVIOUS, EXTRACT_UOM,
-                    STORE_ID, FORMAT);
+                    STORE_ID, FORMAT, MEASURE_VALUE, MEASURE_CODE);
 
     public static final String FILE_INSERTED_NAME = "Files inserted number";
     public static final String FILE_INSERTED_DESC = "Files inserted number";

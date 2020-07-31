@@ -81,10 +81,22 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String observationType = inputParameters.getValue(HarvesterPreProcessDescriptor.OBS_TYPE);
         final String taskName        = inputParameters.getValue(HarvesterPreProcessDescriptor.TASK_NAME);
         String format                = inputParameters.getValue(HarvesterPreProcessDescriptor.FORMAT);
+
+        final String measureValue    = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_VALUE);
+        final String measureCode     = inputParameters.getValue(HarvesterPreProcessDescriptor.MEASURE_CODE);
+
         if (format == null) {
             format = "csv";
         }
-        final String ext = '.' + format;
+
+        String ext = '.' + format;
+
+        if (format.equals("csv-coriolis")) {
+            ext = ".csv";
+            if (measureValue == null || measureCode == null) {
+                throw new ProcessException("The measure value or measure code can't be null", this);
+            }
+        }
 
         String processId;
         if (taskName != null) {
@@ -206,7 +218,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final Parameter FCparam = new Parameter(FOI_COLUMN_NAME, String.class, FOI_COLUMN_DESC, FOI_COLUMN_DESC, 0, 1, null, headers);
         inputs.add(FCparam);
 
-        final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null, headers);
+        final Parameter MCSparam = new Parameter(MEASURE_COLUMNS_NAME, String.class, MEASURE_COLUMNS_DESC, MEASURE_COLUMNS_DESC, 0, 92, null);
         inputs.add(MCSparam);
 
         final Parameter RPparam = new Parameter(REMOVE_PREVIOUS_NAME, Boolean.class, REMOVE_PREVIOUS_DESC, REMOVE_PREVIOUS_DESC, 0, 1, false);
@@ -221,7 +233,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "text/csv; subtype=\"om\"");
             inputs.add(FOparam);
+        } else if ("csv-coriolis".equals(format)) {
+            final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationCsvCoriolisFile");
+            inputs.add(SIparam);
 
+            final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "text/csv; subtype=\"om\"");
+            inputs.add(FOparam);
         } else if ("dbf".equals(format)) {
             final Parameter SIparam = new Parameter(STORE_ID_NAME, String.class, STORE_ID_DESC, STORE_ID_DESC, 0, 1, "observationDbfFile");
             inputs.add(SIparam);
@@ -229,6 +246,12 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             final Parameter FOparam = new Parameter(FORMAT_NAME, String.class, FORMAT_DESC, FORMAT_DESC, 0, 1, "application/dbase; subtype=\"om\"");
             inputs.add(FOparam);
         }
+
+        final Parameter MVparam = new Parameter(MEASURE_VALUE_NAME, String.class, MEASURE_VALUE_DESC, MEASURE_VALUE_DESC, 0, 1, measureValue);
+        inputs.add(MVparam);
+
+        final Parameter MCOparam = new Parameter(MEASURE_CODE_NAME, String.class, MEASURE_CODE_DESC, MEASURE_CODE_DESC, 0, 1, measureCode);
+        inputs.add(MCOparam);
 
         chain.setInputs(inputs);
 
@@ -278,7 +301,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
     private String[] extractHeaders(Path dataFile, String format) throws ProcessException {
         LOGGER.log(Level.INFO, "Extracting headers from : {0}", dataFile.getFileName().toString());
-        if ("csv".equals(format)) {
+        if ("csv".equals(format) || "csv-coriolis".equals(format)) {
             try (final CSVReader reader = new CSVReader(Files.newBufferedReader(dataFile))) {
 
                 final Iterator<String[]> it = reader.iterator();
