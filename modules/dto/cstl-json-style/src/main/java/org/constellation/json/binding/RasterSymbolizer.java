@@ -49,6 +49,7 @@ public final class RasterSymbolizer implements Symbolizer {
     private double opacity                          = 1.0;
     private ChannelSelection channelSelection       = null;
     private ColorMap colorMap                       = null;
+    private ShadedRelief shadedRelief               = null;
 
     public RasterSymbolizer() {
     }
@@ -70,6 +71,9 @@ public final class RasterSymbolizer implements Symbolizer {
         }
         if (symbolizer.getColorMap() != null) {
             this.colorMap = new ColorMap(symbolizer.getColorMap());
+        }
+        if (symbolizer.getShadedRelief() != null) {
+            this.shadedRelief = new ShadedRelief(symbolizer.getShadedRelief());
         }
     }
 
@@ -105,6 +109,14 @@ public final class RasterSymbolizer implements Symbolizer {
         this.colorMap = colorMap;
     }
 
+    public ShadedRelief getShadedRelief() {
+        return shadedRelief;
+    }
+
+    public void setShadedRelief(final ShadedRelief shadedRelief) {
+        this.shadedRelief = shadedRelief;
+    }
+
     @Override
     public org.opengis.style.Symbolizer toType() {
         return SF.rasterSymbolizer(
@@ -114,7 +126,7 @@ public final class RasterSymbolizer implements Symbolizer {
                 null,
                 type(colorMap),
                 null,
-                null,
+                type(shadedRelief),
                 null);
     }
 }
