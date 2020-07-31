@@ -1260,7 +1260,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 } else {
                     return response;
                 }
-            } catch (JAXBException | IOException | ConstellationStoreException ex) {
+            } catch (Exception ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 

@@ -35,9 +35,14 @@ import javax.imageio.ImageWriteParam;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverageProcessor;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.referencing.CRS;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.internal.coverage.CoverageUtilities;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.datum.PixelInCell;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -75,21 +80,32 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
 
     @Override
     public void write(GeotiffResponse entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        final File f = writeInFile(entry);
-        byte[] buf = new byte[8192];
-        try (FileInputStream is = new FileInputStream(f);
-             OutputStream out = outputMessage.getBody()) {
-            int c = 0;
-            while ((c = is.read(buf, 0, buf.length)) > 0) {
-                out.write(buf, 0, c);
-                out.flush();
+        try {
+            final File f = writeInFile(entry);
+            byte[] buf = new byte[8192];
+            try (FileInputStream is = new FileInputStream(f);
+                    OutputStream out = outputMessage.getBody()) {
+                int c = 0;
+                while ((c = is.read(buf, 0, buf.length)) > 0) {
+                    out.write(buf, 0, c);
+                    out.flush();
+                }
             }
+        } catch (IOException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new HttpMessageNotWritableException("Error while writing coverage", ex);
         }
     }
 
-    public static File writeInFile(final GeotiffResponse entry) throws IOException {
+    public static File writeInFile(final GeotiffResponse entry) throws Exception {
         GridCoverage coverage = entry.coverage;
         coverage = coverage.forConvertedValues(false);
+        
+        if (!coverage.getGridGeometry().isConversionLinear(0, 1)) {
+            CoordinateReferenceSystem crs = CRS.forCode("EPSG:3395");
+            coverage = new GridCoverageProcessor().resample(coverage, new GridGeometry(null, PixelInCell.CELL_CENTER, null, crs));
+        }
 
         //see if we convert to geophysic or not before writing
         final List<SampleDimension> sampleDimensions = coverage.getSampleDimensions();
@@ -105,7 +121,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             }
         }
 
-        final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, entry.coverage);
+        final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, coverage);
 
         final IIOImage iioimage    = new IIOImage(coverage.render(null), null, spatialMetadata);
         final ImageWriter iowriter = ImageIO.getImageWritersByFormatName("geotiff").next();
