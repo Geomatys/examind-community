@@ -540,11 +540,8 @@ public class WMSService extends GridWebService<WMSWorker> {
         if (strFormat != null && !strFormat.isEmpty()) {
             // Ensures that the format specified is known, to use it as the format of the
             // image which will contain the exception.
-            if (strFormat.equalsIgnoreCase(MimeType.IMAGE_BMP) ||
-                strFormat.equalsIgnoreCase(MimeType.IMAGE_GIF) ||
-                strFormat.equalsIgnoreCase(MimeType.IMAGE_JPEG)||
-                strFormat.equalsIgnoreCase(MimeType.IMAGE_PNG) ||
-                strFormat.equalsIgnoreCase(MimeType.IMAGE_TIFF))
+            if (DefaultPortrayalService.isImageFormat(strFormat) ||
+                DefaultPortrayalService.isPresentationFormat(strFormat))
             {
                 queryContext.setExceptionImageFormat(strFormat);
             }
@@ -597,11 +594,9 @@ public class WMSService extends GridWebService<WMSWorker> {
         } catch (IllegalArgumentException i) {
             throw new CstlServiceException(i, INVALID_PARAMETER_VALUE);
         }
-        final String format;
-        try {
-            format = RequestsUtilities.toFormat(strFormat);
-        } catch (IllegalArgumentException i) {
-            throw new CstlServiceException(i, INVALID_FORMAT, KEY_FORMAT.toLowerCase());
+        final String format = strFormat;
+        if (format == null) {
+            throw new CstlServiceException("Invalid format specified.", INVALID_FORMAT, KEY_FORMAT.toLowerCase());
         }
         final List<String> layers  = StringUtilities.toStringList(strLayers);
         final List<GenericName> namedLayers  = parseNamespaceLayerList(layers);

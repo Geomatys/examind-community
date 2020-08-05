@@ -146,6 +146,7 @@ import static org.constellation.map.core.WMSConstant.KEY_EXTRA_PARAMETERS;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
 import static org.constellation.map.core.WMSConstant.KEY_TIME;
+import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -291,7 +292,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         if (returnUS) {
             throw new CstlServiceException("the update sequence parameter is equal to the current", CURRENT_UPDATE_SEQUENCE, "updateSequence");
         }
-        
+
         final Object cachedCapabilities = getCapabilitiesFromCache(queryVersion, currentLanguage);
         if (cachedCapabilities != null) {
             return (AbstractWMSCapabilities) cachedCapabilities;
@@ -1286,7 +1287,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         final PortrayalResponse response = new PortrayalResponse(cdef, sdef, odef);
-        if(!mapPortrayal.isCoverageWriter()){
+        if (!mapPortrayal.isCoverageWriter() && DefaultPortrayalService.isImageFormat(odef.getMime())) {
             try {
                 response.prepareNow();
             } catch (PortrayalException ex) {

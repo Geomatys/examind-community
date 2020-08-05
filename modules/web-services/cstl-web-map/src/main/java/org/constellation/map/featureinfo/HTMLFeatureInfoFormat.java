@@ -30,17 +30,15 @@ import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
@@ -83,12 +81,9 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
-        final FeatureMapLayer layer = graphic.getLayer();
         final GenericName layerName = getNameForFeatureLayer(layer);
-
-        final Feature feature = graphic.getCandidate();
 
         LayerResult result = results.get(layerName);
         if(result==null){
@@ -187,14 +182,14 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final List<Map.Entry<SampleDimension,Object>> covResults = FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (covResults == null) {
             return;
         }
 
-        final GenericName layerName = getNameForCoverageLayer(graphic.getLayer());
+        final GenericName layerName = getNameForCoverageLayer(layer);
 
         LayerResult result = results.get(layerName);
         if(result==null){

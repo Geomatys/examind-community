@@ -27,7 +27,6 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.internal.referencing.AxisDirections;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
-import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
@@ -35,7 +34,6 @@ import org.constellation.dto.service.config.wxs.Layer;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.exception.ConfigurationException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.lang.Static;
 import org.geotoolkit.math.XMath;
@@ -335,11 +333,11 @@ public final class FeatureInfoUtilities extends Static {
      *
      * @return list : each entry contain a gridsampledimension and value associated.
      */
-    public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final ProjectedCoverage gra,
+    public static List<Map.Entry<SampleDimension,Object>> getCoverageValues(final GridCoverageResource ref,
                                                                             final RenderingContext2D context,
                                                                             final SearchAreaJ2D queryArea) {
-        final Resource ref = gra.getLayer().getResource();
-        if (ref instanceof GridCoverageResource) {
+
+        if (ref != null) {
             //create envelope around searched area
             final GeneralEnvelope searchEnv = new GeneralEnvelope(context.getCanvasObjectiveBounds());
             final int xAxis = AxisDirections.indexOfColinear(
@@ -385,7 +383,7 @@ public final class FeatureInfoUtilities extends Static {
                 .rounding(GridRoundingMode.NEAREST)
                 .slice(location)
                 .build();
-        
+
         final GridCoverage cvg = datasource.read(pointGeom).forConvertedValues(true);
         final List<SampleDimension> sampleDimensions = cvg.getSampleDimensions();
 

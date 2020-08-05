@@ -35,17 +35,16 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.logging.Level;
 
+import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.dto.LayerError;
+import org.geotoolkit.map.MapLayer;
 import org.opengis.feature.Feature;
-import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.coverage.SampleDimension;
 
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -66,7 +65,6 @@ import org.constellation.map.featureinfo.dto.LayerInfo;
 import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
-import org.geotoolkit.map.FeatureMapLayer;
 
 /**
  * Create a list of {@link CoverageInfo} and/or {@link FeatureInfo}. The output is the serialized JSON
@@ -134,11 +132,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        FeatureMapLayer ml = graphic.getLayer();
-        final String layerName = getNameForFeatureLayer(ml).tip().toString();
+    protected void nextProjectedFeature(MapLayer layer, Feature candidate, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final String layerName = getNameForFeatureLayer(layer).tip().toString();
         try {
-            final Feature candidate = graphic.getCandidate();
             infoQueue.add(new FeatureInfo(layerName, candidate));
         } catch (Exception e) {
             final LayerError err = new LayerError();
@@ -149,11 +145,11 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
     }
 
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
-        final GenericName fullLayerName = getNameForCoverageLayer(graphic.getLayer());
+    protected void nextProjectedCoverage(MapLayer layer, GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
+        final GenericName fullLayerName = getNameForCoverageLayer(layer);
         try {
             final List<Map.Entry<SampleDimension, Object>> results =
-                    FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+                    FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
             if (results == null || results.isEmpty()) return;
 

@@ -31,6 +31,7 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -38,13 +39,11 @@ import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.util.DateRange;
 import org.locationtech.jts.geom.Geometry;
@@ -75,15 +74,15 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage coverage, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(coverage, context, queryArea);
+                FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
 
-        final GenericName fullLayerName = getNameForCoverageLayer(coverage.getLayer());
+        final GenericName fullLayerName = getNameForCoverageLayer(layer);
         String layerName = fullLayerName.tip().toString();
 
         StringBuilder builder = new StringBuilder();
@@ -93,7 +92,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         margin += "\t";
         builder.append(margin).append("<Layer>").append(encodeXML(layerName)).append("</Layer>\n");
 
-        builder.append(coverageToXML(coverage, results, margin, gfi, getLayers()));
+        builder.append(coverageToXML(layer, results, margin, gfi, getLayers()));
 
         margin = margin.substring(1);
         builder.append(margin).append("</Coverage>\n");
@@ -109,11 +108,11 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
     }
 
-    protected String coverageToXML(final ProjectedCoverage coverage, final List<Map.Entry<SampleDimension,Object>> results,
+    protected String coverageToXML(final MapLayer maplayer, final List<Map.Entry<SampleDimension,Object>> results,
                                           String margin, final GetFeatureInfo gfi, final List<LayerCache> layers) {
 
         StringBuilder builder = new StringBuilder();
-        final GenericName fullLayerName = getNameForCoverageLayer(coverage.getLayer());
+        final GenericName fullLayerName = getNameForCoverageLayer(maplayer);
 
         Data data = null;
 
@@ -263,11 +262,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
-        final FeatureMapLayer layer   = graphic.getLayer();
-        final Feature feature         = graphic.getCandidate();
         final GenericName layerName   = getNameForFeatureLayer(layer);
         String margin                 = "\t";
 

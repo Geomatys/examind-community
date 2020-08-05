@@ -40,6 +40,7 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.measure.MeasurementRange;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
@@ -50,8 +51,6 @@ import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -59,7 +58,7 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.geometry.isoonjts.JTSUtils;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.internal.jaxb.ObjectFactory;
-import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.util.DateRange;
@@ -142,14 +141,14 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage coverage, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(MapLayer maplayer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(coverage, context, queryArea);
+                FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
-        final GenericName fullLayerName = getNameForCoverageLayer(coverage.getLayer());
+        final GenericName fullLayerName = getNameForCoverageLayer(maplayer);
         String layerName = fullLayerName.tip().toString();
 
         List<String> strs = coverages.get(fullLayerName);
@@ -300,11 +299,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
 
         final StringBuilder builder   = new StringBuilder();
-        final FeatureMapLayer layer   = graphic.getLayer();
-        final Feature feature         = graphic.getCandidate();
         final GenericName layerName   = getNameForFeatureLayer(layer);
         String margin                 = "\t";
 

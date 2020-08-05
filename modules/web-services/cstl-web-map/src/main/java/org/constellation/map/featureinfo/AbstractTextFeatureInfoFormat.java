@@ -24,11 +24,10 @@ import java.util.List;
 import java.util.Map;
 import javax.measure.Unit;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.storage.GridCoverageResource;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
-import org.geotoolkit.display2d.primitive.ProjectedCoverage;
-import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
-import org.geotoolkit.map.FeatureMapLayer;
+import org.geotoolkit.map.MapLayer;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyNotFoundException;
@@ -51,14 +50,14 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedCoverage(ProjectedCoverage graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final List<Map.Entry<SampleDimension,Object>> results =
-                FeatureInfoUtilities.getCoverageValues(graphic, context, queryArea);
+                FeatureInfoUtilities.getCoverageValues(resource, context, queryArea);
 
         if (results == null) {
             return;
         }
-        final GenericName layerName = getNameForCoverageLayer(graphic.getLayer());
+        final GenericName layerName = getNameForCoverageLayer(layer);
         List<String> strs = coverages.get(layerName);
         if (strs == null) {
             strs = new ArrayList<>();
@@ -86,10 +85,8 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
      * {@inheritDoc}
      */
     @Override
-    protected void nextProjectedFeature(ProjectedFeature graphic, RenderingContext2D context, SearchAreaJ2D queryArea) {
+    protected void nextProjectedFeature(MapLayer layer, final Feature feature, RenderingContext2D context, SearchAreaJ2D queryArea) {
         final StringBuilder builder = new StringBuilder();
-        final FeatureMapLayer layer = graphic.getLayer();
-        final Feature feature = graphic.getCandidate();
 
         for (PropertyType pt : feature.getType().getProperties(true)) {
             try {

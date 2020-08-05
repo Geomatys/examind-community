@@ -18,23 +18,24 @@
  */
 package org.constellation.map.featureinfo;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
-import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display.SearchArea;
 import org.geotoolkit.display.canvas.RenderingContext;
 import org.geotoolkit.display2d.GraphicVisitor;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
+import org.geotoolkit.renderer.Presentation;
 import org.geotoolkit.display2d.primitive.ProjectedCoverage;
 import org.geotoolkit.display2d.primitive.ProjectedFeature;
 import org.geotoolkit.display2d.primitive.SearchAreaJ2D;
@@ -42,11 +43,10 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.VisitDef;
-import org.geotoolkit.map.FeatureMapLayer;
 import org.geotoolkit.map.MapLayer;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.util.NamesExt;
-import org.opengis.display.primitive.Graphic;
+import org.opengis.feature.Feature;
 import org.opengis.util.GenericName;
 
 /**
@@ -59,12 +59,12 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     /**
      * Contains the values for all coverage layers requested.
      */
-    protected final Map<String, List<ProjectedCoverage>> coverages = new HashMap<>();
+    protected final Map<String, List<GridCoverageResource>> coverages = new HashMap<>();
 
     /**
      * Contains all features that cover the point requested, for feature layers.
      */
-    protected final Map<String, java.util.List<ProjectedFeature>> features = new HashMap<>();
+    protected final Map<String, List<Feature>> features = new HashMap<>();
 
     /**
      * GetFeatureInfo configuration.
@@ -138,13 +138,17 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
             }
 
             @Override
-            public void visit(Graphic graphic, RenderingContext context, SearchArea area) {
+            public void visit(Presentation graphic, RenderingContext context, SearchArea area) {
                 if(graphic == null ) return;
 
-                if(graphic instanceof ProjectedFeature){
-                    nextProjectedFeature((ProjectedFeature) graphic, (RenderingContext2D)context, (SearchAreaJ2D)area);
-                }else if(graphic instanceof ProjectedCoverage){
-                    nextProjectedCoverage((ProjectedCoverage) graphic, (RenderingContext2D)context, (SearchAreaJ2D)area);
+                final Feature feature = graphic.getFeature();
+                final MapLayer layer = graphic.getLayer();
+                final Resource resource = (layer == null) ? null : layer.getResource();
+
+                if (feature != null){
+                    nextProjectedFeature(layer, feature, (RenderingContext2D) context, (SearchAreaJ2D) area);
+                } else if (resource instanceof GridCoverageResource) {
+                    nextProjectedCoverage(layer, (GridCoverageResource) resource, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 }
                 idx++;
             }
@@ -163,43 +167,39 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     }
 
     /**
-     * Store the {@link ProjectedFeature} in a list
+     * Store the {@link Feature} in a list
      *
-     * @param graphic {@link ProjectedFeature}
      * @param context rendering context
      * @param queryArea area of the search
      */
-    protected void nextProjectedFeature(final ProjectedFeature graphic, final RenderingContext2D context,
+    protected void nextProjectedFeature(MapLayer layer, final Feature feature, final RenderingContext2D context,
                                         final SearchAreaJ2D queryArea) {
 
-        final FeatureMapLayer layer = graphic.getLayer();
         final String layerName = layer.getName();
-        List<ProjectedFeature> feat = features.get(layerName);
+        List<Feature> feat = features.get(layerName);
         if (feat == null) {
             feat = new ArrayList<>();
             features.put(layerName, feat);
         }
-        feat.add(graphic);
+        feat.add(feature);
     }
 
     /**
-     * Store the {@link ProjectedCoverage} in a list
+     * Store the {@link GridCoverageResource} in a list
      *
-     * @param graphic {@link ProjectedCoverage}
      * @param context rendering context
      * @param queryArea area of the search
      */
-    protected void nextProjectedCoverage(final ProjectedCoverage graphic, final RenderingContext2D context,
+    protected void nextProjectedCoverage(MapLayer layer, final GridCoverageResource resource, final RenderingContext2D context,
                                          final SearchAreaJ2D queryArea) {
 
-        final MapLayer layer = graphic.getLayer();
         final String layerName = layer.getName();
-        List<ProjectedCoverage> cov = coverages.get(layerName);
+        List<GridCoverageResource> cov = coverages.get(layerName);
         if (cov == null) {
             cov = new ArrayList<>();
             coverages.put(layerName, cov);
         }
-        cov.add(graphic);
+        cov.add(resource);
     }
 
     /**
@@ -216,7 +216,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
         return null;
     }
 
-    protected GenericName getNameForFeatureLayer(FeatureMapLayer ml) {
+    protected GenericName getNameForFeatureLayer(MapLayer ml) {
         final GenericName layerName ;
         if (ml.getUserProperties().containsKey("layerName")) {
             layerName = (GenericName) ml.getUserProperties().get("layerName");
