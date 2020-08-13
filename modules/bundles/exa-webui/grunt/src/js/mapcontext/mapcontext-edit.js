@@ -850,7 +850,20 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
 
         $scope.servicesLayers = [];
 
-        $scope.getCurrentLang = function() {
+        $scope.selectAll = false;
+
+        $scope.selectAllExtLayer = function () {
+            $scope.selectAll = !$scope.selectAll;
+            $scope.selection.extLayer = [];
+            if ($scope.selectAll) {
+                $scope.external.layers.forEach(function (layer) {
+                    $scope.selectExtLayer(layer);
+                });
+            }
+            $scope.previewWMSLayer();
+        };
+
+        $scope.getCurrentLang = function () {
             return $translate.use();
         };
 
@@ -861,7 +874,7 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     });
             $scope.selection.layer = null;
             $scope.selection.service = null;
-            $scope.selection.extLayer = null;
+            $scope.selection.extLayer = [];
             setTimeout(function(){
                 $scope.previewWMSLayer();
             },200);
@@ -893,77 +906,79 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                 DataViewer.initMap('wmsDataSourcePreview');
                 var arrayLayer = [];
                 arrayLayer.push({
-                        mapcontextId:null,
-                        layerId: $scope.selection.layer.id,
-                        dataId: $scope.selection.layer.dataId,
-                        iswms: true,
-                        styleId: $scope.selection.layer.styleId,
-                        order: 0,
-                        opacity: 100,
-                        visible: true,
-                        externalServiceUrl: null,
-                        externalServiceVersion: null,
-                        externalLayer: null,
-                        externalLayerExtent: null,
-                        externalStyle: null
-                });
-                zoomToLayer(arrayLayer);
-            } else if($scope.selection.extLayer) {
-                var llExtent = '';
-                if ($scope.selection.extLayer.boundingBox) {
-                    var bbox = $scope.selection.extLayer.boundingBox;
-                    llExtent = bbox.minx +','+ bbox.miny +','+ bbox.maxx +','+ bbox.maxy;
-                }
-                var extStyle = '';
-                if ($scope.selection.extLayer.styles && $scope.selection.extLayer.styles.length>0) {
-                    for (var j=0; j < $scope.selection.extLayer.styles.length; j++) {
-                        if (j > 0) {
-                            extStyle += ',';
-                        }
-                        var capsStyle = $scope.selection.extLayer.styles[j];
-                        extStyle += capsStyle.name;
-                    }
-                }
-                var layerExt = {
-                    externalLayer: $scope.selection.extLayer.name,
-                    externalLayerExtent: llExtent,
-                    externalServiceUrl: $scope.external.serviceUrl,
-                    externalServiceVersion: $scope.selection.extLayer.version,
-                    externalStyle: extStyle
-                };
-                if($scope.selection.extLayer.styles && $scope.selection.extLayer.styles.length>0){
-                    layerData = DataViewer.createLayerExternalWMSWithStyle(layerExt.externalServiceUrl,
-                                                                           layerExt.externalLayer,
-                                                                           $scope.selection.extLayer.styles[0].name);
-                }else {
-                    layerData = DataViewer.createLayerExternalWMS(layerExt.externalServiceUrl,layerExt.externalLayer);
-                }
-                //to force the browser cache reloading styled layer.
-                layerData.get('params').ts=new Date().getTime();
-                DataViewer.layers.push(layerData);
-
-                //zoom to layer extent
-                DataViewer.initMap('wmsDataSourcePreview');
-                var arrayExtLayer = [];
-                arrayExtLayer.push({
-                    mapcontextId:null,
-                    layerId: null,
-                    dataId: null,
+                    mapcontextId: null,
+                    layerId: $scope.selection.layer.id,
+                    dataId: $scope.selection.layer.dataId,
                     iswms: true,
-                    styleId: null,
+                    styleId: $scope.selection.layer.styleId,
                     order: 0,
                     opacity: 100,
                     visible: true,
-                    externalServiceUrl: layerExt.externalServiceUrl,
-                    externalServiceVersion: layerExt.externalServiceVersion,
-                    externalLayer: layerExt.externalLayer,
-                    externalLayerExtent: layerExt.externalLayerExtent,
-                    externalStyle: layerExt.externalStyle
+                    externalServiceUrl: null,
+                    externalServiceVersion: null,
+                    externalLayer: null,
+                    externalLayerExtent: null,
+                    externalStyle: null
                 });
-                zoomToLayer(arrayExtLayer);
+                zoomToLayer(arrayLayer);
+            } else if ($scope.selection.extLayer && $scope.selection.extLayer.length > 0) {
+                $scope.selection.extLayer.forEach(function (layer) {
+                    var llExtent = '';
+                    if (layer.boundingBox) {
+                        var bbox = layer.boundingBox;
+                        llExtent = bbox.minx + ',' + bbox.miny + ',' + bbox.maxx + ',' + bbox.maxy;
+                    }
+                    var extStyle = '';
+                    if (layer.styles && layer.styles.length > 0) {
+                        for (var j = 0; j < layer.styles.length; j++) {
+                            if (j > 0) {
+                                extStyle += ',';
+                            }
+                            var capsStyle = layer.styles[j];
+                            extStyle += capsStyle.name;
+                        }
+                    }
+                    var layerExt = {
+                        externalLayer: layer.name,
+                        externalLayerExtent: llExtent,
+                        externalServiceUrl: $scope.external.serviceUrl,
+                        externalServiceVersion: layer.version,
+                        externalStyle: extStyle
+                    };
+                    if (layer.styles && layer.styles.length > 0) {
+                        layerData = DataViewer.createLayerExternalWMSWithStyle(layerExt.externalServiceUrl,
+                            layerExt.externalLayer,
+                            layer.styles[0].name);
+                    } else {
+                        layerData = DataViewer.createLayerExternalWMS(layerExt.externalServiceUrl, layerExt.externalLayer);
+                    }
+                    //to force the browser cache reloading styled layer.
+                    layerData.get('params').ts = new Date().getTime();
+                    DataViewer.layers.push(layerData);
+
+                    //zoom to layer extent
+                    DataViewer.initMap('wmsDataSourcePreview');
+                    var arrayExtLayer = [];
+                    arrayExtLayer.push({
+                        mapcontextId: null,
+                        layerId: null,
+                        dataId: null,
+                        iswms: true,
+                        styleId: null,
+                        order: 0,
+                        opacity: 100,
+                        visible: true,
+                        externalServiceUrl: layerExt.externalServiceUrl,
+                        externalServiceVersion: layerExt.externalServiceVersion,
+                        externalLayer: layerExt.externalLayer,
+                        externalLayerExtent: layerExt.externalLayerExtent,
+                        externalStyle: layerExt.externalStyle
+                    });
+                    zoomToLayer(arrayExtLayer);
+                });
             } else {
                 DataViewer.initMap('wmsDataSourcePreview');
-                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom()+1);
+                DataViewer.map.getView().setZoom(DataViewer.map.getView().getZoom() + 1);
             }
         };
 
@@ -1000,14 +1015,14 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
                     var south = Number(values.south);
                     var east = Number(values.east);
                     var north = Number(values.north);
-                    var extent = [west,south,east,north];
+                    var extent = [west, south, east, north];
                     DataViewer.map.updateSize();
                     //because zoomToExtent take extent in EPSG:4326 we need to reproject the zoom extent
-                    if(crs !== 'EPSG:4326' && crs !=='CRS:84'){
+                    if (crs !== 'EPSG:4326' && crs !== 'CRS:84') {
                         var projection = ol.proj.get(crs);
-                        extent = ol.proj.transformExtent(extent, projection,'EPSG:4326');
+                        extent = ol.proj.transformExtent(extent, projection, 'EPSG:4326');
                     }
-                    DataViewer.zoomToExtent(extent, DataViewer.map.getSize(),true);
+                    DataViewer.zoomToExtent(extent, DataViewer.map.getSize(), true);
                 }
             );
         }
@@ -1028,6 +1043,19 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
             if(text) {
                 return (text.length > length) ? text.substr(0, length) + "..." : text;
             }
+        };
+
+        $scope.isSelectedExtLayer = function (extLayer) {
+            if (!$scope.selection.extLayer || $scope.selection.extLayer.length === 0) {
+                return false;
+            }
+
+            var index = $scope.selection.extLayer.findIndex(function (layer) {
+                return layer.name === extLayer.name;
+            });
+
+            return index > -1;
+
         };
 
         $scope.initWmsSourceMapContext();

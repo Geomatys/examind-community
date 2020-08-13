@@ -4,12 +4,12 @@
         <ul class="nav nav-tabs" ng-init="chosenTab = 'cstlWMS'">
             <li ng-class="{active: chosenTab==='cstlWMS'}">
                 <a ng-click="chosenTab = 'cstlWMS'" data-toggle="tab">
-                    <span translate="mapcontext.tab.source.cstlwms" >Constellation WMS</span>
+                    <span translate="mapcontext.tab.source.cstlwms">Examind WMS</span>
                 </a>
             </li>
             <li ng-class="{active: chosenTab==='extWMS'}">
                 <a ng-click="chosenTab = 'extWMS'" data-toggle="tab">
-                    <span translate="mapcontext.tab.source.externalwms" >External WMS</span>
+                    <span translate="mapcontext.tab.source.externalwms">External WMS</span>
                 </a>
             </li>
         </ul>
@@ -44,19 +44,19 @@
                                                                     <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='Point' || layer.subtype=='MultiPoint')"
                                                                          ng-src="{{(selection.layer && layer.id==selection.layer.id)?'img/vector-multipoint-selected.svg':'img/vector-multipoint.svg'}}"
                                                                          class="pull-right vector-symbol"
-                                                                         style="margin-top:6px; margin-right:10px;" />
+                                                                         style="margin-top:6px; margin-right:10px;"/>
                                                                     <img ng-if="layer.subtype=='Geometry' && layer.type!='SENSOR'"
                                                                          ng-src="{{(selection.layer && layer.id==selection.layer.id)?'img/vector-multigeometry-selected.svg':'img/vector-multigeometry.svg'}}"
                                                                          class="pull-right vector-symbol"
-                                                                         style="margin-top:6px; margin-right:10px; width:22px" />
+                                                                         style="margin-top:6px; margin-right:10px; width:22px"/>
                                                                     <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='Polygon' || layer.subtype=='MultiPolygon')"
                                                                          ng-src="{{(selection.layer && layer.id==selection.layer.id)?'img/vector-poly-selected.svg':'img/vector-poly.svg'}}"
                                                                          class="pull-right vector-symbol"
-                                                                         style="margin-top:6px; margin-right:10px;" />
+                                                                         style="margin-top:6px; margin-right:10px;"/>
                                                                     <img ng-if="layer.type=='VECTOR'  && (layer.subtype=='LineString' || layer.subtype=='MultiLineString')"
                                                                          ng-src="{{(selection.layer && layer.id==selection.layer.id)?'img/vector-polyline-selected.svg':'img/vector-polyline.svg'}}"
                                                                          class="pull-right vector-symbol"
-                                                                         style="margin-top:6px; margin-right:10px;" />
+                                                                         style="margin-top:6px; margin-right:10px;"/>
                                                                 </div>
                                                                 <div class="bottom">
                                                                     <div class="hidden-md hidden-lg">
@@ -148,6 +148,17 @@
                     </div>
                 </div>
                 <div ng-if="mode.dispWmsLayers"
+                     class="col-xs-12">
+                    <div class="pull-right col-xs-4 selectall-div"
+                         style="padding-right:0;padding-left: 0;margin: 10px 0;">
+                        <input type="checkbox"
+                               ng-model="selectAll"
+                               ng-change="selectAllExtLayer()"/>
+                        <span translate="label.select.all" style="color: #ddd;">Select all</span>
+                    </div>
+                </div>
+
+                <div ng-if="mode.dispWmsLayers"
                      class="col-xs-12"
                      style="margin-top:50px;height: 400px;overflow-x: hidden;overflow-y: auto;">
                     <div class="dashboard">
@@ -156,7 +167,7 @@
                                 <div class="item-list">
                                     <div ng-repeat="extLayer in external.layers">
                                         <div class="item coverage"
-                                             ng-class="{'selected':selection.extLayer && extLayer.name==selection.extLayer.name}"
+                                             ng-class="{'selected':isSelectedExtLayer(extLayer)}"
                                              ng-click="selectExtLayer(extLayer);previewWMSLayer();">
                                             <div class="top">
                                                 <span class="item-title"
