@@ -22,7 +22,7 @@ function Step1WizardDirective() {
     };
 }
 
-function Step1WizardController($scope, $rootScope, $translate, $interval, $modal, Growl, cfpLoadingBar, Examind, WizardAddDataService, $filter) {
+function Step1WizardController($scope, $rootScope, $translate, $interval, $modal, Growl, cfpLoadingBar, Examind, WizardAddDataService, $filter, AppConfigService) {
     var self = this;
 
     // The reference of the object define this step
@@ -35,14 +35,21 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
         {
             name: "files",
             translateKey: "wiz.data.import.step1.label.files"
-        }, {
-            name: "database",
-            translateKey: "wiz.data.import.step1.label.database"
-        }, {
+        },
+        {
             name: "url",
             translateKey: "wiz.data.import.step1.label.cloud"
         }
     ];
+
+    AppConfigService.getConfig(function (config) {
+        if (config['showDatabaseImportData']) {
+            self.dataSources.splice(1, 0, {
+                name: "database",
+                translateKey: "wiz.data.import.step1.label.database"
+            })
+        }
+    });
 
     // Flags to know the state of Asynchronous processing
     self.processing = {

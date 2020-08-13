@@ -18,7 +18,7 @@ function Step5WizardDirective() {
     };
 }
 
-function Step5WizardController($scope, $location, $translate, Growl, Examind, WizardAddDataService) {
+function Step5WizardController($scope, $location, $translate, $q, Growl, Examind, WizardAddDataService) {
     var self = this;
 
     self.stepObject = WizardAddDataService.stepsConfig.stepsList[4];
@@ -87,28 +87,42 @@ function Step5WizardController($scope, $location, $translate, Growl, Examind, Wi
         var styleId = self.wizardValues.step5.styleId;
 
         if (self.batchMode) {
+            var promises = [];
             angular.forEach(self.dataLayers, function (dataLayer) {
-                self.linkStyleToDataLayer(styleId, dataLayer.id);
+                promises.push(self.linkStyleToDataLayer(styleId, dataLayer.id));
             });
 
+            $q.all(promises)
+                .then(function () {
+                    $translate('wiz.data.import.step5.msg.success.link.data.style.batch')
+                        .then(function (translatedMsg) {
+                            Growl('success', 'Success', translatedMsg);
+                        });
+                }, function () {
+                    $translate('wiz.data.import.step5.msg.error.link.data.style')
+                        .then(function (translatedMsg) {
+                            Growl('error', 'Error', translatedMsg);
+                        });
+                });
+
         } else {
-            self.linkStyleToDataLayer(styleId, self.selectedDataRef.dataLayer.id);
+            self.linkStyleToDataLayer(styleId, self.selectedDataRef.dataLayer.id)
+                .then(function () {
+                    $translate('wiz.data.import.step5.msg.success.link.data.style')
+                        .then(function (translatedMsg) {
+                            Growl('success', 'Success', translatedMsg);
+                        });
+                }, function () {
+                    $translate('wiz.data.import.step5.msg.error.link.data.style')
+                        .then(function (translatedMsg) {
+                            Growl('error', 'Error', translatedMsg);
+                        });
+                });
         }
     };
 
     self.linkStyleToDataLayer = function (styleId, dataId) {
-        Examind.styles.link(styleId, dataId)
-            .then(function (response) {
-                $translate('wiz.data.import.step5.msg.success.link.data.style')
-                    .then(function (translatedMsg) {
-                        Growl('success', 'Success', translatedMsg);
-                    });
-            }, function (reason) {
-                $translate('wiz.data.import.step5.msg.error.link.data.style')
-                    .then(function (translatedMsg) {
-                        Growl('error', 'Error', translatedMsg);
-                    });
-            });
+        return Examind.styles.link(styleId, dataId);
     };
 
     /** function to handle the output of style editor
