@@ -88,7 +88,7 @@ angular.module('cstl-main', ['cstl-restapi', 'cstl-services', 'pascalprecht.tran
         };
 
         $scope.canShow = function (nav) {
-            return $scope.config && $scope.config.navigationList && $scope.config.navigationList.indexOf(nav) > -1;
+            return $scope.config && $scope.config.navigationListVisibility && $scope.config.navigationListVisibility[nav];
         };
 
         AppConfigService.getConfig(function(config) {

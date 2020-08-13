@@ -147,7 +147,7 @@ angular.module('cstl-webservice-dashboard', ['cstl-restapi', 'cstl-services', 'p
         };
 
         self.canShow = function (service) {
-            return self.config && self.config.webServices && self.config.webServices.indexOf(service) > -1;
+            return self.config && self.config.webServicesVisibility && self.config.webServicesVisibility[service];
         };
 
         AppConfigService.getConfig(function (config) {

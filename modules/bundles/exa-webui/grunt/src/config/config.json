@@ -1,26 +1,26 @@
 {
-  "navigationList": [
-    "webservice",
-    "data",
-    "metadata",
-    "thesaurus",
-    "sensors",
-    "styles",
-    "mapcontext",
-    "tasks",
-    "admin"
-  ],
-  "webServices": [
-    "wms",
-    "wfs",
-    "wcs",
-    "wmts",
-    "tms",
-    "csw",
-    "sos",
-    "wps",
-    "thw",
-    "sts"
-  ],
+  "navigationListVisibility": {
+    "webservice": true,
+    "data": true,
+    "metadata": true,
+    "thesaurus": true,
+    "sensors": true,
+    "styles": true,
+    "mapcontext": true,
+    "tasks": true,
+    "admin": true
+  },
+  "webServicesVisibility": {
+    "wms": true,
+    "wfs": true,
+    "wcs": true,
+    "wmts": true,
+    "tms": true,
+    "csw": true,
+    "sos": true,
+    "wps": true,
+    "thw": true,
+    "sts": true
+  },
   "showDatabaseImportData": true
 }
