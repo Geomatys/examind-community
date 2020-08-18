@@ -30,6 +30,13 @@ angular.module('cstl-mapcontext-edit', ['cstl-restapi', 'cstl-services', 'pascal
         // defines if we are in adding or edition mode
         $scope.addMode = ctxtToEdit ? false:true;
 
+        Examind.crs.listAll()
+            .then(function (response) {
+                $scope.crsList = response.data;
+            }, function (error) {
+                console.error(error);
+            });
+
         $scope.tag = {
             text: '',
             keywords: (ctxtToEdit && ctxtToEdit.keywords) ? ctxtToEdit.keywords.split(','): []
