@@ -38,6 +38,7 @@ import org.constellation.database.api.jooq.tables.records.RoleRecord;
 import org.constellation.database.api.jooq.tables.records.UserXRoleRecord;
 import org.constellation.repository.UserRepository;
 import org.jooq.*;
+import org.jooq.Record;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
