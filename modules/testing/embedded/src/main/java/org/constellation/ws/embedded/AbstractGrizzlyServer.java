@@ -20,6 +20,9 @@ package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.imageio.stream.ImageInputStream;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.util.Util;
@@ -375,11 +378,22 @@ public abstract class AbstractGrizzlyServer {
      */
     protected static BufferedImage getImageFromURL(final URL url, final String mime) throws IOException {
         // Try to get the image from the url.
-        final InputStream in = url.openStream();
-        final ImageReader reader = XImageIO.getReaderByMIMEType(mime, in, true, true);
-        final BufferedImage image = reader.read(0);
-        XImageIO.close(reader);
-        reader.dispose();
+        final ImageInputStream in;
+        try {
+            in = new StorageConnector(url).getStorageAs(ImageInputStream.class);
+            try (AutoCloseable c = in::close) {
+                final ImageReader reader = XImageIO.getReaderByMIMEType(mime, in, true, true);
+                try {
+                    return reader.read(0);
+                } finally {
+                    XImageIO.close(reader);
+                }
+            }
+        } catch (IOException io) {
+            throw io;
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
         // For debugging, uncomment the JFrame creation and the Thread.sleep further,
         // in order to see the image in a popup.
 //        javax.swing.JFrame frame = new javax.swing.JFrame();
@@ -393,7 +407,6 @@ public abstract class AbstractGrizzlyServer {
 //        } catch (InterruptedException ex) {
 //            assumeNoException(ex);
 //        }
-        return image;
     }
 
     protected static BufferedImage getImageFromPostKvp(final URL url, final Map<String, String> parameters, final String mime) throws IOException {
