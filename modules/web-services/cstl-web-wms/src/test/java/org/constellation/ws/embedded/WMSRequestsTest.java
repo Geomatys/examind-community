@@ -1741,6 +1741,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             return;
         }
 
+        /*
+        Expected result (for reference):
         String expResult = "{\"layers\":[" +
                 "{\"name\":\"SSTMDE200305\",\"titles\":[\"SSTMDE200305\"],\"data\":[" +
                   "{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[" +
@@ -1751,7 +1753,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "{\"x\":53.45248543862846,\"y\":0.0}" +
                   "]}" +
                 "],\"message\":null}]}";
-                
+         */
         String result = getStringResponse(gfi);
         assertNotNull(result);
         //assertEquals(expResult, result);
@@ -1775,36 +1777,22 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         List<Map> points = (List) data.get("points");
 
-        assertEquals("9 points should be returned", 9, points.size());
+        assertEquals("9 points should be returned", 5, points.size());
 
         assertEquals("pt0 X property", 3.8516484760372463E-13, (double)points.get(0).get("x"), 0.000000000001);
         assertEquals("pt0 Y property", 0.0,                    (double)points.get(0).get("y"), 0.000000000001);
 
-        assertEquals("pt1 X property", 22.915557595600948,     (double)points.get(1).get("x"), 0.000000000001);
+        assertEquals("pt1 X property", 15.277036647064136,     (double)points.get(1).get("x"), 0.000000000001);
         assertEquals("pt1 Y property", 0.0,                    (double)points.get(1).get("y"), 0.000000000001);
 
-        assertEquals("pt2 X property", 22.915557595601836,     (double)points.get(2).get("x"), 0.000000000001);
+        assertEquals("pt2 X property", 31.318980178414588,     (double)points.get(2).get("x"), 0.000000000001);
         assertEquals("pt2 Y property", 0.0,                    (double)points.get(2).get("y"), 0.000000000001);
 
-        assertEquals("pt3 X property", 27.611269657740863,     (double)points.get(3).get("x"), 0.000000000001);
+        assertEquals("pt3 X property", 47.84147288711511,     (double)points.get(3).get("x"), 0.000000000001);
         assertEquals("pt3 Y property", 0.0,                    (double)points.get(3).get("y"), 0.000000000001);
 
-        assertEquals("pt4 X property", 27.611269657741225,     (double)points.get(4).get("x"), 0.000000000001);
+        assertEquals("pt4 X property", 53.45248543862846,     (double)points.get(4).get("x"), 0.000000000001);
         assertEquals("pt4 Y property", 0.0,                    (double)points.get(4).get("y"), 0.000000000001);
-
-        assertEquals("pt5 X property", 38.734410245335305,     (double)points.get(5).get("x"), 0.000000000001);
-        assertEquals("pt5 Y property", 0.0,                    (double)points.get(5).get("y"), 0.000000000001);
-
-        assertEquals("pt6 X property", 38.73441024533549,      (double)points.get(6).get("x"), 0.000000000001);
-        assertEquals("pt6 Y property", 0.0,                    (double)points.get(6).get("y"), 0.000000000001);
-
-        assertEquals("pt7 X property", 51.33753842087088,      (double)points.get(7).get("x"), 0.000000000001);
-        assertEquals("pt7 Y property", 0.0,                    (double)points.get(7).get("y"), 0.000000000001);
-
-        assertEquals("pt8 X property", 53.45249659867336,      (double)points.get(8).get("x"), 0.000000000001);
-        assertEquals("pt8 Y property", 0.0,                    (double)points.get(8).get("y"), 0.000000000001);
-
-
     }
 
     @Test
