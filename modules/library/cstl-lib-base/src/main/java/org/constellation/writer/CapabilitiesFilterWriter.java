@@ -69,7 +69,11 @@ public final class CapabilitiesFilterWriter extends AbstractFilterWriter {
     protected String filterLine(final StringBuilder buffer) {
         String line = buffer.toString();
         if (line.trim().startsWith("<WMT_MS_Capabilities")) {
-            line = "<WMT_MS_Capabilities version=\"1.1.1\">";
+            // remove the xmlns.... final part
+            int pos = line.indexOf("xmlns");
+            if (pos != -1) {
+                line = line.substring(0, pos) + '>';
+            }
         }
         if (line.trim().startsWith("<OnlineResource")) {
             line = line.replaceAll("/>", " xmlns:xlink=\"http://www.w3.org/1999/xlink\"/>");

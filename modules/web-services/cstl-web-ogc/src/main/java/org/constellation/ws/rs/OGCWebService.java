@@ -46,6 +46,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_POINT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_REQUEST;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_DEFINED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
@@ -311,6 +312,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
             !ex.getExceptionCode().equals(LAYER_NOT_DEFINED)          && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.LAYER_NOT_DEFINED) &&
             !ex.getExceptionCode().equals(INVALID_REQUEST)            && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_REQUEST) &&
             !ex.getExceptionCode().equals(INVALID_UPDATE_SEQUENCE)    && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_UPDATE_SEQUENCE) &&
+            !ex.getExceptionCode().equals(CURRENT_UPDATE_SEQUENCE)    && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.CURRENT_UPDATE_SEQUENCE) &&
             !ex.getExceptionCode().equals(INVALID_VALUE)              && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.AXIS_LABEL_INVALID) &&
             !ex.getExceptionCode().equals(INVALID_DIMENSION_VALUE)    && !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_DIMENSION_VALUE) &&
             !ex.getExceptionCode().equals(org.constellation.ws.ExceptionCode.INVALID_SRS) &&
