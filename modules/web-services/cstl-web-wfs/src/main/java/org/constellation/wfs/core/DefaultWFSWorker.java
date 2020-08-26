@@ -385,7 +385,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         //set the current updateSequence parameter
         final boolean returnUS = returnUpdateSequenceDocument(request.getUpdateSequence());
         if (returnUS) {
-            return buildWFSCapabilities(currentVersion, getCurrentUpdateSequence());
+            return WFSXmlFactory.buildWFSCapabilities(currentVersion, getCurrentUpdateSequence());
         }
 
         Sections sections = request.getSections();
@@ -499,7 +499,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         } else {
             fc = WFSConstants.FILTER_CAPABILITIES_V110;
         }
-        final WFSCapabilities result = buildWFSCapabilities(currentVersion, si, sp, om, ftl, fc);
+        final WFSCapabilities result = buildWFSCapabilities(currentVersion, getCurrentUpdateSequence(), si, sp, om, ftl, fc);
         putCapabilitiesInCache(currentVersion, null, result);
         LOGGER.log(Level.INFO, "GetCapabilities treated in {0}ms", (System.currentTimeMillis() - start));
         return (WFSCapabilities) result.applySections(sections);

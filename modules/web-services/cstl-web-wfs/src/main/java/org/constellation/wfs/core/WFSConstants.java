@@ -420,7 +420,7 @@ public final class WFSConstants {
         }
 
         // Create capabilities base.
-        return WFSXmlFactory.buildWFSCapabilities(version, servIdent, servProv, null, null, null);
+        return WFSXmlFactory.buildWFSCapabilities(version, null, servIdent, servProv, null, null, null);
     }
 
     public static class GetXSD implements RequestBase {
