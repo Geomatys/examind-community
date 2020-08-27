@@ -802,44 +802,16 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
             localOmFilter.initFilterGetResult(sensorID, resultModel, Collections.emptyMap());
             handleQuery(q, localOmFilter, GET_RES, hints);
             localOmFilter.setResponseFormat(responseFormat);
-            return localOmFilter.getResults();
-
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-    @Override
-    public String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException {
-        try {
-            final ObservationFilterReader localOmFilter = store.getFilter();
-            localOmFilter.initFilterGetResult(sensorID, CommonConstants.OBSERVATION_QNAME, Collections.emptyMap());
-            if (observedProperties.isEmpty()) {
-                final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
-                SimpleQuery query = new SimpleQuery();
-                query.setFilter(ff.equals(ff.property("observedProperty"), ff.literal(sensorID)));
-                Collection<Phenomenon> phenos = getPhenomenon(query, Collections.emptyMap());
-                phenos.forEach(p -> observedProperties.add(((org.geotoolkit.swe.xml.Phenomenon)p).getName().getCode()));
+            Integer decimationSize = null;
+            if (hints.containsKey("decimSize")) {
+                decimationSize = Integer.parseInt(hints.get("decimSize"));
             }
-            localOmFilter.setObservedProperties(observedProperties);
-            localOmFilter.setFeatureOfInterest(foi);
-            localOmFilter.setResponseFormat("text/csv");
-
-            if (start != null && end != null) {
-                final Period period = new TimePeriodType(null, new Timestamp(start.getTime()), new Timestamp(end.getTime()));
-                localOmFilter.setTimeDuring(period);
-            } else if (start != null) {
-                final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
-                localOmFilter.setTimeAfter(time);
-            } else if (end != null) {
-                final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
-                localOmFilter.setTimeBefore(time);
-            }
-
             if (decimationSize != null) {
                 return localOmFilter.getDecimatedResults(decimationSize);
             } else {
                 return localOmFilter.getResults();
             }
+
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }

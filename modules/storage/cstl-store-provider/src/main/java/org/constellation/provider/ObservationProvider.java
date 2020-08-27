@@ -69,9 +69,6 @@ public interface ObservationProvider extends DataProvider {
 
     String getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
 
-    // TODO use a query instead of all the prameters
-    String getResults(final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, Integer decimationSize) throws ConstellationStoreException;
-
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
     Object getSensorLocation(final String sensorID, final String gmlVersion) throws ConstellationStoreException;

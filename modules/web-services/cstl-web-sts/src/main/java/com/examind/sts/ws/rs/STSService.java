@@ -307,6 +307,11 @@ public class STSService extends OGCWebService<STSWorker> {
             sRequest.setExpand(parseCommaSeparatedParameter(EXPAND));
             sRequest.setSelect(parseCommaSeparatedParameter(SELECT));
             sRequest.setOrderby(parseSortByParameter());
+            // extended param decimation
+            String deci = getParameter(DECIMATION, false);
+            if (deci != null) {
+                sRequest.getExtraFlag().put("decimation", deci);
+            }
             return request;
         } else if (request instanceof AbstractSTSRequestById) {
             AbstractSTSRequestById sRequest = (AbstractSTSRequestById) request;

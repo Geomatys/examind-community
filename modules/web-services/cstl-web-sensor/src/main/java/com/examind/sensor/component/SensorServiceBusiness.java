@@ -43,9 +43,17 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import com.examind.sensor.ws.SensorUtils;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+import org.constellation.api.CommonConstants;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.util.NamedId;
+import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.gml.xml.v321.TimeInstantType;
+import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
@@ -54,12 +62,29 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKTWriter;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
+import org.opengis.filter.expression.Expression;
+import org.opengis.filter.spatial.BBOX;
+import org.opengis.filter.temporal.After;
+import org.opengis.filter.temporal.Before;
+import org.opengis.filter.temporal.Begins;
+import org.opengis.filter.temporal.BegunBy;
+import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.EndedBy;
+import org.opengis.filter.temporal.Ends;
+import org.opengis.filter.temporal.Meets;
+import org.opengis.filter.temporal.OverlappedBy;
+import org.opengis.filter.temporal.TContains;
+import org.opengis.filter.temporal.TEquals;
+import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.observation.Process;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +104,8 @@ public class SensorServiceBusiness {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
+    
+    protected final FilterFactory ff = DefaultFactories.forBuildin(FilterFactory.class);
 
     public boolean importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
         LOGGER.info("Importing sensor");
@@ -355,21 +382,50 @@ public class SensorServiceBusiness {
         }
     }
 
-    public String getObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end) throws ConfigurationException {
+    public String getObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width) throws ConfigurationException {
         try {
             final ObservationProvider pr = getOMProvider(id);
-            return pr.getResults(sensorID, observedProperties, foi, start, end, null);
+            SimpleQuery query = new SimpleQuery();
+            query.setFilter(buildFilter(start, end, observedProperties, foi));
+            Map<String, String> hints = new HashMap<>();
+            if (width != null) {
+                hints.put("decimSize", Integer.toString(width));
+            }
+            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, query, "text/csv", hints);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
+    
+    private Filter buildFilter(final Date start, final Date end, List<String> observedProperties, List<String> featuresOfInterest)  {
+        final List<Filter> filters = new ArrayList<>();
+        if (start != null && end != null) {
+            final Period period = new TimePeriodType(null, new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+            filters.add(ff.during(ff.property("resultTime"), ff.literal(period)));
+        } else if (start != null) {
+            final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
+            filters.add(ff.after(ff.property("resultTime"), ff.literal(time)));
+        } else if (end != null) {
+            final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
+            filters.add(ff.before(ff.property("resultTime"), ff.literal(time)));
+        }
 
-    public String getDecimatedObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final int width) throws ConfigurationException {
-        try {
-            final ObservationProvider pr = getOMProvider(id);
-            return pr.getResults(sensorID, observedProperties, foi, start, end, width);
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
+        if (observedProperties != null) {
+            for (String observedProperty : observedProperties) {
+                filters.add(ff.equals(ff.property("observedProperty"), ff.literal(observedProperty)));
+            }
+        }
+        if (featuresOfInterest != null) {
+            for (String featureOfInterest : featuresOfInterest) {
+                filters.add(ff.equals(ff.property("featureOfInterest"), ff.literal(featureOfInterest)));
+            }
+        }
+        if (filters.size() == 1) {
+            return filters.get(0);
+        } else if (filters.size() > 1) {
+            return ff.and(filters);
+        } else {
+            return Filter.INCLUDE;
         }
     }
 
