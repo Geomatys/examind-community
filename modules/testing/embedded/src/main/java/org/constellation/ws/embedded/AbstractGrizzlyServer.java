@@ -377,10 +377,20 @@ public abstract class AbstractGrizzlyServer {
      * @throws IOException
      */
     protected static BufferedImage getImageFromURL(final URL url, final String mime) throws IOException {
+        /* Try to bypass image reader instabilities by loading source content in memory first.
+         * Note that the code related to the storage connector still properly close streams, even if it is not
+         * necessary, in case of future changes.
+         */
+        final URLConnection conn = url.openConnection();
+        final int length = conn.getContentLength();
+        final byte[] buffer = new byte[length];
+        try (final InputStream stream = conn.getInputStream()) {
+            IOUtils.readFully(stream, buffer, 0, length);
+        }
         // Try to get the image from the url.
         final ImageInputStream in;
         try {
-            in = new StorageConnector(url).getStorageAs(ImageInputStream.class);
+            in = new StorageConnector(buffer).getStorageAs(ImageInputStream.class);
             try (AutoCloseable c = in::close) {
                 final ImageReader reader = XImageIO.getReaderByMIMEType(mime, in, true, true);
                 try {
