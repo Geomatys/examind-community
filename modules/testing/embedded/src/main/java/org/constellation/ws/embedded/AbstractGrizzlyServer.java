@@ -26,6 +26,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.util.Util;
@@ -380,27 +381,46 @@ public abstract class AbstractGrizzlyServer {
      * @throws IOException
      */
     protected static BufferedImage getImageFromURL(final URL url, final String mime) throws IOException {
+        /* Try to bypass image reader instabilities by loading source content in memory first.
+         * Note that the code related to the storage connector still properly close streams, even if it is not
+         * necessary, in case of future changes.
+         * TODO: upon Java 9 migration, use InputStream.readFully() instead.
+         */
+
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        try (final InputStream stream = getInputOrErrorStream(conn)) {
+            int read;
+            int safeguard= 1000;
+            byte[] buf = new byte[4096];
+            do {
+                read = stream.read(buf);
+                if (read > 0) output.write(buf, 0, read);
+            } while (read >= 0 && --safeguard >= 0);
+            if (safeguard < 0) throw new IOException("Cannot fully read image in acceptable time.");
+        }
+
+        if (conn.getResponseCode() >=400) {
+            throw new RuntimeException(conn.getResponseMessage());
+        }
+
         // Try to get the image from the url.
-        try (final InputStream stream = url.openStream()) {
-            // Try to bypass image reader instabilities by loading source content in memory first.
-            final ImageInputStream in = new MemoryCacheImageInputStream(stream);
-            try {
-                //in = new StorageConnector(output.toByteArray()).getStorageAs(ImageInputStream.class);
-                //try (AutoCloseable c = in::close) {
+        final ImageInputStream in = fromImageIO(output.toByteArray());
+        try {
+            //in = new StorageConnector(output.toByteArray()).getStorageAs(ImageInputStream.class);
+            //try (AutoCloseable c = in::close) {
                 final ImageReader reader = XImageIO.getReaderByMIMEType(mime, in, true, true);
                 try {
                     return reader.read(0);
                 } finally {
                     XImageIO.close(reader);
                 }
-                //}
-            } catch (IOException io) {
-                throw io;
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+            //}
+        } catch (IOException io) {
+            throw io;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
-
         // For debugging, uncomment the JFrame creation and the Thread.sleep further,
         // in order to see the image in a popup.
 //        javax.swing.JFrame frame = new javax.swing.JFrame();
@@ -414,6 +434,19 @@ public abstract class AbstractGrizzlyServer {
 //        } catch (InterruptedException ex) {
 //            assumeNoException(ex);
 //        }
+    }
+
+    private static ImageInputStream fromStorageConnector(final byte[] content) {
+        try {
+            return new StorageConnector(content).getStorageAs(ImageInputStream.class);
+        } catch (DataStoreException e) {
+            throw new BackingStoreException(e);
+        }
+    }
+
+    private static ImageInputStream fromImageIO(final byte[] content) {
+        final InputStream stream = new ByteArrayInputStream(content);
+        return new MemoryCacheImageInputStream(stream);
     }
 
     protected static BufferedImage getImageFromPostKvp(final URL url, final Map<String, String> parameters, final String mime) throws IOException {
@@ -571,24 +604,34 @@ public abstract class AbstractGrizzlyServer {
 
     protected static Object unmarshallResponse(final URL url, boolean print) throws JAXBException, IOException {
         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        InputStream is;
-        if (conn.getResponseCode() == 200) {
-            is = conn.getInputStream();
-        } else {
-            is = conn.getErrorStream();
+        try (InputStream is = getInputOrErrorStream(conn)) {
+            return unmarshallStream(is, print);
         }
-        return unmarshallStream(is, print);
+    }
+
+    private static InputStream getInputOrErrorStream(HttpURLConnection conn) throws IOException {
+        InputStream is;
+        // don't follow redirection, anything above is error
+        final int code = conn.getResponseCode();
+        if (code >= 400) {
+            is = conn.getErrorStream();
+            if (is == null) throw new RuntimeException(String.format(
+                    "HTTP code: %d%nResponse message: %s%nDetails: %s%n",
+                    code, conn.getResponseMessage(), conn.toString()
+            ));
+        } else if (code >=300) {
+            throw new RuntimeException("Redirection not supported");
+        } else {
+            is = conn.getInputStream();
+        }
+        return is;
     }
 
     protected static Object unmarshallJsonResponse(final URL url, Class type) throws JAXBException, IOException {
         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        InputStream is;
-        if (conn.getResponseCode() == 200) {
-            is = conn.getInputStream();
-        } else {
-            is = conn.getErrorStream();
+        try (InputStream is = getInputOrErrorStream(conn)) {
+            return unmarshallJsonStream(is, type);
         }
-        return unmarshallJsonStream(is, type);
     }
 
     private static Object unmarshallStream(final InputStream is) throws IOException, JAXBException {
