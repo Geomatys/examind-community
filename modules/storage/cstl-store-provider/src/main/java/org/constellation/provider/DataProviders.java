@@ -26,8 +26,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralDirectPosition;
@@ -723,77 +727,119 @@ public final class DataProviders extends Static{
         }
     }
 
-    public static Map<String, String> probeContentForSpecificStore(Path p, String storeId) throws DataStoreException {
-        Map<String, String> results = new HashMap<>();
-        StorageConnector input = new StorageConnector(p);
-        try {
-            DataStoreProvider provider = org.geotoolkit.storage.DataStores.getProviderById(storeId);
-            if (provider != null) {
-                try {
-                    long start = System.currentTimeMillis();
-                    ProbeResult result = provider.probeContent(input);
-                    // use to detect if a probe content on a provider is taking much time than needed
-                    LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
-                    if (result.isSupported() && result.getMimeType() != null) {
-                        results.put(storeId, result.getMimeType());
-                    }
-                } catch (Throwable ex) {
-                    if (ex instanceof UnsupportedOperationException) {
-                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ") cause: unsupported operation");
-                        } else {
-                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
-                        }
-                    // renew connector in case of error
-                    input.closeAllExcept(null);
-                    input = new StorageConnector(p);
-                }
-            } else {
-                LOGGER.log(Level.WARNING, "Unable to find a provider :{0}", storeId);
+    /**
+     * HACK: Until Storage connector provides properly fail-fast behavior, we will force renewal of storage connector
+     * for each element whenever a failure on probing content appears. What we mean:
+     * <ol>
+     *     <li>First, try simple loop with storage connector re-use.</li>
+     *     <li>If an error occurs, stop browsing</li>
+     *     <li>Restart entire loop, but this time we build a fresh storage connector for each provider, so if any provider corrupt the connector, no further analysis will be impacted.</li>
+     * </ol>
+     *
+     * Notes :
+     * <ul>
+     *     <li>
+     *         Why this approach ? As we don't know when storage connector has been corrupted, we cannot just restart
+     *         from last failed provider. So, we restart again with an agressive renewal policy.
+     *     </li>
+     *     <li>
+     *         On second pass, we should be able to omit first candidate, because it cannot have been tested on a
+     *         corrupted storage connector, on the first pass. However, it complexify implementation for an unknown gain.
+     *         The  only opti for now, is that we short-circuit second pass if candidates consist in a single element.
+     *     </li>
+     * </ul>
+     *
+     * @param candidates providers to test
+     * @param idExtractor Specify how to retrieve provider identifier
+     * @param storageRenewer supplier capable of providing a fresh storage connection.
+     */
+    private static Map<String, ProbeResult> probeContent(final List<DataStoreProvider> candidates, Function<DataStoreProvider, String> idExtractor, final Supplier<StorageConnector> storageRenewer) throws DataStoreException {
+
+        Map<String, ProbeResult> results = new HashMap<>();
+
+        String name = "not initialized";
+
+        final StorageConnector storage = storageRenewer.get();
+        final ByteBuffer buffer = storage.getStorageAs(ByteBuffer.class);
+        final byte[] ctrlValue = new byte[Math.min(64, buffer.remaining())];
+        buffer.get(ctrlValue).rewind();
+        try (AutoCloseable closeStorage = () -> storage.closeAllExcept(null)) {
+            for (DataStoreProvider provider : candidates) {
+                name = idExtractor.apply(provider);
+                long start = System.currentTimeMillis();
+                ProbeResult result = provider.probeContent(storage);
+                assert isProperlyReset(storage, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+name;
+                // help detecting if a probe content on a provider is taking too much time
+                LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{name, System.currentTimeMillis() - start});
+                results.put(name, result);
             }
-        } finally {
-            input.closeAllExcept(null);
+        } catch (Exception e) {
+            final String logName = name;
+            LOGGER.log(Level.WARNING, e, () -> "Error while probing content using provider: "+logName);
+            results = null;
+        }
+
+        if (results != null) return results;
+        // see method doc
+        else if (candidates.size() < 2) return new HashMap<>();
+
+        results = new HashMap<>();
+        final DataStoreException mainError = new DataStoreException("Error ocurred while probing content");
+        for (DataStoreProvider provider : candidates) {
+            final String pName = idExtractor.apply(provider);
+            final StorageConnector c = storageRenewer.get();
+            try (AutoCloseable closeStorage = () -> c.closeAllExcept(null)) {
+                long start = System.currentTimeMillis();
+                ProbeResult result = provider.probeContent(c);
+                assert isProperlyReset(c, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+name;
+                // help detecting if a probe content on a provider is taking too much time
+                LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{name, System.currentTimeMillis() - start});
+                results.put(name, result);
+            } catch (Exception e) {
+                LOGGER.log(Level.FINE, e, () -> "Error while probing content using provider: "+pName);
+                mainError.addSuppressed(e);
+            }
+        }
+
+        if (results.isEmpty() && mainError.getSuppressed().length > 0) {
+            throw mainError;
         }
         return results;
     }
 
-    public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
-        Map<String, String> results = new HashMap<>();
-        StorageConnector input = new StorageConnector(p);
-        final ByteBuffer buffer = input.getStorageAs(ByteBuffer.class);
-        final byte[] ctrlValue = new byte[Math.min(64, buffer.remaining())];
-        buffer.get(ctrlValue).rewind();
+    public static Map<String, String> probeContentForSpecificStore(Path p, String storeId) throws DataStoreException {
+        DataStoreProvider provider = org.geotoolkit.storage.DataStores.getProviderById(storeId);
+        if (provider == null) return Collections.EMPTY_MAP;
+        final Map<String, ProbeResult> result = probeContent(Collections.singletonList(provider), pr -> storeId, () -> new StorageConnector(p));
+        return result.entrySet().stream()
+                .filter(e -> e.getValue().isSupported())
+                .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                    final String mimeType = e.getValue().getMimeType();
+                    return mimeType == null ? "examind/"+storeId : mimeType;
+                }));
+    }
+
+    private static String extractName(DataStoreProvider p) {
         try {
-            List<DataStoreProvider> providers = new ArrayList<>(org.apache.sis.storage.DataStores.providers());
-            for (DataStoreProvider provider : providers) {
-                String storeId = provider.getOpenParameters().getName().getCode();
-                // little hack because we don't want to expose those one
-                if (!storeId.equals("GeoTIFF") &&
-                    !storeId.equals("WKT") && !storeId.equals("dbf")) {
-                    try {
-                        long start = System.currentTimeMillis();
-                        ProbeResult result = provider.probeContent(input);
-                        assert isProperlyReset(input, ctrlValue) : "Following datastore has not properly reset storage connector on probe operation: "+storeId;
-                        // use to detect if a probe content on a provider is taking much time than needed
-                        LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{storeId, System.currentTimeMillis() - start});
-                        if (result.isSupported() && result.getMimeType() != null) {
-                            results.put(storeId, result.getMimeType());
-                        }
-                    } catch (Throwable ex) {
-                        if (ex instanceof UnsupportedOperationException) {
-                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ") cause: unsupported operation");
-                        } else {
-                            LOGGER.log(Level.WARNING, "Error while probing file type with provider:" + provider.getOpenParameters().getName().getCode() + " (" + p.toString() + ")", ex);
-                        }
-                        // renew connector in case of error
-                        input.closeAllExcept(null);
-                        input = new StorageConnector(p);
-                    }
-                }
-            }
-        } finally {
-            input.closeAllExcept(null);
+            final ParameterDescriptorGroup desc = p.getOpenParameters();
+            if (desc != null) return desc.getName().getCode();
+        } catch (UnsupportedOperationException e) {
+            LOGGER.log(Level.FINE, "Cannot extract name of a datastore provider from its parameters", e);
         }
-        return results;
+
+        return p.getShortName();
+    }
+
+    public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
+        final Function<DataStoreProvider, String> nameExtractor;
+        List<DataStoreProvider> providers = new ArrayList<>(org.apache.sis.storage.DataStores.providers());
+        final Map<String, ProbeResult> results = probeContent(providers, DataProviders::extractName, () -> new StorageConnector(p));
+        return results.entrySet().stream()
+                .filter(e -> e.getValue().isSupported())
+                .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                    final String mimeType = e.getValue().getMimeType();
+                    return mimeType == null ? "examind/unknown" :mimeType;
+                }));
     }
 
     private static boolean isProperlyReset(StorageConnector input, byte[] ctrlValue) throws DataStoreException {
