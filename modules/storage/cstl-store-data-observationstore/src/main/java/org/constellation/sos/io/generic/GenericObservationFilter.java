@@ -63,6 +63,11 @@ import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.opengis.filter.Filter;
+import org.opengis.filter.temporal.After;
+import org.opengis.filter.temporal.Before;
+import org.opengis.filter.temporal.BinaryTemporalOperator;
+import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.TEquals;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -256,94 +261,84 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeEquals(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeEqualsType("result_time", time));
-        if (time instanceof Period) {
-            final Period tp    = (Period) time;
-            final String begin = getTimeValue(tp.getBeginning().getDate());
-            final String end   = getTimeValue(tp.getEnding().getDate());
+    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+        // we get the property name (not used for now)
+        // String propertyName = tFilter.getExpression1()
+        Object time = tFilter.getExpression2();
+        if (tFilter instanceof TEquals) {
+            eventTimes.add(new TimeEqualsType("result_time", time));
+            if (time instanceof Period) {
+                final Period tp    = (Period) time;
+                final String begin = getTimeValue(tp.getBeginning().getDate());
+                final String end   = getTimeValue(tp.getEnding().getDate());
 
-            final Where where       = new Where(configurationQuery.getWhere("tequalsTP"));
-            where.replaceVariable("begin", begin, true);
-            where.replaceVariable("end", end, true);
-            currentQuery.addWhere(where);
+                final Where where       = new Where(configurationQuery.getWhere("tequalsTP"));
+                where.replaceVariable("begin", begin, true);
+                where.replaceVariable("end", end, true);
+                currentQuery.addWhere(where);
 
-        // if the temporal object is a timeInstant
-        } else if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position = getTimeValue(ti.getDate());
+            // if the temporal object is a timeInstant
+            } else if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position = getTimeValue(ti.getDate());
 
-            final Where where = new Where(configurationQuery.getWhere("tequalsTI"));
-            where.replaceVariable("position", position, true);
-            currentQuery.addWhere(where);
+                final Where where = new Where(configurationQuery.getWhere("tequalsTI"));
+                where.replaceVariable("position", position, true);
+                currentQuery.addWhere(where);
 
+            } else {
+                throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof Before) {
+            final Before tf = (Before) tFilter;
+            eventTimes.add(new TimeBeforeType("result_time", time));
+            // for the operation before the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position = getTimeValue(ti.getDate());
+
+                final Where where = new Where(configurationQuery.getWhere("tbefore"));
+                where.replaceVariable("time", position, true);
+                currentQuery.addWhere(where);
+
+            } else {
+                throw new ObservationStoreException("TM_Before operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof After) {
+            eventTimes.add(new TimeAfterType("result_time", time));
+            // for the operation after the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position    = getTimeValue(ti.getDate());
+
+                final Where where        = new Where(configurationQuery.getWhere("tafter"));
+                where.replaceVariable("time", position, true);
+                currentQuery.addWhere(where);
+
+            } else {
+                throw new ObservationStoreException("TM_After operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof During) {
+            eventTimes.add(new TimeDuringType("result_time", time));
+            if (time instanceof Period) {
+                final Period tp    = (Period) time;
+                final String begin = getTimeValue(tp.getBeginning().getDate());
+                final String end   = getTimeValue(tp.getEnding().getDate());
+
+                final Where where = new Where(configurationQuery.getWhere("tduring"));
+                where.replaceVariable("begin", begin, true);
+                where.replaceVariable("end", end, true);
+                currentQuery.addWhere(where);
+
+            } else {
+                throw new ObservationStoreException("TM_During operation require TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
         } else {
-            throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeBefore(final Object time) throws DataStoreException  {
-        eventTimes.add(new TimeBeforeType("result_time", time));
-        // for the operation before the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position = getTimeValue(ti.getDate());
-
-            final Where where = new Where(configurationQuery.getWhere("tbefore"));
-            where.replaceVariable("time", position, true);
-            currentQuery.addWhere(where);
-
-        } else {
-            throw new ObservationStoreException("TM_Before operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeAfter(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeAfterType("result_time", time));
-        // for the operation after the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position    = getTimeValue(ti.getDate());
-
-            final Where where        = new Where(configurationQuery.getWhere("tafter"));
-            where.replaceVariable("time", position, true);
-            currentQuery.addWhere(where);
-
-        } else {
-            throw new ObservationStoreException("TM_After operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeDuring(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeDuringType("result_time", time));
-        if (time instanceof Period) {
-            final Period tp    = (Period) time;
-            final String begin = getTimeValue(tp.getBeginning().getDate());
-            final String end   = getTimeValue(tp.getEnding().getDate());
-
-            final Where where = new Where(configurationQuery.getWhere("tduring"));
-            where.replaceVariable("begin", begin, true);
-            where.replaceVariable("end", end, true);
-            currentQuery.addWhere(where);
-
-        } else {
-            throw new ObservationStoreException("TM_During operation require TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
+            throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
     }
 
@@ -447,16 +442,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public void setBoundingBox(final Envelope e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
-    }
-
-    @Override
-    public void setTimeLatest() throws DataStoreException {
-        throw new DataStoreException("setTimeLatest is not supported by this ObservationFilter implementation.");
-    }
-
-    @Override
-    public void setTimeFirst() throws DataStoreException {
-        throw new DataStoreException("setTimeFirst is not supported by this ObservationFilter implementation.");
     }
 
     @Override
@@ -584,12 +569,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public String getResults() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getDecimatedResults(int width) throws DataStoreException {
+    public String getResults(Map<String, String> hints) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -1294,7 +1294,7 @@ public class SOSworker extends SensorWorker {
             query.setFilter(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
-            values = omProvider.getResults(procedure, resultModel, query, null, Collections.emptyMap());
+            values = (String) omProvider.getResults(procedure, resultModel, query, null, Collections.emptyMap());
 
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);

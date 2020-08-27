@@ -49,11 +49,9 @@ import java.util.Map;
 import org.constellation.api.CommonConstants;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.util.NamedId;
-import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getSensorMLType;
@@ -64,20 +62,6 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKTWriter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.Begins;
-import org.opengis.filter.temporal.BegunBy;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.EndedBy;
-import org.opengis.filter.temporal.Ends;
-import org.opengis.filter.temporal.Meets;
-import org.opengis.filter.temporal.OverlappedBy;
-import org.opengis.filter.temporal.TContains;
-import org.opengis.filter.temporal.TEquals;
-import org.opengis.filter.temporal.TOverlaps;
 import org.opengis.observation.Process;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
@@ -382,7 +366,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public String getObservationsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width) throws ConfigurationException {
+    public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width) throws ConfigurationException {
         try {
             final ObservationProvider pr = getOMProvider(id);
             SimpleQuery query = new SimpleQuery();

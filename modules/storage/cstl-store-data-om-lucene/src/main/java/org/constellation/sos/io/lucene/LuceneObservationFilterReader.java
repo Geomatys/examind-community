@@ -153,7 +153,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public String getResults() throws DataStoreException {
+    public String getResults(Map<String, String> hints) throws DataStoreException {
         final List<ObservationResult> results = filterResult();
         final StringBuilder datablock         = new StringBuilder();
 
@@ -185,11 +185,6 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
             }
         }
         return datablock.toString();
-    }
-
-    @Override
-    public String getDecimatedResults(int width) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

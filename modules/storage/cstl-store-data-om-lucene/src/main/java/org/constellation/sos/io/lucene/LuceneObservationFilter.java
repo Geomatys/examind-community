@@ -52,6 +52,11 @@ import org.geotoolkit.ogc.xml.v200.TimeDuringType;
 import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.opengis.filter.Filter;
+import org.opengis.filter.temporal.After;
+import org.opengis.filter.temporal.Before;
+import org.opengis.filter.temporal.BinaryTemporalOperator;
+import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.TEquals;
 /**
  * TODO
  *
@@ -249,114 +254,103 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setTimeEquals(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeEqualsType("result_time", time));
-        if (time instanceof Period) {
-            final Period tp = (Period) time;
-            final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
-            final String end        = getLuceneTimeValue(tp.getEnding().getDate());
+    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+        // we get the property name (not used for now)
+        // String propertyName = tFilter.getExpression1()
+        Object time = tFilter.getExpression2();
+        if (tFilter instanceof TEquals) {
+            eventTimes.add(new TimeEqualsType("result_time", time));
+            if (time instanceof Period) {
+                final Period tp = (Period) time;
+                final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
+                final String end        = getLuceneTimeValue(tp.getEnding().getDate());
 
-            // we request directly a multiple observation or a period observation (one measure during a period)
-            luceneRequest.append("AND (");
-            luceneRequest.append(" sampling_time_begin:").append(begin).append(" AND ");
-            luceneRequest.append(" sampling_time_end:").append(end).append(") ");
+                // we request directly a multiple observation or a period observation (one measure during a period)
+                luceneRequest.append("AND (");
+                luceneRequest.append(" sampling_time_begin:").append(begin).append(" AND ");
+                luceneRequest.append(" sampling_time_end:").append(end).append(") ");
 
-        // if the temporal object is a timeInstant
-        } else if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position    = getLuceneTimeValue(ti.getDate());
-            luceneRequest.append("AND (");
+            // if the temporal object is a timeInstant
+            } else if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position    = getLuceneTimeValue(ti.getDate());
+                luceneRequest.append("AND (");
 
-            // case 1 a single observation
-            luceneRequest.append("(sampling_time_begin:'").append(position).append("' AND sampling_time_end:NULL)");
-            luceneRequest.append(OR_OPERATOR);
+                // case 1 a single observation
+                luceneRequest.append("(sampling_time_begin:'").append(position).append("' AND sampling_time_end:NULL)");
+                luceneRequest.append(OR_OPERATOR);
 
-            //case 2 multiple observations containing a matching value
-            luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] ").append(" AND sampling_time_end: [").append(position).append(" TO 30000000]))");
+                //case 2 multiple observations containing a matching value
+                luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] ").append(" AND sampling_time_end: [").append(position).append(" TO 30000000]))");
 
+            } else {
+                throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof Before) {
+            eventTimes.add(new TimeBeforeType("result_time", time));
+            // for the operation before the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position    = getLuceneTimeValue(ti.getDate());
+                luceneRequest.append("AND (");
+
+                // the single and multpile observations which begin after the bound
+                luceneRequest.append("(sampling_time_begin: [19700000000000 TO ").append(position).append("]))");
+
+            } else {
+                throw new ObservationStoreException("TM_Before operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof After) {
+            eventTimes.add(new TimeAfterType("result_time", time));
+            // for the operation after the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti = (Instant) time;
+                final String position    = getLuceneTimeValue(ti.getDate());
+                luceneRequest.append("AND (");
+
+                // the single and multpile observations which begin after the bound
+                luceneRequest.append("(sampling_time_begin:[").append(position).append(" TO 30000000])");
+                luceneRequest.append(OR_OPERATOR);
+                // the multiple observations overlapping the bound
+                luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000]))");
+
+
+            } else {
+                throw new ObservationStoreException("TM_After operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof During) {
+            eventTimes.add(new TimeDuringType("result_time", time));
+            if (time instanceof Period) {
+                final Period tp = (Period) time;
+                final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
+                final String end        = getLuceneTimeValue(tp.getEnding().getDate());
+                luceneRequest.append("AND (");
+
+                // the multiple observations included in the period
+                luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[19700000 TO ").append(end).append("])");
+                luceneRequest.append(OR_OPERATOR);
+                // the single observations included in the period
+                luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("] AND sampling_time_end IS NULL)");
+                luceneRequest.append(OR_OPERATOR);
+                // the multiple observations which overlaps the first bound
+                luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[19700000 TO ").append(end).append("] AND sampling_time_end:[").append(begin).append(" TO 30000000])");
+                luceneRequest.append(OR_OPERATOR);
+                // the multiple observations which overlaps the second bound
+                luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[").append(end).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("])");
+                luceneRequest.append(OR_OPERATOR);
+                // the multiple observations which overlaps the whole period
+                luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[").append(end).append(" TO 30000000]))");
+
+
+            } else {
+                throw new ObservationStoreException("TM_During operation require TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
         } else {
-            throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeBefore(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeBeforeType("result_time", time));
-        // for the operation before the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position    = getLuceneTimeValue(ti.getDate());
-            luceneRequest.append("AND (");
-
-            // the single and multpile observations which begin after the bound
-            luceneRequest.append("(sampling_time_begin: [19700000000000 TO ").append(position).append("]))");
-
-        } else {
-            throw new ObservationStoreException("TM_Before operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeAfter(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeAfterType("result_time", time));
-        // for the operation after the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti = (Instant) time;
-            final String position    = getLuceneTimeValue(ti.getDate());
-            luceneRequest.append("AND (");
-
-            // the single and multpile observations which begin after the bound
-            luceneRequest.append("(sampling_time_begin:[").append(position).append(" TO 30000000])");
-            luceneRequest.append(OR_OPERATOR);
-            // the multiple observations overlapping the bound
-            luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000]))");
-
-
-        } else {
-            throw new ObservationStoreException("TM_After operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeDuring(final Object time) throws DataStoreException {
-        eventTimes.add(new TimeDuringType("result_time", time));
-        if (time instanceof Period) {
-            final Period tp = (Period) time;
-            final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
-            final String end        = getLuceneTimeValue(tp.getEnding().getDate());
-            luceneRequest.append("AND (");
-
-            // the multiple observations included in the period
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[19700000 TO ").append(end).append("])");
-            luceneRequest.append(OR_OPERATOR);
-            // the single observations included in the period
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("] AND sampling_time_end IS NULL)");
-            luceneRequest.append(OR_OPERATOR);
-            // the multiple observations which overlaps the first bound
-            luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[19700000 TO ").append(end).append("] AND sampling_time_end:[").append(begin).append(" TO 30000000])");
-            luceneRequest.append(OR_OPERATOR);
-            // the multiple observations which overlaps the second bound
-            luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[").append(end).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("])");
-            luceneRequest.append(OR_OPERATOR);
-            // the multiple observations which overlaps the whole period
-            luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[").append(end).append(" TO 30000000]))");
-
-
-        } else {
-            throw new ObservationStoreException("TM_During operation require TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
+            throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
     }
 
@@ -492,16 +486,6 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } catch (IndexingException ex) {
             throw new DataStoreException("Indexing Exception while refreshing the lucene index", ex);
         }
-    }
-
-    @Override
-    public void setTimeLatest() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setTimeFirst() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

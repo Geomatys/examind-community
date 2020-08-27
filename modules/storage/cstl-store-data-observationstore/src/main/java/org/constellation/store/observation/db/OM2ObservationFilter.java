@@ -51,6 +51,11 @@ import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.geotoolkit.observation.Utils.getTimeValue;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.opengis.filter.temporal.After;
+import org.opengis.filter.temporal.Before;
+import org.opengis.filter.temporal.BinaryTemporalOperator;
+import org.opengis.filter.temporal.During;
+import org.opengis.filter.temporal.TEquals;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
@@ -467,138 +472,133 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void setTimeEquals(final Object time) throws DataStoreException {
-        if (time instanceof Period) {
-            final Period tp    = (Period) time;
-            final String begin = getTimeValue(tp.getBeginning().getDate());
-            final String end   = getTimeValue(tp.getEnding().getDate());
+    public void setTimeFilter(final BinaryTemporalOperator tFilter) throws DataStoreException {
+        if (tFilter == null) return;
+        // we get the property name (not used for now)
+        // String propertyName = tFilter.getExpression1()
+        final Object time = tFilter.getExpression2();
+        
+        if (tFilter instanceof TEquals) {
+            // if the temporal object is a period
+            if (time instanceof Period) {
+                final Period tp    = (Period) time;
+                final String begin = getTimeValue(tp.getBeginning().getDate());
+                final String end   = getTimeValue(tp.getEnding().getDate());
 
-            // we request directly a multiple observation or a period observation (one measure during a period)
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
+                // we request directly a multiple observation or a period observation (one measure during a period)
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
+                sqlRequest.append(" \"time_end\"='").append(end).append("') ");
+
+                obsJoin = true;
+                firstFilter = false;
+            // if the temporal object is a timeInstant
+            } else if (time instanceof Instant) {
+                final Instant ti      = (Instant) time;
+                final String position = getTimeValue(ti.getDate());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+
+                // case 1 a single observation
+                sqlRequest.append("(\"time_begin\"='").append(position).append("' AND \"time_end\" IS NULL)");
+                sqlRequest.append(" OR ");
+
+                //case 2 multiple observations containing a matching value
+                sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
+
+                obsJoin = true;
+                firstFilter = false;
             } else {
-                sqlRequest.append("AND ( ");
+                throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
-            sqlRequest.append(" \"time_begin\"='").append(begin).append("' AND ");
-            sqlRequest.append(" \"time_end\"='").append(end).append("') ");
+        } else if (tFilter instanceof Before) {
+    
+            // for the operation before the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti      = (Instant) time;
+                final String position = getTimeValue(ti.getDate());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
 
-            obsJoin = true;
-            firstFilter = false;
-        // if the temporal object is a timeInstant
-        } else if (time instanceof Instant) {
-            final Instant ti      = (Instant) time;
-            final String position = getTimeValue(ti.getDate());
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
+                // the single and multpile observations which begin after the bound
+                sqlRequest.append("(\"time_begin\"<='").append(position).append("'))");
+
+                obsJoin = true;
+                firstFilter = false;
             } else {
-                sqlRequest.append("AND ( ");
+                throw new ObservationStoreException("TM_Before operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
+        } else if (tFilter instanceof After) {
+     
+            // for the operation after the temporal object must be an timeInstant
+            if (time instanceof Instant) {
+                final Instant ti      = (Instant) time;
+                final String position = getTimeValue(ti.getDate());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
 
-            // case 1 a single observation
-            sqlRequest.append("(\"time_begin\"='").append(position).append("' AND \"time_end\" IS NULL)");
-            sqlRequest.append(" OR ");
+                // the single and multpile observations which begin after the bound
+                sqlRequest.append("(\"time_begin\">='").append(position).append("')");
+                sqlRequest.append(" OR ");
+                // the multiple observations overlapping the bound
+                sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
 
-            //case 2 multiple observations containing a matching value
-            sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
+                obsJoin = true;
+                firstFilter = false;
+            } else {
+                throw new ObservationStoreException("TM_After operation require timeInstant!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
+        } else if (tFilter instanceof During) {
+            
+            if (time instanceof Period) {
+                final Period tp    = (Period) time;
+                final String begin = getTimeValue(tp.getBeginning().getDate());
+                final String end   = getTimeValue(tp.getEnding().getDate());
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
 
-            obsJoin = true;
-            firstFilter = false;
+                // the multiple observations included in the period
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<= '").append(end).append("')");
+                sqlRequest.append(" OR ");
+                // the single observations included in the period
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
+                sqlRequest.append(" OR ");
+                // the multiple observations which overlaps the first bound
+                sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<= '").append(end).append("' AND \"time_end\">='").append(begin).append("')");
+                sqlRequest.append(" OR ");
+                // the multiple observations which overlaps the second bound
+                sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\">= '").append(end).append("' AND \"time_begin\"<='").append(end).append("')");
+                sqlRequest.append(" OR ");
+                // the multiple observations which overlaps the whole period
+                sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">= '").append(end).append("'))");
+
+                obsJoin = true;
+                firstFilter = false;
+            } else {
+                throw new ObservationStoreException("TM_During operation require TimePeriod!",
+                        INVALID_PARAMETER_VALUE, EVENT_TIME);
+            }
         } else {
-            throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeBefore(final Object time) throws DataStoreException  {
-        // for the operation before the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti      = (Instant) time;
-            final String position = getTimeValue(ti.getDate());
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
-            } else {
-                sqlRequest.append("AND ( ");
-            }
-
-            // the single and multpile observations which begin after the bound
-            sqlRequest.append("(\"time_begin\"<='").append(position).append("'))");
-
-            obsJoin = true;
-            firstFilter = false;
-        } else {
-            throw new ObservationStoreException("TM_Before operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeAfter(final Object time) throws DataStoreException {
-        // for the operation after the temporal object must be an timeInstant
-        if (time instanceof Instant) {
-            final Instant ti      = (Instant) time;
-            final String position = getTimeValue(ti.getDate());
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
-            } else {
-                sqlRequest.append("AND ( ");
-            }
-
-            // the single and multpile observations which begin after the bound
-            sqlRequest.append("(\"time_begin\">='").append(position).append("')");
-            sqlRequest.append(" OR ");
-            // the multiple observations overlapping the bound
-            sqlRequest.append("(\"time_begin\"<='").append(position).append("' AND \"time_end\">='").append(position).append("'))");
-
-            obsJoin = true;
-            firstFilter = false;
-        } else {
-            throw new ObservationStoreException("TM_After operation require timeInstant!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimeDuring(final Object time) throws DataStoreException {
-        if (time instanceof Period) {
-            final Period tp    = (Period) time;
-            final String begin = getTimeValue(tp.getBeginning().getDate());
-            final String end   = getTimeValue(tp.getEnding().getDate());
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
-            } else {
-                sqlRequest.append("AND ( ");
-            }
-
-            // the multiple observations included in the period
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\"<= '").append(end).append("')");
-            sqlRequest.append(" OR ");
-            // the single observations included in the period
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_begin\"<='").append(end).append("' AND \"time_end\" IS NULL)");
-            sqlRequest.append(" OR ");
-            // the multiple observations which overlaps the first bound
-            sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\"<= '").append(end).append("' AND \"time_end\">='").append(begin).append("')");
-            sqlRequest.append(" OR ");
-            // the multiple observations which overlaps the second bound
-            sqlRequest.append(" (\"time_begin\">='").append(begin).append("' AND \"time_end\">= '").append(end).append("' AND \"time_begin\"<='").append(end).append("')");
-            sqlRequest.append(" OR ");
-            // the multiple observations which overlaps the whole period
-            sqlRequest.append(" (\"time_begin\"<='").append(begin).append("' AND \"time_end\">= '").append(end).append("'))");
-
-            obsJoin = true;
-            firstFilter = false;
-        } else {
-            throw new ObservationStoreException("TM_During operation require TimePeriod!",
-                    INVALID_PARAMETER_VALUE, EVENT_TIME);
+            throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
     }
 
@@ -938,16 +938,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void refresh() {
         //do nothing
-    }
-
-    @Override
-    public void setTimeLatest() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setTimeFirst() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

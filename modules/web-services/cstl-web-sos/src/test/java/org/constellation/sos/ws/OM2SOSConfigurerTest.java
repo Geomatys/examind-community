@@ -71,7 +71,6 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
     @PostConstruct
     public void setUp() {
-        SpringHelper.injectDependencies(configurer);
         try {
 
             if (!initialized) {

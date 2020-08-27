@@ -67,7 +67,7 @@ public interface ObservationProvider extends DataProvider {
 
     List<Offering> getOfferings(Query query, final Map<String,String> hints) throws ConstellationStoreException;
 
-    String getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
+    Object getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 

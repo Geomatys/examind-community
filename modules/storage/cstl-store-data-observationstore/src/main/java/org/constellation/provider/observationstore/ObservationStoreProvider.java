@@ -36,7 +36,6 @@ import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.internal.storage.query.SimpleQuery;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -44,7 +43,6 @@ import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.ArraysExt;
-import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -61,8 +59,6 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
-import org.geotoolkit.gml.xml.v321.TimeInstantType;
-import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
@@ -82,24 +78,12 @@ import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.opengis.filter.Id;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Or;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.filter.expression.Literal;
 import org.opengis.filter.expression.PropertyName;
 import org.opengis.filter.spatial.BBOX;
-import org.opengis.filter.temporal.After;
-import org.opengis.filter.temporal.Before;
-import org.opengis.filter.temporal.Begins;
-import org.opengis.filter.temporal.BegunBy;
-import org.opengis.filter.temporal.During;
-import org.opengis.filter.temporal.EndedBy;
-import org.opengis.filter.temporal.Ends;
-import org.opengis.filter.temporal.Meets;
-import org.opengis.filter.temporal.OverlappedBy;
-import org.opengis.filter.temporal.TContains;
-import org.opengis.filter.temporal.TEquals;
-import org.opengis.filter.temporal.TOverlaps;
+import org.opengis.filter.temporal.BinaryTemporalOperator;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -796,21 +780,13 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
     }
 
     @Override
-    public String getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException {
+    public Object getResults(final String sensorID, QName resultModel, Query q, String responseFormat, Map<String, String> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = store.getFilter();
             localOmFilter.initFilterGetResult(sensorID, resultModel, Collections.emptyMap());
             handleQuery(q, localOmFilter, GET_RES, hints);
             localOmFilter.setResponseFormat(responseFormat);
-            Integer decimationSize = null;
-            if (hints.containsKey("decimSize")) {
-                decimationSize = Integer.parseInt(hints.get("decimSize"));
-            }
-            if (decimationSize != null) {
-                return localOmFilter.getDecimatedResults(decimationSize);
-            } else {
-                return localOmFilter.getResults();
-            }
+            return localOmFilter.getResults(hints);
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -970,41 +946,10 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 handleFilter(mode, f, localOmFilter, observedProperties, procedures, fois);
             }
 
-            // The operation Time Equals
-        } else if (filter instanceof TEquals) {
-            final TEquals tf = (TEquals) filter;
-
-            // we get the property name (not used for now)
-            // String propertyName = time.getTBefore().getPropertyName();
-            final Object timeFilter = tf.getExpression2();
-            localOmFilter.setTimeEquals(timeFilter);
-
-            // The operation Time before
-        } else if (filter instanceof Before) {
-            final Before tf = (Before) filter;
-
-            // we get the property name (not used for now)
-            // String propertyName = time.getTBefore().getPropertyName();
-            final Object timeFilter = tf.getExpression2();
-            localOmFilter.setTimeBefore(timeFilter);
-
-            // The operation Time after
-        } else if (filter instanceof After) {
-            final After tf = (After) filter;
-
-            // we get the property name (not used for now)
-            //String propertyName = time.getTAfter().getPropertyName();
-            final Object timeFilter = tf.getExpression2();
-            localOmFilter.setTimeAfter(timeFilter);
-
-            // The time during operation
-        } else if (filter instanceof During) {
-            final During tf = (During) filter;
-
-            // we get the property name (not used for now)
-            //String propertyName = time.getTDuring().getPropertyName();
-            final Object timeFilter = tf.getExpression2();
-            localOmFilter.setTimeDuring(timeFilter);
+            // Temoral filter
+        } else if (filter instanceof BinaryTemporalOperator) {
+            
+            localOmFilter.setTimeFilter((BinaryTemporalOperator) filter);
 
         } else if (filter instanceof Id) {
             final Id idf = (Id) filter;
@@ -1078,9 +1023,6 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
                 }
             }
 
-        } else if (filter instanceof Begins || filter instanceof BegunBy || filter instanceof TContains || filter instanceof EndedBy || filter instanceof Ends || filter instanceof Meets
-                || filter instanceof TOverlaps || filter instanceof OverlappedBy) {
-            throw new ConstellationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         } else {
             throw new ConstellationStoreException("Unknow filter operation.\nAnother possibility is that the content of your time filter is empty or unrecognized.");
         }
