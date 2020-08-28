@@ -339,6 +339,19 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             } else {
                 model = MEASUREMENT_QNAME;
             }
+            boolean decimation = false;
+            if (req.getExtraFlag().containsKey("decimation")) {
+                decimation = true;
+                hints.put("decimSize", req.getExtraFlag().get("decimation"));
+            }
+            if (decimation) {
+                Collection<String> sensorIds = omProvider.getProcedureNames(subquery, defaultHints);
+                for (String sensorId : sensorIds) {
+                    List<Object> resultArray = (List<Object>) omProvider.getResults(sensorId, model, subquery, "resultArray", hints);
+                }
+                
+            }
+            
             List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", null, hints);
             if (isDataArray) {
                 return buildDataArray(sps, req.getCount());

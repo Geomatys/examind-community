@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -440,7 +441,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 while (rs.next()) {
                     int nbValue = 0;
-                    ResultBuilder values = new ResultBuilder(directResultArray, encoding);
+                    ResultBuilder values = new ResultBuilder(directResultArray, encoding, false);
                     final String procedure = rs.getString("procedure");
                     final String featureID = rs.getString("foi");
                     final int oid = rs.getInt("id");
@@ -771,7 +772,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public String getResults(final Map<String,String> hints) throws DataStoreException {
+    public Object getResults(final Map<String,String> hints) throws DataStoreException {
         Integer decimationSize = null;
         if (hints.containsKey("decimSize")) {
             decimationSize = Integer.parseInt(hints.get("decimSize"));
@@ -792,8 +793,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 request = request.replaceFirst("WHERE", "");
             }
             LOGGER.info(request);
-
-            final StringBuilder values = new StringBuilder();
+            ResultBuilder values;
             try(final Connection c = source.getConnection();
                 final Statement currentStatement = c.createStatement();
                 final ResultSet rs = currentStatement.executeQuery(request)) {
@@ -820,69 +820,58 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     fields = readFields(currentProcedure, c);
                 }
-                final TextBlock encoding;
-                if ("text/csv".equals(responseFormat)) {
-                    encoding = getCsvTextEncoding("2.0.0");
+                if ("resultArray".equals(responseFormat)) {
+                    values = new ResultBuilder(true, null, false);
+                } else if ("text/csv".equals(responseFormat)) {
+                    values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
                     // Add the header
-                    for (Field pheno : fields) {
-                        values.append(pheno.fieldDesc).append(',');
-                    }
-                    values.setCharAt(values.length() - 1, '\n');
+                    values.appendHeaders(fields);
                 } else {
-                    encoding = getDefaultTextEncoding("2.0.0");
+                    values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
                 }
-
                 while (rs.next()) {
-                    StringBuilder line = new StringBuilder();
-                    boolean emptyLine = true;
+                    values.newBlock();
                     for (int i = 0; i < fields.size(); i++) {
                         Field field = fields.get(i);
                         String value;
                         switch (field.fieldType) {
                             case "Time":
                                 Date t = dateFromTS(rs.getTimestamp(field.fieldName));
-                                synchronized(format2) {
-                                    value = format2.format(t);
-                                }   line.append(value).append(encoding.getTokenSeparator());
+                                values.appendTime(t);
                                 break;
                             case "Quantity":
                                 value = rs.getString(field.fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                Double d = Double.NaN;
                                 if (value != null && !value.isEmpty()) {
-                                    value = Double.toString(rs.getDouble(field.fieldName));
-                                    emptyLine = false;
-                                    line.append(value);
-                                }   line.append(encoding.getTokenSeparator());
+                                    d = rs.getDouble(field.fieldName);
+                                }
+                                values.appendDouble(d);
                                 break;
                             default:
-                                value = rs.getString(field.fieldName);
-                                if (value != null && !value.isEmpty()) {
-                                    emptyLine = false;
-                                    line.append(value);
-                                }   line.append(encoding.getTokenSeparator());
+                                values.appendString(rs.getString(field.fieldName));
                                 break;
                         }
                     }
-                    if (!emptyLine) {
-                        values.append(line);
-                        // remove last token separator
-                        values.deleteCharAt(values.length() - 1);
-                        values.append(encoding.getBlockSeparator());
-                    }
+                    values.endBlock();
                 }
             }
-            return values.toString();
+            if (values.dra) {
+                return values.getDataArray();
+            } else {
+                return values.getStringValues();
+            }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
         }
     }
 
-    private String getDecimatedResults(final int width) throws DataStoreException {
+    private Object getDecimatedResults(final int width) throws DataStoreException {
         try {
             // add orderby to the query
             final String fieldRequest = sqlRequest.toString();
             sqlRequest.append(" ORDER BY  o.\"id\", m.\"id\"");
-            final StringBuilder values = new StringBuilder();
+            ResultBuilder values;
             try(final Connection c = source.getConnection()) {
                 try (final Statement currentStatement = c.createStatement()) {
                     LOGGER.info(sqlRequest.toString());
@@ -909,20 +898,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else {
                             fields = readFields(currentProcedure, c);
                         }
-                        if ("text/csv".equals(responseFormat)) {
-                            encoding = getCsvTextEncoding("2.0.0");
+                        if ("resultArray".equals(responseFormat)) {
+                            values = new ResultBuilder(true, null, false);
+                        } else if ("text/csv".equals(responseFormat)) {
+                            values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
                             // Add the header
-                            for (Field pheno : fields) {
-                                // hack for the current graph in cstl you only work when the main field is named "time"
-                                if ("Time".equals(pheno.fieldType)) {
-                                    values.append("time").append(',');
-                                } else {
-                                    values.append(pheno.fieldDesc).append(',');
-                                }
-                            }
-                            values.setCharAt(values.length() - 1, '\n');
+                            values.appendHeaders(fields);
                         } else {
-                            encoding = getDefaultTextEncoding("2.0.0");
+                            values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
                         }
                         Map<String, Double> minVal = initMapVal(fields, false);
                         Map<String, Double> maxVal = initMapVal(fields, true);
@@ -931,7 +914,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         long start = times[0];
 
                         while (rs.next()) {
-
+                            
                             long currentMainValue = -1;
                             for (int i = 0; i < fields.size(); i++) {
                                 Field field = fields.get(i);
@@ -953,43 +936,43 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
 
                             if (currentMainValue != -1 && currentMainValue > (start + step)) {
+                                values.newBlock();
                                 //min
                                 if (fields.get(0).fieldType.equals("Time")) {
-                                    values.append(format.format(new Date(start)));
+                                    values.appendTime(new Date(start));
                                 } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.append(start);
+                                    values.appendString(Long.toString(start));
                                 } else {
                                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                                 }
                                 for (Field field : fields) {
                                     if (!field.equals(fields.get(0))) {
-                                        values.append(encoding.getTokenSeparator());
                                         final double minValue = minVal.get(field.fieldName);
                                         if (minValue != Double.MAX_VALUE) {
-                                            values.append(minValue);
+                                            values.appendDouble(minValue);
                                         }
                                     }
                                 }
-                                values.append(encoding.getBlockSeparator());
+                                values.endBlock();
+                                values.newBlock();
                                 //max
                                 if (fields.get(0).fieldType.equals("Time")) {
                                     long maxTime = start + step;
-                                    values.append(format.format(new Date(maxTime)));
+                                    values.appendTime(new Date(maxTime));
                                 } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.append(start + step);
+                                    values.appendString(Long.toString(start + step));
                                 } else {
                                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                                 }
                                 for (Field field : fields) {
                                     if (!field.equals(fields.get(0))) {
-                                        values.append(encoding.getTokenSeparator());
                                         final double maxValue = maxVal.get(field.fieldName);
                                         if (maxValue != -Double.MAX_VALUE) {
-                                            values.append(maxValue);
+                                            values.appendDouble(maxValue);
                                         }
                                     }
                                 }
-                                values.append(encoding.getBlockSeparator());
+                                values.endBlock();
                                 start = currentMainValue;
                                 minVal = initMapVal(fields, false);
                                 maxVal = initMapVal(fields, true);
@@ -998,7 +981,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
             }
-            return values.toString();
+            if (values.dra) {
+                return values.getDataArray();
+            } else {
+                return values.getStringValues();
+            }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
@@ -1393,7 +1380,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private static class ResultBuilder {
-        private final boolean dra;
+        public final boolean dra;
+        private final boolean csvHack;
         private boolean emptyLine;
 
         private StringBuilder values;
@@ -1404,8 +1392,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         private List<Object> currentArrayLine;
 
 
-        public ResultBuilder(boolean directResultArray, final TextBlock encoding) {
+        public ResultBuilder(boolean directResultArray, final TextBlock encoding, boolean csvHack) {
             this.dra = directResultArray;
+            this.csvHack = csvHack;
             this.encoding = encoding;
             if (directResultArray) {
                 dataArray = new ArrayList<>();
@@ -1427,8 +1416,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (dra) {
                 currentArrayLine.add(t);
             } else {
-                synchronized(format2) {
-                    currentLine.append(format2.format(t)).append(encoding.getTokenSeparator());
+                DateFormat df;
+                if (csvHack) {
+                    df = format;
+                } else {
+                    df = format2;
+                }
+                synchronized(df) {
+                    currentLine.append(df.format(t)).append(encoding.getTokenSeparator());
                 }
             }
         }
@@ -1481,6 +1476,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         public List<Object> getDataArray() {
             return dataArray;
+        }
+
+        private void appendHeaders(List<Field> fields) {
+            if (!dra) {
+                for (Field pheno : fields) {
+                    // hack for the current graph in cstl you only work when the main field is named "time"
+                    if (csvHack && "Time".equals(pheno.fieldType)) {
+                        values.append("time").append(encoding.getTokenSeparator());
+                    } else {
+                        values.append(pheno.fieldDesc).append(encoding.getTokenSeparator());
+                    }
+                }
+                values.setCharAt(values.length() - 1, '\n');
+            }
         }
     }
 }

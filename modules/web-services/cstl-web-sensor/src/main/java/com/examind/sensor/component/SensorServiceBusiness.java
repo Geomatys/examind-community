@@ -361,7 +361,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width) throws ConfigurationException {
+    public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat) throws ConfigurationException {
         try {
             final ObservationProvider pr = getOMProvider(id);
             SimpleQuery query = new SimpleQuery();
@@ -370,7 +370,7 @@ public class SensorServiceBusiness {
             if (width != null) {
                 hints.put("decimSize", Integer.toString(width));
             }
-            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, query, "text/csv", hints);
+            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, query, resultFormat, hints);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

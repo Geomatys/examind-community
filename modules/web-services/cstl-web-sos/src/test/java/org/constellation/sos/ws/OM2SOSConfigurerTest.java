@@ -128,7 +128,22 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     public void getObservationsCsvTest() throws Exception {
         super.getObservationsCsvTest();
     }
+    
+    
+    @Test
+    @Override
+    @Order(order=1)
+    public void getDecimatedObservationsDataArrayTest() throws Exception {
+        super.getDecimatedObservationsDataArrayTest();
+    }
 
+    @Test
+    @Override
+    @Order(order=1)
+    public void getObservationsDataArrayTest() throws Exception {
+        super.getObservationsDataArrayTest();
+    }
+    
     @Test
     @Override
     @Order(order=2)
