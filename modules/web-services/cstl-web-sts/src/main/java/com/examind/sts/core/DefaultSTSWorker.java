@@ -346,15 +346,17 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
             if (decimation) {
                 Collection<String> sensorIds = omProvider.getProcedureNames(subquery, defaultHints);
+                Map<String, List> resultArrays = new HashMap<>();
                 for (String sensorId : sensorIds) {
                     List<Object> resultArray = (List<Object>) omProvider.getResults(sensorId, model, subquery, "resultArray", hints);
+                    resultArrays.put(sensorId, resultArray);
                 }
-                
+                return buildDataArrayFromResults(resultArrays, model);
             }
             
             List<org.opengis.observation.Observation> sps = omProvider.getObservations(subquery, model, "inline", null, hints);
             if (isDataArray) {
-                return buildDataArray(sps, req.getCount());
+                return buildDataArrayFromObservations(sps, req.getCount());
             } else {
                 final ExpandOptions exp = new ExpandOptions(req);
                 List<Observation> values = new ArrayList<>();
@@ -663,7 +665,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return observations;
     }
 
-    private DataArray buildDataArray(List<org.opengis.observation.Observation> obs, Boolean count) throws ConstellationStoreException {
+    private DataArray buildDataArrayFromResults(Map<String, List> arrays, QName resultModel) throws ConstellationStoreException {
+
+        DataArray result = new DataArray();
+        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        for (Entry<String, List> entry : arrays.entrySet()) {
+            String sensorId = entry.getKey() + "-dec";
+            List resultArray = entry.getValue();
+            List<Object> results = formatSTSArray(sensorId, resultArray, MEASUREMENT_QNAME.equals(resultModel), false);
+            result.getDataArray().addAll(results);
+        }
+        return result;
+    }
+    
+    private DataArray buildDataArrayFromObservations(List<org.opengis.observation.Observation> obs, Boolean count) throws ConstellationStoreException {
         int nb = 0;
         final DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -677,27 +692,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     arp.getDataArray().getDataValues() != null) {
 
                     List<Object> resultArray = arp.getDataArray().getDataValues().getAny();
-                    List<Object> results = new ArrayList<>();
-                    // reformat the results
-                    for (Object arrayLineO : resultArray) {
-                        List<Object> arrayLine = (List<Object>) arrayLineO;
-                        List<Object> newLine = new ArrayList<>();
-                        // id
-                        newLine.add(observationId + "-" + arrayLine.get(0));
-
-                        // time
-                        Date d = (Date) arrayLine.get(1);
-                        newLine.add(d);
-                        newLine.add(d);
-
-                        List measures = new ArrayList<>();
-                        for (int i = 2; i < arrayLine.size(); i++) {
-                            measures.add(arrayLine.get(i));
-                        }
-                        newLine.add(measures);
-                        results.add(newLine);
-                        nb++;
-                    }
+                    List<Object> results = formatSTSArray(observationId, resultArray, false, true);
+                    nb = nb + results.size();
                     result.getDataArray().addAll(results);
 
                 } else {
@@ -725,6 +721,48 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             result.setIotCount(new BigDecimal(nb));
         }
         return result;
+    }
+    
+    private List<Object> formatSTSArray(final String oid, List<Object> resultArray, boolean single, boolean idIncluded) {
+        List<Object> results = new ArrayList<>();
+        // reformat the results
+        int j = 0;
+        for (Object arrayLineO : resultArray) {
+            List<Object> arrayLine = (List<Object>) arrayLineO;
+            List<Object> newLine = new ArrayList<>();
+            int col = 0;
+            
+            // id
+            if (idIncluded) {
+                newLine.add(oid + "-" + arrayLine.get(col));
+                col++;
+            } else {
+                newLine.add(oid + "-" + j);
+            }
+
+            // time
+            Date d = (Date) arrayLine.get(col);
+            col++;
+            newLine.add(d);
+            newLine.add(d);
+
+            if (single) {
+                // should not happen if correctly called
+                if (arrayLine.size() > 3) {
+                    LOGGER.warning("Calling single sts array but found multiple phenomenon");
+                }
+                newLine.add(arrayLine.get(col));
+            } else {
+                List measures = new ArrayList<>();
+                for (int i = col; i < arrayLine.size(); i++) {
+                    measures.add(arrayLine.get(i));
+                }
+                newLine.add(measures);
+            }
+            results.add(newLine);
+            j++;
+        }
+        return results;
     }
 
     private String temporalObjToString(TemporalObject to) {

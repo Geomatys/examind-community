@@ -426,6 +426,37 @@ public class OM2STSWorkerTest {
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
     }
+    
+    @Test
+    @Order(order=3)
+    public void getObservationsDataStreamDataArrayDecimTest() throws Exception {
+        GetObservations request = new GetObservations();
+        request.setResultFormat("dataArray");
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-0");
+        request.getExtraFlag().put("decimation", "10");
+        Object resultObj = worker.getObservations(request);
+
+        Assert.assertTrue(resultObj instanceof DataArray);
+        DataArray result = (DataArray) resultObj;
+
+        DataArray expResult = new DataArray();
+        expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        List<Object> array = new ArrayList<>();
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-0", ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T10:59:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-1", ISO_8601_3_FORMATTER.parse("2007-05-01T11:23:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T11:23:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-2", ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T11:59:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-3", ISO_8601_3_FORMATTER.parse("2007-05-01T12:23:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T12:23:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-4", ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T12:59:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-5", ISO_8601_3_FORMATTER.parse("2007-05-01T13:23:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:23:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-6", ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T13:59:00.0"), 6.56));
+        array.add(Arrays.asList("urn:ogc:object:sensor:GEOM:test-1-dec-7", ISO_8601_3_FORMATTER.parse("2007-05-01T14:23:00.0"), ISO_8601_3_FORMATTER.parse("2007-05-01T14:23:00.0"), 6.56));
+        expResult.setDataArray(array);
+
+        Assert.assertEquals(expResult.getDataArray().size(), result.getDataArray().size());
+        Assert.assertEquals(expResult.getDataArray().get(0), result.getDataArray().get(0));
+        Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
+        Assert.assertEquals(expResult, result);
+    }
 
     @Test
     @Order(order=3)

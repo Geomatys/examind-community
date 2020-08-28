@@ -941,7 +941,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 if (fields.get(0).fieldType.equals("Time")) {
                                     values.appendTime(new Date(start));
                                 } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.appendString(Long.toString(start));
+                                    values.appendLong(start);
                                 } else {
                                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                                 }
@@ -960,7 +960,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     long maxTime = start + step;
                                     values.appendTime(new Date(maxTime));
                                 } else if (fields.get(0).fieldType.equals("Quantity")) {
-                                    values.appendString(Long.toString(start + step));
+                                    values.appendLong(start + step);
                                 } else {
                                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                                 }
@@ -1451,6 +1451,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 currentLine.append(encoding.getTokenSeparator());
             }
         }
+        
+        public void appendLong(Long value) {
+            if (value != null) emptyLine = false;
+            if (dra) {
+                currentArrayLine.add(value);
+            } else {
+                if (value != null) {
+                    currentLine.append(value);
+                }
+                currentLine.append(encoding.getTokenSeparator());
+            }
+        }
+
 
         public int endBlock() {
             if (!emptyLine) {

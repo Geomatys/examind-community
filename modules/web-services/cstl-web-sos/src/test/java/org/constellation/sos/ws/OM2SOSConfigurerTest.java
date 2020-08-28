@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.annotation.PostConstruct;
-import org.constellation.admin.SpringHelper;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.utils.Order;
@@ -149,6 +148,13 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
     @Order(order=2)
     public void getObservationsCsvProfileTest() throws Exception {
         super.getObservationsCsvProfileTest();
+    }
+    
+    @Test
+    @Override
+    @Order(order=2)
+    public void getObservationsDataArrayProfileTest()throws Exception {
+        super.getObservationsDataArrayProfileTest();
     }
 
     @Test

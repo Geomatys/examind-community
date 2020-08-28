@@ -274,6 +274,23 @@ public abstract class SOSConfigurerTest {
                            "459,35.1\n";
         Assert.assertEquals(expResult, result);
     }
+    
+    public void getObservationsDataArrayProfileTest() throws Exception {
+        final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
+        List result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:2", Arrays.asList("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon"), new ArrayList<>(), null, null, 10, "resultArray");
+        List expResult = Arrays.asList(
+                           Arrays.asList(12L,18.5),
+                           Arrays.asList(87L,23.9),
+                           Arrays.asList(96L,26.2),
+                           Arrays.asList(171L,26.2),
+                           Arrays.asList(192L,31.4),
+                           Arrays.asList(267L,31.4),
+                           Arrays.asList(384L,35.1),
+                           Arrays.asList(459L,35.1));
+        Assert.assertEquals(expResult.size(), result.size());
+        Assert.assertEquals(expResult.get(0), result.get(0));
+        Assert.assertEquals(expResult, result);
+    }
 
     public void getSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
