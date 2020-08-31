@@ -48,8 +48,16 @@ public class ElasticSearchFilterParser implements FilterParser {
 
     private static final String DEFAULT_FIELD = "metafile:doc";
 
+    /**
+     * Enable the old mode using the geomatys R-tree plugin.
+     */
     private final boolean withPlugin;
 
+    /**
+     * Build a new filter parser.
+     * 
+     * @param withPlugin Enable the old mode using the geomatys R-tree plugin.
+     */
     public ElasticSearchFilterParser(boolean withPlugin) {
         this.withPlugin = withPlugin;
     }

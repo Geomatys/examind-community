@@ -464,7 +464,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
         final List<Double> minys = extractPositions(form, queryableSet.get("SouthBoundLatitude"));
         try {
             if (minxs.size() == minys.size() && minys.size() == maxxs.size() && maxxs.size() == maxys.size()) {
-                System.out.println(doc.get("id"));
                 doc.putAll(generateMapEnvelopes("geoextent", CRScode, minxs, maxxs, minys, maxys));
                 return true;
             } else {
@@ -514,7 +513,6 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
                     boxMap.put("coordinates", Arrays.asList(Arrays.asList(ix, ay), Arrays.asList(ax, iy)));
                     boxMap.put("type", "envelope");
-                    System.out.println("PUT: " + "[[" + ix + ',' + ay + "],[" + ax + ',' + iy + "]]");
                 }
                 envelopeList.add(boxMap);
             } else {

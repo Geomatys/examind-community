@@ -41,10 +41,7 @@ public class JSONComparator implements Comparator<JsonNode>
             Assert.assertEquals(d1, d2, 0.0001);
             return 0;
         }
-        if (true) {
-            throw new AssertionError("expected:" + o1 +" but was " + o2);
-        }
-        return 1;
+        throw new AssertionError("expected:" + o1 +" but was " + o2);
     }
 }
 

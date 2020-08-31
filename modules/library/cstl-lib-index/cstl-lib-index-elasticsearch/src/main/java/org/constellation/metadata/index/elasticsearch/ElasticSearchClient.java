@@ -33,6 +33,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -117,10 +118,7 @@ public class ElasticSearchClient {
     }
 
     public RestHighLevelClient getClient() {
-        if (client != null) {
-            return client;
-        }
-        return null;
+        return client;
     }
 
     public boolean setLogLevel() throws IOException {
@@ -162,7 +160,7 @@ public class ElasticSearchClient {
     public boolean indexDoc(final String indexName, final String id, final Map values) throws IOException {
         IndexRequest request = new IndexRequest(indexName).id(id).source(values).setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         IndexResponse response = client.index(request, RequestOptions.DEFAULT);
-        return response.getVersion() > 1;
+        return Result.CREATED.equals(response.getResult()) || Result.UPDATED.equals(response.getResult());
     }
 
     public boolean indexDoc(final String indexName,   final String id,
@@ -175,7 +173,7 @@ public class ElasticSearchClient {
     public boolean removeDoc(final String indexName, final String id) throws IOException {
         DeleteRequest request = new DeleteRequest(indexName, id).setRefreshPolicy(RefreshPolicy.IMMEDIATE);
         final DeleteResponse response = client.delete(request, RequestOptions.DEFAULT);
-        return response.getVersion() > 1;
+        return Result.DELETED.equals(response.getResult());
     }
 
     public void removeDocAll(final String indexName) throws IOException {
