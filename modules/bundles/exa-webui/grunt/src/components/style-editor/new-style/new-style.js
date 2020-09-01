@@ -332,7 +332,7 @@ function NewStyleServicesFactory() {
             if (!symbolizer.stroke) {
                 symbolizer.stroke = {};
             }
-            symbolizer.stroke.dashArray = [1, 1];
+            symbolizer.stroke.dashArray = [6, 6];
             symbolizer.stroke.dashed = true;
         } else {
             symbolizer.stroke.dashArray = null;
