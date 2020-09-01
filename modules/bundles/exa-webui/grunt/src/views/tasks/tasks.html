@@ -236,6 +236,7 @@
                                         <div class="col-sm-2">
                                             <span class="tooltipicon">
                                                 <button type="button" class="btn btn-process" ng-click="executeTask(selected.id);"
+                                                        ng-disabled="!canExecuteTask(selected.id)"
                                                         data-placement="bottom" title="{{'tasks.information.execute' | translate }}" tooltip>
                                                     <i class="glyphicon glyphicon-flash"></i>
                                                 </button>

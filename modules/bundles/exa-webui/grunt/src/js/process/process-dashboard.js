@@ -32,6 +32,7 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
         $scope.hideScroll = true;
         $scope.showInternalProcessFlag = false;
         $scope.allProcessList = [];
+        $scope.runningTasks = [];
 
 
         $scope.init = function() {
@@ -98,6 +99,14 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
                   var topicPath = '/topic/taskevents/'+task.id;
                   task.topic = StompService.subscribe(topicPath, function(data) {
                       var event = JSON.parse(data.body);
+                      var index = $scope.runningTasks.indexOf(task.id);
+                      if(event.status === 'RUNNING'){
+                          if(index === -1){
+                              $scope.runningTasks.push(task.id);
+                          }
+                      } else {
+                          $scope.runningTasks.splice(index,1);
+                      }
 
                       var filter = task.statusList.filter(function (elem) {
                           return elem.id === event.id;
@@ -159,6 +168,10 @@ angular.module('cstl-process-dashboard', ['cstl-restapi', 'cstl-services', 'ui.b
             }).catch(function(){
                 Growl('error', 'Error', "Can't execute this task");
             });
+        };
+
+        $scope.canExecuteTask = function(id){
+            return $scope.runningTasks.indexOf(id) === -1;
         };
 
         $scope.duplicateTask = function(idTask) {
