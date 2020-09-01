@@ -360,7 +360,7 @@ angular.module('cstl-webservice-edit', [
         };
 
         $scope.deleteLayer = function() {
-            var keymsg = ($scope.service.type.toLowerCase() === 'wmts') ? "dialog.message.confirm.delete.tiledLayer" : "dialog.message.confirm.delete.layer";
+            var keymsg = "dialog.message.confirm.delete.layer";
             if ($scope.selected) {
                 var dlg = $modal.open({
                     templateUrl: 'views/modal-confirm.html',
@@ -385,9 +385,6 @@ angular.module('cstl-webservice-edit', [
                         } else {
                             Examind.map.deleteLayer($scope.selected.id)
                                 .then(function () {//on success
-                                    if ($scope.service.type.toLowerCase() === 'wmts') {
-                                        $scope.deleteTiledData($scope.selected.name, $scope.selected.providerId);
-                                    }
                                     Growl('success', 'Success', 'Layer ' + $scope.selected.name + ' successfully deleted from service ' + $scope.service.name);
                                     Examind.map.getLayers($scope.type, $routeParams.id).then(
                                     function (response) {
