@@ -99,9 +99,13 @@ public class OM2DatabaseCreator {
         if (!isPostgres) return true;
         if (source != null) {
             try (final Connection con = source.getConnection();
-                 final Statement stmt = con.createStatement();
-                 final ResultSet result = stmt.executeQuery("SELECT postgis_full_version()")) {
-                result.next();
+                 final Statement stmt = con.createStatement()) {
+                try (final ResultSet result = stmt.executeQuery("SELECT postgis_full_version()")){
+                    result.next();
+                } catch(SQLException ex) {
+                    // try to install it
+                    stmt.execute("CREATE EXTENSION postgis");
+                }
                 return true;
             } catch(SQLException ex) {
                 return false;
