@@ -123,6 +123,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             dataSource.setDriverClassName(driver);
             isPostgres = driver.startsWith("org.postgresql");
             types = OMFeatureTypes.getFeatureTypes("SamplingPoint");
+            Boolean timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             // url
             dataSource.setUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
@@ -157,10 +158,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
             // build database structure if needed
             buildDatasource();
-
-            reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties);
-            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties);
-            filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties);
+            
+            reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
         } catch(IOException ex) {
             throw new DataStoreException(ex);
         }

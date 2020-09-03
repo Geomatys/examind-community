@@ -105,6 +105,9 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
 
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
              BUILDER.addName("schema-prefix").setRemarks("schema-prefix").setRequired(false).create(String.class, null);
+    
+    public static final ParameterDescriptor<Boolean> TIMESCALEDB =
+             BUILDER.addName("timescaledb").setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
 
     /**
      * Parameter for database user password
@@ -113,7 +116,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
              BUILDER.addName("password").setRemarks("Password").setRequired(false).create(String.class, null);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
-            .createGroup(IDENTIFIER,DBTYPE,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX);
+            .createGroup(IDENTIFIER,DBTYPE,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {

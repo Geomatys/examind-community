@@ -98,12 +98,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      *
      * @throws org.apache.sis.storage.DataStoreException
      */
-    public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix, false);
+    public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(properties, schemaPrefix, false, isPostgres, timescaleDB);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
-        this.isPostgres = isPostgres;
         this.source = source;
     }
 
@@ -1113,15 +1112,32 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final StringBuilder sb = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
                                                      + "\"id_observation\" integer NOT NULL,"
                                                      + "\"id\"             integer NOT NULL,");
+            boolean firstField = true;
+            Field mainField = null;
             for (Field field : fields) {
-                sb.append('"').append(field.fieldName).append("\" ").append(field.getSQLType(isPostgres)).append(",");
+                sb.append('"').append(field.fieldName).append("\" ").append(field.getSQLType(isPostgres, firstField && timescaleDB));
+                // main field should not be null (timescaledb compatibility)
+                if (firstField) {
+                    mainField = field;
+                    sb.append(" NOT NULL");
+                    firstField = false;
+                } 
+                sb.append(",");
             }
             sb.setCharAt(sb.length() - 1, ' ');
             sb.append(")");
+            
+            
             try(final Statement stmt = c.createStatement()) {
                 stmt.executeUpdate(sb.toString());
-                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\")");
+                // main field should not be in the primary key (timescaledb compatibility)
+                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\", \"" + mainField.fieldName + "\")");
                 stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");
+                
+                //only for timeseries for now
+                if (timescaleDB && "Time".equals(mainField.fieldType)) {
+                    stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + tableName + "', '" + mainField.fieldName + "')");
+                }
             }
 
             //fill procedure_descriptions table
@@ -1139,7 +1155,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try (Statement addColumnStmt = c.createStatement()) {
                 for (Field newField : newfields) {
                     StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.fieldName + "\" ");
-                    sb.append(newField.getSQLType(isPostgres));
+                    sb.append(newField.getSQLType(isPostgres, false));
                     addColumnStmt.execute(sb.toString());
                 }
             }

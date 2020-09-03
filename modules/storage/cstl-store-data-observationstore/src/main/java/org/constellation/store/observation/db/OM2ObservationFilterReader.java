@@ -93,8 +93,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         super(omFilter);
     }
 
-    public OM2ObservationFilterReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(source, isPostgres, schemaPrefix, properties);
+    public OM2ObservationFilterReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(source, isPostgres, schemaPrefix, properties, timescaleDB);
     }
 
     /**
@@ -774,11 +774,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     @Override
     public Object getResults(final Map<String,String> hints) throws DataStoreException {
         Integer decimationSize = null;
+        boolean includeTimeForProfile     = false;
         if (hints.containsKey("decimSize")) {
             decimationSize = Integer.parseInt(hints.get("decimSize"));
         }
+        if (hints.containsKey("includeTimeForProfile")) {
+            includeTimeForProfile = Boolean.parseBoolean(hints.get("includeTimeForProfile"));
+        }
         if (decimationSize != null) {
-            return getDecimatedResults(decimationSize);
+            if (timescaleDB) {
+                return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile);
+            } else {
+                return getDecimatedResults(decimationSize, includeTimeForProfile);
+            }
         }
         String request = null;
         try {
@@ -866,7 +874,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private Object getDecimatedResults(final int width) throws DataStoreException {
+    private Object getDecimatedResults(final int width, boolean includeTimeInProfile) throws DataStoreException {
+        final boolean profile = "profile".equals(currentOMType);
+        final boolean profileWithTime = profile && includeTimeInProfile;
         try {
             // add orderby to the query
             final String fieldRequest = sqlRequest.toString();
@@ -874,9 +884,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             ResultBuilder values;
             try(final Connection c = source.getConnection()) {
                 try (final Statement currentStatement = c.createStatement()) {
-                    LOGGER.info(sqlRequest.toString());
-                    try (final ResultSet rs = currentStatement.executeQuery(sqlRequest.toString())) {
-                        final TextBlock encoding;
+                    String request = sqlRequest.toString();
+                    if (profileWithTime) {
+                        request = request.replace("m.*", "m.*, o.\"id\" as oid, o.\"time_begin\" ");
+                    } else if (profile) {
+                        request = request.replace("m.*", "m.*, o.\"id\" as oid ");
+                    }
+                    LOGGER.info(request);
+                    try (final ResultSet rs = currentStatement.executeQuery(request)) {
                         final List<Field> fields;
                         if (!currentFields.isEmpty()) {
                             fields = new ArrayList<>();
@@ -907,14 +922,27 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         } else {
                             values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
                         }
-                        Map<String, Double> minVal = initMapVal(fields, false);
-                        Map<String, Double> maxVal = initMapVal(fields, true);
-                        final long[] times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
-                        final long step = times[1];
-                        long start = times[0];
+                        final Map<Integer, long[]> times = getMainFieldStepForGetResult(fieldRequest, fields.get(0), c, width);
 
+                        Map<String, Double> minVal = null;
+                        Map<String, Double> maxVal = null;
+                        long start = -1;
+                        long step  = -1;
+                        Integer prevObs = null;
                         while (rs.next()) {
-                            
+                            Integer currentObs;
+                            if (profile) {
+                                currentObs = rs.getInt("oid");
+                            } else {
+                                currentObs = 1;
+                            }
+                            if (!currentObs.equals(prevObs)) {
+                                step = times.get(currentObs)[1];
+                                start = times.get(currentObs)[0];
+                                minVal = initMapVal(fields, false);
+                                maxVal = initMapVal(fields, true);
+                            }
+                            prevObs = currentObs;
                             long currentMainValue = -1;
                             for (int i = 0; i < fields.size(); i++) {
                                 Field field = fields.get(i);
@@ -934,10 +962,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 addToMapVal(minVal, maxVal, field.fieldName, value);
                             }
 
-
                             if (currentMainValue != -1 && currentMainValue > (start + step)) {
                                 values.newBlock();
                                 //min
+                                if (profileWithTime) {
+                                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                                    values.appendTime(t);
+                                }
                                 if (fields.get(0).fieldType.equals("Time")) {
                                     values.appendTime(new Date(start));
                                 } else if (fields.get(0).fieldType.equals("Quantity")) {
@@ -956,6 +987,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 values.endBlock();
                                 values.newBlock();
                                 //max
+                                if (profileWithTime) {
+                                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                                    values.appendTime(t);
+                                }
                                 if (fields.get(0).fieldType.equals("Time")) {
                                     long maxTime = start + step;
                                     values.appendTime(new Date(maxTime));
@@ -977,6 +1012,133 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 minVal = initMapVal(fields, false);
                                 maxVal = initMapVal(fields, true);
                             }
+                        }
+                    }
+                }
+            }
+            if (values.dra) {
+                return values.getDataArray();
+            } else {
+                return values.getStringValues();
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
+        }
+    }
+    
+    private Object getDecimatedResultsTimeScale(final int width, boolean includeTimeInProfile) throws DataStoreException {
+        final boolean profile = "profile".equals(currentOMType);
+        final boolean profileWithTime = profile && includeTimeInProfile;
+        try {
+            ResultBuilder values;
+            try(final Connection c = source.getConnection()) {
+                
+                final List<Field> fields;
+                final Field mainField;
+                if (!currentFields.isEmpty()) {
+                    fields = new ArrayList<>();
+                    mainField = getMainField(currentProcedure, c);
+                    if (mainField != null) {
+                        fields.add(mainField);
+                    }
+                    List<Field> phenFields = new ArrayList<>();
+                    for (String f : currentFields) {
+                        final Field field = getFieldForPhenomenon(currentProcedure, f, c);
+                        if (field != null && !fields.contains(field)) {
+                            phenFields.add(field);
+                        }
+                    }
+                     // add proper order to fields
+                    List<Field> procedureFields = readFields(currentProcedure, c);
+                    phenFields = reOrderFields(procedureFields, phenFields);
+                    fields.addAll(phenFields);
+                } else {
+                    mainField = getMainField(currentProcedure, c);
+                    fields = readFields(currentProcedure, c);
+                }
+                
+                // calculate step
+                final Map<Integer, long[]> times = getMainFieldStepForGetResult(sqlRequest.toString(), mainField, c, width);
+                final long step;
+                if (profile) {
+                    // choose the first step
+                    // (may be replaced by one request by observation, maybe by looking if the step is uniform)
+                    step = times.values().iterator().next()[1];
+                } else {
+                    step = times.get(1)[1];
+                }
+                
+                StringBuilder select  = new StringBuilder();
+                select.append("time_bucket('").append(step);
+                if (profile) {
+                    select.append("', \"");
+                } else {
+                    select.append(" ms', \"");
+                }
+                select.append(mainField.fieldName).append("\") AS step");
+                for (int i = 1; i < fields.size(); i++) {
+                     select.append(", avg(\"").append(fields.get(i).fieldName).append("\") AS \"").append(fields.get(i).fieldName).append("\"");
+                }
+                if (profileWithTime) {
+                    select.append(", o.\"id\" AS \"oid\", o.\"time_begin\"");
+                } else if (profile) {
+                    select.append(", o.\"id\" AS \"oid\"");
+                }
+                String request = sqlRequest.toString();
+                request = request.replace("m.*", select.toString());
+                if (profile) {
+                    request = request + " GROUP BY step, \"oid\" ORDER BY \"oid\", step";
+                } else {
+                    request = request + " GROUP BY step ORDER BY step";
+                }
+                
+                try (final Statement currentStatement = c.createStatement()) {
+                    LOGGER.info(request);
+                    try (final ResultSet rs = currentStatement.executeQuery(request)) {
+                        
+                        if ("resultArray".equals(responseFormat)) {
+                            values = new ResultBuilder(true, null, false);
+                        } else if ("text/csv".equals(responseFormat)) {
+                            values = new ResultBuilder(false, getCsvTextEncoding("2.0.0"), true);
+                            // Add the header
+                            values.appendHeaders(fields);
+                        } else {
+                            values = new ResultBuilder(false, getDefaultTextEncoding("2.0.0"), false);
+                        }
+                       
+                        while (rs.next()) {
+                            values.newBlock();
+                            if (profileWithTime) {
+                                Date t = dateFromTS(rs.getTimestamp("time_begin"));
+                                values.appendTime(t);
+                            }
+                            for (int i = 0; i < fields.size(); i++) {
+                                Field field = fields.get(i);
+                                String fieldName = field.fieldName; 
+                                if (i == 0) {
+                                    fieldName = "step";
+                                } 
+                                String value;
+                                switch (field.fieldType) {
+                                    case "Time":
+                                        Date t = dateFromTS(rs.getTimestamp(fieldName));
+                                        values.appendTime(t);
+                                        break;
+                                    case "Quantity":
+                                        value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                                        Double d = Double.NaN;
+                                        if (value != null && !value.isEmpty()) {
+                                            d = rs.getDouble(fieldName);
+                                        }
+                                        values.appendDouble(d);
+                                        break;
+                                    default:
+                                        values.appendString(rs.getString(fieldName));
+                                        break;
+                                }
+                            }
+                            values.endBlock();
                         }
                     }
                 }
@@ -1024,12 +1186,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private long[] getMainFieldStepForGetResult(String request, final Field mainField, final Connection c, final int width) throws SQLException {
-        request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
-        try(final Statement stmt = c.createStatement();
-            final ResultSet rs = stmt.executeQuery(request)) {
-            final long[] result = {-1L, -1L};
-            if (rs.next()) {
+    private Map<Integer, long[]> getMainFieldStepForGetResult(String request, final Field mainField, final Connection c, final int width) throws SQLException {
+        boolean profile = "profile".equals(currentOMType);
+        if (profile) {
+            request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\"), o.\"id\" ");
+            request = request + " group by o.\"id\" order by o.\"id\"";
+        } else {
+            request = request.replace("SELECT m.*", "SELECT MIN(\"" + mainField.fieldName + "\"), MAX(\"" + mainField.fieldName + "\") ");
+        }
+        try (final Statement stmt = c.createStatement();
+             final ResultSet rs = stmt.executeQuery(request)) {
+            Map<Integer, long[]> results = new LinkedHashMap<>();
+            while (rs.next()) {
+                final long[] result = {-1L, -1L};
                 if (mainField.fieldType.equals("Time")) {
                     final Timestamp minT = rs.getTimestamp(1);
                     final Timestamp maxT = rs.getTimestamp(2);
@@ -1050,8 +1219,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     throw new SQLException("unable to extract bound from a " + mainField.fieldType + " main field.");
                 }
+                final int key;
+                if (profile) {
+                    key = rs.getInt(3);
+                } else {
+                    key = 1; // single in time series
+                }
+                results.put(key, result);
             }
-            return result;
+            return results;
         }
     }
 

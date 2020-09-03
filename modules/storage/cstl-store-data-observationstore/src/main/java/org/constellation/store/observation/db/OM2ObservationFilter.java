@@ -88,6 +88,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean getOff  = false;
 
     protected String currentProcedure = null;
+    protected String currentOMType = null;
 
     protected List<String> currentFields = new ArrayList<>();
 
@@ -109,10 +110,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    public OM2ObservationFilter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix, true);
+    public OM2ObservationFilter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(properties, schemaPrefix, true, isPostgres, timescaleDB);
         this.source     = source;
-        this.isPostgres = isPostgres;
         resultModel     = null;
         try {
             // try if the connection is valid
@@ -156,6 +156,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         currentProcedure = procedure;
         try(final Connection c = source.getConnection()) {
             final int pid = getPIDFromProcedure(procedure, c);
+            currentOMType = getProcedureOMType(procedure, c);
             sqlRequest = new StringBuilder("SELECT m.* "
                                          + "FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
                                          + "WHERE o.\"id\" = m.\"id_observation\"");

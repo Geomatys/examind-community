@@ -322,6 +322,7 @@ angular.module('cstl-webservice-create', [
                     user: self.guiConfig.user,
                     password: self.guiConfig.password,
                     'schema-prefix':self.guiConfig.schema,
+                    timescaledb: self.guiConfig.timescaledb,
                     sgbdtype: 'postgres',
                     'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                     'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",

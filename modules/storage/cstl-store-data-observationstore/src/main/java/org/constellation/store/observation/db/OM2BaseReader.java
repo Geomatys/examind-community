@@ -68,7 +68,9 @@ import org.opengis.util.FactoryException;
  */
 public class OM2BaseReader {
 
-    protected boolean isPostgres;
+    protected final boolean isPostgres;
+    
+    protected final boolean timescaleDB;
 
     /**
      * The base for observation id.
@@ -106,7 +108,9 @@ public class OM2BaseReader {
     protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected static final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled) {
+    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) {
+        this.isPostgres = isPostgres;
+        this.timescaleDB = timescaleDB;
         final String phenID = (String) properties.get(CommonConstants.PHENOMENON_ID_BASE);
         if (phenID == null) {
             this.phenomenonIdBase      = "";
@@ -142,6 +146,7 @@ public class OM2BaseReader {
         this.observationIdBase         = that.observationIdBase;
         this.schemaPrefix              = that.schemaPrefix;
         this.cacheEnabled              = that.cacheEnabled;
+        this.timescaleDB               = that.timescaleDB;
     }
 
     /**
@@ -441,6 +446,18 @@ public class OM2BaseReader {
             }
         }
     }
+    
+    protected String getProcedureOMType(final String procedure, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {
+            stmt.setString(1, procedure);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                }
+                return null;
+            }
+        }
+    }
 
     protected String getProcedureFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {
@@ -525,9 +542,11 @@ public class OM2BaseReader {
             return buildAnyScalar(version, null, fieldName, compo);
         }
 
-        public String getSQLType(boolean isPostgres) throws SQLException {
+        public String getSQLType(boolean isPostgres, boolean timescaledbMain) throws SQLException {
             if (fieldType.equals("Quantity")) {
-                if (!isPostgres) {
+                if (timescaledbMain) {
+                    return "integer";
+                } else if (!isPostgres) {
                     return "double";
                 } else {
                     return "double precision";

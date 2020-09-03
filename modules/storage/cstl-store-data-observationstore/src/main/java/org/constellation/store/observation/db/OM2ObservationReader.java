@@ -108,9 +108,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     private final Map<String, List<String>> acceptedSensorMLFormats = new HashMap<>();
 
-    public OM2ObservationReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, schemaPrefix, false);
-        this.isPostgres = isPostgres;
+    public OM2ObservationReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(properties, schemaPrefix, false, isPostgres, timescaleDB);
         this.source = source;
         try {
             // try if the connection is valid
