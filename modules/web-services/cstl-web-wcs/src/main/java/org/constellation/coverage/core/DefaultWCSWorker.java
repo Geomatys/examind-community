@@ -151,7 +151,6 @@ import org.geotoolkit.swe.xml.v200.QuantityType;
 import org.geotoolkit.swe.xml.v200.UnitReference;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.temporal.util.TimeParser;
-import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wcs.xml.Content;
 import org.geotoolkit.wcs.xml.CoverageInfo;
 import org.geotoolkit.wcs.xml.DescribeCoverage;
@@ -949,7 +948,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE, KEY_BBOX.toLowerCase());
             }
         }
-        final JTSEnvelope2D refEnvel;
+        Envelope refEnvel;
         try {
             final CoordinateReferenceSystem responseCRS = request.getResponseCRS();
             if (responseCRS != null && !Utilities.equalsIgnoreMetadata(responseCRS, envelope.getCoordinateReferenceSystem())) {
@@ -998,9 +997,12 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE ADRIAN HACKED HERE
             final RenderedImage image;
             try {
+                if (date != null) {
+                    refEnvel = combine(refEnvel, date);
+                }
                 final GridCoverage gridCov = data.getCoverage(refEnvel, size, elevation, date);
                 image = gridCov.render(null);
-            } catch (ConstellationStoreException ex) {
+            } catch (ConstellationStoreException | FactoryException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 
@@ -1009,16 +1011,19 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(NETCDF)) {
 
             throw new CstlServiceException(new IllegalArgumentException(
-                    "Constellation does not support netcdf writing."),
+                    "Examind does not support netcdf writing in WCS 1.0.0."),
                     INVALID_FORMAT, KEY_FORMAT.toLowerCase());
 
         } else if (format.equalsIgnoreCase(GEOTIFF) || format.equalsIgnoreCase(TIFF) || format.equalsIgnoreCase(TIF)) {
             try {
+                if (date != null) {
+                    refEnvel = combine(refEnvel, date);
+                }
                 GeotiffResponse response = new GeotiffResponse();
                 response.metadata = data.getSpatialMetadata();
                 response.coverage = data.getCoverage(refEnvel, size, elevation, date);
                 return response;
-            } catch (ConstellationStoreException ex) {
+            } catch (ConstellationStoreException | FactoryException ex) {
                 throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
             }
 
@@ -1313,6 +1318,33 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             return img;
         }
+    }
+    
+    private Envelope combine(Envelope env, Date temporal) throws FactoryException {
+        int nbDim = env.getDimension();
+
+        CoordinateReferenceSystem crs = env.getCoordinateReferenceSystem();
+        assert crs != null : "Input envelope CRS should be set according to related GetCoverage parameter";
+       
+
+        boolean hasTime = temporal != null;
+        if (hasTime) {
+            crs = CRS.compound(crs, CommonCRS.Temporal.JAVA.crs());
+        }
+
+        if (hasTime) {
+            final GeneralEnvelope combination = new GeneralEnvelope(crs);
+            combination.subEnvelope(0, nbDim).setEnvelope(env);
+            int nextDim = nbDim;
+            if (hasTime) {
+                combination.setRange(nextDim,
+                        temporal.getTime(),
+                        temporal.getTime()
+                );
+            }
+            env = combination;
+        }
+        return env;
     }
 
     private static int dimensionIndex(final String dimension, final CoordinateReferenceSystem crs) {
