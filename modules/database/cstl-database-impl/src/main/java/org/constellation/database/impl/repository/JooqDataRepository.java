@@ -344,6 +344,14 @@ public class JooqDataRepository extends AbstractJooqRespository<DataRecord, org.
                                    .where(DATA_X_DATA.DATA_ID.eq(dataId))
                                    .fetchInto(org.constellation.database.api.jooq.tables.pojos.Data.class));
     }
+    
+    @Override
+    public Integer getParent(Integer id) {
+        return dsl.select(DATA_X_DATA.DATA_ID)
+                .from(DATA_X_DATA)
+                .where(DATA_X_DATA.CHILD_ID.eq(id))
+                .fetchOneInto(Integer.class);
+    }
 
     /**
      * {@inheritDoc}

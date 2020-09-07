@@ -33,7 +33,7 @@ import org.constellation.dto.StyleReference;
  * @author Cédric Briançon (Geomatys)
  */
 public interface ILayerBusiness {
-    void removeAll() throws ConfigurationException;
+    void removeAll() throws ConstellationException;
 
     Integer add(AddLayer layer) throws ConfigurationException;
 
@@ -49,7 +49,7 @@ public interface ILayerBusiness {
      */
     void updateLayerTitle(int layerID, String newTitle) throws ConfigurationException;
 
-    void removeForService(Integer serviceId) throws ConfigurationException;
+    void removeForService(Integer serviceId) throws ConstellationException;
 
     List<Layer> getLayers(Integer serviceId, String userLogin) throws ConfigurationException;
 
@@ -74,7 +74,7 @@ public interface ILayerBusiness {
 
     NameInProvider getFullLayerName(Integer serviceId, Integer layerId, String login) throws ConfigurationException;
 
-    void remove(Integer layerId) throws ConfigurationException;
+    void remove(Integer layerId) throws ConstellationException;
 
     /**
      * Return all layer mapped in {@link LayerSummary} using given style.

@@ -54,6 +54,7 @@ import static com.examind.repository.filesystem.FileSystemUtilities.getDirectory
 import static com.examind.repository.filesystem.FileSystemUtilities.getIntegerList;
 import static com.examind.repository.filesystem.FileSystemUtilities.getObjectFromPath;
 import static com.examind.repository.filesystem.FileSystemUtilities.writeObjectInPath;
+import java.util.Map.Entry;
 
 /**
  *
@@ -599,6 +600,19 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
         } catch (IOException | JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+    
+    @Override
+    public Integer getParent(Integer id) {
+        // TODO Optimize
+        for (Entry<Integer, List<Data>> entry : linkedData.entrySet()) {
+            for (Data d : entry.getValue()) {
+                if (d.getId().equals(id)) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return null;
     }
 
     public void unlinkDataToData(int dataId, int childId) {

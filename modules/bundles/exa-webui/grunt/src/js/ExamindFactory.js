@@ -1413,13 +1413,6 @@ function Examind($http, url) {
                 data: selected
             });
         },
-        deletePyramidFolder : function (providerId) {
-            return self.request({
-                method: 'DELETE',
-                url: 'internal/datas/pyramid/folder/' + providerId,
-                headers: {'Accept': 'application/json'}
-            });
-        },
         getDatasetMetadata : function (datasetId, prune) {
             return self.request({
                 method: 'GET',

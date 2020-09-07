@@ -230,7 +230,7 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void remove(final Integer layerId) throws ConfigurationException {
+    public void remove(final Integer layerId) throws ConstellationException {
         final Layer layer = layerRepository.findById(layerId);
         if (layer != null) {
             Service serv = serviceBusiness.getServiceById(layer.getService());
@@ -242,7 +242,7 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void removeForService(final Integer serviceId) throws ConfigurationException {
+    public void removeForService(final Integer serviceId) throws ConstellationException {
         final Service service = serviceBusiness.getServiceById(serviceId);
         if (service != null) {
             final List<Layer> layers = layerRepository.findByServiceId(serviceId);
@@ -256,7 +256,7 @@ public class LayerBusiness implements ILayerBusiness {
 
     @Override
     @Transactional
-    public void removeAll() throws ConfigurationException {
+    public void removeAll() throws ConstellationException {
         final List<Layer> layers = layerRepository.findAll();
         for (Layer layer : layers) {
             // NOT OPTIMIZED => multiple event sent
@@ -268,7 +268,29 @@ public class LayerBusiness implements ILayerBusiness {
         }
     }
 
-    protected void removeLayer(int layerId, String serviceType, String serviceId) throws ConfigurationException {
+    /**
+     * Remove an existing layer and send event to service hosting ths layer.
+     * For (WMTS) pyramid layer generated from a data at publishing time, if no longer used by any service, 
+     * the data will be removed (so as the files on disk).
+     * 
+     * @param layerId
+     * @param serviceType
+     * @param serviceId
+     * @throws ConfigurationException 
+     */
+    protected void removeLayer(int layerId, String serviceType, String serviceId) throws ConstellationException {
+        if ("wmts".equalsIgnoreCase(serviceType)) {
+            Layer l = layerRepository.findById(layerId);
+            if (l != null && l.getDataId() != null && dataRepository.getParent(l.getDataId()) != null) {
+                Data d = dataRepository.findById(l.getDataId());
+                if ("pyramid".equals(d.getSubtype())) {
+                    boolean stillReferenced = layerRepository.findByDataId(l.getDataId()).size() - 1 > 0;
+                    if (!stillReferenced) {
+                        dataBusiness.removeData(l.getDataId(), true);
+                    }
+                }
+            }
+        }
         layerRepository.delete(layerId);
 
         //clear cache event

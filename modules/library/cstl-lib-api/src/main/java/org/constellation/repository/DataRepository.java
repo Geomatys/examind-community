@@ -34,6 +34,8 @@ public interface DataRepository {
     Data findById(int dataId);
 
     Integer create(Data data);
+    
+    Integer getParent(Integer id);
 
     int delete(int id);
 

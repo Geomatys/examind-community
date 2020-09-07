@@ -33,7 +33,6 @@ import java.util.zip.CRC32;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
@@ -61,11 +60,9 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ISO19110Builder;
 import org.constellation.util.Util;
 import org.geotoolkit.client.AbstractClientProvider;
-import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.db.AbstractJDBCProvider;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
-import org.apache.sis.storage.DataStore;
 import static org.apache.sis.util.ArraysExt.contains;
 import org.constellation.admin.util.DataCoverageUtilities;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
@@ -86,7 +83,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -164,35 +160,6 @@ public class InternalDataRestAPI extends AbstractRestAPI {
             type = "";
         }
         return new ResponseEntity(new SelectedExtension(type, extension), OK);
-    }
-
-    @RequestMapping(value="/internal/datas/pyramid/folder/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity deletePyramidFolder(@PathVariable("id") final int providerId) {
-
-        final Map<String,Object> map = new HashMap<>();
-        final DataStore ds;
-        try {
-            ds = DataProviders.getProvider(providerId).getMainStore();
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, "Unable to access provider "+ providerId, ex);
-            return new ErrorMessage(ex).build();
-        }
-        // todo find another way to determine if its a pyramid provider
-        if (!(ds instanceof XMLCoverageStore)) {
-            map.put("isPyramid",false);
-            return new ResponseEntity(map, OK);
-        }
-        map.put("isPyramid",true);
-        final ResourceOnFileSystem xmlCoverageStore = (ResourceOnFileSystem) ds;
-        try {
-            for (Path p : xmlCoverageStore.getComponentFiles()) {
-                IOUtilities.deleteRecursively(p);
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Unable to delete folder for provider:" + providerId, ex);
-            return new ErrorMessage(ex).build();
-        }
-        return new ResponseEntity(map,OK);
     }
 
     /**

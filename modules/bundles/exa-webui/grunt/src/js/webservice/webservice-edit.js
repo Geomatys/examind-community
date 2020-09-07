@@ -404,16 +404,6 @@ angular.module('cstl-webservice-edit', [
             }
         };
 
-        $scope.deleteTiledData = function(layerName, providerId) {
-            Examind.datas.deletePyramidFolder(providerId).then(function(response) {
-                if(response.data.isPyramid){
-                    Examind.providers.delete(providerId).then(function() {}, function() {
-                        Growl('error','Error','Unable to delete data for layer '+ layerName);
-                    });
-                }
-            });
-        };
-
         /**
          * Open metadata viewer popup and display metadata
          * in appropriate template depending on data type property.

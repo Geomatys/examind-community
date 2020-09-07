@@ -25,6 +25,7 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 
 import java.nio.file.Path;
 import java.util.logging.Level;
+import org.constellation.exception.ConstellationException;
 
 /**
  *
@@ -99,7 +100,7 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
     protected static void deleteInstance(final ILayerBusiness layerBusiness, Integer serviceId) {
         try {
             layerBusiness.removeForService(serviceId);
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "Unable to delete layers for service: "+ serviceName);
         }
     }
