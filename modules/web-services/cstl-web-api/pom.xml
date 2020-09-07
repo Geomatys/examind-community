@@ -124,16 +124,6 @@
             <artifactId>metrics-spring</artifactId>
         </dependency>
 
-        <!-- those 2 depencies should be removed with the old add data -->
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-dbf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotoolkit</groupId>
-            <artifactId>geotk-feature-shapefile</artifactId>
-        </dependency>
-
         <!-- test dependencies -->
         <dependency>
             <groupId>com.examind.community</groupId>
