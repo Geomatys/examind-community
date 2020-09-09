@@ -44,6 +44,7 @@ import org.geotoolkit.metadata.MetadataIoException;
 import org.geotoolkit.metadata.MetadataType;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.metadata.MetadataStore;
+import org.geotoolkit.metadata.RecordInfo;
 import org.geotoolkit.util.collection.CloseableIterator;
 import org.opengis.geometry.Envelope;
 
@@ -407,7 +408,8 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
 
     private E getEntry(final String identifier) throws IndexingException {
         try {
-            return (E) store.getMetadata(identifier, MetadataType.NATIVE);
+            RecordInfo r = store.getMetadata(identifier, MetadataType.NATIVE);
+            return (E) r.node;
         } catch (MetadataIoException ex) {
             throw new IndexingException("Metadata_IOException while reading entry for:" + identifier, ex);
         }
