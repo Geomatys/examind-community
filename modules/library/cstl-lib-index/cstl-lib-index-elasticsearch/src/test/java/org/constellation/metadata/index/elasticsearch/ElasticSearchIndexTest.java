@@ -663,7 +663,7 @@ public class ElasticSearchIndexTest {
         filter = XContentFactory.jsonBuilder()
         .startObject()
             .startObject("term")
-                        .field("date", Util.FULL_LUCENE_DATE_FORMAT.parse("20090126122224765"))
+                        .field("date", Util.FULL_LUCENE_DATE_FORMAT.parse("20090126112224765"))
             .endObject()
         .endObject();
         spatialQuery = new SpatialQuery(null, filter);

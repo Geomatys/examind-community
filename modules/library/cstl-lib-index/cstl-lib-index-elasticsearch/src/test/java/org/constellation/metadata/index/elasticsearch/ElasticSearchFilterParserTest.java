@@ -412,18 +412,21 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         String expResult = "{" +
                             "    \"bool\": {" +
-                            "        \"must\": {" +
+                            "        \"should\": [" +
+                            "         {" +
                             "            \"range\": {" +
                             "                \"CloudCover\": {" +
                             "                    \"gt\": 12" +
                             "                }" +
                             "            }" +
                             "        }," +
-                            "        \"must\": {" +
+                            "        {" +
                             "            \"term\": {" +
                             "                \"objectType_sort\": \"MD_Metadata\"" +
                             "            }" +
                             "        }" +
+                            "        ]," +
+                            "        \"minimum_should_match\": 2" +
                             "    }" +
                             "}";
         assertEquals(Strings.toString(result), expResult.replace(" ", ""));
@@ -523,7 +526,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"bool\":{\"must\":{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},\"must\":{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}}}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}],\"minimum_should_match\":2}}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -596,7 +599,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"bool\":{\"must\":{\"term\":{\"Title\":\"starship trooper\"}},\"must\":{\"term\":{\"Author\":\"Timothee Gustave\"}}}}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}],\"minimum_should_match\":2}}");
 
         /**
          * Test 2: a simple Filter OR between two propertyIsEqualTo
@@ -627,7 +630,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":{\"term\":{\"Title\":\"starship trooper\"}},\"should\":{\"term\":{\"Author\":\"Timothee Gustave\"}}}}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}}]}}");
 
 
         /**
@@ -664,7 +667,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":{\"term\":{\"Title\":\"starship trooper\"}},\"should\":{\"term\":{\"Author\":\"Timothee Gustave\"}},\"should\":{\"term\":{\"Id\":\"268\"}}}}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"term\":{\"Title\":\"starship trooper\"}},{\"term\":{\"Author\":\"Timothee Gustave\"}},{\"term\":{\"Id\":\"268\"}}]}}");
 
 
         /**
@@ -810,12 +813,12 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"term\": {" +
                     "                \"objectType_sort\": \"MD_Metadata\"" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -830,7 +833,8 @@ public class ElasticSearchFilterParserTest {
                     "                    }" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 2" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1214,7 +1218,7 @@ public class ElasticSearchFilterParserTest {
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
         String expresult = "{" +
                             "    \"bool\": {" +
-                            "        \"must\": {" +
+                            "        \"should\": [{" +
                             "            \"geo_shape\": {" +
                             "                \"geoextent\": {" +
                             "                    \"shape\": {" +
@@ -1225,7 +1229,7 @@ public class ElasticSearchFilterParserTest {
                             "                }" +
                             "            }" +
                             "        }," +
-                            "        \"must\": {" +
+                            "        {" +
                             "            \"geo_shape\": {" +
                             "                \"geoextent\": {" +
                             "                    \"shape\": {" +
@@ -1235,7 +1239,8 @@ public class ElasticSearchFilterParserTest {
                             "                    \"relation\": \"intersects\"" +
                             "                }" +
                             "            }" +
-                            "        }" +
+                            "        }]," +
+                            "        \"minimum_should_match\": 2" +
                             "    }" +
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1287,7 +1292,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"should\": {" +
+                    "        \"should\": [{" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1298,7 +1303,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1309,7 +1314,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1319,7 +1324,7 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1373,9 +1378,9 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
-                    "                \"should\": {" +
+                    "                \"should\": [{" +
                     "                    \"geo_shape\": {" +
                     "                        \"geoextent\": {" +
                     "                            \"shape\": {" +
@@ -1386,7 +1391,7 @@ public class ElasticSearchFilterParserTest {
                     "                        }" +
                     "                    }" +
                     "                }," +
-                    "                \"should\": {" +
+                    "                {" +
                     "                    \"geo_shape\": {" +
                     "                        \"geoextent\": {" +
                     "                            \"shape\": {" +
@@ -1396,10 +1401,10 @@ public class ElasticSearchFilterParserTest {
                     "                            \"relation\": \"intersects\"" +
                     "                        }" +
                     "                    }" +
-                    "                }" +
+                    "                }]" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1409,7 +1414,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 2" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1462,7 +1468,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -1482,7 +1488,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1493,7 +1499,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1503,7 +1509,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 3" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1558,7 +1565,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -1567,7 +1574,7 @@ public class ElasticSearchFilterParserTest {
                     "                }," +
                     "                \"must_not\": {" +
                     "                    \"bool\": {" +
-                    "                        \"should\": {" +
+                    "                        \"should\": [{" +
                     "                            \"geo_shape\": {" +
                     "                                \"geoextent\": {" +
                     "                                    \"shape\": {" +
@@ -1578,7 +1585,7 @@ public class ElasticSearchFilterParserTest {
                     "                                }" +
                     "                            }" +
                     "                        }," +
-                    "                        \"should\": {" +
+                    "                        {" +
                     "                            \"geo_shape\": {" +
                     "                                \"geoextent\": {" +
                     "                                    \"shape\": {" +
@@ -1588,12 +1595,12 @@ public class ElasticSearchFilterParserTest {
                     "                                    \"relation\": \"contains\"" +
                     "                                }" +
                     "                            }" +
-                    "                        }" +
+                    "                        }]" +
                     "                    }" +
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1603,7 +1610,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 2" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1659,12 +1667,12 @@ public class ElasticSearchFilterParserTest {
 
         String expresult = "{" +
                             "    \"bool\": {" +
-                            "        \"must\": {" +
+                            "        \"should\": [{" +
                             "            \"wildcard\": {" +
                             "                \"Title_sort\": \"*VM*\"" +
                             "            }" +
                             "        }," +
-                            "        \"must\": {" +
+                            "        {" +
                             "            \"geo_shape\": {" +
                             "                \"geoextent\": {" +
                             "                    \"shape\": {" +
@@ -1674,7 +1682,8 @@ public class ElasticSearchFilterParserTest {
                             "                    \"relation\": \"intersects\"" +
                             "                }" +
                             "            }" +
-                            "        }" +
+                            "        }]," +
+                            "        \"minimum_should_match\": 2" +
                             "    }" +
                             "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1725,17 +1734,17 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"wildcard\": {" +
                     "                \"Title_sort\": \"*VM*\"" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"term\": {" +
                     "                \"Title\": \"VM\"" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1745,7 +1754,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 3" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1794,12 +1804,12 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"term\": {" +
                     "                \"Title\": \"VM\"" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1810,7 +1820,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1820,7 +1830,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 3" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1866,17 +1877,17 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"should\": {" +
+                    "        \"should\": [{" +
                     "            \"wildcard\": {" +
                     "                \"Title_sort\": \"*VM*\"" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"term\": {" +
                     "                \"Title\": \"VM\"" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1886,7 +1897,7 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -1936,12 +1947,12 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"should\": {" +
+                    "        \"should\": [{" +
                     "            \"term\": {" +
                     "                \"Title\": \"VM\"" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1952,7 +1963,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -1962,7 +1973,7 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -2013,14 +2024,14 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
-                    "                \"should\": {" +
+                    "                \"should\": [{" +
                     "                    \"term\": {" +
                     "                        \"Title\": \"VM\"" +
                     "                    }" +
                     "                }," +
-                    "                \"should\": {" +
+                    "                {" +
                     "                    \"geo_shape\": {" +
                     "                        \"geoextent\": {" +
                     "                            \"shape\": {" +
@@ -2030,10 +2041,10 @@ public class ElasticSearchFilterParserTest {
                     "                            \"relation\": \"intersects\"" +
                     "                        }" +
                     "                    }" +
-                    "                }" +
+                    "                }]" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -2043,7 +2054,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 2" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -2092,7 +2104,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult  = "{" +
                     "    \"bool\": {" +
-                    "        \"should\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -2106,21 +2118,22 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"should\": {" +
+                    "        {" +
                     "            \"bool\": {" +
-                    "                \"must\": {" +
+                    "                \"should\": [{" +
                     "                    \"wildcard\": {" +
                     "                        \"Title_sort\": \"LO?Li\"" +
                     "                    }" +
                     "                }," +
-                    "                \"must\": {" +
+                    "                {" +
                     "                    \"geo_distance\": {" +
                     "                        \"geoextent\": [3.4, 2.5]," +
                     "                        \"distance\": \"1000.0m\"" +
                     "                    }" +
-                    "                }" +
+                    "                }]," +
+                    "                \"minimum_should_match\": 2" +
                     "            }" +
-                    "        }" +
+                    "        }]" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -2195,19 +2208,19 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"wildcard\": {" +
                     "                \"Title_sort\": \"*VM*\"" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
-                    "                \"should\": {" +
+                    "                \"should\": [{" +
                     "                    \"term\": {" +
                     "                        \"Title\": \"PLOUF\"" +
                     "                    }" +
                     "                }," +
-                    "                \"should\": {" +
+                    "                {" +
                     "                    \"geo_shape\": {" +
                     "                        \"geoextent\": {" +
                     "                            \"shape\": {" +
@@ -2217,12 +2230,12 @@ public class ElasticSearchFilterParserTest {
                     "                            \"relation\": \"intersects\"" +
                     "                        }" +
                     "                    }" +
-                    "                }" +
+                    "                }]" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
-                    "                \"should\": {" +
+                    "                \"should\": [{" +
                     "                    \"bool\": {" +
                     "                        \"must\": {" +
                     "                            \"term\": {" +
@@ -2236,24 +2249,25 @@ public class ElasticSearchFilterParserTest {
                     "                        }" +
                     "                    }" +
                     "                }," +
-                    "                \"should\": {" +
+                    "                {" +
                     "                    \"bool\": {" +
-                    "                        \"must\": {" +
+                    "                        \"should\": [{" +
                     "                            \"wildcard\": {" +
                     "                                \"Title_sort\": \"LO?Li\"" +
                     "                            }" +
                     "                        }," +
-                    "                        \"must\": {" +
+                    "                        {" +
                     "                            \"geo_distance\": {" +
                     "                                \"geoextent\": [3.4, 2.5]," +
                     "                                \"distance\": \"1000.0m\"" +
                     "                            }" +
-                    "                        }" +
+                    "                        }]," +
+                    "                        \"minimum_should_match\": 2" +
                     "                    }" +
-                    "                }" +
+                    "                }]" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"geo_shape\": {" +
                     "                \"geoextent\": {" +
                     "                    \"shape\": {" +
@@ -2263,7 +2277,8 @@ public class ElasticSearchFilterParserTest {
                     "                    \"relation\": \"intersects\"" +
                     "                }" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 4" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replace(" ", ""));
@@ -2344,7 +2359,7 @@ public class ElasticSearchFilterParserTest {
         result = (XContentBuilder) spaQuery.getQuery();
         expresult = "{" +
                     "    \"bool\": {" +
-                    "        \"must\": {" +
+                    "        \"should\": [{" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -2358,7 +2373,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -2378,7 +2393,7 @@ public class ElasticSearchFilterParserTest {
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
                     "                \"must\": {" +
                     "                    \"term\": {" +
@@ -2387,12 +2402,12 @@ public class ElasticSearchFilterParserTest {
                     "                }," +
                     "                \"must_not\": {" +
                     "                    \"bool\": {" +
-                    "                        \"should\": {" +
+                    "                        \"should\": [{" +
                     "                            \"term\": {" +
                     "                                \"Title\": \"PLOUF\"" +
                     "                            }" +
                     "                        }," +
-                    "                        \"should\": {" +
+                    "                        {" +
                     "                            \"geo_shape\": {" +
                     "                                \"geoextent\": {" +
                     "                                    \"shape\": {" +
@@ -2402,14 +2417,14 @@ public class ElasticSearchFilterParserTest {
                     "                                    \"relation\": \"intersects\"" +
                     "                                }" +
                     "                            }" +
-                    "                        }" +
+                    "                        }]" +
                     "                    }" +
                     "                }" +
                     "            }" +
                     "        }," +
-                    "        \"must\": {" +
+                    "        {" +
                     "            \"bool\": {" +
-                    "                \"should\": {" +
+                    "                \"should\": [{" +
                     "                    \"bool\": {" +
                     "                        \"must\": {" +
                     "                            \"term\": {" +
@@ -2423,23 +2438,25 @@ public class ElasticSearchFilterParserTest {
                     "                        }" +
                     "                    }" +
                     "                }," +
-                    "                \"should\": {" +
+                    "                {" +
                     "                    \"bool\": {" +
-                    "                        \"must\": {" +
+                    "                        \"should\": [{" +
                     "                            \"wildcard\": {" +
                     "                                \"Title_sort\": \"LO?Li\"" +
                     "                            }" +
                     "                        }," +
-                    "                        \"must\": {" +
+                    "                        {" +
                     "                            \"geo_distance\": {" +
                     "                                \"geoextent\": [3.4, 2.5]," +
                     "                                \"distance\": \"1000.0m\"" +
                     "                            }" +
-                    "                        }" +
+                    "                        }]," +
+                    "                        \"minimum_should_match\": 2" +
                     "                    }" +
-                    "                }" +
+                    "                }]" +
                     "            }" +
-                    "        }" +
+                    "        }]," +
+                    "        \"minimum_should_match\": 4" +
                     "    }" +
                     "}";
         assertEquals(Strings.toString(result), expresult.replaceAll(" ", ""));

@@ -251,24 +251,29 @@ public class SpatialFilterBuilder {
             Or or = (Or)filter;
             builder.startObject("bool");
 
+            builder.startArray("should");
             for (Filter f : or.getChildren()) {
-                builder.startObject("should");
+                builder.startObject();
                 build(f, builder, withPlugin);
                 builder.endObject();
             }
-
+            builder.endArray();
             builder.endObject();
+            
         } else if (filter instanceof And) {
             And and = (And)filter;
             builder.startObject("bool");
 
+            builder.startArray("should");
             for (Filter f : and.getChildren()) {
-                builder.startObject("must");
+                builder.startObject();
                 build(f, builder, withPlugin);
                 builder.endObject();
             }
-
+            builder.endArray();
+            builder.field("minimum_should_match", and.getChildren().size());
             builder.endObject();
+            
         } else if (filter instanceof PropertyIsLike ) {
 
             final PropertyIsLike pil = (PropertyIsLike) filter;
