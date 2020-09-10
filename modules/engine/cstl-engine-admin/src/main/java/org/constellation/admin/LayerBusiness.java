@@ -331,20 +331,26 @@ public class LayerBusiness implements ILayerBusiness {
         final List<LayerSummary> sumLayers = new ArrayList<>();
         final List<Layer> layers = layerRepository.getLayersByLinkedStyle(styleId);
         for(final Layer lay : layers){
-            final QName fullName = new QName(lay.getNamespace(), lay.getName());
-            final Data data = dataRepository.findById(lay.getDataId());
-            final DataBrief db = dataBusiness.getDataBrief(fullName, data.getProviderId());
             final LayerSummary layerSummary = new LayerSummary();
+            if (lay.getDataId() != null) {
+                final Data data = dataRepository.findById(lay.getDataId());
+                if (data != null) {
+                    layerSummary.setName(data.getName());
+                    layerSummary.setNamespace(data.getNamespace());
+                    final QName fullName = new QName(lay.getNamespace(), lay.getName());
+                    final DataBrief db = dataBusiness.getDataBrief(fullName, data.getProviderId());
+                    if (db != null) {
+                        layerSummary.setType(db.getType());
+                        layerSummary.setSubtype(db.getSubtype());
+                        layerSummary.setOwner(db.getOwner());
+                        layerSummary.setProvider(db.getProvider());
+                    }
+                }
+            }
             layerSummary.setId(lay.getId());
-            layerSummary.setName(data.getName());
-            layerSummary.setNamespace(data.getNamespace());
             layerSummary.setAlias(lay.getAlias());
             layerSummary.setTitle(lay.getTitle());
-            layerSummary.setType(db.getType());
-            layerSummary.setSubtype(db.getSubtype());
             layerSummary.setDate(lay.getDate());
-            layerSummary.setOwner(db.getOwner());
-            layerSummary.setProvider(db.getProvider());
             layerSummary.setDataId(lay.getDataId());
             sumLayers.add(layerSummary);
         }

@@ -63,6 +63,7 @@ public interface IDatasourceBusiness {
      * Update a Datasource.
      *
      * @param ds the new datasource to update, id must not be null.
+     * @throws org.constellation.exception.ConstellationException
      */
     void update(DataSource ds) throws ConstellationException;
 
@@ -81,6 +82,7 @@ public interface IDatasourceBusiness {
      * Call {@link IDatasourceBusiness#close()} before removing it.
      *
      * @param id the datasource identifier.
+     * @throws org.constellation.exception.ConstellationException
      */
     void delete(int id) throws ConstellationException;
 
@@ -88,6 +90,7 @@ public interface IDatasourceBusiness {
      * Remove all the datasources.
      * Call {@link IDatasourceBusiness#close()}
      *
+     * @throws org.constellation.exception.ConstellationException
      */
     void deleteAll() throws ConstellationException;
 
@@ -153,7 +156,6 @@ public interface IDatasourceBusiness {
      * @param path the searched path.
      *
      * @return A list of selected datasource path.
-     * @throws ConstellationException
      */
     DataSourceSelectedPath getSelectedPath(DataSource ds, String path);
 
@@ -253,8 +255,8 @@ public interface IDatasourceBusiness {
      * Update the current state of the datasource analysis.
      * for the different possible vlues see {@link AnalysisState}
      *
-     * @param id The datasource identifier.
-     * @return the current state of the datasource analysis.
+     * @param dsId The datasource identifier.
+     * @param state the new state of the datasource analysis.
      */
     void updateDatasourceAnalysisState(int dsId, String state);
 
@@ -274,6 +276,22 @@ public interface IDatasourceBusiness {
      * @throws ConstellationException
      */
     ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException;
+    
+    /**
+     * Analyse and treat the specified datasource select path.Instanciate provider, data and metadata for the path, with the specified hidden flag.
+     *
+     * @param p The datasource path.
+     * @param ds The datasource.
+     * @param provConfig The provider configuration, containing various custom parameters for the datastore.
+     * @param hidden A flag applied to the data and metadata created.
+     * @param datasetId The dataset identifier in which the data will be inserted.
+     * @param owner the owner of the created provider, data and metadata.
+     * @param assignedId Assign the provider identifier of the created provider.
+     *
+     * @return informations about the generated objects.
+     * @throws ConstellationException
+     */
+    ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath p, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException;
 
     /**
      * Update the status of the specified datasource path.

@@ -121,6 +121,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private final Cache<Integer, Object> datasourceLocks = new Cache<>(19, 0, false);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public Integer create(DataSource ds) {
@@ -136,12 +139,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return dsRepository.create(ds);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void update(DataSource ds) {
         dsRepository.update(ds);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void close(int id) {
         try {
@@ -156,6 +165,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void delete(int id) throws ConstellationException {
@@ -166,6 +178,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         close(datasource, true);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void deleteAll() throws ConstellationException {
@@ -221,27 +236,42 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataSource getDatasource(int id) {
         return dsRepository.findById(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataSource getByUrl(String url) {
         return dsRepository.findByUrl(url);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void addSelectedPath(final int dsId,  String subPath) {
         dsRepository.addSelectedPath(dsId, subPath);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean existSelectedPath(final int dsId,  String subPath) {
         return dsRepository.existSelectedPath(dsId, subPath);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Scheduled(fixedDelay = 3600000L)
     @Transactional
@@ -289,6 +319,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return visitor.serialPresent;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void removePath(DataSource ds, String path) {
@@ -313,6 +346,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String testDatasource(DataSource ds) {
         switch (ds.getType()) {
@@ -404,6 +440,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public List<FileBean> exploreDatasource(final Integer dsId, String subPath) throws ConstellationException {
@@ -450,6 +489,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public DatasourceAnalysisV3 analyseDatasourceV3(Integer dsId, ProviderConfiguration provConfig) throws ConstellationException {
@@ -488,21 +530,40 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         return joiner.toString();
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner) throws ConstellationException {
+        return treatDataPath(sp, ds, provConfig, hidden, datasetId, owner, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public ResourceStoreAnalysisV3 treatDataPath(DataSourceSelectedPath sp, DataSource ds, ProviderConfiguration provConfig, boolean hidden, Integer datasetId, Integer owner, String assignedId) throws ConstellationException {
 
         // 1. Extract and download files
         final ResourceStore store;
         String errorMessage = null;
+        
+        String newProviderId;
+        if (assignedId == null) {
+            newProviderId = ds.getStoreId()+'-'+UUID.randomUUID().toString();
+        } else {
+            newProviderId = assignedId;
+        }
 
         // 1.1 Special case :
         //  => dynamic url (OGC WS, ...)
         //  => database (postgres, oracle ...)
         // No path associated.
         if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
-            store = new ResourceStore(ds.getStoreId()+'-'+UUID.randomUUID().toString(), null, new ArrayList<>(), false);
+            store = new ResourceStore(newProviderId, null, new ArrayList<>(), false);
 
         // 1.2 for fileSystems determine the files associated with the resource and eventually donwload them.
         } else {
@@ -537,7 +598,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                         .map(Path::toUri)
                         .map(URI::toString)
                         .collect(Collectors.toList());
-                store = new ResourceStore(ds.getStoreId()+'-'+UUID.randomUUID().toString(), p.toUri().toString(), usedFiles, true);
+                store = new ResourceStore(newProviderId, p.toUri().toString(), usedFiles, true);
             }
         }
 
@@ -579,18 +640,27 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return new ResourceStoreAnalysisV3(prId, ds.getStoreId(), store.file, store.files, datas, store.indivisible, errorMessage);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void clearSelectedPaths(int id) {
         dsRepository.clearSelectedPath(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, boolean deep) throws ConstellationException {
         return computeDatasourceStores(id, async, null, deep);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep) throws ConstellationException {
@@ -686,11 +756,17 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDatasourceAnalysisState(int id) {
         return dsRepository.getAnalysisState(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateDatasourceAnalysisState(int dsId, String state) {
         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
@@ -757,6 +833,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void recordSelectedPath(DataSource ds) {
@@ -770,6 +849,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<DataSourceSelectedPath> getSelectedPath(DataSource ds, Integer limit) throws ConstellationException {
         List<DataSourceSelectedPath> paths = new ArrayList<>();
@@ -781,6 +863,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return paths;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataSourceSelectedPath getSelectedPath(DataSource ds, String path) {
         if (ds.getType().equals("dynamic_url") || ds.getType().equals("database")) {
