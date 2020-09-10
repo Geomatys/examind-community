@@ -20,15 +20,15 @@ package org.constellation.dto.metadata;
 
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.constellation.dto.Identifiable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class Attachment implements Serializable {
+public class Attachment extends Identifiable implements Serializable {
 
-    private Integer id;
     private byte[] content;
     private String uri;
     private String filename;
@@ -42,20 +42,6 @@ public class Attachment implements Serializable {
         this.filename = filename;
         this.id = id;
         this.uri = uri;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

@@ -57,12 +57,9 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
                     MapContextDTO meta = (MapContextDTO) getObjectFromPath(mcFile, pool);
                     byId.put(meta.getId(), meta);
 
-                    if (meta.getId() >= currentId) {
-                        currentId = meta.getId() +1;
-                    }
+                    incCurrentId(meta);
                 }
             }
-
         } catch (IOException | JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -96,15 +93,14 @@ public class FileSystemMapContextRepository extends AbstractFileSystemRepository
     @Override
     public Integer create(MapContextDTO mapContext) {
         if (mapContext != null) {
-            mapContext.setId(currentId);
+            final int id = assignCurrentId(mapContext);
 
             Path mcDir = getDirectory(MAPCONTEXT_DIR);
-            Path mcFile = mcDir.resolve(currentId + ".xml");
+            Path mcFile = mcDir.resolve(id + ".xml");
             writeObjectInPath(mapContext, mcFile, pool);
 
             byId.put(mapContext.getId(), mapContext);
 
-            currentId++;
             return mapContext.getId();
         }
         return -1;

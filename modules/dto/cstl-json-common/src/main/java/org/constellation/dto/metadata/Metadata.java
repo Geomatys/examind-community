@@ -19,14 +19,14 @@
 package org.constellation.dto.metadata;
 
 import java.util.Objects;
+import org.constellation.dto.Identifiable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class Metadata {
+public class Metadata extends Identifiable {
 
-    private Integer id;
     private String metadataId;
     private Integer dataId;
     private Integer datasetId;
@@ -133,20 +133,6 @@ public class Metadata {
             this.isShared = metadata.isShared;
             this.isHidden = metadata.isHidden;
         }
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

@@ -93,10 +93,7 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
                     } else {
                         byProvider.get(metadata.getProviderId()).add(metadata);
                     }
-
-                    if (metadata.getId() >= currentId) {
-                        currentId = metadata.getId() +1;
-                    }
+                    incCurrentId(metadata);
                 }
             }
 
@@ -287,10 +284,10 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
     @Override
     public int create(MetadataComplete metadata) {
         if (metadata != null) {
-            metadata.setId(currentId);
+            final int id = assignCurrentId(metadata);
 
             Path metadataDir = getDirectory(METADATA_DIR);
-            Path metadataFile = metadataDir.resolve(currentId + ".xml");
+            Path metadataFile = metadataDir.resolve(id + ".xml");
             writeObjectInPath(metadata, metadataFile, pool);
 
             byId.put(metadata.getId(), metadata);
@@ -323,8 +320,6 @@ public class FileSystemMetadataRepository extends AbstractFileSystemRepository i
             } else {
                 byProvider.get(metadata.getProviderId()).add(metadata);
             }
-
-            currentId++;
             return metadata.getId();
         }
         return -1;

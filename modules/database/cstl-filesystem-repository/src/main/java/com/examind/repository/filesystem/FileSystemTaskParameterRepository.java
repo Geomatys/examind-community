@@ -100,10 +100,7 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
                     if (taskParam.getTrigger() != null) {
                         programmedTask.add(taskParam);
                     }
-
-                    if (taskParam.getId() >= currentId) {
-                        currentId = taskParam.getId() +1;
-                    }
+                    incCurrentId(taskParam);
                 }
             }
 
@@ -155,10 +152,10 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
     public Integer create(TaskParameter task) {
         if (task != null) {
             TaskParameterWithOwnerName taskParam = new TaskParameterWithOwnerName(task, null);
-            taskParam.setId(currentId);
+            final int id = assignCurrentId(taskParam);
 
             Path taskDir = getDirectory(TASK_PARAM_DIR);
-            Path taskFile = taskDir.resolve(currentId + ".xml");
+            Path taskFile = taskDir.resolve(id + ".xml");
             writeObjectInPath(taskParam, taskFile, pool);
 
             byId.put(taskParam.getId(), taskParam);
@@ -203,8 +200,6 @@ public class FileSystemTaskParameterRepository extends AbstractFileSystemReposit
             if (taskParam.getTrigger() != null) {
                 programmedTask.add(taskParam);
             }
-
-            currentId++;
             return taskParam.getId();
         }
         return null;

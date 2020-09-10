@@ -20,32 +20,18 @@ package org.constellation.dto.process;
 
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.constellation.dto.Identifiable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class ChainProcess implements Serializable {
+public class ChainProcess extends Identifiable implements Serializable {
 
-    private Integer id;
     private String  auth;
     private String  code;
     private String  config;
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     /**
      * @return the auth

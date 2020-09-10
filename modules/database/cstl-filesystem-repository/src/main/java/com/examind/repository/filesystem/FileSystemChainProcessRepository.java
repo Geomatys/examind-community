@@ -64,10 +64,7 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
                         byCode.put(chain.getCode(), chain);
                         byAuthCode.put(chain.getAuth(), byCode);
                     }
-
-                    if (chain.getId() >= currentId) {
-                        currentId = chain.getId() +1;
-                    }
+                    incCurrentId(chain);
                 }
             }
 
@@ -107,10 +104,10 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
     @Override
     public Integer create(ChainProcess chain) {
         if (chain != null) {
-            chain.setId(currentId);
+            final int id = assignCurrentId(chain);
 
             Path chainPDir = getDirectory(CHAIN_PROCESS_DIR);
-            Path chainPfile = chainPDir.resolve(currentId + ".xml");
+            Path chainPfile = chainPDir.resolve(id + ".xml");
             writeObjectInPath(chain, chainPfile, pool);
 
             byId.put(chain.getId(), chain);
@@ -121,8 +118,6 @@ public class FileSystemChainProcessRepository extends AbstractFileSystemReposito
                 byCode.put(chain.getCode(), chain);
                 byAuthCode.put(chain.getAuth(), byCode);
             }
-
-            currentId++;
             return chain.getId();
         }
         return null;

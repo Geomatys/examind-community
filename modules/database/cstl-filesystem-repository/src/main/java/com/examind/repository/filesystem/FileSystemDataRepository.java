@@ -125,10 +125,7 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
                     } else {
                         visibleData.put(data.getId(), data);
                     }
-
-                    if (data.getId() >= currentId) {
-                        currentId = data.getId() +1;
-                    }
+                    incCurrentId(data);
                 }
             }
 
@@ -359,10 +356,10 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
     @Override
     public Integer create(Data data) {
         if (data != null) {
-            data.setId(currentId);
+            final int id = assignCurrentId(data);
 
             Path dataDir = getDirectory(DATA_DIR);
-            Path dataFile = dataDir.resolve(currentId + ".xml");
+            Path dataFile = dataDir.resolve(id + ".xml");
             writeObjectInPath(data, dataFile, pool);
 
             byId.put(data.getId(), data);
@@ -392,8 +389,6 @@ public class FileSystemDataRepository extends AbstractFileSystemRepository imple
             } else {
                 visibleData.put(data.getId(), data);
             }
-
-            currentId++;
             return data.getId();
         }
         return null;

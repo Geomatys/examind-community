@@ -27,9 +27,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class Style implements Serializable {
+public class Style extends Identifiable implements Serializable {
 
-    private Integer id;
     private String name;
     private Integer providerId;
     private String type;
@@ -59,14 +58,6 @@ public class Style implements Serializable {
         this.body = body;
         this.ownerId = ownerId;
         this.isShared = isShared;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(final Integer id) {
-        this.id = id;
     }
 
     public String getName() {

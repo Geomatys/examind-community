@@ -19,6 +19,7 @@
 package com.examind.repository.filesystem;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
@@ -26,6 +27,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.sis.util.logging.Logging;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.configuration.ConfigDirectory;
+import org.constellation.dto.Identifiable;
 
 /**
  *
@@ -37,15 +39,25 @@ public abstract class AbstractFileSystemRepository {
 
     protected MarshallerPool pool;
 
-    protected int currentId = 1;
+    private final AtomicInteger currentId = new AtomicInteger(1);
 
     public AbstractFileSystemRepository(Class... context) {
         ConfigDirectory.init();
         try {
             pool = new MarshallerPool(JAXBContext.newInstance(context), Collections.EMPTY_MAP);
         } catch (JAXBException ex) {
-            Logger.getLogger(AbstractFileSystemRepository.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    
+    protected void incCurrentId(Identifiable obj) {
+        final int objId = obj.getId();
+        currentId.updateAndGet(old -> (objId >= old) ? objId + 1 : old );
+    }
+    
+    protected final int assignCurrentId(Identifiable obj) {
+        final int id = currentId.getAndIncrement();
+        obj.setId(id);
+        return id;
+    }
 }

@@ -27,9 +27,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class DataSet implements Serializable {
+public class DataSet extends Identifiable implements Serializable {
 
-    private Integer id;
     private String identifier;
     private Integer ownerId;
     private Long date;
@@ -45,20 +44,6 @@ public class DataSet implements Serializable {
         this.ownerId = ownerId;
         this.date = date;
         this.type = type;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

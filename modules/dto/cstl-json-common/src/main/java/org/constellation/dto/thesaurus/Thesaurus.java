@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.constellation.dto.Identifiable;
 
 /**
  * A simple pojo for thesaurus transfer to UI
@@ -29,9 +30,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class Thesaurus implements Serializable {
-
-    private Integer id;
+public class Thesaurus extends Identifiable implements Serializable {
 
     private String uri;
 
@@ -187,19 +186,5 @@ public class Thesaurus implements Serializable {
 
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 }

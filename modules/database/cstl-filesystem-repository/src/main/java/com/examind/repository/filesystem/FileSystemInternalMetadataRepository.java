@@ -58,9 +58,7 @@ public class FileSystemInternalMetadataRepository extends AbstractFileSystemRepo
                     byId.put(meta.getId(), meta);
                     byMetadataId.put(meta.getMetadataId(), meta);
 
-                    if (meta.getId() >= currentId) {
-                        currentId = meta.getId() +1;
-                    }
+                    incCurrentId(meta);
                 }
             }
 
@@ -91,16 +89,15 @@ public class FileSystemInternalMetadataRepository extends AbstractFileSystemRepo
     @Override
     public int create(InternalMetadata metadata) {
         if (metadata != null) {
-            metadata.setId(currentId);
+            final int id = assignCurrentId(metadata);
 
             Path metadataDir = getDirectory(INTERNAL_META_DIR);
-            Path metadataFile = metadataDir.resolve(currentId + ".xml");
+            Path metadataFile = metadataDir.resolve(id + ".xml");
             writeObjectInPath(metadata, metadataFile, pool);
 
             byId.put(metadata.getId(), metadata);
             byMetadataId.put(metadata.getMetadataId(), metadata);
 
-            currentId++;
             return metadata.getId();
         }
         return -1;

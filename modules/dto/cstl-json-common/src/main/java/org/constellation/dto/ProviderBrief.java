@@ -28,29 +28,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class ProviderBrief implements Serializable {
+public class ProviderBrief extends Identifiable implements Serializable {
 
-    private Integer id;
     private String  identifier;
     private String  parent;
     private String  type;
     private String  impl;
     private String  config;
     private Integer owner;
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     /**
      * @return the identifier

@@ -58,9 +58,7 @@ public class FileSystemInternalSensorRepository extends AbstractFileSystemReposi
                     byId.put(meta.getId(), meta);
                     bySensorId.put(meta.getSensorId(), meta);
 
-                    if (meta.getId() >= currentId) {
-                        currentId = meta.getId() +1;
-                    }
+                    incCurrentId(meta);
                 }
             }
 
@@ -91,16 +89,15 @@ public class FileSystemInternalSensorRepository extends AbstractFileSystemReposi
     @Override
     public int create(InternalSensor metadata) {
         if (metadata != null) {
-            metadata.setId(currentId);
+            final int id = assignCurrentId(metadata);
 
             Path sensorDir = getDirectory(INTERNAL_SENSOR_DIR);
-            Path sensorFile = sensorDir.resolve(currentId + ".xml");
+            Path sensorFile = sensorDir.resolve(id + ".xml");
             writeObjectInPath(metadata, sensorFile, pool);
 
             byId.put(metadata.getId(), metadata);
             bySensorId.put(metadata.getSensorId(), metadata);
 
-            currentId++;
             return metadata.getId();
         }
         return -1;

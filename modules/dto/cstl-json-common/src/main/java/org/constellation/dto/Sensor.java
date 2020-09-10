@@ -28,9 +28,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class Sensor implements Serializable {
+public class Sensor extends Identifiable implements Serializable {
 
-    private Integer id;
     private String  identifier;
     private String  type;
     private String  parent;
@@ -44,20 +43,6 @@ public class Sensor implements Serializable {
 
     }
     
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     /**
      * @return the identifier
      */

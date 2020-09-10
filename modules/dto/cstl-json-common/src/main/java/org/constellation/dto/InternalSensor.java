@@ -26,9 +26,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class InternalSensor implements Serializable {
+public class InternalSensor extends Identifiable implements Serializable {
 
-    private Integer id;
     private String sensorId;
     private String metadata;
 
@@ -39,20 +38,6 @@ public class InternalSensor implements Serializable {
         this.id = id;
         this.sensorId = sensorId;
         this.metadata = metadata;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

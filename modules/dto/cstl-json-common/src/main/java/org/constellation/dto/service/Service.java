@@ -22,12 +22,11 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.constellation.dto.Data;
+import org.constellation.dto.Identifiable;
 
 @XmlRootElement
-public class Service implements Serializable {
+public class Service extends Identifiable implements Serializable {
 
-    private int id;
     private String identifier;
     private String type;
     private Date date;
@@ -51,14 +50,6 @@ public class Service implements Serializable {
         this.status = status;
         this.versions = versions;
         this.impl = impl;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getIdentifier() {

@@ -26,9 +26,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class DataSource implements Serializable {
+public class DataSource extends Identifiable implements Serializable {
 
-    private Integer id;
     private String  type;
     private String  url;
     private String  username;
@@ -57,20 +56,6 @@ public class DataSource implements Serializable {
         this.analysisState = analysisState;
         this.format = format;
         this.permanent = permanent;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

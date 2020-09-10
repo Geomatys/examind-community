@@ -66,9 +66,7 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                             byFileName.get(attachment.getFilename()).add(attachment);
                         }
                     }
-                    if (attachment.getId() >= currentId) {
-                        currentId = attachment.getId() +1;
-                    }
+                    incCurrentId(attachment);
                 }
             }
 
@@ -107,10 +105,10 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
     @Override
     public int create(Attachment att) {
         if (att != null) {
-            att.setId(currentId);
+            final int id = assignCurrentId(att);
 
             Path attachmentDir = getDirectory(ATTACHMENT_DIR);
-            Path attachmentFile = attachmentDir.resolve(currentId + ".xml");
+            Path attachmentFile = attachmentDir.resolve(id + ".xml");
             writeObjectInPath(att, attachmentFile, pool);
 
             byId.put(att.getId(), att);
@@ -124,8 +122,6 @@ public class FileSystemAttachmentRepository extends AbstractFileSystemRepository
                     byFileName.get(att.getFilename()).add(att);
                 }
             }
-
-            currentId++;
             return att.getId();
         }
         return -1;

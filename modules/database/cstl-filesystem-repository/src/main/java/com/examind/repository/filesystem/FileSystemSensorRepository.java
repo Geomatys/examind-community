@@ -79,10 +79,7 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
                         sensors.add(sensor);
                         byProvider.put(sensor.getProviderId(), sensors);
                     }
-
-                    if (sensor.getId() >= currentId) {
-                        currentId = sensor.getId() +1;
-                    }
+                    incCurrentId(sensor);
                 }
             }
 
@@ -163,10 +160,10 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
     @Override
     public Integer create(Sensor sensor) {
         if (sensor != null) {
-            sensor.setId(currentId);
+            final int id = assignCurrentId(sensor);
 
             Path sensorDir = getDirectory(SENSOR_DIR);
-            Path sensorFile = sensorDir.resolve(currentId + ".xml");
+            Path sensorFile = sensorDir.resolve(id + ".xml");
             writeObjectInPath(sensor, sensorFile, pool);
 
             byId.put(sensor.getId(), sensor);
@@ -187,8 +184,6 @@ public class FileSystemSensorRepository extends AbstractFileSystemRepository imp
                 sensors.add(sensor);
                 byProvider.put(sensor.getProviderId(), sensors);
             }
-
-            currentId++;
             return sensor.getId();
         }
         return null;

@@ -28,9 +28,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class Data implements Serializable {
+public class Data extends Identifiable implements Serializable {
 
-    private Integer id;
     private String name;
     private String namespace;
     private Integer providerId;
@@ -104,20 +103,6 @@ public class Data implements Serializable {
             this.statsState = data.statsState;
             this.hidden = data.hidden;
         }
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

@@ -63,7 +63,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
 
     private void load() {
         try {
-
             Path providerDir = getDirectory(PROVIDER_DIR);
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(providerDir)) {
                 for (Path providerFile : directoryStream) {
@@ -78,10 +77,7 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
                     } else {
                         byParent.get(provider.getParent()).add(provider);
                     }
-
-                    if (provider.getId() >= currentId) {
-                        currentId = provider.getId() +1;
-                    }
+                    incCurrentId(provider);
                 }
             }
 
@@ -168,10 +164,10 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
     @Override
     public Integer create(ProviderBrief provider) {
         if (provider != null) {
-            provider.setId(currentId);
+            final int id = assignCurrentId(provider);
 
             Path providerDir = getDirectory(PROVIDER_DIR);
-            Path providerFile = providerDir.resolve(currentId + ".xml");
+            Path providerFile = providerDir.resolve(id + ".xml");
             writeObjectInPath(provider, providerFile, pool);
 
             byId.put(provider.getId(), provider);
@@ -184,8 +180,6 @@ public class FileSystemProviderRepository extends AbstractFileSystemRepository i
             } else {
                 byParent.get(provider.getParent()).add(provider);
             }
-
-            currentId++;
             return provider.getId();
         }
         return null;

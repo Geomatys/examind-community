@@ -70,9 +70,7 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
                     byId.put(dataset.getId(), dataset);
                     byName.put(dataset.getIdentifier(), dataset);
 
-                    if (dataset.getId() >= currentId) {
-                        currentId = dataset.getId() +1;
-                    }
+                    incCurrentId(dataset);
                 }
             }
 
@@ -141,16 +139,15 @@ public class FileSystemDatasetRepository extends AbstractFileSystemRepository  i
     @Override
     public Integer create(DataSet dataset) {
         if (dataset != null) {
-            dataset.setId(currentId);
+            final int id = assignCurrentId(dataset);
 
             Path dataDir = getDirectory(DATASET_DIR);
-            Path dataFile = dataDir.resolve(currentId + ".xml");
+            Path dataFile = dataDir.resolve(id + ".xml");
             writeObjectInPath(dataset, dataFile, pool);
 
             byId.put(dataset.getId(), dataset);
             byName.put(dataset.getIdentifier(), dataset);
-
-            currentId++;
+            
             return dataset.getId();
         }
         return null;

@@ -20,15 +20,15 @@ package org.constellation.dto.metadata;
 
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.constellation.dto.Identifiable;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
-public class InternalMetadata implements Serializable {
+public class InternalMetadata extends Identifiable implements Serializable {
 
-    private Integer id;
     private String metadataId;
     private String metadataIso;
 
@@ -39,20 +39,6 @@ public class InternalMetadata implements Serializable {
         this.id = id;
         this.metadataId = metadataId;
         this.metadataIso = metadataIso;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

@@ -27,9 +27,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author guilhem
  */
 @XmlRootElement
-public class MapContextDTO implements Serializable{
+public class MapContextDTO extends Identifiable implements Serializable{
 
-    private Integer id;
     private String  name;
     private Integer owner;
     private String  description;
@@ -74,20 +73,6 @@ public class MapContextDTO implements Serializable{
 
     public void setUserOwner(String userOwner) {
         this.userOwner = userOwner;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

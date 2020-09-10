@@ -76,15 +76,10 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
                 while (it.hasNext()) {
                     Path p = it.next();
 
-
                     Path servFile = p.resolve("service.xml");
                     Service serObj = (Service) getObjectFromPath(servFile, pool);
                     byId.put(serObj.getId(), serObj);
                     nameService.put(serObj.getIdentifier(), serObj);
-
-                    if (serObj.getId() >= currentId) {
-                        currentId = serObj.getId() +1;
-                    }
 
                     Path extraFiles = p.resolve("extras");
                     if (!Files.isDirectory(extraFiles)) {
@@ -110,10 +105,10 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
                     }
                     loadedServiceDetails.put(serObj.getId(), servdetails);
 
+                    incCurrentId(serObj);
+                    
                     Path metadataFile = p.resolve("metadata.xml");
                     // TODO
-
-
                 }
                 byTypeNameService.put(spec.name().toLowerCase(), nameService);
             }
@@ -229,14 +224,13 @@ public class FileSystemServiceRepository extends AbstractFileSystemRepository im
 
     @Override
     public int create(Service service) {
-        service.setId(currentId);
-        currentId++;
+        final int id = assignCurrentId(service);
 
         Path servDir = ConfigDirectory.getInstanceDirectory(service.getType(), service.getIdentifier());
         Path servFile = servDir.resolve("service.xml");
 
         writeObjectInPath(service, servFile, pool);
-        byId.put(service.getId(), service);
+        byId.put(id, service);
 
         Map<String, Service> nameService = byTypeNameService.get(service.getType());
         if (nameService == null) {

@@ -18,13 +18,14 @@
  */
 package org.constellation.dto.process;
 
+import org.constellation.dto.Identifiable;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class TaskParameter {
+public class TaskParameter extends Identifiable {
 
-    private Integer id;
     private Integer owner;
     private String name;
     private Long date;
@@ -51,20 +52,6 @@ public class TaskParameter {
         this.trigger = trigger;
         this.triggerType = triggerType;
         this.type = type;
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**

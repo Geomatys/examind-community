@@ -29,9 +29,8 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlType(name = "LayerDTO")
 @XmlRootElement
-public class Layer implements Serializable {
+public class Layer extends Identifiable implements Serializable {
 
-    protected Integer id;
     private String name;
     private String namespace;
     private String alias;
@@ -67,14 +66,6 @@ public class Layer implements Serializable {
         this.config = config;
         this.ownerId = ownerId;
         this.title = title;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Integer getDataId() {

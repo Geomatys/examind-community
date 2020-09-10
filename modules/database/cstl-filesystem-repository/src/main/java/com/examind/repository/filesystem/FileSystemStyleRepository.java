@@ -88,10 +88,7 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
                         styles.add(style);
                         byType.put(style.getType(), styles);
                     }
-
-                    if (style.getId() >= currentId) {
-                        currentId = style.getId() +1;
-                    }
+                    incCurrentId(style);
                 }
             }
 
@@ -201,10 +198,10 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
     @Override
     public int create(Style style) {
         if (style != null) {
-            style.setId(currentId);
+            final int id = assignCurrentId(style);
 
             Path styleDir = getDirectory(STYLE_DIR);
-            Path styleFile = styleDir.resolve(currentId + ".xml");
+            Path styleFile = styleDir.resolve(id + ".xml");
             writeObjectInPath(style, styleFile, pool);
 
             byId.put(style.getId(), style);
@@ -232,7 +229,6 @@ public class FileSystemStyleRepository extends AbstractFileSystemRepository impl
                 byType.put(style.getType(), styles);
             }
 
-            currentId++;
             return style.getId();
         }
         return -1;

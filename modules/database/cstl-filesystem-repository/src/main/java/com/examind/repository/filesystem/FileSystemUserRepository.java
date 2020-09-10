@@ -71,11 +71,7 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
                     if (user.getActive()) {
                         activeById.put(user.getId(), user);
                     }
-
-                    if (user.getId() >= currentId) {
-                        currentId = user.getId() +1;
-                    }
-
+                    incCurrentId(user);
                 }
             }
 
@@ -167,10 +163,10 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
 
     @Override
     public Integer create(UserWithRole userR) {
-        userR.setId(currentId);
+        final int id = assignCurrentId(userR);
 
         Path userDir = getDirectory(USER_DIR);
-        Path userFile = userDir.resolve(currentId + ".xml");
+        Path userFile = userDir.resolve(id + ".xml");
         writeObjectInPath(userR, userFile, pool);
 
         byId.put(userR.getId(), userR);
@@ -180,8 +176,6 @@ public class FileSystemUserRepository extends AbstractFileSystemRepository imple
         if (userR.getActive()) {
             activeById.put(userR.getId(), userR);
         }
-
-        currentId++;
         return userR.getId();
     }
 

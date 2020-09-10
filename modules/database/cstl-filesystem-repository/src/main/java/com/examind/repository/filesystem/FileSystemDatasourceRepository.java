@@ -71,9 +71,7 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
                     byId.put(ds.getId(), ds);
                     byUrl.put(ds.getUrl(), ds);
 
-                    if (ds.getId() >= currentId) {
-                        currentId = ds.getId() + 1;
-                    }
+                    incCurrentId(ds);
                 }
             }
 
@@ -235,16 +233,15 @@ public class FileSystemDatasourceRepository extends AbstractFileSystemRepository
     @Override
     public int create(DataSource ds) {
         if (ds != null) {
-            ds.setId(currentId);
+            final int id = assignCurrentId(ds);
 
             Path dsDir = getDirectory(DATASOURCE_DIR);
-            Path dsFile = dsDir.resolve(currentId + ".xml");
+            Path dsFile = dsDir.resolve(id + ".xml");
             writeObjectInPath(ds, dsFile, pool);
 
             byId.put(ds.getId(), ds);
             byUrl.put(ds.getUrl(), ds);
 
-            currentId++;
             return ds.getId();
         }
         return -1;

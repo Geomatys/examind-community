@@ -60,9 +60,7 @@ public class FilesystemThesaurusRepository extends AbstractFileSystemRepository 
                     byName.put(thesaurus.getName(), thesaurus);
                     byUri.put(thesaurus.getUri(), thesaurus);
 
-                    if (thesaurus.getId() >= currentId) {
-                        currentId = thesaurus.getId() +1;
-                    }
+                    incCurrentId(thesaurus);
                 }
             }
 
@@ -99,17 +97,16 @@ public class FilesystemThesaurusRepository extends AbstractFileSystemRepository 
     @Override
     public Integer create(Thesaurus thesaurus) {
         if (thesaurus != null) {
-            thesaurus.setId(currentId);
+            final int id = assignCurrentId(thesaurus);
 
             Path thesaurusDir = getDirectory(THESAURUS_DIR);
-            Path thesaurusFile = thesaurusDir.resolve(currentId + ".xml");
+            Path thesaurusFile = thesaurusDir.resolve(id + ".xml");
             writeObjectInPath(thesaurus, thesaurusFile, pool);
 
             byId.put(thesaurus.getId(), thesaurus);
             byName.put(thesaurus.getName(), thesaurus);
             byUri.put(thesaurus.getUri(), thesaurus);
 
-            currentId++;
             return thesaurus.getId();
         }
         return null;

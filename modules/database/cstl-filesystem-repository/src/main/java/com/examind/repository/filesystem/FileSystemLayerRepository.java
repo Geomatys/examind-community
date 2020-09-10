@@ -108,9 +108,7 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
                     String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
                     byServiceIdDataId.put(serviceIdDataId, layer);
 
-                    if (layer.getId() >= currentId) {
-                        currentId = layer.getId() +1;
-                    }
+                    incCurrentId(layer);
                 }
             }
 
@@ -246,10 +244,10 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
     @Override
     public Integer create(Layer layer) {
         if (layer != null) {
-            layer.setId(currentId);
+            final int id = assignCurrentId(layer);
 
             Path layerDir = getDirectory(LAYER_DIR);
-            Path layerFile = layerDir.resolve(currentId + ".xml");
+            Path layerFile = layerDir.resolve(id + ".xml");
             writeObjectInPath(layer, layerFile, pool);
 
             byId.put(layer.getId(), layer);
@@ -289,7 +287,6 @@ public class FileSystemLayerRepository extends AbstractFileSystemRepository impl
             String serviceIdDataId = layer.getService() + "-" + layer.getDataId();
             byServiceIdDataId.put(serviceIdDataId, layer);
 
-            currentId++;
             return layer.getId();
         }
         return null;

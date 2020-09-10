@@ -22,9 +22,8 @@ package org.constellation.dto;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CstlUser {
+public class CstlUser extends Identifiable {
 
-    private Integer id;
     private String  login;
     private String  password;
     private String  firstname;
@@ -92,20 +91,6 @@ public class CstlUser {
             this.title = that.title;
             this.locale = that.locale;
         }
-    }
-
-    /**
-     * @return the id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     /**
