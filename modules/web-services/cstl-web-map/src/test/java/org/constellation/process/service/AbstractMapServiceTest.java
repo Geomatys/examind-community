@@ -108,7 +108,7 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
             } else {
                 LOGGER.warning("No service to remove");
             }
-        } catch (ConfigurationException ex) {
+        } catch (ConstellationException ex) {
             LOGGER.log(Level.WARNING, "Unable to delete layers for service: "+ serviceName);
         }
     }

@@ -118,8 +118,8 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
      * @param searchArea {@link java.awt.Rectangle} of the searching area
      * @param maxCandidat
      * @throws PortrayalException
-     * @see #nextProjectedFeature(ProjectedFeature, RenderingContext2D, SearchAreaJ2D)
-     * @see #nextProjectedCoverage(ProjectedCoverage, RenderingContext2D, SearchAreaJ2D)
+     * @see #nextProjectedFeature(MapLayer, Feature, RenderingContext2D, SearchAreaJ2D)
+     * @see #nextProjectedCoverage(MapLayer, GridCoverageResource, RenderingContext2D, SearchAreaJ2D)
      */
     protected void getCandidates(final SceneDef sDef, final CanvasDef cDef, final Rectangle searchArea,
                                  final Integer maxCandidat) throws PortrayalException {
