@@ -287,10 +287,11 @@ public class SpatialFilterBuilder {
             }
 
             //we format the value by replacing the specified special char by the elasticSearch special char
-            final String brutValue = FilterParserUtils.translateSpecialChar(pil, "*", "?", "\\");
+            final String brutValue = FilterParserUtils.translateSpecialChar(pil, "*", "?", "\\").toLowerCase();
             final String term      = removePrefix(propertyName.getPropertyName());
+            
             builder.startObject("wildcard")
-                                .field(term + "_sort", brutValue)
+                                .field(term, brutValue)
                     .endObject();
 
         } else if (filter instanceof PropertyIsBetween) {

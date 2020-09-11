@@ -122,7 +122,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         XContentBuilder result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"wildcard\":{\"Title_sort\":\"*VM*\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"Title\":\"*vm*\"}}");
 
 
         /**
@@ -490,7 +490,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"wildcard\":{\"CreationDate_sort\":\"200*0602\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"CreationDate\":\"200*0602\"}}");
 
         /**
          * Test 3: a simple Filter PropertyIsLike on a identifier field
@@ -517,7 +517,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}}");
+        assertEquals(Strings.toString(result), "{\"wildcard\":{\"identifier\":\"*chain_acq_1*\"}}");
 
         /**
          * Test 4: a simple Filter PropertyIsLike on a identifier field + typeName
@@ -526,7 +526,7 @@ public class ElasticSearchFilterParserTest {
 
         assertTrue(spaQuery.getQuery() instanceof XContentBuilder);
         result = (XContentBuilder) spaQuery.getQuery();
-        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"wildcard\":{\"identifier_sort\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}],\"minimum_should_match\":2}}");
+        assertEquals(Strings.toString(result), "{\"bool\":{\"should\":[{\"wildcard\":{\"identifier\":\"*chain_acq_1*\"}},{\"term\":{\"objectType_sort\":\"MD_Metadata\"}}],\"minimum_should_match\":2}}");
 
         pool.recycle(filterUnmarshaller);
     }
@@ -1669,7 +1669,7 @@ public class ElasticSearchFilterParserTest {
                             "    \"bool\": {" +
                             "        \"should\": [{" +
                             "            \"wildcard\": {" +
-                            "                \"Title_sort\": \"*VM*\"" +
+                            "                \"Title\": \"*vm*\"" +
                             "            }" +
                             "        }," +
                             "        {" +
@@ -1736,7 +1736,7 @@ public class ElasticSearchFilterParserTest {
                     "    \"bool\": {" +
                     "        \"should\": [{" +
                     "            \"wildcard\": {" +
-                    "                \"Title_sort\": \"*VM*\"" +
+                    "                \"Title\": \"*vm*\"" +
                     "            }" +
                     "        }," +
                     "        {" +
@@ -1879,7 +1879,7 @@ public class ElasticSearchFilterParserTest {
                     "    \"bool\": {" +
                     "        \"should\": [{" +
                     "            \"wildcard\": {" +
-                    "                \"Title_sort\": \"*VM*\"" +
+                    "                \"Title\": \"*vm*\"" +
                     "            }" +
                     "        }," +
                     "        {" +
@@ -2122,7 +2122,7 @@ public class ElasticSearchFilterParserTest {
                     "            \"bool\": {" +
                     "                \"should\": [{" +
                     "                    \"wildcard\": {" +
-                    "                        \"Title_sort\": \"LO?Li\"" +
+                    "                        \"Title\": \"lo?li\"" +
                     "                    }" +
                     "                }," +
                     "                {" +
@@ -2210,7 +2210,7 @@ public class ElasticSearchFilterParserTest {
                     "    \"bool\": {" +
                     "        \"should\": [{" +
                     "            \"wildcard\": {" +
-                    "                \"Title_sort\": \"*VM*\"" +
+                    "                \"Title\": \"*vm*\"" +
                     "            }" +
                     "        }," +
                     "        {" +
@@ -2253,7 +2253,7 @@ public class ElasticSearchFilterParserTest {
                     "                    \"bool\": {" +
                     "                        \"should\": [{" +
                     "                            \"wildcard\": {" +
-                    "                                \"Title_sort\": \"LO?Li\"" +
+                    "                                \"Title\": \"lo?li\"" +
                     "                            }" +
                     "                        }," +
                     "                        {" +
@@ -2368,7 +2368,7 @@ public class ElasticSearchFilterParserTest {
                     "                }," +
                     "                \"must_not\": {" +
                     "                    \"wildcard\": {" +
-                    "                        \"Title_sort\": \"*VM*\"" +
+                    "                        \"Title\": \"*vm*\"" +
                     "                    }" +
                     "                }" +
                     "            }" +
@@ -2442,7 +2442,7 @@ public class ElasticSearchFilterParserTest {
                     "                    \"bool\": {" +
                     "                        \"should\": [{" +
                     "                            \"wildcard\": {" +
-                    "                                \"Title_sort\": \"LO?Li\"" +
+                    "                                \"Title\": \"lo?li\"" +
                     "                            }" +
                     "                        }," +
                     "                        {" +
