@@ -70,6 +70,7 @@ import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DefaultCoverageData;
 import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
+import org.geotoolkit.internal.InternalUtilities;
 import org.geotoolkit.style.DefaultDescription;
 import org.geotoolkit.style.DefaultLineSymbolizer;
 import org.geotoolkit.style.DefaultPointSymbolizer;
@@ -314,7 +315,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final Color[] colors = new Color[colorsList.size()];
                 int loop = 0;
                 for(final String c : colorsList){
-                    colors[loop] = Color.decode(c);
+                    colors[loop] = new Color(InternalUtilities.parseColor(c));
                     loop++;
                 }
                 final IntervalPalette palette = new DefaultIntervalPalette(colors);
@@ -516,7 +517,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 final Color[] colors = new Color[colorsList.size()];
                 int loop = 0;
                 for(final String c : colorsList){
-                    colors[loop] = Color.decode(c);
+                    colors[loop] = new Color(InternalUtilities.parseColor(c));
                     loop++;
                 }
                 final IntervalPalette palette = new DefaultIntervalPalette(colors);
