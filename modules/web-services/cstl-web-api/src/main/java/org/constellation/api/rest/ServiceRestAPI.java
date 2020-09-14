@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -180,8 +179,11 @@ public class ServiceRestAPI extends AbstractRestAPI {
 
         try {
             final ServletOutputStream output = response.getOutputStream();
-            final Path logfileRelative = Paths.get("logs", "cstl", serviceType, serviceId + "-service.log");
-            final Path logFile = ConfigDirectory.getConfigDirectory().resolve(logfileRelative);
+            final Path logFile = ConfigDirectory.getConfigDirectory()
+                    .resolve("logs")
+                    .resolve(serviceType)
+                    .resolve(serviceId)
+                    .resolve("service.log");
             if (Files.exists(logFile)) {
                 int toread = limit == null ? DEFAULT_LIMIT_4096 : limit;
                 if (toread < BUFFER_1024) toread = 1024;
@@ -205,7 +207,7 @@ public class ServiceRestAPI extends AbstractRestAPI {
                     } while (nread > 0 && toread > 0);
 
                 } catch (IOException e) {
-                    LOGGER.log(Level.WARNING,"I/O Exception while reading: " + logfileRelative.toString(), e);
+                    LOGGER.log(Level.WARNING,"I/O Exception while reading: " + logFile.toString(), e);
                 }
             } else {
                 LOGGER.log(Level.WARNING,"No log file for " + serviceType + ", " + serviceId);

@@ -31,6 +31,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import org.constellation.configuration.ConfigDirectory;
 
 /**
  * Filter that exposes OGC service ids in log {@link MDC} <br>
@@ -46,7 +47,8 @@ public class MDCFilter implements Filter {
     private static final String ogcServiceLogKey = "ogcServiceLog";
 
     private static final String servicePathKey = "ogcServicePath";
-
+    
+    private static final String cstlLogDir = "cstl.log.dir";
 
     private static final String DEFAULT_SERVLET_MAPPING = "/WS/";
 
@@ -82,6 +84,7 @@ public class MDCFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException {
 
+        MDC.put(cstlLogDir, ConfigDirectory.getConfigDirectory().resolve("logs").toString());
         if (request instanceof HttpServletRequest) {
             HttpServletRequest httpServletRequest = (HttpServletRequest) request;
             String requestURI = httpServletRequest.getRequestURI();
@@ -92,6 +95,9 @@ public class MDCFilter implements Filter {
                 if(jsessionid!=-1) {
                     path = path.substring(0, jsessionid);
                 }
+                if (!path.endsWith("/")) {
+                    path = path + '/';
+                }
                 String[] split = path.split("/");
                 if (split.length > 1) {
                     try {
@@ -100,14 +106,14 @@ public class MDCFilter implements Filter {
                         String serviceName = split[1];
 
                         String log = serviceType;
-                        if("admin".equals(serviceName)) {
+                        if ("admin".equals(serviceName)) {
                             //This is not a service call, but a admin console
                             serviceName = httpServletRequest.getParameter("id");
                             final String command = httpServletRequest.getParameter("request");
                             log += " " + serviceName + " (" + command + ")";
                             path = serviceType + "/" + serviceName;
-                        }else {
-                            log += " " + serviceName;
+                        } else {
+                            log += "/" + serviceName;
                         }
 
                         MDC.put(ogcServiceLogKey, log);
@@ -117,7 +123,6 @@ public class MDCFilter implements Filter {
                     } finally {
                         MDC.remove(OGC);
                         MDC.remove(ogcServiceLogKey);
-
                         MDC.remove(servicePathKey);
                     }
                 }
