@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
+import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridExtent;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
 import org.constellation.api.TaskState;
 import org.constellation.business.IDataBusiness;
@@ -36,8 +42,10 @@ import org.constellation.business.IPyramidBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.MapContextLayersDTO;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.process.Task;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
@@ -52,6 +60,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -122,6 +132,43 @@ public class PyramidBusinessTest {
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+        }
+    }
+
+    /**
+     * This test should not be needed. However, to ensure validity of embedded test datasets, we force subsampling and
+     * cropping on dataset.
+     */
+    @Test
+    @Order(order = 0)
+    public void checkWorldFileTestSet() throws Exception {
+        final DataProvider provider = DataProviders.getProvider(coverage2PID);
+        for (GenericName name : provider.getKeys()) {
+            final GridCoverageResource cvr = (GridCoverageResource) provider.get(name).getOrigin();
+            final GridGeometry gg = cvr.getGridGeometry();
+
+            final GridGeometry readGG = gg.derive().subsample(4, 4).build();
+            final GridCoverage cvg = cvr.read(readGG);
+            final RenderedImage rendering = cvg.render(null);
+            Assert.assertNotNull(rendering);
+
+            final GridExtent extent = gg.getExtent();
+            final long[] lower = extent.getLow().getCoordinateValues();
+            final long[] upper = extent.getHigh().getCoordinateValues();
+
+            for (int i = 0 ; i < 2 ; i++) {
+                upper[i] = Math.min(upper[i], lower[i] + 7);
+            }
+
+            for (int i = 2 ; i < extent.getDimension() ; i++) {
+                upper[i] = lower[i];
+            }
+
+            final GridExtent newExtent = new GridExtent(null, lower, upper, true);
+            final GridGeometry newGg = gg.derive().subgrid(new GridGeometry(newExtent, PixelInCell.CELL_CENTER, gg.getGridToCRS(PixelInCell.CELL_CENTER), gg.getCoordinateReferenceSystem())).build();
+            final GridCoverage cvg2 = cvr.read(newGg);
+            final RenderedImage rendering2 = cvg2.render(null);
+            Assert.assertNotNull(rendering2);
         }
     }
 
