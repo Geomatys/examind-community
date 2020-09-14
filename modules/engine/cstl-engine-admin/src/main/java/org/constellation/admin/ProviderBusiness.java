@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
@@ -674,7 +675,7 @@ public class ProviderBusiness implements IProviderBusiness {
         */
         } else {
 
-            final Set<GenericName> keys = new HashSet<>(provider.getKeys());
+            final Set<GenericName> keys = new TreeSet<>(provider.getKeys());
 
             // Remove no longer existing data.
             for (final org.constellation.dto.Data data : previousData) {

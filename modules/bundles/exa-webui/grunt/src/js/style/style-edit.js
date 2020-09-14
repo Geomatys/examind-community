@@ -1453,7 +1453,7 @@ angular.module('cstl-style-edit', [
             $scope.dataType = 'vector';
             $scope.providerId = 'generic_shp';
             $scope.layerName = 'CNTR_RG_60M_2006';
-            $scope.dataId = 1;
+            $scope.dataId = 3;
             $scope.displayCurrentStyle('styledMapOL',null);
         };
 
