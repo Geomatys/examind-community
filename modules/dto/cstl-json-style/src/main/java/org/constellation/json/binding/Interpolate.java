@@ -121,21 +121,16 @@ public final class Interpolate implements Function {
             nanPoint.setData(Double.NaN);
             recomputePoints.add(nanPoint);
         }
-        if(max !=null && min != null){
-            double coefficient = max-min;
-            if(nbPoints!=null){
-                if(coefficient!=1){
-                    coefficient = coefficient/(nbPoints-1);
-                }
-                // Loop to create points with new point evaluation
-                for (int i = 0; i < nbPoints; i++) {
-                    final double val = min + (coefficient * i);
-                    final Color color = inter.evaluate(val, Color.class);
-                    final InterpolationPoint point = new InterpolationPoint();
-                    point.setColor(StyleUtilities.toHex(color));
-                    point.setData(val);
-                    recomputePoints.add(point);
-                }
+        if(max !=null && min != null && nbPoints != null) {
+            double coefficient = (max-min) / (nbPoints - 1);
+            // Loop to create points with new point evaluation
+            for (int i = 0; i < nbPoints; i++) {
+                final double val = min + (coefficient * i);
+                final Color color = inter.evaluate(val, Color.class);
+                final InterpolationPoint point = new InterpolationPoint();
+                point.setColor(StyleUtilities.toHex(color));
+                point.setData(val);
+                recomputePoints.add(point);
             }
         }
         return recomputePoints;

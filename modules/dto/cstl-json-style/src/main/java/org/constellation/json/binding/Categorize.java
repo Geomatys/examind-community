@@ -135,18 +135,13 @@ public class Categorize implements Function {
                                 new DefaultLiteral<>(Color.decode(nanColor)));
         }
 
-        if (min != null && max != null) {
-            double coefficient = max - min;
-            if (nbPoints != null) {
-                if (coefficient != 1) {
-                    coefficient = coefficient / (nbPoints - 1);
-                }
-                // Loop to create values with new point evaluation
-                for (int i = 0; i < nbPoints; i++) {
-                    double val = min + (coefficient * i);
-                    Color color = categorize.evaluate(val, Color.class);
-                    valuesRecompute.put(new DefaultLiteral<>(val), new DefaultLiteral<>(color));
-                }
+        if (min != null && max != null && nbPoints != null) {
+            double coefficient = (max-min) / (nbPoints - 1);
+            // Loop to create values with new point evaluation
+            for (int i = 0; i < nbPoints; i++) {
+                double val = min + (coefficient * i);
+                Color color = categorize.evaluate(val, Color.class);
+                valuesRecompute.put(new DefaultLiteral<>(val), new DefaultLiteral<>(color));
             }
         }
 
