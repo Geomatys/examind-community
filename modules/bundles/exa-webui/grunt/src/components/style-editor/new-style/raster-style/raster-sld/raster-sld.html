@@ -53,20 +53,14 @@
                                     </label>
                                     <div class="col-xs-7 col-sm-7 col-md-8">
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 min-max-block">
-                                            <input type="text" id="minValue"
+                                            <input type="number" id="minValue"
                                                    class="form-control form-control-fix"
                                                    ng-model="rasterSldCtrl.rasterPalette.palette.rasterMinValue" required/>
                                         </div>
                                         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 styleRZSlider">
-                                            <rzslider rz-slider-floor="rasterSldCtrl.rasterPalette.band.selected.minValue"
-                                                      rz-slider-ceil="rasterSldCtrl.rasterPalette.band.selected.maxValue"
-                                                      rz-slider-model="rasterSldCtrl.rasterPalette.palette.rasterMinValue"
-                                                      rz-slider-high="rasterSldCtrl.rasterPalette.palette.rasterMaxValue"
-                                                      rz-slider-step="1">
-                                            </rzslider>
                                         </div>
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3 min-max-block">
-                                            <input type="text"
+                                            <input type="number"
                                                    class="form-control form-control-fix"
                                                    min="{{rasterSldCtrl.selectedDataProperties.dataBands[0].minValue}}"
                                                    max="{{rasterSldCtrl.selectedDataProperties.dataBands[0].maxValue}}"

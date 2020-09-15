@@ -50,20 +50,14 @@
                                            translate="sldeditor.raster.repartition">Distribution</label>
                                     <div class="col-xs-7 col-sm-7 col-md-8">
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" style="padding: 0;">
-                                            <input type="text" id="minValue"
+                                            <input type="number" id="minValue"
                                                    class="form-control form-control-fix"
                                                    ng-model="optionsSLD.rasterPalette.palette.rasterMinValue" required/>
                                         </div>
                                         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 styleRZSlider" style="padding:0 10px;">
-                                            <rzslider rz-slider-floor="optionsSLD.rasterPalette.band.selected.minValue"
-                                                      rz-slider-ceil="optionsSLD.rasterPalette.band.selected.maxValue"
-                                                      rz-slider-model="optionsSLD.rasterPalette.palette.rasterMinValue"
-                                                      rz-slider-high="optionsSLD.rasterPalette.palette.rasterMaxValue"
-                                                      rz-slider-step="1">
-                                            </rzslider>
                                         </div>
                                         <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" style="padding: 0;">
-                                            <input type="text"
+                                            <input type="number"
                                                    class="form-control form-control-fix"
                                                    min="{{dataBands[0].minValue}}"
                                                    max="{{dataBands[0].maxValue}}"
