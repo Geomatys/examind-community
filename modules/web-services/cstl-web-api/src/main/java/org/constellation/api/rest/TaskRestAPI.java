@@ -38,6 +38,7 @@ import org.apache.sis.parameter.ParameterBuilder;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
+import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -47,6 +48,7 @@ import org.constellation.dto.CstlUser;
 import org.constellation.dto.process.Task;
 import org.constellation.dto.process.TaskParameter;
 import org.constellation.dto.AcknowlegementType;
+import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.StringList;
 import org.constellation.dto.process.TaskStatus;
@@ -56,6 +58,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.process.DatasetProcessReference;
+import org.constellation.dto.process.MapContextProcessReference;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.process.StyleProcessReference;
 import org.constellation.dto.process.UserProcessReference;
@@ -110,6 +113,12 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @Inject
     private IServiceBusiness serviceBusiness;
+    
+    /**
+     * MapContextBusiness used for provider GUI editors data
+     */
+    @Inject
+    private IMapContextBusiness mapcontextBusiness;
 
     /**
      * StyleBusiness used for provider GUI editors data
@@ -482,6 +491,29 @@ public class TaskRestAPI extends AbstractRestAPI {
                 }
             }
             return new ResponseEntity(servicePRef, OK);
+        } catch(Throwable ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+    
+    /**
+     * List all Services as ServiceProcessReference to GUI editors.
+     *
+     * @return list of ServiceProcessReference
+     */
+    @RequestMapping(value="/task/list/mapcontexts",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getMapContextProcessReferenceList() {
+        try {
+            final List<MapContextProcessReference> mpRef = new ArrayList<>();
+            final List<MapContextDTO> mps = mapcontextBusiness.getAllContexts();
+            if (mps != null) {
+                for (final MapContextDTO mp : mps) {
+                    final MapContextProcessReference ref = new MapContextProcessReference(mp);
+                    mpRef.add(ref);
+                }
+            }
+            return new ResponseEntity(mpRef, OK);
         } catch(Throwable ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

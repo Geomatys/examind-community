@@ -137,6 +137,16 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                     }]
                 }
             })
+            .put('org.constellation.dto.process.MapContextProcessReference', {
+                templateUrl: 'views/tasks/editor/mapcontext.html',
+                controller:'ProcessMapContextEditorController',
+                controllerAs: 'ec',
+                resolve : {
+                    'mapcontexts': ['DataService', function(DataService) {
+                        return DataService.getAllMapContexts();
+                    }]
+                }
+            })
             .put('org.constellation.dto.process.DatasetProcessReference', {
                 templateUrl: 'views/tasks/editor/dataset.html',
                 controller:'ProcessDatasetEditorController',
@@ -231,12 +241,16 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         var self = this;
         self.dataset = null;
         self.datas = null;
+        self.mapcontext = null;
 
         function initDatasets() {
             self.dataset = Examind.tasks.getDatasets();
         }
         function initDatas() {
             self.datas = Examind.tasks.getDatas();
+        }
+        function initMapContexts() {
+            self.mapcontext = Examind.tasks.getMapContexts();
         }
 
         self.getAllDatasets = function() {
@@ -252,10 +266,18 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             }
             return self.datas;
         };
+        
+        self.getAllMapContexts = function() {
+            if (self.mapcontext === null) {
+                initMapContexts();
+            }
+            return self.mapcontext;
+        };
 
         self.refresh = function() {
             initDatasets();
             initDatas();
+            initMapContexts();
         };
     })
 

@@ -2123,6 +2123,18 @@ function Examind($http, url) {
                 url: 'task/list/datas'
                 });
         },
+        
+        /**
+         * Get mapContexts references.
+         *
+         * @returns {Promise}
+         */
+        getMapContexts : function() {
+            return self.request({
+                method: 'GET',
+                url: 'task/list/mapcontexts'
+                });
+        },
 
         /**
          * Get services references.
