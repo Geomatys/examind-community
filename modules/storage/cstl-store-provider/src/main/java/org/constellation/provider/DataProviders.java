@@ -856,7 +856,6 @@ public final class DataProviders extends Static{
      * @return
      */
     public static Collection<DataStoreProvider> providers(Path p) {
-        long start = System.currentTimeMillis();
         final StorageConnector input = new StorageConnector(p);
 
         List<DataStoreProvider> providers = new ArrayList<>(org.apache.sis.storage.DataStores.providers());
@@ -881,7 +880,7 @@ public final class DataProviders extends Static{
                 }
             }
         }
-        System.out.println("Time to providers search: " + (System.currentTimeMillis() - start) + "ms");
+
         return results;
     }
 

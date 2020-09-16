@@ -77,7 +77,6 @@ public class SpatialFilterBuilder {
         builder.startObject();
         build(filter, builder, withPlugin);
         builder.endObject();
-        System.out.println("FILTER: " + Strings.toString(builder));
         return builder;
     }
 

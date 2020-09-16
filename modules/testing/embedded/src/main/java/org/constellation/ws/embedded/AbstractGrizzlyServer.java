@@ -260,7 +260,7 @@ public abstract class AbstractGrizzlyServer {
     }
 
     public void waitForRestStart(final String url) throws Exception {
-        System.out.println("Waiting for service to start at "+url);
+        LOGGER.log(Level.INFO, "Waiting for service to start at {0}", url);
         final URL u = new URL(url);
         int resCode = 404;
         int cpt = 0;
