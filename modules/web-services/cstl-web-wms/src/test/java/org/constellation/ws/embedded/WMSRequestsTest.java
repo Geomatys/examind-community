@@ -1075,7 +1075,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult = "SSTMDE200305\n"
                 + "0;\n"
-                + "193.0;\n\n";
+                + "201.0;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1091,7 +1091,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         expResult = "SST\n"
                 + "0;\n"
-                + "193.0;\n\n";
+                + "201.0;\n\n";
 
         result = getStringResponse(gfi);
 
@@ -1205,7 +1205,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "			<x>-120.41015625</x>\n" +
                     "			<y>-7.20703125</y>\n" +
                     "			<variable>0</variable>\n" +
-                    "			<value>193.0</value>\n" +
+                    "			<value>201.0</value>\n" +
                     "		</SSTMDE200305_feature>\n" +
                     "	</SSTMDE200305_layer>\n" +
                     "</SSTMDE200305_layer>\n" +
@@ -1236,7 +1236,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "			<x>-120.41015625</x>\n" +
                     "			<y>-7.20703125</y>\n" +
                     "			<variable>0</variable>\n" +
-                    "			<value>193.0</value>\n" +
+                    "			<value>201.0</value>\n" +
                     "		</SST_feature>\n" +
                     "	</SST_layer>\n" +
                     "</SST_layer>\n" +
@@ -1638,7 +1638,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "<li>\n" +
                     "0</li>\n" +
                     "</ul>\n" +
-                    "</div><div class=\"right-part\">193.0<br/>\n" +
+                    "</div><div class=\"right-part\">201.0<br/>\n" +
                     "</div></div><br/>    </body>\n" +
                     "</html>";
 
@@ -1685,7 +1685,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "<li>\n" +
                     "0</li>\n" +
                     "</ul>\n" +
-                    "</div><div class=\"right-part\">193.0<br/>\n" +
+                    "</div><div class=\"right-part\">201.0<br/>\n" +
                     "</div></div><br/>    </body>\n" +
                     "</html>";
 
@@ -1745,12 +1745,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         Expected result (for reference):
         String expResult = "{\"layers\":[" +
                 "{\"name\":\"SSTMDE200305\",\"titles\":[\"SSTMDE200305\"],\"data\":[" +
-                  "{\"unit\":null,\"min\":0.0,\"max\":0.0,\"points\":[" +
-                    "{\"x\":3.851648476037248E-13,\"y\":0.0}," +
-                    "{\"x\":15.277036647064136,\"y\":0.0}," +
-                    "{\"x\":31.318980178414588,\"y\":0.0}," +
-                    "{\"x\":47.84147288711511,\"y\":0.0}," +
-                    "{\"x\":53.45248543862846,\"y\":0.0}" +
+                  "{\"unit\":null,\"min\":200.0,\"max\":201.0,\"points\":[" +
+                    "{\"x\":0,\"y\":201.0}," +
+                    "{\"x\":14.197050942634485,\"y\":200.6666}," +
+                    "{\"x\":26.046030239075687,\"y\":200.0}," +
+                    "{\"x\":39.520943396902965,\"y\":200.0}," +
+                    "{\"x\":53.45248543862765,\"y\":201.0}" +
                   "]}" +
                 "],\"message\":null}]}";
          */
@@ -1758,6 +1758,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         //assertEquals(expResult, result);
 
+        System.out.println(result);
         // Note: do not check directly text representation, as field ordering could arbitrarily change on serialization/ and precison change with JDK version.
         final Map binding = new ObjectMapper().readValue(result, Map.class);
         assertNotNull("result is empty", binding);
@@ -1772,27 +1773,27 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals("A single data result should be returned", 1, datas.size());
         Map data = (Map) datas.get(0);
 
-        assertEquals("min property", 0.0, data.get("min"));
-        assertEquals("max property", 0.0, data.get("max"));
+        assertEquals("min property", 200.0, data.get("min"));
+        assertEquals("max property", 201.0, data.get("max"));
 
         List<Map> points = (List) data.get("points");
 
         assertEquals("9 points should be returned", 5, points.size());
 
-        assertEquals("pt0 X property", 3.8516484760372463E-13, (double)points.get(0).get("x"), 0.000000000001);
-        assertEquals("pt0 Y property", 0.0,                    (double)points.get(0).get("y"), 0.000000000001);
+        assertEquals("pt0 X property", 0,        (double)points.get(0).get("x"), 1e-4);
+        assertEquals("pt0 Y property", 201.0,    (double)points.get(0).get("y"), 1e-4);
 
-        assertEquals("pt1 X property", 15.277036647064136,     (double)points.get(1).get("x"), 0.000000000001);
-        assertEquals("pt1 Y property", 0.0,                    (double)points.get(1).get("y"), 0.000000000001);
+        assertEquals("pt1 X property", 14.19705, (double)points.get(1).get("x"), 1e-4);
+        assertEquals("pt1 Y property", 200.6666, (double)points.get(1).get("y"), 1e-4);
 
-        assertEquals("pt2 X property", 31.318980178414588,     (double)points.get(2).get("x"), 0.000000000001);
-        assertEquals("pt2 Y property", 0.0,                    (double)points.get(2).get("y"), 0.000000000001);
+        assertEquals("pt2 X property", 26.04603, (double)points.get(2).get("x"), 1e-4);
+        assertEquals("pt2 Y property", 200.0,    (double)points.get(2).get("y"), 1e-4);
 
-        assertEquals("pt3 X property", 47.84147288711511,     (double)points.get(3).get("x"), 0.000000000001);
-        assertEquals("pt3 Y property", 0.0,                    (double)points.get(3).get("y"), 0.000000000001);
+        assertEquals("pt3 X property", 39.52094, (double)points.get(3).get("x"), 1e-4);
+        assertEquals("pt3 Y property", 200.0,    (double)points.get(3).get("y"), 1e-4);
 
-        assertEquals("pt4 X property", 53.45248543862846,     (double)points.get(4).get("x"), 0.000000000001);
-        assertEquals("pt4 Y property", 0.0,                    (double)points.get(4).get("y"), 0.000000000001);
+        assertEquals("pt4 X property", 53.45248, (double)points.get(4).get("x"), 1e-4);
+        assertEquals("pt4 Y property", 201.0,    (double)points.get(4).get("y"), 1e-4);
     }
 
     @Test
@@ -1844,7 +1845,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         String expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":193.0,\"unit\":null}],\"time\":null}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}],\"time\":null}]";
 
         String result = getStringResponse(gfi);
         assertNotNull(result);
@@ -1858,7 +1859,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         }
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":193.0,\"unit\":null}],\"time\":null}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"elevation\":null,\"values\":[{\"name\":\"0\",\"value\":201.0,\"unit\":null}],\"time\":null}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);

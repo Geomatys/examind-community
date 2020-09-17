@@ -33,6 +33,7 @@ import org.constellation.ws.LayerCache;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display.SearchArea;
 import org.geotoolkit.display.canvas.RenderingContext;
+import org.geotoolkit.display2d.GO2Hints;
 import org.geotoolkit.display2d.GraphicVisitor;
 import org.geotoolkit.display2d.canvas.RenderingContext2D;
 import org.geotoolkit.renderer.Presentation;
@@ -163,6 +164,7 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
             }
         });
 
+        sDef.getHints().put(GO2Hints.KEY_PRESERVE_PROPERTIES, true);
         DefaultPortrayalService.visit(cDef, sDef, visitDef);
     }
 
