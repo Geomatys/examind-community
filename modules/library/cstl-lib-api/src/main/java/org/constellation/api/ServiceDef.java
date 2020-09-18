@@ -76,7 +76,10 @@ public enum ServiceDef {
     WPS_2_0_0(Specification.WPS, Organization.OGC, "2.0.0", Profile.NONE, "2.0.0", true, true),
 
     // OSGEO TMS service definitions
-    TMS(Specification.TMS, Organization.NONE, "1.0.0", Profile.NONE, null, false, true);
+    TMS(Specification.TMS, Organization.NONE, "1.0.0", Profile.NONE, null, false, true),
+
+    // 3DTiles service definitions
+    TILES3D(Specification.TILES3D, Organization.OGC, "1.0.0", Profile.NONE, null, true, true);
 
     /**
      * Name of the specification.
@@ -221,7 +224,8 @@ public enum ServiceDef {
         THW("Thesaurus"),
         TMS("Tile Map Service"),
         STS("Sensor Things Service"),
-        WEBDAV("Webdav");
+        WEBDAV("Webdav"),
+        TILES3D("3DTiles");
 
         public final String fullName;
 
@@ -256,6 +260,8 @@ public enum ServiceDef {
                 return TMS;
             } else if (WEBDAV.name().equalsIgnoreCase(shortName)) {
                 return WEBDAV;
+            } else if (TILES3D.name().equalsIgnoreCase(shortName)) {
+                return TILES3D;
             }
             throw new IllegalArgumentException(shortName + " is not a valid service specification.");
         }
