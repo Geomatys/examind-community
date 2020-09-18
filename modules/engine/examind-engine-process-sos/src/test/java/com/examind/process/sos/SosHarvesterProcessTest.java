@@ -104,6 +104,7 @@ public class SosHarvesterProcessTest {
 
     // DBF dir
     private static Path ltDirectory;
+    private static Path rtDirectory;
 
     @Inject
     protected IServiceBusiness serviceBusiness;
@@ -134,6 +135,8 @@ public class SosHarvesterProcessTest {
         Files.createDirectories(mooDirectory);
         ltDirectory       = dataDirectory.resolve("lt-ts");
         Files.createDirectories(ltDirectory);
+        rtDirectory       = dataDirectory.resolve("rt-ts");
+        Files.createDirectories(rtDirectory);
         multiPlatDirectory = dataDirectory.resolve("multi-plat");
         Files.createDirectories(multiPlatDirectory);
 
@@ -147,6 +150,9 @@ public class SosHarvesterProcessTest {
 
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
         writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_002.dbf", "LakeTile_002.dbf");
+        
+        writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_001.dbf", "rivertile_001.dbf");
+        writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_002.dbf", "rivertile_002.dbf");
 
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
         writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
@@ -653,7 +659,7 @@ public class SosHarvesterProcessTest {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
-        String sensorId = "urn:sensor:4";
+        String sensorId = "urn:sensor:dbf:1";
 
         String datasetId = "SOS_DATA";
 
@@ -704,6 +710,8 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals("2022-08-28T10:58:39.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
+        
+        Assert.assertEquals(1, offp.getObservedProperties().size());
 
         String observedProperty = offp.getObservedProperties().get(0);
 
@@ -721,9 +729,93 @@ public class SosHarvesterProcessTest {
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
     }
-
+    
     @Test
     @Order(order = 5)
+    public void harvestDBFTS2Test() throws Exception {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        String sensorId = "urn:sensor:dbf:2";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(rtDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationDbfFile");
+        in.parameter(SosHarvesterProcessDescriptor.FORMAT_NAME).setValue("application/dbase; subtype=\"om\"");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
+
+        in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("node_id");
+
+        in.parameter(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).setValue("height");
+        
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val1.setValue("height");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.MEASURE_COLUMNS_NAME).createValue();
+        val2.setValue("width");
+        in.values().add(val2);
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.PROCEDURE_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2022-06-06T00:58:50.921", time.getBeginPosition().getValue());
+        Assert.assertEquals("2022-06-15T23:21:00.641", time.getEndPosition().getValue());
+
+        Assert.assertEquals(64, offp.getFeatureOfInterestIds().size());
+        
+        Assert.assertEquals(1, offp.getObservedProperties().size());
+
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        /*
+        * Verify an inserted time serie
+        */
+        String foi = "8403780.0";
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        String expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-1.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        foi = "8403781.0";
+        gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
+        expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-2.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+    }
+
+    @Test
+    @Order(order = 6)
     public void harvestCSVTSMultiPlatformTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");

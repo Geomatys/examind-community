@@ -1123,4 +1123,25 @@ public class ObservationStoreProvider extends AbstractDataProvider implements Ob
         }
         return version;
     }
+
+    @Override
+    public synchronized void reload() {
+        dispose();
+        visit();
+    }
+
+    @Override
+    public synchronized void dispose() {
+        if(store != null){
+            try {
+                store.close();
+            } catch (DataStoreException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+        index.clear();
+        capabilities = null;
+    }
+    
+    
 }
