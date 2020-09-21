@@ -595,7 +595,7 @@ public class WMSService extends GridWebService<WMSWorker> {
             throw new CstlServiceException(i, INVALID_PARAMETER_VALUE);
         }
         final String format = strFormat;
-        if (format == null) {
+        if (fromGetMap && format == null) {
             throw new CstlServiceException("Invalid format specified.", INVALID_FORMAT, KEY_FORMAT.toLowerCase());
         }
         final List<String> layers  = StringUtilities.toStringList(strLayers);
