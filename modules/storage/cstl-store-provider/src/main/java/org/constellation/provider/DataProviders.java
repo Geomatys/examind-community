@@ -68,6 +68,8 @@ import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.io.wkt.PrjFiles;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.storage.ResourceType;
+import org.geotoolkit.storage.StoreMetadataExt;
 import org.geotoolkit.storage.feature.FeatureStore;
 import org.geotoolkit.storage.feature.FileFeatureStoreFactory;
 import org.geotoolkit.storage.memory.ExtendedFeatureStore;
@@ -831,8 +833,7 @@ public final class DataProviders extends Static{
     }
 
     public static Map<String, String> probeContentAndStoreIds(Path p) throws DataStoreException {
-        final Function<DataStoreProvider, String> nameExtractor;
-        List<DataStoreProvider> providers = new ArrayList<>(org.apache.sis.storage.DataStores.providers());
+        List<DataStoreProvider> providers = org.apache.sis.storage.DataStores.providers().stream().filter(dp -> !isOnlyObservationStore(dp)).collect(Collectors.toList());
         final Map<String, ProbeResult> results = probeContent(providers, DataProviders::extractName, () -> new StorageConnector(p));
         return results.entrySet().stream()
                 .filter(e -> e.getValue().isSupported())
@@ -842,6 +843,13 @@ public final class DataProviders extends Static{
                 }));
     }
 
+    private static boolean isOnlyObservationStore(DataStoreProvider dsp) {
+        StoreMetadataExt st = dsp.getClass().getAnnotation(StoreMetadataExt.class);
+        if (st != null) {
+            return st.resourceTypes().length == 1 && ResourceType.SENSOR.equals(st.resourceTypes()[0]);
+        }
+        return false;
+    }
     private static boolean isProperlyReset(StorageConnector input, byte[] ctrlValue) throws DataStoreException {
         final ByteBuffer storage = input.getStorageAs(ByteBuffer.class);
         final byte[] currentValue = new byte[ctrlValue.length];
