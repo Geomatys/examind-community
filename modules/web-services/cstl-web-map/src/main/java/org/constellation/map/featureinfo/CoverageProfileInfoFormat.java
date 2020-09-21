@@ -40,6 +40,7 @@ import java.util.stream.StreamSupport;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import org.apache.sis.coverage.SampleDimension;
+import org.apache.sis.coverage.grid.DisjointExtentException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridRoundingMode;
@@ -52,6 +53,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultCompoundCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.NoSuchDataException;
 import org.apache.sis.storage.Resource;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -176,6 +178,8 @@ public class CoverageProfileInfoFormat extends AbstractFeatureInfoFormat {
                                    .orElseThrow(() -> new PortrayalException("resource identifier not present")).tip().toString();
                     }
                     profil.layers.add(l);
+                } catch (DisjointExtentException | NoSuchDataException ex) {
+                    LOGGER.log(Level.FINE, "Cannot extract profile for input geometry", ex);
                 } catch (TransformException | DataStoreException | FactoryException ex) {
                     throw new PortrayalException(ex.getMessage(), ex);
                 }
