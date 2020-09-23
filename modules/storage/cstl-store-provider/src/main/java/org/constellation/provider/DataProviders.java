@@ -942,36 +942,38 @@ public final class DataProviders extends Static{
     public static void fillGeographicDescription(Envelope envelope, final DataDescription description) {
         double[] lower, upper;
         try {
-            GeneralEnvelope env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
-            env.simplify();
-            if (env.isEmpty()) {
-                env = null;
-                CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
+            GeneralEnvelope env = null;
+            if (envelope.getCoordinateReferenceSystem() != null) {
+                env = GeneralEnvelope.castOrCopy(Envelopes.transform(envelope, CommonCRS.defaultGeographic()));
+                env.simplify();
+                if (env.isEmpty()) {
+                    env = null;
+                    CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
 
-                //search for envelope directly in geographic
-                Extent extent = crs.getDomainOfValidity();
-                if (extent != null) {
-                    for (GeographicExtent ext : extent.getGeographicElements()) {
-                        if (ext instanceof GeographicBoundingBox) {
-                            final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
-                            env = new GeneralEnvelope(geo);
-                            env.simplify();
+                    //search for envelope directly in geographic
+                    Extent extent = crs.getDomainOfValidity();
+                    if (extent != null) {
+                        for (GeographicExtent ext : extent.getGeographicElements()) {
+                            if (ext instanceof GeographicBoundingBox) {
+                                final GeographicBoundingBox geo = (GeographicBoundingBox) ext;
+                                env = new GeneralEnvelope(geo);
+                                env.simplify();
+                            }
                         }
                     }
-                }
-                if (env == null) {
-                    //fallback on crs validity area
-                    Envelope cdt = CRS.getDomainOfValidity(crs);
-                    if (cdt != null) {
-                        env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
-                        env.simplify();
-                        if (env.isEmpty()) {
-                            env = null;
+                    if (env == null) {
+                        //fallback on crs validity area
+                        Envelope cdt = CRS.getDomainOfValidity(crs);
+                        if (cdt != null) {
+                            env = GeneralEnvelope.castOrCopy(Envelopes.transform(cdt, CommonCRS.defaultGeographic()));
+                            env.simplify();
+                            if (env.isEmpty()) {
+                                env = null;
+                            }
                         }
                     }
                 }
             }
-
             if (env == null) {
                 lower = new double[]{-180, -90};
                 upper = new double[]{180, 90};
