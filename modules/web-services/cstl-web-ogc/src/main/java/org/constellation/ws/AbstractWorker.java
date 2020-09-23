@@ -57,10 +57,7 @@ import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
 
 /**
  * Abstract definition of a {@code Web Map Service} worker called by a facade
@@ -535,15 +532,8 @@ public abstract class AbstractWorker implements Worker {
     }
 
     /**
-     * Reset capabilities. In practice, events which inform of a change are often
-     * missed by the server, so a workaround is to force its refresh every five
-     * minutes.
-     *
-     * Note that it's not a really good workaround, as it's a fixed rate. It means
-     * it is not relative to the last capabilities cache generation, but to the
-     * last attempt to clear cache using scheduler.
+     * Reset the capabilities cache.
      */
-    @Scheduled(fixedRate = 300000)
     @Override
     public void clearCapabilitiesCache() {
         final List<String> toClear = new ArrayList<>();
