@@ -103,10 +103,6 @@ public interface Data<T extends Resource> {
     SortedSet<Number> getAvailableElevations() throws ConstellationStoreException;
 
     /**
-     */
-    GeographicBoundingBox getGeographicBoundingBox() throws ConstellationStoreException;
-
-    /**
      * Returns the native envelope of this layer.
      */
     Envelope getEnvelope() throws ConstellationStoreException;

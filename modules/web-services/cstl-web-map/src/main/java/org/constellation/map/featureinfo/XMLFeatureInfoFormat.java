@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -37,7 +38,6 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -96,7 +96,7 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         margin += "\t";
         builder.append(margin).append("<Layer>").append(encodeXML(layerName)).append("</Layer>\n");
 
-        builder.append(coverageToXML(layer, results, margin, gfi, getLayers()));
+        builder.append(coverageToXML(layer, results, margin, gfi, getLayer(fullLayerName, DataType.COVERAGE)));
 
         margin = margin.substring(1);
         builder.append(margin).append("</Coverage>\n");
@@ -113,18 +113,10 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     }
 
     protected String coverageToXML(final MapLayer maplayer, final List<Map.Entry<SampleDimension,Object>> results,
-                                          String margin, final GetFeatureInfo gfi, final List<LayerCache> layers) {
+                                          String margin, final GetFeatureInfo gfi, final Optional<LayerCache> layerO) {
 
         StringBuilder builder = new StringBuilder();
-        final GenericName fullLayerName = getNameForCoverageLayer(maplayer);
-
-        Data data = null;
-
-        for (LayerCache layer : layers) {
-            if (layer.getData().getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
-                data = layer.getData();
-            }
-        }
+        LayerCache layer = layerO.orElse(null);
 
         final Envelope objEnv;
         List<Date> time;
@@ -172,9 +164,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
              * leverage the database index.
              */
             DateRange dates = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    dates = data.getDateRange();
+                    dates = layer.getDateRange();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                 }
@@ -195,9 +187,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
 
         if (elevation == null) {
             SortedSet<Number> elevs = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    elevs = data.getAvailableElevations();
+                    elevs = layer.getAvailableElevations();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     elevs = null;

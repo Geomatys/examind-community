@@ -118,6 +118,7 @@ import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.geotoolkit.filter.FilterUtilities;
 import org.apache.sis.util.Version;
+import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.geotoolkit.map.MapBuilder;
@@ -361,39 +362,39 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 continue;
             }
 
-            if (!data.isQueryable(ServiceDef.Query.WMS_ALL)) {
+            if (!layer.isQueryable(ServiceDef.Query.WMS_ALL)) {
                 continue;
             }
 
             // Get default CRS for the layer supported crs.
-            final Envelope layerNativeEnv;
+            final Envelope nativeEnv;
             try {
-                layerNativeEnv = data.getEnvelope();
-                if (layerNativeEnv == null) {
-                    LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", data);
+                nativeEnv = layer.getEnvelope();
+                if (nativeEnv == null) {
+                    LOGGER.log(Level.WARNING, "Cannot get envelope for layer {0}  (null)", layer.getName());
                     continue;
                 }
             } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, ex, () -> "Cannot get envelope for layer "+data);
+                LOGGER.log(Level.WARNING, ex, () -> "Cannot get envelope for layer " + layer.getName());
                 continue;
             }
 
-            String nativeCrs = null;
+            CoordinateReferenceSystem nativeCRS = nativeEnv.getCoordinateReferenceSystem();
+            String nativeCrsCode = null;
             try {
-               CoordinateReferenceSystem crs = layerNativeEnv.getCoordinateReferenceSystem();
-               if (crs != null) {
-                   final Integer epsgCode = IdentifiedObjects.lookupEPSG(crs);
+               if (nativeCRS != null) {
+                   final Integer epsgCode = IdentifiedObjects.lookupEPSG(nativeCRS);
                    if (epsgCode != null) {
-                       nativeCrs = "EPSG:" + epsgCode;
+                       nativeCrsCode = "EPSG:" + epsgCode;
                    }
                }
            } catch (FactoryException ex) {
-               LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + data.getName(), ex);
+               LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + layer.getName(), ex);
            }
 
             GeographicBoundingBox inputGeoBox = null;
             try {
-                inputGeoBox = data.getGeographicBoundingBox();
+                inputGeoBox = layer.getGeographicBoundingBox();
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, "Error retrieving bouding box values for the layer :"+ data.getName(), ex);
             }
@@ -438,7 +439,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
              * Dimension: the available date
              */
             try {
-                final SortedSet<Date> dates = data.getAvailableTimes();
+                final SortedSet<Date> dates = layer.getAvailableTimes();
                 if (!dates.isEmpty()) {
                     final DateFormat df = getDateFormatter();
                     synchronized (df) {
@@ -450,19 +451,19 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     }
                 }
             } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :"+ data.getName(), ex);
+                LOGGER.log(Level.WARNING, "Error retrieving dates values for the layer :" + layer.getName(), ex);
             }
 
             /*
              * Dimension: the available elevation
              */
             try {
-               final SortedSet<Number> elevations = data.getAvailableElevations();
+               final SortedSet<Number> elevations = layer.getAvailableElevations();
                if (!elevations.isEmpty()) {
                    // Define elevation unit as a CRS identifier. See Annex C.2
                    String unit = null;
                    try {
-                       final VerticalCRS vCrs = CRS.getVerticalComponent(layerNativeEnv.getCoordinateReferenceSystem(), true);
+                       final VerticalCRS vCrs = CRS.getVerticalComponent(nativeCRS, true);
                        unit = ReferencingUtilities.lookupIdentifier(vCrs, true);
                    } catch (Exception e) {
                        LOGGER.log(Level.WARNING, "Cannot find any valid identifier for vertical CRS.", e);
@@ -474,13 +475,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                    dimensions.add(dim);
                }
            } catch (ConstellationStoreException ex) {
-               LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :" + data.getName(), ex);
+               LOGGER.log(Level.WARNING, "Error retrieving elevation values for the layer :" + layer.getName(), ex);
            }
 
             /*
              * Dimension: the dimension range
              */
-            final MeasurementRange<?>[] ranges = data.getSampleValueRanges();
+            final MeasurementRange<?>[] ranges = layer.getSampleValueRanges();
             /* If the layer has only one sample dimension, then we can apply the dim_range
              * parameter. Otherwise it can be a multiple sample dimensions layer, and we
              * don't apply the dim_range.
@@ -573,10 +574,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final String beginLegendUrl = getServiceUrl() + "REQUEST=GetLegendGraphic&VERSION=1.1.1&FORMAT=";
             final String legendUrlGif   = beginLegendUrl + MimeType.IMAGE_GIF + "&LAYER=" + layerName;
             final String legendUrlPng   = beginLegendUrl + MimeType.IMAGE_PNG + "&LAYER=" + layerName;
-            final String queryable      = (data.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
+            final String queryable      = (layer.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
             final String _abstract;
             final String keyword;
-            if (data instanceof CoverageData) {
+            if (DataType.COVERAGE.equals(layer.getDataType())) {
                 _abstract = "Coverage data";
                 keyword   = "Coverage data";
             } else {
@@ -598,18 +599,17 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         inputGeoBox.getEastBoundLongitude(),
                         inputGeoBox.getNorthBoundLatitude(), null, null);
 
-                if (nativeCrs != null && layerNativeEnv.getCoordinateReferenceSystem() != null) {
+                if (nativeCrsCode != null && nativeCRS != null) {
                     try {
-                        final Envelope rightHanded = Envelopes.transform(layerNativeEnv,
-                                AbstractCRS.castOrCopy(layerNativeEnv.getCoordinateReferenceSystem()).forConvention(AxesConvention.RIGHT_HANDED));
+                        final Envelope rightHanded = Envelopes.transform(nativeEnv, AbstractCRS.castOrCopy(nativeCRS).forConvention(AxesConvention.RIGHT_HANDED));
                         nativeBBox = createBoundingBox(queryVersion,
-                            nativeCrs,
+                            nativeCrsCode,
                             rightHanded.getMinimum(0),
                             rightHanded.getMinimum(1),
                             rightHanded.getMaximum(0),
                             rightHanded.getMaximum(1), nativeResolutionX, nativeResolutionY);
                     } catch (TransformException ex) {
-                        LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :"+ data.getName(), ex);
+                        LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + layer.getName(), ex);
                     }
                 }
 
@@ -625,13 +625,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                             inputGeoBox.getNorthBoundLatitude(),
                             inputGeoBox.getEastBoundLongitude(), null, null);
 
-                if (nativeCrs != null) {
+                if (nativeCrsCode != null) {
                     nativeBBox = createBoundingBox(queryVersion,
-                        nativeCrs,
-                        layerNativeEnv.getMinimum(0),
-                        layerNativeEnv.getMinimum(1),
-                        layerNativeEnv.getMaximum(0),
-                        layerNativeEnv.getMaximum(1), nativeResolutionX, nativeResolutionY);
+                        nativeCrsCode,
+                        nativeEnv.getMinimum(0),
+                        nativeEnv.getMinimum(1),
+                        nativeEnv.getMaximum(0),
+                        nativeEnv.getMaximum(1), nativeResolutionX, nativeResolutionY);
                 }
 
             }
@@ -651,11 +651,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             //list supported crs
             final List<String> supportedCrs;
-            if (nativeCrs != null && DEFAULT_CRS.indexOf(nativeCrs) != 0) {
+            if (nativeCrsCode != null && DEFAULT_CRS.indexOf(nativeCrsCode) != 0) {
                 //we add or move to first position the native crs
                 supportedCrs = new ArrayList<>(DEFAULT_CRS);
-                supportedCrs.remove(nativeCrs);
-                supportedCrs.add(0, nativeCrs);
+                supportedCrs.remove(nativeCrsCode);
+                supportedCrs.add(0, nativeCrsCode);
             } else {
                 supportedCrs = DEFAULT_CRS;
             }

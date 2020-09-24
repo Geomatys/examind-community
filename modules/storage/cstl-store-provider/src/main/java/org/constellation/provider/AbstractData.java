@@ -30,12 +30,9 @@ import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.measure.MeasurementRange;
 
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.DataStore;
@@ -120,26 +117,6 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     @Override
     public boolean isQueryable(final Query query) {
         return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final GeographicBoundingBox getGeographicBoundingBox() throws ConstellationStoreException {
-        try {
-            final Envelope env = getEnvelope();
-            if (env != null) {
-                final DefaultGeographicBoundingBox result = new DefaultGeographicBoundingBox();
-                result.setBounds(env);
-                return result;
-            } else {
-                LOGGER.warning("Null boundingBox for Layer:" + name + ". Returning World BBOX.");
-                return new DefaultGeographicBoundingBox(-180, 180, -90, 90);
-            }
-        } catch (TransformException ex) {
-            throw new ConstellationStoreException(ex);
-        }
     }
 
     /**

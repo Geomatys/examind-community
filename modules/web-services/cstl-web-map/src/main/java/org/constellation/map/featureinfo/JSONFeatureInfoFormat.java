@@ -62,7 +62,6 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.featureinfo.dto.CoverageInfo;
 import org.constellation.map.featureinfo.dto.FeatureInfo;
 import org.constellation.map.featureinfo.dto.LayerInfo;
-import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 
@@ -153,7 +152,7 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
             if (results == null || results.isEmpty()) return;
 
-            final CoverageInfo info = buildCoverageInfo(fullLayerName, gfi, getLayers());
+            final CoverageInfo info = buildCoverageInfo(fullLayerName, getLayer(fullLayerName, DataType.COVERAGE), gfi);
             fill(info, results);
             infoQueue.add(info);
         } catch (Exception e) {
@@ -164,18 +163,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
         }
     }
 
-    static Optional<LayerCache> select(final GenericName target, DataType type, final List<LayerCache> source) {
-        if (source == null) return Optional.empty();
-        return source.stream()
-                .filter(layer -> layer.getData().getDataType().equals(type) && layer.getName().equals(target))
-                .findAny();
-    }
+    protected static CoverageInfo buildCoverageInfo(final GenericName layerName, final Optional<LayerCache> layerO, final GetFeatureInfo gfi) {
 
-    protected static CoverageInfo buildCoverageInfo(final GenericName fullLayerName, final GetFeatureInfo gfi, final List<LayerCache> layers) {
-
-        Optional<LayerCache> layer = select(fullLayerName, DataType.COVERAGE, layers);
-        Data data = layer.isPresent() ? layer.get().getData() : null;
-
+        LayerCache layer = layerO.orElse(null);
         List<Date> time;
         Double elevation;
         if (gfi != null && gfi instanceof org.geotoolkit.wms.xml.GetFeatureInfo) {
@@ -195,9 +185,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
              * leverage the database index.
              */
             DateRange dates = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    dates = data.getDateRange();
+                    dates = layer.getDateRange();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                 }
@@ -211,9 +201,9 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
 
         if (elevation == null) {
             SortedSet<Number> elevs = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    elevs = data.getAvailableElevations();
+                    elevs = layer.getAvailableElevations();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     elevs = null;
@@ -225,7 +215,7 @@ public class JSONFeatureInfoFormat extends AbstractFeatureInfoFormat {
         }
 
         final Instant javaTime = time == null || time.isEmpty() ? null : time.get(time.size() - 1).toInstant();
-        return new CoverageInfo(fullLayerName.toString(), javaTime, elevation);
+        return new CoverageInfo(layerName.toString(), javaTime, elevation);
     }
 
     static void fill(CoverageInfo target, final List<Map.Entry<SampleDimension,Object>> results) {

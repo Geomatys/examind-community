@@ -23,11 +23,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.logging.Logging;
+import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.ws.LayerCache;
 import org.geotoolkit.display.PortrayalException;
@@ -107,6 +109,17 @@ public abstract class AbstractFeatureInfoFormat implements FeatureInfoFormat {
     @Override
     public void setLayers(List<LayerCache> layers) {
         this.layers = layers;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<LayerCache> getLayer(GenericName name, DataType type) {
+        if (layers == null) return Optional.empty();
+        return layers.stream()
+                .filter(layer -> layer.getDataType().equals(type) && layer.getName().equals(name))
+                .findAny();
     }
 
     /**

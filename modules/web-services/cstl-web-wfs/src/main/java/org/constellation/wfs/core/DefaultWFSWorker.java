@@ -409,7 +409,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 try {
                     type  = fld.getType();
                 } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Error while getting featureType for:{0}\ncause:{1}", new Object[]{fld.getName(), ex.getMessage()});
+                    LOGGER.log(Level.WARNING, "Error while getting featureType for:{0}\ncause:{1}", new Object[]{layer.getName(), ex.getMessage()});
                     continue;
                 }
                 final Layer confLayer = layer.getConfiguration();
@@ -435,7 +435,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             title,
                             defaultCRS,
                             others,
-                            toBBox(fld, currentVersion));
+                            toBBox(layer, currentVersion));
 
                     /*
                      * we apply the layer customization
@@ -586,7 +586,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         types.add(NameOverride.wrap(ftType, layer.getName()));
                     }
                 } catch (ConstellationStoreException | DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", data.getName());
+                    LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
             }
         } else {
@@ -775,7 +775,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 try {
                     types.add(NameOverride.wrap(data.getType(), layer.getName()));
                 } catch (ConstellationStoreException ex) {
-                    LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", data.getName());
+                    LOGGER.log(Level.WARNING, "error while getting featureType for:{0}", layer.getName());
                 }
             }
             suffix = "";
@@ -2065,9 +2065,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
      * Extract the WGS84 BBOx from a featureSource.
      * what ? may not be wgs84 exactly ? why is there a CRS attribute on a wgs84 bbox ?
      */
-    private static Object toBBox(final FeatureData fld, final String version) throws CstlServiceException{
+    private static Object toBBox(final LayerCache layer, final String version) throws CstlServiceException{
         try {
-            Envelope env = fld.getEnvelope();
+            Envelope env = layer.getEnvelope();
             if (env != null) {
                 final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
                 if (!Utilities.equalsIgnoreMetadata(env.getCoordinateReferenceSystem(), epsg4326)) {

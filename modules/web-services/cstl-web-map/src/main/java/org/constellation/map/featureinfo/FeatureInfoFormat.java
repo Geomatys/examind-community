@@ -20,6 +20,8 @@ package org.constellation.map.featureinfo;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Optional;
+import org.constellation.api.DataType;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
@@ -27,6 +29,7 @@ import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
+import org.opengis.util.GenericName;
 
 /**
  * FeatureInfo formatter.
@@ -88,4 +91,13 @@ public interface FeatureInfoFormat {
      * @return layers or null
      */
     public List<LayerCache> getLayers();
+    
+    /**
+     * Get a layer with the specified name and type.
+     * @param name qualified name of the layer.
+     * @param type data type of the layer.
+     * 
+     * @return Optional of layer or empty
+     */
+    public Optional<LayerCache> getLayer(GenericName name, DataType type);
 }

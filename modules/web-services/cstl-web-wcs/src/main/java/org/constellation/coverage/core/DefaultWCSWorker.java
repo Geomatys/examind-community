@@ -265,7 +265,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             final GenericName name = parseCoverageName(coverage);
             final LayerCache layer = getLayerCache(userLogin, name);
-            if (layer.getData().getDataType().equals(DataType.VECTOR)) {
+            if (layer.getDataType().equals(DataType.VECTOR)) {
                 throw new CstlServiceException("The requested layer is vectorial. WCS is not able to handle it.",
                         LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
             }
@@ -308,14 +308,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         try {
             final String coverageName = layer.getName().tip().toString();
             final CoverageData data = (CoverageData) layer.getData();
-            final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
+            final GeographicBoundingBox inputGeoBox = layer.getGeographicBoundingBox();
 
             final List<EnvelopeType> envelopes = new ArrayList<>();
 
             final LonLatEnvelopeType llenvelope;
             final EnvelopeType envelope;
             if (inputGeoBox != null) {
-                final SortedSet<Number> elevations = data.getAvailableElevations();
+                final SortedSet<Number> elevations = layer.getAvailableElevations();
                 final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, elevations);
                 llenvelope = new LonLatEnvelopeType(pos, "urn:ogc:def:crs:OGC:1.3:CRS84");
                 envelope = new EnvelopeType(pos, "urn:ogc:def:crs:EPSG::4326");
@@ -329,7 +329,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final EnvelopeType nativeEnvelope = getGMLEnvelope(data.getEnvelope());
+            final EnvelopeType nativeEnvelope = getGMLEnvelope(layer.getEnvelope());
             if (nativeEnvelope != null && !envelopes.contains(nativeEnvelope)) {
                 envelopes.add(nativeEnvelope);
             }
@@ -365,7 +365,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 new org.geotoolkit.wcs.xml.v100.SpatialDomainType(envelopes, Arrays.asList(grid));
 
             // temporal metadata
-            final List<Object> times = WCSUtils.formatDateList(data.getAvailableTimes());
+            final List<Object> times = WCSUtils.formatDateList(layer.getAvailableTimes());
             final DomainSetType domainSet = new DomainSetType(spatialDomain, times);
             //TODO complete
             final RangeSetType rangeSet = new RangeSetType(null, coverageName, coverageName, null, null, null, null);
@@ -455,7 +455,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         try {
             final String coverageName = layer.getName().tip().toString();
             final CoverageData data = (CoverageData) layer.getData();
-            final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
+            final GeographicBoundingBox inputGeoBox = layer.getGeographicBoundingBox();
 
             WGS84BoundingBoxType outputBBox = null;
             if (inputGeoBox != null) {
@@ -464,7 +464,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final BoundingBoxType nativeEnvelope = new BoundingBoxType(data.getEnvelope());
+            final BoundingBoxType nativeEnvelope = new BoundingBoxType(layer.getEnvelope());
 
             GridCrsType grid = null;
             try {
@@ -491,7 +491,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final List<String> keywords = Arrays.asList("WCS", coverageName);
 
             // temporal metadata
-            final List<Object> times = WCSUtils.formatDateList(data.getAvailableTimes());
+            final List<Object> times = WCSUtils.formatDateList(layer.getAvailableTimes());
             final CoverageDomainType domain = new CoverageDomainType(spatial, times);
 
             //supported interpolations
@@ -529,7 +529,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             /*
              * Spatial metadata
              */
-            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(data.getEnvelope());
+            final org.geotoolkit.gml.xml.v321.EnvelopeType nativeEnvelope = new org.geotoolkit.gml.xml.v321.EnvelopeType(layer.getEnvelope());
 
             org.geotoolkit.gml.xml.v321.GridType grid = null;
             try {
@@ -688,16 +688,16 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 final Data data = layer.getData();
 
                 if (data == null) {
-                    throw new CstlServiceException("There is no existing layer named:" + layer.getName());
+                    throw new CstlServiceException("There is no existing data for the layer:" + layer.getName());
                 }
 
-                if (data.getDataType().equals(DataType.VECTOR)) {
+                if (layer.getDataType().equals(DataType.VECTOR)) {
                     continue;
                 }
                 if (!layer.isQueryable(ServiceDef.Query.WCS_ALL)) {
                     continue;
                 }
-                if (data.getGeographicBoundingBox() == null) {
+                if (layer.getGeographicBoundingBox() == null) {
                     // The coverage does not contain geometric information, we do not want this coverage
                     // in the capabilities response.
                     continue;
@@ -754,11 +754,11 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     private CoverageInfo getCoverageInfo100(final LayerCache layer) throws ConstellationStoreException {
 
         final String layerName = layer.getName().tip().toString();
-        final GeographicBoundingBox inputGeoBox = layer.getData().getGeographicBoundingBox();
-        final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, layer.getData().getAvailableElevations());
+        final GeographicBoundingBox inputGeoBox = layer.getGeographicBoundingBox();
+        final List<DirectPositionType> pos = WCSUtils.buildPositions(inputGeoBox, layer.getAvailableElevations());
         final LonLatEnvelopeType outputBBox = new LonLatEnvelopeType(pos, "urn:ogc:def:crs:OGC:1.3:CRS84");
 
-        final SortedSet<Date> dates = layer.getData().getAvailableTimes();
+        final SortedSet<Date> dates = layer.getAvailableTimes();
         if (dates != null && dates.size() >= 2) {
             /*
              * Adds the first and last date available, since in the WCS GetCapabilities,
@@ -787,12 +787,11 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
      */
     private CoverageInfo getCoverageInfo(final String version, final LayerCache layer) throws ConstellationStoreException {
 
-        final CoverageData data = (CoverageData) layer.getData();
         final String identifier = layer.getName().tip().toString();
         final String title      = identifier;
         final String remark = "";
 
-        final GeographicBoundingBox inputGeoBox = data.getGeographicBoundingBox();
+        final GeographicBoundingBox inputGeoBox = layer.getGeographicBoundingBox();
         final BoundingBox outputBBox = WCSXmlFactory.buildWGS84BoundingBox(version, inputGeoBox);
         final String coverageSubType = "GridCoverage";
         return WCSXmlFactory.createCoverageInfo(version, identifier, title,
@@ -836,7 +835,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
         final GenericName tmpName = parseCoverageName(request.getCoverage());
         final LayerCache layer = getLayerCache(userLogin, tmpName);
-        if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getData().getDataType().equals(DataType.VECTOR)) {
+        if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getDataType().equals(DataType.VECTOR)) {
             throw new CstlServiceException("You are not allowed to request the layer \"" +
                     layer.getName() + "\".", INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
         }
@@ -905,7 +904,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // Ensures the requested envelope has, at least, a part that intersects the valid envelope
             // for the coverage.
             try {
-                final GeographicBoundingBox geoBbox = data.getGeographicBoundingBox();
+                final GeographicBoundingBox geoBbox = layer.getGeographicBoundingBox();
                 if (geoBbox == null) {
                     throw new CstlServiceException("The request coverage \""+ layer.getName() +"\" has" +
                                                    " no geometric information.", NO_APPLICABLE_CODE);
@@ -935,7 +934,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else {
             // We take the envelope from the data provider. That envelope can be a little bit imprecise.
             try {
-                final GeographicBoundingBox geoBbox = data.getGeographicBoundingBox();
+                final GeographicBoundingBox geoBbox = layer.getGeographicBoundingBox();
                 if (geoBbox == null) {
                     throw new CstlServiceException("The request coverage \""+ layer.getName() +"\" has" +
                                                    " no geometric information.", NO_APPLICABLE_CODE);

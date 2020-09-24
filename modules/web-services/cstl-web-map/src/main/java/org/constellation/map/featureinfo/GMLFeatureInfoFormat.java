@@ -46,7 +46,6 @@ import org.constellation.api.DataType;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.Data;
 import org.constellation.ws.LayerCache;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display.PortrayalException;
@@ -163,14 +162,7 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         layerName = layerName.replaceAll("\\W", "");
         builder.append("\t<").append(layerName).append("_feature").append(endMark);
 
-        final List<LayerCache> layers = getLayers();
-        Data data = null;
-
-        for (LayerCache layer : layers) {
-            if (layer.getData().getDataType().equals(DataType.COVERAGE) && layer.getName().equals(fullLayerName)) {
-                data = layer.getData();
-            }
-        }
+        LayerCache layer = getLayer(fullLayerName, DataType.COVERAGE).orElse(null);
 
         final Envelope objEnv;
         final List<Date> time;
@@ -221,9 +213,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
              * leverage the database index.
              */
             DateRange dates = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    dates = data.getDateRange();
+                    dates = layer.getDateRange();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                 }
@@ -242,9 +234,9 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                     .append("</elevation>").append("\n");
         } else {
             SortedSet<Number> elevs = null;
-            if (data != null) {
+            if (layer != null) {
                 try {
-                    elevs = data.getAvailableElevations();
+                    elevs = layer.getAvailableElevations();
                 } catch (ConstellationStoreException ex) {
                     LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     elevs = null;
@@ -283,8 +275,8 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         }
 
         MeasurementRange[] ranges = null;
-        if (data != null) {
-            ranges = data.getSampleValueRanges();
+        if (layer != null) {
+            ranges = layer.getSampleValueRanges();
         }
         if (ranges != null && ranges.length > 0) {
             final MeasurementRange range = ranges[0];
