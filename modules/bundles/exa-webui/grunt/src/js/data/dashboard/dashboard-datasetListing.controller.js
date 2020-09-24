@@ -11,7 +11,7 @@ angular.module('cstl-data-dashboard')
  * @param {DatasetDashboard} DatasetDashboard
  * @constructor
  */
-function DatasetListingController($rootScope, $scope, DashboardHelper, Examind, defaultDatasetQuery, Dataset, DatasetDashboard) {
+function DatasetListingController($rootScope, $scope, $modal, $q, DashboardHelper, Examind, defaultDatasetQuery, Dataset, DatasetDashboard) {
 
     var self = this;
 
@@ -133,6 +133,10 @@ function DatasetListingController($rootScope, $scope, DashboardHelper, Examind, 
             });
     };
 
+    /**
+     * Delete multi selection data
+     * @returns {Promise<any>}
+     */
     self.deleteMultiData = function () {
         return Dataset.deleteMultiData(self.data,
             function () {
@@ -148,6 +152,80 @@ function DatasetListingController($rootScope, $scope, DashboardHelper, Examind, 
                 // TODO : Move real error management (Growl???) here
                 console.error("Unable to delete this data.", err);
             });
+    };
+
+    self.associateStyle = function () {
+        if (!self.data || self.data.length === 0) {
+            return;
+        }
+        $modal.open({
+            templateUrl: 'views/style/modalStyleChoose.html',
+            controller: 'StyleModalController',
+            resolve: {
+                exclude: function () {
+                    return null;
+                },
+                selectedLayer: function () {
+                    return {
+                        id: self.data[self.data.length - 1].id,
+                        name: self.data[self.data.length - 1].name,
+                        namespace: self.data[self.data.length - 1].namespace,
+                        provider: self.data[self.data.length - 1].provider,
+                        type: self.data[self.data.length - 1].type
+                    };
+                },
+                selectedStyle: function () {
+                    return null;
+                },
+                serviceName: function () {
+                    return null;
+                },
+                newStyle: function () {
+                    return null;
+                },
+                stylechooser: function () {
+                    return null;
+                }
+            }
+        }).result.then(function (sld) {
+            if (angular.isObject(sld)) {
+                var promises = [];
+
+
+                self.data.forEach(function (item) {
+                    promises.push(Examind.styles.link(sld.id, item.id));
+                });
+
+                $q.all(promises).then(function (responses) {
+                    var style = {
+                        id: sld.id,
+                        name: sld.name,
+                        providerIdentifier: sld.provider
+                    };
+
+                    for (var i = 0; i < responses.length; i++) {
+                        self.data[i].targetStyle.push(style);
+                    }
+                    $rootScope.$broadcast("examind:dashboard:data:refresh:map");
+                });
+            }
+        });
+
+    };
+
+    self.canStyleMultiData = function () {
+        if (!self.data || self.data.length === 0) {
+            return false;
+        } else {
+            var res = true;
+            for (var i = 1; i < self.data.length; i++) {
+                if (self.data[i].type !== self.data[0].type) {
+                    res = false;
+                    break;
+                }
+            }
+            return res;
+        }
     };
 
     self.deleteDataset = function () {
